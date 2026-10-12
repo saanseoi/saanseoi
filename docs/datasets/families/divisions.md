@@ -1586,8 +1586,10 @@ The SaanSeoi
 [curated record and map display contract](../sources/saanseoi/divisionArea.md#curated-record-contract)
 resolves correlated spatial branches across administrative boundaries, places landforms
 under their administrative ancestors, and assigns classification-based cartographic
-hints. Names in its source archive use structured arrays and omit null optional keys.
-External dataset matches are identifiers, separate from contribution attribution.
+hints for minimum zoom, maximum zoom and prominence. Both zoom limits come from the
+Division class; overlapping ranges allow labels at adjacent scales to coexist. Names in
+its source archive use structured arrays and omit null optional keys. External dataset
+matches are identifiers, separate from contribution attribution.
 
 ## Curated short codes and list membership
 

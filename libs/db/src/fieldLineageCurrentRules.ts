@@ -1,3 +1,6 @@
+import type { HumanOperation } from './fieldLineageHuman'
+import { humanField } from './fieldLineageHumanFields'
+import type { OperationExplanation } from './fieldLineageExplanation'
 import { nativeDivisionFieldRule } from './fieldLineageNativeDivisions'
 import { geometryReferenceRule } from './fieldLineageGeometryReferences'
 import { planningDivisionFieldRule } from './fieldLineagePlanningRules'
@@ -5,6 +8,8 @@ import { planningDivisionFieldRule } from './fieldLineagePlanningRules'
 /** Field-specific current executor contracts. Expressions use names from their implementation. */
 export type CurrentFieldRule = {
   expression: string
+  explanation?: OperationExplanation
+  human?: HumanOperation
   inputs: string[]
   implementation: { path: string; symbol: string }
   additionalImplementations?: Array<{ path: string; symbol: string }>
@@ -573,8 +578,8 @@ export function currentDivisionFieldRule(
           (
             {
               id: ['id', 'source'],
-              bbox: ['geometry'],
               geometry: ['geometry'],
+              bbox: ['geometry'],
               divisionId: ['division_id'],
               leftDivisionId: ['division_ids'],
               rightDivisionId: ['division_ids'],
@@ -629,8 +634,28 @@ export function currentDivisionFieldRule(
       ['level', 'category'].includes(field)
         ? `geographicDivisionClassification(record.class).${field}`
         : `Select ${field} from the parsed reviewed record; names are materialised as locale-keyed rows.`,
-      ['record'],
+      field === 'sources'
+        ? ['record.sources', 'record.id']
+        : [
+            `record.${['level', 'category'].includes(field) ? 'class' : field.startsWith('i18n.') ? field.replace(/^i18n\./, 'names.') : field}`,
+          ],
       {
+        ...(['geometry', 'bbox', 'cartography', 'identifiers'].includes(field)
+          ? {
+              explanation: {
+                version: 1 as const,
+                result: {
+                  kind: 'fallback' as const,
+                  value: {
+                    kind: 'operation' as const,
+                    operation: 'decode-json' as const,
+                    input: { kind: 'read' as const, path: `record.${field}` },
+                  },
+                  otherwise: { kind: 'literal' as const, value: null },
+                },
+              },
+            }
+          : {}),
         guards: [
           'Require matching record.id and a recognised class.',
           'Supplied level/category must agree with the taxonomy.',
@@ -786,10 +811,12 @@ export function currentFieldRule(
   apiField: string,
   datasetCode: string,
 ): CurrentFieldRule | null {
-  return (
+  const specification =
     currentStatisticFieldRule(resource, apiField) ??
     (resource === 'address' ? currentAddressFieldRule(apiField, datasetCode) : null) ??
     (resource === 'place' ? currentPlaceFieldRule(apiField) : null) ??
     currentDivisionFieldRule(resource, apiField, datasetCode)
-  )
+  if (!specification) return null
+  const human = humanField(resource, apiField, datasetCode)
+  return { ...specification, ...(human ? { human } : {}) }
 }

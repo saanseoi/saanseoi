@@ -1,18 +1,14 @@
 import type { JsonRecord } from './types'
 
-export type BranchCondition =
-  | { field: string; equals: string | number | boolean | null }
-  | { field: string; contains: string }
-  | { all: BranchCondition[] }
-  | { any: BranchCondition[] }
+import type {
+  BranchCondition,
+  RuleBranch,
+} from '../../../db/src/divisionClassificationBranches'
+export type {
+  BranchCondition,
+  RuleBranch,
+} from '../../../db/src/divisionClassificationBranches'
 
-export type RuleBranch = {
-  id: string
-  group: string
-  precedence: number
-  condition: BranchCondition
-  result: string | number
-}
 export type BranchCounts = Record<string, { matched: number; changed: number }>
 
 export function matchesBranch(condition: BranchCondition, facts: JsonRecord): boolean {

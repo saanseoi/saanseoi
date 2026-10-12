@@ -1,3 +1,4 @@
+import { humanProducer } from './fieldLineageHumanProducers'
 import type { ApiFieldInput, ApiFieldRulePin, PublisherFields } from './apiFieldInputs'
 import { resolvePublisherFieldPaths } from './apiFieldInputs'
 import type {
@@ -23,6 +24,7 @@ import { producerDependencyScope } from './fieldLineageProducer'
 import { currentFieldRule } from './fieldLineageCurrentRules'
 import { geometryDisplayTransform } from './fieldLineageGeometryTransform'
 import { divisionOverrideNodes } from './fieldLineageDivisionOverrides'
+import { selectFieldLineageSources } from './fieldLineageSourceSelection'
 import { sourceRetentionSpecification } from './fieldLineageSourceRules'
 import operationCatalogue from '../../../fixtures/meta/fieldLineage/operations.json'
 import implementationEvidence from '../../../fixtures/meta/fieldLineage/implementation-evidence.json'
@@ -140,6 +142,11 @@ export function compileFieldLineage(
       schemaVersion: 1,
       id: code,
       ...specification,
+      ...(specification.human
+        ? {}
+        : humanProducer(code, specification)
+          ? { human: humanProducer(code, specification) }
+          : {}),
       ...(captured
         ? {
             implementationEvidence: captured,
@@ -243,8 +250,18 @@ export function compileFieldLineage(
         schemaVersion: source.sourceSchemaVersion,
         bindingRole: id,
       },
-      { id: prepared, kind: 'prepared-artefact', bindingRole: prepared },
-      { id: raw, kind: 'raw-asset', bindingRole: raw },
+      {
+        id: prepared,
+        kind: 'prepared-artefact',
+        bindingRole: prepared,
+        ...(source.resourceType ? { resourceType: source.resourceType } : {}),
+      },
+      {
+        id: raw,
+        kind: 'raw-asset',
+        bindingRole: raw,
+        ...(source.resourceType ? { resourceType: source.resourceType } : {}),
+      },
     )
     definition.sourceSchemas.push({
       scopeId: id,
@@ -386,9 +403,12 @@ export function compileFieldLineage(
       ...new Set(mappings.map(row => row.sourceDatasetId)),
     ].sort()) {
       const datasetRows = mappings.filter(row => row.sourceDatasetId === dataset)
-      const sources = sourceScopes.get(dataset)
-      if (!sources?.length)
-        throw new Error(`Source schema version missing for dataset ${dataset}.`)
+      const sources = selectFieldLineageSources(
+        first.resourceType,
+        dataset,
+        datasetRows.flatMap(row => row.inputs),
+        sourceScopes.get(dataset),
+      )
       for (const scope of sources) {
         const inputs: Node['inputs'] = {}
         const inputDeclarations: ApiFieldInput[] =
@@ -696,12 +716,17 @@ export function compileFieldLineage(
         ) {
           for (const input of Object.values(inputs))
             if ('node' in input) input.role = 'evidence'
-          inputs.preparedRecord = curatedRecord(scope)
-          assemblyOperation = operation(
-            'saanseoi-division-name',
-            operationCatalogue.operations['saanseoi-division-name'],
-            inputs,
-          )
+          const specification = currentFieldRule(
+            first.resourceType,
+            first.apiField,
+            datasetCode,
+          )!
+          for (const path of specification.inputs)
+            inputs[path] = compilePreparedFieldInput(
+              path,
+              preparedContext(scope, datasetCode, first.resourceType),
+            )
+          assemblyOperation = operation('saanseoi-division-name', specification, inputs)
         } else if (
           datasetCode === 'ds-hk-hkgov-pland-division-pu' &&
           first.resourceType === 'divisionArea' &&
@@ -839,7 +864,7 @@ export function compileFieldLineage(
         )
         if (displayTransform) {
           const displayInputs: Node['inputs'] = {
-            normalisedValue: { node: nodeId, role: 'value' },
+            normalisedValue: { node: nodeId, role: 'selection' },
             coverage: compilePreparedFieldInput(
               'normalisedAreaCoverage',
               preparedContext(scope, datasetCode, first.resourceType),

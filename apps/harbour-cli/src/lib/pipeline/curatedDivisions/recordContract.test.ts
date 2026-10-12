@@ -14,7 +14,7 @@ test('curated records have point bounds, grouped identifiers and classified cart
   applyCuratedRecordContract([row])
   expect(row.bbox).toEqual([114, 22, 114, 22])
   expect(row).not.toHaveProperty('wikidata')
-  expect(row.cartography).toEqual({ minZoom: 14, maxZoom: 24, prominence: 60 })
+  expect(row.cartography).toEqual({ minZoom: 14, maxZoom: 18, prominence: 60 })
   expect(row.sources.sourceResolutions).toBeUndefined()
   expect(row.sources.saanseoi[0].contributions).toContain('identity')
 })

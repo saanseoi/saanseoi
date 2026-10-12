@@ -1,13 +1,11 @@
-import type fixture from '../../../../../../fixtures/meta/processing-rules/assembly/division-normalisation.json'
 import {
-  selectBranch,
-  type BranchCondition,
-  type BranchCounts,
-  type RuleBranch,
-} from '../../../provenance/branches'
+  divisionTaxonomyBranches,
+  type DivisionPolicy,
+} from '../../../../../db/src/divisionClassificationBranches'
+export { divisionTaxonomyBranches } from '../../../../../db/src/divisionClassificationBranches'
+export type { DivisionPolicy } from '../../../../../db/src/divisionClassificationBranches'
+import { selectBranch, type BranchCounts } from '../../../provenance/branches'
 
-export type DivisionPolicy = typeof fixture.parameters
-const branchCache = new WeakMap<DivisionPolicy, RuleBranch[]>()
 type Hints = {
   subtype: string
   class: string
@@ -43,69 +41,6 @@ export function divisionClass(
     before,
     counts,
   ) as string
-}
-
-/** The executor and retained declaration consume this same ordered condition tree. */
-export function divisionTaxonomyBranches(policy: DivisionPolicy): RuleBranch[] {
-  const cached = branchCache.get(policy)
-  if (cached) return cached
-  const branches: RuleBranch[] = []
-  const eq = (field: string, equals: string | number | boolean): BranchCondition => ({
-    field,
-    equals,
-  })
-  for (const kind of ['level', 'class'] as const) {
-    let precedence = 0
-    const add = (id: string, condition: BranchCondition, result: string | number) =>
-      branches.push({
-        id: `${kind}.${id}`,
-        group: kind === 'level' ? 'Level Classification' : 'Class Classification',
-        precedence: ++precedence,
-        condition,
-        result,
-      })
-    add('hong-kong-area', eq('isHongKongArea', true), policy.hongKongArea[kind])
-    for (const entry of kind === 'level' ? policy.subtypeLevels : policy.subtypeClasses)
-      add(
-        `subtype.${entry.token}`,
-        eq('subtype', entry.token),
-        'level' in entry ? entry.level : entry.class,
-      )
-    for (const entry of policy.localityClasses)
-      add(
-        `locality.${entry.token}`,
-        { all: [eq('subtype', 'locality'), eq('class', entry.token)] },
-        entry[kind],
-      )
-    if (kind === 'level') {
-      for (const field of ['subtype', 'class', 'adminLevel'])
-        for (const entry of policy.levelTokens)
-          add(
-            `contains.${field}.${entry.token}`,
-            { field, contains: entry.token },
-            entry.level,
-          )
-      add('fallback.parent', eq('hasParent', true), policy.fallback.parentLevel)
-      add('fallback.root', { all: [] }, policy.fallback.rootLevel)
-    } else {
-      for (const entry of policy.hoodClasses)
-        add(
-          `neighbourhood.${entry.class}`,
-          {
-            any: entry.tokens.flatMap(token => [
-              eq('subtype', token),
-              eq('class', token),
-            ]),
-          },
-          entry.class,
-        )
-      for (const [level, type] of policy.fallback.classesByLevel.entries())
-        add(`fallback.level.${level}`, eq('level', level), type)
-      add('fallback.other', { all: [] }, policy.fallback.class)
-    }
-  }
-  if (Object.isFrozen(policy)) branchCache.set(policy, branches)
-  return branches
 }
 
 export function hierarchyClassification(policy: DivisionPolicy, subtype: string) {

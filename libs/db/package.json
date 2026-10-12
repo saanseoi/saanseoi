@@ -115,6 +115,8 @@
     "./historySchema": "./src/schema/history/index.ts",
     "./metaSchema": "./src/schema/meta/index.ts",
     "./sourceSchema": "./src/schema/source/index.ts",
+    "./fieldLineageHuman": "./src/fieldLineageHuman.ts",
+    "./fieldLineageExplanation": "./src/fieldLineageExplanation.ts",
     "./fieldLineageTypes": "./src/fieldLineageTypes.ts",
     "./apiFieldInputs": "./src/apiFieldInputs.ts"
   },

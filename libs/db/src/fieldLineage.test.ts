@@ -88,6 +88,27 @@ test('different schema versions of one dataset get separate immutable scopes', (
   expect(result.id).not.toBe(build().id)
 })
 
+test('release graphs select the mapped resource within a shared source dataset', () => {
+  const changed = structuredClone(context)
+  changed.sources[0]!.resourceType = 'division'
+  changed.sources.push({
+    ...changed.sources[0]!,
+    resourceType: 'divisionArea',
+    resourceReleaseId: 'area-source',
+  })
+  const result = build(changed)
+  const plan = result.definition.fields[0]!
+  expect(plan.provenance.ingestion).toHaveLength(1)
+  expect(plan.provenance.assembly).toHaveLength(1)
+  const ingestion = result.definition.nodes.find(
+    node => node.id === plan.provenance.ingestion[0],
+  )!
+  expect(
+    result.definition.scopes.find(scope => scope.id === ingestion.output.scope)
+      ?.resourceType,
+  ).toBe('division')
+})
+
 test('dependency rankings are grouped rather than treated as override priorities', () => {
   const result = build(context, [field, { ...field, priority: 0, confidence: 1 }])
   expect(result.definition.fields).toHaveLength(1)

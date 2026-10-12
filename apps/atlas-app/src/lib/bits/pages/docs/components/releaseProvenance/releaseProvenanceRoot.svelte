@@ -1,11 +1,12 @@
 <script lang="ts">
 import { getReleaseProvenance } from '#lib/registry/provenance.remote.js'
-import { conditionLabel, traceNodes } from './presentation'
-import ProvenanceNode from './releaseProvenanceNode.svelte'
+import ProvenanceFlow from './releaseProvenanceFlow.svelte'
+import { provideProvenanceSources } from './provenanceContext'
 let { releaseSetId }: { releaseSetId: string } = $props()
 let search = $state('')
 let selectedKey = $state('')
 let request = $derived(getReleaseProvenance(releaseSetId))
+provideProvenanceSources(() => request.current?.sources ?? {})
 let definition = $derived(request.current?.definition)
 let fields = $derived(
   (definition?.fields ?? []).filter(field =>
@@ -17,17 +18,13 @@ let fields = $derived(
 const key = (field: { resourceType: string; apiField: string; terminalNode: string }) =>
   `${field.resourceType}:${field.apiField}:${field.terminalNode}`
 let selected = $derived(fields.find(field => key(field) === selectedKey) ?? fields[0])
-let nodes = $derived(
-  definition && selected ? traceNodes(definition, selected.terminalNode) : [],
-)
 </script>
 <section class="space-y-5" aria-label="Field provenance">
   <header>
-    <h2 class="text-xl font-semibold">Field lineage</h2>
+    <div class="flex items-center justify-between gap-3"><h2 class="text-xl font-semibold">Field lineage</h2><button type="button" class="text-xs text-foreground/60 underline underline-offset-4 hover:text-foreground" onclick={() => request.refresh()}>Reload lineage</button></div>
     <p class="mt-2 max-w-3xl text-sm text-foreground/65">
-      Follow an API field from its source through preparation, ingestion, assembly and
-      composition to the API response. Conditional steps describe possible paths;
-      individual records may take different paths.
+      Trace a response field back to its sources. Branches show possible paths, not a
+      recorded execution.
     </p>
   </header>
   {#if request.error}
@@ -61,13 +58,13 @@ let nodes = $derived(
           class="w-full rounded-lg border border-foreground/20 bg-background px-3 py-2"
         >
         <p class="text-xs text-foreground/60">{fields.length} fields</p>
-        <nav aria-label="API fields" class="max-h-[65vh] space-y-1 overflow-y-auto">
+        <nav aria-label="API fields" class="max-h-[50vh] space-y-1 overflow-y-auto">
           {#each fields as field, index (`${key(field)}:${index}`)}
             <button
               type="button"
               aria-pressed={selected === field}
               onclick={() => (selectedKey = key(field))}
-              class={`w-full rounded-lg border p-3 text-left text-sm ${selected === field ? 'border-primary bg-primary/10' : 'border-transparent hover:bg-foreground/5'}`}
+              class={`w-full rounded-lg border px-3 py-2 text-left text-sm ${selected === field ? 'border-primary bg-primary/10' : 'border-transparent hover:bg-foreground/5'}`}
             >
               <span class="block break-all font-semibold">{field.apiField}</span
               ><span class="mt-1 block text-xs text-foreground/60"
@@ -83,32 +80,26 @@ let nodes = $derived(
       </aside>
       <div class="min-w-0">
         {#if selected}
-          <header class="mb-5 rounded-xl bg-foreground/5 p-4">
-            <h3 class="break-all text-lg font-semibold">{selected.apiField}</h3>
-            <p class="mt-2 text-sm">Emitted: {conditionLabel(selected.emitWhen)}</p>
-            <p class="mt-1 text-sm text-foreground/60">
-              {selected.completeness === 'complete'
-                ? 'Complete retained trace'
-                : 'Upstream lineage is incomplete'}
-              · {nodes.length} steps
-            </p>
-            <p class="mt-2 text-xs text-foreground/60">
-              Later layers override earlier ones: baseline → conditional rule → curation
-              → patch. Within each layer, the first applicable candidate wins in
-              ascending priority.
-            </p>
+          <header class="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <h3 class="break-all text-lg font-semibold">
+              {selected.resourceType}.{selected.apiField}
+            </h3>
+            {#if selected.completeness !== 'complete'}
+              <p class="text-xs text-foreground/60">Incomplete lineage</p>
+            {/if}
           </header>
-          <ol class="ml-3">
-            {#each nodes as node, index (node.id)}
-              <ProvenanceNode
-                {node}
-                {definition}
-                {index}
-                scopeLabels={request.current?.scopeLabels ?? {}}
-                steps={new Map(nodes.map((node, index) => [node.id, index + 1]))}
-              />
-            {/each}
-          </ol>
+          {#key key(selected)}
+            <ProvenanceFlow
+              {definition}
+              onSelectField={(terminalNode) => {
+                const field = definition.fields.find(field => field.terminalNode === terminalNode)
+                if (field) { search = ''; selectedKey = key(field) }
+              }}
+              terminalNode={selected.terminalNode}
+              binding={request.current!.binding}
+              scopeLabels={request.current!.scopeLabels}
+            />
+          {/key}
         {/if}
       </div>
     </div>

@@ -4,25 +4,8 @@ import { calculateGeoJsonBbox } from '@repo/core/pipeline/geojson'
 
 const object = (value: any) => (typeof value === 'string' ? JSON.parse(value) : value)
 
-/** SaanSeoi label policy; zoom is the first useful display zoom, priority breaks collisions. */
-export const divisionCartography = {
-  country: [2, 100],
-  sar: [5, 95],
-  area: [8, 90],
-  district: [10, 85],
-  city: [8, 90],
-  town: [10, 80],
-  rural_area: [12, 70],
-  village: [13, 55],
-  hamlet: [15, 40],
-  macrohood: [12, 70],
-  neighbourhood: [14, 60],
-  microhood: [16, 45],
-  major_island: [9, 80],
-  minor_island: [12, 60],
-  islet: [15, 35],
-  island_group: [11, 65],
-} as const
+import { divisionCartography } from '@repo/db'
+export { divisionCartography } from '@repo/db'
 
 export function curatedNameObject(value: Record<string, any>) {
   return Object.fromEntries(
@@ -51,7 +34,7 @@ export function applyCuratedRecordContract(
     row.divisionCode ??= null
     const policy = divisionCartography[row.class as keyof typeof divisionCartography]
     if (!policy) throw Error(`Missing cartography policy for ${row.class}`)
-    row.cartography = { minZoom: policy[0], maxZoom: 24, prominence: policy[1] }
+    row.cartography = { minZoom: policy[0], maxZoom: policy[2], prominence: policy[1] }
     const identifiers =
       divisionIdentifiersWithWikidata(row.identifiers, row.wikidata) ?? {}
     delete row.wikidata

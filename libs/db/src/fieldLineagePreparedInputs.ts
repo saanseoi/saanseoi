@@ -1,3 +1,4 @@
+import { compileCuratedRecordField } from './fieldLineageCuratedField'
 import { nativeDivisionProducer } from './fieldLineageNativeDivisions'
 import { statisticProfileSpecification } from './fieldLineageStatisticProfile'
 import { governmentPreparedSpecification } from './fieldLineageGovernmentPreparation'
@@ -412,6 +413,8 @@ function compileInput(
     const inputs: Node['inputs'] = Object.fromEntries(
       area.inputs.map(input => [input, compilePreparedFieldInput(input, context)]),
     )
+    if (path === 'governmentAreaRows')
+      for (const input of Object.values(inputs)) input.role = 'selection'
     if (area.rawArchive)
       inputs.archive = {
         stage: 'raw',
@@ -437,6 +440,8 @@ function compileInput(
         compilePreparedFieldInput(input, context),
       ]),
     )
+    for (const [name, input] of Object.entries(inputs))
+      if (name !== 'governmentAreaRows') input.role = 'selection'
     return node(
       inputs,
       operation(
@@ -595,6 +600,12 @@ function compileInput(
     sources[datasetCode] ??
     (datasetCode.startsWith('ds-hk-hkgov-censtatd-') ? 'hkgov-censtatd' : undefined)
   if (path === 'source' && source) return node({}, { kind: 'constant', value: source })
+  if (
+    datasetCode === 'ds-hk-saanseoi-division' &&
+    context.resourceType === 'division' &&
+    path.startsWith('record.')
+  )
+    return compileCuratedRecordField(path, context)
   if (datasetCode === 'ds-hk-saanseoi-division' && path === 'record')
     return context.curatedRecord()
   if (datasetCode.startsWith('ds-hk-overture-') && overtureInputs.has(path))
@@ -662,6 +673,20 @@ function compileInput(
               path: 'apps/harbour-cli/src/lib/pipeline/curatedDivisions/archiveInput.ts',
               symbol: 'curatedArchiveRows',
             },
+            additionalImplementations: [
+              {
+                path: 'apps/harbour-cli/src/lib/pipeline/curatedDivisions/administrativeAreas.ts',
+                symbol: 'buildAdministrativeAreas',
+              },
+              {
+                path: 'apps/harbour-cli/src/lib/pipeline/curatedDivisions/assemble.ts',
+                symbol: 'assembleCuratedDivisions',
+              },
+              {
+                path: 'apps/harbour-cli/src/lib/pipeline/curatedDivisions/islandGroupGeometry.ts',
+                symbol: 'deriveIslandGroupGeometry',
+              },
+            ],
             guards: [
               'Validate the archive manifest and retained source release identities.',
               'Require unique non-empty IDs, divisionId and Polygon/MultiPolygon geometry before writing prepared rows.',

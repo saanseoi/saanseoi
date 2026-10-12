@@ -55,3 +55,23 @@ export function classifyIslandArea(areaKm2: number) {
     throw new Error('Island area must be a finite, positive number')
   return areaKm2 >= 10 ? 'major_island' : areaKm2 >= 0.01 ? 'minor_island' : 'islet'
 }
+
+/** SaanSeoi label policy: [minimum zoom, prominence, maximum zoom]. */
+export const divisionCartography = {
+  country: [2, 100, 6],
+  sar: [5, 95, 10],
+  area: [8, 90, 12],
+  district: [10, 85, 14],
+  city: [8, 90, 14],
+  town: [10, 80, 15],
+  rural_area: [12, 70, 16],
+  village: [13, 55, 18],
+  hamlet: [15, 40, 19],
+  macrohood: [12, 70, 16],
+  neighbourhood: [14, 60, 18],
+  microhood: [16, 45, 19],
+  major_island: [9, 80, 14],
+  minor_island: [12, 60, 17],
+  islet: [15, 35, 19],
+  island_group: [11, 65, 15],
+} as const

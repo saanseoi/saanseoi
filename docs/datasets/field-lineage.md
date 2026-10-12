@@ -17,7 +17,30 @@ stage nodes, role-labelled inputs, shared processing documents and exact release
 bindings. Publication pins the content-addressed definition and stores the exact binding
 in `apiFieldProvenance.binding`. Concrete release and snapshot identities do not enter
 the reusable graph hash. Multiple schema versions of one dataset use separate input
-scopes.
+scopes. When a dataset supplies multiple resource types, field compilation selects the
+mapped resource instead of treating sibling resources as alternative producers. Explicit
+companion inputs, such as the Address and Division dependencies of Places, retain their
+own resource scopes.
+
+The release-page flow starts with the API response and follows value dependencies back
+to the snapshot, field derivation and publisher sources. Transport wrappers and
+record-admission checks remain in the retained graph but do not appear as value
+transformations. Human operation contracts use a closed taxonomy: copy, calculate,
+select, lookup, combine, normalise, assign and link. Titles, descriptions and
+conditional choices describe the selected field; executor arguments and raw JSON are not
+displayed. Geographic Division rules retain mapping tables, ordered choices and short
+derivation sequences. Category and level use the ingestion taxonomy; cartography shares
+the producer policy. Public projection and preparation show their own transformations,
+with detailed geographic parent eligibility available on expansion. Explicit
+field-effect declarations allow unrelated scalar corrections to be bypassed through
+their unchanged input. Identity and inventory rewrites remain in the flow.
+
+Source labels include resource type. Exact preprocessing releases are resolved only
+through links anchored to the bound publisher release and pinned snapshot, with the
+curated build-input rule and exact-reference selection mode. Each field declares which
+of those sources contribute to its derivation. Missing pins or human explanations are
+reported as unavailable; no current source release is substituted. This view describes
+possible processing paths, not a record's executed branch.
 
 `fieldLineageGraph.ts` validates graph closure, hashes, precedence and audit retention.
 Automatic conditional nodes retain counts; specific decisions require audit owners,
@@ -336,7 +359,7 @@ and readers must not substitute current authored fixtures for absent release evi
 | Division class, level, category, codes | Publisher taxonomy, authored identities, curated classifications, taxonomy-derived level/category, reviewed code assignment                                                           | Provider/schema dispatch, policy lookups, baseline curation, field-specific overrides                                   |
 | Division localised names               | Mixed publisher name shapes, locale inference/fallback, reviewed primary names, aliases, name rules, translations, compact/full projection                                            | Locale selector, ordered candidates, separate primary/alias outputs, upstream archive lineage, audit links              |
 | Division hierarchy                     | Correlated ancestry branches, category projections, ancestor names, reviewed membership and containment, internal-field removal                                                       | Ordered paths, joins, correlated alternatives, explicit exclusions                                                      |
-| Division geometry and bbox             | Label points, selected polygons, authored/group shapes, native areas/boundaries, cell repairs/unions, C&SD coverage simplification, recomputed extents                                | Spatial resolvers, intermediate nodes, many-to-one grouping, variant/source-version predicates, validation              |
+| Division points and coverage extents   | Label points, selected polygons, authored/group shapes, native areas/boundaries, cell repairs/unions, C&SD coverage simplification, recomputed extents                                | Spatial resolvers, intermediate nodes, many-to-one grouping, variant/source-version predicates, validation              |
 | Geometry type/flags                    | Provider flag constants; both effective flags true → mixed; otherwise native land/maritime class; unsupported result errors                                                           | Inputs labelled value versus condition, provider predicates, effective-output validation                                |
 | Division/geometry provenance           | Canonical identity, selected snapshot, source references, identifiers and processing timestamps                                                                                       | Generated values, exact registry bindings, evidence expansion, profile visibility                                       |
 | Address localisations/components       | ALS reconstructed prepared components, reviewed corrections, building number ranges, block/phase parsing, formatted text; compact formatted-address-only output                       | Component-specific nodes, locale keys, prepared-input edges, reviewed guards                                            |
@@ -450,3 +473,48 @@ SQL does not filter the JSON body. The existing bounded provenance reader caches
 objects during reconstruction.
 
 Local R2 and its META catalogue must be retained and restored together.
+
+## Field provenance presentation
+
+The provenance view starts at the API response and follows value dependencies backwards
+through snapshot fields to pinned source inputs. Resolution groups appear as conditional
+branches in precedence order. Shared dependencies are referenced once. Selection inputs,
+join keys, guards and retained evidence remain supporting detail rather than extra value
+steps. The view describes possible processing paths; it does not identify an executed
+branch for an individual response record.
+
+Operation documents can retain a versioned `explanation` using a typed derivation
+vocabulary: field reads, literals, JSON encoding/decoding, bounding-box calculation,
+geometry collections, ordered conditions and missing-result fallbacks. The graph
+validator checks this vocabulary. The UI renders its structure without interpreting
+expression strings. Implementation anchors and source hashes remain attached to the
+retained rule.
+
+Curated Division dependencies project the consumed archive fields through the record
+envelope. Record-wide validation is supporting evidence. Preprocessing source cards show
+retained record-selection rules alongside the exact release pins. They describe possible
+selections, not a historical execution.
+
+Geometry lineage uses declarative tables for coverage type, flags, bounding coordinates
+and bordering Division identities. Boundary identities retain the publisher's pair
+order. Government area preparation distinguishes HAD, C&SD and New Town geometry; the
+`:simplified` variant explains coverage-wide simplification at 10 metres and bounds
+recalculation. SaanSeoi preparation distinguishes territorial unions, coastline land
+intersections, selected island polygons, reviewed replacements and whole-island group
+unions. Relevant Overture and Protomaps area release pins accompany these recipes. These
+are possible construction paths, not per-record execution traces.
+
+Cross-field value dependencies use navigable references to the same resource and
+variant. A bbox trace explains bounds and source-record selection; its geometry
+calculation belongs to the linked geometry field. Category and display settings
+similarly link to class. Retained `fieldDependencies` declare public-field dependencies
+where a producer consumes a coverage rather than a single field node. Unavailable or
+ambiguous targets retain their full graph traversal.
+
+Conditional diagrams give each fallback its own condition and result. Source cards
+retain structured selection tables separately from the value calculation.
+
+Division class lineage retains the same ordered classification branches consumed by the
+processor and audit. Expand the Overture mapping for all class conditions, the
+fallback-level mapping for its supporting rules, and SaanSeoi curation for subsequent
+classification decisions. An inventory matching helper is not the class producer.

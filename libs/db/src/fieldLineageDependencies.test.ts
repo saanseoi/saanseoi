@@ -7,6 +7,7 @@ function compile(
   resourceType: 'place' | 'division',
   apiField: string,
   sources?: LineageSource[],
+  inputs: import('./apiFieldInputs').ApiFieldInput[] = [],
 ) {
   const response = {}
   return compileFieldLineage(
@@ -16,7 +17,7 @@ function compile(
         apiField,
         variant: null,
         sourceDatasetId: 'dataset',
-        inputs: [],
+        inputs,
         canonicalInputs: [`${resourceType}.${apiField.replace(/^attributes\./, '')}`],
         resolverCode: 'normalise',
         contributionType: 'primary',
@@ -132,6 +133,41 @@ test('Place dependencies select the Place producer when its dataset also produce
   )
 })
 
+test('Place Division companions select Divisions rather than sibling geometry resources', () => {
+  const definition = compile(
+    'place',
+    'relationships.divisions',
+    [
+      ...['division', 'divisionArea', 'divisionBoundary'].map(resourceType => ({
+        sourceDatasetId: 'dataset',
+        datasetCode: 'ds-hk-overture-division',
+        resourceType,
+        sourceSchemaVersion: '1.0',
+        resourceReleaseId: resourceType,
+        processingRules: null,
+      })),
+      {
+        sourceDatasetId: 'places',
+        datasetCode: 'ds-hk-overture-place',
+        resourceType: 'place',
+        sourceSchemaVersion: '1.0',
+        resourceReleaseId: 'places',
+        processingRules: null,
+      },
+    ],
+    [{ origin: 'registry', fieldPath: 'selectedDivisionSnapshot' }],
+  )
+  const assembly = definition.nodes.filter(
+    node => node.output.scope === 'canonical-place' && node.stage === 'assembly',
+  )
+  expect(assembly).toHaveLength(1)
+  const condition = assembly[0]!.when
+  if (condition.kind !== 'compare') throw new Error('Expected a source selection')
+  expect(
+    definition.scopes.find(scope => scope.id === condition.value)?.resourceType,
+  ).toBe('division')
+})
+
 test('Place reference name and access hint have current normalisation producers', () => {
   for (const field of ['attributes.referenceName', 'attributes.i18n.en.accessHint']) {
     const definition = compile('place', field)
@@ -154,5 +190,28 @@ test('Place associations consume only their actual dependencies', () => {
   )
   expect(currentPlaceFieldRule('attributes.sources')!.inputs).toContain(
     'divisionAssociation',
+  )
+})
+
+test('curated primary names consume only their locale field, never the whole record', () => {
+  const definition = compile('division', 'attributes.i18n.en.name', [
+    {
+      sourceDatasetId: 'dataset',
+      datasetCode: 'ds-hk-saanseoi-division',
+      resourceType: 'division',
+      sourceSchemaVersion: '1.0',
+      resourceReleaseId: 'curated',
+      processingRules: null,
+    },
+  ])
+  const assembly = definition.nodes.find(
+    node => node.stage === 'assembly' && node.output.path === 'i18n.en.name',
+  )!
+  const values = Object.values(assembly.inputs).filter(input => input.role === 'value')
+  expect(values).toHaveLength(1)
+  const input = values[0]!
+  if (!('node' in input)) throw Error('Expected prepared field')
+  expect(definition.nodes.find(node => node.id === input.node)?.output.path).toBe(
+    'record.names.en.name',
   )
 })

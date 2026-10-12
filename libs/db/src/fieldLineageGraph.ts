@@ -1,3 +1,5 @@
+import { validateHumanOperation } from './fieldLineageHuman'
+import { validateOperationExplanation } from './fieldLineageExplanation'
 import { computeVersionHash } from './versioning'
 import type {
   Condition,
@@ -214,6 +216,25 @@ export function validateFieldLineageDefinition(definition: LineageDefinition) {
       )
     if (node.operation.kind === 'resolver') {
       validateReference(definition, node.operation.definition)
+      const document = definition.definitions[
+        node.operation.definition.definitionId
+      ] as Record<string, unknown>
+      if (document.human !== undefined) {
+        validateHumanOperation(document.human)
+        for (const view of document.human.fieldViews ?? [])
+          for (const input of view.inputs ?? [])
+            requireValue(
+              Object.hasOwn(node.inputs, input),
+              'Missing human field view input',
+            )
+        if (document.human.fieldScope)
+          requireValue(
+            Object.hasOwn(node.inputs, document.human.fieldScope.otherwiseInput),
+            'Missing field pass-through input',
+          )
+      }
+      if (document.explanation !== undefined)
+        validateOperationExplanation(document.explanation)
       for (const name of Object.values(node.operation.arguments))
         requireValue(Object.hasOwn(node.inputs, name), `Unknown resolver input ${name}`)
     }

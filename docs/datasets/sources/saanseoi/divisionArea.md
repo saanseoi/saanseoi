@@ -503,27 +503,30 @@ own domain.
 ## Map display policy
 
 `cartography` uses `minZoom`, `maxZoom` and `prominence`. Labels become eligible at the
-minimum zoom and remain eligible through zoom 24. Larger prominence values win label
+minimum zoom and remain eligible through the class-specific maximum zoom. Overlapping
+ranges allow labels at adjacent scales to coexist. Larger prominence values win label
 collisions; map clients retain collision detection rather than displaying every eligible
 label. Landform labels use the island classification, not an artificial level. These are
 display hints, not changes to geometry or identity.
 
-| Classification | Minimum zoom | Prominence |
-| -------------- | -----------: | ---------: |
-| Country        |            2 |        100 |
-| SAR            |            5 |         95 |
-| Area / City    |            8 |         90 |
-| District       |           10 |         85 |
-| Town           |           10 |         80 |
-| Macrohood      |           12 |         70 |
-| Neighbourhood  |           14 |         60 |
-| Microhood      |           16 |         45 |
-| Village        |           13 |         55 |
-| Hamlet         |           15 |         40 |
-| Major island   |            9 |         80 |
-| Minor island   |           12 |         60 |
-| Islet          |           15 |         35 |
-| Island group   |           11 |         65 |
+| Classification | Minimum zoom | Prominence | Maximum zoom |
+| -------------- | -----------: | ---------: | -----------: |
+| Country        |            2 |        100 |            6 |
+| SAR            |            5 |         95 |           10 |
+| Area           |            8 |         90 |           12 |
+| District       |           10 |         85 |           14 |
+| City           |            8 |         90 |           14 |
+| Town           |           10 |         80 |           15 |
+| Rural area     |           12 |         70 |           16 |
+| Macrohood      |           12 |         70 |           16 |
+| Neighbourhood  |           14 |         60 |           18 |
+| Microhood      |           16 |         45 |           19 |
+| Village        |           13 |         55 |           18 |
+| Hamlet         |           15 |         40 |           19 |
+| Major island   |            9 |         80 |           14 |
+| Minor island   |           12 |         60 |           17 |
+| Islet          |           15 |         35 |           19 |
+| Island group   |           11 |         65 |           15 |
 
 ## Processing policy ownership
 
