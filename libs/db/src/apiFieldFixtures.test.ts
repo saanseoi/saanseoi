@@ -485,10 +485,10 @@ describe('api field fixtures', () => {
 
     expect(
       fixtures.filter(fixture => fixture.apiVersion !== 'api-divisions-v0.2'),
-    ).toHaveLength(15)
+    ).toHaveLength(11)
     expect(
       fixtures.filter(fixture => fixture.apiVersion === 'api-divisions-v0.2'),
-    ).toHaveLength(12)
+    ).toHaveLength(8)
     for (const fixture of fixtures) {
       expect(fixture.domainCode).not.toBe('')
       expect(fixture.lineageAnchors.length).toBeGreaterThan(0)
@@ -930,6 +930,39 @@ describe('api field fixtures', () => {
     )
     expect(listApiFieldFixtures()[0]?.fields[0]?.apiField).not.toBe('mutated')
   })
+})
+
+test('every listed fixture has selectable sources and bounded field datasets', () => {
+  for (const fixture of listApiFieldFixtures()) {
+    expect(fixture.sourceCompositions.length).toBeGreaterThan(0)
+    expect(fixture.lineageAnchors.length).toBeGreaterThan(0)
+    for (const field of fixture.fields) {
+      expect(fixture.publisherSchemaRanges[field.sourceDatasetCode]).toBeDefined()
+    }
+  }
+})
+
+test('authored fixtures reject empty source compositions and unbounded field datasets', () => {
+  const empty = {
+    ...addressDocument,
+    sourceCompositions: [],
+    lineageAnchors: [],
+  }
+  expect(() =>
+    expandApiFieldFixture({
+      ...empty,
+      versionHash: computeVersionHash(empty),
+    } as unknown as ApiFieldFixtureDocument),
+  ).toThrow('requires a source composition')
+
+  const unbounded = structuredClone(addressDocument)
+  unbounded.fields[0]!.sourceDatasetCode = 'undeclared-source'
+  expect(() =>
+    expandApiFieldFixture({
+      ...unbounded,
+      versionHash: computeVersionHash(unbounded),
+    } as unknown as ApiFieldFixtureDocument),
+  ).toThrow('Missing publisher schema range for undeclared-source')
 })
 
 test('authored resource scope expands without repeating it on fields', () => {

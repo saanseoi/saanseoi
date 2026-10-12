@@ -3,8 +3,7 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { listApiFieldFixtures } from '../src/apiFieldFixtures'
 import { computeVersionHash } from '../src/versioning'
-import { resolveApiResponseFields } from '../src/apiResponseFields'
-import { compileFieldLineage } from '../src/fieldLineageCompiler'
+import { compileAuthoringFieldLineage } from '../src/fieldLineageAuthoring'
 
 const root = resolve(import.meta.dir, '../../..')
 const read = (path: string) => JSON.parse(readFileSync(resolve(root, path), 'utf8'))
@@ -39,186 +38,146 @@ const evidence = Object.fromEntries(
   }),
 )
 const fixtures = listApiFieldFixtures()
-const fields = fixtures.flatMap(fixture => {
-  // Deliberately synthetic authoring context: never save this graph as release lineage.
-  const datasets = [...new Set(fixture.fields.map(field => field.sourceDatasetCode))]
-  const resources = [
-    ...new Set(
-      fixture.fields.map(field =>
-        field.resourceType.startsWith('statistic')
-          ? 'divisionStatistic'
-          : field.resourceType,
-      ),
-    ),
-  ]
-  const { definition: graph } = compileFieldLineage(
-    fixture.fields.map(field => ({
-      ...field,
-      variant: field.variant ?? null,
-      confidence: field.confidence ?? null,
-      sourceDatasetId: field.sourceDatasetCode,
-      resolverRules: [],
-    })),
-    new Map(Object.entries(fixture.publisherFields)),
-    {
-      api: {
-        version: fixture.apiVersion,
-        responseSchemaVersion: fixture.schemaVersion,
-        responseSchemaHash: fixture.responseFieldsVersionHash,
-      },
-      apiReleaseSetId: 'authoring-only',
-      apiVersionReleaseSetId: 'authoring-only',
-      responseDefinition: resolveApiResponseFields(
-        fixture.apiVersion,
-        fixture.schemaVersion,
-      ),
-      sources: datasets.map(datasetCode => ({
-        sourceDatasetId: datasetCode,
-        datasetCode,
-        sourceSchemaVersion: fixture.publisherSchemaRanges[datasetCode]!.min,
-        resourceReleaseId: `authoring-${datasetCode}`,
-        processingRules: null,
-      })),
-      snapshots: resources.map(resourceType => ({
-        resourceType,
-        snapshotId: `authoring-${resourceType}`,
-      })),
-    },
-  )
-  // Every retained implementation anchor is checked, including provider-specific contracts.
-  for (const document of Object.values(graph.definitions)) {
-    const spec = document as {
-      implementation?: { path: string; symbol: string }
-      additionalImplementations?: Array<{ path: string; symbol: string }>
-    }
-    if (!spec?.implementation) continue
-    const implementations = [
-      spec.implementation,
-      ...(spec.additionalImplementations ?? []),
-    ]
-    const entries = implementations.map(implementation => {
-      const source = readFileSync(resolve(root, implementation.path), 'utf8')
-      if (!source.includes(implementation.symbol))
-        throw new Error(
-          `Missing lineage implementation ${implementation.path}:${implementation.symbol}`,
-        )
-      return {
-        ...implementation,
-        sourceHash: `sha256:${createHash('sha256').update(source).digest('hex')}`,
-      }
-    })
-    const primary = entries[0]!
-    const key = `${primary.path}#${primary.symbol}`
-    evidence[key] = {
-      ...primary,
-      dependencies: [
-        ...new Map(
-          [...(evidence[key]?.dependencies ?? []), ...entries.slice(1)].map(entry => [
-            `${entry.path}#${entry.symbol}`,
-            entry,
-          ]),
-        ).values(),
-      ].sort((a, b) => `${a.path}#${a.symbol}`.localeCompare(`${b.path}#${b.symbol}`)),
-    }
-  }
-  const nodes = new Map(graph.nodes.map(node => [node.id, node]))
-  const grouped = new Map<string, typeof fixture.fields>()
-  for (const field of fixture.fields) {
-    const apiField =
-      field.resourceType === 'statistic' &&
-      field.apiField.startsWith('attributes.values.')
-        ? 'attributes.values.{field}'
-        : field.apiField
-    const key = JSON.stringify([
-      field.resourceType,
-      apiField,
-      field.variant,
-      field.sourceDatasetCode,
-    ])
-    const values = grouped.get(key) ?? []
-    values.push({ ...field, apiField })
-    grouped.set(key, values)
-  }
-  return [...grouped.values()].map(values => {
-    const field = values[0]!
-    const plan = graph.fields.find(
-      plan =>
-        plan.resourceType === field.resourceType &&
-        plan.apiField === field.apiField &&
-        (plan.variant ?? null) === (field.variant ?? null),
-    )!
-    const assembly = plan.provenance.assembly
-      .map(id => nodes.get(id)!)
-      .find(node => {
-        const condition = node.when
-        return (
-          node.output.scope === `canonical-${field.resourceType}` &&
-          condition.kind === 'compare' &&
-          graph.scopes.find(scope => scope.id === condition.value)?.datasetCode ===
-            field.sourceDatasetCode
-        )
-      })!
-    const composition = nodes.get(plan.terminalNode)!
-    const operationName = (node: typeof composition) =>
-      node.operation.kind === 'unresolved'
-        ? null
-        : node.operation.kind === 'resolver'
-          ? node.operation.definition.operationCode
-          : node.operation.kind
-    const operation = operationName(assembly)
-    return {
-      apiVersion: fixture.apiVersion,
-      domain: fixture.domainCode,
-      mappingVersion: fixture.mappingVersion,
-      fixtureHash: fixture.versionHash,
-      resourceType: field.resourceType,
-      apiField: field.apiField,
-      variant: field.variant ?? null,
-      sourceDatasetCode: field.sourceDatasetCode,
-      assemblyOperation: operation,
-      compositionOperation: operationName(composition),
-      fieldStageOperationsAcrossSources: Object.fromEntries(
-        Object.entries(plan.provenance).map(([stage, ids]) => [
-          stage,
-          [...new Set(ids.map(id => operationName(nodes.get(id)!)))],
-        ]),
-      ),
-      status: operation
-        ? 'assembly-specification-present'
-        : 'field-specific-assembly-policy-required',
-      completeness: plan.completeness,
-      unresolvedPreparedInputsAcrossSources: [
-        ...new Map(
-          Object.values(plan.provenance)
-            .flat()
-            .flatMap(id =>
-              Object.values(nodes.get(id)!.inputs).flatMap(input =>
-                'stage' in input &&
-                input.stage === 'prepared' &&
-                input.role !== 'evidence'
-                  ? [
-                      [
-                        JSON.stringify([input.scope, input.collection, input.path]),
-                        {
-                          scope: input.scope,
-                          collection: input.collection,
-                          path: input.path,
-                        },
-                      ] as const,
-                    ]
-                  : [],
+const fields = fixtures.flatMap(fixture =>
+  compileAuthoringFieldLineage(fixture).flatMap(
+    ({ fields: authoredFields, definition: graph }) => {
+      // Every retained implementation anchor is checked, including provider-specific contracts.
+      for (const document of Object.values(graph.definitions)) {
+        const spec = document as {
+          implementation?: { path: string; symbol: string }
+          additionalImplementations?: Array<{ path: string; symbol: string }>
+        }
+        if (!spec?.implementation) continue
+        const implementations = [
+          spec.implementation,
+          ...(spec.additionalImplementations ?? []),
+        ]
+        const entries = implementations.map(implementation => {
+          const source = readFileSync(resolve(root, implementation.path), 'utf8')
+          if (!source.includes(implementation.symbol))
+            throw new Error(
+              `Missing lineage implementation ${implementation.path}:${implementation.symbol}`,
+            )
+          return {
+            ...implementation,
+            sourceHash: `sha256:${createHash('sha256').update(source).digest('hex')}`,
+          }
+        })
+        const primary = entries[0]!
+        const key = `${primary.path}#${primary.symbol}`
+        evidence[key] = {
+          ...primary,
+          dependencies: [
+            ...new Map(
+              [...(evidence[key]?.dependencies ?? []), ...entries.slice(1)].map(
+                entry => [`${entry.path}#${entry.symbol}`, entry],
               ),
-            ),
-        ).values(),
-      ],
-      upstream:
-        plan.completeness === 'complete'
-          ? 'current-code-stage-closure'
-          : 'prepared-input-specification-required',
-      resolverCodes: [...new Set(values.map(value => value.resolverCode))].sort(),
-    }
-  })
-})
+            ).values(),
+          ].sort((a, b) =>
+            `${a.path}#${a.symbol}`.localeCompare(`${b.path}#${b.symbol}`),
+          ),
+        }
+      }
+      const nodes = new Map(graph.nodes.map(node => [node.id, node]))
+      const grouped = new Map<string, typeof fixture.fields>()
+      for (const field of authoredFields) {
+        const apiField =
+          field.resourceType === 'statistic' &&
+          field.apiField.startsWith('attributes.values.')
+            ? 'attributes.values.{field}'
+            : field.apiField
+        const key = JSON.stringify([
+          field.resourceType,
+          apiField,
+          field.variant,
+          field.sourceDatasetCode,
+        ])
+        const values = grouped.get(key) ?? []
+        values.push({ ...field, apiField })
+        grouped.set(key, values)
+      }
+      return [...grouped.values()].map(values => {
+        const field = values[0]!
+        const plan = graph.fields.find(
+          plan =>
+            plan.resourceType === field.resourceType &&
+            plan.apiField === field.apiField &&
+            (plan.variant ?? null) === (field.variant ?? null),
+        )!
+        const assembly = plan.provenance.assembly
+          .map(id => nodes.get(id)!)
+          .find(node => {
+            const condition = node.when
+            return (
+              node.output.scope === `canonical-${field.resourceType}` &&
+              condition.kind === 'compare' &&
+              graph.scopes.find(scope => scope.id === condition.value)?.datasetCode ===
+                field.sourceDatasetCode
+            )
+          })!
+        const composition = nodes.get(plan.terminalNode)!
+        const operationName = (node: typeof composition) =>
+          node.operation.kind === 'unresolved'
+            ? null
+            : node.operation.kind === 'resolver'
+              ? node.operation.definition.operationCode
+              : node.operation.kind
+        const operation = operationName(assembly)
+        return {
+          apiVersion: fixture.apiVersion,
+          domain: fixture.domainCode,
+          mappingVersion: fixture.mappingVersion,
+          fixtureHash: fixture.versionHash,
+          resourceType: field.resourceType,
+          apiField: field.apiField,
+          variant: field.variant ?? null,
+          sourceDatasetCode: field.sourceDatasetCode,
+          assemblyOperation: operation,
+          compositionOperation: operationName(composition),
+          fieldStageOperationsAcrossSources: Object.fromEntries(
+            Object.entries(plan.provenance).map(([stage, ids]) => [
+              stage,
+              [...new Set(ids.map(id => operationName(nodes.get(id)!)))],
+            ]),
+          ),
+          status: operation
+            ? 'assembly-specification-present'
+            : 'field-specific-assembly-policy-required',
+          completeness: plan.completeness,
+          unresolvedPreparedInputsAcrossSources: [
+            ...new Map(
+              Object.values(plan.provenance)
+                .flat()
+                .flatMap(id =>
+                  Object.values(nodes.get(id)!.inputs).flatMap(input =>
+                    'stage' in input &&
+                    input.stage === 'prepared' &&
+                    input.role !== 'evidence'
+                      ? [
+                          [
+                            JSON.stringify([input.scope, input.collection, input.path]),
+                            {
+                              scope: input.scope,
+                              collection: input.collection,
+                              path: input.path,
+                            },
+                          ] as const,
+                        ]
+                      : [],
+                  ),
+                ),
+            ).values(),
+          ],
+          upstream:
+            plan.completeness === 'complete'
+              ? 'current-code-stage-closure'
+              : 'prepared-input-specification-required',
+          resolverCodes: [...new Set(values.map(value => value.resolverCode))].sort(),
+        }
+      })
+    },
+  ),
+)
 const report = {
   kind: 'field-lineage-implementation-correspondence',
   schemaVersion: 1,

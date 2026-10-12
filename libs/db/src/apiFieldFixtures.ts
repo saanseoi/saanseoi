@@ -19,11 +19,6 @@ import apiStatisticsV01FixtureCenstatdDocument from '../../../fixtures/meta/apiF
 import type { ProvenanceContributionType } from './constants/schema'
 import { computeVersionHash } from './versioning'
 
-const populationHouseholdsDistrictDataset =
-  'ds-hk-hkgov-censtatd-division-statistic-population-households-district'
-const permanentLivingQuartersDataset =
-  'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters'
-
 export type ApiFieldFixtureField = {
   apiField: string
   resourceType: string
@@ -91,6 +86,8 @@ export function expandApiFieldFixture(
     if (comparePublisherSchemaVersions(range.min, range.max) > 0)
       throw new Error('Publisher schema range is reversed.')
   }
+  if (!document.sourceCompositions.length)
+    throw new Error('API field fixture requires a source composition.')
   const anchors = new Set(document.lineageAnchors.map(anchor => anchor.snapshotVersion))
   if (anchors.size !== document.lineageAnchors.length)
     throw new Error('Duplicate API-field lineage anchor.')
@@ -136,6 +133,10 @@ export function expandApiFieldFixture(
       if (!group.resourceType || !Array.isArray(group.fields))
         throw new Error('API field fixture requires resource scope and fields.')
       return group.fields.map(field => {
+        if (!Object.hasOwn(document.publisherSchemaRanges, field.sourceDatasetCode))
+          throw new Error(
+            `Missing publisher schema range for ${field.sourceDatasetCode}.`,
+          )
         if (Object.hasOwn(field, 'resourceType'))
           throw new Error('Declare resourceType on the fixture or resource group.')
         return {
@@ -183,90 +184,9 @@ const apiStatisticsV01FixtureCenstatd = expandApiFieldFixture(
   apiStatisticsV01FixtureCenstatdDocument as unknown as ApiFieldFixtureDocument,
 )
 
-function deriveSourceCompositions(fixture: ApiFieldFixture, omittedDataset: string) {
-  const sourceCompositions = fixture.sourceCompositions
-    .filter(composition =>
-      [permanentLivingQuartersDataset, populationHouseholdsDistrictDataset].every(
-        code => composition.datasetCodes.includes(code),
-      ),
-    )
-    .map(composition => ({
-      ...composition,
-      datasetCodes: composition.datasetCodes.filter(code => code !== omittedDataset),
-    }))
-  const anchors = new Set(
-    sourceCompositions.flatMap(composition => composition.anchorSnapshotVersions),
-  )
-  return {
-    sourceCompositions,
-    lineageAnchors: fixture.lineageAnchors.filter(anchor =>
-      anchors.has(anchor.snapshotVersion),
-    ),
-  }
-}
-
-/**
- * Permanent Living Quarters supplies the same C&SD area variant as the annual
- * district dataset, but Geographic Divisions can be initialised before that
- * annual source is available. Keep its exact release signature distinct.
- */
-function derivePermanentLivingQuartersFixture(
-  fixture: ApiFieldFixture,
-): ApiFieldFixture {
-  const derivedFixture = {
-    ...fixture,
-    publisherFields: {
-      ...fixture.publisherFields,
-      [permanentLivingQuartersDataset]:
-        fixture.publisherFields[populationHouseholdsDistrictDataset]!,
-    },
-    ...deriveSourceCompositions(fixture, populationHouseholdsDistrictDataset),
-    fields: fixture.fields.map(field =>
-      field.sourceDatasetCode === populationHouseholdsDistrictDataset
-        ? { ...field, sourceDatasetCode: permanentLivingQuartersDataset }
-        : field,
-    ),
-  }
-
-  return {
-    ...derivedFixture,
-    versionHash: computeVersionHash(derivedFixture),
-  }
-}
-
-/**
- * Population and Household Statistics can provide the canonical C&SD district
- * geometry before Permanent Living Quarters is available. Its field mapping is
- * the same as the complete Population and Household branch; only the source
- * signature differs.
- */
-function derivePopulationHouseholdsFixture(fixture: ApiFieldFixture): ApiFieldFixture {
-  const derivedFixture = {
-    ...fixture,
-    ...deriveSourceCompositions(fixture, permanentLivingQuartersDataset),
-  }
-
-  return {
-    ...derivedFixture,
-    versionHash: computeVersionHash(derivedFixture),
-  }
-}
-
 const apiFieldFixtures: ApiFieldFixture[] = [
   apiDivisionsV01FixtureOverture112To115 as unknown as ApiFieldFixture,
-  derivePopulationHouseholdsFixture(
-    apiDivisionsV01FixtureOverture112To115 as unknown as ApiFieldFixture,
-  ),
-  derivePermanentLivingQuartersFixture(
-    apiDivisionsV01FixtureOverture112To115 as unknown as ApiFieldFixture,
-  ),
   apiDivisionsV01FixtureOverture116To118 as unknown as ApiFieldFixture,
-  derivePopulationHouseholdsFixture(
-    apiDivisionsV01FixtureOverture116To118 as unknown as ApiFieldFixture,
-  ),
-  derivePermanentLivingQuartersFixture(
-    apiDivisionsV01FixtureOverture116To118 as unknown as ApiFieldFixture,
-  ),
   expandApiFieldFixture(hmaDivisionDocument as unknown as ApiFieldFixtureDocument),
   expandApiFieldFixture(landsdDivisionDocument as unknown as ApiFieldFixtureDocument),
   apiDivisionsV01FixturePlandNewTown2006 as ApiFieldFixture,

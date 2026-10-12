@@ -32,7 +32,7 @@ test('independent geometry and identity outputs do not claim unrelated publisher
   expect(
     currentFieldRule('division', 'attributes.identifiers', 'ds-hk-overture-division')
       ?.inputs,
-  ).toEqual(['identifiers'])
+  ).toEqual(['identifiers', 'wikidata'])
   expect(
     currentFieldRule('place', 'attributes.taxonomy.primary', 'ds-hk-overture-place')
       ?.inputs,
