@@ -30,7 +30,7 @@ export function resolveBinaryGeometryColumn(tableName: string) {
     case 'divisionBoundaries':
     case 'hkgovCenstatdDivisionAreaDerivatives':
       return 'geometry'
-    case 'hkgovCenstatdStatistics':
+    case 'hkgovCenstatdStatisticsGeometry':
       return 'sourceGeometry'
     default:
       return null
@@ -112,7 +112,9 @@ export async function mirrorBinaryGeometryTable(
             : normaliseRemoteSqlValue(remoteRow[column]),
         ]),
       )
-      const recordId = String(values.id ?? values.sourceRecordId ?? 'unknown-record')
+      const recordId = String(
+        values.id ?? values.sourceRecordId ?? values.geometryId ?? 'unknown-record',
+      )
       const snapshotId =
         typeof values.snapshotId === 'string' ? values.snapshotId : null
       let geometryLength = asOptionalRemoteInteger(remoteRow.__geometryLength)

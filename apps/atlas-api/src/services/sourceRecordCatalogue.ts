@@ -4,7 +4,7 @@ export type SourceRecordCatalogueEntry = {
   resourceType?: string
   scopeByDataset?: boolean
   datasetColumn?: 'datasetCode'
-  exactReleaseMembership?: boolean
+  exactReleaseOwnership?: boolean
   geometryColumn?: 'sourceGeometry'
   geometryEncoding?: 'brotli-json'
   randomSampleStrategy?: 'uuid-pivot'
@@ -76,9 +76,10 @@ const STATISTIC_SOURCE_RECORD_CATALOGUE: Record<string, SourceRecordCatalogueEnt
       {
         geometryColumn: 'sourceGeometry',
         geometryEncoding: 'brotli-json',
-        tableName: 'hkgovCenstatdStatistics',
+        tableName:
+          '(SELECT s.*, g.sourceGeometry FROM hkgovCenstatdStatistics s JOIN hkgovCenstatdStatisticsGeometry g ON g.id = s.geometryId)',
         datasetColumn: 'datasetCode',
-        exactReleaseMembership: true,
+        exactReleaseOwnership: true,
       },
     ]),
   )

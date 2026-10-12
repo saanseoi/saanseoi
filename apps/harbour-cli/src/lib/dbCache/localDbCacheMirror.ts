@@ -514,7 +514,8 @@ async function validateMirroredCacheBindingUnchecked(input: {
             'versionHash',
             'snapshotId',
             'sourceRecordId',
-            'inputVersionHash',
+            'geometryId',
+            'transformHash',
             'transform',
           ].filter(column => column in row.values)
         const primaryKeys = primaryKeyColumns.map(

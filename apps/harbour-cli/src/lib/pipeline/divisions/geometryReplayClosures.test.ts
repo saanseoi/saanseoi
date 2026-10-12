@@ -56,11 +56,11 @@ for (const sourceName of [
         )
       for (const db of [local[sourceBinding], remote.source]) {
         db?.exec(
-          `CREATE TABLE "${sourceTable}"(datasetCode DEFAULT 'dataset',resourceReleaseId,sourceRecordId,versionHash,isCurrent,validToRelease,updatedAt,geometry,validFromRelease DEFAULT '2025-01',PRIMARY KEY(${sourceName === 'hkgov-censtatd' ? 'datasetCode,sourceRecordId,versionHash' : 'sourceRecordId,versionHash,validFromRelease'})); INSERT INTO "${sourceTable}" (resourceReleaseId,sourceRecordId,versionHash,isCurrent,validToRelease,updatedAt,geometry) VALUES('old','changed','v1',1,NULL,'old',X'00FF'),('old','removed','v1',1,NULL,'old',X'01');`,
+          `CREATE TABLE "${sourceTable}"(datasetCode DEFAULT 'dataset',resourceReleaseId,sourceRecordId,versionHash,isCurrent,validToRelease,updatedAt,geometry,validFromRelease DEFAULT '2025-01',PRIMARY KEY(${sourceName === 'hkgov-censtatd' ? 'datasetCode,resourceReleaseId,sourceRecordId,versionHash' : 'sourceRecordId,versionHash,validFromRelease'})); INSERT INTO "${sourceTable}" (resourceReleaseId,sourceRecordId,versionHash,isCurrent,validToRelease,updatedAt,geometry) VALUES('old','changed','v1',1,NULL,'old',X'00FF'),('old','removed','v1',1,NULL,'old',X'01');`,
         )
         if (sourceName === 'hkgov-censtatd')
           db?.exec(
-            "CREATE TABLE hkgovCenstatdDivisionAreaDerivatives(datasetCode DEFAULT 'dataset',resourceReleaseId,sourceRecordId,inputVersionHash,transform,versionHash,isCurrent,validToRelease,updatedAt,PRIMARY KEY(sourceRecordId,inputVersionHash,transform,versionHash)); INSERT INTO hkgovCenstatdDivisionAreaDerivatives (resourceReleaseId,sourceRecordId,inputVersionHash,transform,versionHash,isCurrent,validToRelease,updatedAt) VALUES('old','changed','exact','simplified','d1',1,NULL,'old'),('other','changed','other-exact','simplified','d1',1,NULL,'old');",
+            "ALTER TABLE hkgovCenstatdStatistics ADD geometryId DEFAULT 'g'; CREATE TABLE hkgovCenstatdStatisticsGeometry(id PRIMARY KEY,sourceGeometry); INSERT INTO hkgovCenstatdStatisticsGeometry VALUES('g',X'1234'); CREATE TABLE hkgovCenstatdDivisionAreaDerivatives(geometryId,transform,transformHash,versionHash,PRIMARY KEY(geometryId,transform,transformHash)); INSERT INTO hkgovCenstatdDivisionAreaDerivatives VALUES('g','simplified','t1','d1'),('other','simplified','t1','d1');",
           )
       }
       local.DB_CURRENT?.exec(
@@ -86,11 +86,7 @@ for (const sourceName of [
       )
       if (sourceName === 'hkgov-censtatd')
         local[sourceBinding]?.exec(
-          "UPDATE hkgovCenstatdDivisionAreaDerivatives SET isCurrent=0,validToRelease='2026-01',updatedAt='new' WHERE inputVersionHash='exact'; INSERT INTO hkgovCenstatdDivisionAreaDerivatives (resourceReleaseId,sourceRecordId,inputVersionHash,transform,versionHash,isCurrent,validToRelease,updatedAt) VALUES('new-release','changed','exact','simplified','d2',1,NULL,'new');",
-        )
-      if (sourceName === 'hkgov-censtatd')
-        remote.source.exec(
-          "INSERT INTO hkgovCenstatdDivisionAreaDerivatives (resourceReleaseId,sourceRecordId,inputVersionHash,transform,versionHash,isCurrent,validToRelease,updatedAt) VALUES('new-release','removed','exact','simplified','stale',1,NULL,'stale')",
+          "INSERT INTO hkgovCenstatdDivisionAreaDerivatives VALUES('g','simplified','t2','d2');",
         )
       if (sourceName !== 'hkgov-censtatd')
         for (const db of [local[sourceBinding], remote.source])
@@ -211,13 +207,13 @@ for (const sourceName of [
         expect(
           remote.source
             .query(
-              'SELECT * FROM hkgovCenstatdDivisionAreaDerivatives ORDER BY inputVersionHash,versionHash',
+              'SELECT * FROM hkgovCenstatdDivisionAreaDerivatives ORDER BY geometryId,transformHash',
             )
             .all(),
         ).toEqual(
           localSource
             .query(
-              'SELECT * FROM hkgovCenstatdDivisionAreaDerivatives ORDER BY inputVersionHash,versionHash',
+              'SELECT * FROM hkgovCenstatdDivisionAreaDerivatives ORDER BY geometryId,transformHash',
             )
             .all(),
         )
@@ -272,6 +268,33 @@ test('immutable oversized geometry replay preserves existing versions and proven
       db.query("SELECT * FROM divisionAreas WHERE versionHash='v1'").get(),
     ).toEqual(row)
     expect(db.query('SELECT * FROM writes').all()).toEqual([])
+  } finally {
+    db.close()
+  }
+})
+
+test('large shared derivatives replay by geometry and transform context without overwriting', () => {
+  const db = new Database(':memory:')
+  db.exec(
+    'CREATE TABLE hkgovCenstatdDivisionAreaDerivatives(geometryId,transform,transformHash,versionHash,geometry,derivation,PRIMARY KEY(geometryId,transform,transformHash))',
+  )
+  const row = {
+    geometryId: 'g',
+    transform: 'simplified',
+    transformHash: 'context',
+    versionHash: 'output',
+    geometry: JSON.stringify({ coordinates: ['x'.repeat(150_000)] }),
+    derivation: JSON.stringify({ coverageGeometryIds: ['input'] }),
+  }
+  try {
+    const sql = geometryBuildUpsertSql('hkgovCenstatdDivisionAreaDerivatives', [row], {
+      immutable: true,
+    })
+    executeNativeSqlStatements(db, sql)
+    executeNativeSqlStatements(db, sql)
+    expect(
+      db.query('SELECT * FROM hkgovCenstatdDivisionAreaDerivatives').all(),
+    ).toEqual([row])
   } finally {
     db.close()
   }

@@ -1,15 +1,26 @@
 # Census and Statistics Department division statistics
 
+C&SD statistics ingestion retains the `reuse-censtatd-statistics-geometry` rule under
+the resource child's Ingestion audit. Its input count records statistic geometry
+references; outputs show distinct new geometries, distinct reused geometries and total
+references within the yearly SOURCE shard. The pre-write baseline is sealed with the
+prepared geometry identities, so delivery retries preserve the original counts.
+DivisionArea publication is a separate operation: source geometry reuse alone does not
+establish that a canonical area snapshot can be reused. The retained rule documents that
+publication check and the transform context used for derivatives. Historical runs
+without this retained baseline have no new/reused execution counts.
+
 Retained source evidence uses the
 [managed manifest contract](../../families/source-evidence.md#managed-source-manifests).
 Manifest JSON is a downloadable R2 sidecar; its META asset row links to the described
 source object through `sourceAssetId`.
 
-C&SD statistics and geography retain complete publisher features in
-`hkgovCenstatdStatistics`, scoped by dataset. All features retain acquisition
-coordinates in `sourceLocator` and Brotli-compressed native geometry. Canonical
-preparation fields and extracted measures belong to the statistics and geometry
-materialisations.
+C&SD statistics and geography retain publisher properties in `hkgovCenstatdStatistics`,
+scoped by dataset and resource release. Each row retains an acquisition locator and a
+`geometryId` referencing Brotli-compressed native geometry in
+`hkgovCenstatdStatisticsGeometry`. Geometry content is shared within each yearly SOURCE
+shard, including across datasets and releases. Canonical preparation fields and
+extracted measures belong to the statistics and geometry materialisations.
 
 Processing retains shared rule definitions and curation application counts under the
 [shared processing contract](../../pipeline.md#processing-stages-and-retained-evidence).
@@ -23,10 +34,11 @@ including nested attribution metadata. Effective dates, statistical periods and 
 dependency hashes remain significant. Retained source payloads preserve the original
 metadata. File checksums and processing-cache identities retain their complete inputs.
 
-Source-assertion replay preserves unchanged open versions without release-marker
-updates. Changed source hashes close explicitly; bounded same-release membership checks
-handle source omissions. Large source geometry is assembled only for incomplete or
-closed rows. Canonical Statistics revisions retain omitted values and geographies.
+Source-assertion replay retains an independent row for each resource release. Geometry
+ingestion hashes native content, reports new and reused geometry counts, and inserts
+only missing geometry. Large geometry writes resume from their exact byte offset without
+modifying complete shared payloads. Canonical Statistics revisions retain omitted values
+and geographies.
 
 Published rollback reconstructs each affected exact period from retained packed history,
 including its referenced immutable dictionaries. It leaves other periods and source
@@ -34,11 +46,9 @@ assertions intact. The period's temporary `restoring` publication state prevents
 ordinary promotion from taking over an interrupted rollback; recovery resumes its sealed
 plan.
 
-The feature table stores the publisher version in `validFromRelease` and
-`validToRelease`, for example `2023-H2`. These lifecycle markers use the complete
-`sourceVersion`. Exact resource-release membership is retained separately in
-`hkgovCenstatdStatisticsReleaseMemberships`, so shared payloads and independent census
-cohorts remain addressable regardless of lifecycle-marker updates.
+Statistics rows store publisher versions in `validFromRelease` and `validToRelease`.
+Source reads select the exact `datasetCode` and `resourceReleaseId`, independently of
+lifecycle markers, and join `geometryId` to reconstruct the publisher geometry.
 
 [Minimal initialisation](../../minimal-initialisation.md) selects the earliest two
 distinct configured source versions before update discovery, retaining companion
@@ -713,21 +723,30 @@ upstream field, verified dates and unresolved rolling compilations.
 
 ## C&SD publisher feature storage
 
-All C&SD statistical datasets retain their publisher features in
-`hkgovCenstatdStatistics`. Each feature has explicit `datasetCode` ownership, a native
-source-record identity, complete publisher properties, an acquisition locator and
-Brotli-compressed native geometry. The primary key contains the dataset code, source
-record ID and content version hash. Release validity is scoped to the owning dataset.
-
-Statistics and geography intake retain the same native feature identity and payload.
-Publisher measures remain source evidence; canonical statistics and DivisionAreas are
-separate projections. Dataset-specific validation and measure normalisation do not
-select separate source tables.
+`hkgovCenstatdStatistics` retains publisher properties, native record identity and
+acquisition locators. Its key is
+`(datasetCode, resourceReleaseId, sourceRecordId, versionHash)`. Statistics rows
+reference immutable geometry by `geometryId`. `hkgovCenstatdStatisticsGeometry.id` is
+the SHA-256 of stable native-geometry JSON; coordinates and CRS are retained without
+rounding or simplification. Identical geometry shares one row within a SOURCE shard;
+yearly shards may each retain a copy.
 
 Verified identical area materialisations can share a canonical snapshot within the same
-cohort, region and variant. This comparison is independent of publisher feature storage.
-Simplified area derivatives identify their owning dataset and exact source feature
-version, preserving the link to the original evidence.
+cohort, region and variant. The comparison includes canonical area and Division
+identity, shape and land/territorial flags. Shared source geometry alone does not
+establish an identical canonical area.
+
+Simplified derivatives reference `geometryId`. Their transform key includes the method,
+settings, engine version and coverage geometry IDs because neighbouring polygons affect
+coverage simplification. Statistics-only changes do not create new derivative
+identities.
+
+Populated local databases require the data conversion around the generated schema:
+`bun libs/db/scripts/migrate-censtatd-geometry.ts --rehearse <sqlite> <backup-directory>`,
+then the same command with `--apply`. Each shard is backed up under a writer lock;
+conversion preserves every release assertion, verifies reconstructed evidence and
+foreign keys, and records the migration in the same transaction. Empty databases use
+ordinary migration generation and application. This command targets local SQLite only.
 
 ## Source record ID composition
 
@@ -744,11 +763,9 @@ prefix is added. Acquisition locators retain the layer even where it is absent f
 ID. IDs with ordinal qualification are local to the delivery and cannot establish
 cross-release continuity.
 
-Derivatives reuse the exact input assertion's ID and `inputVersionHash`; `transform` and
-the output `versionHash` identify the materialised geometry. Statistics provenance uses
-`hkgov-censtatd/<datasetCode>/<sourceVersion>/<sourceRecordId>`.
-
-`hkgovCenstatdStatisticsReleaseMemberships` records exact feature-version membership for
-each resource release. Source samples and schema inventories use this membership rather
-than treating independent census cohorts as one validity timeline. Payload reuse
-preserves separate memberships for the statistics and geometry resources.
+Statistics provenance uses
+`hkgov-censtatd/<datasetCode>/<sourceVersion>/<sourceRecordId>`; canonical Division and
+DivisionArea IDs remain independent of the publisher record ID. Source samples and
+schema inventories select statistics directly by dataset and resource release, then join
+their shared geometry. Statistics and geometry resource children each own their source
+rows.

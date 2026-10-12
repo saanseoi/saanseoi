@@ -414,9 +414,8 @@ async function readRandomOrderedSourceRecordPage(args: {
 }
 
 function sourceReleaseCondition(entry: SourceRecordCatalogueEntry, prefix = '') {
-  if (entry.exactReleaseMembership) {
-    const record = prefix || `${entry.tableName}.`
-    return `${record}datasetCode = ? AND EXISTS (SELECT 1 FROM hkgovCenstatdStatisticsReleaseMemberships AS membership WHERE membership.datasetCode = ${record}datasetCode AND membership.sourceRecordId = ${record}sourceRecordId AND membership.versionHash = ${record}versionHash AND membership.resourceReleaseId = ?)`
+  if (entry.exactReleaseOwnership) {
+    return `${prefix}datasetCode = ? AND ${prefix}resourceReleaseId = ?`
   }
   return `${prefix}validFromRelease <= ? AND (${prefix}validToRelease IS NULL OR ${prefix}validToRelease > ?) AND ${sourceDatasetCondition(entry, prefix)}`
 }
@@ -432,7 +431,7 @@ function sourceValidityValues(args: {
   entry: SourceRecordCatalogueEntry
   release: SourceReleaseRow
 }): string[] {
-  if (args.entry.exactReleaseMembership)
+  if (args.entry.exactReleaseOwnership)
     return [args.release.datasetCode, args.release.resourceReleaseId]
   const values = [args.release.sourceVersion, args.release.sourceVersion]
   if (args.entry.datasetColumn) {

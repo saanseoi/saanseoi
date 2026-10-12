@@ -271,11 +271,11 @@ export function resolveCacheTablesForBinding(
 
   if (/^DB_SOURCE_[A-Z]{2}_(?:\d{4}|BEFORE)$/.test(bindingName)) {
     if (cacheTableProfile === 'divisionStatistic') {
-      return ['hkgovCenstatdStatisticsReleaseMemberships', 'hkgovCenstatdStatistics']
+      return ['hkgovCenstatdStatisticsGeometry', 'hkgovCenstatdStatistics']
     }
 
     if (cacheTableProfile === 'statistics') {
-      return ['hkgovCenstatdStatisticsReleaseMemberships', 'hkgovCenstatdStatistics']
+      return ['hkgovCenstatdStatisticsGeometry', 'hkgovCenstatdStatistics']
     }
 
     if (cacheTableProfile === 'nativeSource') {
@@ -284,7 +284,7 @@ export function resolveCacheTablesForBinding(
         'hkgovHydSensitiveStreets',
         'hkgovHydStrategicStreets',
         'hkgovTdPedestrianStreets',
-        'hkgovCenstatdStatisticsReleaseMemberships',
+        'hkgovCenstatdStatisticsGeometry',
         'hkgovCenstatdStatistics',
         'hkgovCenstatdDivisionAreaDerivatives',
         'hkgovLandsdPlaceNames',
@@ -317,7 +317,7 @@ export function resolveCacheTablesForBinding(
         'ssDivisionArea',
         'overtureDivisionBoundaries',
         'hkgovHadDivisionAreas',
-        'hkgovCenstatdStatisticsReleaseMemberships',
+        'hkgovCenstatdStatisticsGeometry',
         'hkgovCenstatdStatistics',
         'hkgovCenstatdDivisionAreaDerivatives',
       ]
@@ -335,7 +335,7 @@ export function resolveCacheTablesForBinding(
       'ssDivisionArea',
       'overtureDivisionBoundaries',
       'hkgovHadDivisionAreas',
-      'hkgovCenstatdStatisticsReleaseMemberships',
+      'hkgovCenstatdStatisticsGeometry',
       'hkgovCenstatdStatistics',
       'hkgovCenstatdDivisionAreaDerivatives',
       'hkgovPlandPlanningCells',

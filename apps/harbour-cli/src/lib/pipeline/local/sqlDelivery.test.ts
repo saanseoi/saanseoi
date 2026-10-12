@@ -561,10 +561,10 @@ for (const family of ['statistics', 'geometry'] as const) {
           ? 'CREATE TABLE divisionAreas (snapshotId TEXT, id TEXT, geometry TEXT, PRIMARY KEY(snapshotId,id));'
           : `CREATE TABLE hkgovCenstatdStatistics (
             createdAt TEXT, datasetCode TEXT, isCurrent INTEGER, properties TEXT, resourceReleaseId TEXT,
-            sourceGeometry TEXT, sourceRecordId TEXT, sources TEXT, updatedAt TEXT,
+            geometryId TEXT, sourceRecordId TEXT, sources TEXT, updatedAt TEXT,
             validFromRelease TEXT, validToRelease TEXT, version INTEGER, versionHash TEXT,
-            PRIMARY KEY(datasetCode,sourceRecordId,versionHash));
-            CREATE TABLE hkgovCenstatdStatisticsReleaseMemberships (datasetCode TEXT, resourceReleaseId TEXT, sourceRecordId TEXT, versionHash TEXT, PRIMARY KEY(datasetCode,resourceReleaseId,sourceRecordId,versionHash));`
+            PRIMARY KEY(datasetCode,resourceReleaseId,sourceRecordId,versionHash));
+            CREATE TABLE hkgovCenstatdStatisticsGeometry (id TEXT PRIMARY KEY, sourceGeometry BLOB);`
       const sql =
         family === 'geometry'
           ? geometryBuildUpsertSql('divisionAreas', [
@@ -575,6 +575,9 @@ for (const family of ['statistics', 'geometry'] as const) {
               sourceVersion: '2026-09-07.0',
               source: {
                 table: 'hkgovCenstatdStatistics',
+                geometries: [
+                  { id: 'geometry', sourceGeometry: new Uint8Array(150_000).fill(7) },
+                ],
                 rows: Array.from({ length: 40 }, (_, index) => ({
                   createdAt: '2026-09-07',
                   updatedAt: '2026-09-07',
@@ -587,7 +590,7 @@ for (const family of ['statistics', 'geometry'] as const) {
                   datasetCode: 'censtatd-dataset',
                   sourceRecordId: `row-${index}`,
                   sources: [],
-                  sourceGeometry: null,
+                  geometryId: 'geometry',
                   validFromRelease: '2026-09-07.0',
                   validToRelease: null,
                   version: 1,
@@ -646,7 +649,7 @@ for (const family of ['statistics', 'geometry'] as const) {
         expect(local.query(query).all()).toEqual(expected)
         if (family === 'statistics') {
           const memberships =
-            'SELECT * FROM hkgovCenstatdStatisticsReleaseMemberships ORDER BY sourceRecordId'
+            'SELECT * FROM hkgovCenstatdStatisticsGeometry ORDER BY id'
           expect(local.query(memberships).all()).toEqual(
             baseline.query(memberships).all(),
           )

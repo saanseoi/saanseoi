@@ -71,3 +71,61 @@ test('guard-only matches contribute to source audit search counts', async () => 
       totalCount: 1,
     })
 })
+
+test('statistics ingestion exposes new and reused source geometry under searchable rules', async () => {
+  const onSearchStateChange = vi.fn()
+  const manifest = {
+    scope: { stage: 'ingestion', ownerId: 'statistics-child' },
+    resourceReleaseId: 'statistics-child',
+    applicationCount: 0,
+    bulk: [
+      {
+        id: 'reuse-censtatd-statistics-geometry',
+        basis: 'code',
+        summary:
+          'Reuse source geometry within the yearly shard. DivisionArea publication is checked separately.',
+        outcome: 'applied',
+        definition: { hash: 'definition' },
+        counts: {
+          inputs: { 'statistic-geometry-references': 540 },
+          outputs: {
+            'new-geometries': 18,
+            'reused-geometries': 180,
+            'geometry-references': 540,
+          },
+          recordsAffected: 540,
+          decisions: { created: 18, reused: 180 },
+        },
+        fixtures: [],
+      },
+    ],
+    individualFixtures: [],
+    guards: [],
+  } as unknown as AuditManifest
+  const screen = await render(AuditRelease, {
+    manifest,
+    hash: 'audit-hash',
+    releaseCode: 'release',
+    resourceType: 'divisionStatistic',
+    showControls: false,
+    query: 'geometry',
+    onSearchStateChange,
+  })
+  await expect
+    .element(screen.getByText('new geometries', { exact: true }))
+    .toBeVisible()
+  await expect
+    .element(screen.getByText('reused geometries', { exact: true }))
+    .toBeVisible()
+  await expect.element(screen.getByText('18', { exact: true })).toBeVisible()
+  await expect.element(screen.getByText('180', { exact: true })).toBeVisible()
+  await expect.element(screen.getByText(manifest.bulk[0]!.summary)).toBeVisible()
+  await expect
+    .poll(() => onSearchStateChange.mock.calls.at(-1)?.[0])
+    .toEqual({
+      failed: false,
+      loading: false,
+      filteredCount: 1,
+      totalCount: 1,
+    })
+})

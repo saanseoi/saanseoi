@@ -356,14 +356,14 @@ test('Building Group preparation reads exact dataset and resource-release member
     datasetCode TEXT, sourceRecordId TEXT, resourceReleaseId TEXT, properties TEXT,
     validFromRelease TEXT, validToRelease TEXT, versionHash TEXT
   );
-  CREATE TABLE hkgovCenstatdStatisticsReleaseMemberships (datasetCode TEXT, sourceRecordId TEXT, versionHash TEXT, resourceReleaseId TEXT);`)
+`)
   const insert = source.query(
     'INSERT INTO hkgovCenstatdStatistics VALUES (?, ?, ?, ?, ?, ?, ?)',
   )
   insert.run(
     datasetCode,
     'BuildingGroup:A',
-    'earlier-release',
+    'release-1',
     JSON.stringify({ bg: 'A', bg_ind: 'B', hma: 'HMA1' }),
     '2023-H1',
     '2024-H1',
@@ -387,9 +387,6 @@ test('Building Group preparation reads exact dataset and resource-release member
     null,
     'other-hash',
   )
-  source
-    .query('INSERT INTO hkgovCenstatdStatisticsReleaseMemberships VALUES (?, ?, ?, ?)')
-    .run(datasetCode, 'BuildingGroup:A', 'first-hash', 'release-1')
   source.close()
   f.inputs.source.push(sourcePath)
   f.close()

@@ -12,9 +12,10 @@ Canonical source references follow the
 [source evidence contract](../../families/source-evidence.md). Original publisher
 properties and file locators remain in retained source assertions.
 
-Unchanged open source geometry and derivative versions retain their release metadata and
-validity. Supersession updates target the exact current version; derivative comparison
-remains scoped by source record, input version and transform.
+Native geometry is content-addressed in `hkgovCenstatdStatisticsGeometry` and shared
+within each yearly SOURCE shard. Release-owned statistics reference its ID. Derivatives
+are immutable and keyed by geometry ID, transform and a hash of settings, engine version
+and coverage geometry IDs; statistics-only changes reuse them.
 
 Housing Market Area API inventory counts, locale coverage and churn use the shared
 [division API statistics calculation and backfill](../../families/divisions.md#api-release-statistics).
@@ -64,8 +65,8 @@ including `null` transitions, still apply in statement order. The
 
 Remote replay selects immutable canonical content through upsert journal keys and
 records removals as delete journals. Source closures use exact version keys. Simplified
-phases also deliver source-derivative rows and closures keyed by source record, exact
-input version, transform and derivative version.
+phases deliver immutable source-derivative rows keyed by geometry ID, transform and
+transform-context hash.
 
 Parented exact and simplified snapshots follow the
 [geometry membership contract](../../families/divisions.md#publication-readiness):
@@ -168,8 +169,8 @@ and numeric `code`.
 
 The reference-year cohort belongs to release and canonical snapshot identity. Native
 source assertions use dataset ownership, publisher feature identity and a content hash.
-Exact resource-release membership selects the source input version for each cohort;
-geometry derivatives reference that dataset and input hash.
+Resource-release ownership selects the source input for each cohort. Geometry
+derivatives reference the shared geometry ID and their complete transform context.
 
 The source materialises into two C&SD companion families. The provider's census
 subdivided-unit district geometry is land-clipped; annual district geometry and the
@@ -213,14 +214,14 @@ tolerance. Its interface consumes and emits WGS84 GeoJSON; a temporary local met
 is used only to apply that tolerance. It simplifies shared coverage edges as one
 operation, validates every resulting Polygon or MultiPolygon, and records the engine
 version in derivation metadata. The exact source row retains the untouched C&SD geometry
-and no derivation metadata; its derivative records the input dataset/release, method,
-tolerance and `preservesLandClip: true`. The known invalid `CENSTATD:T` input is
+and no derivation metadata; its derivative records the geometry ID, coverage inputs,
+method, tolerance and `preservesLandClip: true`. The known invalid `CENSTATD:T` input is
 repaired only in the helper's temporary display-processing copy with GEOS `make_valid`;
 that derivative records `inputValidationRepair: make-valid`. The derived geometry is
 materialised internally for fast map reads in a derivative row keyed to the exact source
-record and its version hash; it remains a transform of the same source release rather
-than a separate dataset, source record or API-composition member. The 2016 and 2021
-derivatives declare `preservesLandClip: true`; the 2024 derivative declares
+geometry and transform-context hash; it remains a geometry transform rather than a
+separate dataset, source record or API-composition member. The 2016 and 2021 derivatives
+declare `preservesLandClip: true`; the 2024 derivative declares
 `preservesPublisherGeometry: true`.
 
 The completed simplified coverage is retained as content-addressed WGS84 GeoJSON in
@@ -456,13 +457,15 @@ geometry type is mixed. Building Group centroids do not create DivisionArea memb
 
 ## C&SD publisher feature storage
 
-C&SD statistics and geography intake share `hkgovCenstatdStatistics`. Publisher features
-retain explicit dataset ownership, native identities, complete properties, acquisition
-locators and Brotli-compressed native geometry. Canonical statistics and DivisionAreas
-are separate projections of that evidence.
+C&SD statistics and geography intake retain release-owned rows in
+`hkgovCenstatdStatistics`, with native identities, complete properties and acquisition
+locators. `geometryId` references shared Brotli-compressed native geometry in
+`hkgovCenstatdStatisticsGeometry`. Canonical statistics and DivisionAreas are separate
+projections of that evidence.
 
 Geometry reuse compares canonical materialisations within the same cohort, region and
-variant. Simplified derivatives identify the dataset and exact input feature version.
+variant. Simplified derivatives identify shared geometry and the complete transform
+context.
 
 ## Source record ID composition
 
@@ -479,11 +482,8 @@ prefix is added. Acquisition locators retain the layer even where it is absent f
 ID. IDs with ordinal qualification are local to the delivery and cannot establish
 cross-release continuity.
 
-Derivatives reuse the exact input assertion's ID and `inputVersionHash`; `transform` and
-the output `versionHash` identify the materialised geometry. Statistics provenance uses
-`hkgov-censtatd/<datasetCode>/<sourceVersion>/<sourceRecordId>`.
-
-`hkgovCenstatdStatisticsReleaseMemberships` records exact feature-version membership for
-each resource release. Source samples and schema inventories use this membership rather
-than treating independent census cohorts as one validity timeline. Payload reuse
-preserves separate memberships for the statistics and geometry resources.
+Derivatives reference shared `geometryId` values and a transform-context hash. The
+context retains method, settings, engine version and coverage geometry IDs. Statistics
+provenance uses `hkgov-censtatd/<datasetCode>/<sourceVersion>/<sourceRecordId>`. Source
+samples select exact dataset and resource-release rows, then join shared geometry;
+statistics and geometry resource children retain independent properties and locators.

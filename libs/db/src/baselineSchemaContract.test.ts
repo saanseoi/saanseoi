@@ -55,10 +55,16 @@ for (const [family, schema] of Object.entries({ meta, current, history, source }
               'hkgovCenstatdStatistics',
             ].includes(getTableName(table)),
           )
-          expect(actual.slice(-2).map(column => column.name)).toEqual([
-            'createdAt',
-            'updatedAt',
-          ])
+          if (
+            ![
+              'hkgovCenstatdStatisticsGeometry',
+              'hkgovCenstatdDivisionAreaDerivatives',
+            ].includes(getTableName(table))
+          )
+            expect(actual.slice(-2).map(column => column.name)).toEqual([
+              'createdAt',
+              'updatedAt',
+            ])
         }
       }
       expect(db.query('PRAGMA foreign_key_check').all()).toEqual([])

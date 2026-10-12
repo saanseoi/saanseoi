@@ -36,6 +36,26 @@ function insert(
   table: string,
   values: Record<string, string | number | null>,
 ) {
+  if (
+    table === 'hkgovCenstatdStatistics' ||
+    table === 'hkgovCenstatdDivisionAreaDerivatives'
+  ) {
+    const geometryId =
+      values.geometryId ??
+      `geometry:${values.sourceRecordId ?? values.resourceReleaseId ?? 'test'}`
+    db.query(
+      'INSERT INTO hkgovCenstatdStatisticsGeometry(id,sourceGeometry) VALUES (?, ?) ON CONFLICT DO NOTHING',
+    ).run(geometryId, '{}')
+    values = { ...values, geometryId }
+    if (table === 'hkgovCenstatdDivisionAreaDerivatives')
+      values = {
+        geometryId,
+        transform: 'simplified',
+        transformHash: 'transform',
+        versionHash: 'v',
+        derivation: '{}',
+      }
+  }
   const fields = db.query(`PRAGMA table_info(${table})`).all() as Array<{
     name: string
     type: string
@@ -245,7 +265,7 @@ describe('all-divisions reset', () => {
     ])
   })
 
-  test('retains a C&SD feature shared with a surviving statistics release', async () => {
+  test('retains geometry referenced by a surviving statistics release', async () => {
     const { source, context } = setup()
     for (const sourceRecordId of ['shared', 'division-only']) {
       insert(source, 'hkgovCenstatdStatistics', {
@@ -254,14 +274,8 @@ describe('all-divisions reset', () => {
         versionHash: 'v',
         resourceReleaseId: 'divisionArea',
       })
-      insert(source, 'hkgovCenstatdStatisticsReleaseMemberships', {
-        datasetCode: 'censtatd-dataset',
-        sourceRecordId,
-        versionHash: 'v',
-        resourceReleaseId: 'divisionArea',
-      })
     }
-    insert(source, 'hkgovCenstatdStatisticsReleaseMemberships', {
+    insert(source, 'hkgovCenstatdStatistics', {
       datasetCode: 'censtatd-dataset',
       sourceRecordId: 'shared',
       versionHash: 'v',
@@ -274,11 +288,7 @@ describe('all-divisions reset', () => {
       source.query('SELECT sourceRecordId FROM hkgovCenstatdStatistics').all(),
     ).toEqual([{ sourceRecordId: 'shared' }])
     expect(
-      source
-        .query(
-          'SELECT resourceReleaseId FROM hkgovCenstatdStatisticsReleaseMemberships',
-        )
-        .all(),
+      source.query('SELECT resourceReleaseId FROM hkgovCenstatdStatistics').all(),
     ).toEqual([{ resourceReleaseId: 'statistics' }])
   })
 
@@ -350,7 +360,7 @@ describe('all-divisions reset', () => {
       releaseSets: [],
     }).sourceSql
     const statements = sql.split('\n')
-    expect(statements).toHaveLength(14 * 5)
+    expect(statements).toHaveLength(12 * 5 + 2)
     expect(statements[0]).toContain("'release-''0'")
     expect(statements.every(statement => statement.length < 2000)).toBe(true)
   })

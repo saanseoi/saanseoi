@@ -1,4 +1,9 @@
 import {
+  censtatdGeometryId,
+  censtatdGeometryRow,
+  censtatdDerivativeRow,
+} from '@repo/core/pipeline/services/sources/censtatdGeometry'
+import {
   assertPublishedSnapshotMaterialised,
   beginSnapshotPublication,
   completeSnapshotPublication,
@@ -413,7 +418,7 @@ export async function writeGeometryRows(
                         'C&SD datasetCode',
                       ),
                       sourceLocator: row.source.sourceLocator ?? null,
-                      sourceGeometry: compressJsonBrotli(sourceGeometry),
+                      geometryId: censtatdGeometryId(sourceGeometry),
                     }
                   : {
                       sourceGeometry:
@@ -495,6 +500,40 @@ export async function writeGeometryRows(
       },
     )
   }
+  if (version.source === 'hkgov-censtatd' && !isDisplayDerivative) {
+    const table = sourceSchema.sourceHkgovCenstatdStatisticsGeometry
+    const geometries = [
+      ...new Map(
+        publisherRows.map(row => {
+          const geometry = censtatdGeometryRow(row.source.sourceGeometry)
+          return [geometry.id, geometry] as const
+        }),
+      ).values(),
+    ]
+    let created = 0
+    for (const chunk of chunkRows(
+      geometries,
+      Math.floor(96 / Object.keys(getTableColumns(table)).length),
+    )) {
+      created += (
+        await context.sourceDb
+          .insert(table)
+          .values(chunk)
+          .onConflictDoUpdate({
+            target: table.id,
+            set: { sourceGeometry: sql`excluded.sourceGeometry` },
+            // A failed chunked statistics delivery may have retained only a prefix.
+            // Canonical JSON and fixed compression settings give a stable byte length.
+            setWhere: sql`length(${table.sourceGeometry}) < length(excluded.sourceGeometry)`,
+          })
+          .returning({ id: table.id })
+          .all()
+      ).length
+    }
+    onProgress?.(
+      `source geometry: ${created} new, ${geometries.length - created} reused`,
+    )
+  }
   if (sourceRows.length) {
     let writtenSourceRows = 0
     onProgress?.('write source rows', writtenSourceRows, sourceRows.length)
@@ -518,6 +557,7 @@ export async function writeGeometryRows(
               version.source === 'hkgov-censtatd'
                 ? [
                     sourceSchema.sourceHkgovCenstatdStatistics.datasetCode,
+                    sourceTable.resourceReleaseId,
                     sourceTable.sourceRecordId,
                     sourceTable.versionHash,
                   ]
@@ -539,31 +579,11 @@ export async function writeGeometryRows(
       onProgress?.('write source rows', writtenSourceRows, sourceRows.length)
     }
   }
-  if (version.source === 'hkgov-censtatd' && !isDisplayDerivative) {
-    const memberships = sourceSchema.sourceHkgovCenstatdStatisticsReleaseMemberships
-    for (const chunk of chunkRows(
-      publisherRows.map(row => ({
-        datasetCode: requireString(version.datasetCode, 'C&SD datasetCode'),
-        resourceReleaseId: version.resourceReleaseId,
-        sourceRecordId: row.source.sourceRecordId,
-        versionHash: requireGeometryHash(sourceHashes, row.source.sourceRecordId),
-      })),
-      Math.floor(96 / Object.keys(getTableColumns(memberships)).length),
-    )) {
-      await context.sourceDb
-        .insert(memberships)
-        .values(chunk)
-        .onConflictDoNothing()
-        .run()
-    }
-  }
   if (isCenstatdDerivative) {
     await writeCenstatdSourceDerivatives(
       context.sourceDb as unknown as HarbourReadableDb & HarbourWritableDb,
       rows,
       version,
-      now,
-      historyHashes,
     )
   }
 
@@ -623,116 +643,57 @@ async function writeCenstatdSourceDerivatives(
     sourceVersion: string
     transform?: 'simplified'
   },
-  now: string,
-  historyHashes: Map<string, string>,
 ) {
   const transform = version.transform
   if (!transform) {
     throw new Error('C&SD derivative write requires a named transform.')
   }
 
-  const sources = sourceSchema.sourceHkgovCenstatdStatistics
+  const geometries = sourceSchema.sourceHkgovCenstatdStatisticsGeometry
   const derivatives = sourceSchema.sourceHkgovCenstatdDivisionAreaDerivatives
-  const exactRows = await db
-    .select({
-      sourceRecordId: sources.sourceRecordId,
-      versionHash: sources.versionHash,
-    })
-    .from(sources)
-    .where(
-      and(
-        eq(sources.datasetCode, requireString(version.datasetCode, 'C&SD datasetCode')),
-      ),
-    )
-    .all()
-  const exactHashByRecordAndCohort = new Map(
-    exactRows.map(row => [`${row.sourceRecordId}:${row.versionHash}`, row.versionHash]),
+  const coverageGeometryIds = rows.map(row =>
+    censtatdGeometryId(row.source.sourceGeometry),
   )
-  const nextHashes = new Map<string, string>()
-  const derivativeRows = await Promise.all(
-    rows.map(async row => {
-      const censusYear = version.cohortKey
-      const expectedInputHash = await hashGeometrySourceAssertion(
-        row.source,
-        'hkgov-censtatd',
+  const derivativeRows = []
+  for (const row of rows) {
+    const geometryId = censtatdGeometryId(row.source.sourceGeometry)
+    if (
+      !(await db
+        .select({ id: geometries.id })
+        .from(geometries)
+        .where(eq(geometries.id, geometryId))
+        .get())
+    ) {
+      throw new Error(
+        `C&SD derivative ${row.source.sourceRecordId} requires its exact source geometry to be ingested first.`,
       )
-      const inputVersionHash = exactHashByRecordAndCohort.get(
-        `${row.source.sourceRecordId}:${expectedInputHash}`,
-      )
-      if (!inputVersionHash) {
-        throw new Error(
-          `C&SD derivative ${row.source.sourceRecordId} (${censusYear}) requires its exact source record to be ingested first.`,
-        )
-      }
-      const derivation = row.source.derivation
-      if (!derivation) {
-        throw new Error(
-          `C&SD derivative ${row.source.sourceRecordId} has no derivation metadata.`,
-        )
-      }
-      const versionHash = requireGeometryHash(historyHashes, row.canonical.id)
-      nextHashes.set(`${row.source.sourceRecordId}:${inputVersionHash}`, versionHash)
-      return {
-        datasetCode: requireString(version.datasetCode, 'C&SD datasetCode'),
-        sourceRecordId: row.source.sourceRecordId,
-        inputVersionHash,
-        transform,
-        derivation,
-        geometry: row.canonical.geometry,
-        bbox: row.canonical.bbox,
-        versionHash,
-        resourceReleaseId: version.resourceReleaseId,
-        validFromRelease: version.sourceVersion,
-        validToRelease: null,
-        isCurrent: true,
-        createdAt: now,
-        updatedAt: now,
-      }
-    }),
-  )
-
-  const currentDerivatives = await db
-    .select({
-      inputVersionHash: derivatives.inputVersionHash,
-      sourceRecordId: derivatives.sourceRecordId,
-      versionHash: derivatives.versionHash,
+    }
+    if (!row.source.derivation)
+      throw new Error('C&SD derivative has no derivation metadata.')
+    const derivative = censtatdDerivativeRow({
+      geometryId,
+      transform,
+      coverageGeometryIds,
+      derivation: row.source.derivation,
+      geometry: row.canonical.geometry,
+      bbox: row.canonical.bbox,
     })
-    .from(derivatives)
-    .where(
-      and(
-        eq(derivatives.isCurrent, true),
-        eq(derivatives.transform, transform),
-        eq(
-          derivatives.datasetCode,
-          requireString(version.datasetCode, 'C&SD datasetCode'),
-        ),
-      ),
-    )
-    .all()
-  for (const derivative of currentDerivatives) {
-    const key = `${derivative.sourceRecordId}:${derivative.inputVersionHash}`
-    // This upload covers one census cohort. Other cohorts may use the same
-    // C&SD district record IDs, so only supersede a derivative of an exact
-    // source record represented in this upload.
-    if (!nextHashes.has(key)) continue
-    if (nextHashes.get(key) === derivative.versionHash) continue
-    await db
-      .update(derivatives)
-      .set({ isCurrent: false, validToRelease: version.sourceVersion })
+    const existing = await db
+      .select({ versionHash: derivatives.versionHash })
+      .from(derivatives)
       .where(
         and(
-          eq(
-            derivatives.datasetCode,
-            requireString(version.datasetCode, 'C&SD datasetCode'),
-          ),
-          eq(derivatives.sourceRecordId, derivative.sourceRecordId),
-          eq(derivatives.inputVersionHash, derivative.inputVersionHash),
+          eq(derivatives.geometryId, geometryId),
           eq(derivatives.transform, transform),
-          eq(derivatives.versionHash, derivative.versionHash),
-          eq(derivatives.isCurrent, true),
+          eq(derivatives.transformHash, derivative.transformHash),
         ),
       )
-      .run()
+      .get()
+    if (existing && existing.versionHash !== derivative.versionHash)
+      throw new Error(
+        `C&SD geometry ${geometryId} has conflicting output for the same transform context.`,
+      )
+    derivativeRows.push(derivative)
   }
   for (const chunk of chunkRows(
     derivativeRows,
@@ -740,23 +701,8 @@ async function writeCenstatdSourceDerivatives(
   )) {
     await db
       .insert(derivatives)
-      .values(chunk)
-      .onConflictDoUpdate({
-        target: [
-          derivatives.datasetCode,
-          derivatives.sourceRecordId,
-          derivatives.inputVersionHash,
-          derivatives.transform,
-          derivatives.versionHash,
-        ],
-        setWhere: sql`isCurrent <> 1 OR validToRelease IS NOT NULL`,
-        set: {
-          resourceReleaseId: version.resourceReleaseId,
-          validToRelease: null,
-          isCurrent: true,
-          updatedAt: now,
-        },
-      })
+      .values(chunk as never)
+      .onConflictDoNothing()
       .run()
   }
 }

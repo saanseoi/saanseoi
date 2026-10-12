@@ -25,7 +25,7 @@ function sourceDatabase(
             all: async () => {
               expect(query).toContain(`FROM ${tableName}`)
               if (tableName === 'hkgovCenstatdStatistics') {
-                expect(query).toContain('hkgovCenstatdStatisticsReleaseMemberships')
+                expect(query).toContain('hkgovCenstatdStatisticsGeometry')
                 expect(values[1]).toBe('source-release-id')
               } else {
                 expect(query).toContain('validFromRelease <= ?')
@@ -176,8 +176,8 @@ describe('source records', () => {
       CREATE TABLE resourceReleases(id, code, sourceReleaseId, datasetId, resourceType, sourceVersion, status, revokedAt);
       CREATE TABLE releaseShardAssignments(resourceReleaseId, dataShardId);
       CREATE TABLE dataShards(id, bindingName, shardType, status);
-      CREATE TABLE hkgovCenstatdStatisticsReleaseMemberships(datasetCode,resourceReleaseId,sourceRecordId,versionHash);
-      CREATE TABLE hkgovCenstatdStatistics(datasetCode, sources, sourceRecordId, versionHash, properties, sourceGeometry, validFromRelease, validToRelease, resourceReleaseId);
+      CREATE TABLE hkgovCenstatdStatisticsGeometry(id PRIMARY KEY, sourceGeometry);
+      CREATE TABLE hkgovCenstatdStatistics(datasetCode, sources, sourceRecordId, versionHash, properties, geometryId, validFromRelease, validToRelease, resourceReleaseId);
       INSERT INTO publishers VALUES('publisher', 'hkgov-censtatd');
       INSERT INTO dataShards VALUES('shard', 'DB_SOURCE_HK_2026', 'source', 'active');
       INSERT INTO releaseShardAssignments VALUES('area', 'shard'), ('statistic', 'shard');
@@ -209,20 +209,13 @@ describe('source records', () => {
       ])
     }
     sqlite.run(
-      "INSERT INTO hkgovCenstatdStatistics (datasetCode, sourceRecordId, versionHash, properties, sourceGeometry, validFromRelease, validToRelease, resourceReleaseId) VALUES(?, ?, ?, ?, ?, ?, NULL, 'statistic')",
-      [
-        datasetCode,
-        'record',
-        'hash',
-        '{"population":42}',
-        compressJsonBrotli({ type: 'Point', coordinates: [114, 22] }),
-        '2021',
-      ],
+      "INSERT INTO hkgovCenstatdStatistics (datasetCode, sourceRecordId, versionHash, properties, geometryId, validFromRelease, validToRelease, resourceReleaseId) VALUES(?, ?, ?, ?, ?, ?, NULL, 'statistic')",
+      [datasetCode, 'record', 'hash', '{"population":42}', 'geometry', '2021'],
     )
-    sqlite.run(
-      'INSERT INTO hkgovCenstatdStatisticsReleaseMemberships VALUES (?, ?, ?, ?)',
-      [datasetCode, 'statistic', 'record', 'hash'],
-    )
+    sqlite.run('INSERT INTO hkgovCenstatdStatisticsGeometry VALUES (?, ?)', [
+      'geometry',
+      compressJsonBrotli({ type: 'Point', coordinates: [114, 22] }),
+    ])
     const binding = {
       prepare(query: string) {
         return {
@@ -263,12 +256,12 @@ describe('source records', () => {
     }
   })
 
-  test('uses exact release membership and dataset ownership to isolate shared publisher features', async () => {
+  test('uses release and dataset ownership to isolate statistics sharing geometry', async () => {
     const sqlite = new Database(':memory:')
     sqlite.exec(`CREATE TABLE hkgovCenstatdStatistics (
       datasetCode TEXT DEFAULT 'ds-hk-hkgov-censtatd-division-statistic-new-towns',
       sources TEXT, sourceRecordId TEXT, versionHash TEXT, properties TEXT,
-      validFromRelease TEXT, validToRelease TEXT, resourceReleaseId TEXT
+      validFromRelease TEXT, validToRelease TEXT, resourceReleaseId TEXT, geometryId TEXT DEFAULT 'geometry'
     )`)
     const code = 'dr-hk-hkgov-censtatd-division-statistic-new-towns-2021'
     const insert = sqlite.query(
@@ -304,8 +297,9 @@ describe('source records', () => {
     )
     insert.run('future', 'v1', '{"future":true}', '2026', null, 'source-release-id')
     sqlite.exec(
-      "CREATE TABLE hkgovCenstatdStatisticsReleaseMemberships(datasetCode,resourceReleaseId,sourceRecordId,versionHash); INSERT INTO hkgovCenstatdStatisticsReleaseMemberships VALUES('ds-hk-hkgov-censtatd-division-statistic-new-towns','source-release-id','a','v1'),('ds-hk-hkgov-censtatd-division-statistic-new-towns','source-release-id','b','v1'),('another-dataset','source-release-id','unrelated','v1');",
+      "CREATE TABLE hkgovCenstatdStatisticsGeometry(id PRIMARY KEY, sourceGeometry); INSERT INTO hkgovCenstatdStatisticsGeometry VALUES('geometry', '{}'); UPDATE hkgovCenstatdStatistics SET resourceReleaseId='source-release-id' WHERE sourceRecordId='a'; UPDATE hkgovCenstatdStatistics SET resourceReleaseId='future-release' WHERE sourceRecordId='future';",
     )
+
     const sourceDb = {
       prepare(query: string) {
         return {

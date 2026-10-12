@@ -1,3 +1,4 @@
+import { censtatdGeometryRow } from '@repo/core/pipeline/services/sources/censtatdGeometry'
 import { expect, test } from 'bun:test'
 import { Database } from 'bun:sqlite'
 import { readdirSync, readFileSync } from 'node:fs'
@@ -90,28 +91,35 @@ test('statistics and geometry share native feature identity, payload and hash', 
   ).toBe(row.versionHash)
   const stored = sourceStatisticAssertion(row, datasetCode)
   expect(stored.properties).toEqual(geometry.source.properties)
-  expect(decompressJsonBrotli(stored.sourceGeometry)).toEqual(
-    geometry.source.sourceGeometry,
-  )
+  expect(
+    decompressJsonBrotli(censtatdGeometryRow(row.sourceGeometry).sourceGeometry),
+  ).toEqual(geometry.source.sourceGeometry)
   const db = database()
   try {
     const replay = (record: typeof stored) => {
       for (const sql of buildStatisticSqlBatches({
         resourceReleaseId: record.resourceReleaseId,
         sourceVersion: '2021',
-        source: { table: 'hkgovCenstatdStatistics', rows: [record] },
+        source: {
+          table: 'hkgovCenstatdStatistics',
+          rows: [record],
+          geometries: [censtatdGeometryRow(row.sourceGeometry)],
+        },
       }).source)
         db.exec(sql)
     }
     replay(stored)
     replay({ ...stored, resourceReleaseId: 'geometry-release' })
     expect(
-      db.query('SELECT count(*) AS count FROM hkgovCenstatdStatistics').get(),
+      db.query('SELECT count(*) AS count FROM hkgovCenstatdStatisticsGeometry').get(),
     ).toEqual({ count: 1 })
+    expect(
+      db.query('SELECT count(*) AS count FROM hkgovCenstatdStatistics').get(),
+    ).toEqual({ count: 2 })
     expect(
       db
         .query(
-          'SELECT resourceReleaseId FROM hkgovCenstatdStatisticsReleaseMemberships ORDER BY resourceReleaseId',
+          'SELECT resourceReleaseId FROM hkgovCenstatdStatistics ORDER BY resourceReleaseId',
         )
         .all(),
     ).toEqual([
@@ -130,6 +138,7 @@ test('statistics and geometry share native feature identity, payload and hash', 
       { datasetCode: 'another-dataset', versionHash: stored.versionHash, isCurrent: 1 },
       ...[
         { versionHash: 'revised', isCurrent: 1 },
+        { versionHash: stored.versionHash, isCurrent: 0 },
         { versionHash: stored.versionHash, isCurrent: 0 },
       ]
         .sort((a, b) => a.versionHash.localeCompare(b.versionHash))

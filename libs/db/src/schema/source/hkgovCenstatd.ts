@@ -1,38 +1,27 @@
 import { index, primaryKey, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 
 import { binaryText, geoBbox, jsonText, timestamps } from '../shared'
-import {
-  sourceSpatialAssertionColumns,
-  sourceVersionIndexes,
-  sourceRecordColumns,
-} from './shared'
+import { sourceAssertionColumns, sourceVersionIndexes } from './shared'
 
-/** Complete publisher features, shared by statistics and geography ingestion. */
+/** Immutable publisher geometry, deduplicated by content within a SOURCE shard. */
+export const sourceHkgovCenstatdStatisticsGeometry = sqliteTable(
+  'hkgovCenstatdStatisticsGeometry',
+  {
+    id: text('id').primaryKey(),
+    sourceGeometry: binaryText('sourceGeometry').notNull(),
+  },
+)
+
+/** Publisher statistics and provenance owned by one dataset release. */
 export const sourceHkgovCenstatdStatistics = sqliteTable(
   'hkgovCenstatdStatistics',
   {
-    ...sourceSpatialAssertionColumns(),
+    ...sourceAssertionColumns(),
     datasetCode: text('datasetCode').notNull(),
-    sourceGeometry: binaryText('sourceGeometry').notNull(),
+    geometryId: text('geometryId')
+      .notNull()
+      .references(() => sourceHkgovCenstatdStatisticsGeometry.id),
     sourceLocator: jsonText<Record<string, unknown>>('sourceLocator'),
-    ...timestamps,
-  },
-  table => [
-    primaryKey({
-      columns: [table.datasetCode, table.sourceRecordId, table.versionHash],
-    }),
-    ...sourceVersionIndexes(table, 'hkgovCenstatdStatistics'),
-  ],
-)
-
-/** Exact feature-version membership; payloads can be shared by resource releases. */
-export const sourceHkgovCenstatdStatisticsReleaseMemberships = sqliteTable(
-  'hkgovCenstatdStatisticsReleaseMemberships',
-  {
-    datasetCode: text('datasetCode').notNull(),
-    resourceReleaseId: text('resourceReleaseId').notNull(),
-    sourceRecordId: text('sourceRecordId').notNull(),
-    versionHash: text('versionHash').notNull(),
     ...timestamps,
   },
   table => [
@@ -44,40 +33,25 @@ export const sourceHkgovCenstatdStatisticsReleaseMemberships = sqliteTable(
         table.versionHash,
       ],
     }),
-    index('hkgovCenstatdStatisticsReleaseMemberships_resourceReleaseId_idx').on(
-      table.resourceReleaseId,
-    ),
+    index('hkgovCenstatdStatistics_geometryId_idx').on(table.geometryId),
+    ...sourceVersionIndexes(table, 'hkgovCenstatdStatistics'),
   ],
 )
 
-/**
- * Materialised geometry transforms of a C&SD district source record.
- *
- * A transform is deliberately not a second source record: `sourceRecordId`
- * and `inputVersionHash` identify the exact C&SD assertion it was derived
- * from. Its own `versionHash` versions the materialised transform output.
- */
+/** Immutable transforms identified by geometry and the complete transform context. */
 export const sourceHkgovCenstatdDivisionAreaDerivatives = sqliteTable(
   'hkgovCenstatdDivisionAreaDerivatives',
   {
-    ...sourceRecordColumns(),
-    datasetCode: text('datasetCode').notNull(),
-    inputVersionHash: text('inputVersionHash').notNull(),
+    geometryId: text('geometryId')
+      .notNull()
+      .references(() => sourceHkgovCenstatdStatisticsGeometry.id),
     transform: text('transform').notNull(),
+    transformHash: text('transformHash').notNull(),
+    versionHash: text('versionHash').notNull(),
     derivation: jsonText('derivation').notNull(),
     ...geoBbox,
-    ...timestamps,
   },
   table => [
-    primaryKey({
-      columns: [
-        table.datasetCode,
-        table.sourceRecordId,
-        table.inputVersionHash,
-        table.transform,
-        table.versionHash,
-      ],
-    }),
-    ...sourceVersionIndexes(table, 'hkgovCenstatdDivisionAreaDerivatives'),
+    primaryKey({ columns: [table.geometryId, table.transform, table.transformHash] }),
   ],
 )

@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:ee89d23a9d8344df30d0c21a71c078c5cb5c3159cb19cf7a450ad59f68e6768c",
+  "versionHash": "sha256:a34253c4a0c60c201668787b48fdaf54239b05029756c0edcb7c5586b29e82ad",
   "code": "rs-source-ingestion-v1",
   "stage": "ingestion",
   "strategy": "ingestion",
@@ -49,52 +49,22 @@
         {
           "origin": "source",
           "collection": "hkgovCenstatdStatistics",
-          "path": "sourceRecordId"
-        },
-        {
-          "origin": "source",
-          "collection": "hkgovCenstatdStatistics",
-          "path": "versionHash"
-        },
-        {
-          "origin": "source",
-          "collection": "hkgovCenstatdStatistics",
-          "path": "resourceReleaseId"
-        },
-        {
-          "origin": "source",
-          "collection": "hkgovCenstatdStatistics",
-          "path": "validFromRelease"
-        },
-        {
-          "origin": "source",
-          "collection": "hkgovCenstatdStatistics",
-          "path": "validToRelease"
-        },
-        {
-          "origin": "source",
-          "collection": "hkgovCenstatdStatistics",
-          "path": "isCurrent"
-        },
-        {
-          "origin": "source",
-          "collection": "hkgovCenstatdStatistics",
           "path": "properties"
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdStatistics",
-          "path": "properties"
-        },
-        {
-          "origin": "source",
-          "collection": "hkgovCenstatdStatistics",
+          "collection": "hkgovCenstatdStatisticsGeometry",
           "path": "sourceGeometry"
         },
         {
           "origin": "source",
           "collection": "hkgovCenstatdStatistics",
-          "path": "sourceGeometry"
+          "path": "geometryId"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdStatisticsGeometry",
+          "path": "id"
         }
       ]
     },
@@ -146,8 +116,18 @@
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdStatistics",
+          "collection": "hkgovCenstatdStatisticsGeometry",
           "path": "sourceGeometry"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdStatistics",
+          "path": "geometryId"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdStatisticsGeometry",
+          "path": "id"
         }
       ]
     },
@@ -199,8 +179,18 @@
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdStatistics",
+          "collection": "hkgovCenstatdStatisticsGeometry",
           "path": "sourceGeometry"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdStatistics",
+          "path": "geometryId"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdStatisticsGeometry",
+          "path": "id"
         }
       ]
     },
@@ -252,8 +242,18 @@
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdStatistics",
+          "collection": "hkgovCenstatdStatisticsGeometry",
           "path": "sourceGeometry"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdStatistics",
+          "path": "geometryId"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdStatisticsGeometry",
+          "path": "id"
         }
       ]
     },
@@ -305,8 +305,18 @@
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdStatistics",
+          "collection": "hkgovCenstatdStatisticsGeometry",
           "path": "sourceGeometry"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdStatistics",
+          "path": "geometryId"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdStatisticsGeometry",
+          "path": "id"
         }
       ]
     },
@@ -358,8 +368,18 @@
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdStatistics",
+          "collection": "hkgovCenstatdStatisticsGeometry",
           "path": "sourceGeometry"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdStatistics",
+          "path": "geometryId"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdStatisticsGeometry",
+          "path": "id"
         }
       ]
     },
@@ -411,8 +431,18 @@
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdStatistics",
+          "collection": "hkgovCenstatdStatisticsGeometry",
           "path": "sourceGeometry"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdStatistics",
+          "path": "geometryId"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdStatisticsGeometry",
+          "path": "id"
         }
       ]
     },
@@ -464,8 +494,18 @@
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdStatistics",
+          "collection": "hkgovCenstatdStatisticsGeometry",
           "path": "sourceGeometry"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdStatistics",
+          "path": "geometryId"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdStatisticsGeometry",
+          "path": "id"
         }
       ]
     },

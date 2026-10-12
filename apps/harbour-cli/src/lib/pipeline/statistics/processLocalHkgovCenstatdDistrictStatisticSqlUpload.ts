@@ -1,3 +1,9 @@
+import {
+  prepareCenstatdGeometryAudit,
+  retainCenstatdGeometryAudit,
+} from './censtatdGeometryAudit'
+import { formatCenstatdGeometryReuse } from './censtatdGeometryStorage'
+import { censtatdGeometryRow } from '@repo/core/pipeline/services/sources/censtatdGeometry'
 import { statisticAuditPeriod } from './statisticAuditPeriod'
 import type { DatasetProcessingStats } from '@repo/core/pipeline/processingRunStats'
 import { resolveCurrentWriteContext } from '../../dbCache/currentWriteContext.ts'
@@ -338,6 +344,15 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
         ),
     )
     canonicalSha256 = hashCanonicalStatisticPreparation(canonical)
+    const geometryAudit = await prepareCenstatdGeometryAudit({
+      directory: sqlDeliveryPhaseDirectory(delivery('statistics-geometry-audit')),
+      db: context.sourceDb as unknown as HarbourReadableDb,
+      rows: sourceRows,
+      resourceReleaseId,
+      datasetCode: plan.datasetCode,
+      sourceVersion: plan.sourceVersion,
+    })
+    progress.message(formatCenstatdGeometryReuse(geometryAudit))
     const batches = () =>
       buildStatisticSqlBatches({
         history: { rows: historyRows, table: 'divisionStatistics' },
@@ -345,6 +360,7 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
         resourceReleaseId,
         source: {
           rows: sourceRows.map(row => sourceStatisticAssertion(row, datasetCode)),
+          geometries: sourceRows.map(row => censtatdGeometryRow(row.sourceGeometry)),
           table: 'hkgovCenstatdStatistics',
         },
       })
@@ -509,6 +525,12 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
         const store = new LocalPipelineBucket(
           sqlDeliveryPhaseDirectory(delivery('statistics-provenance')),
         )
+        const ingestion = await retainCenstatdGeometryAudit(store, {
+          resourceReleaseId,
+          datasetCode: plan.datasetCode,
+          counts: geometryAudit,
+        })
+        await deliverProcessingResult(target, store, ingestion.ref)
         for (const snapshot of snapshots) {
           const result = await retainStatisticProvenance(store, {
             scope: { stage: 'assembly', ownerId: snapshot.id },

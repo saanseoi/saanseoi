@@ -33,6 +33,7 @@ export type StatisticSqlReplayInput = {
   resourceReleaseId: string
   source: {
     rows: StatisticRow[]
+    geometries?: Array<{ id: string; sourceGeometry: Uint8Array }>
     table: 'hkgovCenstatdStatistics'
   }
 }
@@ -72,6 +73,7 @@ export function buildStatisticSqlBatches(
     requiredString(valueFor(row, 'sourceRecordId'), 'sourceRecordId'),
   )
   const sourceStatements = [
+    ...buildCenstatdGeometryStatements(input.source.geometries ?? []),
     ...buildCloseSourceStatements(
       input.source.table,
       sourceIds,
@@ -82,19 +84,8 @@ export function buildStatisticSqlBatches(
     ...buildUpsertStatements(
       input.source.table,
       sourceRows,
-      ['datasetCode', 'sourceRecordId', 'versionHash'],
-      [
-        'isCurrent',
-        'resourceReleaseId',
-        'updatedAt',
-        'validToRelease',
-        'sourceGeometry',
-      ],
-      ['sourceGeometry'],
-    ),
-    ...sourceRows.map(
-      row =>
-        `INSERT INTO "hkgovCenstatdStatisticsReleaseMemberships" ("datasetCode", "resourceReleaseId", "sourceRecordId", "versionHash") VALUES (${sqlValue(valueFor(row, 'datasetCode'))}, ${sqlValue(input.resourceReleaseId)}, ${sqlValue(valueFor(row, 'sourceRecordId'))}, ${sqlValue(valueFor(row, 'versionHash'))}) ON CONFLICT ("datasetCode", "resourceReleaseId", "sourceRecordId", "versionHash") DO NOTHING;`,
+      ['datasetCode', 'resourceReleaseId', 'sourceRecordId', 'versionHash'],
+      ['isCurrent', 'updatedAt', 'validToRelease'],
     ),
   ]
 
@@ -116,6 +107,28 @@ export function buildStatisticSqlBatches(
     history: chunkSql(historyStatements),
     source: chunkSql(sourceStatements),
   }
+}
+
+/** Immutable geometry writes are resumable without overwriting a shared payload. */
+export function buildCenstatdGeometryStatements(
+  rows: Array<{ id: string; sourceGeometry: Uint8Array }>,
+) {
+  return [...new Map(rows.map(row => [row.id, row])).values()].flatMap(row => {
+    const table = '"hkgovCenstatdStatisticsGeometry"'
+    const id = sqlValue(row.id)
+    const insert = (value: Uint8Array) =>
+      `INSERT INTO ${table} (id, sourceGeometry) VALUES (${id}, ${sqlValue(value)}) ON CONFLICT (id) DO NOTHING;`
+    const statement = insert(row.sourceGeometry)
+    if (Buffer.byteLength(statement) <= SQL_STATEMENT_BYTE_LIMIT) return [statement]
+    const appends: string[] = []
+    for (let offset = 0; offset < row.sourceGeometry.length; offset += 40_000) {
+      const chunk = row.sourceGeometry.subarray(offset, offset + 40_000)
+      appends.push(
+        `UPDATE ${table} SET sourceGeometry = CAST(sourceGeometry || ${sqlValue(chunk)} AS BLOB) WHERE id = ${id} AND length(sourceGeometry) = ${offset};`,
+      )
+    }
+    return [insert(new Uint8Array()), ...appends]
+  })
 }
 
 /**
@@ -263,7 +276,7 @@ function buildCloseSourceStatements(
   return [
     ...[...hashesById].map(
       ([id, hashes]) =>
-        `${update} AND "sourceRecordId" = ${sqlValue(id)} AND "versionHash" NOT IN (${[...hashes].map(sqlValue).join(',')});`,
+        `${update} AND "sourceRecordId" = ${sqlValue(id)} AND ("resourceReleaseId" <> ${sqlValue(resourceReleaseId)} OR "versionHash" NOT IN (${[...hashes].map(sqlValue).join(',')}));`,
     ),
     // A same-release rebuild can omit rows; do not close other source lineages.
     ...missingSourceMembershipPredicates(ids).map(
@@ -289,7 +302,6 @@ function buildUpsertStatements(
   rows: StatisticRow[],
   conflictColumns: string[],
   updateColumns: string[],
-  chunkedColumns: string[] = [],
 ) {
   return rows.flatMap(row => {
     const values = recordFor(row)
@@ -303,36 +315,6 @@ function buildUpsertStatements(
       updateColumns,
     )
     if (Buffer.byteLength(statement) <= SQL_STATEMENT_BYTE_LIMIT) return statement
-
-    for (const column of chunkedColumns) {
-      const value = values[column]
-      if (value === null || value === undefined) continue
-      const inlineValues = {
-        ...values,
-        // Source geometry is non-null in the C&SD district-area table. Start
-        // chunked values with the matching empty SQL type, then append before
-        // allowing the version to become current.
-        [column]: binaryValue(value) ? new Uint8Array() : '',
-        isCurrent: false,
-      }
-      const baseStatement = buildUpsertStatement(
-        table,
-        columns,
-        inlineValues,
-        conflictColumns,
-        updateColumns,
-      )
-      if (Buffer.byteLength(baseStatement) > SQL_STATEMENT_BYTE_LIMIT) continue
-
-      const appendStatements = chunkSqlValue(value, chunk =>
-        buildAppendStatement(table, column, chunk, conflictColumns, values),
-      )
-      return [
-        baseStatement,
-        ...appendStatements,
-        `UPDATE ${sqlIdentifier(table)} SET "isCurrent" = 1 WHERE ${conflictColumns.map(key => `${sqlIdentifier(key)} = ${sqlValue(values[key])}`).join(' AND ')} AND "isCurrent" = 0;`,
-      ]
-    }
 
     throw new Error('A statistic SQL statement exceeds the D1 limit.')
   })
@@ -353,23 +335,6 @@ function buildUpsertStatement(
       .map(column => `${sqlIdentifier(column)} = excluded.${sqlIdentifier(column)}`)
       .join(', '),
     `WHERE ${sqlIdentifier(table)}.isCurrent <> 1;`,
-  ].join(' ')
-}
-
-function buildAppendStatement(
-  table: string,
-  column: string,
-  value: string | Uint8Array,
-  conflictColumns: string[],
-  row: Record<string, unknown>,
-) {
-  const nextValue =
-    value instanceof Uint8Array
-      ? `CAST(COALESCE(${sqlIdentifier(column)}, X'') || ${sqlValue(value)} AS BLOB)`
-      : `COALESCE(${sqlIdentifier(column)}, '') || ${sqlValue(value)}`
-  return [
-    `UPDATE ${sqlIdentifier(table)} SET ${sqlIdentifier(column)} = ${nextValue}`,
-    `WHERE ${conflictColumns.map(key => `${sqlIdentifier(key)} = ${sqlValue(row[key])}`).join(' AND ')} AND isCurrent = 0;`,
   ].join(' ')
 }
 
@@ -476,71 +441,6 @@ function chunkSql(statements: string[]) {
   return chunks
 }
 
-function chunkSqlText(value: string, buildStatement: (chunk: string) => string) {
-  const codePoints = [...value]
-  const chunks: string[] = []
-  let offset = 0
-  while (offset < codePoints.length) {
-    let low = offset + 1
-    let high = Math.min(codePoints.length, offset + 65_536)
-    let end = offset
-    while (low <= high) {
-      const middle = Math.floor((low + high) / 2)
-      const candidate = codePoints.slice(offset, middle).join('')
-      if (Buffer.byteLength(buildStatement(candidate)) <= SQL_STATEMENT_BYTE_LIMIT) {
-        end = middle
-        low = middle + 1
-      } else {
-        high = middle - 1
-      }
-    }
-    if (end === offset) throw new Error('A statistic SQL value exceeds the D1 limit.')
-    chunks.push(codePoints.slice(offset, end).join(''))
-    offset = end
-  }
-  return chunks.map(chunk => buildStatement(chunk))
-}
-
-function chunkSqlValue(
-  value: unknown,
-  buildStatement: (chunk: string | Uint8Array) => string,
-) {
-  const binary = binaryValue(value)
-  return binary
-    ? chunkSqlBinary(binary, chunk => buildStatement(chunk))
-    : chunkSqlText(sqlText(value), chunk => buildStatement(chunk))
-}
-
-function chunkSqlBinary(
-  value: Uint8Array,
-  buildStatement: (chunk: Uint8Array) => string,
-) {
-  const chunks: Uint8Array[] = []
-  let offset = 0
-  while (offset < value.byteLength) {
-    let low = offset + 1
-    let high = Math.min(
-      value.byteLength,
-      offset + Math.floor(SQL_STATEMENT_BYTE_LIMIT / 2),
-    )
-    let end = offset
-    while (low <= high) {
-      const middle = Math.floor((low + high) / 2)
-      const candidate = value.slice(offset, middle)
-      if (Buffer.byteLength(buildStatement(candidate)) <= SQL_STATEMENT_BYTE_LIMIT) {
-        end = middle
-        low = middle + 1
-      } else {
-        high = middle - 1
-      }
-    }
-    if (end === offset) throw new Error('A statistic SQL value exceeds the D1 limit.')
-    chunks.push(value.slice(offset, end))
-    offset = end
-  }
-  return chunks.map(chunk => buildStatement(chunk))
-}
-
 function sqlIdentifier(value: string) {
   assertIdentifier(value, 'identifier')
   return `"${value}"`
@@ -569,14 +469,6 @@ function binaryValue(value: unknown) {
   if (value instanceof Uint8Array) return value
   if (value instanceof ArrayBuffer) return new Uint8Array(value)
   return null
-}
-
-function sqlText(value: unknown) {
-  if (typeof value === 'string') return value
-  const text = JSON.stringify(value)
-  if (text === undefined)
-    throw new Error('Cannot import an unserialisable statistic value.')
-  return text
 }
 
 function recordFor(value: StatisticRow) {

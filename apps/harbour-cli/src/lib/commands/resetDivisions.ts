@@ -75,8 +75,6 @@ const SOURCE_TABLES = [
   'overtureDivisionAreas',
   'overtureDivisionBoundaries',
   'hkgovHadDivisionAreas',
-  'hkgovCenstatdDivisionAreaDerivatives',
-  'hkgovCenstatdStatisticsReleaseMemberships',
   'hkgovCenstatdStatistics',
   'hkgovPlandPlanningCells',
   'hkgovPlandNewTowns',
@@ -216,16 +214,13 @@ export function buildDivisionResetSql(plan: DivisionResetPlan) {
     ...deleteIds('sourceResolutions', 'snapshotId', snapshotIds),
     ...deleteIds('sourceResolutions', 'sourceReleaseId', releaseIds),
   ].join('\n')
-  const sourceSql = SOURCE_TABLES.flatMap(table =>
-    deleteIds(table, 'resourceReleaseId', releaseIds).map(statement =>
-      table === 'hkgovCenstatdStatistics'
-        ? statement.replace(
-            /;$/,
-            ' AND NOT EXISTS (SELECT 1 FROM hkgovCenstatdStatisticsReleaseMemberships AS membership WHERE membership.datasetCode = hkgovCenstatdStatistics.datasetCode AND membership.sourceRecordId = hkgovCenstatdStatistics.sourceRecordId AND membership.versionHash = hkgovCenstatdStatistics.versionHash);',
-          )
-        : statement,
+  const sourceSql = [
+    ...SOURCE_TABLES.flatMap(table =>
+      deleteIds(table, 'resourceReleaseId', releaseIds),
     ),
-  ).join('\n')
+    'DELETE FROM hkgovCenstatdDivisionAreaDerivatives WHERE NOT EXISTS (SELECT 1 FROM hkgovCenstatdStatistics s WHERE s.geometryId = hkgovCenstatdDivisionAreaDerivatives.geometryId);',
+    'DELETE FROM hkgovCenstatdStatisticsGeometry WHERE NOT EXISTS (SELECT 1 FROM hkgovCenstatdStatistics s WHERE s.geometryId = hkgovCenstatdStatisticsGeometry.id);',
+  ].join('\n')
   const metaSql = [
     `DELETE FROM processingRuns WHERE apiReleaseSetId IN (${SETS});`,
     `DELETE FROM processingRuns WHERE snapshotId IN (${SNAPSHOTS});`,

@@ -1,3 +1,4 @@
+import { buildCenstatdGeometryStatements } from '../statistics/statisticSqlReplay'
 import {
   buildBeginPublicationSql,
   buildCompletePublicationSql,
@@ -189,16 +190,30 @@ export async function generateGeometryReplaySql(
         databaseId: context.state.bindings[sourceBindingName]?.databaseId,
         name: 'source' as const,
         sql: (function* () {
+          if (plan.source === 'hkgov-censtatd') {
+            const geometryRows = [
+              ...iterateGeometryCacheRows(
+                context.state.dbCacheDir,
+                sourceBindingName,
+                `SELECT g.* FROM hkgovCenstatdStatisticsGeometry g WHERE EXISTS (SELECT 1 FROM hkgovCenstatdStatistics s WHERE s.geometryId = g.id AND s.resourceReleaseId = ${geometrySqlLiteral(resourceReleaseId)})`,
+              ),
+            ]
+            yield* buildCenstatdGeometryStatements(
+              geometryRows as Array<{ id: string; sourceGeometry: Uint8Array }>,
+            )
+          }
           if (sourceTable) {
             yield* geometryIterateClosureSql(
               sourceTable,
               iterateGeometryCacheRows(
                 context.state.dbCacheDir,
                 sourceBindingName,
-                `SELECT ${plan.source === 'hkgov-censtatd' ? '"datasetCode", ' : ''}"sourceRecordId", "versionHash", ${plan.source !== 'hkgov-censtatd' ? '"validFromRelease", ' : ''}"isCurrent", "validToRelease", "updatedAt" FROM "${sourceTable}" WHERE "isCurrent" = 0 AND "validToRelease" = ${geometrySqlLiteral(plan.sourceVersion)}${plan.source === 'hkgov-censtatd' ? ` AND "datasetCode" = ${geometrySqlLiteral(plan.datasetCode)}` : ''}`,
+                `SELECT ${plan.source === 'hkgov-censtatd' ? '"datasetCode", "resourceReleaseId", ' : ''}"sourceRecordId", "versionHash", ${plan.source !== 'hkgov-censtatd' ? '"validFromRelease", ' : ''}"isCurrent", "validToRelease", "updatedAt" FROM "${sourceTable}" WHERE "isCurrent" = 0 AND "validToRelease" = ${geometrySqlLiteral(plan.sourceVersion)}${plan.source === 'hkgov-censtatd' ? ` AND "datasetCode" = ${geometrySqlLiteral(plan.datasetCode)}` : ''}`,
               ),
               [
-                ...(plan.source === 'hkgov-censtatd' ? ['datasetCode'] : []),
+                ...(plan.source === 'hkgov-censtatd'
+                  ? ['datasetCode', 'resourceReleaseId']
+                  : []),
                 'sourceRecordId',
                 'versionHash',
                 ...(plan.source !== 'hkgov-censtatd' ? ['validFromRelease'] : []),
@@ -214,45 +229,15 @@ export async function generateGeometryReplaySql(
               ),
             )
           }
-          if (plan.source === 'hkgov-censtatd' && !plan.transform) {
-            yield* geometryIterateUpsertSql(
-              'hkgovCenstatdStatisticsReleaseMemberships',
-              iterateGeometryCacheRows(
-                context.state.dbCacheDir,
-                sourceBindingName,
-                `SELECT * FROM "hkgovCenstatdStatisticsReleaseMemberships" WHERE "resourceReleaseId" = ${geometrySqlLiteral(resourceReleaseId)}`,
-              ),
-            )
-          }
           if (plan.source === 'hkgov-censtatd' && plan.transform === 'simplified') {
-            const table = 'hkgovCenstatdDivisionAreaDerivatives'
-            yield* geometryIterateClosureSql(
-              table,
-              iterateGeometryCacheRows(
-                context.state.dbCacheDir,
-                sourceBindingName,
-                `SELECT "datasetCode", "sourceRecordId", "inputVersionHash", "transform", "versionHash", "isCurrent", "validToRelease", "updatedAt" FROM "${table}" WHERE "isCurrent" = 0 AND "validToRelease" = ${geometrySqlLiteral(plan.sourceVersion)}${plan.source === 'hkgov-censtatd' ? ` AND "datasetCode" = ${geometrySqlLiteral(plan.datasetCode)}` : ''}`,
-              ),
-              [
-                'datasetCode',
-                'sourceRecordId',
-                'inputVersionHash',
-                'transform',
-                'versionHash',
-              ],
-            )
-            yield geometrySqlLiteralDelete(
-              table,
-              'resourceReleaseId',
-              resourceReleaseId,
-            )
             yield* geometryIterateUpsertSql(
-              table,
+              'hkgovCenstatdDivisionAreaDerivatives',
               iterateGeometryCacheRows(
                 context.state.dbCacheDir,
                 sourceBindingName,
-                `SELECT * FROM "${table}" WHERE "resourceReleaseId" = ${geometrySqlLiteral(resourceReleaseId)}`,
+                `SELECT d.* FROM hkgovCenstatdDivisionAreaDerivatives d WHERE EXISTS (SELECT 1 FROM hkgovCenstatdStatistics s WHERE s.geometryId = d.geometryId AND s.resourceReleaseId = ${geometrySqlLiteral(resourceReleaseId)})`,
               ),
+              { immutable: true },
             )
           }
         })(),
@@ -615,6 +600,10 @@ function geometryBuildChunkedUpsertSql(
 }
 
 function geometryReplayKeyColumns(row: Record<string, unknown>) {
+  if (typeof row.geometryId === 'string' && typeof row.transformHash === 'string') {
+    return ['geometryId', 'transform', 'transformHash']
+  }
+
   if (typeof row.id === 'string' && typeof row.versionHash === 'string') {
     return ['id', 'versionHash']
   }
@@ -625,7 +614,9 @@ function geometryReplayKeyColumns(row: Record<string, unknown>) {
 
   if (typeof row.sourceRecordId === 'string' && typeof row.versionHash === 'string') {
     return [
-      ...(typeof row.datasetCode === 'string' ? ['datasetCode'] : []),
+      ...(typeof row.datasetCode === 'string'
+        ? ['datasetCode', 'resourceReleaseId']
+        : []),
       'sourceRecordId',
       'versionHash',
       ...(typeof row.datasetCode !== 'string' &&

@@ -36,6 +36,26 @@ function insert(
   table: string,
   values: Record<string, string | number | null>,
 ) {
+  if (
+    table === 'hkgovCenstatdStatistics' ||
+    table === 'hkgovCenstatdDivisionAreaDerivatives'
+  ) {
+    const geometryId =
+      values.geometryId ??
+      `geometry:${values.sourceRecordId ?? values.resourceReleaseId ?? 'test'}`
+    db.query(
+      'INSERT INTO hkgovCenstatdStatisticsGeometry(id,sourceGeometry) VALUES (?, ?) ON CONFLICT DO NOTHING',
+    ).run(geometryId, '{}')
+    values = { ...values, geometryId }
+    if (table === 'hkgovCenstatdDivisionAreaDerivatives')
+      values = {
+        geometryId,
+        transform: 'simplified',
+        transformHash: 'transform',
+        versionHash: 'v',
+        derivation: '{}',
+      }
+  }
   const geometryFamily = {
     divisions: 'division',
     divisionsI18n: 'division',
@@ -289,7 +309,7 @@ describe('all-statistics reset', () => {
       },
     }).sourceSql
     const statements = sql.split('\n')
-    expect(statements).toHaveLength(3 * 5)
+    expect(statements).toHaveLength(1 * 5 + 2)
     expect(statements[0]).toContain("'release-''0'")
     expect(statements.every(statement => statement.length < 2000)).toBe(true)
   })

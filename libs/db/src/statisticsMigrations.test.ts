@@ -24,16 +24,20 @@ test('Statistics migrations retain publisher payloads and canonical reference pe
         sqlite.query(`PRAGMA table_info("${table}")`).all() as Array<{ name: string }>
       ).map(column => column.name)
       expect(columns).toContain('properties')
-      expect(columns).toContain('sourceGeometry')
+      expect(columns).toContain('geometryId')
+      expect(columns).not.toContain('sourceGeometry')
       for (const column of periodColumns) expect(columns).not.toContain(column)
       const payload = JSON.stringify({
         Year: '2021',
         referencePeriodCode: 'publisher-literal',
         Population: 123,
       })
+      sqlite.exec(
+        "INSERT INTO hkgovCenstatdStatisticsGeometry(id,sourceGeometry) VALUES('geometry','{}')",
+      )
       sqlite
-        .query(`INSERT INTO "${table}" (datasetCode, sourceRecordId, versionHash, resourceReleaseId, validFromRelease, isCurrent, properties, sourceGeometry)
-        VALUES ('dataset', 'record', 'hash', 'release', '2021', 1, ?, 'null')`)
+        .query(`INSERT INTO "${table}" (datasetCode, sourceRecordId, versionHash, resourceReleaseId, validFromRelease, isCurrent, properties, geometryId)
+        VALUES ('dataset', 'record', 'hash', 'release', '2021', 1, ?, 'geometry')`)
         .run(payload)
       expect(sqlite.query(`SELECT properties FROM "${table}"`).get()).toEqual({
         properties: payload,

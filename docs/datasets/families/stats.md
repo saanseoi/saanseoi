@@ -1,5 +1,15 @@
 # Statistics dataset family
 
+C&SD statistics ingestion retains the `reuse-censtatd-statistics-geometry` rule under
+the resource child's Ingestion audit. Its input count records statistic geometry
+references; outputs show distinct new geometries, distinct reused geometries and total
+references within the yearly SOURCE shard. The pre-write baseline is sealed with the
+prepared geometry identities, so delivery retries preserve the original counts.
+DivisionArea publication is a separate operation: source geometry reuse alone does not
+establish that a canonical area snapshot can be reused. The retained rule documents that
+publication check and the transform context used for derivatives. Historical runs
+without this retained baseline have no new/reused execution counts.
+
 Processing runs, reusable rule mappings and counts-only curation evidence follow the
 [shared processing contract](../pipeline.md#processing-stages-and-retained-evidence).
 
@@ -119,11 +129,14 @@ are materialised in canonical history/current records rather than duplicated in 
 columns. Separately versioned geometry derivatives retain their exact input hash and
 transformation evidence.
 
-All C&SD datasets use `hkgovCenstatdStatistics` with explicit dataset ownership,
-complete publisher properties, acquisition coordinates in `sourceLocator` and
-Brotli-compressed native geometry. `hkgovCenstatdStatisticsReleaseMemberships` retains
-exact resource-release membership independently of shared feature payloads. Geometry
-derivatives retain their dataset and exact input hash separately.
+All C&SD datasets retain release-owned publisher properties and acquisition locators in
+`hkgovCenstatdStatistics`. Each row references `hkgovCenstatdStatisticsGeometry` by
+`geometryId`. Geometry is content-addressed and shared across datasets and releases
+within each yearly SOURCE shard. Ingestion reports new and reused geometry counts.
+Derivatives reference the geometry ID and complete transform context, including coverage
+inputs, tolerance and engine version. Statistics-only changes reuse the geometry and its
+derivatives; DivisionArea snapshot reuse additionally verifies canonical identity and
+publication scope.
 
 Each reference-period snapshot records its exact-release assembly under the
 [assembly provenance contract](../pipeline.md#snapshot-assembly-provenance). Periods can

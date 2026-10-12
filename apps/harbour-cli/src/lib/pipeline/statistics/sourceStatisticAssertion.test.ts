@@ -36,10 +36,10 @@ test('source statistic persistence retains raw evidence without canonical prepar
   expect(Object.keys(row).sort()).toEqual([
     'createdAt',
     'datasetCode',
+    'geometryId',
     'isCurrent',
     'properties',
     'resourceReleaseId',
-    'sourceGeometry',
     'sourceLocator',
     'sourceRecordId',
     'updatedAt',

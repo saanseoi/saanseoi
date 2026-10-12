@@ -1,10 +1,10 @@
 import { describe, expect, test } from 'bun:test'
 import { Database } from 'bun:sqlite'
 import { captureSqlDeliveryBatches } from '../local/sqlDeliveryBatchCapture.ts'
-import { sourceStatisticAssertion } from './sourceStatisticAssertion.ts'
 
 import {
   buildStatisticSqlBatches,
+  buildCenstatdGeometryStatements,
   replayStatisticSqlBatches,
 } from './statisticSqlReplay.ts'
 
@@ -14,7 +14,7 @@ const sourceVersion = '2022'
 function replayDatabase() {
   const db = new Database(':memory:')
   db.exec(
-    'CREATE TABLE hkgovCenstatdStatisticsReleaseMemberships(datasetCode,resourceReleaseId,sourceRecordId,versionHash,PRIMARY KEY(datasetCode,resourceReleaseId,sourceRecordId,versionHash))',
+    'CREATE TABLE hkgovCenstatdStatisticsGeometry(id PRIMARY KEY, sourceGeometry BLOB NOT NULL)',
   )
   return db
 }
@@ -26,7 +26,7 @@ function sourceRow(sourceRecordId: string) {
     isCurrent: true,
     properties: { district: sourceRecordId },
     resourceReleaseId,
-    sourceGeometry: { type: 'Point', coordinates: [114, 22] },
+    geometryId: 'geometry',
     sourceRecordId,
     sources: [{ dataset: 'C&SD' }],
     updatedAt: '2026-08-16T00:00:00.000Z',
@@ -62,9 +62,9 @@ describe('buildStatisticSqlBatches', () => {
       try {
         sqlite.exec(`CREATE TABLE ${table} (
           datasetCode TEXT, createdAt TEXT, isCurrent INTEGER, properties TEXT, resourceReleaseId TEXT,
-          sourceGeometry TEXT, sourceRecordId TEXT, sources TEXT, updatedAt TEXT,
+          geometryId TEXT, sourceRecordId TEXT, sources TEXT, updatedAt TEXT,
           validFromRelease TEXT, validToRelease TEXT, version INTEGER, versionHash TEXT,
-          PRIMARY KEY (datasetCode, sourceRecordId, versionHash)
+          PRIMARY KEY (datasetCode, resourceReleaseId, sourceRecordId, versionHash)
         )`)
         const replay = (version: string, hash: string) => {
           const batches = buildStatisticSqlBatches({
@@ -94,7 +94,8 @@ describe('buildStatisticSqlBatches', () => {
             .all(),
         ).toEqual([
           { validFromRelease: '2023-H1', validToRelease: '2023-H2', isCurrent: 0 },
-          { validFromRelease: '2023-H2', validToRelease: null, isCurrent: 1 },
+          { validFromRelease: '2023-H2', validToRelease: '2024-H1', isCurrent: 0 },
+          { validFromRelease: '2024-H1', validToRelease: null, isCurrent: 1 },
         ])
       } finally {
         sqlite.close()
@@ -119,99 +120,24 @@ describe('buildStatisticSqlBatches', () => {
     ).toThrow('A statistic SQL statement exceeds the D1 limit')
   })
 
-  test('replays an oversized source geometry through bounded append statements', () => {
-    const sourceGeometry = { value: 'x'.repeat(100_000) }
-    const batches = buildStatisticSqlBatches({
-      sourceVersion,
-      resourceReleaseId,
-      source: {
-        rows: [{ ...sourceRow('district-large'), sourceGeometry }],
-        table: 'hkgovCenstatdStatistics',
-      },
-    })
-    const [sourceSql] = batches.source
-    if (!sourceSql) throw new Error('Expected source replay SQL.')
-
-    const statements = sourceSql
-      .split(/(?<=;)\n/)
-      .map(statement => statement.trim())
-      .filter(Boolean)
-    expect(statements.length).toBeGreaterThan(2)
-    expect(
-      statements.every(statement => Buffer.byteLength(statement) <= 96 * 1024),
-    ).toBe(true)
-
-    const sqlite = replayDatabase()
-    sqlite.exec(`
-      CREATE TABLE hkgovCenstatdStatistics (
-        createdAt TEXT, datasetCode TEXT, featureId TEXT, isCurrent INTEGER,
-        layerName TEXT, properties TEXT, referencePeriodCode TEXT,
-        referencePeriodEnd TEXT, referencePeriodEndYear TEXT,
-        referencePeriodGranularity TEXT, referencePeriodStart TEXT,
-        resourceReleaseId TEXT, sourceGeometry TEXT, sourceRecordId TEXT, sources TEXT,
-        updatedAt TEXT, validFromRelease TEXT, validToRelease TEXT, version INTEGER,
-        versionHash TEXT, PRIMARY KEY (datasetCode, sourceRecordId, versionHash)
-      );
-    `)
-    sqlite.exec(sourceSql)
-    sqlite.exec(sourceSql)
-    const stored = sqlite
-      .query(
-        'SELECT sourceGeometry FROM hkgovCenstatdStatistics WHERE sourceRecordId = ?',
-      )
-      .get('district-large') as { sourceGeometry: string }
-    expect(JSON.parse(stored.sourceGeometry)).toEqual(sourceGeometry)
-    sqlite.close()
-  })
-
-  test('replays a large Brotli source geometry as bounded BLOB statements', () => {
-    const sourceGeometry = Uint8Array.from(
-      { length: 100_000 },
-      (_, index) => index % 251,
-    )
-    const batches = buildStatisticSqlBatches({
-      sourceVersion,
-      resourceReleaseId,
-      source: {
-        rows: [
-          {
-            ...sourceStatisticAssertion(sourceRow('district-large'), 'dataset'),
-            sourceGeometry,
-          },
-        ],
-        table: 'hkgovCenstatdStatistics',
-      },
-    })
-    const [sourceSql] = batches.source
-    if (!sourceSql) throw new Error('Expected source replay SQL.')
-    const statements = sourceSql
-      .split(/(?<=;)\n/)
-      .map(statement => statement.trim())
-      .filter(Boolean)
-    expect(statements.length).toBeGreaterThan(2)
-    expect(
-      statements.every(statement => Buffer.byteLength(statement) <= 96 * 1024),
-    ).toBe(true)
-
-    const sqlite = replayDatabase()
-    sqlite.exec(`
-      CREATE TABLE hkgovCenstatdStatistics (
-        datasetCode TEXT, sourceLocator TEXT, createdAt TEXT, isCurrent INTEGER, properties TEXT,
-        resourceReleaseId TEXT, sourceGeometry BLOB NOT NULL,
-        sourceRecordId TEXT, updatedAt TEXT, validFromRelease TEXT,
-        validToRelease TEXT, versionHash TEXT,
-        PRIMARY KEY (datasetCode, sourceRecordId, versionHash)
-      );
-    `)
-    sqlite.exec(sourceSql)
-    sqlite.exec(sourceSql)
-    const stored = sqlite
-      .query(
-        'SELECT sourceGeometry FROM hkgovCenstatdStatistics WHERE sourceRecordId = ?',
-      )
-      .get('district-large') as { sourceGeometry: Uint8Array }
-    expect(stored.sourceGeometry).toEqual(Buffer.from(sourceGeometry))
-    sqlite.close()
+  test('resumes large shared geometry writes and never appends to a complete row', () => {
+    const sourceGeometry = Uint8Array.from({ length: 250_000 }, (_, i) => i % 251)
+    const statements = buildCenstatdGeometryStatements([
+      { id: 'geometry', sourceGeometry },
+    ])
+    expect(statements.every(sql => Buffer.byteLength(sql) <= 96 * 1024)).toBeTrue()
+    const db = replayDatabase()
+    try {
+      // Interrupt after two appends, then replay the complete delivery twice.
+      for (const sql of statements.slice(0, 3)) db.exec(sql)
+      for (let attempt = 0; attempt < 2; attempt++)
+        for (const sql of statements) db.exec(sql)
+      expect(
+        db.query('SELECT sourceGeometry FROM hkgovCenstatdStatisticsGeometry').get(),
+      ).toEqual({ sourceGeometry: Buffer.from(sourceGeometry) })
+    } finally {
+      db.close()
+    }
   })
 
   test('creates deterministic source/history upserts that restore a failed release safely', () => {
@@ -235,7 +161,7 @@ describe('buildStatisticSqlBatches', () => {
     if (!sourceSql || !historySql) throw new Error('Expected replay SQL batches.')
     expect(sourceSql).toContain('UPDATE "hkgovCenstatdStatistics" SET "isCurrent" = 0')
     expect(sourceSql).toContain(
-      'ON CONFLICT ("datasetCode", "sourceRecordId", "versionHash") DO UPDATE SET',
+      'ON CONFLICT ("datasetCode", "resourceReleaseId", "sourceRecordId", "versionHash") DO UPDATE SET',
     )
     expect(historySql).toContain('ON CONFLICT ("id", "versionHash") DO UPDATE SET')
     expect(sourceSql.indexOf("'district-1'")).toBeLessThan(
@@ -271,9 +197,9 @@ describe('buildStatisticSqlBatches', () => {
     sqlite.exec(`
       CREATE TABLE hkgovCenstatdStatistics (
         datasetCode TEXT, createdAt TEXT, isCurrent INTEGER, properties TEXT, resourceReleaseId TEXT,
-        sourceGeometry TEXT, sourceRecordId TEXT, sources TEXT, updatedAt TEXT,
+        geometryId TEXT, sourceRecordId TEXT, sources TEXT, updatedAt TEXT,
         validFromRelease TEXT, validToRelease TEXT, version INTEGER, versionHash TEXT,
-        PRIMARY KEY (datasetCode, sourceRecordId, versionHash)
+        PRIMARY KEY (datasetCode, resourceReleaseId, sourceRecordId, versionHash)
       );
       CREATE TABLE divisionStatistics (
         createdAt TEXT, districtCode TEXT, divisionId TEXT, id TEXT, isCurrent INTEGER,

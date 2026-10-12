@@ -1,4 +1,4 @@
-import { compressJsonBrotli } from '@repo/core/pipeline/services/storage/brotliJson'
+import { censtatdGeometryId } from '@repo/core/pipeline/services/sources/censtatdGeometry'
 import { retainSourceProperties } from '@repo/core/pipeline/services/sources/retainedProperties'
 import { sourceLocatorFromReferences } from '@repo/core/pipeline/services/sources/sourcePayload'
 
@@ -22,7 +22,7 @@ export function sourceStatisticAssertion<
     datasetCode,
     sourceRecordId: row.sourceRecordId,
     properties: retainSourceProperties(row.properties),
-    sourceGeometry: compressJsonBrotli(row.sourceGeometry),
+    geometryId: censtatdGeometryId(row.sourceGeometry),
     sourceLocator: sourceLocatorFromReferences(row.sources),
     versionHash: row.versionHash,
     resourceReleaseId: row.resourceReleaseId,

@@ -49,11 +49,11 @@ const sources = {
     'overtureDivisionAreas',
     'overtureDivisionBoundaries',
     'hkgovHadDivisionAreas',
-    'hkgovCenstatdStatisticsReleaseMemberships',
+    'hkgovCenstatdStatisticsGeometry',
     'hkgovCenstatdStatistics',
     'hkgovCenstatdDivisionAreaDerivatives',
   ],
-  statistics: ['hkgovCenstatdStatisticsReleaseMemberships', 'hkgovCenstatdStatistics'],
+  statistics: ['hkgovCenstatdStatisticsGeometry', 'hkgovCenstatdStatistics'],
 }
 
 /** Adapters own these tables; publication and search transitions have separate writers. */

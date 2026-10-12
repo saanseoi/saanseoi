@@ -1,3 +1,9 @@
+import {
+  prepareCenstatdGeometryAudit,
+  retainCenstatdGeometryAudit,
+} from './censtatdGeometryAudit'
+import { formatCenstatdGeometryReuse } from './censtatdGeometryStorage'
+import { censtatdGeometryRow } from '@repo/core/pipeline/services/sources/censtatdGeometry'
 import { statisticAuditPeriod } from './statisticAuditPeriod'
 import sourceFixture from '../../../../../../fixtures/meta/processing-rules/ingestion/censtatd-generic-source-assertion.json'
 import { registerRule, ruleDeclarationFromFixture } from '@repo/core/provenance'
@@ -318,12 +324,22 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
         ),
     )
     canonicalSha256 = hashCanonicalStatisticPreparation(canonical)
+    const geometryAudit = await prepareCenstatdGeometryAudit({
+      directory: sqlDeliveryPhaseDirectory(delivery('statistics-geometry-audit')),
+      db: context.sourceDb as unknown as HarbourReadableDb,
+      rows,
+      resourceReleaseId,
+      datasetCode,
+      sourceVersion: plan.sourceVersion,
+    })
+    progress.message(formatCenstatdGeometryReuse(geometryAudit))
     const batches = () =>
       buildStatisticSqlBatches({
         sourceVersion: plan.sourceVersion,
         resourceReleaseId,
         source: {
           rows: rows.map(row => sourceStatisticAssertion(row, datasetCode)),
+          geometries: rows.map(row => censtatdGeometryRow(row.sourceGeometry)),
           table: 'hkgovCenstatdStatistics',
         },
       })
@@ -484,6 +500,12 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
         const store = new LocalPipelineBucket(
           sqlDeliveryPhaseDirectory(delivery('statistics-provenance')),
         )
+        const ingestion = await retainCenstatdGeometryAudit(store, {
+          resourceReleaseId,
+          datasetCode,
+          counts: geometryAudit,
+        })
+        await deliverProcessingResult(target, store, ingestion.ref)
         for (const snapshot of snapshots) {
           const result = await retainStatisticProvenance(store, {
             scope: { stage: 'assembly', ownerId: snapshot.id },

@@ -413,11 +413,7 @@ function sourcePropertiesReader(dbs: Database[], snapshot: Snapshot) {
         db
           .query(`SELECT feature.properties FROM hkgovCenstatdStatistics AS feature
       WHERE feature.datasetCode = ? AND feature.sourceRecordId = ?
-      AND EXISTS (SELECT 1 FROM hkgovCenstatdStatisticsReleaseMemberships AS membership
-        WHERE membership.datasetCode = feature.datasetCode
-          AND membership.sourceRecordId = feature.sourceRecordId
-          AND membership.versionHash = feature.versionHash
-          AND membership.resourceReleaseId = ?)`)
+      AND feature.resourceReleaseId = ?`)
           .all(
             snapshot.datasetCode,
             sourceRecordId,

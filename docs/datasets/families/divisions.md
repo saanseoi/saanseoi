@@ -1998,13 +1998,15 @@ geometry methods are not external identifiers.
 
 ## C&SD publisher feature storage
 
-C&SD statistics and geography intake share `hkgovCenstatdStatistics`. Publisher features
-retain explicit dataset ownership, native identities, complete properties, acquisition
-locators and Brotli-compressed native geometry. Canonical statistics and DivisionAreas
-are separate projections of that evidence.
+C&SD statistics and geography intake retain release-owned properties and acquisition
+locators in `hkgovCenstatdStatistics`. Each row references content-addressed native
+geometry in `hkgovCenstatdStatisticsGeometry`; identical content is shared within a
+SOURCE shard. Canonical statistics and DivisionAreas are separate projections of that
+evidence.
 
-Geometry reuse compares canonical materialisations within the same cohort, region and
-variant. Simplified derivatives identify the dataset and exact input feature version.
+DivisionArea snapshot reuse compares canonical identity, geometry and flags within the
+same cohort, region and variant. Simplified derivatives reference shared geometry and a
+transform key covering settings, engine version and neighbouring coverage geometry.
 
 ## Source record identity contract
 
@@ -2016,7 +2018,6 @@ cross-release continuity claim. Delivery ordinals are one-based and refer to the
 original input order. Canonical Division IDs and publisher codes used for grouping are
 separate from retained source record IDs.
 
-`hkgovCenstatdStatisticsReleaseMemberships` records exact feature-version membership for
-each resource release. Source samples and schema inventories use this membership rather
-than treating independent census cohorts as one validity timeline. Payload reuse
-preserves separate memberships for the statistics and geometry resources.
+C&SD source samples and schema inventories select exact dataset and resource-release
+ownership from statistics rows and join their shared geometry. Independent census
+cohorts remain addressable without relying on one validity timeline.

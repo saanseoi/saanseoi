@@ -364,9 +364,13 @@ async function fixture(previous = true) {
     },
   ])
     insertProjectionRow(current, 'statsRecords', row)
+  insert(source, 'hkgovCenstatdStatisticsGeometry', {
+    id: 'geometry',
+    sourceGeometry: '{}',
+  })
   insert(source, 'hkgovCenstatdStatistics', {
     datasetCode,
-    sourceGeometry: '{}',
+    geometryId: 'geometry',
     sourceRecordId: 'native/revised',
     versionHash: 'raw',
     resourceReleaseId: 'release-old',

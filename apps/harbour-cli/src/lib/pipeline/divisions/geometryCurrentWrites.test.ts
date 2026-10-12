@@ -131,7 +131,17 @@ for (const sourceName of ['overture', 'hkgov-censtatd'] as const)
         { operation: 'insert', id: 'a' },
         { operation: 'insert', id: 'b' },
       ])
+      if (sourceName === 'hkgov-censtatd')
+        source.exec("UPDATE hkgovCenstatdStatisticsGeometry SET sourceGeometry=X''")
       const unchanged = await write('reissue', 'first', [row('a'), row('b')])
+      if (sourceName === 'hkgov-censtatd')
+        expect(
+          source
+            .query(
+              'SELECT count(*) AS n FROM hkgovCenstatdStatisticsGeometry WHERE length(sourceGeometry)=0',
+            )
+            .get(),
+        ).toEqual({ n: 0 })
       expect(unchanged.writes).toEqual([])
       expect(unchanged.currentChanges.changedCurrentIds).toEqual([])
       expect(unchanged.churn.unchanged).toBe(2)
@@ -153,7 +163,7 @@ for (const sourceName of ['overture', 'hkgov-censtatd'] as const)
         expect(
           source
             .query(
-              'SELECT DISTINCT typeof(sourceGeometry) AS storage FROM hkgovCenstatdStatistics',
+              'SELECT DISTINCT typeof(sourceGeometry) AS storage FROM hkgovCenstatdStatisticsGeometry',
             )
             .all(),
         ).toEqual([{ storage: 'blob' }])
@@ -165,7 +175,43 @@ for (const sourceName of ['overture', 'hkgov-censtatd'] as const)
                GROUP BY datasetCode`,
             )
             .all(),
-        ).toEqual([{ datasetCode: 'dataset', versions: 2, current: 1 }])
+        ).toEqual([{ datasetCode: 'dataset', versions: 4, current: 1 }])
+        const derive = async (population: number, engineVersion = '1') => {
+          const item = row('a')
+          item.source.properties = { population }
+          item.source.derivation = {
+            method: 'simplified',
+            engineVersion,
+            toleranceMetres: 10,
+          }
+          await writeGeometryRows(context, 'divisionArea', [item], {
+            datasetCode: 'dataset',
+            source: sourceName,
+            variant: 'variant',
+            resourceReleaseId: 'new-cohort',
+            releaseCode: 'new-cohort',
+            sourceVersion: '2027',
+            snapshotId: 'new-cohort',
+            snapshotLineageId: 'lineage',
+            parentSnapshotId: null,
+            cohortKey: '2027',
+            transform: 'simplified',
+            skipCanonicalMaterialisation: true,
+          })
+        }
+        await derive(100)
+        await derive(200)
+        expect(
+          source
+            .query('SELECT count(*) AS n FROM hkgovCenstatdDivisionAreaDerivatives')
+            .get(),
+        ).toEqual({ n: 1 })
+        await derive(200, '2')
+        expect(
+          source
+            .query('SELECT count(*) AS n FROM hkgovCenstatdDivisionAreaDerivatives')
+            .get(),
+        ).toEqual({ n: 2 })
       }
     } finally {
       current.close()
