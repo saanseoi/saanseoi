@@ -33,7 +33,7 @@ export type StatisticSqlReplayInput = {
   resourceReleaseId: string
   source: {
     rows: StatisticRow[]
-    table: 'hkgovCenstatdFeatures'
+    table: 'hkgovCenstatdStatistics'
   }
 }
 
@@ -94,7 +94,7 @@ export function buildStatisticSqlBatches(
     ),
     ...sourceRows.map(
       row =>
-        `INSERT INTO "hkgovCenstatdFeatureReleases" ("datasetCode", "resourceReleaseId", "sourceRecordId", "versionHash") VALUES (${sqlValue(valueFor(row, 'datasetCode'))}, ${sqlValue(input.resourceReleaseId)}, ${sqlValue(valueFor(row, 'sourceRecordId'))}, ${sqlValue(valueFor(row, 'versionHash'))}) ON CONFLICT ("datasetCode", "resourceReleaseId", "sourceRecordId", "versionHash") DO NOTHING;`,
+        `INSERT INTO "hkgovCenstatdStatisticsReleaseMemberships" ("datasetCode", "resourceReleaseId", "sourceRecordId", "versionHash") VALUES (${sqlValue(valueFor(row, 'datasetCode'))}, ${sqlValue(input.resourceReleaseId)}, ${sqlValue(valueFor(row, 'sourceRecordId'))}, ${sqlValue(valueFor(row, 'versionHash'))}) ON CONFLICT ("datasetCode", "resourceReleaseId", "sourceRecordId", "versionHash") DO NOTHING;`,
     ),
   ]
 

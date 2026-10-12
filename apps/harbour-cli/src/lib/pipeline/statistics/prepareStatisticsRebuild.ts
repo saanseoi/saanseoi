@@ -411,9 +411,9 @@ function sourcePropertiesReader(dbs: Database[], snapshot: Snapshot) {
     const properties = dbs.flatMap(
       db =>
         db
-          .query(`SELECT feature.properties FROM hkgovCenstatdFeatures AS feature
+          .query(`SELECT feature.properties FROM hkgovCenstatdStatistics AS feature
       WHERE feature.datasetCode = ? AND feature.sourceRecordId = ?
-      AND EXISTS (SELECT 1 FROM hkgovCenstatdFeatureReleases AS membership
+      AND EXISTS (SELECT 1 FROM hkgovCenstatdStatisticsReleaseMemberships AS membership
         WHERE membership.datasetCode = feature.datasetCode
           AND membership.sourceRecordId = feature.sourceRecordId
           AND membership.versionHash = feature.versionHash

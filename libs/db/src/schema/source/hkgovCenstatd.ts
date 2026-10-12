@@ -8,8 +8,8 @@ import {
 } from './shared'
 
 /** Complete publisher features, shared by statistics and geography ingestion. */
-export const sourceHkgovCenstatdFeatures = sqliteTable(
-  'hkgovCenstatdFeatures',
+export const sourceHkgovCenstatdStatistics = sqliteTable(
+  'hkgovCenstatdStatistics',
   {
     ...sourceSpatialAssertionColumns(),
     datasetCode: text('datasetCode').notNull(),
@@ -21,13 +21,13 @@ export const sourceHkgovCenstatdFeatures = sqliteTable(
     primaryKey({
       columns: [table.datasetCode, table.sourceRecordId, table.versionHash],
     }),
-    ...sourceVersionIndexes(table, 'hkgovCenstatdFeatures'),
+    ...sourceVersionIndexes(table, 'hkgovCenstatdStatistics'),
   ],
 )
 
-/** Exact input membership; feature payloads can be shared by several resource releases. */
-export const sourceHkgovCenstatdFeatureReleases = sqliteTable(
-  'hkgovCenstatdFeatureReleases',
+/** Exact feature-version membership; payloads can be shared by resource releases. */
+export const sourceHkgovCenstatdStatisticsReleaseMemberships = sqliteTable(
+  'hkgovCenstatdStatisticsReleaseMemberships',
   {
     datasetCode: text('datasetCode').notNull(),
     resourceReleaseId: text('resourceReleaseId').notNull(),
@@ -44,7 +44,7 @@ export const sourceHkgovCenstatdFeatureReleases = sqliteTable(
         table.versionHash,
       ],
     }),
-    index('hkgovCenstatdFeatureReleases_resourceReleaseId_idx').on(
+    index('hkgovCenstatdStatisticsReleaseMemberships_resourceReleaseId_idx').on(
       table.resourceReleaseId,
     ),
   ],

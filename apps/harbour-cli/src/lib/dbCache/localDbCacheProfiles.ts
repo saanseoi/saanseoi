@@ -271,11 +271,11 @@ export function resolveCacheTablesForBinding(
 
   if (/^DB_SOURCE_[A-Z]{2}_(?:\d{4}|BEFORE)$/.test(bindingName)) {
     if (cacheTableProfile === 'divisionStatistic') {
-      return ['hkgovCenstatdFeatureReleases', 'hkgovCenstatdFeatures']
+      return ['hkgovCenstatdStatisticsReleaseMemberships', 'hkgovCenstatdStatistics']
     }
 
     if (cacheTableProfile === 'statistics') {
-      return ['hkgovCenstatdFeatureReleases', 'hkgovCenstatdFeatures']
+      return ['hkgovCenstatdStatisticsReleaseMemberships', 'hkgovCenstatdStatistics']
     }
 
     if (cacheTableProfile === 'nativeSource') {
@@ -284,8 +284,8 @@ export function resolveCacheTablesForBinding(
         'hkgovHydSensitiveStreets',
         'hkgovHydStrategicStreets',
         'hkgovTdPedestrianStreets',
-        'hkgovCenstatdFeatureReleases',
-        'hkgovCenstatdFeatures',
+        'hkgovCenstatdStatisticsReleaseMemberships',
+        'hkgovCenstatdStatistics',
         'hkgovCenstatdDivisionAreaDerivatives',
         'hkgovLandsdPlaceNames',
         'hkgovLandsdRoadCentrelines',
@@ -317,8 +317,8 @@ export function resolveCacheTablesForBinding(
         'ssDivisionArea',
         'overtureDivisionBoundaries',
         'hkgovHadDivisionAreas',
-        'hkgovCenstatdFeatureReleases',
-        'hkgovCenstatdFeatures',
+        'hkgovCenstatdStatisticsReleaseMemberships',
+        'hkgovCenstatdStatistics',
         'hkgovCenstatdDivisionAreaDerivatives',
       ]
     }
@@ -335,8 +335,8 @@ export function resolveCacheTablesForBinding(
       'ssDivisionArea',
       'overtureDivisionBoundaries',
       'hkgovHadDivisionAreas',
-      'hkgovCenstatdFeatureReleases',
-      'hkgovCenstatdFeatures',
+      'hkgovCenstatdStatisticsReleaseMemberships',
+      'hkgovCenstatdStatistics',
       'hkgovCenstatdDivisionAreaDerivatives',
       'hkgovPlandPlanningCells',
       'hkgovPlandNewTowns',

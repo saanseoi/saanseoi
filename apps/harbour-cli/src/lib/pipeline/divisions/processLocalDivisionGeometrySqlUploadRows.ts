@@ -87,7 +87,7 @@ export async function writeGeometryRows(
         : version.source === 'hkgov-had'
           ? sourceSchema.sourceHkgovHadDivisionAreas
           : version.source === 'hkgov-censtatd'
-            ? sourceSchema.sourceHkgovCenstatdFeatures
+            ? sourceSchema.sourceHkgovCenstatdStatistics
             : sourceSchema.sourceOvertureDivisionAreas
       : sourceSchema.sourceOvertureDivisionBoundaries
   const publicationTable =
@@ -499,7 +499,7 @@ export async function writeGeometryRows(
       version.source === 'hkgov-censtatd'
         ? Math.floor(
             96 /
-              Object.keys(getTableColumns(sourceSchema.sourceHkgovCenstatdFeatures))
+              Object.keys(getTableColumns(sourceSchema.sourceHkgovCenstatdStatistics))
                 .length,
           )
         : 32,
@@ -513,7 +513,7 @@ export async function writeGeometryRows(
             target:
               version.source === 'hkgov-censtatd'
                 ? [
-                    sourceSchema.sourceHkgovCenstatdFeatures.datasetCode,
+                    sourceSchema.sourceHkgovCenstatdStatistics.datasetCode,
                     sourceTable.sourceRecordId,
                     sourceTable.versionHash,
                   ]
@@ -532,7 +532,7 @@ export async function writeGeometryRows(
     }
   }
   if (version.source === 'hkgov-censtatd' && !isDisplayDerivative) {
-    const memberships = sourceSchema.sourceHkgovCenstatdFeatureReleases
+    const memberships = sourceSchema.sourceHkgovCenstatdStatisticsReleaseMemberships
     for (const chunk of chunkRows(
       publisherRows.map(row => ({
         datasetCode: requireString(version.datasetCode, 'C&SD datasetCode'),
@@ -623,7 +623,7 @@ async function writeCenstatdSourceDerivatives(
     throw new Error('C&SD derivative write requires a named transform.')
   }
 
-  const sources = sourceSchema.sourceHkgovCenstatdFeatures
+  const sources = sourceSchema.sourceHkgovCenstatdStatistics
   const derivatives = sourceSchema.sourceHkgovCenstatdDivisionAreaDerivatives
   const exactRows = await db
     .select({

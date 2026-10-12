@@ -216,11 +216,11 @@ export async function generateGeometryReplaySql(
           }
           if (plan.source === 'hkgov-censtatd' && !plan.transform) {
             yield* geometryIterateUpsertSql(
-              'hkgovCenstatdFeatureReleases',
+              'hkgovCenstatdStatisticsReleaseMemberships',
               iterateGeometryCacheRows(
                 context.state.dbCacheDir,
                 sourceBindingName,
-                `SELECT * FROM "hkgovCenstatdFeatureReleases" WHERE "resourceReleaseId" = ${geometrySqlLiteral(resourceReleaseId)}`,
+                `SELECT * FROM "hkgovCenstatdStatisticsReleaseMemberships" WHERE "resourceReleaseId" = ${geometrySqlLiteral(resourceReleaseId)}`,
               ),
             )
           }
@@ -702,7 +702,7 @@ function geometrySqlLiteral(value: unknown): string {
 function resolveGeometrySourceTable(plan: GeometryUploadPlan) {
   if (plan.resourceType === 'divisionBoundary') return 'overtureDivisionBoundaries'
   if (plan.source === 'hkgov-had') return 'hkgovHadDivisionAreas'
-  if (plan.source === 'hkgov-censtatd') return 'hkgovCenstatdFeatures'
+  if (plan.source === 'hkgov-censtatd') return 'hkgovCenstatdStatistics'
   if (plan.source === 'overture') return 'overtureDivisionAreas'
   return null
 }

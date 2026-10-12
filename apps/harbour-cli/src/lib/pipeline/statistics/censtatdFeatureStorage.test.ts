@@ -99,19 +99,19 @@ test('statistics and geometry share native feature identity, payload and hash', 
       for (const sql of buildStatisticSqlBatches({
         resourceReleaseId: record.resourceReleaseId,
         sourceVersion: '2021',
-        source: { table: 'hkgovCenstatdFeatures', rows: [record] },
+        source: { table: 'hkgovCenstatdStatistics', rows: [record] },
       }).source)
         db.exec(sql)
     }
     replay(stored)
     replay({ ...stored, resourceReleaseId: 'geometry-release' })
     expect(
-      db.query('SELECT count(*) AS count FROM hkgovCenstatdFeatures').get(),
+      db.query('SELECT count(*) AS count FROM hkgovCenstatdStatistics').get(),
     ).toEqual({ count: 1 })
     expect(
       db
         .query(
-          'SELECT resourceReleaseId FROM hkgovCenstatdFeatureReleases ORDER BY resourceReleaseId',
+          'SELECT resourceReleaseId FROM hkgovCenstatdStatisticsReleaseMemberships ORDER BY resourceReleaseId',
         )
         .all(),
     ).toEqual([
@@ -123,7 +123,7 @@ test('statistics and geometry share native feature identity, payload and hash', 
     expect(
       db
         .query(
-          'SELECT datasetCode, versionHash, isCurrent FROM hkgovCenstatdFeatures ORDER BY datasetCode, versionHash',
+          'SELECT datasetCode, versionHash, isCurrent FROM hkgovCenstatdStatistics ORDER BY datasetCode, versionHash',
         )
         .all(),
     ).toEqual([

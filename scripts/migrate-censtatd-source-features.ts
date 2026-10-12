@@ -17,9 +17,9 @@ import {
 } from '../libs/core/src/pipeline/services/storage/brotliJson'
 
 const retired = ['hkgovCenstatdStatistics']
-const featureTable = 'hkgovCenstatdFeatures'
+const featureTable = 'hkgovCenstatdStatistics'
 const derivativeTable = 'hkgovCenstatdDivisionAreaDerivatives'
-const membershipTable = 'hkgovCenstatdFeaturesReleaseMemberships'
+const membershipTable = 'hkgovCenstatdStatisticsReleaseMemberships'
 type Row = Record<string, string | number | null | Uint8Array>
 const args = Bun.argv.slice(2)
 function argument(name: string) {

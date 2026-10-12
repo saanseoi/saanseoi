@@ -119,11 +119,11 @@ are materialised in canonical history/current records rather than duplicated in 
 columns. Separately versioned geometry derivatives retain their exact input hash and
 transformation evidence.
 
-All C&SD datasets use `hkgovCenstatdFeatures` with explicit dataset ownership, complete
-publisher properties, acquisition coordinates in `sourceLocator` and Brotli-compressed
-native geometry. `hkgovCenstatdFeatureReleases` retains exact resource-release
-membership independently of shared feature payloads. Geometry derivatives retain their
-dataset and exact input hash separately.
+All C&SD datasets use `hkgovCenstatdStatistics` with explicit dataset ownership,
+complete publisher properties, acquisition coordinates in `sourceLocator` and
+Brotli-compressed native geometry. `hkgovCenstatdStatisticsReleaseMemberships` retains
+exact resource-release membership independently of shared feature payloads. Geometry
+derivatives retain their dataset and exact input hash separately.
 
 Each reference-period snapshot records its exact-release assembly under the
 [assembly provenance contract](../pipeline.md#snapshot-assembly-provenance). Periods can

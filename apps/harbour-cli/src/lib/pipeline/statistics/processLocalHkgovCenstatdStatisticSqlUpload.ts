@@ -324,7 +324,7 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
         resourceReleaseId,
         source: {
           rows: rows.map(row => sourceStatisticAssertion(row, datasetCode)),
-          table: 'hkgovCenstatdFeatures',
+          table: 'hkgovCenstatdStatistics',
         },
       })
     const referencePeriods = uniqueReferencePeriods(canonical.records)

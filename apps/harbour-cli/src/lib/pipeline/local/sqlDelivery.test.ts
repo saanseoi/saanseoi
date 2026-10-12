@@ -559,12 +559,12 @@ for (const family of ['statistics', 'geometry'] as const) {
       const schema =
         family === 'geometry'
           ? 'CREATE TABLE divisionAreas (snapshotId TEXT, id TEXT, geometry TEXT, PRIMARY KEY(snapshotId,id));'
-          : `CREATE TABLE hkgovCenstatdFeatures (
+          : `CREATE TABLE hkgovCenstatdStatistics (
             createdAt TEXT, datasetCode TEXT, isCurrent INTEGER, properties TEXT, resourceReleaseId TEXT,
             sourceGeometry TEXT, sourceRecordId TEXT, sources TEXT, updatedAt TEXT,
             validFromRelease TEXT, validToRelease TEXT, version INTEGER, versionHash TEXT,
             PRIMARY KEY(datasetCode,sourceRecordId,versionHash));
-            CREATE TABLE hkgovCenstatdFeatureReleases (datasetCode TEXT, resourceReleaseId TEXT, sourceRecordId TEXT, versionHash TEXT, PRIMARY KEY(datasetCode,resourceReleaseId,sourceRecordId,versionHash));`
+            CREATE TABLE hkgovCenstatdStatisticsReleaseMemberships (datasetCode TEXT, resourceReleaseId TEXT, sourceRecordId TEXT, versionHash TEXT, PRIMARY KEY(datasetCode,resourceReleaseId,sourceRecordId,versionHash));`
       const sql =
         family === 'geometry'
           ? geometryBuildUpsertSql('divisionAreas', [
@@ -574,7 +574,7 @@ for (const family of ['statistics', 'geometry'] as const) {
               resourceReleaseId: 'release',
               sourceVersion: '2026-09-07.0',
               source: {
-                table: 'hkgovCenstatdFeatures',
+                table: 'hkgovCenstatdStatistics',
                 rows: Array.from({ length: 40 }, (_, index) => ({
                   createdAt: '2026-09-07',
                   updatedAt: '2026-09-07',
@@ -598,7 +598,7 @@ for (const family of ['statistics', 'geometry'] as const) {
       const query =
         family === 'geometry'
           ? 'SELECT * FROM divisionAreas ORDER BY id'
-          : 'SELECT * FROM hkgovCenstatdFeatures ORDER BY sourceRecordId'
+          : 'SELECT * FROM hkgovCenstatdStatistics ORDER BY sourceRecordId'
       const baseline = new Database(':memory:')
       const local = new Database(f.localPath)
       try {
@@ -646,7 +646,7 @@ for (const family of ['statistics', 'geometry'] as const) {
         expect(local.query(query).all()).toEqual(expected)
         if (family === 'statistics') {
           const memberships =
-            'SELECT * FROM hkgovCenstatdFeatureReleases ORDER BY sourceRecordId'
+            'SELECT * FROM hkgovCenstatdStatisticsReleaseMemberships ORDER BY sourceRecordId'
           expect(local.query(memberships).all()).toEqual(
             baseline.query(memberships).all(),
           )

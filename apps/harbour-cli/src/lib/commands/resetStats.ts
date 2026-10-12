@@ -68,8 +68,8 @@ const CANONICAL_TABLES = [
   'divisionStatistics',
 ]
 const SOURCE_TABLES = [
-  'hkgovCenstatdFeatureReleases',
-  'hkgovCenstatdFeatures',
+  'hkgovCenstatdStatisticsReleaseMemberships',
+  'hkgovCenstatdStatistics',
   'hkgovCenstatdDivisionAreaDerivatives',
 ]
 const GEOMETRY_TABLES = [
@@ -238,10 +238,10 @@ export function buildStatsResetSql(plan: StatsResetPlan) {
   ].join('\n')
   const sourceSql = SOURCE_TABLES.flatMap(table =>
     deleteIds(table, 'resourceReleaseId', releaseIds).map(statement =>
-      table === 'hkgovCenstatdFeatures'
+      table === 'hkgovCenstatdStatistics'
         ? statement.replace(
             /;$/,
-            ' AND NOT EXISTS (SELECT 1 FROM hkgovCenstatdFeatureReleases AS membership WHERE membership.datasetCode = hkgovCenstatdFeatures.datasetCode AND membership.sourceRecordId = hkgovCenstatdFeatures.sourceRecordId AND membership.versionHash = hkgovCenstatdFeatures.versionHash);',
+            ' AND NOT EXISTS (SELECT 1 FROM hkgovCenstatdStatisticsReleaseMemberships AS membership WHERE membership.datasetCode = hkgovCenstatdStatistics.datasetCode AND membership.sourceRecordId = hkgovCenstatdStatistics.sourceRecordId AND membership.versionHash = hkgovCenstatdStatistics.versionHash);',
           )
         : statement,
     ),

@@ -19,7 +19,7 @@ test('Statistics migrations retain publisher payloads and canonical reference pe
       'referencePeriodGranularity',
       'referencePeriodEndYear',
     ]
-    for (const table of ['hkgovCenstatdFeatures']) {
+    for (const table of ['hkgovCenstatdStatistics']) {
       const columns = (
         sqlite.query(`PRAGMA table_info("${table}")`).all() as Array<{ name: string }>
       ).map(column => column.name)

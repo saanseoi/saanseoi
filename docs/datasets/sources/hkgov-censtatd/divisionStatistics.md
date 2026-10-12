@@ -6,9 +6,10 @@ Manifest JSON is a downloadable R2 sidecar; its META asset row links to the desc
 source object through `sourceAssetId`.
 
 C&SD statistics and geography retain complete publisher features in
-`hkgovCenstatdFeatures`, scoped by dataset. All features retain acquisition coordinates
-in `sourceLocator` and Brotli-compressed native geometry. Canonical preparation fields
-and extracted measures belong to the statistics and geometry materialisations.
+`hkgovCenstatdStatistics`, scoped by dataset. All features retain acquisition
+coordinates in `sourceLocator` and Brotli-compressed native geometry. Canonical
+preparation fields and extracted measures belong to the statistics and geometry
+materialisations.
 
 Processing retains shared rule definitions and curation application counts under the
 [shared processing contract](../../pipeline.md#processing-stages-and-retained-evidence).
@@ -36,8 +37,8 @@ plan.
 The feature table stores the publisher version in `validFromRelease` and
 `validToRelease`, for example `2023-H2`. These lifecycle markers use the complete
 `sourceVersion`. Exact resource-release membership is retained separately in
-`hkgovCenstatdFeatureReleases`, so shared payloads and independent census cohorts remain
-addressable regardless of lifecycle-marker updates.
+`hkgovCenstatdStatisticsReleaseMemberships`, so shared payloads and independent census
+cohorts remain addressable regardless of lifecycle-marker updates.
 
 [Minimal initialisation](../../minimal-initialisation.md) selects the earliest two
 distinct configured source versions before update discovery, retaining companion
@@ -51,7 +52,7 @@ from the cached publisher archive even when its content is unchanged. The Perman
 Living Quarters initialisation guard checks all three qualified child codes.
 Statistics-only updates require only the Statistics child.
 
-The public source-record reader selects `hkgovCenstatdFeatures` for every C&SD
+The public source-record reader selects `hkgovCenstatdStatistics` for every C&SD
 statistics dataset and scopes records through exact dataset and resource-release
 membership. Source-shard assignments include every shard containing the release
 assertions, independently of the shard holding canonical history. For `2023-H2`, source
@@ -233,12 +234,12 @@ datasets. It accepts only its locally prepared publisher ZIP, verifies the updat
 manifest SHA-256, expands only GML members within explicit entry-count and uncompressed-
 size limits, requires each configured member, and checks its publisher layer, required
 fields and feature count. Complete publisher properties, feature geometry and archive
-key/hash are stored in `hkgovCenstatdFeatures`. The canonical path retains those source
-records, then prepares one `statsRecords` pack for each dataset, semantic geography and
-exact reference period. Its stable identity includes geography kind, code, class and
-namespace, excluding source-release/version and geometry-companion vintage. Building
-groups use their parent Housing Market Area as the namespace. Duplicate fields or
-conflicting geography metadata within one pack block ingestion.
+key/hash are stored in `hkgovCenstatdStatistics`. The canonical path retains those
+source records, then prepares one `statsRecords` pack for each dataset, semantic
+geography and exact reference period. Its stable identity includes geography kind, code,
+class and namespace, excluding source-release/version and geometry-companion vintage.
+Building groups use their parent Housing Market Area as the namespace. Duplicate fields
+or conflicting geography metadata within one pack block ingestion.
 
 The flat `values` map contains every dimension-qualified field, using exact decimal
 strings or canonical categorical codes. Publisher property names and literals remain in
@@ -713,7 +714,7 @@ upstream field, verified dates and unresolved rolling compilations.
 ## C&SD publisher feature storage
 
 All C&SD statistical datasets retain their publisher features in
-`hkgovCenstatdFeatures`. Each feature has explicit `datasetCode` ownership, a native
+`hkgovCenstatdStatistics`. Each feature has explicit `datasetCode` ownership, a native
 source-record identity, complete publisher properties, an acquisition locator and
 Brotli-compressed native geometry. The primary key contains the dataset code, source
 record ID and content version hash. Release validity is scoped to the owning dataset.
@@ -747,7 +748,7 @@ Derivatives reuse the exact input assertion's ID and `inputVersionHash`; `transf
 the output `versionHash` identify the materialised geometry. Statistics provenance uses
 `hkgov-censtatd/<datasetCode>/<sourceVersion>/<sourceRecordId>`.
 
-`hkgovCenstatdFeatureReleases` records exact feature-version membership for each
-resource release. Source samples and schema inventories use this membership rather than
-treating independent census cohorts as one validity timeline. Payload reuse preserves
-separate memberships for the statistics and geometry resources.
+`hkgovCenstatdStatisticsReleaseMemberships` records exact feature-version membership for
+each resource release. Source samples and schema inventories use this membership rather
+than treating independent census cohorts as one validity timeline. Payload reuse
+preserves separate memberships for the statistics and geometry resources.

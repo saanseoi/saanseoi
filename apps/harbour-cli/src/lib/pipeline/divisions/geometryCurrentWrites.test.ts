@@ -153,7 +153,7 @@ for (const sourceName of ['overture', 'hkgov-censtatd'] as const)
         expect(
           source
             .query(
-              'SELECT DISTINCT typeof(sourceGeometry) AS storage FROM hkgovCenstatdFeatures',
+              'SELECT DISTINCT typeof(sourceGeometry) AS storage FROM hkgovCenstatdStatistics',
             )
             .all(),
         ).toEqual([{ storage: 'blob' }])
@@ -161,7 +161,7 @@ for (const sourceName of ['overture', 'hkgov-censtatd'] as const)
           source
             .query(
               `SELECT datasetCode,count(*) AS versions,max(isCurrent) AS current
-               FROM hkgovCenstatdFeatures WHERE sourceRecordId='a'
+               FROM hkgovCenstatdStatistics WHERE sourceRecordId='a'
                GROUP BY datasetCode`,
             )
             .all(),

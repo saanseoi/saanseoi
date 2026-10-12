@@ -14,7 +14,7 @@ const sourceVersion = '2022'
 function replayDatabase() {
   const db = new Database(':memory:')
   db.exec(
-    'CREATE TABLE hkgovCenstatdFeatureReleases(datasetCode,resourceReleaseId,sourceRecordId,versionHash,PRIMARY KEY(datasetCode,resourceReleaseId,sourceRecordId,versionHash))',
+    'CREATE TABLE hkgovCenstatdStatisticsReleaseMemberships(datasetCode,resourceReleaseId,sourceRecordId,versionHash,PRIMARY KEY(datasetCode,resourceReleaseId,sourceRecordId,versionHash))',
   )
   return db
 }
@@ -56,7 +56,7 @@ function historyRow(id: string) {
 }
 
 describe('buildStatisticSqlBatches', () => {
-  for (const table of ['hkgovCenstatdFeatures'] as const)
+  for (const table of ['hkgovCenstatdStatistics'] as const)
     test(`retains version-only validity across source revisions: ${table}`, () => {
       const sqlite = replayDatabase()
       try {
@@ -113,7 +113,7 @@ describe('buildStatisticSqlBatches', () => {
               properties: { value: 'x'.repeat(100_000) },
             },
           ],
-          table: 'hkgovCenstatdFeatures',
+          table: 'hkgovCenstatdStatistics',
         },
       }),
     ).toThrow('A statistic SQL statement exceeds the D1 limit')
@@ -126,7 +126,7 @@ describe('buildStatisticSqlBatches', () => {
       resourceReleaseId,
       source: {
         rows: [{ ...sourceRow('district-large'), sourceGeometry }],
-        table: 'hkgovCenstatdFeatures',
+        table: 'hkgovCenstatdStatistics',
       },
     })
     const [sourceSql] = batches.source
@@ -143,7 +143,7 @@ describe('buildStatisticSqlBatches', () => {
 
     const sqlite = replayDatabase()
     sqlite.exec(`
-      CREATE TABLE hkgovCenstatdFeatures (
+      CREATE TABLE hkgovCenstatdStatistics (
         createdAt TEXT, datasetCode TEXT, featureId TEXT, isCurrent INTEGER,
         layerName TEXT, properties TEXT, referencePeriodCode TEXT,
         referencePeriodEnd TEXT, referencePeriodEndYear TEXT,
@@ -157,7 +157,7 @@ describe('buildStatisticSqlBatches', () => {
     sqlite.exec(sourceSql)
     const stored = sqlite
       .query(
-        'SELECT sourceGeometry FROM hkgovCenstatdFeatures WHERE sourceRecordId = ?',
+        'SELECT sourceGeometry FROM hkgovCenstatdStatistics WHERE sourceRecordId = ?',
       )
       .get('district-large') as { sourceGeometry: string }
     expect(JSON.parse(stored.sourceGeometry)).toEqual(sourceGeometry)
@@ -179,7 +179,7 @@ describe('buildStatisticSqlBatches', () => {
             sourceGeometry,
           },
         ],
-        table: 'hkgovCenstatdFeatures',
+        table: 'hkgovCenstatdStatistics',
       },
     })
     const [sourceSql] = batches.source
@@ -195,7 +195,7 @@ describe('buildStatisticSqlBatches', () => {
 
     const sqlite = replayDatabase()
     sqlite.exec(`
-      CREATE TABLE hkgovCenstatdFeatures (
+      CREATE TABLE hkgovCenstatdStatistics (
         datasetCode TEXT, sourceLocator TEXT, createdAt TEXT, isCurrent INTEGER, properties TEXT,
         resourceReleaseId TEXT, sourceGeometry BLOB NOT NULL,
         sourceRecordId TEXT, updatedAt TEXT, validFromRelease TEXT,
@@ -207,7 +207,7 @@ describe('buildStatisticSqlBatches', () => {
     sqlite.exec(sourceSql)
     const stored = sqlite
       .query(
-        'SELECT sourceGeometry FROM hkgovCenstatdFeatures WHERE sourceRecordId = ?',
+        'SELECT sourceGeometry FROM hkgovCenstatdStatistics WHERE sourceRecordId = ?',
       )
       .get('district-large') as { sourceGeometry: Uint8Array }
     expect(stored.sourceGeometry).toEqual(Buffer.from(sourceGeometry))
@@ -224,7 +224,7 @@ describe('buildStatisticSqlBatches', () => {
       resourceReleaseId,
       source: {
         rows: [sourceRow('district-2'), sourceRow('district-1')],
-        table: 'hkgovCenstatdFeatures',
+        table: 'hkgovCenstatdStatistics',
       },
     })
 
@@ -233,7 +233,7 @@ describe('buildStatisticSqlBatches', () => {
     const [sourceSql] = batches.source
     const [historySql] = batches.history
     if (!sourceSql || !historySql) throw new Error('Expected replay SQL batches.')
-    expect(sourceSql).toContain('UPDATE "hkgovCenstatdFeatures" SET "isCurrent" = 0')
+    expect(sourceSql).toContain('UPDATE "hkgovCenstatdStatistics" SET "isCurrent" = 0')
     expect(sourceSql).toContain(
       'ON CONFLICT ("datasetCode", "sourceRecordId", "versionHash") DO UPDATE SET',
     )
@@ -251,7 +251,7 @@ describe('buildStatisticSqlBatches', () => {
         resourceReleaseId,
         source: {
           rows: [sourceRow('district-1'), sourceRow('district-2')],
-          table: 'hkgovCenstatdFeatures',
+          table: 'hkgovCenstatdStatistics',
         },
       }),
     ).toEqual(batches)
@@ -264,12 +264,12 @@ describe('buildStatisticSqlBatches', () => {
       resourceReleaseId,
       source: {
         rows: [sourceRow('district-1')],
-        table: 'hkgovCenstatdFeatures',
+        table: 'hkgovCenstatdStatistics',
       },
     })
     const sqlite = replayDatabase()
     sqlite.exec(`
-      CREATE TABLE hkgovCenstatdFeatures (
+      CREATE TABLE hkgovCenstatdStatistics (
         datasetCode TEXT, createdAt TEXT, isCurrent INTEGER, properties TEXT, resourceReleaseId TEXT,
         sourceGeometry TEXT, sourceRecordId TEXT, sources TEXT, updatedAt TEXT,
         validFromRelease TEXT, validToRelease TEXT, version INTEGER, versionHash TEXT,
@@ -290,7 +290,7 @@ describe('buildStatisticSqlBatches', () => {
     expect(
       sqlite
         .query(
-          'SELECT COUNT(*) AS count FROM hkgovCenstatdFeatures WHERE isCurrent = 1',
+          'SELECT COUNT(*) AS count FROM hkgovCenstatdStatistics WHERE isCurrent = 1',
         )
         .get(),
     ).toEqual({ count: 1 })
@@ -370,7 +370,7 @@ describe('replayStatisticSqlBatches', () => {
     const batches = buildStatisticSqlBatches({
       sourceVersion,
       resourceReleaseId,
-      source: { rows: [sourceRow('district-1')], table: 'hkgovCenstatdFeatures' },
+      source: { rows: [sourceRow('district-1')], table: 'hkgovCenstatdStatistics' },
     })
     const calls: Array<[boolean, string]> = []
 
@@ -410,7 +410,7 @@ describe('replayStatisticSqlBatches', () => {
       resourceReleaseId,
       source: {
         rows: [sourceRow('district-1')],
-        table: 'hkgovCenstatdFeatures',
+        table: 'hkgovCenstatdStatistics',
       },
     })
     const calls: Array<{
@@ -487,7 +487,7 @@ describe('replayStatisticSqlBatches', () => {
       resourceReleaseId,
       source: {
         rows: [sourceRow('district-1')],
-        table: 'hkgovCenstatdFeatures',
+        table: 'hkgovCenstatdStatistics',
       },
     })
     const calls: string[] = []

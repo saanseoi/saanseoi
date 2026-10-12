@@ -24,8 +24,8 @@ function sourceDatabase(
           return {
             all: async () => {
               expect(query).toContain(`FROM ${tableName}`)
-              if (tableName === 'hkgovCenstatdFeatures') {
-                expect(query).toContain('hkgovCenstatdFeatureReleases')
+              if (tableName === 'hkgovCenstatdStatistics') {
+                expect(query).toContain('hkgovCenstatdStatisticsReleaseMemberships')
                 expect(values[1]).toBe('source-release-id')
               } else {
                 expect(query).toContain('validFromRelease <= ?')
@@ -176,8 +176,8 @@ describe('source records', () => {
       CREATE TABLE resourceReleases(id, code, sourceReleaseId, datasetId, resourceType, sourceVersion, status, revokedAt);
       CREATE TABLE releaseShardAssignments(resourceReleaseId, dataShardId);
       CREATE TABLE dataShards(id, bindingName, shardType, status);
-      CREATE TABLE hkgovCenstatdFeatureReleases(datasetCode,resourceReleaseId,sourceRecordId,versionHash);
-      CREATE TABLE hkgovCenstatdFeatures(datasetCode, sources, sourceRecordId, versionHash, properties, sourceGeometry, validFromRelease, validToRelease, resourceReleaseId);
+      CREATE TABLE hkgovCenstatdStatisticsReleaseMemberships(datasetCode,resourceReleaseId,sourceRecordId,versionHash);
+      CREATE TABLE hkgovCenstatdStatistics(datasetCode, sources, sourceRecordId, versionHash, properties, sourceGeometry, validFromRelease, validToRelease, resourceReleaseId);
       INSERT INTO publishers VALUES('publisher', 'hkgov-censtatd');
       INSERT INTO dataShards VALUES('shard', 'DB_SOURCE_HK_2026', 'source', 'active');
       INSERT INTO releaseShardAssignments VALUES('area', 'shard'), ('statistic', 'shard');
@@ -209,7 +209,7 @@ describe('source records', () => {
       ])
     }
     sqlite.run(
-      "INSERT INTO hkgovCenstatdFeatures (datasetCode, sourceRecordId, versionHash, properties, sourceGeometry, validFromRelease, validToRelease, resourceReleaseId) VALUES(?, ?, ?, ?, ?, ?, NULL, 'statistic')",
+      "INSERT INTO hkgovCenstatdStatistics (datasetCode, sourceRecordId, versionHash, properties, sourceGeometry, validFromRelease, validToRelease, resourceReleaseId) VALUES(?, ?, ?, ?, ?, ?, NULL, 'statistic')",
       [
         datasetCode,
         'record',
@@ -219,12 +219,10 @@ describe('source records', () => {
         '2021',
       ],
     )
-    sqlite.run('INSERT INTO hkgovCenstatdFeatureReleases VALUES (?, ?, ?, ?)', [
-      datasetCode,
-      'statistic',
-      'record',
-      'hash',
-    ])
+    sqlite.run(
+      'INSERT INTO hkgovCenstatdStatisticsReleaseMemberships VALUES (?, ?, ?, ?)',
+      [datasetCode, 'statistic', 'record', 'hash'],
+    )
     const binding = {
       prepare(query: string) {
         return {
@@ -267,14 +265,14 @@ describe('source records', () => {
 
   test('uses exact release membership and dataset ownership to isolate shared publisher features', async () => {
     const sqlite = new Database(':memory:')
-    sqlite.exec(`CREATE TABLE hkgovCenstatdFeatures (
+    sqlite.exec(`CREATE TABLE hkgovCenstatdStatistics (
       datasetCode TEXT DEFAULT 'ds-hk-hkgov-censtatd-division-statistic-new-towns',
       sources TEXT, sourceRecordId TEXT, versionHash TEXT, properties TEXT,
       validFromRelease TEXT, validToRelease TEXT, resourceReleaseId TEXT
     )`)
     const code = 'dr-hk-hkgov-censtatd-division-statistic-new-towns-2021'
     const insert = sqlite.query(
-      'INSERT INTO hkgovCenstatdFeatures (sourceRecordId, versionHash, properties, validFromRelease, validToRelease, resourceReleaseId) VALUES (?, ?, ?, ?, ?, ?)',
+      'INSERT INTO hkgovCenstatdStatistics (sourceRecordId, versionHash, properties, validFromRelease, validToRelease, resourceReleaseId) VALUES (?, ?, ?, ?, ?, ?)',
     )
     insert.run('old', 'v1', '{"obsolete":true}', '2016', '2021', 'older-release-id')
     insert.run(
@@ -302,11 +300,11 @@ describe('source records', () => {
       'other-dataset-release',
     )
     sqlite.run(
-      "UPDATE hkgovCenstatdFeatures SET datasetCode='another-dataset' WHERE sourceRecordId='unrelated'",
+      "UPDATE hkgovCenstatdStatistics SET datasetCode='another-dataset' WHERE sourceRecordId='unrelated'",
     )
     insert.run('future', 'v1', '{"future":true}', '2026', null, 'source-release-id')
     sqlite.exec(
-      "CREATE TABLE hkgovCenstatdFeatureReleases(datasetCode,resourceReleaseId,sourceRecordId,versionHash); INSERT INTO hkgovCenstatdFeatureReleases VALUES('ds-hk-hkgov-censtatd-division-statistic-new-towns','source-release-id','a','v1'),('ds-hk-hkgov-censtatd-division-statistic-new-towns','source-release-id','b','v1'),('another-dataset','source-release-id','unrelated','v1');",
+      "CREATE TABLE hkgovCenstatdStatisticsReleaseMemberships(datasetCode,resourceReleaseId,sourceRecordId,versionHash); INSERT INTO hkgovCenstatdStatisticsReleaseMemberships VALUES('ds-hk-hkgov-censtatd-division-statistic-new-towns','source-release-id','a','v1'),('ds-hk-hkgov-censtatd-division-statistic-new-towns','source-release-id','b','v1'),('another-dataset','source-release-id','unrelated','v1');",
     )
     const sourceDb = {
       prepare(query: string) {
@@ -815,7 +813,7 @@ describe('source records', () => {
       sourceReleaseCode: censtatdRelease,
     })
 
-    expect(query).toContain('FROM hkgovCenstatdFeatures')
+    expect(query).toContain('FROM hkgovCenstatdStatistics')
     expect(query).toContain('ORDER BY RANDOM()')
     expect(query).not.toContain('sourceRecordId >= ?')
     expect(result?.records.map(record => record.sourceRecordId)).toEqual([
@@ -898,7 +896,7 @@ describe('source records', () => {
                 versionHash: 'version-1',
               },
             ],
-            'hkgovCenstatdFeatures',
+            'hkgovCenstatdStatistics',
             '2016',
           ),
           DB_SOURCE_HK_BEFORE: sourceDatabase([]),
@@ -986,7 +984,7 @@ for (const [family, datasetCode, tableName, resourceType] of [
   [
     'stats',
     'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district',
-    'hkgovCenstatdFeatures',
+    'hkgovCenstatdStatistics',
     'divisionStatistic',
   ],
   [
@@ -1006,7 +1004,7 @@ for (const [family, datasetCode, tableName, resourceType] of [
       sourceGeometry:
         resourceType === 'divisionArea' ||
         resourceType === 'divisionBoundary' ||
-        tableName === 'hkgovCenstatdFeatures'
+        tableName === 'hkgovCenstatdStatistics'
           ? compressJsonBrotli(geometry)
           : JSON.stringify(geometry),
     }

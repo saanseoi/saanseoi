@@ -352,13 +352,13 @@ test('Building Group preparation reads exact dataset and resource-release member
   }
   const sourcePath = join(f.directory, 'source.sqlite')
   const source = new Database(sourcePath)
-  source.exec(`CREATE TABLE hkgovCenstatdFeatures (
+  source.exec(`CREATE TABLE hkgovCenstatdStatistics (
     datasetCode TEXT, sourceRecordId TEXT, resourceReleaseId TEXT, properties TEXT,
     validFromRelease TEXT, validToRelease TEXT, versionHash TEXT
   );
-  CREATE TABLE hkgovCenstatdFeatureReleases (datasetCode TEXT, sourceRecordId TEXT, versionHash TEXT, resourceReleaseId TEXT);`)
+  CREATE TABLE hkgovCenstatdStatisticsReleaseMemberships (datasetCode TEXT, sourceRecordId TEXT, versionHash TEXT, resourceReleaseId TEXT);`)
   const insert = source.query(
-    'INSERT INTO hkgovCenstatdFeatures VALUES (?, ?, ?, ?, ?, ?, ?)',
+    'INSERT INTO hkgovCenstatdStatistics VALUES (?, ?, ?, ?, ?, ?, ?)',
   )
   insert.run(
     datasetCode,
@@ -388,7 +388,7 @@ test('Building Group preparation reads exact dataset and resource-release member
     'other-hash',
   )
   source
-    .query('INSERT INTO hkgovCenstatdFeatureReleases VALUES (?, ?, ?, ?)')
+    .query('INSERT INTO hkgovCenstatdStatisticsReleaseMemberships VALUES (?, ?, ?, ?)')
     .run(datasetCode, 'BuildingGroup:A', 'first-hash', 'release-1')
   source.close()
   f.inputs.source.push(sourcePath)

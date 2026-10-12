@@ -678,7 +678,7 @@ describe('geometryBuildUpsertSql', () => {
       { length: MAX_D1_GEOMETRY_SQL_STATEMENT_BYTES },
       (_, index) => index % 251,
     )
-    const sql = geometryBuildUpsertSql('hkgovCenstatdFeatures', [
+    const sql = geometryBuildUpsertSql('hkgovCenstatdStatistics', [
       {
         sourceGeometry,
         sourceRecordId: 'CENSTATD:T',
@@ -695,14 +695,14 @@ describe('geometryBuildUpsertSql', () => {
 
     const database = new Database(':memory:')
     database.exec(
-      'CREATE TABLE hkgovCenstatdFeatures (sourceRecordId TEXT NOT NULL, sourceGeometry BLOB NOT NULL, versionHash TEXT NOT NULL, PRIMARY KEY (sourceRecordId, versionHash));',
+      'CREATE TABLE hkgovCenstatdStatistics (sourceRecordId TEXT NOT NULL, sourceGeometry BLOB NOT NULL, versionHash TEXT NOT NULL, PRIMARY KEY (sourceRecordId, versionHash));',
     )
     database.exec(sql)
 
     expect(
       database
         .query(
-          'SELECT sourceGeometry FROM hkgovCenstatdFeatures WHERE sourceRecordId = ? AND versionHash = ?',
+          'SELECT sourceGeometry FROM hkgovCenstatdStatistics WHERE sourceRecordId = ? AND versionHash = ?',
         )
         .get('CENSTATD:T', 'hash-1'),
     ).toEqual({ sourceGeometry: Buffer.from(sourceGeometry) })

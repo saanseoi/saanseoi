@@ -911,7 +911,7 @@ async function buildNativeSourceSqlInternal(
         'hkgovPlandPlanningCells',
         'hkgovPlandNewTowns',
         'hkgovHadDivisionAreas',
-        'hkgovCenstatdFeatures',
+        'hkgovCenstatdStatistics',
       ].includes(table.name),
       archiveObjectKey,
       nativeSourceLocatorDefaults(table.rows, archiveObjectKey),

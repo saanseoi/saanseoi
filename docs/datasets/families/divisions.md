@@ -1995,7 +1995,7 @@ geometry methods are not external identifiers.
 
 ## C&SD publisher feature storage
 
-C&SD statistics and geography intake share `hkgovCenstatdFeatures`. Publisher features
+C&SD statistics and geography intake share `hkgovCenstatdStatistics`. Publisher features
 retain explicit dataset ownership, native identities, complete properties, acquisition
 locators and Brotli-compressed native geometry. Canonical statistics and DivisionAreas
 are separate projections of that evidence.
@@ -2013,7 +2013,7 @@ cross-release continuity claim. Delivery ordinals are one-based and refer to the
 original input order. Canonical Division IDs and publisher codes used for grouping are
 separate from retained source record IDs.
 
-`hkgovCenstatdFeatureReleases` records exact feature-version membership for each
-resource release. Source samples and schema inventories use this membership rather than
-treating independent census cohorts as one validity timeline. Payload reuse preserves
-separate memberships for the statistics and geometry resources.
+`hkgovCenstatdStatisticsReleaseMemberships` records exact feature-version membership for
+each resource release. Source samples and schema inventories use this membership rather
+than treating independent census cohorts as one validity timeline. Payload reuse
+preserves separate memberships for the statistics and geometry resources.

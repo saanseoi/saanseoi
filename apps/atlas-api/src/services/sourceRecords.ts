@@ -416,7 +416,7 @@ async function readRandomOrderedSourceRecordPage(args: {
 function sourceReleaseCondition(entry: SourceRecordCatalogueEntry, prefix = '') {
   if (entry.exactReleaseMembership) {
     const record = prefix || `${entry.tableName}.`
-    return `${record}datasetCode = ? AND EXISTS (SELECT 1 FROM hkgovCenstatdFeatureReleases AS membership WHERE membership.datasetCode = ${record}datasetCode AND membership.sourceRecordId = ${record}sourceRecordId AND membership.versionHash = ${record}versionHash AND membership.resourceReleaseId = ?)`
+    return `${record}datasetCode = ? AND EXISTS (SELECT 1 FROM hkgovCenstatdStatisticsReleaseMemberships AS membership WHERE membership.datasetCode = ${record}datasetCode AND membership.sourceRecordId = ${record}sourceRecordId AND membership.versionHash = ${record}versionHash AND membership.resourceReleaseId = ?)`
   }
   return `${prefix}validFromRelease <= ? AND (${prefix}validToRelease IS NULL OR ${prefix}validToRelease > ?) AND ${sourceDatasetCondition(entry, prefix)}`
 }

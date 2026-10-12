@@ -76,7 +76,7 @@ const STATISTIC_SOURCE_RECORD_CATALOGUE: Record<string, SourceRecordCatalogueEnt
       {
         geometryColumn: 'sourceGeometry',
         geometryEncoding: 'brotli-json',
-        tableName: 'hkgovCenstatdFeatures',
+        tableName: 'hkgovCenstatdStatistics',
         datasetColumn: 'datasetCode',
         exactReleaseMembership: true,
       },

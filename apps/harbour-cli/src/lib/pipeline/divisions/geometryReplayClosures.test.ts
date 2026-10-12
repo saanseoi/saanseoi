@@ -30,7 +30,7 @@ for (const sourceName of ['overture', 'hkgov-censtatd'] as const)
       source: new Database(':memory:'),
     }
     const sourceTable =
-      sourceName === 'overture' ? 'overtureDivisionAreas' : 'hkgovCenstatdFeatures'
+      sourceName === 'overture' ? 'overtureDivisionAreas' : 'hkgovCenstatdStatistics'
     try {
       const meta = local.DB_META
       if (!meta) throw new Error('Missing meta')
