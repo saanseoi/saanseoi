@@ -7,6 +7,10 @@ import {
   deferredPlaceAddressResolution,
 } from './placeAddressInvestigations'
 import type { StagedAddressResolution } from './supplementaryPlaceAddress'
+import {
+  placeAddressReviewReference,
+  validatePlaceAddressReviewReport,
+} from './placeAddressReviewReferences'
 
 test('authorised deferral retains unresolved evidence, replays exactly, and never links a candidate', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'place-investigation-'))
@@ -22,7 +26,14 @@ test('authorised deferral retains unresolved evidence, replays exactly, and neve
       reason: 'multiple_close_matches',
       parsed: [],
     }
-    const report = { sourceRelease: '2025-10-22.0', unresolvedCount: 1, results: [row] }
+    const report = {
+      version: 2,
+      placeReleaseId: 'places-release',
+      addressSnapshotId: 'address-snapshot',
+      sourceRelease: '2025-10-22.0',
+      unresolvedCount: 1,
+      results: [placeAddressReviewReference(row)],
+    }
     const reviewPath = join(directory, 'review.json')
     await writeFile(reviewPath, JSON.stringify(report))
     expect(await deferPlaceAddressReviews({ reviewPath, directory })).toBeNull()
@@ -56,4 +67,53 @@ test('authorised deferral retains unresolved evidence, replays exactly, and neve
   } finally {
     await rm(directory, { recursive: true, force: true })
   }
+})
+
+test('review references omit copied record data and require exact lookup scopes', () => {
+  const row: StagedAddressResolution = {
+    placeId: 'publisher-place',
+    fingerprint: 'fingerprint',
+    tier: 'review',
+    addressId: null,
+    reason: 'multiple_close_matches',
+    sourceTexts: ['copied address'],
+    lng: 114,
+    lat: 22,
+    parsed: [],
+    previous: null,
+    candidates: [{ addressId: 'b' }, { addressId: 'a' }, { addressId: 'b' }],
+  }
+  const result = placeAddressReviewReference(row)
+  expect(result).toEqual({
+    placeId: row.placeId,
+    fingerprint: row.fingerprint,
+    tier: 'review',
+    addressId: null,
+    reason: row.reason,
+    candidateAddressIds: ['a', 'b'],
+  })
+  const report = {
+    version: 2,
+    placeReleaseId: 'places-release',
+    addressSnapshotId: 'address-snapshot',
+    sourceRelease: '2026-09-23.0',
+    unresolvedCount: 1,
+    results: [result],
+  }
+  expect(() => validatePlaceAddressReviewReport(report)).not.toThrow()
+  expect(() =>
+    validatePlaceAddressReviewReport({ ...report, addressSnapshotId: undefined }),
+  ).toThrow('Invalid')
+  expect(() =>
+    validatePlaceAddressReviewReport({
+      ...report,
+      results: [{ ...result, candidates: row.candidates }],
+    }),
+  ).toThrow('Invalid')
+  expect(() =>
+    validatePlaceAddressReviewReport({
+      ...report,
+      results: [{ ...result, candidateAddressIds: ['a', 'a'] }],
+    }),
+  ).toThrow('Invalid')
 })

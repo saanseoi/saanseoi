@@ -880,7 +880,19 @@ test('supplementary editions reuse cross-year components, replay immutable prove
     expect(review.results[0]).toMatchObject({
       tier: 'review',
     })
-    expect(review.results[0].previous.addressId).toBe(first.addresses[0]?.current.id)
+    expect(review.version).toBe(2)
+    expect(review.addressSnapshotId).toBe(official.id)
+    expect(Array.isArray(review.results[0].candidateAddressIds)).toBe(true)
+    for (const field of [
+      'sourceTexts',
+      'parsed',
+      'candidates',
+      'lng',
+      'lat',
+      'previous',
+    ])
+      expect(review.results[0]).not.toHaveProperty(field)
+    expect(review.results[0].previousAddressId).toBe(first.addresses[0]?.current.id)
     expect(current.query('SELECT count(*) AS n FROM places').get()).toEqual({ n: 0 })
 
     const resolutionBeforeFailure = await readFile(

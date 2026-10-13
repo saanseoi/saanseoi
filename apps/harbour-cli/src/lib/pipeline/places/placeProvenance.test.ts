@@ -55,6 +55,8 @@ test('Places retain replayable reviewed decisions without adding automatic recor
     resourceReleaseId: 'release',
     datasetCode: 'ds-hk-overture-place',
     addresses: {
+      addressSnapshotId: 'official-snapshot',
+      placeReleaseId: 'place-release',
       snapshotId: 'test-snapshot',
       fixture,
       resolutionPath,
@@ -107,6 +109,11 @@ test('Places audit retains unresolved review evidence without claiming an applie
         fingerprint: 'pending',
         tier: 'review',
         addressId: null,
+        reason: 'multiple_close_matches',
+        previous: null,
+        candidates: [{ addressId: 'candidate' }],
+        sourceTexts: ['must not be copied into the audit'],
+        parsed: [],
       },
     ]
       .map(row => JSON.stringify(row))
@@ -118,6 +125,8 @@ test('Places audit retains unresolved review evidence without claiming an applie
     resourceReleaseId: 'place-release',
     datasetCode: 'places',
     addresses: {
+      addressSnapshotId: 'official-snapshot',
+      placeReleaseId: 'place-release',
       snapshotId: 'test-snapshot',
       fixture,
       resolutionPath,
@@ -199,6 +208,8 @@ test('automatic Place matching grows counts without generating per-record audit 
       resourceReleaseId: 'release',
       datasetCode: 'places',
       addresses: {
+        addressSnapshotId: 'official-snapshot',
+        placeReleaseId: 'place-release',
         snapshotId: 'test-snapshot',
         fixture,
         resolutionPath,
@@ -248,6 +259,8 @@ test('deferred investigations pass the review gate without claiming a resolved i
     resourceReleaseId: 'place-release',
     datasetCode: 'places',
     addresses: {
+      addressSnapshotId: 'official-snapshot',
+      placeReleaseId: 'place-release',
       snapshotId: 'test-snapshot',
       fixture: {
         ...parseSupplementaryCuration(structuredClone(policy)),
@@ -316,6 +329,8 @@ test('identity audit retains before/after evidence and verifies the versioned le
     identityPath,
     identityLedger,
     addresses: {
+      addressSnapshotId: 'official-snapshot',
+      placeReleaseId: 'place-release',
       snapshotId: 'snapshot',
       fixture: {
         ...parseSupplementaryCuration(structuredClone(policy)),

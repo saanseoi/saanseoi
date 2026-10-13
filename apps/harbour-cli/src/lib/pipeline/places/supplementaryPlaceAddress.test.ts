@@ -449,7 +449,7 @@ describe('supplementary Place Address policy', () => {
       result.candidates.find(candidate => candidate.addressId === hongKong.addressId),
     ).toBeUndefined()
   })
-  test('compacts non-review resolutions but retains review evidence', () => {
+  test('stages only unique candidate IDs and omits transient parsing and scores', () => {
     const { analyse } = setup([citygate, { ...citygate, addressId: 'other' }])
     const delayed = analyse(observation('Tat Tung Road'), null)
     expect(compactAddressResolution(delayed)).toMatchObject({
@@ -460,7 +460,12 @@ describe('supplementary Place Address policy', () => {
     const review = analyse(observation('Citygate Outlets, Tat Tung Road'), null)
     const compactReview = compactAddressResolution(review)
     expect(compactReview.candidates.length).toBeGreaterThan(0)
-    expect(compactReview.candidates[0]).not.toHaveProperty('parsed')
+    expect(compactReview.candidates).toEqual(
+      [...new Set(review.candidates.map(candidate => candidate.addressId))]
+        .sort()
+        .map(addressId => ({ addressId })),
+    )
+    expect(compactReview.parsed).toEqual([])
   })
   test('geometry adds 25 points only to a nearby named candidate', () => {
     const { analyse, geometry } = setup([citygate, { ...citygate, addressId: 'other' }])

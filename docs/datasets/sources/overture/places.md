@@ -734,12 +734,17 @@ Uncertain Place address identities may be accepted for ingestion under an explic
 `fixtures/reviews/manifest.json` catalogues the immutable objects;
 `fixtures/reviews/overture-place-address-investigations/` caches their verified bytes
 locally. Place provenance references portable `evidence:sha256:{checksum}` identifiers.
-Each record retains the complete release-specific review evidence and its SHA-256
-digest. Exact retained evidence can be replayed without a new acknowledgement. Publisher
-address text is preserved, but no uncertain canonical Address link or supplementary
-Address is created. Assembly audits retain these investigations separately from applied
-human decisions. Malformed evidence and concurrent curation changes still block
-ingestion.
+Review reports retain the Place source ID, unique candidate Address IDs, a source
+fingerprint, the unresolved reason and any previous Address reference. The report pins
+the Place resource release and Address snapshot; record details must be loaded from
+those DB scopes, rather than the latest API state. Candidate scores, component
+breakdowns, parsed addresses, coordinates and copied publisher text are not retained in
+the report. The private archive stores compact JSON with an exact SHA-256 digest. Exact
+retained reference reports can be replayed without a new acknowledgement; a new report
+digest requires explicit acknowledgement. Publisher address text remains in the source
+records, but no uncertain canonical Address link or supplementary Address is created.
+Assembly audits retain these investigations separately from applied human decisions.
+Malformed evidence and concurrent curation changes still block ingestion.
 
 ## Publisher and canonical identity
 

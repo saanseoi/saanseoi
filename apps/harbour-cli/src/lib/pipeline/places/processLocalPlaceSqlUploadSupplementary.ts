@@ -1,4 +1,5 @@
 import { reconcilePlaceAddressIdentityContinuity } from './placeAddressIdentityContinuity'
+import { placeAddressReviewReference } from './placeAddressReviewReferences.ts'
 import type { PlaceIdentityDecision } from '@repo/core/pipeline/services/places/placeIdentity'
 import { reviewEvidenceId } from '../../storage/evidenceArchive.ts'
 import {
@@ -732,6 +733,8 @@ async function prepareSupplementaryAddressesLocked(
     await input.retainAudit(resourceReleaseId, datasetCode, {
       snapshotId: snapshot.id,
       materialisationHash,
+      addressSnapshotId: input.snapshots.addressSnapshotId,
+      placeReleaseId: input.resourceReleaseId,
       fixture,
       resolutionPath,
       sourceVersion: input.plan.sourceVersion,
@@ -840,6 +843,8 @@ async function prepareSupplementaryAddressesLocked(
     await input.retainAudit(resourceReleaseId, datasetCode, {
       snapshotId: snapshot.id,
       materialisationHash,
+      addressSnapshotId: input.snapshots.addressSnapshotId,
+      placeReleaseId: input.resourceReleaseId,
       fixture,
       resolutionPath,
       sourceVersion: input.plan.sourceVersion,
@@ -888,6 +893,8 @@ async function prepareSupplementaryAddressesLocked(
     audit: {
       snapshotId: input.snapshots.snapshotId,
       materialisationHash,
+      addressSnapshotId: input.snapshots.addressSnapshotId,
+      placeReleaseId: input.resourceReleaseId,
       fixture,
       resolutionPath,
       sourceVersion: input.plan.sourceVersion,
@@ -963,7 +970,7 @@ async function writeSupplementaryReviewArtefact(input: {
           policies: input.policies,
           unresolvedCount: input.reviewCount,
           sourceRelease: input.sourceRelease,
-          version: 1,
+          version: 2,
           results: null,
         },
         null,
@@ -977,7 +984,9 @@ async function writeSupplementaryReviewArtefact(input: {
         input.resolutionPath,
       )) {
         if (resolution.tier !== 'review') continue
-        await output.write(`${first ? '\n' : ',\n'}    ${JSON.stringify(resolution)}`)
+        await output.write(
+          `${first ? '\n' : ',\n'}    ${JSON.stringify(placeAddressReviewReference(resolution))}`,
+        )
         first = false
       }
       await output.write('\n  ]\n}\n')

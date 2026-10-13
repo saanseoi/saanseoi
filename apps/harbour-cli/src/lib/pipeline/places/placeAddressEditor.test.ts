@@ -234,7 +234,7 @@ test('unlinked decisions survive unit changes but reopen a changed 2D address', 
   ).toBe('unlinked_address_changed')
 })
 
-test('review note omits missing components and previous links; candidate keeps exact formatted address and compact evidence', () => {
+test('review note omits missing components and previous links; candidate uses the DB formatted address', () => {
   const candidate = {
     addressId: english.addressId,
     score: 120,
@@ -259,13 +259,9 @@ test('review note omits missing components and previous links; candidate keeps e
   expect(note).not.toContain('Previous')
   expect(note).not.toContain('BuildingNumberEnd')
   expect(formatAddressCandidate(english, candidate, false)).toBe(
-    `${english.formattedAddress} (120 @ 12 m)`,
+    english.formattedAddress,
   )
-  expect(
-    formatAddressCandidate(
-      english,
-      { ...candidate, contradictions: ['number'] },
-      false,
-    ),
-  ).toEndWith('(120 @ 12 m !number)')
+  expect(formatAddressCandidate(english, candidate, false)).toBe(
+    english.formattedAddress,
+  )
 })

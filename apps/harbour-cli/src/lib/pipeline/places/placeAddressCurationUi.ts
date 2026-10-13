@@ -2,7 +2,11 @@ import { isCancel, log, note, select, text } from '@clack/prompts'
 import { open, readFile, rename, unlink } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import type { PlaceAddressDefinition } from './placeAddressMatcher.ts'
+import {
+  createPlaceAddressMatcher,
+  parsePlaceAddress,
+  type PlaceAddressDefinition,
+} from './placeAddressMatcher.ts'
 import type {
   StagedAddressResolution,
   SupplementaryDecision,
@@ -135,6 +139,7 @@ export async function reviewPlaceAddressCurations(input: {
   // The CLI log wrapper pipes stdout through tee; stdin retains the terminal.
   if (!process.stdin.isTTY) return 0
   const byId = Map.groupBy(input.definitions, row => row.addressId)
+  const matcher = createPlaceAddressMatcher(input.definitions)
   const decisionPath = input.curationDecisionsPath ?? input.curationPath
   const lockPath = `${decisionPath}.review.lock`
   const lock = await open(lockPath, 'wx')
@@ -150,8 +155,12 @@ export async function reviewPlaceAddressCurations(input: {
       policy.decisions = parseSupplementaryDecisionJsonLines(decisionText)
     parseSupplementaryCuration(policy)
     let index = 0
-    for await (const row of input.rows) {
-      if (row.tier !== 'review') continue
+    for await (const stored of input.rows) {
+      if (stored.tier !== 'review') continue
+      const row = {
+        ...stored,
+        parsed: stored.sourceTexts.map(value => parsePlaceAddress(value, matcher)),
+      }
       index++
       // Keep the complete evidence unresolved, including mixed-language addresses.
       // Skipping the UI must not create a retirement or an identity decision.
@@ -173,16 +182,14 @@ export async function reviewPlaceAddressCurations(input: {
         `Place Address :: ${safeAddressText(row.placeId)} (${index}/${input.total})`,
       )
       const candidates = row.candidates.flatMap(candidate => {
-        if (
-          candidate.score < 50 &&
-          candidate.distanceMetres !== null &&
-          candidate.distanceMetres > 500
-        )
-          return []
-        const definition = byId
-          .get(candidate.addressId)
-          ?.find(value => value.locale === 'en')
-        return definition ? [{ candidate, definition }] : []
+        const definition =
+          byId.get(candidate.addressId)?.find(value => value.locale === 'en') ??
+          byId.get(candidate.addressId)?.[0]
+        if (!definition)
+          throw new Error(
+            `Candidate Address ${candidate.addressId} is missing from the review's Address snapshot.`,
+          )
+        return [{ candidate, definition }]
       })
       let decision: SupplementaryDecision | undefined
       while (!decision) {
@@ -359,7 +366,6 @@ export async function showCandidatesOnMap(
       ? [
           {
             ...point,
-            score: candidate.score,
             label: escapeHtml(definition.formattedAddress ?? candidate.addressId),
           },
         ]
@@ -373,9 +379,9 @@ maplibregl.setWorkerUrl(URL.createObjectURL(new Blob([${JSON.stringify(runtime.w
 const source=[${row.lng},${row.lat}], candidates=${JSON.stringify(markers)};
 (async()=>{const accessToken=${JSON.stringify(accessToken)};const basemapUrl='https://tiles.saanseoi.hk/hongkong-latest.json?access_token='+encodeURIComponent(accessToken);const response=await fetch('https://api.saanseoi.hk/v0/styles/light/1.0.0.json');if(!response.ok)throw new Error('Could not load the SaanSeoi basemap style.');const style=await response.json();style.sources={...style.sources,basemap:{type:'vector',url:basemapUrl}};
 const map=new maplibregl.Map({container:'map',style,center:source,zoom:16,attributionControl:{compact:true}}); map.addControl(new maplibregl.NavigationControl());
-map.on('load',()=>{const features=[{type:'Feature',geometry:{type:'Point',coordinates:source},properties:{kind:'source',label:${JSON.stringify(title)}}},...candidates.map(c=>({type:'Feature',geometry:{type:'Point',coordinates:[c.lng,c.lat]},properties:{kind:'candidate',score:c.score,label:c.label}}))];
-map.addSource('address-review',{type:'geojson',data:{type:'FeatureCollection',features}}); map.addLayer({id:'candidates',type:'circle',source:'address-review',filter:['==',['get','kind'],'candidate'],paint:{'circle-radius':8,'circle-color':['interpolate',['linear'],['get','score'],0,'hsl(12 20% 48%)',100,'hsl(12 100% 48%)'],'circle-stroke-color':'#fff','circle-stroke-width':2}}); map.addLayer({id:'place-source',type:'circle',source:'address-review',filter:['==',['get','kind'],'source'],paint:{'circle-radius':10,'circle-color':'#2563eb','circle-stroke-color':'#fff','circle-stroke-width':3}});
-map.on('click',['candidates','place-source'],e=>new maplibregl.Popup().setLngLat(e.lngLat).setHTML(e.features[0].properties.kind==='source'?'<b>Place source</b><br>'+e.features[0].properties.label:'<b>Score '+e.features[0].properties.score+'</b><br>'+e.features[0].properties.label).addTo(map));
+map.on('load',()=>{const features=[{type:'Feature',geometry:{type:'Point',coordinates:source},properties:{kind:'source',label:${JSON.stringify(title)}}},...candidates.map(c=>({type:'Feature',geometry:{type:'Point',coordinates:[c.lng,c.lat]},properties:{kind:'candidate',label:c.label}}))];
+map.addSource('address-review',{type:'geojson',data:{type:'FeatureCollection',features}}); map.addLayer({id:'candidates',type:'circle',source:'address-review',filter:['==',['get','kind'],'candidate'],paint:{'circle-radius':8,'circle-color':'hsl(12 100% 48%)','circle-stroke-color':'#fff','circle-stroke-width':2}}); map.addLayer({id:'place-source',type:'circle',source:'address-review',filter:['==',['get','kind'],'source'],paint:{'circle-radius':10,'circle-color':'#2563eb','circle-stroke-color':'#fff','circle-stroke-width':3}});
+map.on('click',['candidates','place-source'],e=>new maplibregl.Popup().setLngLat(e.lngLat).setHTML(e.features[0].properties.kind==='source'?'<b>Place source</b><br>'+e.features[0].properties.label:'<b>Candidate Address</b><br>'+e.features[0].properties.label).addTo(map));
 const bounds=new maplibregl.LngLatBounds(source,source); for(const c of candidates) bounds.extend([c.lng,c.lat]); if(candidates.length){const container=map.getContainer(),padding={top:container.clientHeight*.25,right:container.clientWidth*.25,bottom:container.clientHeight*.25,left:container.clientWidth*.25};map.fitBounds(bounds,{padding,maxZoom:17});}});})().catch(error=>{document.body.textContent='Map preview failed: '+error.message;throw error});
 </script>`
   const path =
@@ -504,6 +510,5 @@ export function formatAddressCandidate(
       offset += part.text.length
     } else label += formatted[offset++]
   }
-  const detail = `(${candidate.score} @ ${candidate.distanceMetres === null ? '?' : `${Math.round(candidate.distanceMetres)} m`}${candidate.contradictions.length ? ` !${candidate.contradictions.map(safeAddressText).join(', ')}` : ''})`
-  return `${label} ${colour ? `\u001b[2m${detail}\u001b[0m` : detail}`
+  return label || safeAddressText(candidate.addressId)
 }

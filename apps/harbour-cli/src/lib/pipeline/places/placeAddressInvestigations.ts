@@ -6,6 +6,7 @@ import { createHash } from 'node:crypto'
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import type { StagedAddressResolution } from './supplementaryPlaceAddress'
+import { validatePlaceAddressReviewReport } from './placeAddressReviewReferences.ts'
 
 const directory = resolve(
   import.meta.dir,
@@ -20,15 +21,8 @@ export async function deferPlaceAddressReviews(input: {
 }) {
   const evidence = await readFile(input.reviewPath, 'utf8')
   const report = JSON.parse(evidence)
+  validatePlaceAddressReviewReport(report)
   if (!report.unresolvedCount) return null
-  if (
-    !Array.isArray(report.results) ||
-    report.results.length !== report.unresolvedCount ||
-    report.results.some(
-      (row: StagedAddressResolution) => row.tier !== 'review' || row.addressId !== null,
-    )
-  )
-    throw new Error('Invalid unresolved Place Address evidence.')
   const digest = createHash('sha256').update(evidence).digest('hex')
   const path = resolve(
     input.directory ?? directory,
@@ -60,19 +54,15 @@ export async function deferPlaceAddressReviews(input: {
   await mkdir(input.directory ?? directory, { recursive: true })
   await writeFile(
     path,
-    JSON.stringify(
-      {
-        schemaVersion: 1,
-        status: 'needs-further-investigation',
-        priority: 'low',
-        ingestionEffect: 'retain-publisher-data-without-address-link',
-        authority: input.authority,
-        evidenceSha256: digest,
-        report,
-      },
-      null,
-      2,
-    ) + '\n',
+    JSON.stringify({
+      schemaVersion: 1,
+      status: 'needs-further-investigation',
+      priority: 'low',
+      ingestionEffect: 'retain-publisher-data-without-address-link',
+      authority: input.authority,
+      evidenceSha256: digest,
+      report,
+    }) + '\n',
     { flag: 'wx' },
   )
   if (!input.directory) await registerReviewEvidence(path)

@@ -143,13 +143,12 @@ export type AddressResolution = {
   placeGeometryOverride?: { lng: number; lat: number }
 }
 export type StagedAddressResolution = Omit<AddressResolution, 'candidates'> & {
-  candidates: CandidateEvidence[]
+  candidates: Pick<Candidate, 'addressId'>[]
 }
 
 /**
- * Keeps the durable resolution stream bounded. Full parses and candidate sets
- * are useful only when a reviewer must decide an identity; enrichment needs
- * the selected ID and accepted supplementary entry only.
+ * Persist candidate identities only; record details come from the pinned DB.
+ * Scoring and parsing are working state, not retained candidate payloads.
  */
 export function compactAddressResolution(
   resolution: AddressResolution,
@@ -157,7 +156,10 @@ export function compactAddressResolution(
   if (resolution.tier === 'review')
     return {
       ...resolution,
-      candidates: resolution.candidates.map(candidateEvidence),
+      candidates: [...new Set(resolution.candidates.map(row => row.addressId))]
+        .sort()
+        .map(addressId => ({ addressId })),
+      parsed: [],
     }
   return { ...resolution, candidates: [], parsed: [] }
 }

@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto'
+import { placeAddressReviewReference } from './placeAddressReviewReferences.ts'
 import { readFile } from 'node:fs/promises'
 import type { writePlaceIdentityLedger } from './placeIdentityLedger'
 import { placeIdentityDeclaration } from '@repo/core/pipeline/services/places/placeIdentity'
@@ -27,6 +28,8 @@ import type { StagedPlaces } from './processLocalPlaceSqlUploadTypes'
 
 export type PlaceAddressAuditInput = {
   snapshotId: string
+  addressSnapshotId: string
+  placeReleaseId: string
   materialisationHash?: string
   fixture: SupplementaryCuration
   resolutionPath: string
@@ -56,7 +59,7 @@ export async function retainPlaceProvenance(
   const observedPlaces = new Set<string>()
   let duplicatePlaces = 0
   let linked = 0
-  const unreviewed: StagedAddressResolution[] = []
+  const unreviewed: ReturnType<typeof placeAddressReviewReference>[] = []
   for await (const resolution of readStagedJsonLines<StagedAddressResolution>(
     input.addresses.resolutionPath,
   )) {
@@ -65,7 +68,7 @@ export async function retainPlaceProvenance(
     counts[resolution.tier] = (counts[resolution.tier] ?? 0) + 1
     if (resolution.addressId) linked++
     if (resolution.tier === 'review' || resolution.tier === 'investigation')
-      unreviewed.push(resolution)
+      unreviewed.push(placeAddressReviewReference(resolution))
     const index = input.addresses.fixture.decisions.findIndex(
       d =>
         d.placeId === resolution.placeId &&
@@ -168,6 +171,8 @@ export async function retainPlaceProvenance(
               {
                 type: 'place-address-unreviewed-cases',
                 document: {
+                  placeReleaseId: input.addresses.placeReleaseId,
+                  addressSnapshotId: input.addresses.addressSnapshotId,
                   sourceVersion: input.addresses.sourceVersion,
                   entries: unreviewed,
                 },
