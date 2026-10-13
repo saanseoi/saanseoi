@@ -6,7 +6,7 @@ import { seedFixtureCatalog } from '../../core/src/testing/metaFixtures'
 import { createLocalHarbourDb } from '../../core/src/testing/localDb'
 import { retainSourceReleaseMetadata } from '../../core/src/lib/db/sourceReleaseMetadata'
 
-const migration = '20261013050154_outgoing_mac_gargan'
+const migration = '20261013050731_gigantic_loa'
 const directory = resolve(import.meta.dir, '../migrations/meta')
 const sourceMetadata = {
   datasetId: 'overture-hk-division',

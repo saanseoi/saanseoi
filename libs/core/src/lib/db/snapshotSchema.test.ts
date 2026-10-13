@@ -8,7 +8,7 @@ const migrations = collectSqlFiles(
   resolve(import.meta.dir, '../../../../db/migrations/meta'),
 ).sort()
 const normalisationIndex = migrations.findIndex(path =>
-  path.includes('20261013050454_breezy_leo'),
+  path.includes('20261013050731_gigantic_loa'),
 )
 if (normalisationIndex < 0) throw new Error('Missing snapshot lineage migration.')
 

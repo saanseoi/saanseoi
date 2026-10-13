@@ -1,10 +1,8 @@
 {
   "version": "7",
   "dialect": "sqlite",
-  "id": "3307b01d-fd1e-4e31-97d8-e3ffa49f7fac",
-  "prevIds": [
-    "af7a9788-e065-435e-a254-bf3137672c4b"
-  ],
+  "id": "f53b2256-ad3b-4547-b092-74a60279cb9f",
+  "prevIds": ["70fd75dc-e77b-4c0c-85ed-fb3a50f649f5"],
   "ddl": [
     {
       "name": "publishers",
@@ -2678,7 +2676,7 @@
     },
     {
       "type": "text",
-      "notNull": false,
+      "notNull": true,
       "autoincrement": false,
       "default": null,
       "generated": null,
@@ -2693,16 +2691,6 @@
       "default": null,
       "generated": null,
       "name": "parentSnapshotId",
-      "entityType": "columns",
-      "table": "snapshots"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "resourceType",
       "entityType": "columns",
       "table": "snapshots"
     },
@@ -4587,13 +4575,9 @@
       "table": "accessAnalyticsRollups"
     },
     {
-      "columns": [
-        "parentPublisherId"
-      ],
+      "columns": ["parentPublisherId"],
       "tableTo": "publishers",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "nameExplicit": true,
@@ -4602,13 +4586,9 @@
       "table": "publishers"
     },
     {
-      "columns": [
-        "datasetId"
-      ],
+      "columns": ["datasetId"],
       "tableTo": "datasets",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "nameExplicit": false,
@@ -4617,13 +4597,9 @@
       "table": "datasetTransforms"
     },
     {
-      "columns": [
-        "publisherId"
-      ],
+      "columns": ["publisherId"],
       "tableTo": "publishers",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "nameExplicit": false,
@@ -4632,13 +4608,9 @@
       "table": "datasets"
     },
     {
-      "columns": [
-        "licenseId"
-      ],
+      "columns": ["licenseId"],
       "tableTo": "licenses",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "nameExplicit": false,
@@ -4647,13 +4619,9 @@
       "table": "datasets"
     },
     {
-      "columns": [
-        "datasetId"
-      ],
+      "columns": ["datasetId"],
       "tableTo": "datasets",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "nameExplicit": false,
@@ -4662,15 +4630,9 @@
       "table": "resourceReleases"
     },
     {
-      "columns": [
-        "sourceReleaseId",
-        "datasetId"
-      ],
+      "columns": ["sourceReleaseId", "datasetId"],
       "tableTo": "sourceReleases",
-      "columnsTo": [
-        "id",
-        "datasetId"
-      ],
+      "columnsTo": ["id", "datasetId"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "nameExplicit": true,
@@ -4679,13 +4641,9 @@
       "table": "resourceReleases"
     },
     {
-      "columns": [
-        "supersededByResourceReleaseId"
-      ],
+      "columns": ["supersededByResourceReleaseId"],
       "tableTo": "resourceReleases",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "SET NULL",
       "nameExplicit": true,
@@ -4694,13 +4652,9 @@
       "table": "resourceReleases"
     },
     {
-      "columns": [
-        "datasetId"
-      ],
+      "columns": ["datasetId"],
       "tableTo": "datasets",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "nameExplicit": false,
@@ -4709,13 +4663,9 @@
       "table": "sourceReleases"
     },
     {
-      "columns": [
-        "supersededBySourceReleaseId"
-      ],
+      "columns": ["supersededBySourceReleaseId"],
       "tableTo": "sourceReleases",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "SET NULL",
       "nameExplicit": true,
@@ -4724,13 +4674,9 @@
       "table": "sourceReleases"
     },
     {
-      "columns": [
-        "apiCatalogRevisionId"
-      ],
+      "columns": ["apiCatalogRevisionId"],
       "tableTo": "apiCatalogRevisions",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "nameExplicit": false,
@@ -4739,13 +4685,9 @@
       "table": "apiCatalogRevisionReleaseSets"
     },
     {
-      "columns": [
-        "apiVersionReleaseSetId"
-      ],
+      "columns": ["apiVersionReleaseSetId"],
       "tableTo": "apiVersionReleaseSets",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "nameExplicit": false,
@@ -4754,13 +4696,9 @@
       "table": "apiCatalogRevisionReleaseSets"
     },
     {
-      "columns": [
-        "apiVersionId"
-      ],
+      "columns": ["apiVersionId"],
       "tableTo": "apiVersions",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "nameExplicit": false,
@@ -4769,13 +4707,9 @@
       "table": "apiCatalogRevisions"
     },
     {
-      "columns": [
-        "apiVersionId"
-      ],
+      "columns": ["apiVersionId"],
       "tableTo": "apiVersions",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "nameExplicit": false,
@@ -4784,13 +4718,9 @@
       "table": "apiComposition"
     },
     {
-      "columns": [
-        "apiCompositionId"
-      ],
+      "columns": ["apiCompositionId"],
       "tableTo": "apiComposition",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "nameExplicit": false,
@@ -4799,13 +4729,9 @@
       "table": "apiCompositionMembers"
     },
     {
-      "columns": [
-        "apiVersionId"
-      ],
+      "columns": ["apiVersionId"],
       "tableTo": "apiVersions",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "nameExplicit": false,
@@ -4814,13 +4740,9 @@
       "table": "apiEndpoints"
     },
     {
-      "columns": [
-        "apiReleaseSetId"
-      ],
+      "columns": ["apiReleaseSetId"],
       "tableTo": "apiReleaseSets",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "nameExplicit": false,
@@ -4829,13 +4751,9 @@
       "table": "apiFieldProvenance"
     },
     {
-      "columns": [
-        "definitionId"
-      ],
+      "columns": ["definitionId"],
       "tableTo": "fieldLineageDefinitions",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "nameExplicit": false,
@@ -4844,13 +4762,9 @@
       "table": "apiFieldProvenance"
     },
     {
-      "columns": [
-        "apiVersionId"
-      ],
+      "columns": ["apiVersionId"],
       "tableTo": "apiVersions",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "nameExplicit": false,
@@ -4859,13 +4773,9 @@
       "table": "apiLifecycleJournal"
     },
     {
-      "columns": [
-        "apiReleaseSetId"
-      ],
+      "columns": ["apiReleaseSetId"],
       "tableTo": "apiReleaseSets",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "nameExplicit": false,
@@ -4874,13 +4784,9 @@
       "table": "apiReleaseSetSnapshots"
     },
     {
-      "columns": [
-        "snapshotId"
-      ],
+      "columns": ["snapshotId"],
       "tableTo": "snapshots",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "nameExplicit": false,
@@ -4889,13 +4795,9 @@
       "table": "apiReleaseSetSnapshots"
     },
     {
-      "columns": [
-        "apiVersionId"
-      ],
+      "columns": ["apiVersionId"],
       "tableTo": "apiVersions",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "nameExplicit": false,
@@ -4904,13 +4806,9 @@
       "table": "apiVersionReleaseSets"
     },
     {
-      "columns": [
-        "apiReleaseSetId"
-      ],
+      "columns": ["apiReleaseSetId"],
       "tableTo": "apiReleaseSets",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "nameExplicit": false,
@@ -4919,13 +4817,9 @@
       "table": "apiVersionReleaseSets"
     },
     {
-      "columns": [
-        "apiCompositionId"
-      ],
+      "columns": ["apiCompositionId"],
       "tableTo": "apiComposition",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "nameExplicit": false,
@@ -4934,13 +4828,9 @@
       "table": "apiVersionReleaseSets"
     },
     {
-      "columns": [
-        "previousRevisionApiReleaseSetId"
-      ],
+      "columns": ["previousRevisionApiReleaseSetId"],
       "tableTo": "apiReleaseSets",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "nameExplicit": false,
@@ -4949,13 +4839,9 @@
       "table": "apiVersionReleaseSets"
     },
     {
-      "columns": [
-        "resourceReleaseId"
-      ],
+      "columns": ["resourceReleaseId"],
       "tableTo": "resourceReleases",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "nameExplicit": false,
@@ -4964,13 +4850,9 @@
       "table": "releaseSetLifecycleJournal"
     },
     {
-      "columns": [
-        "relatedResourceReleaseId"
-      ],
+      "columns": ["relatedResourceReleaseId"],
       "tableTo": "resourceReleases",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "SET NULL",
       "nameExplicit": false,
@@ -4979,13 +4861,9 @@
       "table": "releaseSetLifecycleJournal"
     },
     {
-      "columns": [
-        "snapshotId"
-      ],
+      "columns": ["snapshotId"],
       "tableTo": "snapshots",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "SET NULL",
       "nameExplicit": false,
@@ -4994,13 +4872,9 @@
       "table": "releaseSetLifecycleJournal"
     },
     {
-      "columns": [
-        "apiVersionReleaseSetId"
-      ],
+      "columns": ["apiVersionReleaseSetId"],
       "tableTo": "apiVersionReleaseSets",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "SET NULL",
       "nameExplicit": false,
@@ -5009,13 +4883,9 @@
       "table": "releaseSetLifecycleJournal"
     },
     {
-      "columns": [
-        "snapshotId"
-      ],
+      "columns": ["snapshotId"],
       "tableTo": "snapshots",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "nameExplicit": false,
@@ -5024,13 +4894,9 @@
       "table": "snapshotAssemblies"
     },
     {
-      "columns": [
-        "snapshotRecipeId"
-      ],
+      "columns": ["snapshotRecipeId"],
       "tableTo": "snapshotRecipes",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "nameExplicit": false,
@@ -5039,13 +4905,9 @@
       "table": "snapshotAssemblies"
     },
     {
-      "columns": [
-        "snapshotId"
-      ],
+      "columns": ["snapshotId"],
       "tableTo": "snapshots",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "nameExplicit": false,
@@ -5054,13 +4916,9 @@
       "table": "snapshotDependencies"
     },
     {
-      "columns": [
-        "dependencySnapshotId"
-      ],
+      "columns": ["dependencySnapshotId"],
       "tableTo": "snapshots",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "nameExplicit": false,
@@ -5069,13 +4927,9 @@
       "table": "snapshotDependencies"
     },
     {
-      "columns": [
-        "primaryDatasetId"
-      ],
+      "columns": ["primaryDatasetId"],
       "tableTo": "datasets",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "nameExplicit": false,
@@ -5084,13 +4938,9 @@
       "table": "snapshotLineages"
     },
     {
-      "columns": [
-        "snapshotRecipeId"
-      ],
+      "columns": ["snapshotRecipeId"],
       "tableTo": "snapshotRecipes",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "nameExplicit": false,
@@ -5099,13 +4949,9 @@
       "table": "snapshotRecipeInputs"
     },
     {
-      "columns": [
-        "datasetId"
-      ],
+      "columns": ["datasetId"],
       "tableTo": "datasets",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "nameExplicit": false,
@@ -5114,13 +4960,9 @@
       "table": "snapshotRecipeInputs"
     },
     {
-      "columns": [
-        "snapshotId"
-      ],
+      "columns": ["snapshotId"],
       "tableTo": "snapshots",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "nameExplicit": false,
@@ -5129,13 +4971,9 @@
       "table": "snapshotResourceReleases"
     },
     {
-      "columns": [
-        "datasetId"
-      ],
+      "columns": ["datasetId"],
       "tableTo": "datasets",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "nameExplicit": false,
@@ -5144,15 +4982,9 @@
       "table": "snapshotResourceReleases"
     },
     {
-      "columns": [
-        "resourceReleaseId",
-        "datasetId"
-      ],
+      "columns": ["resourceReleaseId", "datasetId"],
       "tableTo": "resourceReleases",
-      "columnsTo": [
-        "id",
-        "datasetId"
-      ],
+      "columnsTo": ["id", "datasetId"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "nameExplicit": true,
@@ -5161,13 +4993,9 @@
       "table": "snapshotResourceReleases"
     },
     {
-      "columns": [
-        "snapshotLineageId"
-      ],
+      "columns": ["snapshotLineageId"],
       "tableTo": "snapshotLineages",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "nameExplicit": false,
@@ -5176,13 +5004,9 @@
       "table": "snapshots"
     },
     {
-      "columns": [
-        "resourceReleaseId"
-      ],
+      "columns": ["resourceReleaseId"],
       "tableTo": "resourceReleases",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "nameExplicit": false,
@@ -5191,13 +5015,9 @@
       "table": "releaseShardAssignments"
     },
     {
-      "columns": [
-        "dataShardId"
-      ],
+      "columns": ["dataShardId"],
       "tableTo": "dataShards",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "nameExplicit": false,
@@ -5206,13 +5026,9 @@
       "table": "releaseShardAssignments"
     },
     {
-      "columns": [
-        "snapshotId"
-      ],
+      "columns": ["snapshotId"],
       "tableTo": "snapshots",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "nameExplicit": false,
@@ -5221,13 +5037,9 @@
       "table": "snapshotShardAssignments"
     },
     {
-      "columns": [
-        "dataShardId"
-      ],
+      "columns": ["dataShardId"],
       "tableTo": "dataShards",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "nameExplicit": false,
@@ -5236,13 +5048,9 @@
       "table": "snapshotShardAssignments"
     },
     {
-      "columns": [
-        "resourceReleaseId"
-      ],
+      "columns": ["resourceReleaseId"],
       "tableTo": "resourceReleases",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "nameExplicit": false,
@@ -5251,13 +5059,9 @@
       "table": "processingRuns"
     },
     {
-      "columns": [
-        "snapshotId"
-      ],
+      "columns": ["snapshotId"],
       "tableTo": "snapshots",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "nameExplicit": false,
@@ -5266,13 +5070,9 @@
       "table": "processingRuns"
     },
     {
-      "columns": [
-        "apiReleaseSetId"
-      ],
+      "columns": ["apiReleaseSetId"],
       "tableTo": "apiReleaseSets",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "nameExplicit": false,
@@ -5281,13 +5081,9 @@
       "table": "processingRuns"
     },
     {
-      "columns": [
-        "resourceReleaseId"
-      ],
+      "columns": ["resourceReleaseId"],
       "tableTo": "resourceReleases",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "nameExplicit": false,
@@ -5296,13 +5092,9 @@
       "table": "stats"
     },
     {
-      "columns": [
-        "apiReleaseSetId"
-      ],
+      "columns": ["apiReleaseSetId"],
       "tableTo": "apiReleaseSets",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "nameExplicit": false,
@@ -5311,13 +5103,9 @@
       "table": "stats"
     },
     {
-      "columns": [
-        "user_id"
-      ],
+      "columns": ["user_id"],
       "tableTo": "user",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "nameExplicit": false,
@@ -5326,13 +5114,9 @@
       "table": "account"
     },
     {
-      "columns": [
-        "user_id"
-      ],
+      "columns": ["user_id"],
       "tableTo": "user",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "nameExplicit": false,
@@ -5341,13 +5125,9 @@
       "table": "apiKey"
     },
     {
-      "columns": [
-        "api_key_id"
-      ],
+      "columns": ["api_key_id"],
       "tableTo": "apiKey",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "nameExplicit": false,
@@ -5356,13 +5136,9 @@
       "table": "apiKeyOriginPolicy"
     },
     {
-      "columns": [
-        "api_key_id"
-      ],
+      "columns": ["api_key_id"],
       "tableTo": "apiKey",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "nameExplicit": false,
@@ -5371,13 +5147,9 @@
       "table": "apiKeyUsage"
     },
     {
-      "columns": [
-        "userId"
-      ],
+      "columns": ["userId"],
       "tableTo": "user",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "nameExplicit": false,
@@ -5386,13 +5158,9 @@
       "table": "passkey"
     },
     {
-      "columns": [
-        "user_id"
-      ],
+      "columns": ["user_id"],
       "tableTo": "user",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "nameExplicit": false,
@@ -5401,13 +5169,9 @@
       "table": "session"
     },
     {
-      "columns": [
-        "datasetId"
-      ],
+      "columns": ["datasetId"],
       "tableTo": "datasets",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "nameExplicit": false,
@@ -5416,13 +5180,9 @@
       "table": "assets"
     },
     {
-      "columns": [
-        "resourceReleaseId"
-      ],
+      "columns": ["resourceReleaseId"],
       "tableTo": "resourceReleases",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "SET NULL",
       "nameExplicit": false,
@@ -5431,13 +5191,9 @@
       "table": "assets"
     },
     {
-      "columns": [
-        "sourceReleaseId"
-      ],
+      "columns": ["sourceReleaseId"],
       "tableTo": "sourceReleases",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "SET NULL",
       "nameExplicit": false,
@@ -5446,13 +5202,9 @@
       "table": "assets"
     },
     {
-      "columns": [
-        "sourceAssetId"
-      ],
+      "columns": ["sourceAssetId"],
       "tableTo": "assets",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "SET NULL",
       "nameExplicit": false,
@@ -5461,13 +5213,9 @@
       "table": "assets"
     },
     {
-      "columns": [
-        "resourceReleaseId"
-      ],
+      "columns": ["resourceReleaseId"],
       "tableTo": "resourceReleases",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "nameExplicit": false,
@@ -5476,476 +5224,350 @@
       "table": "processingAudits"
     },
     {
-      "columns": [
-        "datasetId",
-        "code",
-        "sourceVersion"
-      ],
+      "columns": ["datasetId", "code", "sourceVersion"],
       "nameExplicit": false,
       "name": "datasetTransforms_pk",
       "entityType": "pks",
       "table": "datasetTransforms"
     },
     {
-      "columns": [
-        "apiCatalogRevisionId",
-        "domainCode",
-        "cohortKey"
-      ],
+      "columns": ["apiCatalogRevisionId", "domainCode", "cohortKey"],
       "nameExplicit": false,
       "name": "apiCatalogRevisionReleaseSets_pk",
       "entityType": "pks",
       "table": "apiCatalogRevisionReleaseSets"
     },
     {
-      "columns": [
-        "apiCompositionId",
-        "domainCode",
-        "resourceType",
-        "variant"
-      ],
+      "columns": ["apiCompositionId", "domainCode", "resourceType", "variant"],
       "nameExplicit": false,
       "name": "apiCompositionMembers_pk",
       "entityType": "pks",
       "table": "apiCompositionMembers"
     },
     {
-      "columns": [
-        "apiReleaseSetId",
-        "snapshotId",
-        "variant"
-      ],
+      "columns": ["apiReleaseSetId", "snapshotId", "variant"],
       "nameExplicit": false,
       "name": "apiReleaseSetSnapshots_pk",
       "entityType": "pks",
       "table": "apiReleaseSetSnapshots"
     },
     {
-      "columns": [
-        "snapshotId",
-        "role"
-      ],
+      "columns": ["snapshotId", "role"],
       "nameExplicit": false,
       "name": "snapshotDependencies_pk",
       "entityType": "pks",
       "table": "snapshotDependencies"
     },
     {
-      "columns": [
-        "snapshotRecipeId",
-        "datasetId",
-        "role"
-      ],
+      "columns": ["snapshotRecipeId", "datasetId", "role"],
       "nameExplicit": false,
       "name": "snapshotRecipeInputs_pk",
       "entityType": "pks",
       "table": "snapshotRecipeInputs"
     },
     {
-      "columns": [
-        "snapshotId",
-        "resourceReleaseId"
-      ],
+      "columns": ["snapshotId", "resourceReleaseId"],
       "nameExplicit": false,
       "name": "snapshotResourceReleases_pk",
       "entityType": "pks",
       "table": "snapshotResourceReleases"
     },
     {
-      "columns": [
-        "resourceReleaseId",
-        "dataShardId"
-      ],
+      "columns": ["resourceReleaseId", "dataShardId"],
       "nameExplicit": false,
       "name": "releaseShardAssignments_pk",
       "entityType": "pks",
       "table": "releaseShardAssignments"
     },
     {
-      "columns": [
-        "snapshotId",
-        "dataShardId"
-      ],
+      "columns": ["snapshotId", "dataShardId"],
       "nameExplicit": false,
       "name": "snapshotShardAssignments_pk",
       "entityType": "pks",
       "table": "snapshotShardAssignments"
     },
     {
-      "columns": [
-        "api_key_id",
-        "hostname"
-      ],
+      "columns": ["api_key_id", "hostname"],
       "nameExplicit": false,
       "name": "apiKeyOriginPolicy_pk",
       "entityType": "pks",
       "table": "apiKeyOriginPolicy"
     },
     {
-      "columns": [
-        "api_key_id",
-        "window",
-        "window_started_at"
-      ],
+      "columns": ["api_key_id", "window", "window_started_at"],
       "nameExplicit": false,
       "name": "apiKeyUsage_pk",
       "entityType": "pks",
       "table": "apiKeyUsage"
     },
     {
-      "columns": [
-        "domainCode",
-        "divisionClass",
-        "divisionCode"
-      ],
+      "columns": ["domainCode", "divisionClass", "divisionCode"],
       "nameExplicit": false,
       "name": "divisionCodes_pk",
       "entityType": "pks",
       "table": "divisionCodes"
     },
     {
-      "columns": [
-        "resourceReleaseId",
-        "stage",
-        "ownerId"
-      ],
+      "columns": ["resourceReleaseId", "stage", "ownerId"],
       "nameExplicit": false,
       "name": "processingAudits_pk",
       "entityType": "pks",
       "table": "processingAudits"
     },
     {
-      "columns": [
-        "day",
-        "scope",
-        "entityId"
-      ],
+      "columns": ["day", "scope", "entityId"],
       "nameExplicit": false,
       "name": "accessAnalyticsDaily_pk",
       "entityType": "pks",
       "table": "accessAnalyticsDaily"
     },
     {
-      "columns": [
-        "period",
-        "scope",
-        "entityId"
-      ],
+      "columns": ["period", "scope", "entityId"],
       "nameExplicit": false,
       "name": "accessAnalyticsRollups_pk",
       "entityType": "pks",
       "table": "accessAnalyticsRollups"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "publishers_pk",
       "table": "publishers",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "licenses_pk",
       "table": "licenses",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "units_pk",
       "table": "units",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "datasets_pk",
       "table": "datasets",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "processingRuleDefinitions_pk",
       "table": "processingRuleDefinitions",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "resourceReleases_pk",
       "table": "resourceReleases",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "sourceReleases_pk",
       "table": "sourceReleases",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "apiCatalogRevisions_pk",
       "table": "apiCatalogRevisions",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "apiComposition_pk",
       "table": "apiComposition",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "apiEndpoints_pk",
       "table": "apiEndpoints",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "apiReleaseSetId"
-      ],
+      "columns": ["apiReleaseSetId"],
       "nameExplicit": false,
       "name": "apiFieldProvenance_pk",
       "table": "apiFieldProvenance",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "apiLifecycleJournal_pk",
       "table": "apiLifecycleJournal",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "apiReleaseSets_pk",
       "table": "apiReleaseSets",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "apiVersionReleaseSets_pk",
       "table": "apiVersionReleaseSets",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "apiVersions_pk",
       "table": "apiVersions",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "fieldLineageDefinitions_pk",
       "table": "fieldLineageDefinitions",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "releaseSetLifecycleJournal_pk",
       "table": "releaseSetLifecycleJournal",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "snapshotAssemblies_pk",
       "table": "snapshotAssemblies",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "snapshotLineages_pk",
       "table": "snapshotLineages",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "snapshotRecipes_pk",
       "table": "snapshotRecipes",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "snapshots_pk",
       "table": "snapshots",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "dataShards_pk",
       "table": "dataShards",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "aliasId"
-      ],
+      "columns": ["aliasId"],
       "nameExplicit": false,
       "name": "entityAliases_pk",
       "table": "entityAliases",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "runId"
-      ],
+      "columns": ["runId"],
       "nameExplicit": false,
       "name": "processingRuns_pk",
       "table": "processingRuns",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "stats_pk",
       "table": "stats",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "account_pk",
       "table": "account",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "apiKey_pk",
       "table": "apiKey",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "apiKeyUsageRollup_pk",
       "table": "apiKeyUsageRollup",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "confirmationCodeHash"
-      ],
+      "columns": ["confirmationCodeHash"],
       "nameExplicit": false,
       "name": "facebookDeletionRequest_pk",
       "table": "facebookDeletionRequest",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "email"
-      ],
+      "columns": ["email"],
       "nameExplicit": false,
       "name": "newsletterSubscription_pk",
       "table": "newsletterSubscription",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "passkey_pk",
       "table": "passkey",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "session_pk",
       "table": "session",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "user_pk",
       "table": "user",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "verification_pk",
       "table": "verification",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "assets_pk",
       "table": "assets",
@@ -6606,10 +6228,6 @@
     {
       "columns": [
         {
-          "value": "resourceType",
-          "isExpression": false
-        },
-        {
           "value": "code",
           "isExpression": false
         }
@@ -6617,34 +6235,12 @@
       "isUnique": true,
       "where": null,
       "origin": "manual",
-      "name": "snapshots_resourceType_code_unique_idx",
+      "name": "snapshots_code_unique_idx",
       "entityType": "indexes",
       "table": "snapshots"
     },
     {
       "columns": [
-        {
-          "value": "id",
-          "isExpression": false
-        },
-        {
-          "value": "resourceType",
-          "isExpression": false
-        }
-      ],
-      "isUnique": true,
-      "where": null,
-      "origin": "manual",
-      "name": "snapshots_id_resourceType_unique_idx",
-      "entityType": "indexes",
-      "table": "snapshots"
-    },
-    {
-      "columns": [
-        {
-          "value": "resourceType",
-          "isExpression": false
-        },
         {
           "value": "status",
           "isExpression": false
@@ -6653,7 +6249,7 @@
       "isUnique": false,
       "where": null,
       "origin": "manual",
-      "name": "snapshots_resourceType_status_idx",
+      "name": "snapshots_status_idx",
       "entityType": "indexes",
       "table": "snapshots"
     },
@@ -7318,135 +6914,105 @@
       "table": "accessAnalyticsRollups"
     },
     {
-      "columns": [
-        "code"
-      ],
+      "columns": ["code"],
       "nameExplicit": false,
       "name": "publishers_code_unique",
       "entityType": "uniques",
       "table": "publishers"
     },
     {
-      "columns": [
-        "code"
-      ],
+      "columns": ["code"],
       "nameExplicit": false,
       "name": "licenses_code_unique",
       "entityType": "uniques",
       "table": "licenses"
     },
     {
-      "columns": [
-        "code"
-      ],
+      "columns": ["code"],
       "nameExplicit": false,
       "name": "units_code_unique",
       "entityType": "uniques",
       "table": "units"
     },
     {
-      "columns": [
-        "code"
-      ],
+      "columns": ["code"],
       "nameExplicit": false,
       "name": "resourceReleases_code_unique",
       "entityType": "uniques",
       "table": "resourceReleases"
     },
     {
-      "columns": [
-        "code"
-      ],
+      "columns": ["code"],
       "nameExplicit": false,
       "name": "sourceReleases_code_unique",
       "entityType": "uniques",
       "table": "sourceReleases"
     },
     {
-      "columns": [
-        "code"
-      ],
+      "columns": ["code"],
       "nameExplicit": false,
       "name": "apiCatalogRevisions_code_unique",
       "entityType": "uniques",
       "table": "apiCatalogRevisions"
     },
     {
-      "columns": [
-        "code"
-      ],
+      "columns": ["code"],
       "nameExplicit": false,
       "name": "apiComposition_code_unique",
       "entityType": "uniques",
       "table": "apiComposition"
     },
     {
-      "columns": [
-        "operationId"
-      ],
+      "columns": ["operationId"],
       "nameExplicit": false,
       "name": "apiEndpoints_operationId_unique",
       "entityType": "uniques",
       "table": "apiEndpoints"
     },
     {
-      "columns": [
-        "code"
-      ],
+      "columns": ["code"],
       "nameExplicit": false,
       "name": "apiVersions_code_unique",
       "entityType": "uniques",
       "table": "apiVersions"
     },
     {
-      "columns": [
-        "code"
-      ],
+      "columns": ["code"],
       "nameExplicit": false,
       "name": "snapshotLineages_code_unique",
       "entityType": "uniques",
       "table": "snapshotLineages"
     },
     {
-      "columns": [
-        "code"
-      ],
+      "columns": ["code"],
       "nameExplicit": false,
       "name": "snapshotRecipes_code_unique",
       "entityType": "uniques",
       "table": "snapshotRecipes"
     },
     {
-      "columns": [
-        "bindingName"
-      ],
+      "columns": ["bindingName"],
       "nameExplicit": false,
       "name": "dataShards_bindingName_unique",
       "entityType": "uniques",
       "table": "dataShards"
     },
     {
-      "columns": [
-        "key_digest"
-      ],
+      "columns": ["key_digest"],
       "nameExplicit": false,
       "name": "apiKey_key_digest_unique",
       "entityType": "uniques",
       "table": "apiKey"
     },
     {
-      "columns": [
-        "token"
-      ],
+      "columns": ["token"],
       "nameExplicit": false,
       "name": "session_token_unique",
       "entityType": "uniques",
       "table": "session"
     },
     {
-      "columns": [
-        "email"
-      ],
+      "columns": ["email"],
       "nameExplicit": false,
       "name": "user_email_unique",
       "entityType": "uniques",
