@@ -1,4 +1,5 @@
 import { expect, test } from 'bun:test'
+import islandGroups from '../../../../../../fixtures/meta/curations/saanseoi-division/island-groups.json'
 import { curatedRecordSources } from '@repo/core/pipeline/services/sources/curatedRecordSources'
 import {
   applyCuratedAreaContract,
@@ -98,4 +99,51 @@ test('area contract preserves explicit selection and geometry contributions', ()
   applyCuratedAreaContract(rows)
   expect(rows[0]!.sources.saanseoi[0]!.contributions).toEqual(['selection'])
   expect(rows[0]!.sources.protomaps[0]!.contributions).toEqual(['geometry'])
+})
+
+test('prepared PRC archive carries its country metadata into canonical ingestion', () => {
+  const row: any = {
+    id: 'fb68fc73-3ac6-41c9-a692-22fcf20cb5be',
+    class: 'country',
+    category: 'administrative',
+    geometry: null,
+    sources: {},
+  }
+  applyCuratedRecordContract([row])
+  expect(row.divisionCode).toBe('PRC')
+  expect(row.identifiers.wikidata.id).toBe('Q148')
+  expect(row.geometry).toEqual({ type: 'Point', coordinates: [103, 35] })
+  expect(row.cartography).toEqual({ minZoom: 2, maxZoom: 6, prominence: 100 })
+  expect(curatedRecordSources(row.sources, row.id)).toContainEqual({
+    publisher: 'overture',
+    dataset: 'ds-hk-overture-division',
+    recordId: row.id,
+  })
+})
+
+test('every reviewed island group retains authored geometry attribution', () => {
+  for (const group of islandGroups.entries) {
+    const row = {
+      sources: {
+        saanseoi: [
+          {
+            dataset: 'island-groups',
+            recordId: group.divisionId,
+            islandGroup: {
+              memberIds: group.seedMemberIds,
+              method: 'seed-bounds-whole-island-v1',
+            },
+          },
+        ],
+      },
+    }
+    applyCuratedAreaContract([row])
+    expect(curatedRecordSources(row.sources, group.divisionId)).toEqual([
+      {
+        publisher: 'saanseoi',
+        dataset: 'ds-hk-saanseoi-division',
+        recordId: group.divisionId,
+      },
+    ])
+  }
 })

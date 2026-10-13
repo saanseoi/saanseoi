@@ -262,23 +262,47 @@ export async function deliverProcessingResult(
 export async function deliverRecordEvidence(
   target: UploadTarget,
   documents: unknown[],
+  options: { retainRemoteObject?: typeof retainRemoteR2Object } = {},
 ) {
   const baseUrl = normaliseBaseUrl(resolveHarbourApiUrl(target))
   const headers = getAuthHeaders()
-  for (let offset = 0; offset < documents.length; offset += 4) {
-    await Promise.all(
-      documents.slice(offset, offset + 4).map(async document => {
+  const r2 = resolveR2Target(target)
+  for (let offset = 0; offset < documents.length; offset += 64) {
+    const batch = await Promise.all(
+      documents.slice(offset, offset + 64).map(async document => {
         const bytes = new TextEncoder().encode(serialise(document))
         if (bytes.byteLength > MAX_OBJECT_BYTES)
           throw new Error('Record evidence exceeds object limit.')
         const hash = await hashBytes(bytes)
-        const r2 = resolveR2Target(target)
-        if (!target.remote && r2 !== 'local')
-          await retainRemoteR2Object(r2, objectKey(hash), bytes, {
-            contentType: 'application/json',
-          })
-        await uploadProvenanceObject(baseUrl, headers, hash, bytes.buffer)
+        return { bytes, hash, byteLength: bytes.byteLength }
       }),
     )
+    const retained = new Set(
+      (
+        await checkProvenanceObjects(
+          baseUrl,
+          headers,
+          batch.map(({ hash, byteLength }) => ({ hash, byteLength })),
+        )
+      ).map(ref => ref.hash),
+    )
+    for (let start = 0; start < batch.length; start += 4) {
+      await Promise.all(
+        batch.slice(start, start + 4).map(async ({ bytes, hash }) => {
+          // An API acknowledgement does not prove retention in a separately selected R2.
+          if (!target.remote && r2 !== 'local')
+            await (options.retainRemoteObject ?? retainRemoteR2Object)(
+              r2,
+              objectKey(hash),
+              bytes,
+              {
+                contentType: 'application/json',
+              },
+            )
+          if (!retained.has(hash))
+            await uploadProvenanceObject(baseUrl, headers, hash, bytes.buffer)
+        }),
+      )
+    }
   }
 }

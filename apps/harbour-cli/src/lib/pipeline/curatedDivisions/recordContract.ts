@@ -1,3 +1,4 @@
+import { prcCountryAnchor } from '@repo/core/pipeline/services/divisions/prcCountryAnchor'
 import { divisionIdentifiersWithWikidata } from '@repo/core/pipeline/services/sources/divisionIdentifiers.ts'
 import { readSourceAttributions } from '@repo/core/pipeline/services/sources/sourceAttribution'
 import type { SourceAttribution } from '@repo/db'
@@ -32,6 +33,14 @@ export function curatedNameObject(value: Record<string, any>) {
 
 export function applyCuratedRecordContract(rows: Record<string, any>[]) {
   for (const row of rows) {
+    const anchor = prcCountryAnchor(row.id)
+    if (anchor) {
+      row.geometry = object(row.geometry) ?? anchor.geometry
+      row.wikidata ??= anchor.identifiers.wikidata.id
+      const sources = object(row.sources) ?? {}
+      sources.overture = anchor.sources
+      row.sources = sources
+    }
     row.divisionCode ??= null
     const policy = divisionCartography[row.class as keyof typeof divisionCartography]
     if (!policy) throw Error(`Missing cartography policy for ${row.class}`)
