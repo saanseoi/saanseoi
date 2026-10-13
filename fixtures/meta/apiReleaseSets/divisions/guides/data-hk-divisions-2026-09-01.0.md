@@ -372,6 +372,77 @@ and fields come from different sources.
 
 {{domains:en}}
 
+## Geocoding Division Membership
+
+Use <black>GET /{{apiFamily}}/{{ apiVersionPath }}/geocode</black> to find the divisions
+containing a WGS84 coordinate, or resolve a place name or address. Supply exactly one
+input: both <black>lat</black> and <black>lng</black>, <black>placename</black>, or
+<black>address</black>.
+
+```url
+/{{apiFamily}}/{{ apiVersionPath }}/geocode?
+                 lat=22.3193&lng=114.1694&
+                 releaseSet={{ apiReleaseSet }}&
+                 inventory=saanseoi&profile=full
+```
+
+For a name lookup, replace the coordinate pair with <black>placename=Mong%20Kok</black>.
+Use <black>releaseSet</black> to pin the release; omission selects the latest published
+compatible release. <black>locales=en,zh-hant</black> selects response languages. Name
+and address lookups accept <black>limit</black> (default 10, maximum 50). Address lookup
+also requires a published compatible address release.
+
+The JSON:API response contains <black>geocoding-results</black> in <black>data</black>
+and division resources in <black>included</black>. Relationships describe the
+administrative, locality, hood and landform branches. Check each result's
+<black>attributes.status</black>: <black>resolved</black>, <black>ambiguous</black>,
+<black>incomplete</black> or <black>not_found</black>. Polygon coverage limits
+coordinate containment; a missing polygon is not proof that a point lies outside a
+division. Use <black>profile=full</black> for lookup evidence and coverage details.
+Invalid inputs return <black>422</black>; unavailable publications or compatible
+companions return <black>503</black>.
+
+## Comparing Releases
+
+Use <black>GET /{{apiFamily}}/{{ apiVersionPath }}/changes</black> to synchronise a
+local copy or identify divisions that need geocoding again. Supply a published
+geographic release code or ID as <black>fromReleaseSet</black>. Optionally pin
+<black>toReleaseSet</black>; omission resolves the latest published target. Both
+releases must be compatible and retained in the environment you query.
+
+```url
+/{{apiFamily}}/{{ apiVersionPath }}/changes?
+                 fromReleaseSet=data-hk-divisions-2026-09-01.0&
+                 toReleaseSet=data-hk-divisions-2026-10-01.0&
+                 inventory=saanseoi&include=geometry&page[limit]=25
+```
+
+The feed reports <black>addition</black>, <black>deletion</black> and
+<black>revision</black> by stable division ID, with <black>changedFields</black> and
+<black>before</black>/<black>after</black> references. Check
+<black>canAffectGeocodingMembership</black> and <black>affectedDescendantIds</black>
+when deciding what to recompute: ancestor changes can affect descendants in either
+release. A release or storage timestamp change alone is not a revision.
+
+Follow <black>links.next</black> unchanged to keep both releases pinned. The default
+page size is 25; <black>page[limit]</black> accepts 1–100. Omit
+<black>include=geometry</black> for a smaller response. Incompatible releases return
+<black>409</black>, invalid queries or cursors return <black>422</black>, and
+unavailable publication or retained history returns <black>503</black>.
+
+## Retrieving an Exact Change Definition
+
+Each non-null <black>before</black> or <black>after</black> reference supplies a
+<black>record</black> URL for <black>GET
+/{{apiFamily}}/{{ apiVersionPath }}/changes/definitions/{id}</black>. Follow that URL:
+it carries the <black>releaseSet</black>, <black>definitionHash</black> and inventory
+needed to retrieve that exact definition. The response includes attributes and
+authoritative membership polygons, where available. A deletion has no
+<black>after</black> definition; an addition has no <black>before</black> definition.
+Save these links for reproducible comparisons. If the exact retained definition is
+unavailable, the endpoint returns an explicit error rather than substituting the current
+definition.
+
 ## Recover from Failure
 
 The API returns a number of error codes. Here is how to recover from each one:
@@ -717,6 +788,69 @@ API 中獨立的集合。比較結果時，應將不同 domain 分開處理：�
 
 {{domains:zh-Hant}}
 
+## 解析區劃歸屬
+
+使用 <black>GET /{{apiFamily}}/{{ apiVersionPath }}/geocode</black>
+查找包含 WGS84 座標的區劃，或解析地名及地址。只可提供一組輸入： <black>lat</black> 與
+<black>lng</black>、<black>placename</black>，或 <black>address</black>。
+
+```url
+/{{apiFamily}}/{{ apiVersionPath }}/geocode?
+                 lat=22.3193&lng=114.1694&
+                 releaseSet={{ apiReleaseSet }}&
+                 inventory=saanseoi&profile=full
+```
+
+查詢地名時，以 <black>placename=Mong%20Kok</black> 取代座標。此端點使用
+<black>releaseSet</black>
+固定發布；省略時選取最新的相容已發布版本。<black>locales=en,zh-hant</black>
+選取回應語言。地名及地址查詢接受
+<black>limit</black>（預設 10，上限 50）。地址查詢亦需要相容的已發布地址版本。
+
+JSON:API 回應的 <black>data</black> 包含 <black>geocoding-results</black>，
+<black>included</black> 包含區劃資源；關係描述行政、聚落、鄰里及地貌分支。請檢查各結果的
+<black>attributes.status</black>：<black>resolved</black>、
+<black>ambiguous</black>、<black>incomplete</black> 或
+<black>not_found</black>。座標歸屬受多邊形覆蓋限制；缺少多邊形不代表座標位於區劃之外。使用
+<black>profile=full</black> 查看查詢證據及覆蓋詳情。無效輸入回傳
+<black>422</black>；發布或相容配套不可用時回傳 <black>503</black>。
+
+## 比較發布版本
+
+使用 <black>GET /{{apiFamily}}/{{ apiVersionPath }}/changes</black>
+同步本地資料，或找出需要重新解析歸屬的區劃。 <black>fromReleaseSet</black>
+必須指定已發布 geographic 版本的代碼或 ID。可用 <black>toReleaseSet</black>
+固定目標；省略時選取最新已發布版本。兩個版本必須相容，並保留於查詢的環境中。
+
+```url
+/{{apiFamily}}/{{ apiVersionPath }}/changes?
+                 fromReleaseSet=data-hk-divisions-2026-09-01.0&
+                 toReleaseSet=data-hk-divisions-2026-10-01.0&
+                 inventory=saanseoi&include=geometry&page[limit]=25
+```
+
+結果按穩定區劃 ID 列出 <black>addition</black>、<black>deletion</black> 及
+<black>revision</black>，並提供 <black>changedFields</black> 和
+<black>before</black>/<black>after</black> 參照。以
+<black>canAffectGeocodingMembership</black> 及 <black>affectedDescendantIds</black>
+判斷重算範圍：祖先變更可影響兩個版本中的後代。只有發布或儲存時間改變不算修訂。
+
+原樣跟隨
+<black>links.next</black>，以保持兩個版本固定。每頁預設 25 筆，<black>page[limit]</black>
+接受 1–100。省略 <black>include=geometry</black> 可縮小回應。不相容版本回傳
+<black>409</black>；無效查詢或游標回傳 <black>422</black>；發布或保留歷史不可用時回傳
+<black>503</black>。
+
+## 取得確切的變更定義
+
+非空的 <black>before</black> 或 <black>after</black> 參照提供 <black>record</black>
+URL，指向 <black>GET
+/{{apiFamily}}/{{ apiVersionPath }}/changes/definitions/{id}</black>。請跟隨該 URL：它包含取得確切定義所需的
+<black>releaseSet</black>、 <black>definitionHash</black>
+及 inventory。回應包含屬性，以及可用的權威歸屬多邊形。刪除沒有 <black>after</black>
+定義；新增沒有 <black>before</black>
+定義。保存連結可重現比較。若確切的保留定義不可用，端點會明確回傳錯誤，不會代入目前定義。
+
 ## 從失敗中復原
 
 API 會傳回多種錯誤碼。以下說明各種情況的復原方法：
@@ -1056,6 +1190,69 @@ ID，即使两者同名，例如<i>青衣</i>。
 API 中独立的集合。比较结果时，应将不同 domain 分开处理：它们的标识、几何数据和字段来自不同来源。
 
 {{domains:zh-Hans}}
+
+## 解析区划归属
+
+使用 <black>GET /{{apiFamily}}/{{ apiVersionPath }}/geocode</black>
+查找包含 WGS84 坐标的区划，或解析地名及地址。只可提供一组输入： <black>lat</black> 与
+<black>lng</black>、<black>placename</black>，或 <black>address</black>。
+
+```url
+/{{apiFamily}}/{{ apiVersionPath }}/geocode?
+                 lat=22.3193&lng=114.1694&
+                 releaseSet={{ apiReleaseSet }}&
+                 inventory=saanseoi&profile=full
+```
+
+查询地名时，以 <black>placename=Mong%20Kok</black> 替代坐标。此端点使用
+<black>releaseSet</black>
+固定发布；省略时选择最新的兼容已发布版本。<black>locales=en,zh-hant</black>
+选择响应语言。地名及地址查询接受
+<black>limit</black>（默认 10，上限 50）。地址查询亦需要兼容的已发布地址版本。
+
+JSON:API 响应的 <black>data</black> 包含 <black>geocoding-results</black>，
+<black>included</black> 包含区划资源；关系描述行政、聚落、邻里及地貌分支。请检查各结果的
+<black>attributes.status</black>：<black>resolved</black>、
+<black>ambiguous</black>、<black>incomplete</black> 或
+<black>not_found</black>。坐标归属受多边形覆盖限制；缺少多边形不代表坐标位于区划之外。使用
+<black>profile=full</black> 查看查询证据及覆盖详情。无效输入返回
+<black>422</black>；发布或兼容配套不可用时返回 <black>503</black>。
+
+## 比较发布版本
+
+使用 <black>GET /{{apiFamily}}/{{ apiVersionPath }}/changes</black>
+同步本地数据，或找出需要重新解析归属的区划。 <black>fromReleaseSet</black>
+必须指定已发布 geographic 版本的代码或 ID。可用 <black>toReleaseSet</black>
+固定目标；省略时选择最新已发布版本。两个版本必须兼容，并保留于查询的环境中。
+
+```url
+/{{apiFamily}}/{{ apiVersionPath }}/changes?
+                 fromReleaseSet=data-hk-divisions-2026-09-01.0&
+                 toReleaseSet=data-hk-divisions-2026-10-01.0&
+                 inventory=saanseoi&include=geometry&page[limit]=25
+```
+
+结果按稳定区划 ID 列出 <black>addition</black>、<black>deletion</black> 及
+<black>revision</black>，并提供 <black>changedFields</black> 和
+<black>before</black>/<black>after</black> 引用。以
+<black>canAffectGeocodingMembership</black> 及 <black>affectedDescendantIds</black>
+判断重算范围：祖先变更可影响两个版本中的后代。只有发布或存储时间改变不算修订。
+
+原样跟随
+<black>links.next</black>，以保持两个版本固定。每页默认 25 条，<black>page[limit]</black>
+接受 1–100。省略 <black>include=geometry</black> 可缩小响应。不兼容版本返回
+<black>409</black>；无效查询或游标返回 <black>422</black>；发布或保留历史不可用时返回
+<black>503</black>。
+
+## 获取确切的变更定义
+
+非空的 <black>before</black> 或 <black>after</black> 引用提供 <black>record</black>
+URL，指向 <black>GET
+/{{apiFamily}}/{{ apiVersionPath }}/changes/definitions/{id}</black>。请跟随该 URL：它包含获取确切定义所需的
+<black>releaseSet</black>、 <black>definitionHash</black>
+及 inventory。响应包含属性，以及可用的权威归属多边形。删除没有 <black>after</black>
+定义；新增没有 <black>before</black>
+定义。保存链接可重现比较。若确切的保留定义不可用，端点会明确返回错误，不会代入当前定义。
 
 ## 从失败中恢复
 
