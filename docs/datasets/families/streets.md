@@ -1,5 +1,8 @@
 # Streets API family
 
+Canonical `sources` items use `publisher` and `dataset` for upstream codes and
+`recordId` for retained publisher record keys.
+
 Source ledgers retain separate occurrences of recurring content under the
 [shared source validity contract](source-evidence.md#recurring-source-validity-periods).
 
@@ -242,3 +245,8 @@ Street deletion events retain the final lifecycle version, dates and names in th
 canonical tombstone rows. Snapshot membership excludes these rows; lifecycle replay
 retains them so a later restoration continues the logical version counter. Unchanged
 components inherit the exact parent, including on revisions and branches.
+
+Canonical HISTORY events retain their introducing snapshot and `createdAt`, without an
+`updatedAt` column. Mutable CURRENT projections and publication receipts keep their own
+update timestamps. Statistics definitions keyed by `versionHash` retain `createdAt`
+only. See [storage timestamp ownership](../pipeline.md#storage-timestamp-ownership).

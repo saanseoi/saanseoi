@@ -451,18 +451,23 @@ optional record metadata. Unknown publisher identities block normalisation. Synt
 area unions collect their constituent areas' attribution; processing markers are
 excluded from `sources`.
 
-The native “Maps Entity Variant Names” dataset maps to `publisherCode: overture` and
+The native “Maps Entity Variant Names” dataset maps to `publisher: overture` and
 `dataset: overture` by explicit attribution policy. Its property pointer, record
 reference and licence are preserved; retained native source payloads keep the original
 dataset label.
 
 ## Direct and inherited source attribution
 
-Canonical attribution members follow `SourceAttribution` order: `property`,
-`publisherCode`, `upstreamOf`, `dataset`, `recordId`, `updateTime`, `version`,
-`confidence`, `license`, omitting absent fields. Preprocessing marks sources inherited
-through Overture with `upstreamOf: "overture"`; Overture's own entries and other direct
-sources omit `upstreamOf`. For example, OpenStreetMap attribution carried by Overture
-uses `publisherCode: "openstreetmap"` and `upstreamOf: "overture"`. The relationship
-identifies the direct publisher, not a dataset or record ID. Prepared archives retain
-this member order.
+Canonical attribution members follow `SourceAttribution` order: `property`, `publisher`,
+`upstreamOf`, `dataset`, `recordId`, `updateTime`, `version`, `confidence`, `license`,
+omitting absent fields. Preprocessing marks sources inherited through Overture with
+`upstreamOf: "overture"`; Overture's own entries and other direct sources omit
+`upstreamOf`. For example, OpenStreetMap attribution carried by Overture uses
+`publisher: "openstreetmap"` and `upstreamOf: "overture"`. The relationship identifies
+the direct publisher, not a dataset or record ID. Prepared archives retain this member
+order.
+
+Canonical HISTORY events retain their introducing snapshot and `createdAt`, without an
+`updatedAt` column. Mutable CURRENT projections and publication receipts keep their own
+update timestamps. Statistics definitions keyed by `versionHash` retain `createdAt`
+only. See [storage timestamp ownership](../../pipeline.md#storage-timestamp-ownership).

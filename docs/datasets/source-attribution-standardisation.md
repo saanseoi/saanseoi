@@ -10,8 +10,8 @@ historical record population still needs a retained-shard census before replay.
 
 ## Canonical record shape
 
-Public record-level `sources` is an array of source items. `publisherCode` and `dataset`
-are required non-empty strings. Optional fields are `property`, `recordId`,
+Public record-level `sources` is an array of source items. `publisher` and `dataset` are
+required non-empty code strings. Optional fields are `property`, `recordId`,
 `updateTime`, `version`, `confidence` and `license`. `version` is the upstream record
 version; attribution carries no ingestion release IDs or content hashes.
 
@@ -76,7 +76,7 @@ and pinned Division and DivisionArea snapshots using the ingestion membership ru
    publisher and stored shape. Include archived writers and replay-only paths, not only
    active fixture registrations.
 2. Build deterministic, idempotent adapters per writer family. Require a registered
-   `publisherCode` and registered `dataset`; map only observed upstream IDs and optional
+   `publisher` and registered `dataset`; map only observed upstream IDs and optional
    fields. Preserve unrepresentable field lineage and assembly evidence in their current
    retained stores or add an R2 manifest link before dropping an embedded field.
 3. Rebuild or transactionally rewrite retained snapshots using source-release inputs and

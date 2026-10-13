@@ -565,6 +565,14 @@ are separate from retained source record IDs.
 
 ## Canonical source attribution
 
+Each `sources` item uses `publisher` and `dataset` for its upstream codes, alongside the
+publisher's `recordId`.
+
 Canonical district density `sources` uses the shared publisher/dataset/record
 attribution contract. Source archive metadata remains with retained publisher
 assertions; reference periods are not upstream record versions.
+
+Canonical HISTORY events retain their introducing snapshot and `createdAt`, without an
+`updatedAt` column. Mutable CURRENT projections and publication receipts keep their own
+update timestamps. Statistics definitions keyed by `versionHash` retain `createdAt`
+only. See [storage timestamp ownership](../pipeline.md#storage-timestamp-ownership).

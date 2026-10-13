@@ -776,7 +776,7 @@ README for retry, retention and storage details.
 
 ## Record attribution and evidence
 
-Canonical `sources` is an array with required `publisherCode` and `dataset` fields. The
+Canonical `sources` is an array with required `publisher` and `dataset` fields. The
 upstream `property` JSON Pointer is preserved; optional record ID, update time, record
 version, confidence and licence are retained only when supplied. Native dataset names
 resolve through `fixtures/meta/sourceAttributions/overture.json`. Unknown names require
@@ -797,11 +797,16 @@ precedence.
 
 ## Direct and inherited source attribution
 
-Canonical attribution members follow `SourceAttribution` order: `property`,
-`publisherCode`, `upstreamOf`, `dataset`, `recordId`, `updateTime`, `version`,
-`confidence`, `license`, omitting absent fields. Preprocessing marks sources inherited
-through Overture with `upstreamOf: "overture"`; Overture's own entries and other direct
-sources omit `upstreamOf`. For example, OpenStreetMap attribution carried by Overture
-uses `publisherCode: "openstreetmap"` and `upstreamOf: "overture"`. The relationship
-identifies the direct publisher, not a dataset or record ID. Prepared archives retain
-this member order.
+Canonical attribution members follow `SourceAttribution` order: `property`, `publisher`,
+`upstreamOf`, `dataset`, `recordId`, `updateTime`, `version`, `confidence`, `license`,
+omitting absent fields. Preprocessing marks sources inherited through Overture with
+`upstreamOf: "overture"`; Overture's own entries and other direct sources omit
+`upstreamOf`. For example, OpenStreetMap attribution carried by Overture uses
+`publisher: "openstreetmap"` and `upstreamOf: "overture"`. The relationship identifies
+the direct publisher, not a dataset or record ID. Prepared archives retain this member
+order.
+
+Canonical HISTORY events retain their introducing snapshot and `createdAt`, without an
+`updatedAt` column. Mutable CURRENT projections and publication receipts keep their own
+update timestamps. Statistics definitions keyed by `versionHash` retain `createdAt`
+only. See [storage timestamp ownership](../../pipeline.md#storage-timestamp-ownership).

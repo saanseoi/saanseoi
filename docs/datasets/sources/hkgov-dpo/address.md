@@ -58,6 +58,10 @@ preparation and snapshot-replay heaps are released between cohorts. Child failur
 the sequence and preserve completed-release checkpoints. Review gates, target selection
 and final reconciliation apply across the complete sequence.
 
+SQL normalisation reads at most 4,096 premises per Parquet window and runs at most two
+windows concurrently to bound the combined Address2D, Address3D and evidence working
+set.
+
 Large ALS withdrawal batches clear inherited locales and building-number lookup rows
 with one state scan per snapshot. Replayed parent restoration requires explicit child
 events; deleted components do not return implicitly.
@@ -1705,7 +1709,7 @@ number to introduce a new editorial decision.
 
 ## Canonical source attribution
 
-Canonical Address attribution uses `publisherCode: hkgov-dpo`,
+Canonical Address attribution uses `publisher: hkgov-dpo`,
 `dataset: ds-hk-hkgov-dpo-address` and the retained publisher occurrence as `recordId`.
 Address3D inventories list all contributing publisher occurrences. Content hashes, audit
 references and component corrections belong to retained source history or the R2 audit,
@@ -1721,3 +1725,7 @@ immutable. Reversions and independent branch changes have distinct introducing e
 The read-only `historyEvents` view stores no additional membership rows. Snapshot reads
 resolve ancestry before filtering and use the exact introducing snapshot to fetch
 content. SOURCE release validity and interpretation evidence remain separate.
+
+Canonical Address2D retains point geometry without a `bbox` column or API attribute. Its
+immutable HISTORY events retain `createdAt`; CURRENT projection replacements retain
+their own `updatedAt` timestamps.

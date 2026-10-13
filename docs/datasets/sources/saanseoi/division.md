@@ -218,14 +218,14 @@ likewise describe the selected line geometry.
 
 ## Direct and inherited source attribution
 
-Canonical attribution members follow `SourceAttribution` order: `property`,
-`publisherCode`, `upstreamOf`, `dataset`, `recordId`, `updateTime`, `version`,
-`confidence`, `license`, omitting absent fields. Preprocessing marks sources inherited
-through Overture with `upstreamOf: "overture"`; Overture's own entries and other direct
-sources omit `upstreamOf`. For example, OpenStreetMap attribution carried by Overture
-uses `publisherCode: "openstreetmap"` and `upstreamOf: "overture"`. The relationship
-identifies the direct publisher, not a dataset or record ID. Prepared archives retain
-this member order.
+Canonical attribution members follow `SourceAttribution` order: `property`, `publisher`,
+`upstreamOf`, `dataset`, `recordId`, `updateTime`, `version`, `confidence`, `license`,
+omitting absent fields. Preprocessing marks sources inherited through Overture with
+`upstreamOf: "overture"`; Overture's own entries and other direct sources omit
+`upstreamOf`. For example, OpenStreetMap attribution carried by Overture uses
+`publisher: "openstreetmap"` and `upstreamOf: "overture"`. The relationship identifies
+the direct publisher, not a dataset or record ID. Prepared archives retain this member
+order.
 
 ### Authored geometry attribution
 
@@ -250,3 +250,8 @@ evidence with its publisher's optional zoom bounds and prominence scale.
 Division text search indexes English (`en`), Traditional Chinese (`zh-hant`) and
 Simplified Chinese (`zh-hans`). Other retained source locales remain evidence and do not
 participate in search. Code searches also require a supported localisation.
+
+Canonical HISTORY events retain their introducing snapshot and `createdAt`, without an
+`updatedAt` column. Mutable CURRENT projections and publication receipts keep their own
+update timestamps. Statistics definitions keyed by `versionHash` retain `createdAt`
+only. See [storage timestamp ownership](../../pipeline.md#storage-timestamp-ownership).

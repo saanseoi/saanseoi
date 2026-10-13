@@ -780,7 +780,15 @@ rows.
 
 ## Canonical source attribution
 
+Canonical `sources` items identify upstream codes with `publisher` and `dataset`,
+alongside the publisher's `recordId`.
+
 District land-area/population-density records identify `hkgov-censtatd`, the registered
 density dataset and the publisher source record ID in canonical `sources`. Reference
 periods remain domain fields; archive identifiers and processing metadata are excluded
 from attribution.
+
+Canonical HISTORY events retain their introducing snapshot and `createdAt`, without an
+`updatedAt` column. Mutable CURRENT projections and publication receipts keep their own
+update timestamps. Statistics definitions keyed by `versionHash` retain `createdAt`
+only. See [storage timestamp ownership](../../pipeline.md#storage-timestamp-ownership).

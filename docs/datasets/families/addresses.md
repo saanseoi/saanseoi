@@ -40,12 +40,13 @@ The [versioned geocoding contract](../../geocoding.md) returns canonical structu
 addresses, explicit point-match distances, and optional division membership composed
 through an exact shared division snapshot.
 
-Address SQL preparation processes bounded chunks through normalisation, history and
-current generation. Intermediate JSON stays in memory for the active chunks; generated
-SQL and sealed delivery files remain durable. Combined Address2D/Address3D preparation
-uses the complete publisher ledger as its sole source writer. The normaliser reads one
-Parquet window per SQL chunk. Historical comparison loads exact address, version and
-locale keys in parameter-bounded batches using the existing composite indexes.
+Address SQL preparation processes chunks of at most 4,096 rows with at most two active
+chunks through normalisation, history and current generation. Intermediate JSON stays in
+memory for the active chunks; generated SQL and sealed delivery files remain durable.
+Combined Address2D/Address3D preparation uses the complete publisher ledger as its sole
+source writer. The normaliser reads one Parquet window per SQL chunk. Historical
+comparison loads exact address, version and locale keys in parameter-bounded batches
+using the existing composite indexes.
 
 Chronological ALS ingestion runs each source release in a fresh process to bound
 retained preparation and replay memory. Each process completes publication and saves
@@ -1591,6 +1592,9 @@ for the code vocabulary, inputs, execution stages and extension requirements.
 
 ## Canonical source attribution
 
+Each `sources` item identifies its upstream codes as `publisher` and `dataset`, with
+`recordId` identifying the publisher occurrence.
+
 Official Address2D and Address3D attribution lists `hkgov-dpo`, the registered Address
 dataset and each retained publisher occurrence ID. Hashes, audit IDs and component
 corrections are excluded. Component correction fixtures remain in the ALS R2 audit. A
@@ -1607,3 +1611,25 @@ immutable. Reversions and independent branch changes have distinct introducing e
 The read-only `historyEvents` view stores no additional membership rows. Snapshot reads
 resolve ancestry before filtering and use the exact introducing snapshot to fetch
 content. SOURCE release validity and interpretation evidence remain separate.
+
+## Geometry, timestamps and serving readiness
+
+Address2D exposes point geometry without a stored or API `bbox` field. Official
+addresses retain their publisher point; supplementary addresses without an established
+point retain null geometry. Clients can calculate bounds from the points they display.
+
+CURRENT Address components are mutable: changed content replaces the component under the
+same scope and record key. `updatedAt` records that replacement. HISTORY components are
+immutable events with an introducing snapshot and `createdAt`; they have no `updatedAt`
+column. Historical API `updatedAt` uses the event's creation time.
+
+`addressPublicationState` is the delivery and serving-readiness receipt. Its `scopeId`
+matches the storage key in CURRENT Address rows; its `snapshotId` identifies their
+logical snapshot. `publicationToken` guards delivery ownership, `preparedAt` confirms
+complete validation, and `status=current` permits serving after publication. It remains
+separate from `addressSearchScopes`, which records the snapshot indexed for search.
+
+The FTS5 virtual table `addressSearchFts` is created by search finalisation, outside
+Drizzle's ordinary table migrations. A database with no finalised Address search
+selection can have an empty `addressSearchScopes` table and no FTS table. Publication
+and release-set reconciliation run the finalisation workflow.

@@ -660,7 +660,7 @@ published historical audits require an explicit rebuild to contain the evidence.
 
 ## Record attribution and evidence
 
-Canonical `sources` is an array with required `publisherCode` and `dataset` fields. The
+Canonical `sources` is an array with required `publisher` and `dataset` fields. The
 upstream `property` JSON Pointer is preserved; optional record ID, update time, record
 version, confidence and licence are retained only when supplied. Native dataset names
 resolve through `fixtures/meta/sourceAttributions/overture.json`. Unknown names require
@@ -682,14 +682,14 @@ human decisions retain precedence and their previous-link validation.
 
 ## Direct and inherited source attribution
 
-Canonical attribution members follow `SourceAttribution` order: `property`,
-`publisherCode`, `upstreamOf`, `dataset`, `recordId`, `updateTime`, `version`,
-`confidence`, `license`, omitting absent fields. Preprocessing marks sources inherited
-through Overture with `upstreamOf: "overture"`; Overture's own entries and other direct
-sources omit `upstreamOf`. For example, OpenStreetMap attribution carried by Overture
-uses `publisherCode: "openstreetmap"` and `upstreamOf: "overture"`. The relationship
-identifies the direct publisher, not a dataset or record ID. Prepared archives retain
-this member order.
+Canonical attribution members follow `SourceAttribution` order: `property`, `publisher`,
+`upstreamOf`, `dataset`, `recordId`, `updateTime`, `version`, `confidence`, `license`,
+omitting absent fields. Preprocessing marks sources inherited through Overture with
+`upstreamOf: "overture"`; Overture's own entries and other direct sources omit
+`upstreamOf`. For example, OpenStreetMap attribution carried by Overture uses
+`publisher: "openstreetmap"` and `upstreamOf: "overture"`. The relationship identifies
+the direct publisher, not a dataset or record ID. Prepared archives retain this member
+order.
 
 ### Snapshot event storage
 
@@ -700,3 +700,8 @@ immutable. Reversions and independent branch changes have distinct introducing e
 The read-only `historyEvents` view stores no additional membership rows. Snapshot reads
 resolve ancestry before filtering and use the exact introducing snapshot to fetch
 content. SOURCE release validity and interpretation evidence remain separate.
+
+The FTS5 virtual table `placeSearchFts` is created by search finalisation, outside
+Drizzle's ordinary table migrations. `placeSearchScopes` records the published snapshots
+represented by that index. An empty scope table and absent FTS table indicate that no
+Place search selection has been finalised in that database.

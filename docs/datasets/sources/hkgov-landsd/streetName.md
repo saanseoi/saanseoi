@@ -179,6 +179,8 @@ audit graph and SQL delivery receipts.
 
 ## Canonical source attribution
 
+Each canonical `sources` item uses `publisher` and `dataset` for upstream codes.
+
 Canonical Street attribution lists `hkgov-landsd`, `ds-hk-hkgov-landsd-street` and
 retained baseline/notice record keys as `recordId`. Lifecycle replay indexes those
 references to preserve canonical identities. Notice application decisions and
@@ -199,3 +201,8 @@ Street deletion events retain the final lifecycle version, dates and names in th
 canonical tombstone rows. Snapshot membership excludes these rows; lifecycle replay
 retains them so a later restoration continues the logical version counter. Unchanged
 components inherit the exact parent, including on revisions and branches.
+
+Canonical HISTORY events retain their introducing snapshot and `createdAt`, without an
+`updatedAt` column. Mutable CURRENT projections and publication receipts keep their own
+update timestamps. Statistics definitions keyed by `versionHash` retain `createdAt`
+only. See [storage timestamp ownership](../../pipeline.md#storage-timestamp-ownership).

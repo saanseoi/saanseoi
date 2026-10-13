@@ -102,12 +102,12 @@ to locate an area, never to infer new paths.
 ## Publisher attribution
 
 The full Places profile exposes `attributes.sources` as an attribution array with
-required publisher and dataset identities. Map-profile marker queries do not depend on
-that attribution object. Retained source property keys use camelCase; API provenance
-pairs them with original publisher paths and distinguishes registry and curation inputs.
-The guide's LLM references state this contract. Optional `upstreamOf` identifies the
-direct publisher carrying an inherited attribution: OpenStreetMap through Overture uses
-`upstreamOf: "overture"`; direct sources omit it.
+required `publisher` and `dataset` code strings. Map-profile marker queries do not
+depend on that attribution object. Retained source property keys use camelCase; API
+provenance pairs them with original publisher paths and distinguishes registry and
+curation inputs. The guide's LLM references state this contract. Optional `upstreamOf`
+identifies the direct publisher carrying an inherited attribution: OpenStreetMap through
+Overture uses `upstreamOf: "overture"`; direct sources omit it.
 
 Source-record examples and the Sources schema use `properties` for retained publisher
 attributes, with `geometry` and `sourceRecordId` as envelope siblings. Places discovery
