@@ -79,7 +79,9 @@ export function resolveRollbackSelection(meta: Database, resourceReleaseId: stri
         datasetId: string
       },
       [string]
-    >('SELECT id,code,resourceType,status,datasetId FROM resourceReleases WHERE id=?')
+    >(
+      'SELECT id,code,resourceType,status,datasetId FROM resourceReleaseDetails AS resourceReleases WHERE id=?',
+    )
     .get(resourceReleaseId)
   if (release?.status !== 'current')
     throw new Error('Rollback requires a published source release.')
@@ -366,7 +368,7 @@ export function prepareRollbackMetadata(
     params: [timestamp, timestamp, release.id],
   })
   metadata.push({
-    sql: "UPDATE resourceReleases SET status='current',supersededByResourceReleaseId=NULL,updatedAt=? WHERE supersededByResourceReleaseId=? AND datasetId=?",
+    sql: "UPDATE resourceReleases SET status='current',supersededByResourceReleaseId=NULL,updatedAt=? WHERE supersededByResourceReleaseId=? AND sourceReleaseId IN (SELECT id FROM sourceReleases WHERE datasetId=?)",
     params: [timestamp, release.id, release.datasetId],
   })
   metadata.push({

@@ -1,3 +1,5 @@
+import { metaSnapshotResourceReleaseDetails } from '@repo/db/metaSchema'
+import { metaResourceReleaseDetails } from '@repo/db/metaSchema'
 import { and, asc, desc, eq, inArray, metaSchema, ne, sql } from '@repo/db'
 
 import type { HarbourReadableDb } from './types'
@@ -33,20 +35,26 @@ export async function listRetainedGeometrySnapshotIds(db: HarbourReadableDb) {
       eq(metaSnapshotLineages.id, metaSnapshots.snapshotLineageId),
     )
     .innerJoin(
-      metaSnapshotResourceReleases,
-      eq(metaSnapshotResourceReleases.snapshotId, metaSnapshots.id),
+      metaSnapshotResourceReleaseDetails,
+      eq(metaSnapshotResourceReleaseDetails.snapshotId, metaSnapshots.id),
     )
     .innerJoin(
-      metaResourceReleases,
+      metaResourceReleaseDetails,
       and(
-        eq(metaResourceReleases.id, metaSnapshotResourceReleases.resourceReleaseId),
-        eq(metaResourceReleases.datasetId, metaSnapshotResourceReleases.datasetId),
-        eq(metaResourceReleases.resourceType, metaSnapshotLineages.resourceType),
+        eq(
+          metaResourceReleaseDetails.id,
+          metaSnapshotResourceReleaseDetails.resourceReleaseId,
+        ),
+        eq(
+          metaResourceReleaseDetails.datasetId,
+          metaSnapshotResourceReleaseDetails.datasetId,
+        ),
+        eq(metaResourceReleaseDetails.resourceType, metaSnapshotLineages.resourceType),
       ),
     )
     .innerJoin(
       metaDatasets,
-      eq(metaDatasets.id, metaSnapshotResourceReleases.datasetId),
+      eq(metaDatasets.id, metaSnapshotResourceReleaseDetails.datasetId),
     )
 
     .where(
@@ -56,8 +64,8 @@ export async function listRetainedGeometrySnapshotIds(db: HarbourReadableDb) {
           'divisionBoundary',
         ]),
         eq(metaSnapshots.status, 'published'),
-        eq(metaResourceReleases.status, 'current'),
-        ne(metaSnapshotResourceReleases.role, 'lookup'),
+        eq(metaResourceReleaseDetails.status, 'current'),
+        ne(metaSnapshotResourceReleaseDetails.role, 'lookup'),
       ),
     )
     .orderBy(

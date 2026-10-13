@@ -114,14 +114,12 @@ function setup() {
     insert(meta, 'resourceReleases', {
       id: resourceType,
       code: resourceType,
-      datasetId: 'dataset',
       sourceReleaseId: 'shared-source',
       resourceType,
     })
     insert(meta, 'snapshots', { id: resourceType, code: resourceType, resourceType })
     insert(meta, 'snapshotResourceReleases', {
       snapshotId: resourceType,
-      datasetId: 'dataset',
       resourceReleaseId: resourceType,
     })
   }
@@ -280,7 +278,6 @@ describe('all-statistics reset', () => {
     const { meta, context } = setup()
     insert(meta, 'snapshotResourceReleases', {
       snapshotId: 'place',
-      datasetId: 'dataset',
       resourceReleaseId: 'divisionStatistic',
     })
     meta.exec(
@@ -327,7 +324,6 @@ describe('all-statistics reset', () => {
     })
     insert(meta, 'snapshotResourceReleases', {
       snapshotId: 'simplified',
-      datasetId: 'dataset',
       resourceReleaseId: 'divisionArea',
     })
     for (const db of [current, history]) {
@@ -408,7 +404,6 @@ describe('all-statistics reset', () => {
     meta.exec("UPDATE datasets SET theme = 'stats' WHERE id = 'dataset'")
     insert(meta, 'snapshotResourceReleases', {
       snapshotId: 'place',
-      datasetId: 'dataset',
       resourceReleaseId: 'divisionArea',
       role: 'lookup',
     })
@@ -420,7 +415,6 @@ describe('all-statistics reset', () => {
     )
     insert(meta, 'snapshotResourceReleases', {
       snapshotId: 'divisionArea',
-      datasetId: 'dataset',
       resourceReleaseId: 'place',
     })
     expect(
@@ -482,7 +476,6 @@ describe('all-statistics reset', () => {
     insert(meta, 'resourceReleases', {
       id: 'geography',
       code: 'geography',
-      datasetId: 'geography',
       sourceReleaseId: 'geography-source',
       resourceType: 'divisionArea',
     })
@@ -499,7 +492,6 @@ describe('all-statistics reset', () => {
       })
       insert(meta, 'snapshotResourceReleases', {
         snapshotId: id,
-        datasetId: 'geography',
         resourceReleaseId: 'geography',
       })
       for (const db of [current, history]) {
@@ -598,7 +590,6 @@ describe('all-statistics reset', () => {
     }
     insert(meta, 'snapshotResourceReleases', {
       snapshotId: 'lookup',
-      datasetId: 'dataset',
       resourceReleaseId: 'divisionArea',
       role: 'lookup',
     })

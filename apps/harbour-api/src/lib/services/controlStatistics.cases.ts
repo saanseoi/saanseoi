@@ -96,7 +96,7 @@ test('publishes a dataset snapshot without finalising a shared source release', 
     )
   sqlite
     .query(
-      `INSERT INTO resourceReleases (id, sourceReleaseId, datasetId, resourceType, code, status, ingestedAt, createdAt, updatedAt) VALUES (?1, ?2, ?3, ?4, ?5, ?8, ?9, ?10, ?11)`,
+      `INSERT INTO resourceReleases (id, sourceReleaseId, resourceType, code, status, ingestedAt, createdAt, updatedAt) VALUES (?1, ?2, ?4, ?5, ?8, ?9, ?10, ?11)`,
     )
     .run(
       resourceReleaseId,
@@ -124,7 +124,7 @@ test('publishes a dataset snapshot without finalising a shared source release', 
       "INSERT INTO processingAudits (resourceReleaseId, stage, ownerId, manifestHash, byteLength, applicationCount, attemptStatus) VALUES (?1, 'ingestion', ?1, ?2, ?3, ?4, 'completed')",
     )
     .run(resourceReleaseId, `sha256:${'0'.repeat(64)}`, 1, 1)
-  await upsertSnapshotSource(db, snapshot.id, dataset.id, resourceReleaseId, 'primary')
+  await upsertSnapshotSource(db, snapshot.id, resourceReleaseId, 'primary')
   seedSnapshotAssembly(sqlite, snapshot.id)
 
   sqlite
@@ -219,8 +219,8 @@ test('publishes every annual snapshot attached to fallback C&SD geometry', async
       '2026-Q2', '2026-Q2', 'processing'
     );
     INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status, cohortKey) VALUES ('${resourceReleaseId}', '${datasetId}', 'source-' || 'dr-hk-hkgov-censtatd-annual-district-2026-q2-area', '2026-Q2', 'processing', '2026-Q2');
-UPDATE sourceReleases SET sourceVersion = '2026-Q2', cohortKey = '2026-Q2' WHERE id = '${resourceReleaseId}';
-INSERT INTO resourceReleases (id, sourceReleaseId, datasetId, resourceType, code, geometryStatus, status, ingestedAt, createdAt, updatedAt) VALUES ('${resourceReleaseId}', '${resourceReleaseId}', '${datasetId}', 'divisionArea', 'dr-hk-hkgov-censtatd-annual-district-2026-q2-area', 'fallback', 'processing', '2026-09-13T00:00:00.000Z', '2026-09-13T00:00:00.000Z', '2026-09-13T00:00:00.000Z');
+UPDATE sourceReleases SET datasetId = '${datasetId}', sourceVersion = '2026-Q2', cohortKey = '2026-Q2' WHERE id = '${resourceReleaseId}';
+INSERT INTO resourceReleases (id, sourceReleaseId, resourceType, code, geometryStatus, status, ingestedAt, createdAt, updatedAt) VALUES ('${resourceReleaseId}', '${resourceReleaseId}', 'divisionArea', 'dr-hk-hkgov-censtatd-annual-district-2026-q2-area', 'fallback', 'processing', '2026-09-13T00:00:00.000Z', '2026-09-13T00:00:00.000Z', '2026-09-13T00:00:00.000Z');
   `)
   const snapshotIds: string[] = []
   for (const cohortKey of ['2016', '2017']) {
@@ -233,13 +233,7 @@ INSERT INTO resourceReleases (id, sourceReleaseId, datasetId, resourceType, code
         sourceReleaseId: resourceReleaseId,
         variant,
       })
-      await upsertSnapshotSource(
-        db,
-        snapshot.id,
-        datasetId,
-        resourceReleaseId,
-        'primary',
-      )
+      await upsertSnapshotSource(db, snapshot.id, resourceReleaseId, 'primary')
       snapshotIds.push(snapshot.id)
     }
   }
@@ -316,8 +310,8 @@ test('bootstraps one cohort-complete initial Statistics release set', async () =
         'processing'
       );
       INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status, cohortKey) VALUES ('${resourceReleaseId}', '${datasetId}', 'source-' || 'dr-hk-test-${index}-2026-Q2', '2026-Q2', 'processing', '2026-Q2');
-UPDATE sourceReleases SET sourceVersion = '2026-Q2', cohortKey = '2026-Q2' WHERE id = '${resourceReleaseId}';
-INSERT INTO resourceReleases (id, sourceReleaseId, datasetId, resourceType, code, status, ingestedAt, createdAt, updatedAt) VALUES ('${resourceReleaseId}', '${resourceReleaseId}', '${datasetId}', 'divisionStatistic', 'dr-hk-test-${index}-2026-Q2', 'processing', '2026-08-25T00:00:00.000Z', '2026-08-25T00:00:00.000Z', '2026-08-25T00:00:00.000Z');
+UPDATE sourceReleases SET datasetId = '${datasetId}', sourceVersion = '2026-Q2', cohortKey = '2026-Q2' WHERE id = '${resourceReleaseId}';
+INSERT INTO resourceReleases (id, sourceReleaseId, resourceType, code, status, ingestedAt, createdAt, updatedAt) VALUES ('${resourceReleaseId}', '${resourceReleaseId}', 'divisionStatistic', 'dr-hk-test-${index}-2026-Q2', 'processing', '2026-08-25T00:00:00.000Z', '2026-08-25T00:00:00.000Z', '2026-08-25T00:00:00.000Z');
       INSERT INTO processingAudits (resourceReleaseId, stage, ownerId, manifestHash, byteLength, applicationCount, attemptStatus)
       VALUES ('${resourceReleaseId}', 'ingestion', '${resourceReleaseId}', 'sha256:${'0'.repeat(64)}', 1, 1, 'completed');
     `)
@@ -329,7 +323,7 @@ INSERT INTO resourceReleases (id, sourceReleaseId, datasetId, resourceType, code
       sourceReleaseId: resourceReleaseId,
       variant: datasetCode,
     })
-    await upsertSnapshotSource(db, snapshot.id, datasetId, resourceReleaseId, 'primary')
+    await upsertSnapshotSource(db, snapshot.id, resourceReleaseId, 'primary')
     seedSnapshotAssembly(sqlite, snapshot.id)
   }
 
@@ -377,13 +371,7 @@ INSERT INTO resourceReleases (id, sourceReleaseId, datasetId, resourceType, code
     sourceReleaseId: firstReleaseId,
     variant: 'hkgov-censtatd',
   })
-  await upsertSnapshotSource(
-    db,
-    geometrySnapshot.id,
-    'dataset-0',
-    firstReleaseId,
-    'primary',
-  )
+  await upsertSnapshotSource(db, geometrySnapshot.id, firstReleaseId, 'primary')
   sqlite.exec(`
     UPDATE snapshots SET status = 'published' WHERE id = '${geometrySnapshot.id}';
     UPDATE resourceReleases SET resourceType = 'divisionArea' WHERE id = '${firstReleaseId}';
@@ -470,8 +458,8 @@ INSERT INTO resourceReleases (id, sourceReleaseId, datasetId, resourceType, code
       '2022', '2022', 'processing'
     );
     INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status, cohortKey) VALUES ('legacy-release-2022', 'dataset-0', 'source-' || 'dr-hk-test-2022', '2022', 'processing', '2022');
-UPDATE sourceReleases SET sourceVersion = '2022', cohortKey = '2022' WHERE id = 'legacy-release-2022';
-INSERT INTO resourceReleases (id, sourceReleaseId, datasetId, resourceType, code, status, ingestedAt, createdAt, updatedAt) VALUES ('legacy-release-2022', 'legacy-release-2022', 'dataset-0', 'divisionStatistic', 'dr-hk-test-2022', 'processing', '2026-08-25T00:00:00.000Z', '2026-08-25T00:00:00.000Z', '2026-08-25T00:00:00.000Z');
+UPDATE sourceReleases SET datasetId = 'dataset-0', sourceVersion = '2022', cohortKey = '2022' WHERE id = 'legacy-release-2022';
+INSERT INTO resourceReleases (id, sourceReleaseId, resourceType, code, status, ingestedAt, createdAt, updatedAt) VALUES ('legacy-release-2022', 'legacy-release-2022', 'divisionStatistic', 'dr-hk-test-2022', 'processing', '2026-08-25T00:00:00.000Z', '2026-08-25T00:00:00.000Z', '2026-08-25T00:00:00.000Z');
   `)
   const legacySnapshot = await ensureDraftSnapshotForRelease(db, 'divisionStatistic', {
     cohortKey: '2022',
@@ -481,13 +469,7 @@ INSERT INTO resourceReleases (id, sourceReleaseId, datasetId, resourceType, code
     sourceReleaseId: 'legacy-release-2022',
     variant: datasetCodes[0],
   })
-  await upsertSnapshotSource(
-    db,
-    legacySnapshot.id,
-    'dataset-0',
-    'legacy-release-2022',
-    'primary',
-  )
+  await upsertSnapshotSource(db, legacySnapshot.id, 'legacy-release-2022', 'primary')
   seedSnapshotAssembly(sqlite, legacySnapshot.id)
   sqlite.exec(`
     INSERT INTO sourceReleases
@@ -497,8 +479,8 @@ INSERT INTO resourceReleases (id, sourceReleaseId, datasetId, resourceType, code
       '2023', '2023', 'staged'
     );
     INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status, cohortKey) VALUES ('staged-release-2023', 'dataset-0', 'source-' || 'dr-hk-test-2023', '2023', 'staged', '2023');
-UPDATE sourceReleases SET sourceVersion = '2023', cohortKey = '2023' WHERE id = 'staged-release-2023';
-INSERT INTO resourceReleases (id, sourceReleaseId, datasetId, resourceType, code, status, ingestedAt, createdAt, updatedAt) VALUES ('staged-release-2023', 'staged-release-2023', 'dataset-0', 'divisionStatistic', 'dr-hk-test-2023', 'staged', '2026-08-25T00:00:00.000Z', '2026-08-25T00:00:00.000Z', '2026-08-25T00:00:00.000Z');
+UPDATE sourceReleases SET datasetId = 'dataset-0', sourceVersion = '2023', cohortKey = '2023' WHERE id = 'staged-release-2023';
+INSERT INTO resourceReleases (id, sourceReleaseId, resourceType, code, status, ingestedAt, createdAt, updatedAt) VALUES ('staged-release-2023', 'staged-release-2023', 'divisionStatistic', 'dr-hk-test-2023', 'staged', '2026-08-25T00:00:00.000Z', '2026-08-25T00:00:00.000Z', '2026-08-25T00:00:00.000Z');
   `)
   const stagedSnapshot = await ensureDraftSnapshotForRelease(db, 'divisionStatistic', {
     cohortKey: '2023',
@@ -508,13 +490,7 @@ INSERT INTO resourceReleases (id, sourceReleaseId, datasetId, resourceType, code
     sourceReleaseId: 'staged-release-2023',
     variant: datasetCodes[0],
   })
-  await upsertSnapshotSource(
-    db,
-    stagedSnapshot.id,
-    'dataset-0',
-    'staged-release-2023',
-    'primary',
-  )
+  await upsertSnapshotSource(db, stagedSnapshot.id, 'staged-release-2023', 'primary')
 
   expect(await handleBootstrapStatsReleaseSets(db)).toEqual({
     createdReleaseSetCodes: [],

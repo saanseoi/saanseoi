@@ -951,8 +951,8 @@ test('resource releases omit notes while source releases retain published docume
       INSERT INTO sourceReleases (id, datasetId, code, sourceVersion, status, notes)
       VALUES ('notes-source', 'notes-dataset', 'notes-source', '2026-10', 'staged', 'Published source documentation');
       INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status) VALUES ('notes-source', 'notes-dataset', 'source-' || 'notes-resource', '2026-10', 'staged');
-UPDATE sourceReleases SET sourceVersion = '2026-10' WHERE id = 'notes-source';
-INSERT INTO resourceReleases (id, sourceReleaseId, datasetId, code, resourceType, status) VALUES ('notes-resource', 'notes-source', 'notes-dataset', 'notes-resource', 'division', 'staged');
+UPDATE sourceReleases SET datasetId = 'notes-dataset', sourceVersion = '2026-10' WHERE id = 'notes-source';
+INSERT INTO resourceReleases (id, sourceReleaseId, code, resourceType, status) VALUES ('notes-resource', 'notes-source', 'notes-resource', 'division', 'staged');
     `)
     expect(
       db

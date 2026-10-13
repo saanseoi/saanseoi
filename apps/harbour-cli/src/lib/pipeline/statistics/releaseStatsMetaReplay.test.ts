@@ -137,7 +137,6 @@ describe('release statistics metadata replay', () => {
           selectedByRule: 'assembly:division-statistic:reference-period-release:v1',
           selectionMode: 'exact_ref',
           snapshotId: 'snapshot',
-          sourceCohortKey: '2021',
           resourceReleaseId: resourceReleaseId,
         },
       ],

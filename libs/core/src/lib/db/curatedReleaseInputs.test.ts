@@ -8,7 +8,10 @@ test('curated build inputs require matching Overture companion releases', async 
   sqlite.exec(`
     CREATE TABLE publishers (id TEXT PRIMARY KEY, code TEXT);
     CREATE TABLE datasets (id TEXT PRIMARY KEY, publisherId TEXT);
-    CREATE TABLE resourceReleases (id TEXT PRIMARY KEY, datasetId TEXT, resourceType TEXT, code TEXT);
+    CREATE TABLE resourceReleases (id TEXT PRIMARY KEY, sourceReleaseId TEXT, resourceType TEXT, code TEXT);
+    CREATE TABLE sourceReleases(id TEXT PRIMARY KEY,datasetId TEXT);
+    CREATE VIEW resourceReleaseDetails AS SELECT r.*,s.datasetId FROM resourceReleases r JOIN sourceReleases s ON s.id=r.sourceReleaseId;
+    CREATE VIEW snapshotResourceReleaseDetails AS SELECT m.*,r.datasetId FROM snapshotResourceReleases m JOIN resourceReleaseDetails r ON r.id=m.resourceReleaseId;
     CREATE TABLE snapshotLineages (
       id TEXT PRIMARY KEY,
       code TEXT UNIQUE,
@@ -26,9 +29,10 @@ test('curated build inputs require matching Overture companion releases', async 
       snapshotLineageId TEXT NOT NULL,
       status TEXT
     );
-    CREATE TABLE snapshotResourceReleases (snapshotId TEXT, datasetId TEXT, resourceReleaseId TEXT, role TEXT, selectedByRule TEXT);
+    CREATE TABLE snapshotResourceReleases (snapshotId TEXT, resourceReleaseId TEXT, role TEXT, selectedByRule TEXT);
     INSERT INTO publishers VALUES ('overture', 'overture');
     INSERT INTO datasets VALUES ('division-dataset', 'overture'), ('area-dataset', 'overture');
+    INSERT INTO sourceReleases VALUES ('division-dataset','division-dataset'),('area-dataset','area-dataset');
     INSERT INTO resourceReleases VALUES
       ('division-release', 'division-dataset', 'division', 'division-v1'),
       ('area-release', 'area-dataset', 'divisionArea', 'area-v1'),
@@ -44,10 +48,10 @@ INSERT INTO snapshots (id, snapshotLineageId, status) VALUES
 ('division', 'fixture-lineage-' || 'division', 'published'),
 ('area', 'fixture-lineage-' || 'area', 'published');
     INSERT INTO snapshotResourceReleases VALUES
-      ('curated', 'division-dataset', 'division-release', 'enrichment', 'provenance:curated-division:build-inputs:v1'),
-      ('curated', 'area-dataset', 'area-release', 'enrichment', 'provenance:curated-division:build-inputs:v1'),
-      ('division', 'division-dataset', 'division-release', 'primary', 'assembly:division:source-release:v1'),
-      ('area', 'area-dataset', 'area-release', 'primary', 'assembly:division-geometry:source-release:v1');
+      ('curated', 'division-release', 'enrichment', 'provenance:curated-division:build-inputs:v1'),
+      ('curated', 'area-release', 'enrichment', 'provenance:curated-division:build-inputs:v1'),
+      ('division', 'division-release', 'primary', 'assembly:division:source-release:v1'),
+      ('area', 'area-release', 'primary', 'assembly:division-geometry:source-release:v1');
   `)
   try {
     const db = createLocalHarbourDb(sqlite)
@@ -64,7 +68,7 @@ INSERT INTO snapshots (id, snapshotLineageId, status) VALUES
       'API Overture divisionArea selection does not match retained inputs',
     )
     sqlite.exec(
-      `DELETE FROM snapshotResourceReleases WHERE snapshotId = 'curated' AND datasetId = 'division-dataset'`,
+      `DELETE FROM snapshotResourceReleases WHERE snapshotId = 'curated' AND resourceReleaseId IN (SELECT id FROM resourceReleaseDetails WHERE datasetId = 'division-dataset')`,
     )
     await expect(assertCuratedReleaseInputs(db, snapshots)).rejects.toThrow(
       'API Overture division selection does not match retained inputs',

@@ -101,14 +101,12 @@ export async function materialiseStatisticSnapshots(args: {
     await upsertSnapshotSource(
       args.metaDb,
       snapshot.id,
-      dataset.datasetId,
       dataset.resourceReleaseId,
       'primary',
       {
         anchorReleaseId: dataset.resourceReleaseId,
         selectedByRule: 'assembly:division-statistic:reference-period-release:v1',
         selectionMode: 'exact_ref',
-        sourceCohortKey: referencePeriod.code,
       },
     )
 

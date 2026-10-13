@@ -531,13 +531,11 @@ async function prepareNativeDivisionMetaSql(
       'snapshotResourceReleases',
       [
         'snapshotId',
-        'datasetId',
         'resourceReleaseId',
         'role',
         'selectedByRule',
         'selectionMode',
         'anchorReleaseId',
-        'sourceCohortKey',
         'createdAt',
       ],
       sources,

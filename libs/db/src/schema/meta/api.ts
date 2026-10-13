@@ -11,6 +11,7 @@ import {
   primaryKey,
   real,
   sqliteTable,
+  sqliteView,
   text,
   uniqueIndex,
 } from 'drizzle-orm/sqlite-core'
@@ -26,7 +27,12 @@ import {
   snapshotStatuses,
 } from '../../constants/schema'
 import { isoTimestamp, jsonText, primaryUuid, timestamps } from '../shared'
-import { metaDatasets, metaResourceReleases } from './datasets'
+import { eq, getTableColumns } from 'drizzle-orm'
+import {
+  metaDatasets,
+  metaResourceReleases,
+  metaResourceReleaseDetails,
+} from './datasets'
 
 type ReferenceAction = 'cascade' | 'restrict'
 
@@ -173,27 +179,37 @@ export const metaSnapshotResourceReleases = sqliteTable(
   'snapshotResourceReleases',
   {
     snapshotId: snapshotIdColumn('cascade'),
-    datasetId: datasetIdColumn(),
-    resourceReleaseId: text('resourceReleaseId').notNull(),
+    resourceReleaseId: text('resourceReleaseId')
+      .notNull()
+      .references(() => metaResourceReleases.id, { onDelete: 'restrict' }),
     role: text('role', { enum: apiReleaseSetSourceRoles }).notNull(),
     selectedByRule: text('selectedByRule'),
     selectionMode: text('selectionMode'),
     anchorReleaseId: text('anchorReleaseId'),
-    sourceCohortKey: text('sourceCohortKey'),
     createdAt: timestamps.createdAt,
   },
   table => [
     primaryKey({
       columns: [table.snapshotId, table.resourceReleaseId],
     }),
-    foreignKey({
-      columns: [table.resourceReleaseId, table.datasetId],
-      foreignColumns: [metaResourceReleases.id, metaResourceReleases.datasetId],
-      name: 'snapshotResourceReleases_resourceReleaseId_datasetId_resourceReleases_id_datasetId_fk',
-    }).onDelete('restrict'),
-    index('snapshotResourceReleases_datasetId_idx').on(table.datasetId),
     index('snapshotResourceReleases_resourceReleaseId_idx').on(table.resourceReleaseId),
   ],
+)
+
+/** Read-only membership context; dataset ownership belongs to the source release. */
+export const metaSnapshotResourceReleaseDetails = sqliteView(
+  'snapshotResourceReleaseDetails',
+).as(qb =>
+  qb
+    .select({
+      ...getTableColumns(metaSnapshotResourceReleases),
+      datasetId: metaResourceReleaseDetails.datasetId,
+    })
+    .from(metaSnapshotResourceReleases)
+    .innerJoin(
+      metaResourceReleaseDetails,
+      eq(metaSnapshotResourceReleases.resourceReleaseId, metaResourceReleaseDetails.id),
+    ),
 )
 
 export const metaApiReleaseSets = sqliteTable(

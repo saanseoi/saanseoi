@@ -619,14 +619,19 @@ ss-hk-division-hkgov-pland-pu-2006
 Revision zero omits the `-r0` suffix. `-r1` means the same lineage and cohort were
 assembled again with different source membership or corrected content.
 
-A snapshot records all selected source releases in `snapshotResourceReleases`,
+A snapshot records all selected resource releases in `snapshotResourceReleases`,
 including:
 
-- source dataset and release
+- resource release
 - role
 - selection rule
-- source cohort
 - anchor release
+
+Dataset ownership and source cohorts belong to `sourceReleases`, reached through the
+selected resource release. The `resourceReleaseDetails` and
+`snapshotResourceReleaseDetails` views expose this ownership for queries. The assembled
+cohort belongs to `snapshots`; lookup cohorts belong to the exact snapshots pinned by
+`snapshotDependencies`.
 
 A published snapshot is immutable. A later correction to the same lineage and cohort
 creates the next snapshot revision. Adding a supplementary dataset with its own lineage

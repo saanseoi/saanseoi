@@ -49,7 +49,7 @@ export async function listCompletedReleaseCodes(
 ) {
   const releases = meta
     .query<CompletedRelease, []>(
-      "SELECT code, datasetId, id, status, resourceType FROM resourceReleases WHERE status IN ('current', 'archived') ORDER BY code",
+      "SELECT code, datasetId, id, status, resourceType FROM resourceReleaseDetails AS resourceReleases WHERE status IN ('current', 'archived') ORDER BY code",
     )
     .all()
   const incomplete = await findIncompletePublishedReleases(
@@ -86,17 +86,17 @@ export async function readRemoteCachedCompletedReleaseCodes(
   return withRemoteCachedMetaDb(target, async (metaDb, metaSqlite, manifest) => {
     const rows = await metaDb
       .select({
-        code: metaSchema.metaResourceReleases.code,
-        datasetId: metaSchema.metaResourceReleases.datasetId,
-        id: metaSchema.metaResourceReleases.id,
-        status: metaSchema.metaResourceReleases.status,
-        resourceType: metaSchema.metaResourceReleases.resourceType,
+        code: metaSchema.metaResourceReleaseDetails.code,
+        datasetId: metaSchema.metaResourceReleaseDetails.datasetId,
+        id: metaSchema.metaResourceReleaseDetails.id,
+        status: metaSchema.metaResourceReleaseDetails.status,
+        resourceType: metaSchema.metaResourceReleaseDetails.resourceType,
       })
-      .from(metaSchema.metaResourceReleases)
+      .from(metaSchema.metaResourceReleaseDetails)
       .where(
         or(
-          eq(metaSchema.metaResourceReleases.status, 'current'),
-          eq(metaSchema.metaResourceReleases.status, 'archived'),
+          eq(metaSchema.metaResourceReleaseDetails.status, 'current'),
+          eq(metaSchema.metaResourceReleaseDetails.status, 'archived'),
         ),
       )
       .all()
@@ -166,7 +166,7 @@ export async function findIncompletePublishedReleases(
               (ss.selectedByRule = 'saanseoi-curated-division-assembly-v1'
                 AND sl.primaryDatasetId = ss.datasetId) AS isCuratedPrimary
             FROM snapshots s
-            INNER JOIN snapshotResourceReleases ss ON ss.snapshotId = s.id
+            INNER JOIN snapshotResourceReleaseDetails ss ON ss.snapshotId = s.id
             INNER JOIN snapshotLineages sl ON sl.id = s.snapshotLineageId
             WHERE ss.resourceReleaseId = ?
               AND ss.datasetId = ?

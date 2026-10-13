@@ -34,8 +34,8 @@ INSERT INTO snapshots (id, snapshotLineageId, code, cohortKey, status, createdAt
       INSERT INTO sourceReleases (id, datasetId, code, sourceVersion, cohortKey, status, ingestedAt, createdAt, updatedAt)
       VALUES ('source-${id}', '${id}', 'source-${id}', '2026', '2026', 'processing', '${now}', '${now}', '${now}');
       INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status, cohortKey) VALUES ('source-${id}', '${id}', 'source-' || 'release-${id}', '2026', 'processing', '2026');
-UPDATE sourceReleases SET sourceVersion = '2026', cohortKey = '2026' WHERE id = 'source-${id}';
-INSERT INTO resourceReleases (id, sourceReleaseId, datasetId, resourceType, code, status, ingestedAt, createdAt, updatedAt) VALUES ('release-${id}', 'source-${id}', '${id}', 'address', 'release-${id}', 'processing', '${now}', '${now}', '${now}');`)
+UPDATE sourceReleases SET datasetId = '${id}', sourceVersion = '2026', cohortKey = '2026' WHERE id = 'source-${id}';
+INSERT INTO resourceReleases (id, sourceReleaseId, resourceType, code, status, ingestedAt, createdAt, updatedAt) VALUES ('release-${id}', 'source-${id}', 'address', 'release-${id}', 'processing', '${now}', '${now}', '${now}');`)
   }
   const db = createLocalHarbourDb(sqlite)
   return { sqlite, db }
@@ -49,10 +49,9 @@ async function source(
   db: ReturnType<typeof fixture>['db'],
   role: 'primary' | 'enrichment' | 'lookup',
 ) {
-  await upsertSnapshotSource(db, 'snapshot', role, `release-${role}`, role, {
+  await upsertSnapshotSource(db, 'snapshot', `release-${role}`, role, {
     selectedByRule: `${role}-v1`,
     selectionMode: role === 'lookup' ? 'latest_at_or_before_cohort' : 'exact_ref',
-    sourceCohortKey: '2026',
   })
 }
 function run(sqlite: Database) {
@@ -179,18 +178,10 @@ INSERT INTO snapshots(id, snapshotLineageId, code, cohortKey, status) VALUES
 UPDATE snapshotLineages SET resourceType='division' WHERE id='fixture-lineage-' || 'division-revision' AND resourceType IS NULL;
 INSERT INTO snapshots (id, snapshotLineageId, code, cohortKey, status, createdAt, updatedAt) VALUES
 ('division-revision', 'fixture-lineage-' || 'division-revision', 'division-revision', '2026', 'published', '${now}', '${now}');`)
-    await upsertSnapshotSource(
-      db,
-      'division-revision',
-      'lookup',
-      'release-lookup',
-      'primary',
-      {
-        selectedByRule: 'division',
-        selectionMode: 'exact_ref',
-        sourceCohortKey: '2026',
-      },
-    )
+    await upsertSnapshotSource(db, 'division-revision', 'release-lookup', 'primary', {
+      selectedByRule: 'division',
+      selectionMode: 'exact_ref',
+    })
     await recordSnapshotLookupDependency(db, {
       snapshotId: 'snapshot',
       lookupSnapshotId: 'division-revision',
@@ -214,7 +205,7 @@ INSERT INTO snapshots (id, snapshotLineageId, code, cohortKey, status, createdAt
 test('missing selection rules fail explicitly instead of recording invented provenance', async () => {
   const { db, sqlite } = fixture()
   try {
-    await upsertSnapshotSource(db, 'snapshot', 'primary', 'release-primary', 'primary')
+    await upsertSnapshotSource(db, 'snapshot', 'release-primary', 'primary')
     await expect(recordSnapshotAssembly(db, args)).rejects.toThrow(
       'selection rule is missing',
     )

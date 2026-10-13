@@ -207,14 +207,12 @@ function fixture() {
     insert(meta, 'resourceReleases', {
       id: `${id}-release`,
       sourceReleaseId: `${id}-source`,
-      datasetId: 'dataset',
       resourceType: 'divisionStatistic',
       code: `${id}-release`,
       status: 'current',
     })
     insert(meta, 'snapshotResourceReleases', {
       snapshotId: id,
-      datasetId: 'dataset',
       resourceReleaseId: `${id}-release`,
       role: 'primary',
     })

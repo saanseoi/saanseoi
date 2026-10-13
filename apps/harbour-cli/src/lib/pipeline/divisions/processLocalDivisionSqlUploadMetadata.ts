@@ -78,13 +78,11 @@ export async function buildDivisionMetaSqlFile(
   const snapshotSourceRows = await metaDb
     .select({
       snapshotId: metaSnapshotResourceReleases.snapshotId,
-      datasetId: metaSnapshotResourceReleases.datasetId,
       resourceReleaseId: metaSnapshotResourceReleases.resourceReleaseId,
       role: metaSnapshotResourceReleases.role,
       selectedByRule: metaSnapshotResourceReleases.selectedByRule,
       selectionMode: metaSnapshotResourceReleases.selectionMode,
       anchorReleaseId: metaSnapshotResourceReleases.anchorReleaseId,
-      sourceCohortKey: metaSnapshotResourceReleases.sourceCohortKey,
       createdAt: metaSnapshotResourceReleases.createdAt,
     })
     .from(metaSnapshotResourceReleases)
@@ -233,25 +231,21 @@ ON CONFLICT(id) DO UPDATE SET
       'snapshotResourceReleases',
       [
         'snapshotId',
-        'datasetId',
         'resourceReleaseId',
         'role',
         'selectedByRule',
         'selectionMode',
         'anchorReleaseId',
-        'sourceCohortKey',
         'createdAt',
       ],
       snapshotSourceRows,
       {
         suffix: `
 ON CONFLICT(snapshotId, resourceReleaseId) DO UPDATE SET
-  datasetId = excluded.datasetId,
   role = excluded.role,
   selectedByRule = excluded.selectedByRule,
   selectionMode = excluded.selectionMode,
   anchorReleaseId = excluded.anchorReleaseId,
-  sourceCohortKey = excluded.sourceCohortKey,
   createdAt = excluded.createdAt`.trim(),
       },
     ),

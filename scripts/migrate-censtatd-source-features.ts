@@ -41,7 +41,7 @@ const meta = new Database(metaPath, { readonly: true })
 const owners = new Map(
   meta
     .query<{ id: string; code: string }, []>(
-      'SELECT resourceReleases.id, datasets.code FROM resourceReleases JOIN datasets ON datasets.id = resourceReleases.datasetId',
+      'SELECT resourceReleases.id, datasets.code FROM resourceReleaseDetails AS resourceReleases JOIN datasets ON datasets.id = resourceReleases.datasetId',
     )
     .all()
     .map(row => [row.id, row.code]),

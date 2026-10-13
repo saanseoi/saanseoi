@@ -179,18 +179,10 @@ test('requires retained processing audits for Addresses and Places before publis
       status: 'draft',
       timestamp: 1762300860000,
     })
-    await upsertSnapshotSource(
-      db,
-      snapshotId,
-      datasetId,
-      resourceReleaseId,
-      'primary',
-      {
-        selectedByRule: `assembly:${datasetType}:source-release:v1`,
-        selectionMode: 'exact_ref',
-        sourceCohortKey: '2026-06',
-      },
-    )
+    await upsertSnapshotSource(db, snapshotId, resourceReleaseId, 'primary', {
+      selectedByRule: `assembly:${datasetType}:source-release:v1`,
+      selectionMode: 'exact_ref',
+    })
 
     if (datasetType === 'address') {
       sqlite.exec(`
@@ -226,7 +218,9 @@ test('requires retained processing audits for Addresses and Places before publis
         updatedAt: '2026-06-05T00:01:00.000Z',
       })
       const divisionDataset = sqlite
-        .query('SELECT datasetId FROM resourceReleases WHERE id = ?')
+        .query(
+          'SELECT datasetId FROM resourceReleaseDetails AS resourceReleases WHERE id = ?',
+        )
         .get(divisionReleaseId) as { datasetId: string }
       seedSnapshot(sqlite, {
         code: 'ss-hk-division-2026-06-17.0',
@@ -261,7 +255,6 @@ test('requires retained processing audits for Addresses and Places before publis
       await upsertSnapshotSource(
         db,
         supplementarySnapshot.id,
-        'overture-hk-place',
         supplementaryRelease.resourceReleaseId,
         'primary',
       )
@@ -354,8 +347,8 @@ test('requires retained processing audits for Addresses and Places before publis
       ).rejects.toThrow('supplementary Address dependency')
       const supplementaryReleaseId = `supplementary-${resourceReleaseId}`
       sqlite
-        .query(`INSERT INTO resourceReleases (id, sourceReleaseId, datasetId, code, resourceType, status, createdAt, updatedAt)
-        SELECT ?, sourceReleaseId, datasetId, ?, 'address', 'current', createdAt, updatedAt FROM resourceReleases WHERE id = ?`)
+        .query(`INSERT INTO resourceReleases (id, sourceReleaseId, code, resourceType, status, createdAt, updatedAt)
+        SELECT ?, sourceReleaseId, ?, 'address', 'current', createdAt, updatedAt FROM resourceReleaseDetails AS resourceReleases WHERE id = ?`)
         .run(supplementaryReleaseId, `supplementary-${releaseCode}`, resourceReleaseId)
       const supplementary = await ensureDraftSnapshotForRelease(db, 'address', {
         cohortKey: '2026-06',
@@ -368,25 +361,17 @@ test('requires retained processing audits for Addresses and Places before publis
       await upsertSnapshotSource(
         db,
         supplementary.id,
-        datasetId,
         supplementaryReleaseId,
         'primary',
         { anchorReleaseId: resourceReleaseId },
       )
       seedSnapshotAssembly(sqlite, supplementary.id)
       await publishSnapshot(db, supplementary.id)
-      await upsertSnapshotSource(
-        db,
-        snapshotId,
-        datasetId,
-        supplementaryReleaseId,
-        'lookup',
-        {
-          selectedByRule:
-            'api-composition:places/overture:place/overture->address/overture-places',
-          selectionMode: 'exact_ref',
-        },
-      )
+      await upsertSnapshotSource(db, snapshotId, supplementaryReleaseId, 'lookup', {
+        selectedByRule:
+          'api-composition:places/overture:place/overture->address/overture-places',
+        selectionMode: 'exact_ref',
+      })
       await recordPlaceAddressAssembly(db, {
         snapshotId,
         resourceType: 'place',
@@ -451,7 +436,7 @@ test('requires retained processing audits for Addresses and Places before publis
         `
           SELECT arss.apiReleaseSetId AS apiReleaseSetId, ss.datasetId AS datasetId
           FROM apiReleaseSetSnapshots arss
-          INNER JOIN snapshotResourceReleases ss ON ss.snapshotId = arss.snapshotId
+          INNER JOIN snapshotResourceReleaseDetails ss ON ss.snapshotId = arss.snapshotId
           WHERE arss.snapshotId = ? AND ss.role = 'primary'
           LIMIT 1
         `,

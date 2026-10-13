@@ -184,7 +184,6 @@ export async function syncStagedReleaseIntoLocalMetaCache(
         .values({
           id: release.resourceReleaseId,
           sourceReleaseId,
-          datasetId: dataset.id,
           code: release.releaseCode,
           resourceType: plan.resourceType,
 
@@ -202,7 +201,6 @@ export async function syncStagedReleaseIntoLocalMetaCache(
           target: metaResourceReleases.code,
           set: {
             sourceReleaseId,
-            datasetId: dataset.id,
             resourceType: plan.resourceType,
 
             processingRules,

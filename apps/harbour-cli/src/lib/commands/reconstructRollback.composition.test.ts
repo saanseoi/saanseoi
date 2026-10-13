@@ -30,7 +30,6 @@ async function composedFixture() {
     insert(f.meta, 'resourceReleases', {
       id: `release-address-${name}`,
       sourceReleaseId: `source-${name}`,
-      datasetId: 'dataset',
       code: `release-address-${name}`,
       resourceType: 'address',
       status: 'current',
@@ -48,7 +47,6 @@ async function composedFixture() {
     })
     insert(f.meta, 'snapshotResourceReleases', {
       snapshotId: `address-a-${name}`,
-      datasetId: 'dataset',
       resourceReleaseId: `release-address-${name}`,
       role: 'primary',
     })

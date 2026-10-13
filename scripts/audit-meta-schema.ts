@@ -9,9 +9,9 @@ const rows = (sql: string) => db.query(sql).all()
 const repairs = [
   // Release ownership is authoritative; never infer dataset identity from an R2 key.
   `UPDATE assets AS a SET datasetId = (
-    SELECT r.datasetId FROM resourceReleases r WHERE r.id = a.resourceReleaseId
+    SELECT r.datasetId FROM resourceReleaseDetails r WHERE r.id = a.resourceReleaseId
   ) WHERE a.datasetId IS NULL AND EXISTS (
-    SELECT 1 FROM resourceReleases r WHERE r.id = a.resourceReleaseId
+    SELECT 1 FROM resourceReleaseDetails r WHERE r.id = a.resourceReleaseId
   );`,
   `UPDATE assets AS a SET datasetId = (
     SELECT source.datasetId FROM assets source WHERE source.id = a.sourceAssetId
@@ -43,7 +43,7 @@ const report = {
     ) ORDER BY a.id`),
   assetDatasetMismatches:
     rows(`SELECT a.id, a.datasetId, r.datasetId AS releaseDatasetId
-    FROM assets a JOIN resourceReleases r ON r.id = a.resourceReleaseId
+    FROM assets a JOIN resourceReleaseDetails r ON r.id = a.resourceReleaseId
     WHERE a.datasetId IS NOT NULL AND a.datasetId != r.datasetId`),
   datasets: rows(
     `SELECT code, sourceCrs, processingRules IS NOT NULL AS hasProcessingRules FROM datasets ORDER BY code`,
@@ -60,7 +60,7 @@ const report = {
     s.processingRules IS NULL AS missingProcessingRules FROM sourceReleases s
     WHERE NOT EXISTS (SELECT 1 FROM assets a WHERE a.sourceReleaseId = s.id AND a.role = 'releaseSourceArchive') OR s.processingRules IS NULL ORDER BY s.code`),
   resourceDatasetMismatches:
-    rows(`SELECT r.code FROM resourceReleases r JOIN sourceReleases s
+    rows(`SELECT r.code FROM resourceReleaseDetails r JOIN sourceReleases s
     ON s.id = r.sourceReleaseId WHERE s.datasetId != r.datasetId`),
   incompletePublishedSources:
     rows(`SELECT s.code, expected.value AS missingResource FROM sourceReleases s,

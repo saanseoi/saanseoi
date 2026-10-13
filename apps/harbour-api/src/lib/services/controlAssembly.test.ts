@@ -24,8 +24,8 @@ test('Place publication requires an exact completed supplementary dependency', a
       createdAt TEXT NOT NULL DEFAULT '2026-01-01T00:00:00.000Z',
       updatedAt TEXT NOT NULL DEFAULT '2026-01-01T00:00:00.000Z'
     );
-    CREATE TABLE snapshotResourceReleases(snapshotId TEXT, datasetId TEXT, resourceReleaseId TEXT, role TEXT,
-      selectedByRule TEXT, selectionMode TEXT, anchorReleaseId TEXT, sourceCohortKey TEXT, createdAt TEXT);
+    CREATE TABLE snapshotResourceReleases(snapshotId TEXT, resourceReleaseId TEXT, role TEXT,
+      selectedByRule TEXT, selectionMode TEXT, anchorReleaseId TEXT, createdAt TEXT);
     INSERT INTO snapshotLineages (id,variant) VALUES ('lineage','overture-places');
 INSERT OR IGNORE INTO snapshotLineages (id,code,resourceType,regionCode,variant,identityMode,versionHash,createdAt,updatedAt) VALUES ('lineage','lineage','address','hk','default','persistent','fixture','2026-01-01T00:00:00.000Z','2026-01-01T00:00:00.000Z');
 UPDATE snapshotLineages SET resourceType='address' WHERE id='lineage' AND resourceType IS NULL;

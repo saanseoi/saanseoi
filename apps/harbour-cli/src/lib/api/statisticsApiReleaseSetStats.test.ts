@@ -1,3 +1,4 @@
+import { releaseFixtureSchemaSql } from '../../../../../libs/core/src/testing/releaseFixtures'
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { drizzle } from 'drizzle-orm/bun-sqlite'
@@ -133,6 +134,10 @@ test('frozen history follows sparse ancestry for no-op reissues and exact defini
       metaSchema.metaSnapshotShardAssignments,
       metaSchema.metaDataShards,
     ])
+    meta.exec(releaseFixtureSchemaSql())
+    meta.exec(
+      "INSERT INTO sourceReleases(id,datasetId) VALUES ('source','dataset'); INSERT INTO resourceReleases(id,sourceReleaseId) VALUES ('new-source','source');",
+    )
     createTables(history, [
       historySchema.statsRecords,
       historySchema.statsDefinitionSets,
@@ -149,7 +154,7 @@ INSERT INTO snapshots (id, snapshotLineageId, parentSnapshotId) VALUES
 ('base', 'fixture-lineage-' || 'base', NULL),
 ('reissue', 'fixture-lineage-' || 'reissue', 'base');
       INSERT INTO datasets (id,code) VALUES ('dataset','a');
-      INSERT INTO snapshotResourceReleases (snapshotId,datasetId,resourceReleaseId,role) VALUES ('reissue','dataset','new-source','primary');`)
+      INSERT INTO snapshotResourceReleases (snapshotId,resourceReleaseId,role) VALUES ('reissue','new-source','primary');`)
     history.exec(`INSERT INTO statsDefinitionSets (id,fieldDefinitionHashes) VALUES
       ('definitions-f1','{"population":"f1"}'),('definitions-f2','{"population":"f2"}'),('definitions-empty','{}');
       INSERT INTO statsRecords (id,datasetCode,sourceReleaseId,referencePeriodCode,"values",geography,isCurrent,versionHash,definitionSetId,fieldSources) VALUES

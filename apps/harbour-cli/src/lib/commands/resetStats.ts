@@ -54,7 +54,7 @@ function resetReadContext(
 
 const TYPES = "('divisionStatistic')"
 const GEOMETRY_TYPES = "('division', 'divisionArea', 'divisionBoundary')"
-const RELEASES = `SELECT id FROM resourceReleases WHERE resourceType IN ${TYPES} OR (resourceType IN ${GEOMETRY_TYPES} AND datasetId IN (SELECT id FROM datasets WHERE theme = 'stats'))`
+const RELEASES = `SELECT id FROM resourceReleaseDetails AS resourceReleases WHERE resourceType IN ${TYPES} OR (resourceType IN ${GEOMETRY_TYPES} AND datasetId IN (SELECT id FROM datasets WHERE theme = 'stats'))`
 // Lookup sources are dependencies, not contributions owned by the dataset.
 const SNAPSHOTS = `SELECT id FROM snapshots WHERE snapshotLineageId IN (SELECT id FROM snapshotLineages WHERE resourceType IN ${TYPES}) OR (snapshotLineageId IN (SELECT id FROM snapshotLineages WHERE resourceType IN ${GEOMETRY_TYPES}) AND id IN (SELECT snapshotId FROM snapshotResourceReleases WHERE resourceReleaseId IN (${RELEASES}) AND role <> 'lookup'))`
 const CANONICAL_TABLES = [

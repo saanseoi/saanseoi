@@ -25,7 +25,7 @@ INSERT INTO snapshots (id, snapshotLineageId, code, cohortKey, status) VALUES
 ('snapshot', 'lineage', 'snapshot', '2025', 'draft');
       INSERT INTO snapshotRecipes (id, code, resourceType, version, versionHash) VALUES ('assembly', 'assembly', 'division', 1, 'hash');
       INSERT INTO snapshotAssemblies (id, snapshotId, snapshotRecipeId) VALUES ('run', 'snapshot', 'assembly');
-      INSERT INTO snapshotResourceReleases (snapshotId, datasetId, resourceReleaseId, role) VALUES ('snapshot', 'dataset', 'release', 'primary');
+      INSERT INTO snapshotResourceReleases (snapshotId, resourceReleaseId, role) VALUES ('snapshot', 'release', 'primary');
       INSERT INTO releaseShardAssignments VALUES ('release', 'shard');
       INSERT INTO snapshotShardAssignments VALUES ('snapshot', 'shard');
       INSERT INTO stats (id, resourceReleaseId, category, measure, unit, value) VALUES

@@ -590,7 +590,9 @@ describe('upload', () => {
 
     const sqliteCheck = new Database(dbPath)
     const dataset = sqliteCheck
-      .query('SELECT code AS datasetId, status FROM resourceReleases WHERE code = ?')
+      .query(
+        'SELECT code AS datasetId, status FROM resourceReleaseDetails AS resourceReleases WHERE code = ?',
+      )
       .get('dr-hk-overture-division-2026-05-20.0') as {
       datasetId: string
       status: string
@@ -608,7 +610,7 @@ describe('upload', () => {
       SELECT (SELECT definition FROM processingRuleDefinitions WHERE id = s.processingRules) AS sourceRules,
         (SELECT definition FROM processingRuleDefinitions WHERE id = r.processingRules) AS resourceRules,
         (SELECT definition FROM processingRuleDefinitions WHERE id = d.processingRules) AS datasetRules
-      FROM resourceReleases r JOIN sourceReleases s ON s.id = r.sourceReleaseId
+      FROM resourceReleaseDetails r JOIN sourceReleases s ON s.id = r.sourceReleaseId
       JOIN datasets d ON d.id = r.datasetId WHERE r.code = ?
     `)
       .get(result.plan.releaseCode) as {
@@ -834,7 +836,9 @@ describe('upload', () => {
     })
 
     const dataset = sqlite
-      .query('SELECT code AS datasetId FROM resourceReleases WHERE code = ?')
+      .query(
+        'SELECT code AS datasetId FROM resourceReleaseDetails AS resourceReleases WHERE code = ?',
+      )
       .get('dr-hk-overture-division-2026-05-20.0') as {
       datasetId: string
       rawObjectKey: string
@@ -909,7 +913,7 @@ describe('upload', () => {
       .query(
         `
           SELECT d.code AS datasetCode, r.code AS releaseCode, r.status AS status
-          FROM resourceReleases r
+          FROM resourceReleaseDetails r
           JOIN datasets d ON d.id = r.datasetId
           WHERE r.code = ?
         `,
@@ -964,7 +968,7 @@ describe('upload', () => {
 
     const dataset = sqlite
       .query(
-        `SELECT code AS datasetId, status, (SELECT definition FROM processingRuleDefinitions WHERE id = resourceReleases.processingRules) AS processingRules FROM resourceReleases WHERE code = ?`,
+        `SELECT code AS datasetId, status, (SELECT definition FROM processingRuleDefinitions WHERE id = resourceReleases.processingRules) AS processingRules FROM resourceReleaseDetails AS resourceReleases WHERE code = ?`,
       )
       .get('dr-hk-overture-division-2026-05-20.0') as {
       datasetId: string

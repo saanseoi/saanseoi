@@ -83,8 +83,8 @@ INSERT INTO snapshots(id, snapshotLineageId, code, cohortKey, status) VALUES
       INSERT INTO datasets(id,publisherId,code,regionCode,releaseType,releaseFrequency,theme,versionHash) VALUES ('als','publisher','als','hk','snapshot','daily','address','hash');
       INSERT INTO sourceReleases(id,datasetId,code,sourceVersion,cohortKey,status) VALUES ('als-source','als','als-source','2026','2026','current');
       INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status, cohortKey) VALUES ('als-source', 'als', 'source-' || 'als-release', '2026', 'current', '2026');
-UPDATE sourceReleases SET sourceVersion = '2026', cohortKey = '2026' WHERE id = 'als-source';
-INSERT INTO resourceReleases (id, sourceReleaseId, datasetId, resourceType, code, status) VALUES ('als-release', 'als-source', 'als', 'address', 'als-release', 'current');
+UPDATE sourceReleases SET datasetId = 'als', sourceVersion = '2026', cohortKey = '2026' WHERE id = 'als-source';
+INSERT INTO resourceReleases (id, sourceReleaseId, resourceType, code, status) VALUES ('als-release', 'als-source', 'address', 'als-release', 'current');
       INSERT INTO apiVersions(id,code,familyType,version,status,versionHash) VALUES ('places-api','places-api','places','v0','current','hash');
       INSERT INTO apiReleaseSets(id,code,schemaVersion,rulesetVersion,versionHash) VALUES ('places','places','v1','v1','hash');
       INSERT INTO apiVersionReleaseSets(id,apiVersionId,apiReleaseSetId,status,versionHash) VALUES ('places-version','places-api','places','current','hash');
@@ -95,8 +95,8 @@ INSERT INTO resourceReleases (id, sourceReleaseId, datasetId, resourceType, code
       'Other snapshots retain official Address assembly dependencies',
     ])
     f.meta.exec(`
-      INSERT INTO snapshotResourceReleases(snapshotId,datasetId,resourceReleaseId,role,selectedByRule,selectionMode)
-        VALUES ('place','als','als-release','lookup','rule','exact_ref');
+      INSERT INTO snapshotResourceReleases(snapshotId,resourceReleaseId,role,selectedByRule,selectionMode)
+        VALUES ('place','als-release','lookup','rule','exact_ref');
       INSERT INTO apiReleaseSetSnapshots(apiReleaseSetId,snapshotId,role,variant,cohortMatchingMode,isRequired)
         VALUES ('places','address-204','lookup','default','exact',1);
     `)

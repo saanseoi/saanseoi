@@ -19,8 +19,11 @@ function fixture() {
       id TEXT PRIMARY KEY, publisherId TEXT, code TEXT, regionCode TEXT, sourceVariant TEXT
     );
     CREATE TABLE resourceReleases (
-      id TEXT PRIMARY KEY, datasetId TEXT, resourceType TEXT, status TEXT
+      id TEXT PRIMARY KEY, sourceReleaseId TEXT, resourceType TEXT, status TEXT
     );
+    CREATE TABLE sourceReleases(id TEXT PRIMARY KEY,datasetId TEXT);
+    CREATE VIEW resourceReleaseDetails AS SELECT r.*,s.datasetId FROM resourceReleases r JOIN sourceReleases s ON s.id=r.sourceReleaseId;
+    CREATE VIEW snapshotResourceReleaseDetails AS SELECT m.*,r.datasetId FROM snapshotResourceReleases m JOIN resourceReleaseDetails r ON r.id=m.resourceReleaseId;
     CREATE TABLE snapshotLineages (
       id TEXT PRIMARY KEY,
       code TEXT UNIQUE,
@@ -44,7 +47,7 @@ function fixture() {
       createdAt TEXT
     );
     CREATE TABLE snapshotResourceReleases (
-      snapshotId TEXT, datasetId TEXT, resourceReleaseId TEXT, role TEXT
+      snapshotId TEXT, resourceReleaseId TEXT, role TEXT
     );
     CREATE TABLE apiReleaseSets (id TEXT PRIMARY KEY);
     CREATE TABLE apiVersionReleaseSets (apiReleaseSetId TEXT, status TEXT);
@@ -56,6 +59,7 @@ function fixture() {
     sqlite
       .query('INSERT INTO datasets VALUES (?, ?, ?, ?, ?)')
       .run(id, 'publisher', `ds-${region}-${id}`, region, variant)
+    sqlite.query('INSERT INTO sourceReleases VALUES (?,?)').run(id, id)
   }
   const addRelease = (
     id: string,
@@ -70,7 +74,7 @@ function fixture() {
   const addSource = (snapshot: string, release: string, role = 'primary') => {
     sqlite
       .query(`INSERT INTO snapshotResourceReleases
-        SELECT ?, datasetId, id, ? FROM resourceReleases WHERE id = ?`)
+        SELECT ?, id, ? FROM resourceReleaseDetails AS resourceReleases WHERE id = ?`)
       .run(snapshot, role, release)
   }
   const addSnapshot = (

@@ -24,7 +24,7 @@ export function buildRollbackMetadataGuard(
   for (const [table, where] of [
     [
       'resourceReleases',
-      `id=${lit(input.resourceReleaseId)} OR (supersededByResourceReleaseId=${lit(input.resourceReleaseId)} AND datasetId=${lit(input.datasetId)})`,
+      `id=${lit(input.resourceReleaseId)} OR (supersededByResourceReleaseId=${lit(input.resourceReleaseId)} AND sourceReleaseId IN (SELECT id FROM sourceReleases WHERE datasetId=${lit(input.datasetId)}))`,
     ],
     ['apiVersions', `id=${lit(input.apiVersionId)}`],
     ['apiCatalogRevisions', `id=${lit(input.catalogId)}`],

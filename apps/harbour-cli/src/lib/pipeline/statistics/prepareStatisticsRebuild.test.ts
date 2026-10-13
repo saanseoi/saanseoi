@@ -70,7 +70,7 @@ function fixture() {
       status TEXT,
       createdAt TEXT
     );
-    CREATE TABLE snapshotResourceReleases (snapshotId TEXT, resourceReleaseId TEXT, datasetId TEXT, role TEXT);
+    CREATE TABLE snapshotResourceReleases (snapshotId TEXT, resourceReleaseId TEXT, role TEXT);
     CREATE TABLE dataShards (id TEXT, bindingName TEXT);
     CREATE TABLE snapshotShardAssignments (snapshotId TEXT, dataShardId TEXT);
     CREATE TABLE apiVersions (id TEXT, familyType TEXT);
@@ -103,7 +103,7 @@ function fixture() {
       createdAt: now,
     })
     meta
-      .query('INSERT INTO snapshotResourceReleases VALUES (?, ?, ?, ?)')
+      .query('INSERT INTO snapshotResourceReleases VALUES (?1, ?2, ?4)')
       .run(snapshot, release, 'dataset', 'primary')
     meta
       .query('INSERT INTO snapshotShardAssignments VALUES (?, ?)')

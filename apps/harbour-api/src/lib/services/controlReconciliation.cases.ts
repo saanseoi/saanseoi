@@ -172,8 +172,8 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
       'sr-${hadArea.releaseCode}', '2022', '2022', 'staged'
     );
     INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status, cohortKey) VALUES ('${hadArea.resourceReleaseId}', 'hkgov-had-hk-district', 'source-' || '${hadArea.releaseCode}', '2022', 'staged', '2022');
-UPDATE sourceReleases SET sourceVersion = '2022', cohortKey = '2022' WHERE id = '${hadArea.resourceReleaseId}';
-INSERT INTO resourceReleases (id, sourceReleaseId, datasetId, resourceType, code, status, ingestedAt, createdAt, updatedAt) VALUES ('${hadArea.resourceReleaseId}', '${hadArea.resourceReleaseId}', 'hkgov-had-hk-district', 'divisionArea', '${hadArea.releaseCode}', 'staged', '2026-06-05T00:01:00.000Z', '2026-06-05T00:01:00.000Z', '2026-06-05T00:01:00.000Z');
+UPDATE sourceReleases SET datasetId = 'hkgov-had-hk-district', sourceVersion = '2022', cohortKey = '2022' WHERE id = '${hadArea.resourceReleaseId}';
+INSERT INTO resourceReleases (id, sourceReleaseId, resourceType, code, status, ingestedAt, createdAt, updatedAt) VALUES ('${hadArea.resourceReleaseId}', '${hadArea.resourceReleaseId}', 'divisionArea', '${hadArea.releaseCode}', 'staged', '2026-06-05T00:01:00.000Z', '2026-06-05T00:01:00.000Z', '2026-06-05T00:01:00.000Z');
   `)
 
   sqlite.exec(`
@@ -293,8 +293,8 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
       );
 
       INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status, sourceSchemaVersion, cohortKey) VALUES ('${resourceReleaseId}', 'hkgov-censtatd-hk-district', 'source-' || 'dr-hk-hkgov-censtatd-division-area-district-${year}', '${year}', 'current', '1.0', '${year}');
-UPDATE sourceReleases SET sourceVersion = '${year}', sourceSchemaVersion = '1.0', cohortKey = '${year}' WHERE id = '${resourceReleaseId}';
-INSERT INTO resourceReleases (id, sourceReleaseId, datasetId, resourceType, code, status, ingestedAt, createdAt, updatedAt) VALUES ('${resourceReleaseId}', '${resourceReleaseId}', 'hkgov-censtatd-hk-district', 'divisionArea', 'dr-hk-hkgov-censtatd-division-area-district-${year}', 'current', '2026-06-05T00:01:00.000Z', '2026-06-05T00:01:00.000Z', '2026-06-05T00:01:00.000Z');
+UPDATE sourceReleases SET datasetId = 'hkgov-censtatd-hk-district', sourceVersion = '${year}', sourceSchemaVersion = '1.0', cohortKey = '${year}' WHERE id = '${resourceReleaseId}';
+INSERT INTO resourceReleases (id, sourceReleaseId, resourceType, code, status, ingestedAt, createdAt, updatedAt) VALUES ('${resourceReleaseId}', '${resourceReleaseId}', 'divisionArea', 'dr-hk-hkgov-censtatd-division-area-district-${year}', 'current', '2026-06-05T00:01:00.000Z', '2026-06-05T00:01:00.000Z', '2026-06-05T00:01:00.000Z');
 
       INSERT INTO snapshotLineages (
         id, code, regionCode, resourceType, variant, identityMode,
@@ -330,8 +330,8 @@ INSERT INTO resourceReleases (id, sourceReleaseId, datasetId, resourceType, code
     );
 
     INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status, sourceSchemaVersion, cohortKey) VALUES ('release-dr-hk-hkgov-censtatd-division-area-district-annual-2024', 'hkgov-censtatd-hk-district-annual', 'source-' || 'dr-hk-hkgov-censtatd-division-area-district-annual-2024', '2024', 'current', '1.0', '2024');
-UPDATE sourceReleases SET sourceVersion = '2024', sourceSchemaVersion = '1.0', cohortKey = '2024' WHERE id = 'release-dr-hk-hkgov-censtatd-division-area-district-annual-2024';
-INSERT INTO resourceReleases (id, sourceReleaseId, datasetId, resourceType, code, status, ingestedAt, createdAt, updatedAt) VALUES ('release-dr-hk-hkgov-censtatd-division-area-district-annual-2024', 'release-dr-hk-hkgov-censtatd-division-area-district-annual-2024', 'hkgov-censtatd-hk-district-annual', 'divisionArea', 'dr-hk-hkgov-censtatd-division-area-district-annual-2024', 'current', '2026-06-05T00:01:00.000Z', '2026-06-05T00:01:00.000Z', '2026-06-05T00:01:00.000Z');
+UPDATE sourceReleases SET datasetId = 'hkgov-censtatd-hk-district-annual', sourceVersion = '2024', sourceSchemaVersion = '1.0', cohortKey = '2024' WHERE id = 'release-dr-hk-hkgov-censtatd-division-area-district-annual-2024';
+INSERT INTO resourceReleases (id, sourceReleaseId, resourceType, code, status, ingestedAt, createdAt, updatedAt) VALUES ('release-dr-hk-hkgov-censtatd-division-area-district-annual-2024', 'release-dr-hk-hkgov-censtatd-division-area-district-annual-2024', 'divisionArea', 'dr-hk-hkgov-censtatd-division-area-district-annual-2024', 'current', '2026-06-05T00:01:00.000Z', '2026-06-05T00:01:00.000Z', '2026-06-05T00:01:00.000Z');
     INSERT INTO snapshotLineages (
       id, code, regionCode, resourceType, variant, identityMode,
       primaryDatasetId, versionHash, createdAt, updatedAt
@@ -375,7 +375,7 @@ INSERT INTO resourceReleases (id, sourceReleaseId, datasetId, resourceType, code
     'snapshot-release-dr-hk-hkgov-censtatd-division-area-district-2021'
   sqlite
     .query(
-      'INSERT INTO snapshotResourceReleases (snapshotId, datasetId, resourceReleaseId, role) VALUES (?, ?, ?, ?)',
+      'INSERT INTO snapshotResourceReleases (snapshotId, resourceReleaseId, role) VALUES (?1, ?3, ?4)',
     )
     .run(
       finalSnapshotId,

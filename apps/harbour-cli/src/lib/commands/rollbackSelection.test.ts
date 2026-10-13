@@ -102,7 +102,6 @@ test('rollback preserves an independent publication that only references the rel
   try {
     insert(f.meta, 'snapshotResourceReleases', {
       snapshotId: 'snapshot-other',
-      datasetId: 'dataset',
       resourceReleaseId: 'release-new',
       role: 'lookup',
     })

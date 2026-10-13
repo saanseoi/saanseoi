@@ -121,7 +121,10 @@ Explicitly recorded translations are individual curations; absent origin metadat
 origin unrecorded, regardless of the verification flag.
 
 Every materialised reference period retains an assembly run pinned to its source
-release. Recipes and source rules accompany remote metadata replay under the
+release. `snapshots.cohortKey` identifies that reference period, while
+`sourceReleases.cohortKey` identifies the publisher cohort. Snapshot membership pins the
+resource release without copying either value. Recipes and source rules accompany remote
+metadata replay under the
 [assembly provenance contract](../../pipeline.md#snapshot-assembly-provenance).
 
 The D1 registration identifies the retained manifest and completed or failed attempt.

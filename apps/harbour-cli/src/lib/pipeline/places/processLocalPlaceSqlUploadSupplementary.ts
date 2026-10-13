@@ -551,9 +551,9 @@ async function prepareSupplementaryAddressesLocked(
   const releaseCode = `dr-${input.plan.regionCode}-overture-place-address-${input.plan.sourceVersion}`
   const existingRelease = (await db
     .select()
-    .from(metaSchema.metaResourceReleases)
-    .where(eq(metaSchema.metaResourceReleases.code, releaseCode))
-    .get()) as typeof metaSchema.metaResourceReleases.$inferSelect | undefined
+    .from(metaSchema.metaResourceReleaseDetails)
+    .where(eq(metaSchema.metaResourceReleaseDetails.code, releaseCode))
+    .get()) as typeof metaSchema.metaResourceReleaseDetails.$inferSelect | undefined
   const resourceReleaseId =
     existingRelease?.id ?? buildDeterministicUuidV5(namespace, releaseCode)
   const sourceReleaseId = parentRelease.sourceReleaseId
@@ -580,7 +580,6 @@ async function prepareSupplementaryAddressesLocked(
   const release = {
     ...parentRelease,
     id: resourceReleaseId,
-    datasetId,
     sourceReleaseId,
     code: releaseCode,
     resourceType: 'address' as const,
@@ -742,19 +741,11 @@ async function prepareSupplementaryAddressesLocked(
     })
   } else {
     // Each supplementary snapshot is a complete map, including an empty accepted set.
-    await upsertSnapshotSource(
-      db,
-      snapshot.id,
-      datasetId,
-      resourceReleaseId,
-      'primary',
-      {
-        anchorReleaseId: input.resourceReleaseId,
-        selectedByRule: 'overture-place-address-curation',
-        selectionMode: 'exact_ref',
-        sourceCohortKey: input.plan.cohortKey,
-      },
-    )
+    await upsertSnapshotSource(db, snapshot.id, resourceReleaseId, 'primary', {
+      anchorReleaseId: input.resourceReleaseId,
+      selectedByRule: 'overture-place-address-curation',
+      selectionMode: 'exact_ref',
+    })
     await recordSnapshotLookupDependency(db, {
       snapshotId: snapshot.id,
       anchorReleaseId: input.resourceReleaseId,

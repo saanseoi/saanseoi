@@ -23,8 +23,8 @@ test('source-only completion requires both archives, ingestion evidence and reta
       CREATE TABLE processingAudits(resourceReleaseId TEXT,ownerId TEXT,stage TEXT,attemptStatus TEXT);
       CREATE TABLE assets(sourceReleaseId TEXT,resourceReleaseId TEXT,role TEXT,byteLength INTEGER,contentHash TEXT);
       INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status) VALUES ('edition', 'dataset', 'source-' || 'release', '2026-10-01.1', 'current');
-UPDATE sourceReleases SET sourceVersion = '2026-10-01.1' WHERE id = 'edition';
-INSERT INTO resourceReleases (id, datasetId, sourceReleaseId, code, resourceType, status) VALUES ('release', 'dataset', 'edition', 'release', 'division', 'current');
+UPDATE sourceReleases SET datasetId = 'dataset', sourceVersion = '2026-10-01.1' WHERE id = 'edition';
+INSERT INTO resourceReleases (id, sourceReleaseId, code, resourceType, status) VALUES ('release', 'edition', 'release', 'division', 'current');
       INSERT INTO datasets VALUES ('dataset','ds-hk-protomaps-island');
       INSERT INTO processingAudits VALUES ('release','release','ingestion','completed');
       INSERT INTO assets VALUES ('edition',NULL,'releaseSourceArchive',10,'hash');

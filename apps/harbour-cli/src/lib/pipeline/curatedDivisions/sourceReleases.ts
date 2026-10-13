@@ -100,19 +100,11 @@ export async function retainCuratedSourceReleases(
     resolved.push({ release, source })
   }
   for (const { release, source } of resolved)
-    await upsertSnapshotSource(
-      db,
-      snapshotId,
-      release.datasetId,
-      release.id,
-      'enrichment',
-      {
-        anchorReleaseId,
-        selectedByRule: 'provenance:curated-division:build-inputs:v1',
-        selectionMode: 'exact_ref',
-        sourceCohortKey: source.sourceVersion,
-      },
-    )
+    await upsertSnapshotSource(db, snapshotId, release.id, 'enrichment', {
+      anchorReleaseId,
+      selectedByRule: 'provenance:curated-division:build-inputs:v1',
+      selectionMode: 'exact_ref',
+    })
 }
 
 export function curatedInventorySnapshots(sources: CuratedSourceRelease[] | undefined) {

@@ -1,3 +1,4 @@
+import { metaSnapshotResourceReleaseDetails } from '@repo/db/metaSchema'
 import {
   and,
   desc,
@@ -97,19 +98,19 @@ export async function resolvePublicationSelections(meta: HarbourReadableDb) {
         eq(metaSnapshots.snapshotLineageId, metaSnapshotLineages.id),
       )
       .innerJoin(
-        metaSnapshotResourceReleases,
-        eq(metaSnapshots.id, metaSnapshotResourceReleases.snapshotId),
+        metaSnapshotResourceReleaseDetails,
+        eq(metaSnapshots.id, metaSnapshotResourceReleaseDetails.snapshotId),
       )
       .innerJoin(
         metaDatasets,
-        eq(metaDatasets.id, metaSnapshotResourceReleases.datasetId),
+        eq(metaDatasets.id, metaSnapshotResourceReleaseDetails.datasetId),
       )
       .where(
         and(
           eq(metaSnapshotLineages.resourceType, 'street'),
           eq(metaSnapshots.status, 'published'),
           eq(metaDatasets.regionCode, region),
-          eq(metaSnapshotResourceReleases.role, 'primary'),
+          eq(metaSnapshotResourceReleaseDetails.role, 'primary'),
         ),
       )
       .orderBy(desc(metaSnapshots.publishedAt), desc(metaSnapshots.createdAt))

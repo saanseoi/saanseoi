@@ -11,11 +11,13 @@ publisher version labels. The first release counts all retained Places as added.
 Processing runs, reusable rule mappings and counts-only curation evidence follow the
 [shared processing contract](../pipeline.md#processing-stages-and-retained-evidence).
 
-Place construction records its concrete source releases in `snapshotResourceReleases`,
+Place construction records its concrete resource releases in `snapshotResourceReleases`,
 its effective recipe through `snapshotAssemblies` and `snapshotRecipes`, and exact
 Address, Division, DivisionArea and supplementary Address selections in
 `snapshotDependencies`. Address analysis must resolve every identity review before
-materialising supplementary Addresses or recording the final Place assembly.
+materialising supplementary Addresses or recording the final Place assembly. Source
+cohorts come from each selected resource release's parent `sourceReleases` row; lookup
+cohorts come from the pinned dependency snapshots.
 
 Automatic Place normalisation and Address matching retain rules and aggregate counts.
 Individual audit entries require record-specific fixture decisions; matching additional

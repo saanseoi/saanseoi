@@ -180,7 +180,6 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
         await upsertSnapshotSource(
           metaDb,
           snapshot.id,
-          dataset.datasetId,
           dataset.resourceReleaseId,
           PLANNING_DIVISION_SNAPSHOT_SOURCE_ROLE,
           {
@@ -190,7 +189,6 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
                 ? 'assembly:division:pland-new-towns:v1'
                 : 'assembly:division:pland-planning-units:v1',
             selectionMode: 'exact_ref',
-            sourceCohortKey: dataset.cohortKey,
           },
         )
         await recordSnapshotAssembly(metaDb, {

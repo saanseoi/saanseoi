@@ -995,17 +995,17 @@ async function resolveAlsSourceReleases(
   try {
     const rows = await dbContext.metaDb
       .select({ cohortKey: metaSchema.metaSnapshots.cohortKey })
-      .from(metaSchema.metaSnapshotResourceReleases)
+      .from(metaSchema.metaSnapshotResourceReleaseDetails)
       .innerJoin(
         metaSchema.metaResourceReleaseDetails,
         and(
           eq(
             metaSchema.metaResourceReleaseDetails.id,
-            metaSchema.metaSnapshotResourceReleases.resourceReleaseId,
+            metaSchema.metaSnapshotResourceReleaseDetails.resourceReleaseId,
           ),
           eq(
             metaSchema.metaResourceReleaseDetails.datasetId,
-            metaSchema.metaSnapshotResourceReleases.datasetId,
+            metaSchema.metaSnapshotResourceReleaseDetails.datasetId,
           ),
         ),
       )
@@ -1013,14 +1013,14 @@ async function resolveAlsSourceReleases(
         metaSchema.metaDatasets,
         eq(
           metaSchema.metaDatasets.id,
-          metaSchema.metaSnapshotResourceReleases.datasetId,
+          metaSchema.metaSnapshotResourceReleaseDetails.datasetId,
         ),
       )
       .innerJoin(
         metaSchema.metaSnapshots,
         eq(
           metaSchema.metaSnapshots.id,
-          metaSchema.metaSnapshotResourceReleases.snapshotId,
+          metaSchema.metaSnapshotResourceReleaseDetails.snapshotId,
         ),
       )
       .innerJoin(
@@ -1042,7 +1042,7 @@ async function resolveAlsSourceReleases(
           eq(metaSchema.metaSnapshots.status, 'published'),
           eq(metaSchema.metaSnapshotLineages.regionCode, 'hk'),
           eq(metaSchema.metaSnapshotLineages.variant, 'overture'),
-          eq(metaSchema.metaSnapshotResourceReleases.role, 'primary'),
+          eq(metaSchema.metaSnapshotResourceReleaseDetails.role, 'primary'),
         ),
       )
       .all()

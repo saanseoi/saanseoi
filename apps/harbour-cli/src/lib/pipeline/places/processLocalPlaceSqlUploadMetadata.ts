@@ -35,14 +35,12 @@ export async function upsertPlaceMetadata(
   await upsertSnapshotSource(
     metaDb,
     snapshots.snapshotId,
-    datasetId,
     resourceReleaseId,
     'primary',
     {
       anchorReleaseId: resourceReleaseId,
       selectedByRule: 'snapshot-assembly-places-overture-v1',
       selectionMode: 'exact_ref',
-      sourceCohortKey: plan.cohortKey,
     },
   )
   await recordPlaceAddressAssembly(metaDb, {

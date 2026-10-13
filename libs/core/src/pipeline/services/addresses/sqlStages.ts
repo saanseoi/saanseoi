@@ -464,13 +464,11 @@ export async function buildAddressMetaSqlFile(
   const snapshotSourceRows = await metaDb
     .select({
       snapshotId: metaSnapshotResourceReleases.snapshotId,
-      datasetId: metaSnapshotResourceReleases.datasetId,
       resourceReleaseId: metaSnapshotResourceReleases.resourceReleaseId,
       role: metaSnapshotResourceReleases.role,
       selectedByRule: metaSnapshotResourceReleases.selectedByRule,
       selectionMode: metaSnapshotResourceReleases.selectionMode,
       anchorReleaseId: metaSnapshotResourceReleases.anchorReleaseId,
-      sourceCohortKey: metaSnapshotResourceReleases.sourceCohortKey,
       createdAt: metaSnapshotResourceReleases.createdAt,
     })
     .from(metaSnapshotResourceReleases)
@@ -597,23 +595,19 @@ export async function buildAddressMetaSqlFile(
       'snapshotResourceReleases',
       [
         'snapshotId',
-        'datasetId',
         'resourceReleaseId',
         'role',
         'selectedByRule',
         'selectionMode',
         'anchorReleaseId',
-        'sourceCohortKey',
         'createdAt',
       ],
       snapshotSourceRows,
       `ON CONFLICT(snapshotId, resourceReleaseId) DO UPDATE SET
-  datasetId = excluded.datasetId,
   role = excluded.role,
   selectedByRule = excluded.selectedByRule,
   selectionMode = excluded.selectionMode,
   anchorReleaseId = excluded.anchorReleaseId,
-  sourceCohortKey = excluded.sourceCohortKey,
   createdAt = excluded.createdAt`,
     ),
     ...assemblySql,

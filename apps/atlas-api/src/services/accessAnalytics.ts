@@ -69,9 +69,9 @@ export async function resolveApiReleaseSetAccessAttribution(
          ON apiVersionReleaseSets.apiReleaseSetId = apiReleaseSets.id
        INNER JOIN apiReleaseSetSnapshots
          ON apiReleaseSetSnapshots.apiReleaseSetId = apiReleaseSets.id
-       INNER JOIN snapshotResourceReleases
+       INNER JOIN snapshotResourceReleaseDetails AS snapshotResourceReleases
          ON snapshotResourceReleases.snapshotId = apiReleaseSetSnapshots.snapshotId
-       INNER JOIN resourceReleases
+       INNER JOIN resourceReleaseDetails AS resourceReleases
          ON resourceReleases.id = snapshotResourceReleases.resourceReleaseId
        INNER JOIN sourceReleases
          ON sourceReleases.id = resourceReleases.sourceReleaseId

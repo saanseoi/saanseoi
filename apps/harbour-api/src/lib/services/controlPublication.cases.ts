@@ -41,11 +41,11 @@ test('retains a dataset source variant when reading a release for publication', 
     WHERE code = 'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups';
 
     INSERT INTO resourceReleases (
-      id, sourceReleaseId, datasetId, resourceType, code,
+      id, sourceReleaseId, resourceType, code,
       status, ingestedAt, createdAt, updatedAt
     )
     SELECT
-      '${resourceReleaseId}', '${resourceReleaseId}', id, 'divisionArea', 'dr-hk-hkgov-censtatd-hma-2021',
+      '${resourceReleaseId}', '${resourceReleaseId}', 'divisionArea', 'dr-hk-hkgov-censtatd-hma-2021',
       'staged',
       '2026-08-19T00:00:00.000Z', '2026-08-19T00:00:00.000Z', '2026-08-19T00:00:00.000Z'
     FROM datasets
@@ -124,7 +124,7 @@ test.each([false, true])(
     const rows = sqlite
       .query(
         `SELECT code AS datasetId, status, revokedAt, revocationReason
-       FROM resourceReleases
+       FROM resourceReleaseDetails AS resourceReleases
        WHERE resourceType = 'division' AND datasetId = (SELECT id FROM datasets WHERE code = 'ds-hk-overture-division')
        ORDER BY code`,
       )
@@ -330,7 +330,7 @@ test('revokes the superseded dataset only for corrected same-release publishes',
   const rows = sqlite
     .query(
       `SELECT code AS datasetId, status, revokedAt, revocationReason
-       FROM resourceReleases
+       FROM resourceReleaseDetails AS resourceReleases
        WHERE resourceType = 'division' AND datasetId = (SELECT id FROM datasets WHERE code = 'ds-hk-overture-division')
        ORDER BY code`,
     )
@@ -417,8 +417,8 @@ test('rebuilds a published Geographic snapshot into a new API release-set revisi
     .run(firstSnapshotId, rebuiltSnapshotId)
   sqlite
     .query(
-      `INSERT INTO snapshotResourceReleases (snapshotId, datasetId, resourceReleaseId, role)
-       SELECT ?, datasetId, resourceReleaseId, role
+      `INSERT INTO snapshotResourceReleases (snapshotId, resourceReleaseId, role)
+       SELECT ?, resourceReleaseId, role
        FROM snapshotResourceReleases
        WHERE snapshotId = ? AND role = 'supporting'`,
     )
@@ -526,7 +526,7 @@ test('marks the superseded dataset historic for same-cohort releases with differ
   const rows = sqlite
     .query(
       `SELECT code AS datasetId, status, revokedAt, revocationReason
-       FROM resourceReleases
+       FROM resourceReleaseDetails AS resourceReleases
        WHERE resourceType = 'division' AND datasetId = (SELECT id FROM datasets WHERE code = 'ds-hk-overture-division')
        ORDER BY code`,
     )

@@ -1,3 +1,4 @@
+import { metaSnapshotResourceReleaseDetails } from '@repo/db/metaSchema'
 import { resolveSnapshotProcessingRules } from '../../provenance/processingPolicyCatalogue'
 import type { ProcessingRules } from '../../provenance/processingPolicy'
 import { retainProcessingRules } from '../../lib/db/processingRuleDefinitions'
@@ -70,21 +71,20 @@ export async function recordEffectiveSnapshotAssembly(
   }
   const sources = await db
     .select({
-      datasetId: metaSnapshotResourceReleases.datasetId,
+      datasetId: metaSnapshotResourceReleaseDetails.datasetId,
       datasetCode: metaSchema.metaDatasets.code,
-      sourceReleaseId: metaSnapshotResourceReleases.resourceReleaseId,
-      role: metaSnapshotResourceReleases.role,
-      selectedByRule: metaSnapshotResourceReleases.selectedByRule,
-      selectionMode: metaSnapshotResourceReleases.selectionMode,
-      anchorReleaseId: metaSnapshotResourceReleases.anchorReleaseId,
-      sourceCohortKey: metaSnapshotResourceReleases.sourceCohortKey,
+      sourceReleaseId: metaSnapshotResourceReleaseDetails.resourceReleaseId,
+      role: metaSnapshotResourceReleaseDetails.role,
+      selectedByRule: metaSnapshotResourceReleaseDetails.selectedByRule,
+      selectionMode: metaSnapshotResourceReleaseDetails.selectionMode,
+      anchorReleaseId: metaSnapshotResourceReleaseDetails.anchorReleaseId,
     })
-    .from(metaSnapshotResourceReleases)
+    .from(metaSnapshotResourceReleaseDetails)
     .innerJoin(
       metaSchema.metaDatasets,
-      eq(metaSnapshotResourceReleases.datasetId, metaSchema.metaDatasets.id),
+      eq(metaSnapshotResourceReleaseDetails.datasetId, metaSchema.metaDatasets.id),
     )
-    .where(eq(metaSnapshotResourceReleases.snapshotId, args.snapshotId))
+    .where(eq(metaSnapshotResourceReleaseDetails.snapshotId, args.snapshotId))
     .all()
   sources.sort((a, b) =>
     `${a.datasetId}:${a.role}:${a.sourceReleaseId}`.localeCompare(

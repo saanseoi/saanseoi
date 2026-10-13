@@ -49,15 +49,21 @@ export async function formatInitialisationSkippedDatasets(
       )) {
         const rows = await metaDb
           .select({ datasetCode: metaSchema.metaDatasets.code })
-          .from(metaSchema.metaResourceReleases)
+          .from(metaSchema.metaResourceReleaseDetails)
           .innerJoin(
             metaSchema.metaDatasets,
-            eq(metaSchema.metaResourceReleases.datasetId, metaSchema.metaDatasets.id),
+            eq(
+              metaSchema.metaResourceReleaseDetails.datasetId,
+              metaSchema.metaDatasets.id,
+            ),
           )
           .where(
             and(
-              inArray(metaSchema.metaResourceReleases.code, codes),
-              inArray(metaSchema.metaResourceReleases.status, ['current', 'archived']),
+              inArray(metaSchema.metaResourceReleaseDetails.code, codes),
+              inArray(metaSchema.metaResourceReleaseDetails.status, [
+                'current',
+                'archived',
+              ]),
             ),
           )
           .all()

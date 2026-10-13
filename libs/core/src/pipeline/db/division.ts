@@ -384,14 +384,12 @@ export async function prepareDivisionVersionInsertContext(
   await upsertSnapshotSource(
     metaDb,
     snapshot.id,
-    dataset.datasetId,
     dataset.resourceReleaseId,
     'primary',
     {
       anchorReleaseId: dataset.resourceReleaseId,
       selectedByRule: 'assembly:division:source-release:v1',
       selectionMode: 'exact_ref',
-      sourceCohortKey: dataset.cohortKey,
     },
   )
   await recordSnapshotAssembly(metaDb, {

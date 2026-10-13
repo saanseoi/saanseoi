@@ -51,7 +51,7 @@ function fixture() {
       .run(resourceReleaseId, `sr-${resourceReleaseId}`, sourceVersion)
     meta
       .query(
-        `INSERT INTO resourceReleases (id, sourceReleaseId, datasetId, resourceType, code, status) VALUES (?1, ?2, 'dataset', 'divisionStatistic', ?3, 'processing')`,
+        `INSERT INTO resourceReleases (id, sourceReleaseId, resourceType, code, status) VALUES (?1, ?2, 'divisionStatistic', ?3, 'processing')`,
       )
       .run(resourceReleaseId, resourceReleaseId, resourceReleaseId)
     meta
@@ -71,11 +71,10 @@ function fixture() {
       sourceReleaseId: resourceReleaseId,
       variant: datasetCode,
     })
-    await upsertSnapshotSource(db, result.id, 'dataset', resourceReleaseId, 'primary', {
+    await upsertSnapshotSource(db, result.id, resourceReleaseId, 'primary', {
       anchorReleaseId: resourceReleaseId,
       selectedByRule: 'assembly:division-statistic:reference-period-release:v1',
       selectionMode: 'exact_ref',
-      sourceCohortKey: period,
     })
     await recordSnapshotAssembly(db, {
       snapshotId: result.id,

@@ -577,28 +577,27 @@ export async function processLocalDivisionGeometrySqlUpload(
       await upsertSnapshotSource(
         metaDb,
         snapshot.id,
-        dataset.datasetId,
         dataset.resourceReleaseId,
         'enrichment',
         {
           anchorReleaseId: dataset.resourceReleaseId,
           selectedByRule: 'provenance:censtatd-geometry:verified-identical-geometry:v1',
           selectionMode: 'verified_identical_geometry',
-          sourceCohortKey: dataset.cohortKey,
         },
       )
     } else {
       if (isCenstatdGeometryCompanionPlan(previewPlan) && snapshot.parentSnapshotId) {
         const inheritedSources = await metaDb
           .select({
-            datasetId: metaSchema.metaSnapshotResourceReleases.datasetId,
-            role: metaSchema.metaSnapshotResourceReleases.role,
-            sourceReleaseId: metaSchema.metaSnapshotResourceReleases.resourceReleaseId,
+            datasetId: metaSchema.metaSnapshotResourceReleaseDetails.datasetId,
+            role: metaSchema.metaSnapshotResourceReleaseDetails.role,
+            sourceReleaseId:
+              metaSchema.metaSnapshotResourceReleaseDetails.resourceReleaseId,
           })
-          .from(metaSchema.metaSnapshotResourceReleases)
+          .from(metaSchema.metaSnapshotResourceReleaseDetails)
           .where(
             eq(
-              metaSchema.metaSnapshotResourceReleases.snapshotId,
+              metaSchema.metaSnapshotResourceReleaseDetails.snapshotId,
               snapshot.parentSnapshotId,
             ),
           )
@@ -609,7 +608,6 @@ export async function processLocalDivisionGeometrySqlUpload(
           await upsertSnapshotSource(
             metaDb,
             snapshot.id,
-            source.datasetId,
             source.sourceReleaseId,
             'enrichment',
             {
@@ -623,7 +621,6 @@ export async function processLocalDivisionGeometrySqlUpload(
       await upsertSnapshotSource(
         metaDb,
         snapshot.id,
-        dataset.datasetId,
         dataset.resourceReleaseId,
         'primary',
         {
@@ -632,7 +629,6 @@ export async function processLocalDivisionGeometrySqlUpload(
           selectionMode: isCenstatdGeometryCompanionPlan(previewPlan)
             ? 'contributed_geometry'
             : 'exact_ref',
-          sourceCohortKey: dataset.cohortKey,
         },
       )
       await upsertSnapshotShardAssignment(metaDb, snapshot.id, historyShard.id)

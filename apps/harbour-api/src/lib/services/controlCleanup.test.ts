@@ -15,7 +15,10 @@ function fixture() {
   sqlite.exec(`
     CREATE TABLE publishers(id TEXT PRIMARY KEY,code TEXT);
     CREATE TABLE datasets(id TEXT PRIMARY KEY,publisherId TEXT,code TEXT,regionCode TEXT,sourceVariant TEXT);
-    CREATE TABLE resourceReleases(id TEXT PRIMARY KEY,datasetId TEXT,resourceType TEXT,status TEXT);
+    CREATE TABLE resourceReleases(id TEXT PRIMARY KEY,sourceReleaseId TEXT,resourceType TEXT,status TEXT);
+    CREATE TABLE sourceReleases(id TEXT PRIMARY KEY,datasetId TEXT);
+    CREATE VIEW resourceReleaseDetails AS SELECT r.*,s.datasetId FROM resourceReleases r JOIN sourceReleases s ON s.id=r.sourceReleaseId;
+    CREATE VIEW snapshotResourceReleaseDetails AS SELECT m.*,r.datasetId FROM snapshotResourceReleases m JOIN resourceReleaseDetails r ON r.id=m.resourceReleaseId;
     CREATE TABLE snapshotLineages (
       id TEXT PRIMARY KEY,
       code TEXT UNIQUE,
@@ -38,7 +41,7 @@ function fixture() {
       publishedAt TEXT,
       createdAt TEXT
     );
-    CREATE TABLE snapshotResourceReleases(snapshotId TEXT,datasetId TEXT,resourceReleaseId TEXT,role TEXT);
+    CREATE TABLE snapshotResourceReleases(snapshotId TEXT,resourceReleaseId TEXT,role TEXT);
     CREATE TABLE apiVersions(id TEXT PRIMARY KEY,familyType TEXT);
     CREATE TABLE apiReleaseSets(id TEXT PRIMARY KEY,regionCode TEXT);
     CREATE TABLE apiVersionReleaseSets(apiReleaseSetId TEXT,apiVersionId TEXT,status TEXT);
@@ -48,6 +51,7 @@ function fixture() {
     CREATE TABLE divisionAreas(snapshotId TEXT,id TEXT,PRIMARY KEY(snapshotId,id));
     INSERT INTO publishers VALUES ('publisher','hkgov-pland');
     INSERT INTO datasets VALUES ('geometry','publisher','ds-hk-hkgov-pland-division-new-town','hk','new-town');
+    INSERT INTO sourceReleases VALUES ('geometry','geometry');
     INSERT INTO snapshotLineages (id,variant) VALUES ('new-town','hkgov-pland-new-town');
     INSERT INTO apiVersions VALUES ('divisions','divisions'),('stats','stats');
   `)
@@ -90,7 +94,7 @@ function fixture() {
       createdAt: '2026-09-11',
     })
     sqlite
-      .query("INSERT INTO snapshotResourceReleases VALUES (?,'geometry',?,'primary')")
+      .query("INSERT INTO snapshotResourceReleases VALUES (?,?,'primary')")
       .run(id, id)
     const scopeId = JSON.stringify(['new-town', id])
     sqlite

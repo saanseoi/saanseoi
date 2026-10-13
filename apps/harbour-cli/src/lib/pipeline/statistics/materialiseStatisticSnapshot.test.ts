@@ -40,8 +40,8 @@ test.each(['2026-Q2', '2023-H2'])(
       '2026-Q2', 'processing', '${NOW}', '${NOW}', '${NOW}'
     );
     INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status, cohortKey) VALUES ('source-release', 'dataset', 'source-' || 'release-statistics-2026-q2', '2026-Q2', 'processing', '2026-Q2');
-UPDATE sourceReleases SET sourceVersion = '2026-Q2', cohortKey = '2026-Q2' WHERE id = 'source-release';
-INSERT INTO resourceReleases (id, sourceReleaseId, datasetId, resourceType, code, status, ingestedAt, createdAt, updatedAt) VALUES ('release', 'source-release', 'dataset', 'divisionStatistic', 'release-statistics-2026-q2', 'processing', '${NOW}', '${NOW}', '${NOW}');
+UPDATE sourceReleases SET datasetId = 'dataset', sourceVersion = '2026-Q2', cohortKey = '2026-Q2' WHERE id = 'source-release';
+INSERT INTO resourceReleases (id, sourceReleaseId, resourceType, code, status, ingestedAt, createdAt, updatedAt) VALUES ('release', 'source-release', 'divisionStatistic', 'release-statistics-2026-q2', 'processing', '${NOW}', '${NOW}', '${NOW}');
     INSERT INTO dataShards (
       id, shardType, regionCode, year, environment, databaseName, databaseId,
       bindingName, status, versionHash, createdAt, updatedAt
@@ -207,8 +207,8 @@ test('rejects a reference period later than the source release cohort', async ()
       '2021', 'processing', '${NOW}', '${NOW}', '${NOW}'
     );
     INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status, cohortKey) VALUES ('source-release', 'dataset', 'source-' || 'release-statistics-2021', '2021', 'processing', '2021');
-UPDATE sourceReleases SET sourceVersion = '2021', cohortKey = '2021' WHERE id = 'source-release';
-INSERT INTO resourceReleases (id, sourceReleaseId, datasetId, resourceType, code, status, ingestedAt, createdAt, updatedAt) VALUES ('release', 'source-release', 'dataset', 'divisionStatistic', 'release-statistics-2021', 'processing', '${NOW}', '${NOW}', '${NOW}');
+UPDATE sourceReleases SET datasetId = 'dataset', sourceVersion = '2021', cohortKey = '2021' WHERE id = 'source-release';
+INSERT INTO resourceReleases (id, sourceReleaseId, resourceType, code, status, ingestedAt, createdAt, updatedAt) VALUES ('release', 'source-release', 'divisionStatistic', 'release-statistics-2021', 'processing', '${NOW}', '${NOW}', '${NOW}');
   `)
   const db = createLocalHarbourDb(sqlite)
 

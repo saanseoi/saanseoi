@@ -100,14 +100,12 @@ function setup() {
     insert(meta, 'resourceReleases', {
       id: resourceType,
       code: resourceType,
-      datasetId: 'dataset',
       sourceReleaseId: 'shared-source',
       resourceType,
     })
     insert(meta, 'snapshots', { id: resourceType, code: resourceType, resourceType })
     insert(meta, 'snapshotResourceReleases', {
       snapshotId: resourceType,
-      datasetId: 'dataset',
       resourceReleaseId: resourceType,
     })
   }
@@ -299,7 +297,6 @@ describe('all-divisions reset', () => {
     const { meta, context } = setup()
     insert(meta, 'snapshotResourceReleases', {
       snapshotId: 'place',
-      datasetId: 'dataset',
       resourceReleaseId: 'division',
     })
     meta.exec(

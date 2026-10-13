@@ -2,17 +2,20 @@
 
 ## Source metadata ownership
 
-`sourceReleases` owns the publisher artefact's `sourceVersion`, `sourceSchemaVersion`,
-`publicationDate`, `cohortKey`, and `releaseNotesUrl`. Each `resourceReleases` row
-references one source release and retains its resource identity, geometry status,
-processing evidence, and independent lifecycle state. The `resourceReleaseDetails` view
-joins resource state to authoritative source metadata without storing another copy.
+`sourceReleases` owns `datasetId` and the publisher artefact's `sourceVersion`,
+`sourceSchemaVersion`, `publicationDate`, `cohortKey`, and `releaseNotesUrl`. Each
+`resourceReleases` row references one source release and retains its resource identity,
+geometry status, processing evidence, and independent lifecycle state. The
+`resourceReleaseDetails` view joins resource state to authoritative source metadata
+without storing another copy.
 
-A composite foreign key requires the resource and source release to belong to the same
-dataset. A source release has at most one materialisation per resource type.
-Registration and retry may fill missing source metadata; conflicting supplied values are
-rejected before a resource is registered or reset. Omitted optional metadata does not
-clear a retained value.
+Resource releases reference their source release, and snapshot memberships reference
+their resource release. Dataset ownership follows these foreign keys; neither table
+stores another `datasetId`. The `snapshotResourceReleaseDetails` view exposes the
+derived dataset for membership queries. A source release has at most one materialisation
+per resource type. Registration and retry may fill missing source metadata; conflicting
+supplied values are rejected before a resource is registered or reset. Omitted optional
+metadata does not clear a retained value.
 
 ## Source and resource release states
 
@@ -117,13 +120,16 @@ Recipe codes use `sa-<resourceType>-v1-<versionHash>`, where `versionHash` inclu
 `sha256:` prefix. The code determines the recipe's UUID. This recording format does not
 represent a processing ruleset version.
 
-`snapshotResourceReleases` records concrete source releases, roles, selection rules,
-modes and source cohorts. `snapshotAssemblies` links each snapshot to its recipe and
-anchor. Each snapshot has one assembly, updated during draft preparation and retained
-when published. `snapshots.status` owns the publication lifecycle. Address review runs
-before the final assembly is recorded. Missing source-selection rules fail ingestion. A
-later release verifying identical published geometry can retain a separate source
-association without replacing the published assembly.
+`snapshotResourceReleases` records concrete resource releases, roles, selection rules,
+modes and anchors. The source cohort belongs to `sourceReleases`, reached through
+`resourceReleases.sourceReleaseId`; the assembled cohort belongs to `snapshots`. Lookup
+cohorts come from the exact snapshots pinned by `snapshotDependencies`.
+`snapshotAssemblies` links each snapshot to its recipe and anchor. Each snapshot has one
+assembly, updated during draft preparation and retained when published.
+`snapshots.status` owns the publication lifecycle. Address review runs before the final
+assembly is recorded. Missing source-selection rules fail ingestion. A later release
+verifying identical published geometry can retain a separate source association without
+replacing the published assembly.
 
 `snapshotDependencies` pins exact logical snapshot inputs by role, including `division`,
 `divisionArea`, `street`, `address` and `supplementaryAddress`. Each role selects one

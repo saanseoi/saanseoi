@@ -15,7 +15,11 @@ function fixture() {
   sqlite.exec(`
     CREATE TABLE publishers(id TEXT PRIMARY KEY,code TEXT);
     CREATE TABLE datasets(id TEXT PRIMARY KEY,publisherId TEXT,code TEXT,regionCode TEXT,sourceVariant TEXT);
-    CREATE TABLE resourceReleases(id TEXT PRIMARY KEY,datasetId TEXT,resourceType TEXT,status TEXT);
+    CREATE TABLE resourceReleases(id TEXT PRIMARY KEY,sourceReleaseId TEXT,resourceType TEXT,status TEXT);
+CREATE TABLE sourceReleases(id TEXT PRIMARY KEY,datasetId TEXT);
+CREATE VIEW resourceReleaseDetails AS SELECT r.*,s.datasetId FROM resourceReleases r JOIN sourceReleases s ON s.id=r.sourceReleaseId;
+CREATE VIEW snapshotResourceReleaseDetails AS SELECT m.*,r.datasetId FROM snapshotResourceReleases m JOIN resourceReleaseDetails r ON r.id=m.resourceReleaseId;
+INSERT INTO sourceReleases VALUES ('geometry','geometry');
     CREATE TABLE snapshotLineages (
       id TEXT PRIMARY KEY,
       code TEXT UNIQUE,
@@ -39,7 +43,7 @@ function fixture() {
       publishedAt TEXT,
       createdAt TEXT
     );
-    CREATE TABLE snapshotResourceReleases(snapshotId TEXT,datasetId TEXT,resourceReleaseId TEXT,role TEXT);
+    CREATE TABLE snapshotResourceReleases(snapshotId TEXT,resourceReleaseId TEXT,role TEXT);
     CREATE TABLE apiVersions(id TEXT PRIMARY KEY,code TEXT);
     CREATE TABLE apiCatalogRevisions(id TEXT PRIMARY KEY,apiVersionId TEXT,code TEXT,regionCode TEXT,status TEXT,publishedAt TEXT,revision INTEGER);
     CREATE TABLE apiReleaseSets(id TEXT PRIMARY KEY,code TEXT,regionCode TEXT,domainCode TEXT,cohortKey TEXT,effectiveFrom TEXT,revision INTEGER,schemaVersion TEXT,rulesetVersion TEXT);
@@ -81,7 +85,7 @@ function fixture() {
       createdAt: options.publishedAt ?? '2026-09-01',
     })
     sqlite
-      .query("INSERT INTO snapshotResourceReleases VALUES (?,'geometry',?,'primary')")
+      .query("INSERT INTO snapshotResourceReleases VALUES (?,?,'primary')")
       .run(id, id)
     if (options.receipt !== false)
       sqlite

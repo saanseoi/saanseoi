@@ -1,3 +1,4 @@
+DROP VIEW IF EXISTS snapshotResourceReleaseDetails;
 DROP VIEW IF EXISTS resourceReleaseDetails;
 PRAGMA foreign_keys = OFF;
 PRAGMA defer_foreign_keys = true;

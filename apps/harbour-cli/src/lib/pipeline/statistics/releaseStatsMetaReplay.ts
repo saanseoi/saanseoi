@@ -290,13 +290,11 @@ export function buildStatisticSnapshotMetaSqlBatches(metadata: StatisticSnapshot
       'snapshotResourceReleases',
       [
         'snapshotId',
-        'datasetId',
         'resourceReleaseId',
         'role',
         'selectedByRule',
         'selectionMode',
         'anchorReleaseId',
-        'sourceCohortKey',
         'createdAt',
       ],
       metadata.sources,

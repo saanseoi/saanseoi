@@ -25,10 +25,10 @@ test('source-only metadata links the source shard and persists exact historical 
     ${releaseFixtureSchemaSql()};
     INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status) VALUES (coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'islands' AND sourceVersion = '2026-09-01.3'), 'source-' || 'old'), 'islands', 'source-' || 'old', '2026-09-01.3', 'current');
 UPDATE sourceReleases SET sourceVersion = '2026-09-01.3' WHERE id = coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'islands' AND sourceVersion = '2026-09-01.3'), 'source-' || 'old');
-INSERT INTO resourceReleases (id, datasetId, resourceType, status, revokedAt, sourceReleaseId, code) VALUES ('old', 'islands', 'divisionArea', 'current', NULL, coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'islands' AND sourceVersion = '2026-09-01.3'), 'source-' || 'old'), 'old');
+INSERT INTO resourceReleases (id, resourceType, status, revokedAt, sourceReleaseId, code) VALUES ('old', 'divisionArea', 'current', NULL, coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'islands' AND sourceVersion = '2026-09-01.3'), 'source-' || 'old'), 'old');
 INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status) VALUES (coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'islands' AND sourceVersion = '2026-10-01.1'), 'source-' || 'new'), 'islands', 'source-' || 'new', '2026-10-01.1', 'current');
 UPDATE sourceReleases SET sourceVersion = '2026-10-01.1' WHERE id = coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'islands' AND sourceVersion = '2026-10-01.1'), 'source-' || 'new');
-INSERT INTO resourceReleases (id, datasetId, resourceType, status, revokedAt, sourceReleaseId, code) VALUES ('new', 'islands', 'divisionArea', 'current', NULL, coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'islands' AND sourceVersion = '2026-10-01.1'), 'source-' || 'new'), 'new');
+INSERT INTO resourceReleases (id, resourceType, status, revokedAt, sourceReleaseId, code) VALUES ('new', 'divisionArea', 'current', NULL, coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'islands' AND sourceVersion = '2026-10-01.1'), 'source-' || 'new'), 'new');
     CREATE TABLE protomapsIslandFeatures(sourceRecordId TEXT, versionHash TEXT, properties TEXT, sourceGeometry TEXT, validFromRelease TEXT, validToRelease TEXT);
     INSERT INTO protomapsIslandFeatures VALUES
       ('same', 'same', '{"kind":"coastline-land"}', 'null', '2026-09-01.3', NULL),
@@ -127,7 +127,7 @@ test('RVD source-only metadata publishes BEFORE shard and assertion counts witho
     ${releaseFixtureSchemaSql()};
     INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status) VALUES (coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'rvd' AND sourceVersion = '2015-04-30.0'), 'source-' || 'rvd'), 'rvd', 'source-' || 'rvd', '2015-04-30.0', 'current');
 UPDATE sourceReleases SET sourceVersion = '2015-04-30.0' WHERE id = coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'rvd' AND sourceVersion = '2015-04-30.0'), 'source-' || 'rvd');
-INSERT INTO resourceReleases (id, datasetId, resourceType, status, revokedAt, sourceReleaseId, code) VALUES ('rvd', 'rvd', 'division', 'current', NULL, coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'rvd' AND sourceVersion = '2015-04-30.0'), 'source-' || 'rvd'), 'rvd');
+INSERT INTO resourceReleases (id, resourceType, status, revokedAt, sourceReleaseId, code) VALUES ('rvd', 'division', 'current', NULL, coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'rvd' AND sourceVersion = '2015-04-30.0'), 'source-' || 'rvd'), 'rvd');
     CREATE TABLE hkgovRvdAreas(sourceRecordId TEXT, properties TEXT, validFromRelease TEXT, validToRelease TEXT);
     INSERT INTO hkgovRvdAreas VALUES
       ('area', '{"kind":"area"}', '2015-04-30.0', NULL),

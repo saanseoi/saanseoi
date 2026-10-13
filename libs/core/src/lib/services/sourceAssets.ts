@@ -1,3 +1,4 @@
+import { metaResourceReleaseDetails } from '@repo/db/metaSchema'
 import {
   and,
   eq,
@@ -118,11 +119,11 @@ export async function resolveManagedAssetOwnership(
   if (metadata.role === 'releaseSourceArchive' && metadata.resourceReleaseId) {
     const release = await repository
       .select({
-        datasetId: metaResourceReleases.datasetId,
-        sourceReleaseId: metaResourceReleases.sourceReleaseId,
+        datasetId: metaResourceReleaseDetails.datasetId,
+        sourceReleaseId: metaResourceReleaseDetails.sourceReleaseId,
       })
-      .from(metaResourceReleases)
-      .where(eq(metaResourceReleases.id, metadata.resourceReleaseId))
+      .from(metaResourceReleaseDetails)
+      .where(eq(metaResourceReleaseDetails.id, metadata.resourceReleaseId))
       .get()
     if (
       !release ||
@@ -170,11 +171,11 @@ export async function linkManagedSourceAssetToRelease(
     .get()
   const target = await repository
     .select({
-      datasetId: metaResourceReleases.datasetId,
-      sourceReleaseId: metaResourceReleases.sourceReleaseId,
+      datasetId: metaResourceReleaseDetails.datasetId,
+      sourceReleaseId: metaResourceReleaseDetails.sourceReleaseId,
     })
-    .from(metaResourceReleases)
-    .where(eq(metaResourceReleases.id, input.resourceReleaseId))
+    .from(metaResourceReleaseDetails)
+    .where(eq(metaResourceReleaseDetails.id, input.resourceReleaseId))
     .get()
   if (!asset || !target) throw new Error('Archive asset or release not found.')
   if (!['releaseSourceArchive', 'resourceSourceArchive'].includes(asset.role))

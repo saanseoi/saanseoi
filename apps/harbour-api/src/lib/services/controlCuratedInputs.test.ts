@@ -80,7 +80,9 @@ function curatedPublicationFixture() {
       .run(source === 'saanseoi' ? '1.0' : '1.17.0', release.resourceReleaseId)
     const datasetId = (
       sqlite
-        .query('SELECT datasetId FROM resourceReleases WHERE id = ?')
+        .query(
+          'SELECT datasetId FROM resourceReleaseDetails AS resourceReleases WHERE id = ?',
+        )
         .get(release.resourceReleaseId) as { datasetId: string }
     ).datasetId
     const snapshotId = seedSnapshot(sqlite, {
@@ -113,8 +115,8 @@ function curatedPublicationFixture() {
     for (const input of [inventory, area]) {
       sqlite
         .query(`INSERT INTO snapshotResourceReleases
-        (snapshotId, datasetId, resourceReleaseId, role, selectedByRule, selectionMode)
-        VALUES (?, ?, ?, 'enrichment', 'provenance:curated-division:build-inputs:v1', 'exact_ref')`)
+        (snapshotId, resourceReleaseId, role, selectedByRule, selectionMode)
+        VALUES (?1, ?3, 'enrichment', 'provenance:curated-division:build-inputs:v1', 'exact_ref')`)
         .run(snapshot.snapshotId, input.datasetId, input.resourceReleaseId)
     }
   }

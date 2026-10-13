@@ -402,14 +402,12 @@ test('ALS rollback requires acknowledged exact canonical membership, including e
     insert(f.meta, 'resourceReleases', {
       id: 'release',
       sourceReleaseId: 'source',
-      datasetId: 'als',
       resourceType: 'address',
       code: 'release',
       status: 'current',
     })
     insert(f.meta, 'snapshotResourceReleases', {
       snapshotId: 'b',
-      datasetId: 'als',
       resourceReleaseId: 'release',
       role: 'primary',
     })

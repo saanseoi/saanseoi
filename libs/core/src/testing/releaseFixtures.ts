@@ -18,7 +18,9 @@ export function releaseFixtureSchemaSql() {
   })
   const query = getViewConfig(metaResourceReleaseDetails).query!
   const view = new SQLiteSyncDialect().sqlToQuery(query).sql
-  return `${tables.join('\n')}\nCREATE VIEW resourceReleaseDetails AS ${view};`
+  const membershipView =
+    'SELECT m.*, r.datasetId FROM snapshotResourceReleases m JOIN resourceReleaseDetails r ON r.id = m.resourceReleaseId'
+  return `${tables.join('\n')}\nCREATE VIEW resourceReleaseDetails AS ${view};\nCREATE VIEW snapshotResourceReleaseDetails AS ${membershipView};`
 }
 
 export function insertReleaseFixture(
@@ -39,6 +41,7 @@ export function insertReleaseFixture(
   },
 ) {
   const {
+    datasetId,
     sourceVersion,
     sourceSchemaVersion,
     publicationDate,

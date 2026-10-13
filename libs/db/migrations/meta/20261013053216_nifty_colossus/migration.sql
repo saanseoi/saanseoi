@@ -1,0 +1,1 @@
+ALTER TABLE `snapshotResourceReleases` DROP COLUMN `sourceCohortKey`;

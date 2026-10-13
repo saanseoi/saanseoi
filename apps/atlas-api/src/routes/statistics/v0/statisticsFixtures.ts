@@ -152,7 +152,7 @@ function seedMeta(sqlite: Database) {
   )
   run(
     sqlite,
-    `INSERT INTO resourceReleases (id, sourceReleaseId, datasetId, resourceType, code, status, ingestedAt, createdAt, updatedAt) VALUES (?1, ?2, ?3, ?4, ?5, ?8, ?9, ?10, ?11)`,
+    `INSERT INTO resourceReleases (id, sourceReleaseId, resourceType, code, status, ingestedAt, createdAt, updatedAt) VALUES (?1, ?2, ?4, ?5, ?8, ?9, ?10, ?11)`,
     [
       RELEASE_ID,
       RELEASE_ID,
@@ -170,8 +170,8 @@ function seedMeta(sqlite: Database) {
   run(
     sqlite,
     `INSERT INTO snapshotResourceReleases (
-      snapshotId, datasetId, resourceReleaseId, role, createdAt
-    ) VALUES (?, ?, ?, ?, ?)`,
+      snapshotId, resourceReleaseId, role, createdAt
+    ) VALUES (?1, ?3, ?4, ?5)`,
     ['snapshot-statistics', 'dataset-statistics', RELEASE_ID, 'primary', PUBLISHED_AT],
   )
   run(
@@ -305,7 +305,7 @@ function seedMeta(sqlite: Database) {
   )
   run(
     sqlite,
-    `INSERT INTO resourceReleases (id, sourceReleaseId, datasetId, resourceType, code, status, ingestedAt, createdAt, updatedAt) VALUES (?1, ?2, ?3, ?4, ?5, ?8, ?9, ?10, ?11)`,
+    `INSERT INTO resourceReleases (id, sourceReleaseId, resourceType, code, status, ingestedAt, createdAt, updatedAt) VALUES (?1, ?2, ?4, ?5, ?8, ?9, ?10, ?11)`,
     [
       HISTORICAL_RELEASE_ID,
       HISTORICAL_RELEASE_ID,
@@ -335,8 +335,8 @@ function seedMeta(sqlite: Database) {
   run(
     sqlite,
     `INSERT INTO snapshotResourceReleases (
-      snapshotId, datasetId, resourceReleaseId, role, createdAt
-    ) VALUES (?, ?, ?, ?, ?)`,
+      snapshotId, resourceReleaseId, role, createdAt
+    ) VALUES (?1, ?3, ?4, ?5)`,
     [
       'snapshot-statistics-historical',
       'dataset-statistics-historical',
@@ -829,7 +829,7 @@ function seedCurrentDivision(sqlite: Database) {
 function seedPackedPublication(current: Database, history: Database, meta: Database) {
   run(
     meta,
-    `INSERT INTO snapshotResourceReleases (snapshotId, datasetId, resourceReleaseId, role, createdAt) VALUES (?, ?, ?, 'primary', ?)`,
+    `INSERT INTO snapshotResourceReleases (snapshotId, resourceReleaseId, role, createdAt) VALUES (?1, ?3, 'primary', ?4)`,
     ['snapshot-statistics-historical', 'dataset-statistics', RELEASE_ID, PUBLISHED_AT],
   )
   run(

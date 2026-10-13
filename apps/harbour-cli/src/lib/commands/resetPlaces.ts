@@ -102,16 +102,19 @@ export async function getOverturePlacesInitialisationStatus(target: UploadTarget
   try {
     const [releases, snapshot, current] = await Promise.all([
       context.metaDb
-        .select({ status: metaSchema.metaResourceReleases.status })
-        .from(metaSchema.metaResourceReleases)
+        .select({ status: metaSchema.metaResourceReleaseDetails.status })
+        .from(metaSchema.metaResourceReleaseDetails)
         .innerJoin(
           metaSchema.metaDatasets,
-          eq(metaSchema.metaResourceReleases.datasetId, metaSchema.metaDatasets.id),
+          eq(
+            metaSchema.metaResourceReleaseDetails.datasetId,
+            metaSchema.metaDatasets.id,
+          ),
         )
         .where(
           and(
             eq(metaSchema.metaDatasets.code, DATASET_CODE),
-            eq(metaSchema.metaResourceReleases.resourceType, 'place'),
+            eq(metaSchema.metaResourceReleaseDetails.resourceType, 'place'),
           ),
         )
         .all(),
@@ -341,20 +344,20 @@ export async function failRunningPlacesProcessingRuns(
   const runs = await db
     .select({
       phase: metaSchema.processingRuns.phase,
-      releaseCode: metaSchema.metaResourceReleases.code,
+      releaseCode: metaSchema.metaResourceReleaseDetails.code,
       resourceReleaseId: metaSchema.processingRuns.resourceReleaseId,
     })
     .from(metaSchema.processingRuns)
     .innerJoin(
-      metaSchema.metaResourceReleases,
+      metaSchema.metaResourceReleaseDetails,
       eq(
         metaSchema.processingRuns.resourceReleaseId,
-        metaSchema.metaResourceReleases.id,
+        metaSchema.metaResourceReleaseDetails.id,
       ),
     )
     .innerJoin(
       metaSchema.metaDatasets,
-      eq(metaSchema.metaResourceReleases.datasetId, metaSchema.metaDatasets.id),
+      eq(metaSchema.metaResourceReleaseDetails.datasetId, metaSchema.metaDatasets.id),
     )
     .where(and(...conditions))
     .all()
@@ -518,15 +521,15 @@ type OwnedPlaces = {
 export async function collectOwnedPlaces(db: HarbourReadableDb): Promise<OwnedPlaces> {
   const releases = await db
     .select({
-      code: metaSchema.metaResourceReleases.code,
-      id: metaSchema.metaResourceReleases.id,
-      resourceType: metaSchema.metaResourceReleases.resourceType,
-      sourceReleaseId: metaSchema.metaResourceReleases.sourceReleaseId,
+      code: metaSchema.metaResourceReleaseDetails.code,
+      id: metaSchema.metaResourceReleaseDetails.id,
+      resourceType: metaSchema.metaResourceReleaseDetails.resourceType,
+      sourceReleaseId: metaSchema.metaResourceReleaseDetails.sourceReleaseId,
     })
-    .from(metaSchema.metaResourceReleases)
+    .from(metaSchema.metaResourceReleaseDetails)
     .innerJoin(
       metaSchema.metaDatasets,
-      eq(metaSchema.metaResourceReleases.datasetId, metaSchema.metaDatasets.id),
+      eq(metaSchema.metaResourceReleaseDetails.datasetId, metaSchema.metaDatasets.id),
     )
     .where(eq(metaSchema.metaDatasets.code, DATASET_CODE))
     .all()
@@ -595,12 +598,12 @@ export async function collectOwnedPlaces(db: HarbourReadableDb): Promise<OwnedPl
     })
     .from(metaSchema.metaAssets)
     .innerJoin(
-      metaSchema.metaResourceReleases,
-      eq(metaSchema.assetReleaseAuthority, metaSchema.metaResourceReleases.id),
+      metaSchema.metaResourceReleaseDetails,
+      eq(metaSchema.assetReleaseAuthority, metaSchema.metaResourceReleaseDetails.id),
     )
     .innerJoin(
       metaSchema.metaDatasets,
-      eq(metaSchema.metaResourceReleases.datasetId, metaSchema.metaDatasets.id),
+      eq(metaSchema.metaResourceReleaseDetails.datasetId, metaSchema.metaDatasets.id),
     )
     .where(eq(metaSchema.metaDatasets.code, DATASET_CODE))
     .all()
@@ -683,11 +686,11 @@ async function assertCleanPlacesBaseline(
 ) {
   const [release, snapshot, current] = await Promise.all([
     context.metaDb
-      .select({ id: metaSchema.metaResourceReleases.id })
-      .from(metaSchema.metaResourceReleases)
+      .select({ id: metaSchema.metaResourceReleaseDetails.id })
+      .from(metaSchema.metaResourceReleaseDetails)
       .innerJoin(
         metaSchema.metaDatasets,
-        eq(metaSchema.metaResourceReleases.datasetId, metaSchema.metaDatasets.id),
+        eq(metaSchema.metaResourceReleaseDetails.datasetId, metaSchema.metaDatasets.id),
       )
       .where(eq(metaSchema.metaDatasets.code, DATASET_CODE))
       .limit(1)
@@ -746,11 +749,11 @@ async function assertPlacesResetStillSafe(
   owned: OwnedPlaces,
 ) {
   const releases = await context.metaDb
-    .select({ id: metaSchema.metaResourceReleases.id })
-    .from(metaSchema.metaResourceReleases)
+    .select({ id: metaSchema.metaResourceReleaseDetails.id })
+    .from(metaSchema.metaResourceReleaseDetails)
     .innerJoin(
       metaSchema.metaDatasets,
-      eq(metaSchema.metaResourceReleases.datasetId, metaSchema.metaDatasets.id),
+      eq(metaSchema.metaResourceReleaseDetails.datasetId, metaSchema.metaDatasets.id),
     )
     .where(eq(metaSchema.metaDatasets.code, DATASET_CODE))
     .all()

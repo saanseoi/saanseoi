@@ -226,7 +226,6 @@ async function fixture(previous = true) {
     insert(meta, 'resourceReleases', {
       id: `release-${name}`,
       sourceReleaseId: `source-${name}`,
-      datasetId,
       code: `release-${name}`,
       resourceType: 'divisionStatistic',
       status: 'current',
@@ -243,7 +242,6 @@ async function fixture(previous = true) {
     })
     insert(meta, 'snapshotResourceReleases', {
       snapshotId: `snapshot-${name}`,
-      datasetId,
       resourceReleaseId: `release-${name}`,
       role: 'primary',
     })

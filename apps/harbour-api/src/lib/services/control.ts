@@ -236,10 +236,9 @@ export async function handlePublishDataset(
           })
           .where(
             and(
-              eq(metaSchema.metaResourceReleases.datasetId, dataset.datasetId),
               eq(metaSchema.metaResourceReleases.resourceType, datasetType),
               eq(metaSchema.metaResourceReleases.status, 'current'),
-              sql`EXISTS (SELECT 1 FROM sourceReleases s WHERE s.id = resourceReleases.sourceReleaseId AND s.cohortKey < ${dataset.cohortKey})`,
+              sql`EXISTS (SELECT 1 FROM sourceReleases s WHERE s.id = resourceReleases.sourceReleaseId AND s.datasetId = ${dataset.datasetId} AND s.cohortKey < ${dataset.cohortKey})`,
             ),
           )
           .run()

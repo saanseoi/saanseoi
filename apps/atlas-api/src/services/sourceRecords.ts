@@ -179,11 +179,11 @@ async function resolveSourceRelease(
           sourceReleases.sourceVersion AS sourceVersion,
           datasets.sourceVariant AS sourceVariant,
           sourceReleases.id AS sourceReleaseId,
-          (SELECT json_group_array(ownedRelease.id) FROM resourceReleases AS ownedRelease
+          (SELECT json_group_array(ownedRelease.id) FROM resourceReleaseDetails AS ownedRelease
             WHERE ownedRelease.datasetId = datasets.id) AS datasetReleaseIdsJson,
           publishers.code AS publisherCode,
           dataShards.bindingName AS bindingName
-        FROM resourceReleases
+        FROM resourceReleaseDetails AS resourceReleases
         INNER JOIN sourceReleases
           ON sourceReleases.id = resourceReleases.sourceReleaseId
         INNER JOIN datasets ON datasets.id = resourceReleases.datasetId
@@ -939,8 +939,8 @@ async function querySourceReleaseDiscoveryRows(
           ON apiVersionReleaseSets.apiReleaseSetId = apiReleaseSets.id
         INNER JOIN apiVersions ON apiVersions.id = apiVersionReleaseSets.apiVersionId
         INNER JOIN snapshots ON snapshots.id = apiReleaseSetSnapshots.snapshotId
-        INNER JOIN snapshotResourceReleases ON snapshotResourceReleases.snapshotId = snapshots.id
-        INNER JOIN resourceReleases ON resourceReleases.id = snapshotResourceReleases.resourceReleaseId
+        INNER JOIN snapshotResourceReleaseDetails AS snapshotResourceReleases ON snapshotResourceReleases.snapshotId = snapshots.id
+        INNER JOIN resourceReleaseDetails AS resourceReleases ON resourceReleases.id = snapshotResourceReleases.resourceReleaseId
         INNER JOIN sourceReleases
           ON sourceReleases.id = resourceReleases.sourceReleaseId
         INNER JOIN datasets ON datasets.id = resourceReleases.datasetId

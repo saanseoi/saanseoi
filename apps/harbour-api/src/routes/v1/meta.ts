@@ -518,8 +518,8 @@ async function listApiReleaseSetSources(dbBinding: D1Database) {
         FROM apiReleaseSetSnapshots arss
         INNER JOIN snapshots s ON s.id = arss.snapshotId
         INNER JOIN snapshotLineages sl ON sl.id = s.snapshotLineageId
-        INNER JOIN snapshotResourceReleases ss ON ss.snapshotId = arss.snapshotId
-        INNER JOIN resourceReleases r ON r.id = ss.resourceReleaseId
+        INNER JOIN snapshotResourceReleaseDetails ss ON ss.snapshotId = arss.snapshotId
+        INNER JOIN resourceReleaseDetails r ON r.id = ss.resourceReleaseId
         INNER JOIN sourceReleases sr ON sr.id = r.sourceReleaseId
         INNER JOIN datasets d ON d.id = ss.datasetId
         INNER JOIN publishers p ON p.id = d.publisherId

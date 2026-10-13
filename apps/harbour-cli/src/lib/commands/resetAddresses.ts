@@ -111,18 +111,21 @@ export async function getOfficialAddressInitialisationStatus(target: UploadTarge
     try {
       const [release, snapshot, apiReleaseSet] = await Promise.all([
         context.metaDb
-          .select({ id: metaSchema.metaResourceReleases.id })
-          .from(metaSchema.metaResourceReleases)
+          .select({ id: metaSchema.metaResourceReleaseDetails.id })
+          .from(metaSchema.metaResourceReleaseDetails)
           .innerJoin(
             metaSchema.metaDatasets,
-            eq(metaSchema.metaResourceReleases.datasetId, metaSchema.metaDatasets.id),
+            eq(
+              metaSchema.metaResourceReleaseDetails.datasetId,
+              metaSchema.metaDatasets.id,
+            ),
           )
           .where(
             and(
               eq(metaSchema.metaDatasets.code, DATASET_CODE),
               or(
-                eq(metaSchema.metaResourceReleases.status, 'current'),
-                eq(metaSchema.metaResourceReleases.status, 'archived'),
+                eq(metaSchema.metaResourceReleaseDetails.status, 'current'),
+                eq(metaSchema.metaResourceReleaseDetails.status, 'archived'),
               ),
             ),
           )
@@ -440,11 +443,11 @@ async function assertCleanAddressBaseline(
 ) {
   const [release, snapshot] = await Promise.all([
     context.metaDb
-      .select({ id: metaSchema.metaResourceReleases.id })
-      .from(metaSchema.metaResourceReleases)
+      .select({ id: metaSchema.metaResourceReleaseDetails.id })
+      .from(metaSchema.metaResourceReleaseDetails)
       .innerJoin(
         metaSchema.metaDatasets,
-        eq(metaSchema.metaResourceReleases.datasetId, metaSchema.metaDatasets.id),
+        eq(metaSchema.metaResourceReleaseDetails.datasetId, metaSchema.metaDatasets.id),
       )
       .where(eq(metaSchema.metaDatasets.code, DATASET_CODE))
       .limit(1)
@@ -513,13 +516,13 @@ async function adoptFailedAddressResetState(
   }
   const releases = await context.metaDb
     .select({
-      id: metaSchema.metaResourceReleases.id,
-      status: metaSchema.metaResourceReleases.status,
+      id: metaSchema.metaResourceReleaseDetails.id,
+      status: metaSchema.metaResourceReleaseDetails.status,
     })
-    .from(metaSchema.metaResourceReleases)
+    .from(metaSchema.metaResourceReleaseDetails)
     .innerJoin(
       metaSchema.metaDatasets,
-      eq(metaSchema.metaResourceReleases.datasetId, metaSchema.metaDatasets.id),
+      eq(metaSchema.metaResourceReleaseDetails.datasetId, metaSchema.metaDatasets.id),
     )
     .where(eq(metaSchema.metaDatasets.code, DATASET_CODE))
     .all()
@@ -596,14 +599,14 @@ async function collectOwnedRecords(
 ) {
   const releases = await context.metaDb
     .select({
-      id: metaSchema.metaResourceReleases.id,
-      code: metaSchema.metaResourceReleases.code,
-      sourceReleaseId: metaSchema.metaResourceReleases.sourceReleaseId,
+      id: metaSchema.metaResourceReleaseDetails.id,
+      code: metaSchema.metaResourceReleaseDetails.code,
+      sourceReleaseId: metaSchema.metaResourceReleaseDetails.sourceReleaseId,
     })
-    .from(metaSchema.metaResourceReleases)
+    .from(metaSchema.metaResourceReleaseDetails)
     .innerJoin(
       metaSchema.metaDatasets,
-      eq(metaSchema.metaResourceReleases.datasetId, metaSchema.metaDatasets.id),
+      eq(metaSchema.metaResourceReleaseDetails.datasetId, metaSchema.metaDatasets.id),
     )
     .where(eq(metaSchema.metaDatasets.code, DATASET_CODE))
     .all()
@@ -698,7 +701,7 @@ async function collectOwnedRecordsFromRemoteMeta(
   current: RemoteD1QueryClient,
 ): Promise<NonNullable<OfficialAddressInitManifest['owned']>> {
   const releases = (await client.query(
-    `SELECT r.id, r.code, r.sourceReleaseId FROM resourceReleases r JOIN datasets d ON d.id = r.datasetId WHERE d.code = ${literal(DATASET_CODE)}`,
+    `SELECT r.id, r.code, r.sourceReleaseId FROM resourceReleaseDetails r JOIN datasets d ON d.id = r.datasetId WHERE d.code = ${literal(DATASET_CODE)}`,
   )) as Array<{ id: string; code: string; sourceReleaseId: string }>
   if (releases.length === 0)
     throw new Error('Official-address initialisation produced no address releases.')
@@ -816,11 +819,11 @@ async function assertResetStillSafe(
   if (dependencies.length)
     throw new Error(`Refusing reset: ${dependencies.join('; ')}.`)
   const releases = await context.metaDb
-    .select({ id: metaSchema.metaResourceReleases.id })
-    .from(metaSchema.metaResourceReleases)
+    .select({ id: metaSchema.metaResourceReleaseDetails.id })
+    .from(metaSchema.metaResourceReleaseDetails)
     .innerJoin(
       metaSchema.metaDatasets,
-      eq(metaSchema.metaResourceReleases.datasetId, metaSchema.metaDatasets.id),
+      eq(metaSchema.metaResourceReleaseDetails.datasetId, metaSchema.metaDatasets.id),
     )
     .where(eq(metaSchema.metaDatasets.code, DATASET_CODE))
     .all()
@@ -963,15 +966,15 @@ async function absorbAbandonedStagedAddressReleases(
   const owned = requireOwned(manifest)
   const releases = await context.metaDb
     .select({
-      code: metaSchema.metaResourceReleases.code,
-      id: metaSchema.metaResourceReleases.id,
-      sourceReleaseId: metaSchema.metaResourceReleases.sourceReleaseId,
-      status: metaSchema.metaResourceReleases.status,
+      code: metaSchema.metaResourceReleaseDetails.code,
+      id: metaSchema.metaResourceReleaseDetails.id,
+      sourceReleaseId: metaSchema.metaResourceReleaseDetails.sourceReleaseId,
+      status: metaSchema.metaResourceReleaseDetails.status,
     })
-    .from(metaSchema.metaResourceReleases)
+    .from(metaSchema.metaResourceReleaseDetails)
     .innerJoin(
       metaSchema.metaDatasets,
-      eq(metaSchema.metaResourceReleases.datasetId, metaSchema.metaDatasets.id),
+      eq(metaSchema.metaResourceReleaseDetails.datasetId, metaSchema.metaDatasets.id),
     )
     .where(eq(metaSchema.metaDatasets.code, DATASET_CODE))
     .all()

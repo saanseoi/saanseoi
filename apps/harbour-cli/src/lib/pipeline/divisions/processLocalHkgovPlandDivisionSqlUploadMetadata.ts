@@ -110,13 +110,11 @@ export async function buildPlandMetaSql(
   ]
   const sourceColumns = [
     'snapshotId',
-    'datasetId',
     'resourceReleaseId',
     'role',
     'selectedByRule',
     'selectionMode',
     'anchorReleaseId',
-    'sourceCohortKey',
     'createdAt',
   ]
   const assemblyColumns = [

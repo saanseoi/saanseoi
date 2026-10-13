@@ -1,3 +1,4 @@
+import { metaSnapshotResourceReleaseDetails } from '@repo/db/metaSchema'
 import {
   matchesGeographicMembership,
   geographicFilterContext,
@@ -237,19 +238,19 @@ async function getPublishedStreetSnapshot(metaDb: MetaDatabase, region?: ApiRegi
       eq(metaSnapshots.snapshotLineageId, metaSnapshotLineages.id),
     )
     .innerJoin(
-      metaSnapshotResourceReleases,
-      eq(metaSnapshots.id, metaSnapshotResourceReleases.snapshotId),
+      metaSnapshotResourceReleaseDetails,
+      eq(metaSnapshots.id, metaSnapshotResourceReleaseDetails.snapshotId),
     )
     .innerJoin(
       metaDatasets,
-      eq(metaSnapshotResourceReleases.datasetId, metaDatasets.id),
+      eq(metaSnapshotResourceReleaseDetails.datasetId, metaDatasets.id),
     )
     .where(
       and(
         eq(metaSnapshotLineages.resourceType, 'street'),
         eq(metaSnapshots.status, 'published'),
         eq(metaDatasets.regionCode, resolveDataRegion(region)),
-        eq(metaSnapshotResourceReleases.role, 'primary'),
+        eq(metaSnapshotResourceReleaseDetails.role, 'primary'),
       ),
     )
     .orderBy(desc(metaSnapshots.publishedAt), desc(metaSnapshots.createdAt))

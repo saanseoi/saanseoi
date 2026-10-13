@@ -42,10 +42,16 @@ INSERT INTO snapshots(id, snapshotLineageId, parentSnapshotId, code, cohortKey, 
 ('early', 'lineage', NULL, 'saanseoi-2025', '2025-01-01.0', 'published'),
 ('complete', 'lineage', 'early', 'saanseoi-2026-01', '2026-01-01.0', 'published'),
 ('latest', 'lineage', 'complete', 'saanseoi-2026-08', '2026-08-19.0', 'published');
-      INSERT INTO snapshotResourceReleases(snapshotId,datasetId,resourceReleaseId,role) VALUES
-        ('early','divisions','release-2025','primary'),
-        ('complete','divisions','release-2026-01','primary'),
-        ('latest','divisions','release-2026-08','primary');
+INSERT INTO sourceReleases(id,datasetId,code,sourceVersion,cohortKey,status) VALUES ('source-2025','divisions','source-2025','2025','2025','current');
+INSERT INTO resourceReleases(id,sourceReleaseId,code,resourceType,status) VALUES ('release-2025','source-2025','release-2025','division','current');
+INSERT INTO sourceReleases(id,datasetId,code,sourceVersion,cohortKey,status) VALUES ('source-2026-01','divisions','source-2026-01','2026-01','2026-01','current');
+INSERT INTO resourceReleases(id,sourceReleaseId,code,resourceType,status) VALUES ('release-2026-01','source-2026-01','release-2026-01','division','current');
+INSERT INTO sourceReleases(id,datasetId,code,sourceVersion,cohortKey,status) VALUES ('source-2026-08','divisions','source-2026-08','2026-08','2026-08','current');
+INSERT INTO resourceReleases(id,sourceReleaseId,code,resourceType,status) VALUES ('release-2026-08','source-2026-08','release-2026-08','division','current');
+      INSERT INTO snapshotResourceReleases(snapshotId,resourceReleaseId,role) VALUES
+        ('early','release-2025','primary'),
+        ('complete','release-2026-01','primary'),
+        ('latest','release-2026-08','primary');
       INSERT INTO dataShards(id,shardType,regionCode,year,environment,databaseName,databaseId,bindingName,status,versionHash) VALUES
         ('history-2025','history','hk','2025','preview','history-2025','history-2025','DB_HISTORY_HK_2025','active','hash'),
         ('history-2026','history','hk','2026','preview','history-2026','history-2026','DB_HISTORY_HK_2026','active','hash');
@@ -180,7 +186,7 @@ test('curated references use edition validity, including unchanged records and e
       CREATE TABLE snapshotResourceReleases(snapshotId TEXT, resourceReleaseId TEXT, role TEXT);
       INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status) VALUES (coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'fixture' AND sourceVersion = '2026-10-01.0'), 'source-' || 'new-release'), 'fixture', 'source-' || 'new-release', '2026-10-01.0', 'current');
 UPDATE sourceReleases SET sourceVersion = '2026-10-01.0' WHERE id = coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'fixture' AND sourceVersion = '2026-10-01.0'), 'source-' || 'new-release');
-INSERT INTO resourceReleases (id, sourceReleaseId, datasetId, code, resourceType, status) VALUES ('new-release', coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'fixture' AND sourceVersion = '2026-10-01.0'), 'source-' || 'new-release'), 'fixture', 'new-release', 'division', 'current');
+INSERT INTO resourceReleases (id, sourceReleaseId, code, resourceType, status) VALUES ('new-release', coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'fixture' AND sourceVersion = '2026-10-01.0'), 'source-' || 'new-release'), 'new-release', 'division', 'current');
       INSERT INTO snapshotResourceReleases VALUES('snapshot','new-release','primary');`)
     source.exec(`CREATE TABLE ssDivision(sourceRecordId TEXT, resourceReleaseId TEXT, validFromRelease TEXT, validToRelease TEXT);
       INSERT INTO ssDivision VALUES

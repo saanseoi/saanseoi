@@ -145,13 +145,7 @@ test('supplementary editions reuse cross-year components, replay immutable prove
       regionCode: 'hk',
       sourceReleaseId: 'als-release',
     })
-    await upsertSnapshotSource(
-      db,
-      official.id,
-      'hkgov-dpo-hk-address',
-      'als-release',
-      'primary',
-    )
+    await upsertSnapshotSource(db, official.id, 'als-release', 'primary')
     const placeSnapshot = await ensureDraftSnapshotForRelease(db, 'place', {
       variant: 'overture',
       cohortKey: '2025-08',
@@ -420,7 +414,9 @@ INSERT INTO snapshots(id, code, cohortKey, status, snapshotLineageId) VALUES
     )
     expect(
       meta
-        .query('SELECT datasetId, sourceReleaseId FROM resourceReleases WHERE id = ?')
+        .query(
+          'SELECT datasetId, sourceReleaseId FROM resourceReleaseDetails AS resourceReleases WHERE id = ?',
+        )
         .get(first.resourceReleaseId),
     ).toEqual({
       datasetId: 'overture-hk-place',
@@ -633,13 +629,7 @@ INSERT INTO snapshots(id, code, cohortKey, status, snapshotLineageId) VALUES
       regionCode: 'hk',
       sourceReleaseId: 'als-release-next',
     })
-    await upsertSnapshotSource(
-      db,
-      officialNext.id,
-      'hkgov-dpo-hk-address',
-      'als-release-next',
-      'primary',
-    )
+    await upsertSnapshotSource(db, officialNext.id, 'als-release-next', 'primary')
     current
       .query('UPDATE addressPublicationState SET snapshotId = ? WHERE scopeId = ?')
       .run(officialNext.id, officialScopeId)

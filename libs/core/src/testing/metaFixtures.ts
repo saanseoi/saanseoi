@@ -592,12 +592,6 @@ id TEXT PRIMARY KEY NOT NULL,
     'anchorReleaseId',
     'anchorReleaseId TEXT',
   )
-  addColumnIfMissing(
-    db,
-    'snapshotResourceReleases',
-    'sourceCohortKey',
-    'sourceCohortKey TEXT',
-  )
 
   db.exec(`
     CREATE TABLE IF NOT EXISTS snapshotRecipes (
@@ -1235,7 +1229,6 @@ export function insertFixtureRelease(db: Database, release: FixtureRelease) {
       INSERT INTO resourceReleases (
         id,
         sourceReleaseId,
-        datasetId,
         resourceType,
         code,
         status,
@@ -1248,12 +1241,6 @@ export function insertFixtureRelease(db: Database, release: FixtureRelease) {
       ) VALUES (
         ?1,
         ?17,
-        (
-          SELECT d.id
-          FROM datasets d
-          JOIN publishers p ON p.id = d.publisherId
-          WHERE p.code = ?2 AND d.code = ?3
-        ),
         ?4,
         ?5,
         ?10,

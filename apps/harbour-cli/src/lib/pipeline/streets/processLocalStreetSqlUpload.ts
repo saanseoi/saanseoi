@@ -150,7 +150,6 @@ export async function processLocalStreetSqlUpload(
     await upsertSnapshotSource(
       metaDb,
       snapshot.id,
-      dataset.datasetId,
       dataset.resourceReleaseId,
       LANDSD_STREET_SNAPSHOT_SOURCE_ROLE,
       {
@@ -159,7 +158,6 @@ export async function processLocalStreetSqlUpload(
         // This snapshot is deliberately pinned to this exact staged release,
         // rather than selecting the latest release through a rolling rule.
         selectionMode: 'exact_ref',
-        sourceCohortKey: dataset.cohortKey,
       },
     )
     await recordSnapshotAssembly(metaDb, {

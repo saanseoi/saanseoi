@@ -806,14 +806,12 @@ export async function prepareAddressVersionInsertContext(
   await upsertSnapshotSource(
     metaDb,
     snapshot.id,
-    dataset.datasetId,
     dataset.resourceReleaseId,
     releaseRole,
     {
       anchorReleaseId: releaseRole === 'primary' ? dataset.resourceReleaseId : null,
       selectedByRule: 'assembly:address:source-release:v1',
       selectionMode: 'exact_ref',
-      sourceCohortKey: dataset.cohortKey,
     },
   )
   if (!options.deferAssembly)

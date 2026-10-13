@@ -79,7 +79,7 @@ export function initDb(dbPath: string) {
   }
   db.exec(`CREATE TRIGGER fixture_capture_release_rules AFTER INSERT ON resourceReleases
     WHEN NEW.processingRules IS NULL
-    BEGIN UPDATE resourceReleases SET processingRules = (SELECT p.processingRules FROM fixturePolicies p JOIN datasets d ON d.code = p.datasetCode WHERE d.id = NEW.datasetId) WHERE id = NEW.id; END;`)
+    BEGIN UPDATE resourceReleases SET processingRules = (SELECT p.processingRules FROM fixturePolicies p JOIN datasets d ON d.code = p.datasetCode WHERE d.id = (SELECT datasetId FROM sourceReleases WHERE id = NEW.sourceReleaseId)) WHERE id = NEW.id; END;`)
   seedCompletedAudits(db)
   return db
 }
@@ -122,10 +122,9 @@ INSERT INTO snapshots (id, snapshotLineageId, code, cohortKey, status, published
 ('${snapshotId}', 'fixture-lineage-' || '${snapshotId}', '${code}', '${cohortKey}', '${status}', ${publishedAt}, ${publishedAt}, null, ${timestamp}, ${timestamp});
 
     INSERT INTO snapshotResourceReleases (
-      snapshotId, datasetId, resourceReleaseId, role, createdAt
+      snapshotId, resourceReleaseId, role, createdAt
     ) VALUES (
       '${snapshotId}',
-      '${datasetId}',
       '${resourceReleaseId}',
       'primary',
       ${timestamp}
@@ -211,14 +210,14 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
       );
 
     INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status, sourceSchemaVersion, cohortKey) VALUES ('release-dr-hk-hkgov-censtatd-division-area-district-annual-2024', 'hkgov-censtatd-hk-district-annual', 'source-' || 'dr-hk-hkgov-censtatd-division-area-district-annual-2024', '2024', 'current', '1.0', '2024');
-UPDATE sourceReleases SET sourceVersion = '2024', sourceSchemaVersion = '1.0', cohortKey = '2024' WHERE id = 'release-dr-hk-hkgov-censtatd-division-area-district-annual-2024';
-INSERT INTO resourceReleases (id, sourceReleaseId, datasetId, resourceType, code, status, ingestedAt, createdAt, updatedAt) VALUES ('release-dr-hk-hkgov-censtatd-division-area-district-annual-2024', 'release-dr-hk-hkgov-censtatd-division-area-district-annual-2024', 'hkgov-censtatd-hk-district-annual', 'divisionArea', 'dr-hk-hkgov-censtatd-division-area-district-annual-2024', 'current', '2026-06-05T00:00:00.000Z', '2026-06-05T00:00:00.000Z', '2026-06-05T00:00:00.000Z');
+UPDATE sourceReleases SET datasetId = 'hkgov-censtatd-hk-district-annual', sourceVersion = '2024', sourceSchemaVersion = '1.0', cohortKey = '2024' WHERE id = 'release-dr-hk-hkgov-censtatd-division-area-district-annual-2024';
+INSERT INTO resourceReleases (id, sourceReleaseId, resourceType, code, status, ingestedAt, createdAt, updatedAt) VALUES ('release-dr-hk-hkgov-censtatd-division-area-district-annual-2024', 'release-dr-hk-hkgov-censtatd-division-area-district-annual-2024', 'divisionArea', 'dr-hk-hkgov-censtatd-division-area-district-annual-2024', 'current', '2026-06-05T00:00:00.000Z', '2026-06-05T00:00:00.000Z', '2026-06-05T00:00:00.000Z');
 
     INSERT OR IGNORE INTO snapshotResourceReleases (
-      snapshotId, datasetId, resourceReleaseId, role
+      snapshotId, resourceReleaseId, role
     ) VALUES
     (
-      '${snapshotId}', 'hkgov-censtatd-hk-district-annual',
+      '${snapshotId}',
       'release-dr-hk-hkgov-censtatd-division-area-district-annual-2024', 'supporting'
     );
   `)
@@ -275,11 +274,13 @@ INSERT INTO resourceReleases (id, sourceReleaseId, datasetId, resourceType, code
       )
       .run(release.schemaVersion, resourceReleaseId)
     const datasetId = sqlite
-      .query('SELECT datasetId FROM resourceReleases WHERE id = ?')
+      .query(
+        'SELECT datasetId FROM resourceReleaseDetails AS resourceReleases WHERE id = ?',
+      )
       .get(resourceReleaseId) as { datasetId: string }
     sqlite
       .query(
-        'INSERT INTO snapshotResourceReleases (snapshotId, datasetId, resourceReleaseId, role) VALUES (?, ?, ?, ?)',
+        'INSERT INTO snapshotResourceReleases (snapshotId, resourceReleaseId, role) VALUES (?1, ?3, ?4)',
       )
       .run(snapshotId, datasetId.datasetId, resourceReleaseId, 'supporting')
   }
@@ -295,7 +296,7 @@ INSERT INTO resourceReleases (id, sourceReleaseId, datasetId, resourceType, code
       [string]
     >(
       `SELECT r.id AS resourceReleaseId, r.datasetId, r.resourceType, r.cohortKey
-     FROM snapshotResourceReleases sr JOIN resourceReleaseDetails r ON r.id = sr.resourceReleaseId
+     FROM snapshotResourceReleaseDetails sr JOIN resourceReleaseDetails r ON r.id = sr.resourceReleaseId
      WHERE sr.snapshotId = ? AND r.resourceType IN ('divisionArea', 'divisionBoundary')`,
     )
     .all(snapshotId)
@@ -324,7 +325,7 @@ export function seedSnapshotAssembly(sqlite: Database, snapshotId: string) {
   if (!snapshot) throw new Error(`Missing fixture snapshot: ${snapshotId}`)
   const sources = sqlite
     .query<{ code: string }, [string]>(
-      'SELECT d.code FROM snapshotResourceReleases sr JOIN datasets d ON d.id = sr.datasetId WHERE sr.snapshotId = ?',
+      'SELECT d.code FROM snapshotResourceReleaseDetails sr JOIN datasets d ON d.id = sr.datasetId WHERE sr.snapshotId = ?',
     )
     .all(snapshotId)
   const rules = resolveSnapshotProcessingRules(

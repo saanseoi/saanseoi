@@ -203,7 +203,6 @@ id TEXT PRIMARY KEY,
 
     CREATE TABLE snapshotResourceReleases (
       snapshotId TEXT NOT NULL,
-      datasetId TEXT NOT NULL,
       resourceReleaseId TEXT,
       role TEXT NOT NULL
     );
@@ -345,19 +344,28 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
         ('source-version-c', 'dataset-c', 'dr-hk-overture-divisions-2026-07-15');
 
       INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status) VALUES ('source-version-a', 'dataset-a', 'source-' || '2026-07-15', '2026-07-15', 'current');
-UPDATE sourceReleases SET sourceVersion = '2026-07-15' WHERE id = 'source-version-a';
-INSERT INTO resourceReleases (id, datasetId, sourceReleaseId, code, ingestedAt, processingRules, resourceType, status) VALUES ('source-release-a', 'dataset-a', 'source-version-a', '2026-07-15', '2026-07-15T00:00:00.000Z', '{"rulesets":[{"rulesetVersion":"v1","rules":[{"operationCode":"normalise_name","kind":"bulk","i18n":{}}]}]}', 'division', 'current');
+UPDATE sourceReleases SET datasetId = 'dataset-a', sourceVersion = '2026-07-15' WHERE id = 'source-version-a';
+INSERT INTO resourceReleases (id, sourceReleaseId, code, ingestedAt, processingRules, resourceType, status) VALUES ('source-release-a', 'source-version-a', '2026-07-15', '2026-07-15T00:00:00.000Z', '{"rulesets":[{"rulesetVersion":"v1","rules":[{"operationCode":"normalise_name","kind":"bulk","i18n":{}}]}]}', 'division', 'current');
 INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status) VALUES ('source-version-b', 'dataset-b', 'source-' || '2026-07-15', '2026-07-15', 'current');
-UPDATE sourceReleases SET sourceVersion = '2026-07-15' WHERE id = 'source-version-b';
-INSERT INTO resourceReleases (id, datasetId, sourceReleaseId, code, ingestedAt, processingRules, resourceType, status) VALUES ('source-release-b', 'dataset-b', 'source-version-b', '2026-07-15', '2026-07-15T00:00:00.000Z', '{"rulesets":[{"rulesetVersion":"v1","rules":[{"operationCode":"normalise_name","kind":"bulk","i18n":{}}]}]}', 'division', 'current');
+UPDATE sourceReleases SET datasetId = 'dataset-b', sourceVersion = '2026-07-15' WHERE id = 'source-version-b';
+INSERT INTO resourceReleases (id, sourceReleaseId, code, ingestedAt, processingRules, resourceType, status) VALUES ('source-release-b', 'source-version-b', '2026-07-15', '2026-07-15T00:00:00.000Z', '{"rulesets":[{"rulesetVersion":"v1","rules":[{"operationCode":"normalise_name","kind":"bulk","i18n":{}}]}]}', 'division', 'current');
 INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status) VALUES ('source-version-c', 'dataset-c', 'source-' || '2026-07-15', '2026-07-15', 'current');
-UPDATE sourceReleases SET sourceVersion = '2026-07-15' WHERE id = 'source-version-c';
-INSERT INTO resourceReleases (id, datasetId, sourceReleaseId, code, ingestedAt, processingRules, resourceType, status) VALUES ('source-release-c', 'dataset-c', 'source-version-c', '2026-07-15', '2026-07-15T00:00:00.000Z', '{}', 'division', 'current');
+UPDATE sourceReleases SET datasetId = 'dataset-c', sourceVersion = '2026-07-15' WHERE id = 'source-version-c';
+INSERT INTO resourceReleases (id, sourceReleaseId, code, ingestedAt, processingRules, resourceType, status) VALUES ('source-release-c', 'source-version-c', '2026-07-15', '2026-07-15T00:00:00.000Z', '{}', 'division', 'current');
 
-      INSERT INTO snapshotResourceReleases (snapshotId, datasetId, resourceReleaseId, role) VALUES
-        ('snapshot-a', 'dataset-a', 'source-release-a', 'primary'),
-        ('snapshot-a', 'dataset-c', 'source-release-c', 'primary'),
-        ('snapshot-b', 'dataset-b', 'source-release-b', 'primary');
+      UPDATE sourceReleases SET datasetId='dataset-a' WHERE id=(SELECT sourceReleaseId FROM resourceReleases WHERE id='source-release-a');
+INSERT INTO sourceReleases(id,datasetId) SELECT 'source-' || 'source-release-a', 'dataset-a' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='source-release-a');
+INSERT INTO resourceReleases(id,sourceReleaseId,resourceType,status) SELECT 'source-release-a', 'source-' || 'source-release-a', (SELECT l.resourceType FROM snapshots s JOIN snapshotLineages l ON l.id=s.snapshotLineageId WHERE s.id='snapshot-a'), 'current' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='source-release-a');
+UPDATE sourceReleases SET datasetId='dataset-c' WHERE id=(SELECT sourceReleaseId FROM resourceReleases WHERE id='source-release-c');
+INSERT INTO sourceReleases(id,datasetId) SELECT 'source-' || 'source-release-c', 'dataset-c' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='source-release-c');
+INSERT INTO resourceReleases(id,sourceReleaseId,resourceType,status) SELECT 'source-release-c', 'source-' || 'source-release-c', (SELECT l.resourceType FROM snapshots s JOIN snapshotLineages l ON l.id=s.snapshotLineageId WHERE s.id='snapshot-a'), 'current' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='source-release-c');
+UPDATE sourceReleases SET datasetId='dataset-b' WHERE id=(SELECT sourceReleaseId FROM resourceReleases WHERE id='source-release-b');
+INSERT INTO sourceReleases(id,datasetId) SELECT 'source-' || 'source-release-b', 'dataset-b' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='source-release-b');
+INSERT INTO resourceReleases(id,sourceReleaseId,resourceType,status) SELECT 'source-release-b', 'source-' || 'source-release-b', (SELECT l.resourceType FROM snapshots s JOIN snapshotLineages l ON l.id=s.snapshotLineageId WHERE s.id='snapshot-b'), 'current' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='source-release-b');
+INSERT INTO snapshotResourceReleases (snapshotId, resourceReleaseId, role) VALUES
+        ('snapshot-a', 'source-release-a', 'primary'),
+        ('snapshot-a', 'source-release-c', 'primary'),
+        ('snapshot-b', 'source-release-b', 'primary');
 
     `)
     for (const row of sqlite
@@ -575,7 +583,6 @@ function createDraftSnapshotDb() {
 
     CREATE TABLE snapshotResourceReleases (
       snapshotId TEXT NOT NULL,
-      datasetId TEXT NOT NULL,
       resourceReleaseId TEXT NOT NULL,
       role TEXT NOT NULL DEFAULT 'primary'
     );
@@ -700,6 +707,8 @@ function createSnapshotAssemblyDb() {
   const sqlite = new SQLiteDatabase(':memory:')
 
   sqlite.exec(`
+    ${releaseFixtureSchemaSql()};
+
     CREATE TABLE snapshotRecipes (
       id TEXT PRIMARY KEY,
       code TEXT NOT NULL,
@@ -755,8 +764,10 @@ function createSnapshotAssemblyDb() {
 UPDATE snapshotLineages SET resourceType='division' WHERE id='fixture-lineage-' || 'snapshot-division' AND resourceType IS NULL;
 INSERT INTO snapshots (id, snapshotLineageId, status, cohortKey) VALUES
 ('snapshot-division', 'fixture-lineage-' || 'snapshot-division', 'draft', '2025-09-24.0');
-    CREATE TABLE snapshotResourceReleases (snapshotId TEXT, datasetId TEXT, resourceReleaseId TEXT, role TEXT, selectedByRule TEXT, selectionMode TEXT, anchorReleaseId TEXT, sourceCohortKey TEXT);
-    INSERT INTO snapshotResourceReleases VALUES ('snapshot-division', 'dataset-division', 'release-division', 'primary', 'assembly:division:source-release:v1', 'exact_ref', 'release-division', '2025-09-24.0');
+    CREATE TABLE snapshotResourceReleases (snapshotId TEXT, resourceReleaseId TEXT, role TEXT, selectedByRule TEXT, selectionMode TEXT, anchorReleaseId TEXT);
+    INSERT INTO sourceReleases(id,datasetId) VALUES ('source-division','dataset-division');
+    INSERT INTO resourceReleases(id,sourceReleaseId) VALUES ('release-division','source-division');
+    INSERT INTO snapshotResourceReleases VALUES ('snapshot-division', 'release-division', 'primary', 'assembly:division:source-release:v1', 'exact_ref', 'release-division');
     CREATE TABLE snapshotRecipeInputs (snapshotRecipeId TEXT, datasetId TEXT, role TEXT, isRequired INTEGER, maxLagDays INTEGER, priority INTEGER, selectionPolicyJson TEXT, PRIMARY KEY(snapshotRecipeId, datasetId, role));
   `)
 
@@ -774,6 +785,8 @@ function createRegionalSnapshotLookupDb() {
   const sqlite = new SQLiteDatabase(':memory:')
 
   sqlite.exec(`
+    ${releaseFixtureSchemaSql()};
+
     CREATE TABLE publishers (
       i18n TEXT NOT NULL DEFAULT '{}',
       id TEXT PRIMARY KEY,
@@ -800,7 +813,6 @@ function createRegionalSnapshotLookupDb() {
 
     CREATE TABLE snapshotResourceReleases (
       snapshotId TEXT NOT NULL,
-      datasetId TEXT NOT NULL,
       resourceReleaseId TEXT NOT NULL,
       role TEXT NOT NULL
     );
@@ -897,11 +909,9 @@ function createCleanupCandidatesDb() {
       updatedAt TEXT NOT NULL DEFAULT '2026-01-01T00:00:00.000Z'
     );
     CREATE TABLE snapshotResourceReleases (
-      snapshotId TEXT, datasetId TEXT, resourceReleaseId TEXT, role TEXT
+      snapshotId TEXT, resourceReleaseId TEXT, role TEXT
     );
-    CREATE TABLE resourceReleases (
-      id TEXT PRIMARY KEY, datasetId TEXT, resourceType TEXT, status TEXT
-    );
+    ${releaseFixtureSchemaSql()};
     CREATE TABLE datasets (
       i18n TEXT NOT NULL DEFAULT '{}',
       id TEXT PRIMARY KEY, publisherId TEXT, code TEXT, regionCode TEXT, sourceVariant TEXT
@@ -953,6 +963,8 @@ function createActiveSnapshotLookupDb() {
   const sqlite = new SQLiteDatabase(':memory:')
 
   sqlite.exec(`
+    ${releaseFixtureSchemaSql()};
+
     CREATE TABLE apiVersions (
       id TEXT PRIMARY KEY,
       code TEXT NOT NULL,
@@ -1013,7 +1025,6 @@ id TEXT PRIMARY KEY,
 
     CREATE TABLE snapshotResourceReleases (
       snapshotId TEXT NOT NULL,
-      datasetId TEXT NOT NULL,
       resourceReleaseId TEXT NOT NULL,
       role TEXT NOT NULL
     );
@@ -1166,7 +1177,6 @@ id TEXT PRIMARY KEY,
 
     CREATE TABLE snapshotResourceReleases (
       snapshotId TEXT NOT NULL,
-      datasetId TEXT NOT NULL,
       resourceReleaseId TEXT NOT NULL,
       anchorReleaseId TEXT,
       role TEXT NOT NULL DEFAULT 'primary'
@@ -1223,7 +1233,7 @@ id TEXT PRIMARY KEY,
 function seedSnapshotProcessingPolicies(sqlite: SQLiteDatabase) {
   const rows = sqlite
     .query(
-      'SELECT s.id, sl.resourceType, d.code FROM snapshots s JOIN snapshotLineages sl ON sl.id=s.snapshotLineageId JOIN snapshotResourceReleases sr ON sr.snapshotId=s.id JOIN datasets d ON d.id=sr.datasetId',
+      'SELECT s.id, sl.resourceType, d.code FROM snapshots s JOIN snapshotLineages sl ON sl.id=s.snapshotLineageId JOIN snapshotResourceReleaseDetails sr ON sr.snapshotId=s.id JOIN datasets d ON d.id=sr.datasetId',
     )
     .all() as Array<{ id: string; resourceType: string; code: string }>
   for (const id of new Set(rows.map(row => row.id))) {
@@ -1257,29 +1267,44 @@ function seedCompleteOvertureFixtureSources(
 
     INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status, sourceSchemaVersion) VALUES (coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'fixture' AND sourceVersion = '2026-06-17.0'), 'source-' || 'release-supporting-area'), 'fixture', 'source-' || 'release-supporting-area', '2026-06-17.0', 'current', '1.17.0');
 UPDATE sourceReleases SET sourceVersion = '2026-06-17.0', sourceSchemaVersion = '1.17.0' WHERE id = coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'fixture' AND sourceVersion = '2026-06-17.0'), 'source-' || 'release-supporting-area');
-INSERT INTO resourceReleases (id, status, revokedAt, revocationReason, supersededByResourceReleaseId, updatedAt, sourceReleaseId, datasetId, code, resourceType) VALUES ('release-supporting-area', 'current', null, null, null, 1760000000000, coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'fixture' AND sourceVersion = '2026-06-17.0'), 'source-' || 'release-supporting-area'), 'fixture', 'release-supporting-area', 'division');
+INSERT INTO resourceReleases (id, status, revokedAt, revocationReason, supersededByResourceReleaseId, updatedAt, sourceReleaseId, code, resourceType) VALUES ('release-supporting-area', 'current', null, null, null, 1760000000000, coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'fixture' AND sourceVersion = '2026-06-17.0'), 'source-' || 'release-supporting-area'), 'release-supporting-area', 'division');
 INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status, sourceSchemaVersion) VALUES (coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'fixture' AND sourceVersion = '2026-06-17.0'), 'source-' || 'release-supporting-boundary'), 'fixture', 'source-' || 'release-supporting-boundary', '2026-06-17.0', 'current', '1.17.0');
 UPDATE sourceReleases SET sourceVersion = '2026-06-17.0', sourceSchemaVersion = '1.17.0' WHERE id = coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'fixture' AND sourceVersion = '2026-06-17.0'), 'source-' || 'release-supporting-boundary');
-INSERT INTO resourceReleases (id, status, revokedAt, revocationReason, supersededByResourceReleaseId, updatedAt, sourceReleaseId, datasetId, code, resourceType) VALUES ('release-supporting-boundary', 'current', null, null, null, 1760000000000, coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'fixture' AND sourceVersion = '2026-06-17.0'), 'source-' || 'release-supporting-boundary'), 'fixture', 'release-supporting-boundary', 'division');
+INSERT INTO resourceReleases (id, status, revokedAt, revocationReason, supersededByResourceReleaseId, updatedAt, sourceReleaseId, code, resourceType) VALUES ('release-supporting-boundary', 'current', null, null, null, 1760000000000, coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'fixture' AND sourceVersion = '2026-06-17.0'), 'source-' || 'release-supporting-boundary'), 'release-supporting-boundary', 'division');
 INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status, sourceSchemaVersion) VALUES (coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'fixture' AND sourceVersion = '2022'), 'source-' || 'release-supporting-had'), 'fixture', 'source-' || 'release-supporting-had', '2022', 'current', '1.2');
 UPDATE sourceReleases SET sourceVersion = '2022', sourceSchemaVersion = '1.2' WHERE id = coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'fixture' AND sourceVersion = '2022'), 'source-' || 'release-supporting-had');
-INSERT INTO resourceReleases (id, status, revokedAt, revocationReason, supersededByResourceReleaseId, updatedAt, sourceReleaseId, datasetId, code, resourceType) VALUES ('release-supporting-had', 'current', null, null, null, 1760000000000, coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'fixture' AND sourceVersion = '2022'), 'source-' || 'release-supporting-had'), 'fixture', 'release-supporting-had', 'division');
+INSERT INTO resourceReleases (id, status, revokedAt, revocationReason, supersededByResourceReleaseId, updatedAt, sourceReleaseId, code, resourceType) VALUES ('release-supporting-had', 'current', null, null, null, 1760000000000, coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'fixture' AND sourceVersion = '2022'), 'source-' || 'release-supporting-had'), 'release-supporting-had', 'division');
 INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status, sourceSchemaVersion) VALUES (coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'fixture' AND sourceVersion = '2016'), 'source-' || 'release-supporting-censtatd'), 'fixture', 'source-' || 'release-supporting-censtatd', '2016', 'current', '1.0');
 UPDATE sourceReleases SET sourceVersion = '2016', sourceSchemaVersion = '1.0' WHERE id = coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'fixture' AND sourceVersion = '2016'), 'source-' || 'release-supporting-censtatd');
-INSERT INTO resourceReleases (id, status, revokedAt, revocationReason, supersededByResourceReleaseId, updatedAt, sourceReleaseId, datasetId, code, resourceType) VALUES ('release-supporting-censtatd', 'current', null, null, null, 1760000000000, coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'fixture' AND sourceVersion = '2016'), 'source-' || 'release-supporting-censtatd'), 'fixture', 'release-supporting-censtatd', 'division');
+INSERT INTO resourceReleases (id, status, revokedAt, revocationReason, supersededByResourceReleaseId, updatedAt, sourceReleaseId, code, resourceType) VALUES ('release-supporting-censtatd', 'current', null, null, null, 1760000000000, coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'fixture' AND sourceVersion = '2016'), 'source-' || 'release-supporting-censtatd'), 'release-supporting-censtatd', 'division');
 INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status, sourceSchemaVersion) VALUES (coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'fixture' AND sourceVersion = '2024'), 'source-' || 'release-supporting-censtatd-annual'), 'fixture', 'source-' || 'release-supporting-censtatd-annual', '2024', 'current', '1.0');
 UPDATE sourceReleases SET sourceVersion = '2024', sourceSchemaVersion = '1.0' WHERE id = coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'fixture' AND sourceVersion = '2024'), 'source-' || 'release-supporting-censtatd-annual');
-INSERT INTO resourceReleases (id, status, revokedAt, revocationReason, supersededByResourceReleaseId, updatedAt, sourceReleaseId, datasetId, code, resourceType) VALUES ('release-supporting-censtatd-annual', 'current', null, null, null, 1760000000000, coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'fixture' AND sourceVersion = '2024'), 'source-' || 'release-supporting-censtatd-annual'), 'fixture', 'release-supporting-censtatd-annual', 'division');
+INSERT INTO resourceReleases (id, status, revokedAt, revocationReason, supersededByResourceReleaseId, updatedAt, sourceReleaseId, code, resourceType) VALUES ('release-supporting-censtatd-annual', 'current', null, null, null, 1760000000000, coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'fixture' AND sourceVersion = '2024'), 'source-' || 'release-supporting-censtatd-annual'), 'release-supporting-censtatd-annual', 'division');
 INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status, sourceSchemaVersion) VALUES (coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'fixture' AND sourceVersion = '2023-H2'), 'source-' || 'release-supporting-censtatd-area-type'), 'fixture', 'source-' || 'release-supporting-censtatd-area-type', '2023-H2', 'current', '1.0');
 UPDATE sourceReleases SET sourceVersion = '2023-H2', sourceSchemaVersion = '1.0' WHERE id = coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'fixture' AND sourceVersion = '2023-H2'), 'source-' || 'release-supporting-censtatd-area-type');
-INSERT INTO resourceReleases (id, status, revokedAt, revocationReason, supersededByResourceReleaseId, updatedAt, sourceReleaseId, datasetId, code, resourceType) VALUES ('release-supporting-censtatd-area-type', 'current', null, null, null, 1760000000000, coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'fixture' AND sourceVersion = '2023-H2'), 'source-' || 'release-supporting-censtatd-area-type'), 'fixture', 'release-supporting-censtatd-area-type', 'division');
+INSERT INTO resourceReleases (id, status, revokedAt, revocationReason, supersededByResourceReleaseId, updatedAt, sourceReleaseId, code, resourceType) VALUES ('release-supporting-censtatd-area-type', 'current', null, null, null, 1760000000000, coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'fixture' AND sourceVersion = '2023-H2'), 'source-' || 'release-supporting-censtatd-area-type'), 'release-supporting-censtatd-area-type', 'division');
 
-    INSERT INTO snapshotResourceReleases (snapshotId, datasetId, resourceReleaseId) VALUES
-      ('${snapshotId}', 'dataset-overture-division', 'release-supporting-area'),
-      ('${snapshotId}', 'dataset-overture-division', 'release-supporting-boundary'),
-      ('${snapshotId}', 'dataset-hkgov-had-district', 'release-supporting-had'),
-      ('${snapshotId}', 'dataset-hkgov-censtatd-district', 'release-supporting-censtatd'),
-      ('${snapshotId}', 'dataset-hkgov-censtatd-district-annual', 'release-supporting-censtatd-annual');
+    UPDATE sourceReleases SET datasetId='dataset-overture-division' WHERE id=(SELECT sourceReleaseId FROM resourceReleases WHERE id='release-supporting-area');
+INSERT INTO sourceReleases(id,datasetId) SELECT 'source-' || 'release-supporting-area', 'dataset-overture-division' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-supporting-area');
+INSERT INTO resourceReleases(id,sourceReleaseId,resourceType,status) SELECT 'release-supporting-area', 'source-' || 'release-supporting-area', (SELECT l.resourceType FROM snapshots s JOIN snapshotLineages l ON l.id=s.snapshotLineageId WHERE s.id='${snapshotId}'), 'current' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-supporting-area');
+UPDATE sourceReleases SET datasetId='dataset-overture-division' WHERE id=(SELECT sourceReleaseId FROM resourceReleases WHERE id='release-supporting-boundary');
+INSERT INTO sourceReleases(id,datasetId) SELECT 'source-' || 'release-supporting-boundary', 'dataset-overture-division' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-supporting-boundary');
+INSERT INTO resourceReleases(id,sourceReleaseId,resourceType,status) SELECT 'release-supporting-boundary', 'source-' || 'release-supporting-boundary', (SELECT l.resourceType FROM snapshots s JOIN snapshotLineages l ON l.id=s.snapshotLineageId WHERE s.id='${snapshotId}'), 'current' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-supporting-boundary');
+UPDATE sourceReleases SET datasetId='dataset-hkgov-had-district' WHERE id=(SELECT sourceReleaseId FROM resourceReleases WHERE id='release-supporting-had');
+INSERT INTO sourceReleases(id,datasetId) SELECT 'source-' || 'release-supporting-had', 'dataset-hkgov-had-district' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-supporting-had');
+INSERT INTO resourceReleases(id,sourceReleaseId,resourceType,status) SELECT 'release-supporting-had', 'source-' || 'release-supporting-had', (SELECT l.resourceType FROM snapshots s JOIN snapshotLineages l ON l.id=s.snapshotLineageId WHERE s.id='${snapshotId}'), 'current' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-supporting-had');
+UPDATE sourceReleases SET datasetId='dataset-hkgov-censtatd-district' WHERE id=(SELECT sourceReleaseId FROM resourceReleases WHERE id='release-supporting-censtatd');
+INSERT INTO sourceReleases(id,datasetId) SELECT 'source-' || 'release-supporting-censtatd', 'dataset-hkgov-censtatd-district' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-supporting-censtatd');
+INSERT INTO resourceReleases(id,sourceReleaseId,resourceType,status) SELECT 'release-supporting-censtatd', 'source-' || 'release-supporting-censtatd', (SELECT l.resourceType FROM snapshots s JOIN snapshotLineages l ON l.id=s.snapshotLineageId WHERE s.id='${snapshotId}'), 'current' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-supporting-censtatd');
+UPDATE sourceReleases SET datasetId='dataset-hkgov-censtatd-district-annual' WHERE id=(SELECT sourceReleaseId FROM resourceReleases WHERE id='release-supporting-censtatd-annual');
+INSERT INTO sourceReleases(id,datasetId) SELECT 'source-' || 'release-supporting-censtatd-annual', 'dataset-hkgov-censtatd-district-annual' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-supporting-censtatd-annual');
+INSERT INTO resourceReleases(id,sourceReleaseId,resourceType,status) SELECT 'release-supporting-censtatd-annual', 'source-' || 'release-supporting-censtatd-annual', (SELECT l.resourceType FROM snapshots s JOIN snapshotLineages l ON l.id=s.snapshotLineageId WHERE s.id='${snapshotId}'), 'current' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-supporting-censtatd-annual');
+INSERT INTO snapshotResourceReleases (snapshotId, resourceReleaseId) VALUES
+      ('${snapshotId}', 'release-supporting-area'),
+      ('${snapshotId}', 'release-supporting-boundary'),
+      ('${snapshotId}', 'release-supporting-had'),
+      ('${snapshotId}', 'release-supporting-censtatd'),
+      ('${snapshotId}', 'release-supporting-censtatd-annual');
   `)
   for (const resourceType of [
     'divisionArea',
@@ -1300,7 +1325,7 @@ INSERT INTO resourceReleases (id, status, revokedAt, revocationReason, supersede
     )
     const memberships = sqlite
       .query(
-        'SELECT datasetId,resourceReleaseId FROM snapshotResourceReleases WHERE snapshotId=?',
+        'SELECT datasetId,resourceReleaseId FROM snapshotResourceReleaseDetails AS snapshotResourceReleases WHERE snapshotId=?',
       )
       .all(snapshotId) as Array<{ datasetId: string; resourceReleaseId: string }>
     for (const membership of memberships) {
@@ -1313,7 +1338,7 @@ INSERT INTO resourceReleases (id, status, revokedAt, revocationReason, supersede
         continue
       sqlite
         .query(
-          'INSERT INTO snapshotResourceReleases(snapshotId,datasetId,resourceReleaseId) VALUES (?,?,?)',
+          'INSERT INTO snapshotResourceReleases(snapshotId,resourceReleaseId) VALUES (?1,?3)',
         )
         .run(companionId, membership.datasetId, membership.resourceReleaseId)
     }
@@ -1326,7 +1351,7 @@ INSERT INTO resourceReleases (id, status, revokedAt, revocationReason, supersede
   for (const dataset of initialDatasets) {
     sqlite
       .query(
-        `UPDATE resourceReleases SET processingRules = ? WHERE id IN (SELECT ss.resourceReleaseId FROM snapshotResourceReleases ss JOIN datasets d ON d.id = ss.datasetId WHERE d.code = ?)`,
+        `UPDATE resourceReleases SET processingRules = ? WHERE id IN (SELECT ss.resourceReleaseId FROM snapshotResourceReleaseDetails ss JOIN datasets d ON d.id = ss.datasetId WHERE d.code = ?)`,
       )
       .run(captureFixtureRules(sqlite, dataset.processingRules), dataset.code)
   }
@@ -1776,7 +1801,7 @@ describe('ensureDraftSnapshotForRelease', () => {
     })
     sqlite
       .query(
-        'INSERT INTO snapshotResourceReleases (snapshotId, datasetId, resourceReleaseId) VALUES (?, ?, ?)',
+        'INSERT INTO snapshotResourceReleases (snapshotId, resourceReleaseId) VALUES (?1, ?3)',
       )
       .run(exact.id, base.datasetId, base.sourceReleaseId)
     const simplified = await ensureDraftSnapshotForRelease(
@@ -1789,7 +1814,7 @@ describe('ensureDraftSnapshotForRelease', () => {
     )
     sqlite
       .query(
-        'INSERT INTO snapshotResourceReleases (snapshotId, datasetId, resourceReleaseId) VALUES (?, ?, ?)',
+        'INSERT INTO snapshotResourceReleases (snapshotId, resourceReleaseId) VALUES (?1, ?3)',
       )
       .run(simplified.id, base.datasetId, base.sourceReleaseId)
 
@@ -1880,7 +1905,7 @@ describe('ensureDraftSnapshotForRelease', () => {
     const first = await ensureDraftSnapshotForRelease(db as never, 'division', args)
     sqlite
       .query(
-        'INSERT INTO snapshotResourceReleases(snapshotId,datasetId,resourceReleaseId) VALUES (?,?,?)',
+        'INSERT INTO snapshotResourceReleases(snapshotId,resourceReleaseId) VALUES (?1,?3)',
       )
       .run(first.id, args.datasetId, args.sourceReleaseId)
     sqlite.query("UPDATE snapshots SET status = 'published' WHERE id = ?").run(first.id)
@@ -1968,12 +1993,12 @@ describe('ensureDraftSnapshotForRelease', () => {
           .run('source-b', withdrawnSourceStatus)
         sqlite
           .query(
-            'INSERT INTO snapshotResourceReleases(snapshotId,datasetId,resourceReleaseId) VALUES (?,?,?)',
+            'INSERT INTO snapshotResourceReleases(snapshotId,resourceReleaseId) VALUES (?1,?3)',
           )
           .run(a.id, 'dataset', 'source-a')
         sqlite
           .query(
-            'INSERT INTO snapshotResourceReleases(snapshotId,datasetId,resourceReleaseId) VALUES (?,?,?)',
+            'INSERT INTO snapshotResourceReleases(snapshotId,resourceReleaseId) VALUES (?1,?3)',
           )
           .run(b.id, 'dataset', 'source-b')
         sqlite
@@ -2008,7 +2033,7 @@ describe('ensureDraftSnapshotForRelease', () => {
           .run(b.id, c.id)
         sqlite
           .query(
-            'INSERT INTO snapshotResourceReleases(snapshotId,datasetId,resourceReleaseId) VALUES (?,?,?)',
+            'INSERT INTO snapshotResourceReleases(snapshotId,resourceReleaseId) VALUES (?1,?3)',
           )
           .run(c.id, 'dataset', 'source-c')
         await expect(
@@ -2487,11 +2512,23 @@ INSERT INTO snapshots (id, snapshotLineageId, code, status, publishedAt, created
 ('snapshot-hk-new', 'fixture-lineage-' || 'snapshot-hk-new', 'hk-new', 'published', 1760002000000, 1760002000000),
 ('snapshot-mo-newer', 'fixture-lineage-' || 'snapshot-mo-newer', 'mo-newer', 'published', 1760004000000, 1760004000000);
 
-      INSERT INTO snapshotResourceReleases (snapshotId, datasetId, resourceReleaseId, role) VALUES
-        ('snapshot-hk-draft', 'dataset-hk', 'release-hk-draft', 'primary'),
-        ('snapshot-hk-old', 'dataset-hk', 'release-hk-old', 'primary'),
-        ('snapshot-hk-new', 'dataset-hk', 'release-hk-new', 'primary'),
-        ('snapshot-mo-newer', 'dataset-mo', 'release-mo-newer', 'primary');
+      UPDATE sourceReleases SET datasetId='dataset-hk' WHERE id=(SELECT sourceReleaseId FROM resourceReleases WHERE id='release-hk-draft');
+INSERT INTO sourceReleases(id,datasetId) SELECT 'source-' || 'release-hk-draft', 'dataset-hk' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-hk-draft');
+INSERT INTO resourceReleases(id,sourceReleaseId,resourceType,status) SELECT 'release-hk-draft', 'source-' || 'release-hk-draft', (SELECT l.resourceType FROM snapshots s JOIN snapshotLineages l ON l.id=s.snapshotLineageId WHERE s.id='snapshot-hk-draft'), 'current' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-hk-draft');
+UPDATE sourceReleases SET datasetId='dataset-hk' WHERE id=(SELECT sourceReleaseId FROM resourceReleases WHERE id='release-hk-old');
+INSERT INTO sourceReleases(id,datasetId) SELECT 'source-' || 'release-hk-old', 'dataset-hk' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-hk-old');
+INSERT INTO resourceReleases(id,sourceReleaseId,resourceType,status) SELECT 'release-hk-old', 'source-' || 'release-hk-old', (SELECT l.resourceType FROM snapshots s JOIN snapshotLineages l ON l.id=s.snapshotLineageId WHERE s.id='snapshot-hk-old'), 'current' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-hk-old');
+UPDATE sourceReleases SET datasetId='dataset-hk' WHERE id=(SELECT sourceReleaseId FROM resourceReleases WHERE id='release-hk-new');
+INSERT INTO sourceReleases(id,datasetId) SELECT 'source-' || 'release-hk-new', 'dataset-hk' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-hk-new');
+INSERT INTO resourceReleases(id,sourceReleaseId,resourceType,status) SELECT 'release-hk-new', 'source-' || 'release-hk-new', (SELECT l.resourceType FROM snapshots s JOIN snapshotLineages l ON l.id=s.snapshotLineageId WHERE s.id='snapshot-hk-new'), 'current' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-hk-new');
+UPDATE sourceReleases SET datasetId='dataset-mo' WHERE id=(SELECT sourceReleaseId FROM resourceReleases WHERE id='release-mo-newer');
+INSERT INTO sourceReleases(id,datasetId) SELECT 'source-' || 'release-mo-newer', 'dataset-mo' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-mo-newer');
+INSERT INTO resourceReleases(id,sourceReleaseId,resourceType,status) SELECT 'release-mo-newer', 'source-' || 'release-mo-newer', (SELECT l.resourceType FROM snapshots s JOIN snapshotLineages l ON l.id=s.snapshotLineageId WHERE s.id='snapshot-mo-newer'), 'current' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-mo-newer');
+INSERT INTO snapshotResourceReleases (snapshotId, resourceReleaseId, role) VALUES
+        ('snapshot-hk-draft', 'release-hk-draft', 'primary'),
+        ('snapshot-hk-old', 'release-hk-old', 'primary'),
+        ('snapshot-hk-new', 'release-hk-new', 'primary'),
+        ('snapshot-mo-newer', 'release-mo-newer', 'primary');
     `)
 
     const snapshot =
@@ -2563,7 +2600,9 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
 
     expect(
       sqlite
-        .query('SELECT datasetId FROM resourceReleases WHERE code = ?')
+        .query(
+          'SELECT datasetId FROM resourceReleaseDetails AS resourceReleases WHERE code = ?',
+        )
         .get('dr-hk-hkgov-pland-division-pu-2001'),
     ).toEqual({ datasetId: 'dataset-pland-pu' })
 
@@ -2603,10 +2642,10 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
         ('dataset-hma', 'publisher-censtatd', 'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups', 'hk', 'divisions', 'divisionArea');
       INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status, cohortKey) VALUES (coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'dataset-district-area' AND sourceVersion = '2021'), 'source-' || 'release-district-area-2021'), 'dataset-district-area', 'source-' || 'dr-hk-hkgov-censtatd-division-area-district-2021', '2021', 'current', '2021');
 UPDATE sourceReleases SET sourceVersion = '2021', cohortKey = '2021' WHERE id = coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'dataset-district-area' AND sourceVersion = '2021'), 'source-' || 'release-district-area-2021');
-INSERT INTO resourceReleases (id, datasetId, code, resourceType, status, ingestedAt, createdAt, updatedAt, sourceReleaseId) VALUES ('release-district-area-2021', 'dataset-district-area', 'dr-hk-hkgov-censtatd-division-area-district-2021', 'divisionArea', 'current', '2026-08-01T00:00:00.000Z', '2026-08-01T00:00:00.000Z', '2026-08-01T00:00:00.000Z', coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'dataset-district-area' AND sourceVersion = '2021'), 'source-' || 'release-district-area-2021'));
+INSERT INTO resourceReleases (id, code, resourceType, status, ingestedAt, createdAt, updatedAt, sourceReleaseId) VALUES ('release-district-area-2021', 'dr-hk-hkgov-censtatd-division-area-district-2021', 'divisionArea', 'current', '2026-08-01T00:00:00.000Z', '2026-08-01T00:00:00.000Z', '2026-08-01T00:00:00.000Z', coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'dataset-district-area' AND sourceVersion = '2021'), 'source-' || 'release-district-area-2021'));
 INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status, cohortKey) VALUES (coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'dataset-hma' AND sourceVersion = '2021'), 'source-' || 'release-hma-2021'), 'dataset-hma', 'source-' || 'dr-hk-hkgov-censtatd-division-area-housing-market-areas-building-groups-2021-2021', '2021', 'current', '2021');
 UPDATE sourceReleases SET sourceVersion = '2021', cohortKey = '2021' WHERE id = coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'dataset-hma' AND sourceVersion = '2021'), 'source-' || 'release-hma-2021');
-INSERT INTO resourceReleases (id, datasetId, code, resourceType, status, ingestedAt, createdAt, updatedAt, sourceReleaseId) VALUES ('release-hma-2021', 'dataset-hma', 'dr-hk-hkgov-censtatd-division-area-housing-market-areas-building-groups-2021-2021', 'divisionArea', 'current', '2026-08-02T00:00:00.000Z', '2026-08-02T00:00:00.000Z', '2026-08-02T00:00:00.000Z', coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'dataset-hma' AND sourceVersion = '2021'), 'source-' || 'release-hma-2021'));
+INSERT INTO resourceReleases (id, code, resourceType, status, ingestedAt, createdAt, updatedAt, sourceReleaseId) VALUES ('release-hma-2021', 'dr-hk-hkgov-censtatd-division-area-housing-market-areas-building-groups-2021-2021', 'divisionArea', 'current', '2026-08-02T00:00:00.000Z', '2026-08-02T00:00:00.000Z', '2026-08-02T00:00:00.000Z', coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'dataset-hma' AND sourceVersion = '2021'), 'source-' || 'release-hma-2021'));
     `)
 
     const result = await getLatestDatasetForRegionSourceDatasetType(
@@ -2634,10 +2673,10 @@ INSERT INTO resourceReleases (id, datasetId, code, resourceType, status, ingeste
 
       INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status, cohortKey) VALUES (coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'dataset-division' AND sourceVersion = '2026-06-17.10'), 'source-' || 'release-10'), 'dataset-division', 'source-' || 'dr-hk-overture-division-2026-06-17.10', '2026-06-17.10', 'current', '2026-06');
 UPDATE sourceReleases SET sourceVersion = '2026-06-17.10', cohortKey = '2026-06' WHERE id = coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'dataset-division' AND sourceVersion = '2026-06-17.10'), 'source-' || 'release-10');
-INSERT INTO resourceReleases (id, datasetId, code, resourceType, status, revokedAt, revocationReason, supersededByResourceReleaseId, ingestedAt, createdAt, updatedAt, sourceReleaseId) VALUES ('release-10', 'dataset-division', 'dr-hk-overture-division-2026-06-17.10', 'division', 'current', null, null, null, '2026-06-18T00:00:00.000Z', '2026-06-18T00:00:00.000Z', '2026-06-18T00:00:00.000Z', coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'dataset-division' AND sourceVersion = '2026-06-17.10'), 'source-' || 'release-10'));
+INSERT INTO resourceReleases (id, code, resourceType, status, revokedAt, revocationReason, supersededByResourceReleaseId, ingestedAt, createdAt, updatedAt, sourceReleaseId) VALUES ('release-10', 'dr-hk-overture-division-2026-06-17.10', 'division', 'current', null, null, null, '2026-06-18T00:00:00.000Z', '2026-06-18T00:00:00.000Z', '2026-06-18T00:00:00.000Z', coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'dataset-division' AND sourceVersion = '2026-06-17.10'), 'source-' || 'release-10'));
 INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status, cohortKey) VALUES (coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'dataset-division' AND sourceVersion = '2026-06-17.9'), 'source-' || 'release-9'), 'dataset-division', 'source-' || 'dr-hk-overture-division-2026-06-17.9', '2026-06-17.9', 'current', '2026-06');
 UPDATE sourceReleases SET sourceVersion = '2026-06-17.9', cohortKey = '2026-06' WHERE id = coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'dataset-division' AND sourceVersion = '2026-06-17.9'), 'source-' || 'release-9');
-INSERT INTO resourceReleases (id, datasetId, code, resourceType, status, revokedAt, revocationReason, supersededByResourceReleaseId, ingestedAt, createdAt, updatedAt, sourceReleaseId) VALUES ('release-9', 'dataset-division', 'dr-hk-overture-division-2026-06-17.9', 'division', 'current', null, null, null, '2026-06-19T00:00:00.000Z', '2026-06-19T00:00:00.000Z', '2026-06-19T00:00:00.000Z', coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'dataset-division' AND sourceVersion = '2026-06-17.9'), 'source-' || 'release-9'));
+INSERT INTO resourceReleases (id, code, resourceType, status, revokedAt, revocationReason, supersededByResourceReleaseId, ingestedAt, createdAt, updatedAt, sourceReleaseId) VALUES ('release-9', 'dr-hk-overture-division-2026-06-17.9', 'division', 'current', null, null, null, '2026-06-19T00:00:00.000Z', '2026-06-19T00:00:00.000Z', '2026-06-19T00:00:00.000Z', coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'dataset-division' AND sourceVersion = '2026-06-17.9'), 'source-' || 'release-9'));
     `)
 
     const result = await getLatestDatasetForRegionSourceDatasetType(
@@ -2709,10 +2748,10 @@ describe('getCurrentReleaseForDatasetId', () => {
         ('dataset-pland-pu', 'publisher-pland', 'ds-hk-hkgov-pland-division-pu', 'hk', 'divisions', 'division');
       INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status, cohortKey) VALUES (coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'dataset-pland-pu' AND sourceVersion = '2001'), 'source-' || 'release-pland-pu-division-2001'), 'dataset-pland-pu', 'source-' || 'dr-hk-hkgov-pland-division-pu-2001', '2001', 'current', '2001');
 UPDATE sourceReleases SET sourceVersion = '2001', cohortKey = '2001' WHERE id = coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'dataset-pland-pu' AND sourceVersion = '2001'), 'source-' || 'release-pland-pu-division-2001');
-INSERT INTO resourceReleases (id, datasetId, code, resourceType, status, ingestedAt, createdAt, updatedAt, sourceReleaseId) VALUES ('release-pland-pu-division-2001', 'dataset-pland-pu', 'dr-hk-hkgov-pland-division-pu-2001', 'division', 'current', '2026-07-21T00:00:00.000Z', '2026-07-21T00:00:00.000Z', '2026-07-21T00:00:00.000Z', coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'dataset-pland-pu' AND sourceVersion = '2001'), 'source-' || 'release-pland-pu-division-2001'));
+INSERT INTO resourceReleases (id, code, resourceType, status, ingestedAt, createdAt, updatedAt, sourceReleaseId) VALUES ('release-pland-pu-division-2001', 'dr-hk-hkgov-pland-division-pu-2001', 'division', 'current', '2026-07-21T00:00:00.000Z', '2026-07-21T00:00:00.000Z', '2026-07-21T00:00:00.000Z', coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'dataset-pland-pu' AND sourceVersion = '2001'), 'source-' || 'release-pland-pu-division-2001'));
 INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status, cohortKey) VALUES (coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'dataset-pland-pu' AND sourceVersion = '2001'), 'source-' || 'release-pland-pu-area-2001'), 'dataset-pland-pu', 'source-' || 'dr-hk-hkgov-pland-division-area-pu-2001', '2001', 'current', '2001');
 UPDATE sourceReleases SET sourceVersion = '2001', cohortKey = '2001' WHERE id = coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'dataset-pland-pu' AND sourceVersion = '2001'), 'source-' || 'release-pland-pu-area-2001');
-INSERT INTO resourceReleases (id, datasetId, code, resourceType, status, ingestedAt, createdAt, updatedAt, sourceReleaseId) VALUES ('release-pland-pu-area-2001', 'dataset-pland-pu', 'dr-hk-hkgov-pland-division-area-pu-2001', 'divisionArea', 'current', '2026-07-21T00:01:00.000Z', '2026-07-21T00:01:00.000Z', '2026-07-21T00:01:00.000Z', coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'dataset-pland-pu' AND sourceVersion = '2001'), 'source-' || 'release-pland-pu-area-2001'));
+INSERT INTO resourceReleases (id, code, resourceType, status, ingestedAt, createdAt, updatedAt, sourceReleaseId) VALUES ('release-pland-pu-area-2001', 'dr-hk-hkgov-pland-division-area-pu-2001', 'divisionArea', 'current', '2026-07-21T00:01:00.000Z', '2026-07-21T00:01:00.000Z', '2026-07-21T00:01:00.000Z', coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'dataset-pland-pu' AND sourceVersion = '2001'), 'source-' || 'release-pland-pu-area-2001'));
     `)
 
     await expect(
@@ -2744,16 +2783,16 @@ describe('getLatestNewerDatasetRelease', () => {
       );
       INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status, cohortKey) VALUES (coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'dataset-overture-hk-division' AND sourceVersion = '2025-09-24.0'), 'source-' || 'release-dr-hk-overture-division-2025-09-24.0'), 'dataset-overture-hk-division', 'source-' || 'dr-hk-overture-division-2025-09-24.0', '2025-09-24.0', 'staged', '2025-09');
 UPDATE sourceReleases SET sourceVersion = '2025-09-24.0', cohortKey = '2025-09' WHERE id = coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'dataset-overture-hk-division' AND sourceVersion = '2025-09-24.0'), 'source-' || 'release-dr-hk-overture-division-2025-09-24.0');
-INSERT INTO resourceReleases (id, datasetId, code, resourceType, status, revokedAt, revocationReason, supersededByResourceReleaseId, ingestedAt, createdAt, updatedAt, sourceReleaseId) VALUES ('release-dr-hk-overture-division-2025-09-24.0', 'dataset-overture-hk-division', 'dr-hk-overture-division-2025-09-24.0', 'division', 'staged', null, null, null, '2026-07-02T07:11:23.000Z', '2026-07-02T07:11:23.000Z', '2026-07-02T07:11:23.000Z', coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'dataset-overture-hk-division' AND sourceVersion = '2025-09-24.0'), 'source-' || 'release-dr-hk-overture-division-2025-09-24.0'));
+INSERT INTO resourceReleases (id, code, resourceType, status, revokedAt, revocationReason, supersededByResourceReleaseId, ingestedAt, createdAt, updatedAt, sourceReleaseId) VALUES ('release-dr-hk-overture-division-2025-09-24.0', 'dr-hk-overture-division-2025-09-24.0', 'division', 'staged', null, null, null, '2026-07-02T07:11:23.000Z', '2026-07-02T07:11:23.000Z', '2026-07-02T07:11:23.000Z', coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'dataset-overture-hk-division' AND sourceVersion = '2025-09-24.0'), 'source-' || 'release-dr-hk-overture-division-2025-09-24.0'));
 INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status, cohortKey) VALUES (coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'dataset-overture-hk-division' AND sourceVersion = '2025-10-22.0'), 'source-' || 'release-dr-hk-overture-division-2025-10-22.0'), 'dataset-overture-hk-division', 'source-' || 'dr-hk-overture-division-2025-10-22.0', '2025-10-22.0', 'processing', '2025-10');
 UPDATE sourceReleases SET sourceVersion = '2025-10-22.0', cohortKey = '2025-10' WHERE id = coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'dataset-overture-hk-division' AND sourceVersion = '2025-10-22.0'), 'source-' || 'release-dr-hk-overture-division-2025-10-22.0');
-INSERT INTO resourceReleases (id, datasetId, code, resourceType, status, revokedAt, revocationReason, supersededByResourceReleaseId, ingestedAt, createdAt, updatedAt, sourceReleaseId) VALUES ('release-dr-hk-overture-division-2025-10-22.0', 'dataset-overture-hk-division', 'dr-hk-overture-division-2025-10-22.0', 'division', 'processing', null, null, null, '2026-07-02T07:11:30.000Z', '2026-07-02T07:11:30.000Z', '2026-07-02T07:11:30.000Z', coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'dataset-overture-hk-division' AND sourceVersion = '2025-10-22.0'), 'source-' || 'release-dr-hk-overture-division-2025-10-22.0'));
+INSERT INTO resourceReleases (id, code, resourceType, status, revokedAt, revocationReason, supersededByResourceReleaseId, ingestedAt, createdAt, updatedAt, sourceReleaseId) VALUES ('release-dr-hk-overture-division-2025-10-22.0', 'dr-hk-overture-division-2025-10-22.0', 'division', 'processing', null, null, null, '2026-07-02T07:11:30.000Z', '2026-07-02T07:11:30.000Z', '2026-07-02T07:11:30.000Z', coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'dataset-overture-hk-division' AND sourceVersion = '2025-10-22.0'), 'source-' || 'release-dr-hk-overture-division-2025-10-22.0'));
 INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status, cohortKey) VALUES (coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'dataset-overture-hk-division' AND sourceVersion = '2025-11-19.0'), 'source-' || 'release-dr-hk-overture-division-2025-11-19.0'), 'dataset-overture-hk-division', 'source-' || 'dr-hk-overture-division-2025-11-19.0', '2025-11-19.0', 'failed', '2025-11');
 UPDATE sourceReleases SET sourceVersion = '2025-11-19.0', cohortKey = '2025-11' WHERE id = coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'dataset-overture-hk-division' AND sourceVersion = '2025-11-19.0'), 'source-' || 'release-dr-hk-overture-division-2025-11-19.0');
-INSERT INTO resourceReleases (id, datasetId, code, resourceType, status, revokedAt, revocationReason, supersededByResourceReleaseId, ingestedAt, createdAt, updatedAt, sourceReleaseId) VALUES ('release-dr-hk-overture-division-2025-11-19.0', 'dataset-overture-hk-division', 'dr-hk-overture-division-2025-11-19.0', 'division', 'failed', null, null, null, '2026-07-02T07:11:40.000Z', '2026-07-02T07:11:40.000Z', '2026-07-02T07:11:40.000Z', coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'dataset-overture-hk-division' AND sourceVersion = '2025-11-19.0'), 'source-' || 'release-dr-hk-overture-division-2025-11-19.0'));
+INSERT INTO resourceReleases (id, code, resourceType, status, revokedAt, revocationReason, supersededByResourceReleaseId, ingestedAt, createdAt, updatedAt, sourceReleaseId) VALUES ('release-dr-hk-overture-division-2025-11-19.0', 'dr-hk-overture-division-2025-11-19.0', 'division', 'failed', null, null, null, '2026-07-02T07:11:40.000Z', '2026-07-02T07:11:40.000Z', '2026-07-02T07:11:40.000Z', coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'dataset-overture-hk-division' AND sourceVersion = '2025-11-19.0'), 'source-' || 'release-dr-hk-overture-division-2025-11-19.0'));
 INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status, cohortKey) VALUES (coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'dataset-overture-hk-division' AND sourceVersion = '2025-12-17.0'), 'source-' || 'release-dr-hk-overture-division-2025-12-17.0'), 'dataset-overture-hk-division', 'source-' || 'dr-hk-overture-division-2025-12-17.0', '2025-12-17.0', 'uploading', '2025-12');
 UPDATE sourceReleases SET sourceVersion = '2025-12-17.0', cohortKey = '2025-12' WHERE id = coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'dataset-overture-hk-division' AND sourceVersion = '2025-12-17.0'), 'source-' || 'release-dr-hk-overture-division-2025-12-17.0');
-INSERT INTO resourceReleases (id, datasetId, code, resourceType, status, revokedAt, revocationReason, supersededByResourceReleaseId, ingestedAt, createdAt, updatedAt, sourceReleaseId) VALUES ('release-dr-hk-overture-division-2025-12-17.0', 'dataset-overture-hk-division', 'dr-hk-overture-division-2025-12-17.0', 'division', 'uploading', null, null, null, '2026-07-02T07:11:50.000Z', '2026-07-02T07:11:50.000Z', '2026-07-02T07:11:50.000Z', coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'dataset-overture-hk-division' AND sourceVersion = '2025-12-17.0'), 'source-' || 'release-dr-hk-overture-division-2025-12-17.0'));
+INSERT INTO resourceReleases (id, code, resourceType, status, revokedAt, revocationReason, supersededByResourceReleaseId, ingestedAt, createdAt, updatedAt, sourceReleaseId) VALUES ('release-dr-hk-overture-division-2025-12-17.0', 'dr-hk-overture-division-2025-12-17.0', 'division', 'uploading', null, null, null, '2026-07-02T07:11:50.000Z', '2026-07-02T07:11:50.000Z', '2026-07-02T07:11:50.000Z', coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'dataset-overture-hk-division' AND sourceVersion = '2025-12-17.0'), 'source-' || 'release-dr-hk-overture-division-2025-12-17.0'));
     `)
 
     const result = await getLatestNewerDatasetRelease(
@@ -2926,9 +2965,15 @@ INSERT INTO snapshots (id, snapshotLineageId, code) VALUES
         ('dataset-hk-place', 'publisher-overture', 'ds-hk-overture-place', 'hk'),
         ('dataset-mo-place', 'publisher-overture', 'ds-mo-overture-place', 'mo');
 
-      INSERT INTO snapshotResourceReleases (snapshotId, datasetId, resourceReleaseId, role) VALUES
-        ('snapshot-hk-place', 'dataset-hk-place', 'release-hk-place', 'primary'),
-        ('snapshot-mo-place', 'dataset-mo-place', 'release-mo-place', 'primary');
+      UPDATE sourceReleases SET datasetId='dataset-hk-place' WHERE id=(SELECT sourceReleaseId FROM resourceReleases WHERE id='release-hk-place');
+INSERT INTO sourceReleases(id,datasetId) SELECT 'source-' || 'release-hk-place', 'dataset-hk-place' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-hk-place');
+INSERT INTO resourceReleases(id,sourceReleaseId,resourceType,status) SELECT 'release-hk-place', 'source-' || 'release-hk-place', (SELECT l.resourceType FROM snapshots s JOIN snapshotLineages l ON l.id=s.snapshotLineageId WHERE s.id='snapshot-hk-place'), 'current' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-hk-place');
+UPDATE sourceReleases SET datasetId='dataset-mo-place' WHERE id=(SELECT sourceReleaseId FROM resourceReleases WHERE id='release-mo-place');
+INSERT INTO sourceReleases(id,datasetId) SELECT 'source-' || 'release-mo-place', 'dataset-mo-place' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-mo-place');
+INSERT INTO resourceReleases(id,sourceReleaseId,resourceType,status) SELECT 'release-mo-place', 'source-' || 'release-mo-place', (SELECT l.resourceType FROM snapshots s JOIN snapshotLineages l ON l.id=s.snapshotLineageId WHERE s.id='snapshot-mo-place'), 'current' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-mo-place');
+INSERT INTO snapshotResourceReleases (snapshotId, resourceReleaseId, role) VALUES
+        ('snapshot-hk-place', 'release-hk-place', 'primary'),
+        ('snapshot-mo-place', 'release-mo-place', 'primary');
     `)
 
     await expect(
@@ -2970,8 +3015,11 @@ describe('resolvePublishedSnapshotForResourceTypeRegionCohortKey', () => {
 UPDATE snapshotLineages SET resourceType='division' WHERE id='fixture-lineage-' || 'overture-division-2025' AND resourceType IS NULL;
 INSERT INTO snapshots (id, snapshotLineageId, code, cohortKey, status, publishedAt, createdAt) VALUES
 ('overture-division-2025', 'fixture-lineage-' || 'overture-division-2025', 'ss-hk-division-2025-09-24.0', '2025-09-24.0', 'published', 1758672000000, 1758672000000);
-      INSERT INTO snapshotResourceReleases (snapshotId, datasetId, resourceReleaseId, role) VALUES
-        ('overture-division-2025', 'dataset-overture-division', 'release-overture-division-2025', 'primary');
+      UPDATE sourceReleases SET datasetId='dataset-overture-division' WHERE id=(SELECT sourceReleaseId FROM resourceReleases WHERE id='release-overture-division-2025');
+INSERT INTO sourceReleases(id,datasetId) SELECT 'source-' || 'release-overture-division-2025', 'dataset-overture-division' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-overture-division-2025');
+INSERT INTO resourceReleases(id,sourceReleaseId,resourceType,status) SELECT 'release-overture-division-2025', 'source-' || 'release-overture-division-2025', (SELECT l.resourceType FROM snapshots s JOIN snapshotLineages l ON l.id=s.snapshotLineageId WHERE s.id='overture-division-2025'), 'current' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-overture-division-2025');
+INSERT INTO snapshotResourceReleases (snapshotId, resourceReleaseId, role) VALUES
+        ('overture-division-2025', 'release-overture-division-2025', 'primary');
     `)
 
     sqlite.exec(`
@@ -2981,8 +3029,11 @@ INSERT OR IGNORE INTO snapshotLineages (id,code,resourceType,regionCode,variant,
 UPDATE snapshotLineages SET resourceType='division' WHERE id='curated-lineage' AND resourceType IS NULL;
 INSERT INTO snapshots (id, snapshotLineageId, code, cohortKey, status, publishedAt, createdAt) VALUES
 ('curated', 'curated-lineage', 'ss-hk-division-saanseoi-2025-09-24.0', '2025-09-24.0', 'published', 1758672001000, 1758672001000);
-      INSERT INTO snapshotResourceReleases (snapshotId,datasetId,resourceReleaseId,role)
-      VALUES ('curated','dataset-overture-division','release-overture-division-2025','primary');
+      UPDATE sourceReleases SET datasetId='dataset-overture-division' WHERE id=(SELECT sourceReleaseId FROM resourceReleases WHERE id='release-overture-division-2025');
+INSERT INTO sourceReleases(id,datasetId) SELECT 'source-' || 'release-overture-division-2025', 'dataset-overture-division' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-overture-division-2025');
+INSERT INTO resourceReleases(id,sourceReleaseId,resourceType,status) SELECT 'release-overture-division-2025', 'source-' || 'release-overture-division-2025', (SELECT l.resourceType FROM snapshots s JOIN snapshotLineages l ON l.id=s.snapshotLineageId WHERE s.id='curated'), 'current' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-overture-division-2025');
+INSERT INTO snapshotResourceReleases (snapshotId,resourceReleaseId,role)
+      VALUES ('curated','release-overture-division-2025','primary');
     `)
 
     await expect(
@@ -3017,8 +3068,11 @@ INSERT INTO snapshots (id, snapshotLineageId, code, cohortKey, status, published
 UPDATE snapshotLineages SET resourceType='divisionArea' WHERE id='fixture-lineage-' || 'overture-division-area-2025' AND resourceType IS NULL;
 INSERT INTO snapshots (id, snapshotLineageId, code, cohortKey, status, publishedAt, createdAt) VALUES
 ('overture-division-area-2025', 'fixture-lineage-' || 'overture-division-area-2025', 'ss-hk-division-area-2025-09-24.0', '2025-09-24.0', 'published', 1758672000000, 1758672000000);
-      INSERT INTO snapshotResourceReleases (snapshotId, datasetId, resourceReleaseId, role) VALUES
-        ('overture-division-area-2025', 'dataset-overture-division', 'release-overture-division-area-2025', 'primary');
+      UPDATE sourceReleases SET datasetId='dataset-overture-division' WHERE id=(SELECT sourceReleaseId FROM resourceReleases WHERE id='release-overture-division-area-2025');
+INSERT INTO sourceReleases(id,datasetId) SELECT 'source-' || 'release-overture-division-area-2025', 'dataset-overture-division' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-overture-division-area-2025');
+INSERT INTO resourceReleases(id,sourceReleaseId,resourceType,status) SELECT 'release-overture-division-area-2025', 'source-' || 'release-overture-division-area-2025', (SELECT l.resourceType FROM snapshots s JOIN snapshotLineages l ON l.id=s.snapshotLineageId WHERE s.id='overture-division-area-2025'), 'current' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-overture-division-area-2025');
+INSERT INTO snapshotResourceReleases (snapshotId, resourceReleaseId, role) VALUES
+        ('overture-division-area-2025', 'release-overture-division-area-2025', 'primary');
     `)
 
     await expect(
@@ -3064,9 +3118,15 @@ INSERT INTO snapshots (id, snapshotLineageId, code, cohortKey, status, published
 ('pland-pu-2006', 'lineage-pland-pu', 'ss-hk-division-hkgov-pland-pu-2006', '2006', 'published', 1136073600000, 1136073600000),
 ('pland-new-town-2006', 'lineage-pland-new-town', 'ss-hk-division-hkgov-pland-new-town-2006', '2006', 'published', 1136073600001, 1136073600001);
 
-      INSERT INTO snapshotResourceReleases (snapshotId, datasetId, resourceReleaseId, role) VALUES
-        ('pland-pu-2006', 'dataset-pland-pu', 'release-pland-pu-2006', 'primary'),
-        ('pland-new-town-2006', 'dataset-pland-new-town', 'release-pland-new-town-2006', 'primary');
+      UPDATE sourceReleases SET datasetId='dataset-pland-pu' WHERE id=(SELECT sourceReleaseId FROM resourceReleases WHERE id='release-pland-pu-2006');
+INSERT INTO sourceReleases(id,datasetId) SELECT 'source-' || 'release-pland-pu-2006', 'dataset-pland-pu' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-pland-pu-2006');
+INSERT INTO resourceReleases(id,sourceReleaseId,resourceType,status) SELECT 'release-pland-pu-2006', 'source-' || 'release-pland-pu-2006', (SELECT l.resourceType FROM snapshots s JOIN snapshotLineages l ON l.id=s.snapshotLineageId WHERE s.id='pland-pu-2006'), 'current' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-pland-pu-2006');
+UPDATE sourceReleases SET datasetId='dataset-pland-new-town' WHERE id=(SELECT sourceReleaseId FROM resourceReleases WHERE id='release-pland-new-town-2006');
+INSERT INTO sourceReleases(id,datasetId) SELECT 'source-' || 'release-pland-new-town-2006', 'dataset-pland-new-town' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-pland-new-town-2006');
+INSERT INTO resourceReleases(id,sourceReleaseId,resourceType,status) SELECT 'release-pland-new-town-2006', 'source-' || 'release-pland-new-town-2006', (SELECT l.resourceType FROM snapshots s JOIN snapshotLineages l ON l.id=s.snapshotLineageId WHERE s.id='pland-new-town-2006'), 'current' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-pland-new-town-2006');
+INSERT INTO snapshotResourceReleases (snapshotId, resourceReleaseId, role) VALUES
+        ('pland-pu-2006', 'release-pland-pu-2006', 'primary'),
+        ('pland-new-town-2006', 'release-pland-new-town-2006', 'primary');
     `)
 
     await expect(
@@ -3105,9 +3165,15 @@ UPDATE snapshotLineages SET resourceType='divisionArea' WHERE id='lineage-censta
 INSERT INTO snapshots (id, snapshotLineageId, code, cohortKey, geometryStatus, status, publishedAt, createdAt) VALUES
 ('censtatd-authoritative-2024', 'lineage-censtatd', 'ss-hk-division-area-censtatd-2024.0', '2024', 'authoritative', 'published', 1735689600000, 1735689600000),
 ('censtatd-fallback-2024', 'lineage-censtatd', 'ss-hk-division-area-censtatd-2024.1', '2024', 'fallback', 'published', 1767225600000, 1767225600000);
-      INSERT INTO snapshotResourceReleases (snapshotId, datasetId, resourceReleaseId, role) VALUES
-        ('censtatd-authoritative-2024', 'dataset-censtatd', 'release-censtatd-2024', 'primary'),
-        ('censtatd-fallback-2024', 'dataset-censtatd', 'release-censtatd-2026-q2', 'primary');
+      UPDATE sourceReleases SET datasetId='dataset-censtatd' WHERE id=(SELECT sourceReleaseId FROM resourceReleases WHERE id='release-censtatd-2024');
+INSERT INTO sourceReleases(id,datasetId) SELECT 'source-' || 'release-censtatd-2024', 'dataset-censtatd' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-censtatd-2024');
+INSERT INTO resourceReleases(id,sourceReleaseId,resourceType,status) SELECT 'release-censtatd-2024', 'source-' || 'release-censtatd-2024', (SELECT l.resourceType FROM snapshots s JOIN snapshotLineages l ON l.id=s.snapshotLineageId WHERE s.id='censtatd-authoritative-2024'), 'current' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-censtatd-2024');
+UPDATE sourceReleases SET datasetId='dataset-censtatd' WHERE id=(SELECT sourceReleaseId FROM resourceReleases WHERE id='release-censtatd-2026-q2');
+INSERT INTO sourceReleases(id,datasetId) SELECT 'source-' || 'release-censtatd-2026-q2', 'dataset-censtatd' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-censtatd-2026-q2');
+INSERT INTO resourceReleases(id,sourceReleaseId,resourceType,status) SELECT 'release-censtatd-2026-q2', 'source-' || 'release-censtatd-2026-q2', (SELECT l.resourceType FROM snapshots s JOIN snapshotLineages l ON l.id=s.snapshotLineageId WHERE s.id='censtatd-fallback-2024'), 'current' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-censtatd-2026-q2');
+INSERT INTO snapshotResourceReleases (snapshotId, resourceReleaseId, role) VALUES
+        ('censtatd-authoritative-2024', 'release-censtatd-2024', 'primary'),
+        ('censtatd-fallback-2024', 'release-censtatd-2026-q2', 'primary');
     `)
 
     await expect(
@@ -3154,11 +3220,23 @@ INSERT INTO snapshots (id, snapshotLineageId, code, cohortKey, status, published
 ('had-area-2022', 'lineage-had-area', 'ss-hk-division-area-2022', '2022', 'published', 1654041600000, 1654041600000),
 ('had-area-future', 'lineage-had-area', 'ss-hk-division-area-2026', '2026', 'published', 1767225600000, 1767225600000);
 
-      INSERT INTO snapshotResourceReleases (snapshotId, datasetId, resourceReleaseId, role) VALUES
-        ('overture-area-older', 'dataset-overture-area', 'release-overture-area-older', 'primary'),
-        ('overture-area-current', 'dataset-overture-area', 'release-overture-area-current', 'primary'),
-        ('had-area-2022', 'dataset-had-area', 'release-had-area-2022', 'primary'),
-        ('had-area-future', 'dataset-had-area', 'release-had-area-future', 'primary');
+      UPDATE sourceReleases SET datasetId='dataset-overture-area' WHERE id=(SELECT sourceReleaseId FROM resourceReleases WHERE id='release-overture-area-older');
+INSERT INTO sourceReleases(id,datasetId) SELECT 'source-' || 'release-overture-area-older', 'dataset-overture-area' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-overture-area-older');
+INSERT INTO resourceReleases(id,sourceReleaseId,resourceType,status) SELECT 'release-overture-area-older', 'source-' || 'release-overture-area-older', (SELECT l.resourceType FROM snapshots s JOIN snapshotLineages l ON l.id=s.snapshotLineageId WHERE s.id='overture-area-older'), 'current' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-overture-area-older');
+UPDATE sourceReleases SET datasetId='dataset-overture-area' WHERE id=(SELECT sourceReleaseId FROM resourceReleases WHERE id='release-overture-area-current');
+INSERT INTO sourceReleases(id,datasetId) SELECT 'source-' || 'release-overture-area-current', 'dataset-overture-area' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-overture-area-current');
+INSERT INTO resourceReleases(id,sourceReleaseId,resourceType,status) SELECT 'release-overture-area-current', 'source-' || 'release-overture-area-current', (SELECT l.resourceType FROM snapshots s JOIN snapshotLineages l ON l.id=s.snapshotLineageId WHERE s.id='overture-area-current'), 'current' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-overture-area-current');
+UPDATE sourceReleases SET datasetId='dataset-had-area' WHERE id=(SELECT sourceReleaseId FROM resourceReleases WHERE id='release-had-area-2022');
+INSERT INTO sourceReleases(id,datasetId) SELECT 'source-' || 'release-had-area-2022', 'dataset-had-area' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-had-area-2022');
+INSERT INTO resourceReleases(id,sourceReleaseId,resourceType,status) SELECT 'release-had-area-2022', 'source-' || 'release-had-area-2022', (SELECT l.resourceType FROM snapshots s JOIN snapshotLineages l ON l.id=s.snapshotLineageId WHERE s.id='had-area-2022'), 'current' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-had-area-2022');
+UPDATE sourceReleases SET datasetId='dataset-had-area' WHERE id=(SELECT sourceReleaseId FROM resourceReleases WHERE id='release-had-area-future');
+INSERT INTO sourceReleases(id,datasetId) SELECT 'source-' || 'release-had-area-future', 'dataset-had-area' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-had-area-future');
+INSERT INTO resourceReleases(id,sourceReleaseId,resourceType,status) SELECT 'release-had-area-future', 'source-' || 'release-had-area-future', (SELECT l.resourceType FROM snapshots s JOIN snapshotLineages l ON l.id=s.snapshotLineageId WHERE s.id='had-area-future'), 'current' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-had-area-future');
+INSERT INTO snapshotResourceReleases (snapshotId, resourceReleaseId, role) VALUES
+        ('overture-area-older', 'release-overture-area-older', 'primary'),
+        ('overture-area-current', 'release-overture-area-current', 'primary'),
+        ('had-area-2022', 'release-had-area-2022', 'primary'),
+        ('had-area-future', 'release-had-area-future', 'primary');
     `)
 
     await expect(
@@ -3205,9 +3283,15 @@ INSERT INTO snapshots (id, snapshotLineageId, code, cohortKey, status, published
 ('censtatd-area-2016', 'lineage-censtatd-2016', 'ss-hk-division-area-censtatd-2016', '2016', 'published', 1451606400000, 1451606400000),
 ('censtatd-area-2021', 'lineage-censtatd-2021', 'ss-hk-division-area-censtatd-2021', '2021', 'published', 1609459200000, 1609459200000);
 
-      INSERT INTO snapshotResourceReleases (snapshotId, datasetId, resourceReleaseId, role) VALUES
-        ('censtatd-area-2016', 'dataset-censtatd-area', 'release-censtatd-area-2016', 'primary'),
-        ('censtatd-area-2021', 'dataset-censtatd-area', 'release-censtatd-area-2021', 'primary');
+      UPDATE sourceReleases SET datasetId='dataset-censtatd-area' WHERE id=(SELECT sourceReleaseId FROM resourceReleases WHERE id='release-censtatd-area-2016');
+INSERT INTO sourceReleases(id,datasetId) SELECT 'source-' || 'release-censtatd-area-2016', 'dataset-censtatd-area' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-censtatd-area-2016');
+INSERT INTO resourceReleases(id,sourceReleaseId,resourceType,status) SELECT 'release-censtatd-area-2016', 'source-' || 'release-censtatd-area-2016', (SELECT l.resourceType FROM snapshots s JOIN snapshotLineages l ON l.id=s.snapshotLineageId WHERE s.id='censtatd-area-2016'), 'current' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-censtatd-area-2016');
+UPDATE sourceReleases SET datasetId='dataset-censtatd-area' WHERE id=(SELECT sourceReleaseId FROM resourceReleases WHERE id='release-censtatd-area-2021');
+INSERT INTO sourceReleases(id,datasetId) SELECT 'source-' || 'release-censtatd-area-2021', 'dataset-censtatd-area' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-censtatd-area-2021');
+INSERT INTO resourceReleases(id,sourceReleaseId,resourceType,status) SELECT 'release-censtatd-area-2021', 'source-' || 'release-censtatd-area-2021', (SELECT l.resourceType FROM snapshots s JOIN snapshotLineages l ON l.id=s.snapshotLineageId WHERE s.id='censtatd-area-2021'), 'current' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-censtatd-area-2021');
+INSERT INTO snapshotResourceReleases (snapshotId, resourceReleaseId, role) VALUES
+        ('censtatd-area-2016', 'release-censtatd-area-2016', 'primary'),
+        ('censtatd-area-2021', 'release-censtatd-area-2021', 'primary');
     `)
 
     await expect(
@@ -3269,9 +3353,15 @@ INSERT INTO snapshots (id, snapshotLineageId, code, cohortKey, status, published
 ('pland-pu-area-2006', 'lineage-pland-pu-area', 'ss-hk-division-area-hkgov-pland-pu-2006', '2006', 'published', 1136073600000, 1136073600000),
 ('pland-new-town-area-2006', 'lineage-pland-new-town-area', 'ss-hk-division-area-hkgov-pland-new-town-2006', '2006', 'published', 1136073600000, 1136073600000);
 
-      INSERT INTO snapshotResourceReleases (snapshotId, datasetId, resourceReleaseId, role) VALUES
-        ('pland-pu-area-2006', 'dataset-pland-pu-area', 'release-pland-pu-area-2006', 'primary'),
-        ('pland-new-town-area-2006', 'dataset-pland-new-town-area', 'release-pland-new-town-area-2006', 'primary');
+      UPDATE sourceReleases SET datasetId='dataset-pland-pu-area' WHERE id=(SELECT sourceReleaseId FROM resourceReleases WHERE id='release-pland-pu-area-2006');
+INSERT INTO sourceReleases(id,datasetId) SELECT 'source-' || 'release-pland-pu-area-2006', 'dataset-pland-pu-area' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-pland-pu-area-2006');
+INSERT INTO resourceReleases(id,sourceReleaseId,resourceType,status) SELECT 'release-pland-pu-area-2006', 'source-' || 'release-pland-pu-area-2006', (SELECT l.resourceType FROM snapshots s JOIN snapshotLineages l ON l.id=s.snapshotLineageId WHERE s.id='pland-pu-area-2006'), 'current' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-pland-pu-area-2006');
+UPDATE sourceReleases SET datasetId='dataset-pland-new-town-area' WHERE id=(SELECT sourceReleaseId FROM resourceReleases WHERE id='release-pland-new-town-area-2006');
+INSERT INTO sourceReleases(id,datasetId) SELECT 'source-' || 'release-pland-new-town-area-2006', 'dataset-pland-new-town-area' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-pland-new-town-area-2006');
+INSERT INTO resourceReleases(id,sourceReleaseId,resourceType,status) SELECT 'release-pland-new-town-area-2006', 'source-' || 'release-pland-new-town-area-2006', (SELECT l.resourceType FROM snapshots s JOIN snapshotLineages l ON l.id=s.snapshotLineageId WHERE s.id='pland-new-town-area-2006'), 'current' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-pland-new-town-area-2006');
+INSERT INTO snapshotResourceReleases (snapshotId, resourceReleaseId, role) VALUES
+        ('pland-pu-area-2006', 'release-pland-pu-area-2006', 'primary'),
+        ('pland-new-town-area-2006', 'release-pland-new-town-area-2006', 'primary');
     `)
 
     await expect(
@@ -3325,10 +3415,19 @@ INSERT INTO snapshots (id, snapshotLineageId, code, cohortKey, status, published
 ('overture-later', 'fixture-lineage-' || 'overture-later', 'ss-hk-division-2026-02-18.0', '2026-02-18.0', 'published', 1771372800000, 1771372800000),
 ('other-earlier', 'fixture-lineage-' || 'other-earlier', 'ss-hk-division-2024-01', '2024-01', 'published', 1704067200000, 1704067200000);
 
-      INSERT INTO snapshotResourceReleases (snapshotId, datasetId, resourceReleaseId, role) VALUES
-        ('overture-first', 'dataset-overture-division', 'release-overture-first', 'primary'),
-        ('overture-later', 'dataset-overture-division', 'release-overture-later', 'primary'),
-        ('other-earlier', 'dataset-other-division', 'release-other-earlier', 'primary');
+      UPDATE sourceReleases SET datasetId='dataset-overture-division' WHERE id=(SELECT sourceReleaseId FROM resourceReleases WHERE id='release-overture-first');
+INSERT INTO sourceReleases(id,datasetId) SELECT 'source-' || 'release-overture-first', 'dataset-overture-division' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-overture-first');
+INSERT INTO resourceReleases(id,sourceReleaseId,resourceType,status) SELECT 'release-overture-first', 'source-' || 'release-overture-first', (SELECT l.resourceType FROM snapshots s JOIN snapshotLineages l ON l.id=s.snapshotLineageId WHERE s.id='overture-first'), 'current' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-overture-first');
+UPDATE sourceReleases SET datasetId='dataset-overture-division' WHERE id=(SELECT sourceReleaseId FROM resourceReleases WHERE id='release-overture-later');
+INSERT INTO sourceReleases(id,datasetId) SELECT 'source-' || 'release-overture-later', 'dataset-overture-division' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-overture-later');
+INSERT INTO resourceReleases(id,sourceReleaseId,resourceType,status) SELECT 'release-overture-later', 'source-' || 'release-overture-later', (SELECT l.resourceType FROM snapshots s JOIN snapshotLineages l ON l.id=s.snapshotLineageId WHERE s.id='overture-later'), 'current' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-overture-later');
+UPDATE sourceReleases SET datasetId='dataset-other-division' WHERE id=(SELECT sourceReleaseId FROM resourceReleases WHERE id='release-other-earlier');
+INSERT INTO sourceReleases(id,datasetId) SELECT 'source-' || 'release-other-earlier', 'dataset-other-division' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-other-earlier');
+INSERT INTO resourceReleases(id,sourceReleaseId,resourceType,status) SELECT 'release-other-earlier', 'source-' || 'release-other-earlier', (SELECT l.resourceType FROM snapshots s JOIN snapshotLineages l ON l.id=s.snapshotLineageId WHERE s.id='other-earlier'), 'current' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-other-earlier');
+INSERT INTO snapshotResourceReleases (snapshotId, resourceReleaseId, role) VALUES
+        ('overture-first', 'release-overture-first', 'primary'),
+        ('overture-later', 'release-overture-later', 'primary'),
+        ('other-earlier', 'release-other-earlier', 'primary');
     `)
 
     await expect(
@@ -3368,9 +3467,15 @@ UPDATE snapshotLineages SET resourceType='division' WHERE id='fixture-lineage-' 
 INSERT INTO snapshots (id, snapshotLineageId, code, cohortKey, status, publishedAt, createdAt) VALUES
 ('overture-first', 'fixture-lineage-' || 'overture-first', 'ss-hk-division-2025-09-24.0', '2025-09-24.0', 'published', 1758672000000, 1758672000000),
 ('overture-second', 'fixture-lineage-' || 'overture-second', 'ss-hk-division-2026-01-21.0', '2026-01-21.0', 'published', 1768953600000, 1768953600000);
-      INSERT INTO snapshotResourceReleases (snapshotId, datasetId, resourceReleaseId, role) VALUES
-        ('overture-first', 'dataset-overture-division', 'release-overture-first', 'primary'),
-        ('overture-second', 'dataset-overture-division', 'release-overture-second', 'primary');
+      UPDATE sourceReleases SET datasetId='dataset-overture-division' WHERE id=(SELECT sourceReleaseId FROM resourceReleases WHERE id='release-overture-first');
+INSERT INTO sourceReleases(id,datasetId) SELECT 'source-' || 'release-overture-first', 'dataset-overture-division' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-overture-first');
+INSERT INTO resourceReleases(id,sourceReleaseId,resourceType,status) SELECT 'release-overture-first', 'source-' || 'release-overture-first', (SELECT l.resourceType FROM snapshots s JOIN snapshotLineages l ON l.id=s.snapshotLineageId WHERE s.id='overture-first'), 'current' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-overture-first');
+UPDATE sourceReleases SET datasetId='dataset-overture-division' WHERE id=(SELECT sourceReleaseId FROM resourceReleases WHERE id='release-overture-second');
+INSERT INTO sourceReleases(id,datasetId) SELECT 'source-' || 'release-overture-second', 'dataset-overture-division' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-overture-second');
+INSERT INTO resourceReleases(id,sourceReleaseId,resourceType,status) SELECT 'release-overture-second', 'source-' || 'release-overture-second', (SELECT l.resourceType FROM snapshots s JOIN snapshotLineages l ON l.id=s.snapshotLineageId WHERE s.id='overture-second'), 'current' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-overture-second');
+INSERT INTO snapshotResourceReleases (snapshotId, resourceReleaseId, role) VALUES
+        ('overture-first', 'release-overture-first', 'primary'),
+        ('overture-second', 'release-overture-second', 'primary');
     `)
 
     await expect(
@@ -3407,9 +3512,15 @@ UPDATE snapshotLineages SET resourceType='division' WHERE id='fixture-lineage-' 
 INSERT INTO snapshots (id, snapshotLineageId, code, cohortKey, status, publishedAt, createdAt) VALUES
 ('overture-earlier', 'fixture-lineage-' || 'overture-earlier', 'ss-hk-division-2023-06-01.0', '2023-06-01.0', 'published', 1685577600000, 1685577600000),
 ('overture-future', 'fixture-lineage-' || 'overture-future', 'ss-hk-division-2025-09-24.0', '2025-09-24.0', 'published', 1758672000000, 1758672000000);
-      INSERT INTO snapshotResourceReleases (snapshotId, datasetId, resourceReleaseId, role) VALUES
-        ('overture-earlier', 'dataset-overture-division', 'release-overture-earlier', 'primary'),
-        ('overture-future', 'dataset-overture-division', 'release-overture-future', 'primary');
+      UPDATE sourceReleases SET datasetId='dataset-overture-division' WHERE id=(SELECT sourceReleaseId FROM resourceReleases WHERE id='release-overture-earlier');
+INSERT INTO sourceReleases(id,datasetId) SELECT 'source-' || 'release-overture-earlier', 'dataset-overture-division' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-overture-earlier');
+INSERT INTO resourceReleases(id,sourceReleaseId,resourceType,status) SELECT 'release-overture-earlier', 'source-' || 'release-overture-earlier', (SELECT l.resourceType FROM snapshots s JOIN snapshotLineages l ON l.id=s.snapshotLineageId WHERE s.id='overture-earlier'), 'current' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-overture-earlier');
+UPDATE sourceReleases SET datasetId='dataset-overture-division' WHERE id=(SELECT sourceReleaseId FROM resourceReleases WHERE id='release-overture-future');
+INSERT INTO sourceReleases(id,datasetId) SELECT 'source-' || 'release-overture-future', 'dataset-overture-division' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-overture-future');
+INSERT INTO resourceReleases(id,sourceReleaseId,resourceType,status) SELECT 'release-overture-future', 'source-' || 'release-overture-future', (SELECT l.resourceType FROM snapshots s JOIN snapshotLineages l ON l.id=s.snapshotLineageId WHERE s.id='overture-future'), 'current' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-overture-future');
+INSERT INTO snapshotResourceReleases (snapshotId, resourceReleaseId, role) VALUES
+        ('overture-earlier', 'release-overture-earlier', 'primary'),
+        ('overture-future', 'release-overture-future', 'primary');
     `)
 
     await expect(
@@ -3487,11 +3598,23 @@ INSERT INTO snapshots (id, snapshotLineageId, code, status, createdAt) VALUES
 ('snapshot-overture-2026', 'fixture-lineage-' || 'snapshot-overture-2026', 'ss-hk-division-2026', 'published', 1),
 ('snapshot-had', 'fixture-lineage-' || 'snapshot-had', 'ss-hk-division-had', 'published', 1);
 
-      INSERT INTO snapshotResourceReleases (snapshotId, datasetId, resourceReleaseId, role) VALUES
-        ('snapshot-overture-2025-r0', 'dataset-overture', 'release-overture-2025-r0', 'primary'),
-        ('snapshot-overture-2025-r1', 'dataset-overture', 'release-overture-2025-r1', 'primary'),
-        ('snapshot-overture-2026', 'dataset-overture', 'release-overture-2026', 'primary'),
-        ('snapshot-had', 'dataset-had', 'release-had', 'primary');
+      UPDATE sourceReleases SET datasetId='dataset-overture' WHERE id=(SELECT sourceReleaseId FROM resourceReleases WHERE id='release-overture-2025-r0');
+INSERT INTO sourceReleases(id,datasetId) SELECT 'source-' || 'release-overture-2025-r0', 'dataset-overture' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-overture-2025-r0');
+INSERT INTO resourceReleases(id,sourceReleaseId,resourceType,status) SELECT 'release-overture-2025-r0', 'source-' || 'release-overture-2025-r0', (SELECT l.resourceType FROM snapshots s JOIN snapshotLineages l ON l.id=s.snapshotLineageId WHERE s.id='snapshot-overture-2025-r0'), 'current' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-overture-2025-r0');
+UPDATE sourceReleases SET datasetId='dataset-overture' WHERE id=(SELECT sourceReleaseId FROM resourceReleases WHERE id='release-overture-2025-r1');
+INSERT INTO sourceReleases(id,datasetId) SELECT 'source-' || 'release-overture-2025-r1', 'dataset-overture' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-overture-2025-r1');
+INSERT INTO resourceReleases(id,sourceReleaseId,resourceType,status) SELECT 'release-overture-2025-r1', 'source-' || 'release-overture-2025-r1', (SELECT l.resourceType FROM snapshots s JOIN snapshotLineages l ON l.id=s.snapshotLineageId WHERE s.id='snapshot-overture-2025-r1'), 'current' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-overture-2025-r1');
+UPDATE sourceReleases SET datasetId='dataset-overture' WHERE id=(SELECT sourceReleaseId FROM resourceReleases WHERE id='release-overture-2026');
+INSERT INTO sourceReleases(id,datasetId) SELECT 'source-' || 'release-overture-2026', 'dataset-overture' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-overture-2026');
+INSERT INTO resourceReleases(id,sourceReleaseId,resourceType,status) SELECT 'release-overture-2026', 'source-' || 'release-overture-2026', (SELECT l.resourceType FROM snapshots s JOIN snapshotLineages l ON l.id=s.snapshotLineageId WHERE s.id='snapshot-overture-2026'), 'current' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-overture-2026');
+UPDATE sourceReleases SET datasetId='dataset-had' WHERE id=(SELECT sourceReleaseId FROM resourceReleases WHERE id='release-had');
+INSERT INTO sourceReleases(id,datasetId) SELECT 'source-' || 'release-had', 'dataset-had' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-had');
+INSERT INTO resourceReleases(id,sourceReleaseId,resourceType,status) SELECT 'release-had', 'source-' || 'release-had', (SELECT l.resourceType FROM snapshots s JOIN snapshotLineages l ON l.id=s.snapshotLineageId WHERE s.id='snapshot-had'), 'current' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-had');
+INSERT INTO snapshotResourceReleases (snapshotId, resourceReleaseId, role) VALUES
+        ('snapshot-overture-2025-r0', 'release-overture-2025-r0', 'primary'),
+        ('snapshot-overture-2025-r1', 'release-overture-2025-r1', 'primary'),
+        ('snapshot-overture-2026', 'release-overture-2026', 'primary'),
+        ('snapshot-had', 'release-had', 'primary');
 
       INSERT INTO apiVersions (id, code) VALUES
         ('api-divisions', 'api-divisions-v0.1'),
@@ -3587,24 +3710,33 @@ INSERT INTO snapshots (id, snapshotLineageId, code, cohortKey, status, published
       WHERE id = 'source-release-address';
 
       INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status, sourceSchemaVersion) VALUES ('source-release-address', 'dataset-address', 'source-' || 'release-address', '2025-09-03.0', 'staged', '3.2');
-UPDATE sourceReleases SET sourceVersion = '2025-09-03.0', sourceSchemaVersion = '3.2' WHERE id = 'source-release-address';
-INSERT INTO resourceReleases (id, sourceReleaseId, datasetId, processingRules, resourceType, status, updatedAt, code) VALUES ('release-address', 'source-release-address', 'dataset-address', null, 'address', 'staged', 1760000000000, 'release-address');
+UPDATE sourceReleases SET datasetId = 'dataset-address', sourceVersion = '2025-09-03.0', sourceSchemaVersion = '3.2' WHERE id = 'source-release-address';
+INSERT INTO resourceReleases (id, sourceReleaseId, processingRules, resourceType, status, updatedAt, code) VALUES ('release-address', 'source-release-address', null, 'address', 'staged', 1760000000000, 'release-address');
 INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status, sourceSchemaVersion) VALUES ('source-release-division', 'dataset-division', 'source-' || 'release-division', '2025-09-24.0', 'current', '1.12.0');
-UPDATE sourceReleases SET sourceVersion = '2025-09-24.0', sourceSchemaVersion = '1.12.0' WHERE id = 'source-release-division';
-INSERT INTO resourceReleases (id, sourceReleaseId, datasetId, processingRules, resourceType, status, updatedAt, code) VALUES ('release-division', 'source-release-division', 'dataset-division', null, 'division', 'current', 1760000000000, 'release-division');
+UPDATE sourceReleases SET datasetId = 'dataset-division', sourceVersion = '2025-09-24.0', sourceSchemaVersion = '1.12.0' WHERE id = 'source-release-division';
+INSERT INTO resourceReleases (id, sourceReleaseId, processingRules, resourceType, status, updatedAt, code) VALUES ('release-division', 'source-release-division', null, 'division', 'current', 1760000000000, 'release-division');
 INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status, sourceSchemaVersion) VALUES ('source-release-place', 'dataset-place', 'source-' || 'release-place-address', '2025-09-24.0', 'current', '1.12.0');
-UPDATE sourceReleases SET sourceVersion = '2025-09-24.0', sourceSchemaVersion = '1.12.0' WHERE id = 'source-release-place';
-INSERT INTO resourceReleases (id, sourceReleaseId, datasetId, processingRules, resourceType, status, updatedAt, code) VALUES ('release-place-address', 'source-release-place', 'dataset-place', '{}', 'address', 'current', 1760000000000, 'release-place-address');
+UPDATE sourceReleases SET datasetId = 'dataset-place', sourceVersion = '2025-09-24.0', sourceSchemaVersion = '1.12.0' WHERE id = 'source-release-place';
+INSERT INTO resourceReleases (id, sourceReleaseId, processingRules, resourceType, status, updatedAt, code) VALUES ('release-place-address', 'source-release-place', '{}', 'address', 'current', 1760000000000, 'release-place-address');
 INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status, sourceSchemaVersion) VALUES ('source-release-place', 'dataset-place', 'source-' || 'release-place-anchor', '2025-09-24.0', 'current', '1.12.0');
-UPDATE sourceReleases SET sourceVersion = '2025-09-24.0', sourceSchemaVersion = '1.12.0' WHERE id = 'source-release-place';
-INSERT INTO resourceReleases (id, sourceReleaseId, datasetId, processingRules, resourceType, status, updatedAt, code) VALUES ('release-place-anchor', 'source-release-place', 'dataset-place', null, 'place', 'current', 1760000000000, 'release-place-anchor');
+UPDATE sourceReleases SET datasetId = 'dataset-place', sourceVersion = '2025-09-24.0', sourceSchemaVersion = '1.12.0' WHERE id = 'source-release-place';
+INSERT INTO resourceReleases (id, sourceReleaseId, processingRules, resourceType, status, updatedAt, code) VALUES ('release-place-anchor', 'source-release-place', null, 'place', 'current', 1760000000000, 'release-place-anchor');
 
-      INSERT INTO snapshotResourceReleases (
-        snapshotId, datasetId, resourceReleaseId, anchorReleaseId, role
+      UPDATE sourceReleases SET datasetId='dataset-address' WHERE id=(SELECT sourceReleaseId FROM resourceReleases WHERE id='release-address');
+INSERT INTO sourceReleases(id,datasetId) SELECT 'source-' || 'release-address', 'dataset-address' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-address');
+INSERT INTO resourceReleases(id,sourceReleaseId,resourceType,status) SELECT 'release-address', 'source-' || 'release-address', (SELECT l.resourceType FROM snapshots s JOIN snapshotLineages l ON l.id=s.snapshotLineageId WHERE s.id='snapshot-address'), 'current' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-address');
+UPDATE sourceReleases SET datasetId='dataset-place' WHERE id=(SELECT sourceReleaseId FROM resourceReleases WHERE id='release-place-address');
+INSERT INTO sourceReleases(id,datasetId) SELECT 'source-' || 'release-place-address', 'dataset-place' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-place-address');
+INSERT INTO resourceReleases(id,sourceReleaseId,resourceType,status) SELECT 'release-place-address', 'source-' || 'release-place-address', (SELECT l.resourceType FROM snapshots s JOIN snapshotLineages l ON l.id=s.snapshotLineageId WHERE s.id='snapshot-place-address'), 'current' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-place-address');
+UPDATE sourceReleases SET datasetId='dataset-division' WHERE id=(SELECT sourceReleaseId FROM resourceReleases WHERE id='release-division');
+INSERT INTO sourceReleases(id,datasetId) SELECT 'source-' || 'release-division', 'dataset-division' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-division');
+INSERT INTO resourceReleases(id,sourceReleaseId,resourceType,status) SELECT 'release-division', 'source-' || 'release-division', (SELECT l.resourceType FROM snapshots s JOIN snapshotLineages l ON l.id=s.snapshotLineageId WHERE s.id='snapshot-division'), 'current' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-division');
+INSERT INTO snapshotResourceReleases (
+        snapshotId, resourceReleaseId, anchorReleaseId, role
       ) VALUES
-        ('snapshot-address', 'dataset-address', 'release-address', null, 'primary'),
-        ('snapshot-place-address', 'dataset-place', 'release-place-address', 'release-place-anchor', 'primary'),
-        ('snapshot-division', 'dataset-division', 'release-division', null, 'primary');
+        ('snapshot-address', 'release-address', null, 'primary'),
+        ('snapshot-place-address', 'release-place-address', 'release-place-anchor', 'primary'),
+        ('snapshot-division', 'release-division', null, 'primary');
 
       INSERT INTO apiReleaseSetSnapshots (
         apiReleaseSetId, snapshotId, variant, role, isRequired,
@@ -3753,12 +3885,18 @@ INSERT INTO snapshots (id, snapshotLineageId, parentSnapshotId, code, status, pu
       UPDATE sourceReleases SET expectedResourceTypes = '["division"]' WHERE id = 'source-release-1';
 
       INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status, sourceSchemaVersion) VALUES ('source-release-1', 'fixture', 'source-' || 'release-1', '2026-06-17.0', 'staged', '1.17.0');
-UPDATE sourceReleases SET sourceVersion = '2026-06-17.0', sourceSchemaVersion = '1.17.0' WHERE id = 'source-release-1';
-INSERT INTO resourceReleases (id, sourceReleaseId, status, revokedAt, revocationReason, supersededByResourceReleaseId, updatedAt, datasetId, code, resourceType) VALUES ('release-1', 'source-release-1', 'staged', null, null, null, 1760000000000, 'fixture', 'release-1', 'division');
+UPDATE sourceReleases SET datasetId = 'fixture', sourceVersion = '2026-06-17.0', sourceSchemaVersion = '1.17.0' WHERE id = 'source-release-1';
+INSERT INTO resourceReleases (id, sourceReleaseId, status, revokedAt, revocationReason, supersededByResourceReleaseId, updatedAt, code, resourceType) VALUES ('release-1', 'source-release-1', 'staged', null, null, null, 1760000000000, 'release-1', 'division');
 
-      INSERT INTO snapshotResourceReleases (snapshotId, datasetId, resourceReleaseId) VALUES
-        ('snapshot-curated', 'dataset-overture-division', 'release-1'),
-        ('snapshot-new', 'dataset-overture-division', 'release-1');
+      UPDATE sourceReleases SET datasetId='dataset-overture-division' WHERE id=(SELECT sourceReleaseId FROM resourceReleases WHERE id='release-1');
+INSERT INTO sourceReleases(id,datasetId) SELECT 'source-' || 'release-1', 'dataset-overture-division' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-1');
+INSERT INTO resourceReleases(id,sourceReleaseId,resourceType,status) SELECT 'release-1', 'source-' || 'release-1', (SELECT l.resourceType FROM snapshots s JOIN snapshotLineages l ON l.id=s.snapshotLineageId WHERE s.id='snapshot-curated'), 'current' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-1');
+UPDATE sourceReleases SET datasetId='dataset-overture-division' WHERE id=(SELECT sourceReleaseId FROM resourceReleases WHERE id='release-1');
+INSERT INTO sourceReleases(id,datasetId) SELECT 'source-' || 'release-1', 'dataset-overture-division' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-1');
+INSERT INTO resourceReleases(id,sourceReleaseId,resourceType,status) SELECT 'release-1', 'source-' || 'release-1', (SELECT l.resourceType FROM snapshots s JOIN snapshotLineages l ON l.id=s.snapshotLineageId WHERE s.id='snapshot-new'), 'current' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-1');
+INSERT INTO snapshotResourceReleases (snapshotId, resourceReleaseId) VALUES
+        ('snapshot-curated', 'release-1'),
+        ('snapshot-new', 'release-1');
 
       INSERT INTO apiReleaseSetSnapshots (
         apiReleaseSetId, snapshotId, variant, role, isRequired, cohortMatchingMode, createdAt
@@ -4085,18 +4223,27 @@ INSERT INTO snapshots (id, snapshotLineageId, code, status, publishedAt, validFr
 
       INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status, sourceSchemaVersion) VALUES (coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'fixture' AND sourceVersion = '2025-09-24.0'), 'source-' || 'release-overture-2025'), 'fixture', 'source-' || 'release-overture-2025', '2025-09-24.0', 'current', '1.12.0');
 UPDATE sourceReleases SET sourceVersion = '2025-09-24.0', sourceSchemaVersion = '1.12.0' WHERE id = coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'fixture' AND sourceVersion = '2025-09-24.0'), 'source-' || 'release-overture-2025');
-INSERT INTO resourceReleases (id, status, revokedAt, revocationReason, supersededByResourceReleaseId, updatedAt, sourceReleaseId, datasetId, code, resourceType) VALUES ('release-overture-2025', 'current', null, null, null, 1760000000000, coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'fixture' AND sourceVersion = '2025-09-24.0'), 'source-' || 'release-overture-2025'), 'fixture', 'release-overture-2025', 'division');
+INSERT INTO resourceReleases (id, status, revokedAt, revocationReason, supersededByResourceReleaseId, updatedAt, sourceReleaseId, code, resourceType) VALUES ('release-overture-2025', 'current', null, null, null, 1760000000000, coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'fixture' AND sourceVersion = '2025-09-24.0'), 'source-' || 'release-overture-2025'), 'release-overture-2025', 'division');
 INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status, sourceSchemaVersion) VALUES (coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'fixture' AND sourceVersion = '2026-07-22.0'), 'source-' || 'release-overture-2026'), 'fixture', 'source-' || 'release-overture-2026', '2026-07-22.0', 'current', '1.18.0');
 UPDATE sourceReleases SET sourceVersion = '2026-07-22.0', sourceSchemaVersion = '1.18.0' WHERE id = coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'fixture' AND sourceVersion = '2026-07-22.0'), 'source-' || 'release-overture-2026');
-INSERT INTO resourceReleases (id, status, revokedAt, revocationReason, supersededByResourceReleaseId, updatedAt, sourceReleaseId, datasetId, code, resourceType) VALUES ('release-overture-2026', 'current', null, null, null, 1760000000000, coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'fixture' AND sourceVersion = '2026-07-22.0'), 'source-' || 'release-overture-2026'), 'fixture', 'release-overture-2026', 'division');
+INSERT INTO resourceReleases (id, status, revokedAt, revocationReason, supersededByResourceReleaseId, updatedAt, sourceReleaseId, code, resourceType) VALUES ('release-overture-2026', 'current', null, null, null, 1760000000000, coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'fixture' AND sourceVersion = '2026-07-22.0'), 'source-' || 'release-overture-2026'), 'release-overture-2026', 'division');
 INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status, sourceSchemaVersion) VALUES (coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'fixture' AND sourceVersion = '2016'), 'source-' || 'release-censtatd'), 'fixture', 'source-' || 'release-censtatd', '2016', 'staged', '1.0');
 UPDATE sourceReleases SET sourceVersion = '2016', sourceSchemaVersion = '1.0' WHERE id = coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'fixture' AND sourceVersion = '2016'), 'source-' || 'release-censtatd');
-INSERT INTO resourceReleases (id, status, revokedAt, revocationReason, supersededByResourceReleaseId, updatedAt, sourceReleaseId, datasetId, code, resourceType) VALUES ('release-censtatd', 'staged', null, null, null, 1760000000000, coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'fixture' AND sourceVersion = '2016'), 'source-' || 'release-censtatd'), 'fixture', 'release-censtatd', 'division');
+INSERT INTO resourceReleases (id, status, revokedAt, revocationReason, supersededByResourceReleaseId, updatedAt, sourceReleaseId, code, resourceType) VALUES ('release-censtatd', 'staged', null, null, null, 1760000000000, coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'fixture' AND sourceVersion = '2016'), 'source-' || 'release-censtatd'), 'release-censtatd', 'division');
 
-      INSERT INTO snapshotResourceReleases (snapshotId, datasetId, resourceReleaseId, role) VALUES
-        ('snapshot-overture', 'dataset-overture-division', 'release-overture-2025', 'primary'),
-        ('snapshot-censtatd', 'dataset-hkgov-censtatd-district', 'release-censtatd', 'primary'),
-        ('snapshot-censtatd', 'dataset-overture-division', 'release-overture-2026', 'lookup');
+      UPDATE sourceReleases SET datasetId='dataset-overture-division' WHERE id=(SELECT sourceReleaseId FROM resourceReleases WHERE id='release-overture-2025');
+INSERT INTO sourceReleases(id,datasetId) SELECT 'source-' || 'release-overture-2025', 'dataset-overture-division' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-overture-2025');
+INSERT INTO resourceReleases(id,sourceReleaseId,resourceType,status) SELECT 'release-overture-2025', 'source-' || 'release-overture-2025', (SELECT l.resourceType FROM snapshots s JOIN snapshotLineages l ON l.id=s.snapshotLineageId WHERE s.id='snapshot-overture'), 'current' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-overture-2025');
+UPDATE sourceReleases SET datasetId='dataset-hkgov-censtatd-district' WHERE id=(SELECT sourceReleaseId FROM resourceReleases WHERE id='release-censtatd');
+INSERT INTO sourceReleases(id,datasetId) SELECT 'source-' || 'release-censtatd', 'dataset-hkgov-censtatd-district' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-censtatd');
+INSERT INTO resourceReleases(id,sourceReleaseId,resourceType,status) SELECT 'release-censtatd', 'source-' || 'release-censtatd', (SELECT l.resourceType FROM snapshots s JOIN snapshotLineages l ON l.id=s.snapshotLineageId WHERE s.id='snapshot-censtatd'), 'current' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-censtatd');
+UPDATE sourceReleases SET datasetId='dataset-overture-division' WHERE id=(SELECT sourceReleaseId FROM resourceReleases WHERE id='release-overture-2026');
+INSERT INTO sourceReleases(id,datasetId) SELECT 'source-' || 'release-overture-2026', 'dataset-overture-division' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-overture-2026');
+INSERT INTO resourceReleases(id,sourceReleaseId,resourceType,status) SELECT 'release-overture-2026', 'source-' || 'release-overture-2026', (SELECT l.resourceType FROM snapshots s JOIN snapshotLineages l ON l.id=s.snapshotLineageId WHERE s.id='snapshot-censtatd'), 'current' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-overture-2026');
+INSERT INTO snapshotResourceReleases (snapshotId, resourceReleaseId, role) VALUES
+        ('snapshot-overture', 'release-overture-2025', 'primary'),
+        ('snapshot-censtatd', 'release-censtatd', 'primary'),
+        ('snapshot-censtatd', 'release-overture-2026', 'lookup');
 
       INSERT INTO apiReleaseSetSnapshots (
         apiReleaseSetId, snapshotId, variant, role, isRequired, cohortMatchingMode, createdAt
@@ -4181,10 +4328,13 @@ INSERT INTO snapshots (id, snapshotLineageId, code, status, publishedAt, validFr
 
       INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status, sourceSchemaVersion) VALUES (coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'fixture' AND sourceVersion = '2026-07-15.0'), 'source-' || 'release-1'), 'fixture', 'source-' || 'release-1', '2026-07-15.0', 'staged', '1.17.0');
 UPDATE sourceReleases SET sourceVersion = '2026-07-15.0', sourceSchemaVersion = '1.17.0' WHERE id = coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'fixture' AND sourceVersion = '2026-07-15.0'), 'source-' || 'release-1');
-INSERT INTO resourceReleases (id, status, revokedAt, revocationReason, supersededByResourceReleaseId, updatedAt, sourceReleaseId, datasetId, code, resourceType) VALUES ('release-1', 'staged', null, null, null, 1760000000000, coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'fixture' AND sourceVersion = '2026-07-15.0'), 'source-' || 'release-1'), 'fixture', 'release-1', 'division');
+INSERT INTO resourceReleases (id, status, revokedAt, revocationReason, supersededByResourceReleaseId, updatedAt, sourceReleaseId, code, resourceType) VALUES ('release-1', 'staged', null, null, null, 1760000000000, coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'fixture' AND sourceVersion = '2026-07-15.0'), 'source-' || 'release-1'), 'release-1', 'division');
 
-      INSERT INTO snapshotResourceReleases (snapshotId, datasetId, resourceReleaseId) VALUES
-        ('snapshot-new', 'dataset-overture-division', 'release-1');
+      UPDATE sourceReleases SET datasetId='dataset-overture-division' WHERE id=(SELECT sourceReleaseId FROM resourceReleases WHERE id='release-1');
+INSERT INTO sourceReleases(id,datasetId) SELECT 'source-' || 'release-1', 'dataset-overture-division' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-1');
+INSERT INTO resourceReleases(id,sourceReleaseId,resourceType,status) SELECT 'release-1', 'source-' || 'release-1', (SELECT l.resourceType FROM snapshots s JOIN snapshotLineages l ON l.id=s.snapshotLineageId WHERE s.id='snapshot-new'), 'current' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-1');
+INSERT INTO snapshotResourceReleases (snapshotId, resourceReleaseId) VALUES
+        ('snapshot-new', 'release-1');
     `)
 
     seedSnapshotProcessingPolicies(sqlite)
@@ -4263,10 +4413,13 @@ INSERT INTO snapshots (id, snapshotLineageId, parentSnapshotId, code, status, pu
 
       INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status, sourceSchemaVersion) VALUES (coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'fixture' AND sourceVersion = '2026-06-24.0'), 'source-' || 'release-1'), 'fixture', 'source-' || 'release-1', '2026-06-24.0', 'staged', null);
 UPDATE sourceReleases SET sourceVersion = '2026-06-24.0', sourceSchemaVersion = null WHERE id = coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'fixture' AND sourceVersion = '2026-06-24.0'), 'source-' || 'release-1');
-INSERT INTO resourceReleases (id, status, revokedAt, revocationReason, supersededByResourceReleaseId, updatedAt, sourceReleaseId, datasetId, code, resourceType) VALUES ('release-1', 'staged', null, null, null, 1760000000000, coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'fixture' AND sourceVersion = '2026-06-24.0'), 'source-' || 'release-1'), 'fixture', 'release-1', 'division');
+INSERT INTO resourceReleases (id, status, revokedAt, revocationReason, supersededByResourceReleaseId, updatedAt, sourceReleaseId, code, resourceType) VALUES ('release-1', 'staged', null, null, null, 1760000000000, coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'fixture' AND sourceVersion = '2026-06-24.0'), 'source-' || 'release-1'), 'release-1', 'division');
 
-      INSERT INTO snapshotResourceReleases (snapshotId, datasetId, resourceReleaseId) VALUES
-        ('snapshot-new', 'dataset-overture-division', 'release-1');
+      UPDATE sourceReleases SET datasetId='dataset-overture-division' WHERE id=(SELECT sourceReleaseId FROM resourceReleases WHERE id='release-1');
+INSERT INTO sourceReleases(id,datasetId) SELECT 'source-' || 'release-1', 'dataset-overture-division' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-1');
+INSERT INTO resourceReleases(id,sourceReleaseId,resourceType,status) SELECT 'release-1', 'source-' || 'release-1', (SELECT l.resourceType FROM snapshots s JOIN snapshotLineages l ON l.id=s.snapshotLineageId WHERE s.id='snapshot-new'), 'current' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-1');
+INSERT INTO snapshotResourceReleases (snapshotId, resourceReleaseId) VALUES
+        ('snapshot-new', 'release-1');
     `)
 
     globalThis.fetch = (async () =>
@@ -4335,10 +4488,13 @@ INSERT INTO snapshots (id, snapshotLineageId, parentSnapshotId, code, status, pu
 
       INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status, sourceSchemaVersion) VALUES (coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'fixture' AND sourceVersion = '2026-06-24.0'), 'source-' || 'release-1'), 'fixture', 'source-' || 'release-1', '2026-06-24.0', 'staged', null);
 UPDATE sourceReleases SET sourceVersion = '2026-06-24.0', sourceSchemaVersion = null WHERE id = coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'fixture' AND sourceVersion = '2026-06-24.0'), 'source-' || 'release-1');
-INSERT INTO resourceReleases (id, status, revokedAt, revocationReason, supersededByResourceReleaseId, updatedAt, sourceReleaseId, datasetId, code, resourceType) VALUES ('release-1', 'staged', null, null, null, 1760000000000, coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'fixture' AND sourceVersion = '2026-06-24.0'), 'source-' || 'release-1'), 'fixture', 'release-1', 'division');
+INSERT INTO resourceReleases (id, status, revokedAt, revocationReason, supersededByResourceReleaseId, updatedAt, sourceReleaseId, code, resourceType) VALUES ('release-1', 'staged', null, null, null, 1760000000000, coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'fixture' AND sourceVersion = '2026-06-24.0'), 'source-' || 'release-1'), 'release-1', 'division');
 
-      INSERT INTO snapshotResourceReleases (snapshotId, datasetId, resourceReleaseId) VALUES
-        ('snapshot-new', 'dataset-overture-division', 'release-1');
+      UPDATE sourceReleases SET datasetId='dataset-overture-division' WHERE id=(SELECT sourceReleaseId FROM resourceReleases WHERE id='release-1');
+INSERT INTO sourceReleases(id,datasetId) SELECT 'source-' || 'release-1', 'dataset-overture-division' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-1');
+INSERT INTO resourceReleases(id,sourceReleaseId,resourceType,status) SELECT 'release-1', 'source-' || 'release-1', (SELECT l.resourceType FROM snapshots s JOIN snapshotLineages l ON l.id=s.snapshotLineageId WHERE s.id='snapshot-new'), 'current' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-1');
+INSERT INTO snapshotResourceReleases (snapshotId, resourceReleaseId) VALUES
+        ('snapshot-new', 'release-1');
     `)
 
     globalThis.fetch = (async () =>

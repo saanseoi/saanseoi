@@ -16,11 +16,13 @@ source object through `sourceAssetId`.
 Processing retains shared rule definitions and curation application counts under the
 [shared processing contract](../../pipeline.md#processing-stages-and-retained-evidence).
 
-Place construction records its concrete source releases in `snapshotResourceReleases`,
+Place construction records its concrete resource releases in `snapshotResourceReleases`,
 its effective recipe through `snapshotAssemblies` and `snapshotRecipes`, and exact
 Address, Division, DivisionArea and supplementary Address selections in
 `snapshotDependencies`. Address analysis must resolve every identity review before
-materialising supplementary Addresses or recording the final Place assembly.
+materialising supplementary Addresses or recording the final Place assembly. Source
+cohorts come from each selected resource release's parent `sourceReleases` row; lookup
+cohorts come from the pinned dependency snapshots.
 
 The updater consumes the Hong Kong `place.division.intersects.clipSmart.parquet` file
 from `data/overture/<release>/divisions/China/Hong Kong`. A present, non-empty export is

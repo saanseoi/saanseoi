@@ -118,18 +118,10 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
         regionCode: 'hk',
         variant: member.variant,
       })
-      await upsertSnapshotSource(
-        db,
-        snapshot.id,
-        member.datasetId,
-        member.id,
-        'primary',
-        {
-          selectedByRule: `assembly:${member.type}:source-release:v1`,
-          selectionMode: 'exact_ref',
-          sourceCohortKey: cohort,
-        },
-      )
+      await upsertSnapshotSource(db, snapshot.id, member.id, 'primary', {
+        selectedByRule: `assembly:${member.type}:source-release:v1`,
+        selectionMode: 'exact_ref',
+      })
       await recordSnapshotAssembly(db, {
         anchorReleaseId: member.id,
         resourceType: member.type,
@@ -149,7 +141,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
         .run()
       meta
         .query(`UPDATE resourceReleases SET processingRules = ?
-          WHERE datasetId IN (SELECT id FROM datasets WHERE code = ?)`)
+          WHERE sourceReleaseId IN (SELECT s.id FROM sourceReleases s JOIN datasets d ON d.id=s.datasetId WHERE d.code = ?)`)
         .run(definitionId, dataset.code)
     }
     // Publishing the supplementary resource must accept its snapshot variant,

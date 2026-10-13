@@ -15,11 +15,11 @@ test('full Statistics specifications preserve each field release rather than sub
     INSERT INTO datasets VALUES('dataset','ds-statistic');
     INSERT INTO sourceReleases (id, code) VALUES('source-old','old-source'),('source-new','new-source');
     INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status, cohortKey, sourceSchemaVersion) VALUES ('source-old', 'dataset', 'source-' || 'old-resource', '2024', 'current', '2024', 'v1');
-UPDATE sourceReleases SET sourceVersion = '2024', cohortKey = '2024', sourceSchemaVersion = 'v1' WHERE id = 'source-old';
-INSERT INTO resourceReleases (id, code, datasetId, sourceReleaseId, resourceType, status) VALUES ('old', 'old-resource', 'dataset', 'source-old', 'division', 'current');
+UPDATE sourceReleases SET datasetId = 'dataset', sourceVersion = '2024', cohortKey = '2024', sourceSchemaVersion = 'v1' WHERE id = 'source-old';
+INSERT INTO resourceReleases (id, code, sourceReleaseId, resourceType, status) VALUES ('old', 'old-resource', 'source-old', 'division', 'current');
 INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status, cohortKey, sourceSchemaVersion) VALUES ('source-new', 'dataset', 'source-' || 'new-resource', '2026', 'current', '2026', 'v2');
-UPDATE sourceReleases SET sourceVersion = '2026', cohortKey = '2026', sourceSchemaVersion = 'v2' WHERE id = 'source-new';
-INSERT INTO resourceReleases (id, code, datasetId, sourceReleaseId, resourceType, status) VALUES ('new', 'new-resource', 'dataset', 'source-new', 'division', 'current');`)
+UPDATE sourceReleases SET datasetId = 'dataset', sourceVersion = '2026', cohortKey = '2026', sourceSchemaVersion = 'v2' WHERE id = 'source-new';
+INSERT INTO resourceReleases (id, code, sourceReleaseId, resourceType, status) VALUES ('new', 'new-resource', 'source-new', 'division', 'current');`)
   const document = {
     data: [
       {
@@ -74,13 +74,13 @@ test('Planning geometry references use the selected snapshot release specificati
   sqlite.exec(`CREATE TABLE datasets(id TEXT,code TEXT);
     ;
     ${releaseFixtureSchemaSql()};
-    CREATE TABLE snapshotResourceReleases(snapshotId TEXT,datasetId TEXT,resourceReleaseId TEXT,role TEXT);
+    CREATE TABLE snapshotResourceReleases(snapshotId TEXT,resourceReleaseId TEXT,role TEXT);
     INSERT INTO datasets VALUES('dataset','ds-hk-hkgov-pland-division-area-pu');
     INSERT INTO sourceReleases (id, code) VALUES('source','planning-source');
     INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status, cohortKey, sourceSchemaVersion) VALUES ('source', 'dataset', 'source-' || 'planning-resource', '2024', 'current', '2024', 'v1');
-UPDATE sourceReleases SET sourceVersion = '2024', cohortKey = '2024', sourceSchemaVersion = 'v1' WHERE id = 'source';
-INSERT INTO resourceReleases (id, code, datasetId, sourceReleaseId, resourceType, status) VALUES ('release', 'planning-resource', 'dataset', 'source', 'division', 'current');
-    INSERT INTO snapshotResourceReleases VALUES('selected','dataset','release','primary');`)
+UPDATE sourceReleases SET datasetId = 'dataset', sourceVersion = '2024', cohortKey = '2024', sourceSchemaVersion = 'v1' WHERE id = 'source';
+INSERT INTO resourceReleases (id, code, sourceReleaseId, resourceType, status) VALUES ('release', 'planning-resource', 'source', 'division', 'current');
+    INSERT INTO snapshotResourceReleases VALUES('selected','release','primary');`)
   const document = {
     data: {
       type: 'division-areas',

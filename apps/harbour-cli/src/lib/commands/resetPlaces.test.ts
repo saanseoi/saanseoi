@@ -94,7 +94,6 @@ function createPlacesOwnershipDb() {
     );
     CREATE TABLE resourceReleases (
       id TEXT PRIMARY KEY,
-      datasetId TEXT NOT NULL,
       sourceReleaseId TEXT NOT NULL,
       resourceType TEXT NOT NULL,
       code TEXT NOT NULL,
@@ -103,9 +102,11 @@ function createPlacesOwnershipDb() {
     );
     CREATE TABLE sourceReleases (
       id TEXT PRIMARY KEY,
+      datasetId TEXT,
       status TEXT NOT NULL,
       updatedAt TEXT NOT NULL
     );
+    CREATE VIEW resourceReleaseDetails AS SELECT r.*,s.datasetId FROM resourceReleases r JOIN sourceReleases s ON s.id=r.sourceReleaseId;
     CREATE TABLE processingRuns (
       runId TEXT PRIMARY KEY,
       sourceReleaseId TEXT, resourceReleaseId TEXT NOT NULL,
@@ -151,11 +152,10 @@ function createPlacesOwnershipDb() {
       ('places-dataset', 'ds-hk-overture-place'),
       ('other-dataset', 'ds-hk-other-place');
     INSERT INTO resourceReleases (
-      id, datasetId, sourceReleaseId, resourceType, code, status
+      id, sourceReleaseId, resourceType, code, status
     ) VALUES
       (
         'places-release',
-        'places-dataset',
         'places-source-release',
         'place',
         'dr-hk-overture-place-2026-08-19.0',
@@ -163,14 +163,13 @@ function createPlacesOwnershipDb() {
       ),
       (
         'places-address-release',
-        'places-dataset',
         'places-source-release',
         'address',
         'dr-hk-overture-place-address-2026-08-19.0',
         'staged'
       );
-    INSERT INTO sourceReleases (id, status, updatedAt) VALUES
-      ('places-source-release', 'processing', '2026-09-06T00:00:00.000Z');
+    INSERT INTO sourceReleases (id, datasetId, status, updatedAt) VALUES
+      ('places-source-release', 'places-dataset', 'processing', '2026-09-06T00:00:00.000Z');
 
     INSERT INTO snapshotLineages (
       id, primaryDatasetId, resourceType, variant

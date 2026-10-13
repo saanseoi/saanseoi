@@ -60,7 +60,7 @@ function metaDatabase(input?: {
           bind(...values: unknown[]) {
             return {
               all: async () => {
-                expect(query).toContain('FROM resourceReleases')
+                expect(query).toContain('FROM resourceReleaseDetails')
                 expect(query).toContain(
                   "sourceReleases.status IN ('current', 'archived')",
                 )
@@ -199,10 +199,12 @@ describe('source records', () => {
       ['statistic', 'divisionStatistic'],
     ]) {
       sqlite.run(
-        'INSERT INTO resourceReleases (id, code, sourceReleaseId, datasetId, resourceType, status, revokedAt) VALUES(?1, ?2, ?3, ?4, ?5, ?7, NULL)',
+        'INSERT INTO resourceReleases (id, code, sourceReleaseId, resourceType, status, revokedAt) VALUES(?1, ?2, ?3, ?5, ?7, NULL)',
         [id!, `${code}::${type}`, 'parent', 'dataset', type!, '2021', 'current'],
       )
-      sqlite.run("UPDATE sourceReleases SET sourceVersion='2021' WHERE id='parent'")
+      sqlite.run(
+        "UPDATE sourceReleases SET datasetId='dataset', sourceVersion='2021' WHERE id='parent'",
+      )
     }
     sqlite.run(
       "INSERT INTO hkgovCenstatdStatistics (datasetCode, sourceRecordId, versionHash, properties, geometryId, validFromRelease, validToRelease, resourceReleaseId) VALUES(?, ?, ?, ?, ?, ?, NULL, 'statistic')",

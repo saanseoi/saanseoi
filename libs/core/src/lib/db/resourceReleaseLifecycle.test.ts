@@ -197,7 +197,7 @@ for (const order of [types, [...types].reverse()]) {
           cohortKey: '2024',
           status: 'published',
         })
-        await upsertSnapshotSource(db, type, 'dataset', resourceReleaseId, 'primary')
+        await upsertSnapshotSource(db, type, resourceReleaseId, 'primary')
         await upsertProcessingRunStatus(
           db,
           resourceReleaseId,
@@ -283,11 +283,11 @@ test('current resources finalise their source and archived releases resist late 
       INSERT INTO sourceReleases(id,datasetId,code,sourceVersion,expectedResourceTypes,status)
       VALUES ('source','dataset','source','2026','["division","divisionArea"]','processing');
       INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status) VALUES ('source', 'dataset', 'source-' || 'division', '2026', 'processing');
-UPDATE sourceReleases SET sourceVersion = '2026' WHERE id = 'source';
-INSERT INTO resourceReleases (id, sourceReleaseId, datasetId, code, resourceType, status) VALUES ('division', 'source', 'dataset', 'division', 'division', 'processing');
+UPDATE sourceReleases SET datasetId = 'dataset', sourceVersion = '2026' WHERE id = 'source';
+INSERT INTO resourceReleases (id, sourceReleaseId, code, resourceType, status) VALUES ('division', 'source', 'division', 'division', 'processing');
 INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status) VALUES ('source', 'dataset', 'source-' || 'area', '2026', 'processing');
-UPDATE sourceReleases SET sourceVersion = '2026' WHERE id = 'source';
-INSERT INTO resourceReleases (id, sourceReleaseId, datasetId, code, resourceType, status) VALUES ('area', 'source', 'dataset', 'area', 'divisionArea', 'processing');`)
+UPDATE sourceReleases SET datasetId = 'dataset', sourceVersion = '2026' WHERE id = 'source';
+INSERT INTO resourceReleases (id, sourceReleaseId, code, resourceType, status) VALUES ('area', 'source', 'area', 'divisionArea', 'processing');`)
     const db = createLocalHarbourDb(sqlite)
     const sourceStatus = () =>
       sqlite.query("SELECT status FROM sourceReleases WHERE id='source'").get()

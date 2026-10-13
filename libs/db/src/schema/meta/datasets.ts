@@ -138,7 +138,6 @@ export const metaSourceReleases = sqliteTable(
       table.datasetId,
       table.sourceVersion,
     ),
-    uniqueIndex('sourceReleases_id_datasetId_unique_idx').on(table.id, table.datasetId),
     foreignKey({
       columns: [table.supersededBySourceReleaseId],
       foreignColumns: [table.id],
@@ -161,10 +160,9 @@ export const metaResourceReleases = sqliteTable(
   'resourceReleases',
   {
     id: primaryUuid('id'),
-    sourceReleaseId: text('sourceReleaseId').notNull(),
-    datasetId: text('datasetId')
+    sourceReleaseId: text('sourceReleaseId')
       .notNull()
-      .references(() => metaDatasets.id, { onDelete: 'restrict' }),
+      .references(() => metaSourceReleases.id, { onDelete: 'restrict' }),
     code: text('code').notNull().unique(),
     resourceType: text('resourceType', { enum: datasetTypes }).notNull(),
     geometryStatus: text('geometryStatus', {
@@ -185,15 +183,6 @@ export const metaResourceReleases = sqliteTable(
     uniqueIndex('resourceReleases_sourceReleaseId_resourceType_unique_idx').on(
       table.sourceReleaseId,
       table.resourceType,
-    ),
-    foreignKey({
-      columns: [table.sourceReleaseId, table.datasetId],
-      foreignColumns: [metaSourceReleases.id, metaSourceReleases.datasetId],
-      name: 'resourceReleases_sourceReleaseId_datasetId_sourceReleases_fk',
-    }).onDelete('restrict'),
-    uniqueIndex('resourceReleases_id_datasetId_unique_idx').on(
-      table.id,
-      table.datasetId,
     ),
     foreignKey({
       columns: [table.supersededByResourceReleaseId],
@@ -218,6 +207,7 @@ export const metaResourceReleaseDetails = sqliteView('resourceReleaseDetails').a
   qb
     .select({
       ...getTableColumns(metaResourceReleases),
+      datasetId: metaSourceReleases.datasetId,
       sourceVersion: metaSourceReleases.sourceVersion,
       sourceSchemaVersion: metaSourceReleases.sourceSchemaVersion,
       publicationDate: metaSourceReleases.publicationDate,

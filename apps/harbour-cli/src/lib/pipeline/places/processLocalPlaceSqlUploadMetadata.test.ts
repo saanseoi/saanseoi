@@ -27,8 +27,8 @@ test('Place releases retain every active source shard containing their assertion
         ('source-2026', 'source', 'hk', '2026', 'preview', 'source-2026',
          'source-2026', 'DB_SOURCE_HK_2026', 'active', 'hash-2026');
       INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status) VALUES ('source-release', 'place-dataset', 'source-' || 'place-release', '2026-01-01.0', 'current');
-UPDATE sourceReleases SET sourceVersion = '2026-01-01.0' WHERE id = 'source-release';
-INSERT INTO resourceReleases (id, sourceReleaseId, datasetId, code, resourceType, status) VALUES ('place-release', 'source-release', 'place-dataset', 'place-release', 'place', 'current');
+UPDATE sourceReleases SET datasetId = 'place-dataset', sourceVersion = '2026-01-01.0' WHERE id = 'source-release';
+INSERT INTO resourceReleases (id, sourceReleaseId, code, resourceType, status) VALUES ('place-release', 'source-release', 'place-release', 'place', 'current');
     `)
 
     const metaDb = drizzle({

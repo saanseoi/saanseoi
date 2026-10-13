@@ -339,14 +339,20 @@ describe('packed statistic publication', () => {
       CREATE TABLE apiReleaseSets (id TEXT, cohortKey TEXT, domainCode TEXT, regionCode TEXT, revision INTEGER);
       CREATE TABLE apiVersionReleaseSets (apiReleaseSetId TEXT, apiVersionId TEXT, status TEXT);
       CREATE TABLE apiReleaseSetSnapshots (apiReleaseSetId TEXT, snapshotId TEXT);
-      CREATE TABLE snapshotResourceReleases (snapshotId TEXT, datasetId TEXT, role TEXT);
+      CREATE TABLE snapshotResourceReleases (snapshotId TEXT, resourceReleaseId TEXT DEFAULT 'release', role TEXT);
+CREATE TABLE resourceReleases(id TEXT,sourceReleaseId TEXT);
+CREATE TABLE sourceReleases(id TEXT PRIMARY KEY,datasetId TEXT);
+CREATE VIEW resourceReleaseDetails AS SELECT r.*,s.datasetId FROM resourceReleases r JOIN sourceReleases s ON s.id=r.sourceReleaseId;
+CREATE VIEW snapshotResourceReleaseDetails AS SELECT m.*,r.datasetId FROM snapshotResourceReleases m JOIN resourceReleaseDetails r ON r.id=m.resourceReleaseId;
+INSERT INTO sourceReleases VALUES ('source','dataset');
+INSERT INTO resourceReleases VALUES ('release','source');
       CREATE TABLE datasets (id TEXT, code TEXT);
       INSERT INTO apiVersions VALUES ('stats', 'stats');
       INSERT INTO datasets VALUES ('dataset', '${datasetCode}');
       INSERT INTO apiReleaseSets VALUES ('published', '${period}', 'government', 'hk', 0);
       INSERT INTO apiVersionReleaseSets VALUES ('published', 'stats', 'draft');
       INSERT INTO apiReleaseSetSnapshots VALUES ('published', 'base');
-      INSERT INTO snapshotResourceReleases VALUES ('base', 'dataset', 'primary');
+      INSERT INTO snapshotResourceReleases(snapshotId,role) VALUES ('base', 'primary');
     `)
     await f.finalise()
     expect(f.writes()).toEqual([])
@@ -389,7 +395,13 @@ describe('packed statistic publication', () => {
       snapshotLineageId TEXT NOT NULL,
       cohortKey TEXT
     );
-      CREATE TABLE snapshotResourceReleases (snapshotId TEXT, datasetId TEXT, role TEXT);
+      CREATE TABLE snapshotResourceReleases (snapshotId TEXT, resourceReleaseId TEXT DEFAULT 'release', role TEXT);
+CREATE TABLE resourceReleases(id TEXT,sourceReleaseId TEXT);
+CREATE TABLE sourceReleases(id TEXT PRIMARY KEY,datasetId TEXT);
+CREATE VIEW resourceReleaseDetails AS SELECT r.*,s.datasetId FROM resourceReleases r JOIN sourceReleases s ON s.id=r.sourceReleaseId;
+CREATE VIEW snapshotResourceReleaseDetails AS SELECT m.*,r.datasetId FROM snapshotResourceReleases m JOIN resourceReleaseDetails r ON r.id=m.resourceReleaseId;
+INSERT INTO sourceReleases VALUES ('source','dataset');
+INSERT INTO resourceReleases VALUES ('release','source');
       CREATE TABLE datasets (id TEXT, code TEXT);
       INSERT INTO apiVersions VALUES ('stats', 'stats');
       INSERT INTO datasets VALUES ('dataset', '${datasetCode}');
@@ -415,7 +427,7 @@ INSERT INTO snapshots (id, snapshotLineageId, cohortKey) VALUES
 ('corrected', 'fixture-lineage-' || 'corrected', '2020'),
 ('draft', 'fixture-lineage-' || 'draft', '2020'),
 ('new-period', 'fixture-lineage-' || 'new-period', '2021');
-      INSERT INTO snapshotResourceReleases VALUES ('old', 'dataset', 'primary'), ('corrected', 'dataset', 'primary'), ('draft', 'dataset', 'primary'), ('new-period', 'dataset', 'primary');
+      INSERT INTO snapshotResourceReleases(snapshotId,role) VALUES ('old', 'primary'), ('corrected', 'primary'), ('draft', 'primary'), ('new-period', 'primary');
     `)
     expect(await listPublishedStatisticsTargets(createLocalHarbourDb(meta))).toEqual([
       { datasetCode, referencePeriodCode: '2020', snapshotId: 'corrected' },

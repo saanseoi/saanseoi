@@ -1,3 +1,5 @@
+import { metaSnapshotResourceReleaseDetails } from '@repo/db/metaSchema'
+import { metaResourceReleaseDetails } from '@repo/db/metaSchema'
 import { and, eq, metaSchema } from '@repo/db'
 import type { ResourceType } from '../../types'
 import type { HarbourReadableDb } from './types'
@@ -36,37 +38,46 @@ export async function assertCuratedReleaseInputs(
   )) {
     const sources = await db
       .select({
-        datasetId: metaSnapshotResourceReleases.datasetId,
-        resourceReleaseId: metaResourceReleases.id,
-        resourceType: metaResourceReleases.resourceType,
-        releaseCode: metaResourceReleases.code,
+        datasetId: metaSnapshotResourceReleaseDetails.datasetId,
+        resourceReleaseId: metaResourceReleaseDetails.id,
+        resourceType: metaResourceReleaseDetails.resourceType,
+        releaseCode: metaResourceReleaseDetails.code,
       })
-      .from(metaSnapshotResourceReleases)
+      .from(metaSnapshotResourceReleaseDetails)
       .innerJoin(
         metaSnapshots,
-        eq(metaSnapshots.id, metaSnapshotResourceReleases.snapshotId),
+        eq(metaSnapshots.id, metaSnapshotResourceReleaseDetails.snapshotId),
       )
       .innerJoin(
         metaSnapshotLineages,
         eq(metaSnapshots.snapshotLineageId, metaSnapshotLineages.id),
       )
       .innerJoin(
-        metaResourceReleases,
+        metaResourceReleaseDetails,
         and(
-          eq(metaResourceReleases.id, metaSnapshotResourceReleases.resourceReleaseId),
-          eq(metaResourceReleases.datasetId, metaSnapshotResourceReleases.datasetId),
-          eq(metaResourceReleases.resourceType, metaSnapshotLineages.resourceType),
+          eq(
+            metaResourceReleaseDetails.id,
+            metaSnapshotResourceReleaseDetails.resourceReleaseId,
+          ),
+          eq(
+            metaResourceReleaseDetails.datasetId,
+            metaSnapshotResourceReleaseDetails.datasetId,
+          ),
+          eq(
+            metaResourceReleaseDetails.resourceType,
+            metaSnapshotLineages.resourceType,
+          ),
         ),
       )
       .innerJoin(
         metaDatasets,
-        eq(metaDatasets.id, metaSnapshotResourceReleases.datasetId),
+        eq(metaDatasets.id, metaSnapshotResourceReleaseDetails.datasetId),
       )
       .innerJoin(metaPublishers, eq(metaPublishers.id, metaDatasets.publisherId))
       .where(
         and(
-          eq(metaSnapshotResourceReleases.snapshotId, snapshot.snapshotId),
-          eq(metaSnapshotResourceReleases.role, 'primary'),
+          eq(metaSnapshotResourceReleaseDetails.snapshotId, snapshot.snapshotId),
+          eq(metaSnapshotResourceReleaseDetails.role, 'primary'),
           eq(metaSnapshotLineages.resourceType, snapshot.resourceType),
           eq(metaSnapshots.status, 'published'),
           eq(metaPublishers.code, 'overture'),
@@ -79,30 +90,36 @@ export async function assertCuratedReleaseInputs(
   for (const snapshot of curated) {
     const retainedInputs = await db
       .select({
-        datasetId: metaSnapshotResourceReleases.datasetId,
-        resourceReleaseId: metaResourceReleases.id,
-        resourceType: metaResourceReleases.resourceType,
-        releaseCode: metaResourceReleases.code,
+        datasetId: metaSnapshotResourceReleaseDetails.datasetId,
+        resourceReleaseId: metaResourceReleaseDetails.id,
+        resourceType: metaResourceReleaseDetails.resourceType,
+        releaseCode: metaResourceReleaseDetails.code,
       })
-      .from(metaSnapshotResourceReleases)
+      .from(metaSnapshotResourceReleaseDetails)
       .innerJoin(
-        metaResourceReleases,
+        metaResourceReleaseDetails,
         and(
-          eq(metaResourceReleases.id, metaSnapshotResourceReleases.resourceReleaseId),
-          eq(metaResourceReleases.datasetId, metaSnapshotResourceReleases.datasetId),
+          eq(
+            metaResourceReleaseDetails.id,
+            metaSnapshotResourceReleaseDetails.resourceReleaseId,
+          ),
+          eq(
+            metaResourceReleaseDetails.datasetId,
+            metaSnapshotResourceReleaseDetails.datasetId,
+          ),
         ),
       )
       .innerJoin(
         metaDatasets,
-        eq(metaDatasets.id, metaSnapshotResourceReleases.datasetId),
+        eq(metaDatasets.id, metaSnapshotResourceReleaseDetails.datasetId),
       )
       .innerJoin(metaPublishers, eq(metaPublishers.id, metaDatasets.publisherId))
       .where(
         and(
-          eq(metaSnapshotResourceReleases.snapshotId, snapshot.snapshotId),
-          eq(metaSnapshotResourceReleases.role, 'enrichment'),
+          eq(metaSnapshotResourceReleaseDetails.snapshotId, snapshot.snapshotId),
+          eq(metaSnapshotResourceReleaseDetails.role, 'enrichment'),
           eq(
-            metaSnapshotResourceReleases.selectedByRule,
+            metaSnapshotResourceReleaseDetails.selectedByRule,
             'provenance:curated-division:build-inputs:v1',
           ),
           eq(metaPublishers.code, 'overture'),
