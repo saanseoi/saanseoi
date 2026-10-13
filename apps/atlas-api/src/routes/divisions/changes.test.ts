@@ -155,13 +155,13 @@ function fixture() {
     if (retained) {
       insert(history, 'divisions', {
         ...base,
-        snapshotId: 'mutable-unrelated-scope',
+        snapshotId: snapshot,
         versionHash: `${id}-version`,
         sourceReleaseId: 'source',
         isCurrent: 0,
       })
       insert(history, 'divisionsI18n', {
-        snapshotId: 'mutable-unrelated-scope',
+        snapshotId: snapshot,
         divisionId: id,
         locale: 'en',
         name: label,
@@ -171,20 +171,6 @@ function fixture() {
         isCurrent: 0,
         ...timestamps,
       })
-      for (const [recordType, locale, versionHash] of [
-        ['division', '', `${id}-version`],
-        ['divisionI18n', 'en', `${id}-name`],
-      ])
-        insert(history, 'snapshotVersionChanges', {
-          snapshotId: snapshot,
-          recordId: id,
-          recordType: recordType!,
-          locale: locale!,
-          versionHash: versionHash!,
-          operation: 'upsert',
-          sourceReleaseId: 'source',
-          ...timestamps,
-        })
     } else {
       insert(current, 'divisions', base)
       insert(current, 'divisionsI18n', {
@@ -323,16 +309,15 @@ test('real release resolution rejects drafts, unknown sets, incompatible domains
 })
 
 test.each(['divisions', 'divisionsI18n'])(
-  'missing retained %s rows are unavailable, not fabricated deletions or label edits',
+  'missing retained %s tables fail instead of fabricating changes',
   async table => {
     const f = fixture()
     try {
-      f.history.exec(`DELETE FROM ${table}`)
+      f.history.exec(`DROP TABLE ${table}`)
       const response = await f.app.request(
         'http://test/divisions/v1/changes?fromReleaseSet=old',
       )
-      expect(response.status).toBe(503)
-      expect(await response.json()).toMatchObject({ error: 'release_set_unavailable' })
+      expect(response.status).toBe(500)
     } finally {
       f.close()
     }

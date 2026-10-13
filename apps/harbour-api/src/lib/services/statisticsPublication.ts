@@ -24,6 +24,7 @@ type PublicationManifest = {
 }
 type StoredRow = Record<string, string | number | null>
 type VersionChange = {
+  snapshotId: string
   recordId: string
   versionHash: string | null
   operation: 'upsert' | 'delete'
@@ -106,7 +107,7 @@ export async function promotePublishedStatisticsTarget(
       const binding = requireHistoryBinding(bindings, assignment.bindingName)
       const result = await binding
         .prepare(
-          'SELECT recordId, versionHash, operation FROM snapshotVersionChanges WHERE snapshotId = ? AND recordType = ?',
+          'SELECT snapshotId, recordId, versionHash, operation FROM historyEvents WHERE snapshotId = ? AND recordType = ?',
         )
         .bind(step.snapshotId, 'statsRecord')
         .all<VersionChange>()
@@ -195,11 +196,16 @@ export async function promotePublishedStatisticsTarget(
         .prepare(
           `SELECT r.*, ${statisticDefinitionHashesSql('r')} AS fieldDefinitionHashes FROM statsRecords r JOIN json_each(?) selected
            ON r.id = json_extract(selected.value, '$.recordId')
-           AND r.versionHash = json_extract(selected.value, '$.versionHash')`,
+           AND r.versionHash = json_extract(selected.value, '$.versionHash')
+           AND r.snapshotId = json_extract(selected.value, '$.snapshotId') AND r.operation = 'upsert'`,
         )
         .bind(
           JSON.stringify(
-            selected.map(({ recordId, versionHash }) => ({ recordId, versionHash })),
+            selected.map(({ recordId, versionHash, snapshotId }) => ({
+              recordId,
+              versionHash,
+              snapshotId,
+            })),
           ),
         )
         .all<StoredRow>()
@@ -398,7 +404,12 @@ function immutableDictionaryInsert(
 }
 
 function currentColumns(row: StoredRow) {
-  const { isCurrent: _isCurrent, snapshotId: _snapshotId, ...canonical } = row
+  const {
+    isCurrent: _isCurrent,
+    snapshotId: _snapshotId,
+    operation: _operation,
+    ...canonical
+  } = row
   return canonical
 }
 

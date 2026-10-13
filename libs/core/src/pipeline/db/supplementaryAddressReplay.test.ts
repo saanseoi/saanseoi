@@ -40,28 +40,15 @@ function fixture() {
       }) as never,
     })
   }
-  const journal = (
-    index: number,
-    snapshot: string,
-    type: string,
-    hash: string,
-    locale = '',
-  ) =>
-    requireDefined(databases[index])
-      .query(`INSERT INTO snapshotVersionChanges
-        (snapshotId,recordType,recordId,locale,versionHash,operation,sourceReleaseId)
-        VALUES(?,?, 'ss-opa-shared',?,?,'upsert',?)`)
-      .run(snapshot, type, locale, hash, `release-${snapshot}`)
-  const plan = (snapshotId: string): SnapshotReplayStep[] => [
-    {
-      snapshotId,
-      parentSnapshotId: null,
+  const plan = (snapshotId: string): SnapshotReplayStep[] =>
+    (snapshotId === 'next' ? ['first', 'next'] : [snapshotId]).map((id, index) => ({
+      snapshotId: id,
+      parentSnapshotId: index ? 'first' : null,
       shards: [...shards.keys()].map(bindingName => ({
         bindingName,
         dataShardId: bindingName,
       })),
-    },
-  ]
+    }))
   const replay = (snapshot: string, includeLocales = true) =>
     getReplayedAddressVersionMap(
       {} as never,
@@ -85,7 +72,6 @@ function fixture() {
     shards,
     parameters,
     queryPlans,
-    journal,
     replay,
     close: () => {
       for (const db of databases) db.close()
@@ -106,10 +92,6 @@ test('supplementary replay retains source attribution without an evidence table'
     requireDefined(data.databases[0])
       .query('UPDATE address2d SET sources=?')
       .run(JSON.stringify(sources))
-    for (const snapshot of ['first', 'next']) {
-      data.journal(0, snapshot, 'address2d', 'base')
-      data.journal(0, snapshot, 'address2dI18n', 'english', 'en')
-    }
     const original = requireDefined((await data.replay('first')).get('ss-opa-shared'))
     const next = requireDefined((await data.replay('next')).get('ss-opa-shared'))
     expect(original.base.sources).toEqual(sources)
@@ -144,13 +126,7 @@ test('address replay uses indexed exact identities within D1 limits across batch
         db.query(
           `INSERT INTO address2dI18n (addressId,locale,formattedAddress,versionHash,sourceReleaseId,snapshotId,isCurrent) VALUES(?,?,?, 'shared-locale', 'release-batch', 'batch', 1)`,
         ).run(id, locale, `${id}-${locale}`)
-        db.query(
-          `INSERT INTO snapshotVersionChanges (snapshotId,recordType,recordId,locale,versionHash,operation,sourceReleaseId) VALUES('batch','address2dI18n',?,?,'shared-locale','upsert','release-batch')`,
-        ).run(id, locale)
       }
-      db.query(
-        `INSERT INTO snapshotVersionChanges (snapshotId,recordType,recordId,locale,versionHash,operation,sourceReleaseId) VALUES('batch','address2d',?,'','shared-base','upsert','release-batch')`,
-      ).run(id)
     }
     const result = await data.replay('batch')
     expect(result.size).toBe(205)

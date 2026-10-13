@@ -66,16 +66,6 @@ INSERT INTO snapshots (id, snapshotLineageId, code, cohortKey, status, createdAt
          'historic-release', 'address-snapshot-2025', 0, '${TIMESTAMP}', '${TIMESTAMP}'),
         ('historic-address', 'zh-Hant', '歷史道1號', '歷史大廈', 'historic-address-zh-hant-v1',
          'historic-release', 'address-snapshot-2025', 0, '${TIMESTAMP}', '${TIMESTAMP}');
-      INSERT INTO snapshotVersionChanges (
-        snapshotId, recordType, recordId, locale, versionHash, operation,
-        sourceReleaseId, createdAt, updatedAt
-      ) VALUES
-        ('address-snapshot-2025', 'address2d', 'historic-address', '', 'historic-address-v1', 'upsert',
-         'historic-release', '${TIMESTAMP}', '${TIMESTAMP}'),
-        ('address-snapshot-2025', 'address2dI18n', 'historic-address', 'en', 'historic-address-en-v1', 'upsert',
-         'historic-release', '${TIMESTAMP}', '${TIMESTAMP}'),
-        ('address-snapshot-2025', 'address2dI18n', 'historic-address', 'zh-Hant', 'historic-address-zh-hant-v1', 'upsert',
-         'historic-release', '${TIMESTAMP}', '${TIMESTAMP}');
     `)
 
     const records = await listReplayedAddressRecords({
@@ -185,10 +175,6 @@ INSERT INTO snapshots (id, snapshotLineageId, code, cohortKey, status, createdAt
       WITH RECURSIVE n(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM n WHERE x<250)
       INSERT INTO address2d (id, granularity, countryId, versionHash, sourceReleaseId, snapshotId, isCurrent)
       SELECT printf('z%03d',x), 'building', 'hk', printf('z%03d-v1',x), 'historic-release', 'address-snapshot-2025', 0 FROM n;
-      INSERT INTO snapshotVersionChanges (snapshotId, recordType, recordId, locale, versionHash, operation, sourceReleaseId)
-      SELECT snapshotId, 'address2d', id, '', versionHash, 'upsert', sourceReleaseId FROM address2d WHERE id LIKE 'z%';
-      INSERT INTO snapshotVersionChanges (snapshotId, recordType, recordId, locale, versionHash, operation, sourceReleaseId)
-      VALUES ('address-snapshot-2025', 'address2dI18n', 'z001', 'en', 'missing-unrequested-locale', 'upsert', 'historic-release');
     `)
     const lookup = {
       divisionSnapshotId: 'division-snapshot-2025',
@@ -267,10 +253,10 @@ INSERT INTO snapshots (id, snapshotLineageId, code, cohortKey, status, parentSna
     history.exec(`
       INSERT INTO address2d (id, granularity, countryId, versionHash, sourceReleaseId, snapshotId, isCurrent)
       VALUES ('z001', 'unit', 'mo', 'z001-v2', 'later-release', 'child', 1);
-      INSERT INTO snapshotVersionChanges (snapshotId, recordType, recordId, locale, versionHash, operation, sourceReleaseId)
-      VALUES ('child', 'address2d', 'historic-address', '', NULL, 'delete', NULL),
-             ('child', 'address2d', 'z001', '', 'z001-v2', 'upsert', 'later-release');
     `)
+    history.exec(
+      "INSERT INTO address2d(snapshotId,id,operation) VALUES ('child','historic-address','delete')",
+    )
     const child = await listReplayedAddressPage({
       ...lookup,
       snapshotIds: ['child'],

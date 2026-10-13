@@ -46,7 +46,7 @@ function fixture() {
       CREATE TABLE statsRecords (
         id TEXT, datasetCode TEXT, referencePeriodCode TEXT, versionHash TEXT,
         "values" TEXT, definitionSetId TEXT, sourceReleaseId TEXT,
-        createdAt TEXT, updatedAt TEXT ${historical ? ', isCurrent INTEGER' : ''},
+        createdAt TEXT, updatedAt TEXT ${historical ? ", isCurrent INTEGER, snapshotId TEXT, operation TEXT DEFAULT 'upsert'" : ''},
         PRIMARY KEY (id ${historical ? ', versionHash' : ''})
       );
       CREATE TABLE statsFields (
@@ -69,7 +69,7 @@ function fixture() {
     `)
   }
   history.exec(`
-    CREATE TABLE snapshotVersionChanges (
+    CREATE TABLE historyEvents (
       snapshotId TEXT, recordType TEXT, recordId TEXT, versionHash TEXT, operation TEXT
     );
     INSERT INTO statsFields VALUES ('${datasetCode}', 'population', 'field-1', 'population', 'measure-1', 'now', 'now');
@@ -119,7 +119,9 @@ function fixture() {
     referencePeriod = period,
   ) {
     history
-      .query('INSERT INTO statsRecords VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
+      .query(
+        "INSERT INTO statsRecords VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'upsert')",
+      )
       .run(
         id,
         datasetCode,
@@ -131,9 +133,10 @@ function fixture() {
         'now',
         'now',
         1,
+        snapshotId,
       )
     history
-      .query('INSERT INTO snapshotVersionChanges VALUES (?, ?, ?, ?, ?)')
+      .query('INSERT INTO historyEvents VALUES (?, ?, ?, ?, ?)')
       .run(snapshotId, 'statsRecord', id, hash, 'upsert')
   }
   return {
@@ -273,7 +276,7 @@ describe('packed statistic publication', () => {
     const f = fixture()
     f.snapshot('missing', null)
     f.history.exec(
-      "INSERT INTO snapshotVersionChanges VALUES ('missing', 'statsRecord', 'north', 'absent', 'upsert')",
+      "INSERT INTO historyEvents VALUES ('missing', 'statsRecord', 'north', 'absent', 'upsert')",
     )
     await expect(f.promote('missing')).rejects.toThrow(
       'Missing retained statistic versions',

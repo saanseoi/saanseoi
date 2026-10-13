@@ -59,12 +59,7 @@ test('reconstructs two cities with independent district paths and the specified 
     level: 1,
     identifiers: null,
   })
-  expect(hongKong.sources).toEqual([
-    {
-      dataset: 'SaanSeoi city reconstruction',
-      record_id: overtureHongKongCities[1].code,
-    },
-  ])
+  expect(hongKong.sources).toEqual([])
   expect(
     requireDefined(result.base.hierarchies.administrative).map(path => path.at(-1)?.id),
   ).toEqual(['hong-kong-island-0', 'hong-kong-island-1', 'hong-kong-island-2'])

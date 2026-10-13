@@ -13,7 +13,6 @@ import type { ResolvedAddressChunkArtefact } from './types'
 test('SQL imports retain and clear parent links in current and versioned history', () => {
   const current = new Database(':memory:')
   const history = new Database(':memory:')
-  const snapshotId = 'address-snapshot'
   const timestamp = '2026-09-06T00:00:00Z'
   const message = {
     resourceType: 'address',
@@ -52,6 +51,8 @@ test('SQL imports retain and clear parent links in current and versioned history
       ['v1', 'estate'],
       ['v2', null],
     ] as const) {
+      const snapshotId = `address-snapshot-${versionHash}`
+      current.exec('DELETE FROM address2d')
       const artefact: ResolvedAddressChunkArtefact = {
         kind: 'address.resolved.v1',
         resourceReleaseId: 'address-release',

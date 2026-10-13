@@ -84,23 +84,6 @@ test('historical unit reads replay the selected owner coverage and ignore newer 
           .insert(historySchema.address3dI18n)
           .values({ ...version, address3dId: 'collection', locale, units })
           .run()
-      for (const [recordType, locale] of [
-        ['address3d', ''],
-        ['address3dI18n', 'en'],
-        ['address3dI18n', 'zh-hant'],
-      ] as const)
-        await historyDb
-          .insert(historySchema.snapshotVersionChanges)
-          .values({
-            snapshotId,
-            versionHash: version.versionHash,
-            sourceReleaseId: 'release',
-            recordType,
-            locale,
-            recordId: 'collection',
-            operation: 'upsert',
-          })
-          .run()
     }
     const records = ['old', 'new'].map(snapshotId => ({
       address: { id: 'section', parentAddressId: 'building', snapshotId },
@@ -125,15 +108,16 @@ test('historical unit reads replay the selected owner coverage and ignore newer 
       collectionId: 'collection',
     })
     expect(
-      old?.i18n.find(row => row.locale === 'en')?.units['stable-unit']?.unitExpression,
+      old?.i18n.find(row => row.locale === 'en')?.units?.['stable-unit']
+        ?.unitExpression,
     ).toBe('FLAT 001')
     expect(
-      newer?.i18n.find(row => row.locale === 'en')?.units['stable-unit']
+      newer?.i18n.find(row => row.locale === 'en')?.units?.['stable-unit']
         ?.unitExpression,
     ).toBe('FLAT 001 NEW')
-    expect(old?.collection.units[0]?.id).toBe(newer?.collection.units[0]?.id)
+    expect(old?.collection.units?.[0]?.id).toBe(newer?.collection.units?.[0]?.id)
     history.exec(
-      `INSERT INTO snapshotVersionChanges(snapshotId,recordType,recordId,locale,operation,createdAt,updatedAt) VALUES ('removed','address3d','collection','','delete','now','now');`,
+      `INSERT INTO address3d(snapshotId,id,operation,createdAt,updatedAt) VALUES ('removed','collection','delete','now','now');`,
     )
     expect(
       await getAddress3dCollection({

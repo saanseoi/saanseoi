@@ -32,8 +32,11 @@ test('source catalogue preserves unchanged reissue counts and frozen definitions
       historySchema.statsFields,
       historySchema.statsFieldsI18n,
       historySchema.statsDefinitionSets,
-      historySchema.snapshotVersionChanges,
     ])
+    for (const db of [history])
+      db.exec(
+        `CREATE VIEW historyEvents AS SELECT snapshotId, 'statsRecord' AS recordType, id AS recordId, '' AS locale, versionHash, 'upsert' AS operation, sourceReleaseId, createdAt, updatedAt FROM statsRecords`,
+      )
     meta.exec(`INSERT INTO resourceReleases (id,sourceReleaseId,resourceType) VALUES ('resource-reissue','publisher-reissue','divisionStatistic');
       INSERT INTO snapshotLineages (id,code,resourceType,regionCode,variant,identityMode)
       VALUES ('statistics','statistics','divisionStatistic','hk','default','persistent');
@@ -46,16 +49,16 @@ test('source catalogue preserves unchanged reissue counts and frozen definitions
     history.exec(`INSERT INTO statsDefinitionSets (id,fieldDefinitionHashes) VALUES
       ('frozen','{"population":"f1","landArea":"retained-other-field"}'),
       ('future','{"population":"f2"}');
-      INSERT INTO statsRecords (id,datasetCode,sourceReleaseId,sourceFeatureRef,referencePeriodCode,referencePeriodGranularity,referencePeriodEndYear,"values",geography,isCurrent,versionHash,definitionSetId,fieldSources) VALUES
-      ('packed','dataset','old-resource','source-feature','2025','year','2025','{"population":"12","landArea":"5"}','{}',0,'v1','frozen','{}'),
-      ('packed','dataset','future-resource','source-feature','2025','year','2025','{"population":"13"}','{}',1,'v2','future','{}');
-      INSERT INTO snapshotVersionChanges (snapshotId,recordType,recordId,versionHash,operation) VALUES ('base','statsRecord','packed','v1','upsert');
+      INSERT INTO statsRecords (snapshotId,id,datasetCode,sourceReleaseId,sourceFeatureRef,referencePeriodCode,referencePeriodGranularity,referencePeriodEndYear,"values",geography,isCurrent,versionHash,definitionSetId,fieldSources) VALUES
+      ('base','packed','dataset','old-resource','source-feature','2025','year','2025','{"population":"12","landArea":"5"}','{}',0,'v1','frozen','{}'),
+      ('future','packed','dataset','future-resource','source-feature','2025','year','2025','{"population":"13"}','{}',1,'v2','future','{}');
       INSERT INTO statsFields (datasetCode,fieldName,versionHash,sourceReleaseId,sourceField,statisticKind,aggregation,unitCode,valueKind) VALUES
         ('dataset','population','f1','old-resource','t_pop','count','total','person','numeric'),
         ('dataset','population','f2','future-resource','t_pop','count','total','person','numeric');
       INSERT INTO statsFieldsI18n (datasetCode,fieldName,versionHash,sourceReleaseId,locale,name,description) VALUES
         ('dataset','population','f1','old-resource','en','Population','Frozen meaning'),
         ('dataset','population','f2','future-resource','en','Future population','Future meaning');`)
+    history.exec("UPDATE statsRecords SET operation='upsert'")
     const input = {
       metaDb: drizzle({ client: meta }) as never,
       historyDbs: [drizzle({ client: history }) as never],

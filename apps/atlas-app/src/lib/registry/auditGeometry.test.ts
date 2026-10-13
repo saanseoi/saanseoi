@@ -30,11 +30,12 @@ test('audit replays cleaned geometry by its exact content version and owning sha
     ])
     createTables(current, [currentSchema.divisionAreas])
     for (const history of [before, after]) {
-      createTables(history, [
-        historySchema.divisionAreas,
-        historySchema.snapshotVersionChanges,
-      ])
+      createTables(history, [historySchema.divisionAreas])
     }
+    for (const db of [before, after])
+      db.exec(
+        `CREATE TABLE historyEvents (snapshotId TEXT, recordType TEXT, recordId TEXT, locale TEXT, versionHash TEXT, operation TEXT, sourceReleaseId TEXT, createdAt TEXT, updatedAt TEXT)`,
+      )
     meta.exec(`
       INSERT INTO snapshotLineages (id,code,resourceType,regionCode,variant,identityMode)
       VALUES ('geometry','geometry','divisionArea','hk','default','persistent');
@@ -50,7 +51,7 @@ test('audit replays cleaned geometry by its exact content version and owning sha
         ('base','before'),('old','after'),('new','after');
     `)
     before.exec(`
-      INSERT INTO snapshotVersionChanges
+      INSERT INTO historyEvents
         (snapshotId,recordType,recordId,locale,versionHash,operation,sourceReleaseId)
       VALUES ('base','divisionArea','area','','v1','upsert','base-release');
     `)
@@ -103,7 +104,7 @@ test('audit replays cleaned geometry by its exact content version and owning sha
 
     // Deletion in the selected branch must suppress the ancestor's geometry.
     after.exec(`
-      INSERT INTO snapshotVersionChanges
+      INSERT INTO historyEvents
         (snapshotId,recordType,recordId,locale,operation)
       VALUES ('old','divisionArea','area','','delete');
     `)

@@ -68,6 +68,7 @@ test('Division field emission agrees with actual response profiles', () => {
         localeSelection: { mode: 'all', locales: ['*'] },
       },
     })
+    expect(response.attributes).not.toHaveProperty('bbox')
     for (const field of [
       'level',
       'class',
@@ -76,7 +77,6 @@ test('Division field emission agrees with actual response profiles', () => {
       'createdAt',
       'updatedAt',
       'geometry',
-      'bbox',
       'cartography',
       'snapshotId',
       'sources',

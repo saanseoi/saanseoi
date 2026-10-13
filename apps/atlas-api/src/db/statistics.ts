@@ -1,3 +1,7 @@
+import { resolveStatisticEvents } from '@repo/core/pipeline/services/statistics/statisticSnapshotRecords.ts'
+import { historyVersionSelection } from '@repo/core/pipeline/db/snapshotReplay.ts'
+import type { ResolvedSnapshotVersion } from '@repo/core/pipeline/db/snapshotReplay.ts'
+import { historySchema } from '@repo/db'
 import {
   geographicMembershipSql,
   geographicFilterContext,
@@ -132,13 +136,10 @@ function statisticConditions(
       ? sql`json_type(${statsRecords.values}, '$.' || ${filters.fieldName}) is not null`
       : undefined,
     selection.mode === 'history'
-      ? sql`${statsRecords.versionHash} = (
-      select change.versionHash
-      from snapshotVersionChanges as change
-      join json_each(${JSON.stringify(selection.snapshotIds)}) as selected on selected.value = change.snapshotId
-      where change.recordType = 'statsRecord' and change.recordId = ${statsRecords.id}
-      order by cast(selected.key as integer) desc limit 1
-    )`
+      ? historyVersionSelection(
+          historySchema.statsRecords,
+          historySelections.get(selection) ?? [],
+        )
       : undefined,
   )
 }
@@ -167,6 +168,7 @@ async function assertStatisticCrosswalks(
   selection: StatisticReadSelection,
   filters: StatisticFilters = {},
 ) {
+  await prepareHistorySelection(dbs, selection)
   const context = geographicFilterContext()
   if (!context?.groups.length) return
   for (const db of dbs) {
@@ -371,6 +373,7 @@ export async function listStatisticFieldDefinitions(
   dbs: StatisticDatabase[],
   lookup: DictionaryLookup,
 ): Promise<StatisticFieldDefinition[]> {
+  await prepareHistorySelection(dbs, lookup.selection)
   const rows = (
     await Promise.all(
       dbs.flatMap(db =>
@@ -441,6 +444,7 @@ export async function listStatisticMeasureDefinitions(
   dbs: StatisticDatabase[],
   lookup: DictionaryLookup,
 ): Promise<StatisticMeasureDefinition[]> {
+  await prepareHistorySelection(dbs, lookup.selection)
   const rows = (
     await Promise.all(
       dbs.flatMap(db =>
@@ -543,4 +547,25 @@ export async function isStatisticPublicationReady(
     )
     .get()
   return Number(row?.count ?? 0) === publications.length
+}
+
+const historySelections = new WeakMap<
+  StatisticReadSelection,
+  Array<
+    Pick<
+      ResolvedSnapshotVersion,
+      'recordType' | 'recordId' | 'locale' | 'snapshotId' | 'versionHash'
+    >
+  >
+>()
+
+async function prepareHistorySelection(
+  dbs: StatisticDatabase[],
+  selection: StatisticReadSelection,
+) {
+  if (selection.mode !== 'history' || historySelections.has(selection)) return
+  const groups = await resolveStatisticEvents(dbs as never, selection.snapshotIds, [
+    'statsRecord',
+  ])
+  historySelections.set(selection, [...groups.values()].flat())
 }

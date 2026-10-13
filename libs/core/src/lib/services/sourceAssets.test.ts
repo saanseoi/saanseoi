@@ -12,6 +12,7 @@ function fixture() {
   sqlite.exec(`
     CREATE TABLE sourceReleases(id TEXT PRIMARY KEY, status TEXT);
     CREATE TABLE resourceReleases(id TEXT PRIMARY KEY, datasetId TEXT NOT NULL, sourceReleaseId TEXT, status TEXT);
+    CREATE VIEW resourceReleaseDetails AS SELECT * FROM resourceReleases;
     CREATE TABLE assets(id TEXT PRIMARY KEY, assetKey TEXT, datasetId TEXT, sourceReleaseId TEXT, resourceReleaseId TEXT, sourceAssetId TEXT, role TEXT, updatedAt TEXT);
     INSERT INTO sourceReleases VALUES ('source','current'),('other-source','current'),('old-source','failed');
     INSERT INTO resourceReleases VALUES ('release','dataset','source','current'),('sibling','dataset','source','current'),('other','other-dataset','other-source','current');

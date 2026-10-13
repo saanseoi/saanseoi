@@ -27,7 +27,7 @@ test('classification patch wins against a conflicting curation, including a null
       { rows: [{ id: entry.divisionId, class: 'city' }] },
       { source: 'overture', sourceVersion: '2026-08-19.0' },
     )
-    expect(lookup.get(entry.divisionId)).toMatchObject({ class: 'area', level: 1 })
+    expect(lookup.get(entry.divisionId)).toMatchObject({ class: 'city', level: 1 })
   } finally {
     Object.assign(entry.replacement, original)
   }

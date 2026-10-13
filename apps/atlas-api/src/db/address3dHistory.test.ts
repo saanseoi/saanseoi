@@ -29,15 +29,9 @@ INSERT INTO snapshots(id, snapshotLineageId, code, cohortKey, status, parentSnap
       VALUES ('collection','building','[]',0,'inventory','[]','base-hash','release-one','one',1);
       INSERT INTO address3dI18n(address3dId,locale,units,versionHash,sourceReleaseId,snapshotId,isCurrent)
       VALUES ('collection','en','{"unit":{"unitExpression":"Unit 1","floorExpression":""}}','english-hash','release-one','one',1),
-        ('collection','zh-hant','{"unit":{"unitExpression":"舊室","floorExpression":""}}','old-chinese','release-one','one',0);
-      INSERT INTO snapshotVersionChanges(snapshotId,recordType,recordId,locale,versionHash,operation,sourceReleaseId)
-      VALUES ('one','address3d','collection','','base-hash','upsert','release-one'),
-        ('one','address3dI18n','collection','en','english-hash','upsert','release-one'),
-        ('one','address3dI18n','collection','zh-hant','old-chinese','upsert','release-one');`)
+        ('collection','zh-hant','{"unit":{"unitExpression":"舊室","floorExpression":""}}','old-chinese','release-one','one',0);`)
     later.exec(`INSERT INTO address3dI18n(address3dId,locale,units,versionHash,sourceReleaseId,snapshotId,isCurrent)
-      VALUES ('collection','zh-hant','{"unit":{"unitExpression":"新室","floorExpression":""}}','chinese-hash','release-two','two',1);
-      INSERT INTO snapshotVersionChanges(snapshotId,recordType,recordId,locale,versionHash,operation,sourceReleaseId)
-      VALUES ('two','address3dI18n','collection','zh-hant','chinese-hash','upsert','release-two');`)
+      VALUES ('collection','zh-hant','{"unit":{"unitExpression":"新室","floorExpression":""}}','chinese-hash','release-two','two',1);`)
     const args = {
       currentDb: {} as never,
       metaDb: createLocalHarbourDb(meta),
@@ -64,8 +58,12 @@ INSERT INTO snapshots(id, snapshotLineageId, code, cohortKey, status, parentSnap
         },
       ],
     )
-    later.exec("DELETE FROM address3dI18n WHERE versionHash = 'chinese-hash'")
-    await expect(getAddress3dCollection(args)).rejects.toThrow('absent zh-hant content')
+    later.exec(
+      "INSERT INTO address3dI18n(address3dId,locale,snapshotId,operation) VALUES ('collection','en','two','delete')",
+    )
+    expect((await getAddress3dCollection(args))?.i18n.map(row => row.locale)).toEqual([
+      'zh-hant',
+    ])
   } finally {
     meta.close()
     earlier.close()

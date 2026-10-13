@@ -273,10 +273,7 @@ async function fixture(
       history.exec(`INSERT INTO address2d (id,granularity,geometry,versionHash,sourceReleaseId,snapshotId,isCurrent)
         VALUES ('historic-address','building','{"type":"Point","coordinates":[114,22]}','base-hash','source','addresses-2025-01-01.0-snapshot',0);
         INSERT INTO address2dI18n (addressId,locale,formattedAddress,versionHash,sourceReleaseId,snapshotId,isCurrent)
-        VALUES ('historic-address','en','Historic Harbour','name-hash','source','addresses-2025-01-01.0-snapshot',0);
-        INSERT INTO snapshotVersionChanges (snapshotId,recordType,recordId,locale,versionHash,operation,sourceReleaseId)
-        VALUES ('addresses-2025-01-01.0-snapshot','address2d','historic-address','','base-hash','upsert','source'),
-          ('addresses-2025-01-01.0-snapshot','address2dI18n','historic-address','en','name-hash','upsert','source');`)
+        VALUES ('historic-address','en','Historic Harbour','name-hash','source','addresses-2025-01-01.0-snapshot',0);`)
     },
     removeHistory() {
       meta.exec('DELETE FROM snapshotShardAssignments')

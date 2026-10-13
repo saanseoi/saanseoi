@@ -396,40 +396,6 @@ function seedHistory(sqlite: Database) {
       PUBLISHED_AT,
     ],
   )
-  run(
-    sqlite,
-    `INSERT INTO snapshotVersionChanges
-      (snapshotId, recordType, recordId, locale, versionHash, operation, sourceReleaseId, createdAt, updatedAt)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [
-      DIVISION_SNAPSHOT,
-      'division',
-      'division-central',
-      '',
-      'division-central-v1',
-      'upsert',
-      'release-overture-2026-08-19',
-      PUBLISHED_AT,
-      PUBLISHED_AT,
-    ],
-  )
-  run(
-    sqlite,
-    `INSERT INTO snapshotVersionChanges
-      (snapshotId, recordType, recordId, locale, versionHash, operation, sourceReleaseId, createdAt, updatedAt)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [
-      DIVISION_SNAPSHOT,
-      'divisionI18n',
-      'division-central',
-      'en',
-      'division-central-en-v1',
-      'upsert',
-      'release-overture-2026-08-19',
-      PUBLISHED_AT,
-      PUBLISHED_AT,
-    ],
-  )
 
   for (const [id, name, category, taxonomy, point] of [
     ['place-ramen', 'Ramen House', 'restaurant', 'ramen_restaurant', [114.155, 22.285]],
@@ -456,23 +422,6 @@ function seedHistory(sqlite: Database) {
         'release-overture-2026-08-19',
         ADDRESS_SNAPSHOT,
         1,
-        PUBLISHED_AT,
-        PUBLISHED_AT,
-      ],
-    )
-    run(
-      sqlite,
-      `INSERT INTO snapshotVersionChanges
-        (snapshotId, recordType, recordId, locale, versionHash, operation, sourceReleaseId, createdAt, updatedAt)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
-        ADDRESS_SNAPSHOT,
-        'address2d',
-        addressId,
-        '',
-        `${addressId}-v1`,
-        'upsert',
-        'release-overture-2026-08-19',
         PUBLISHED_AT,
         PUBLISHED_AT,
       ],
@@ -532,28 +481,6 @@ function seedHistory(sqlite: Database) {
         PUBLISHED_AT,
       ],
     )
-    for (const [recordType, locale, versionHash] of [
-      ['place', '', placeHash],
-      ['placeI18n', 'en', i18nHash],
-    ] as const) {
-      run(
-        sqlite,
-        `INSERT INTO snapshotVersionChanges
-          (snapshotId, recordType, recordId, locale, versionHash, operation, sourceReleaseId, createdAt, updatedAt)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [
-          PLACE_SNAPSHOT,
-          recordType,
-          id,
-          locale,
-          versionHash,
-          'upsert',
-          'release-overture-2026-08-19',
-          PUBLISHED_AT,
-          PUBLISHED_AT,
-        ],
-      )
-    }
   }
 }
 

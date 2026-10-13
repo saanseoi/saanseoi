@@ -617,13 +617,6 @@ function seedHistory(sqlite: Database, snapshotIds: string[]) {
           timestamp,
         ],
       )
-      run(
-        sqlite,
-        `INSERT INTO snapshotVersionChanges
-          (snapshotId, recordType, recordId, locale, versionHash, operation, sourceReleaseId, createdAt, updatedAt)
-          VALUES (?, 'division', ?, '', ?, 'upsert', 'release-overture-2025', ?, ?)`,
-        [snapshotId, division.id, versionHash, timestamp, timestamp],
-      )
       for (const [locale, name] of Object.entries(division.names)) {
         const i18nVersionHash = `${versionHash}-${locale}`
         run(
@@ -647,13 +640,6 @@ function seedHistory(sqlite: Database, snapshotIds: string[]) {
             timestamp,
             timestamp,
           ],
-        )
-        run(
-          sqlite,
-          `INSERT INTO snapshotVersionChanges
-            (snapshotId, recordType, recordId, locale, versionHash, operation, sourceReleaseId, createdAt, updatedAt)
-            VALUES (?, 'divisionI18n', ?, ?, ?, 'upsert', 'release-overture-2025', ?, ?)`,
-          [snapshotId, division.id, locale, i18nVersionHash, timestamp, timestamp],
         )
       }
     }
@@ -900,7 +886,7 @@ test('0.2 resolves its own catalogue, exposes inventories and rejects absent cho
       apiReleaseSetId: 'release-v02',
       versionHash: 'release-v02-association-hash',
     })
-    clone('apiCatalogRevisions', "code='" + CATALOG_REVISION + "'", {
+    clone('apiCatalogRevisions', `code='${CATALOG_REVISION}'`, {
       id: 'catalog-v02',
       code: 'catalog-v02',
       apiVersionId: 'api-v02',
@@ -981,7 +967,7 @@ test('0.2 resolves its own catalogue, exposes inventories and rejects absent cho
       ],
     })
     const historical = await app.fetch(
-      new Request('http://localhost/divisions/v0.1?releaseSet=' + OVERTURE_RELEASE_SET),
+      new Request(`http://localhost/divisions/v0.1?releaseSet=${OVERTURE_RELEASE_SET}`),
       fixture.env,
     )
     expect(

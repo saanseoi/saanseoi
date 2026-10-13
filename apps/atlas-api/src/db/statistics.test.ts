@@ -58,13 +58,8 @@ test('replays sparse revisions and unchanged snapshots independently of mutable 
   try {
     run(
       fixture.history,
-      `INSERT INTO statsRecords (id, datasetCode, sourceReleaseId, sourceFeatureRef, divisionId, referencePeriodCode, referencePeriodGranularity, referencePeriodEndYear, geography, definitionSetId, "values", versionHash, isCurrent, createdAt, updatedAt)
-      SELECT id, datasetCode, sourceReleaseId, sourceFeatureRef, divisionId, referencePeriodCode, referencePeriodGranularity, referencePeriodEndYear, geography, definitionSetId, '{"totalPopulation":"250000","femalePopulation":"125000"}', 'correction-hash', 0, createdAt, updatedAt FROM statsRecords WHERE id = ? AND versionHash = 'record-version-hash'`,
-      [STATISTIC_ID],
-    )
-    run(
-      fixture.history,
-      `INSERT INTO snapshotVersionChanges (snapshotId, recordType, recordId, versionHash, operation) VALUES ('correction', 'statsRecord', ?, 'correction-hash', 'upsert')`,
+      `INSERT INTO statsRecords (snapshotId, id, datasetCode, sourceReleaseId, sourceFeatureRef, divisionId, referencePeriodCode, referencePeriodGranularity, referencePeriodEndYear, geography, definitionSetId, "values", versionHash, isCurrent, createdAt, updatedAt)
+      SELECT 'correction', id, datasetCode, sourceReleaseId, sourceFeatureRef, divisionId, referencePeriodCode, referencePeriodGranularity, referencePeriodEndYear, geography, definitionSetId, '{"totalPopulation":"250000","femalePopulation":"125000"}', 'correction-hash', 0, createdAt, updatedAt FROM statsRecords WHERE id = ? AND versionHash = 'record-version-hash'`,
       [STATISTIC_ID],
     )
     run(fixture.history, 'UPDATE statsRecords SET isCurrent = 0')

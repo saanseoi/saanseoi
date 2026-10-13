@@ -6,8 +6,8 @@ import type { SnapshotReplayStep } from '../../lib/db/metaRegistry'
 import type { HarbourReadableDb, HarbourWritableDb } from '../../lib/db/types'
 import {
   chunkArray,
+  getMaxItemsPerInClause,
   createHash,
-  runStatementsInGroupsWithWriteRetry,
   stableJsonStringify,
 } from '../utils'
 import type {
@@ -15,7 +15,7 @@ import type {
   DivisionVersionSnapshot,
   insertDivisionVersionRows,
 } from './division'
-import { recordSnapshotVersionChanges } from './snapshotVersionChanges'
+import { recordHistoryDeletions } from './historyDeletions'
 import {
   resolveSnapshotSourceResolutions,
   type ResolvedSnapshotSourceResolution,
@@ -26,6 +26,7 @@ export type DivisionHistoryShard = {
   db: HarbourReadableDb & HarbourWritableDb
 }
 export type DivisionHistoryComponent = {
+  snapshotId: string
   recordType: 'division' | 'divisionI18n'
   recordId: string
   locale: string
@@ -164,7 +165,7 @@ export async function loadDivisionHistoryBaseline(input: {
       if (!shard) throw new Error(`Missing Division history binding ${binding}.`)
       let cursor: { recordType: string; recordId: string; locale: string } | undefined
       while (true) {
-        const table = historySchema.snapshotVersionChanges
+        const table = historySchema.historyEvents
         const rows = await shard.db
           .select({
             recordType: table.recordType,
@@ -201,6 +202,7 @@ export async function loadDivisionHistoryBaseline(input: {
           else if (row.versionHash)
             components.set(key, {
               ...row,
+              snapshotId: step.snapshotId,
               versionHash: row.versionHash,
               recordType: row.recordType,
               shard,
@@ -234,7 +236,10 @@ export async function loadDivisionHistoryBaseline(input: {
       const owned = [...components.values()].filter(
         row => row.shard === shard && row.recordType === recordType,
       )
-      for (const batch of chunkArray(owned, 30)) {
+      for (const batch of chunkArray(
+        owned,
+        getMaxItemsPerInClause(recordType === 'division' ? 3 : 4),
+      )) {
         const rows = await shard.db
           .select()
           .from(table)
@@ -273,15 +278,17 @@ function divisionComponentPredicate(row: DivisionHistoryComponent) {
     return and(
       eq(historySchema.divisions.id, row.recordId),
       eq(historySchema.divisions.versionHash, row.versionHash),
+      eq(historySchema.divisions.snapshotId, row.snapshotId),
     )
   return and(
     eq(historySchema.divisionsI18n.divisionId, row.recordId),
     eq(historySchema.divisionsI18n.locale, row.locale),
     eq(historySchema.divisionsI18n.versionHash, row.versionHash),
+    eq(historySchema.divisionsI18n.snapshotId, row.snapshotId),
   )
 }
 
-/** Close exact predecessor components; only omissions need a deletion journal. */
+/** Append omissions in the child snapshot; retained ancestors are never modified. */
 export async function closeDivisionHistoryComponents(input: {
   activeDb: HarbourWritableDb
   snapshotId: string
@@ -289,33 +296,8 @@ export async function closeDivisionHistoryComponents(input: {
   components: Array<DivisionHistoryComponent & { omitted?: boolean }>
   timestamp: string
 }) {
-  for (const shard of new Set(input.components.map(row => row.shard))) {
-    const statements = []
-    for (const recordType of ['division', 'divisionI18n'] as const) {
-      const table =
-        recordType === 'division'
-          ? historySchema.divisions
-          : historySchema.divisionsI18n
-      const owned = input.components.filter(
-        row => row.shard === shard && row.recordType === recordType,
-      )
-      for (const batch of chunkArray(owned, 30))
-        statements.push(
-          shard.db
-            .update(table)
-            .set({ isCurrent: false, updatedAt: input.timestamp })
-            .where(
-              and(
-                eq(table.isCurrent, true),
-                or(...batch.map(divisionComponentPredicate)),
-              ),
-            ),
-        )
-    }
-    await runStatementsInGroupsWithWriteRetry(shard.db, statements)
-  }
   for (const recordType of ['division', 'divisionI18n'] as const)
-    await recordSnapshotVersionChanges(input.activeDb, {
+    await recordHistoryDeletions(input.activeDb, {
       snapshotId: input.snapshotId,
       sourceReleaseId: input.sourceReleaseId,
       recordType,

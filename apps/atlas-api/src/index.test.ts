@@ -227,7 +227,7 @@ function streetRows(query: string): unknown[][] {
       versionHash,
     ])
 
-  if (query.includes('from "snapshotVersionChanges"')) {
+  if (query.includes('from "historyEvents"')) {
     return [
       [
         'street',
@@ -304,9 +304,10 @@ function streetRows(query: string): unknown[][] {
           'history-shard-1',
           'G.N. 4034',
           assetLinks,
+          'street-snapshot',
+          'upsert',
           'street-changelog-version-1',
           'release-1',
-          'street-snapshot',
           1,
           '2026-07-03T00:00:00.000Z',
           '2026-07-03T00:00:00.000Z',
@@ -321,9 +322,10 @@ function streetRows(query: string): unknown[][] {
           'history-shard-1',
           'G.N. 9999',
           assetLinks,
+          'future-street-snapshot',
+          'upsert',
           'street-changelog-version-3',
           'release-2',
-          'future-street-snapshot',
           1,
           '2026-09-01T00:00:00.000Z',
           '2026-09-01T00:00:00.000Z',
@@ -346,9 +348,10 @@ function streetRows(query: string): unknown[][] {
         '[]',
         assetLinks,
         sources,
+        'street-snapshot',
+        'upsert',
         'street-version-1',
         'release-1',
-        'street-snapshot',
         1,
         '2026-07-03T00:00:00.000Z',
         '2026-07-03T00:00:00.000Z',
@@ -364,9 +367,10 @@ function streetRows(query: string): unknown[][] {
         '[]',
         assetLinks,
         sources,
+        'street-snapshot',
+        'upsert',
         'street-version-2',
         'release-1',
-        'street-snapshot',
         1,
         '2026-08-01T00:00:00.000Z',
         '2026-08-01T00:00:00.000Z',
@@ -382,9 +386,10 @@ function streetRows(query: string): unknown[][] {
         '[]',
         assetLinks,
         sources,
+        'future-street-snapshot',
+        'upsert',
         'street-version-3',
         'release-2',
-        'future-street-snapshot',
         1,
         '2026-09-01T00:00:00.000Z',
         '2026-09-01T00:00:00.000Z',
@@ -403,9 +408,10 @@ function streetRows(query: string): unknown[][] {
         null,
         'central wan chai bypass',
         row[0],
+        'street-snapshot',
+        'upsert',
         'street-version-1',
         'release-1',
-        'street-snapshot',
         1,
         '2026-07-03T00:00:00.000Z',
         '2026-07-03T00:00:00.000Z',
@@ -420,9 +426,10 @@ function streetRows(query: string): unknown[][] {
         null,
         'central wan chai bypass',
         row[0],
+        'street-snapshot',
+        'upsert',
         'street-version-2',
         'release-1',
-        'street-snapshot',
         1,
         '2026-08-01T00:00:00.000Z',
         '2026-08-01T00:00:00.000Z',
@@ -440,9 +447,10 @@ function streetRows(query: string): unknown[][] {
         null,
         'central wan chai bypass',
         row[0],
+        'future-street-snapshot',
+        'upsert',
         'street-version-3',
         'release-2',
-        'future-street-snapshot',
         1,
         '2026-09-01T00:00:00.000Z',
         '2026-09-01T00:00:00.000Z',
@@ -1863,8 +1871,7 @@ describe('atlas-api', () => {
       'hierarchies',
     )
     expect(body.components?.schemas?.Id?.pattern).toBe('^\\S+$')
-    expect(body.components?.schemas).toHaveProperty('OvertureSourceItem')
-    expect(body.components?.schemas).toHaveProperty('OtherSourceTypeItem')
+    expect(body.components?.schemas).toHaveProperty('SourceAttribution')
     expect(body.components?.schemas).toHaveProperty('Sources')
     expect(body.paths['/latest/divisions']).toBeUndefined()
     expect(body.servers).toEqual([{ url: 'http://localhost:8787' }])
@@ -2111,13 +2118,6 @@ describe('atlas-api', () => {
       | undefined
     const divisionHierarchyIdentifier =
       divisions.components?.schemas?.DivisionHierarchyEntry
-    const sources = divisions.components?.schemas?.Sources as
-      | {
-          'x-additionalPropertiesName'?: string
-          additionalProperties?: { description?: string }
-          properties?: Record<string, { description?: string }>
-        }
-      | undefined
     const jsonApiLinkMap = divisions.components?.schemas?.JsonApiLinkMap as
       | {
           additionalProperties?: { description?: string }
@@ -2163,13 +2163,18 @@ describe('atlas-api', () => {
         },
       },
     })
-    expect(sources?.properties?.overture?.description).toBe(
-      'Overture Maps source references. Items may identify the contributing Overture record or carry upstream attribution supplied by Overture, including a property, licence or confidence.',
-    )
-    expect(sources?.additionalProperties?.description).toBe(
-      "Attribution from another source provider. The property key identifies the provider; each item's field names use camelCase.",
-    )
-    expect(sources?.['x-additionalPropertiesName']).toBe('another source provider')
+    expect(divisions.components?.schemas?.Sources).toMatchObject({
+      type: 'array',
+      items: { $ref: '#/components/schemas/SourceAttribution' },
+    })
+    expect(divisions.components?.schemas?.SourceAttribution).toMatchObject({
+      type: 'object',
+      required: ['publisherCode', 'dataset'],
+      additionalProperties: false,
+      properties: {
+        property: { type: ['string', 'null'], pattern: '^(?:\\/(?:[^~/]|~[01])*)*$' },
+      },
+    })
     expect(divisionResource?.properties?.links?.allOf?.[1]?.description).toBe(
       'Links for this division resource, including its canonical URL.',
     )
@@ -2221,7 +2226,7 @@ describe('atlas-api', () => {
     expect(JSON.stringify(places.components?.schemas?.PlaceCollectionI18n)).toContain(
       'freeformAddress',
     )
-    expect(places.components?.schemas).toHaveProperty('PlaceSource')
+    expect(places.components?.schemas).toHaveProperty('SourceAttribution')
     expect(places.components?.schemas).toHaveProperty('PlaceDivision')
     expect(places.components?.schemas).toHaveProperty('PlaceCellResult')
     expect(places.components?.schemas).toHaveProperty('PlaceSearchResult')
@@ -2287,21 +2292,9 @@ describe('atlas-api', () => {
         ).toBeTruthy()
       }
     }
-    expect(placeSchemas?.PlaceSource?.description).toBe(
-      'Information about the source data used to assemble the place feature.',
+    expect(placeSchemas?.SourceAttribution).toEqual(
+      divisions.components?.schemas?.SourceAttribution as OpenApiObjectSchema,
     )
-    expectPlaceFieldsDescribed('PlaceSource', [
-      'property',
-      'dataset',
-      'license',
-      'recordId',
-      'updateTime',
-      'confidence',
-      'provider',
-      'resource',
-      'version',
-      'between',
-    ])
     expectPlaceFieldsDescribed('PlaceCollectionI18nValue', [
       'name',
       'nameVariant',
@@ -2357,7 +2350,7 @@ describe('atlas-api', () => {
     ])
     for (const schemaName of [
       'Place',
-      'PlaceSource',
+      'SourceAttribution',
       'PlaceTaxonomy',
       'PlaceCollectionTaxonomy',
       'PlaceCollectionI18n',

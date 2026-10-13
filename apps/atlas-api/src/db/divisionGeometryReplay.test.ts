@@ -34,7 +34,7 @@ function createDb(history = false) {
       bbox TEXT, geometry BLOB, identifiers TEXT, sources TEXT, type TEXT NOT NULL,
       isLand INTEGER, isTerritorial INTEGER, createdAt TEXT, updatedAt TEXT,
       ${kind === 'divisionAreas' ? 'divisionId TEXT' : 'leftDivisionId TEXT, rightDivisionId TEXT'}
-      ${history ? ', versionHash TEXT, sourceReleaseId TEXT, isCurrent INTEGER' : ''}
+      ${history ? ", operation TEXT DEFAULT 'upsert', versionHash TEXT, sourceReleaseId TEXT, isCurrent INTEGER" : ''}
     )`)
   }
   if (!history) {
@@ -47,7 +47,7 @@ function createDb(history = false) {
         INSERT INTO ${family}PublicationState VALUES ('scope:${snapshotId}','${snapshotId}','current','token','2026-01-01','2026-01-01')`)
     }
   }
-  sqlite.exec(`CREATE TABLE snapshotVersionChanges (
+  sqlite.exec(`CREATE TABLE historyEvents (
     snapshotId TEXT, recordType TEXT, recordId TEXT, locale TEXT,
     versionHash TEXT, operation TEXT, sourceReleaseId TEXT, createdAt TEXT, updatedAt TEXT
   )`)
@@ -144,7 +144,7 @@ function createFixture() {
     hash: string | null,
   ) {
     owner.db
-      .insert(historySchema.snapshotVersionChanges)
+      .insert(historySchema.historyEvents)
       .values({
         snapshotId,
         recordType: kind,
@@ -474,6 +474,7 @@ test('batches immutable geometry tuples within D1 limits for large selections', 
         locale: '',
         versionHash: `hash-${index}`,
         sourceReleaseId: 'source',
+        snapshotId: 'snapshot',
         shard: { bindingName: 'history', db: fixture.db as never },
       }),
     )

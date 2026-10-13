@@ -63,6 +63,7 @@ test('government area flags override missing publisher flags before geometry typ
         sources: [{ sourceRecordId: 'native' }],
       },
       source,
+      { datasetCode: 'ds-hk-hkgov-censtatd-division-area-district' },
     )
     expect(result?.canonical).toMatchObject({
       isLand: true,
@@ -99,7 +100,13 @@ test('government geometry references follow native identity inputs independently
       source: 'hkgov-pland-new-town',
       row: { newtown_id: 'town' },
       inputs: ['newtown_id'],
-      sources: { hkgovPland: [{ record_id: 'town' }] },
+      sources: [
+        {
+          publisherCode: 'hkgov-pland',
+          dataset: 'ds-hk-hkgov-pland-division-new-town',
+          recordId: 'town',
+        },
+      ],
       identifiers: { 'PLAND:NEWTOWN': 'town' },
     },
     {
@@ -110,7 +117,11 @@ test('government geometry references follow native identity inputs independently
         identifiers: { 'PLAND:TPU': '123' },
       },
       inputs: ['source_cell_ids'],
-      sources: { hkgovPland: [{ cell_id: 'cell-a' }, { cell_id: 'cell-b' }] },
+      sources: ['cell-a', 'cell-b'].map(recordId => ({
+        publisherCode: 'hkgov-pland',
+        dataset: 'ds-hk-hkgov-pland-division-pu',
+        recordId,
+      })),
       identifiers: { 'PLAND:TPU': '123' },
     },
     {
@@ -122,7 +133,13 @@ test('government geometry references follow native identity inputs independently
         district_class: 'DC',
       },
       inputs: ['sources', 'id', 'source'],
-      sources: { hkgovCenstatd: [{ record_id: 'native' }] },
+      sources: [
+        {
+          publisherCode: 'hkgov-censtatd',
+          dataset: 'ds-hk-hkgov-censtatd-division-area-district',
+          recordId: 'native',
+        },
+      ],
       identifiers: { 'CENSTATD:dcCode': 11, 'CENSTATD:dcClass': 'DC' },
     },
   ]
@@ -140,6 +157,7 @@ test('government geometry references follow native identity inputs independently
         ...entry.row,
       },
       entry.source,
+      { datasetCode: entry.dataset },
     )!
     expect(result.canonical.sources).toEqual(entry.sources)
     expect(result.canonical.identifiers).toEqual(divisionIdentifiers(entry.identifiers))
@@ -172,7 +190,10 @@ test('HMA fixture constants match the native government geometry output, includi
       sources: [{ sourceRecordId: 'HMA_21C:1' }],
     },
     'hkgov-censtatd',
-    { variant: 'hkgov-censtatd-hma' },
+    {
+      variant: 'hkgov-censtatd-hma',
+      datasetCode: 'ds-hk-hkgov-censtatd-division-area-hma',
+    },
   )!
   for (const field of fixture.resources.find(r => r.resourceType === 'divisionArea')!
     .fields) {

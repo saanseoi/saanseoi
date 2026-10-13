@@ -254,7 +254,7 @@ test('core Division writes inherit unchanged base/locales/assertions and close o
         rows: [initial],
         assertions: [assertion('first')],
       }),
-    ).toEqual({ current: 3, old: 7, new: 0 })
+    ).toEqual({ current: 3, old: 4, new: 0 })
     const first = [step('first', null, 'old')]
     const baseRow = data
       .client('old')
@@ -310,7 +310,7 @@ test('core Division writes inherit unchanged base/locales/assertions and close o
         rows: [translated],
         assertions: [assertion('translated')],
       }),
-    ).toEqual({ current: 1, old: 1, new: 2 })
+    ).toEqual({ current: 1, old: 0, new: 1 })
     expect(
       data
         .client('old')
@@ -323,7 +323,7 @@ test('core Division writes inherit unchanged base/locales/assertions and close o
         .query('SELECT locale,isCurrent FROM divisionsI18n ORDER BY locale')
         .all(),
     ).toEqual([
-      { locale: 'en', isCurrent: 0 },
+      { locale: 'en', isCurrent: 1 },
       { locale: 'zh-hant', isCurrent: 1 },
     ])
     expect(
@@ -333,7 +333,7 @@ test('core Division writes inherit unchanged base/locales/assertions and close o
       data
         .client('old')
         .query(
-          "SELECT count(*) AS count FROM snapshotVersionChanges WHERE snapshotId <> 'first'",
+          "SELECT count(*) AS count FROM historyEvents WHERE snapshotId <> 'first'",
         )
         .get(),
     ).toEqual({ count: 0 })
@@ -350,7 +350,7 @@ test('core Division writes inherit unchanged base/locales/assertions and close o
         rows: [revised],
         assertions: [assertion('base-change')],
       }),
-    ).toEqual({ current: 1, old: 1, new: 2 })
+    ).toEqual({ current: 1, old: 0, new: 1 })
     expect(
       data.client('new').query('SELECT count(*) AS count FROM divisionsI18n').get(),
     ).toEqual({ count: 1 })
@@ -402,7 +402,7 @@ test('locale/base/source omissions are sparse and reappearance preserves origina
         rows: [kept],
         assertions: [],
       }),
-    ).toEqual({ current: 1, old: 0, new: 3 })
+    ).toEqual({ current: 1, old: 0, new: 2 })
     const removed = [...first, step('locale-removed', 'first', 'new')]
     expect(
       await data.write({
@@ -422,7 +422,7 @@ test('locale/base/source omissions are sparse and reappearance preserves origina
         rows: [],
         assertions: [],
       }),
-    ).toEqual({ current: 2, old: 0, new: 4 })
+    ).toEqual({ current: 2, old: 0, new: 2 })
     const empty = [...absent, step('empty', 'still-absent', 'new')]
     expect(
       await data.write({
@@ -432,7 +432,7 @@ test('locale/base/source omissions are sparse and reappearance preserves origina
         rows: [{ ...row, base: { ...row.base, updatedAt: updated } }],
         assertions: [assertion('reappeared')],
       }),
-    ).toEqual({ current: 3, old: 0, new: 7 })
+    ).toEqual({ current: 3, old: 0, new: 4 })
     expect(
       data
         .client('new')
@@ -442,7 +442,9 @@ test('locale/base/source omissions are sparse and reappearance preserves origina
     expect(
       data
         .client('new')
-        .query('SELECT sourceReleaseId,snapshotId,isCurrent FROM divisionsI18n')
+        .query(
+          "SELECT sourceReleaseId,snapshotId,isCurrent FROM divisionsI18n WHERE snapshotId='first'",
+        )
         .all(),
     ).toEqual([
       { sourceReleaseId: 'release-first', snapshotId: 'first', isCurrent: 1 },
@@ -450,6 +452,11 @@ test('locale/base/source omissions are sparse and reappearance preserves origina
     ])
     const final = await data.parent([...empty, step('reappeared', 'empty', 'new')])
     expect(final.components.size).toBe(3)
+    expect([...final.components.values()].map(row => row.snapshotId)).toEqual([
+      'reappeared',
+      'reappeared',
+      'reappeared',
+    ])
     expect(final.sourceResolutions.get('source-a')?.snapshotId).toBe('reappeared')
   } finally {
     data.close()
@@ -497,12 +504,11 @@ test('parent replay rejects unavailable content, ambiguous journals, and incompl
       (await data.parent(plan)).sourceResolutions.get('source-a')?.sourceVersionHash,
     ).toBe('changed')
     await data.next
-      .insert(historySchema.snapshotVersionChanges)
+      .insert(historySchema.divisions)
       .values({
+        ...row.base,
         snapshotId: 'first',
-        recordType: 'division',
-        recordId: 'a',
-        locale: '',
+        id: 'a',
         versionHash: 'ambiguous',
         operation: 'upsert',
         sourceReleaseId: 'other',
@@ -513,10 +519,13 @@ test('parent replay rejects unavailable content, ambiguous journals, and incompl
         { ...firstStep, shards: [...firstStep.shards, ...sourceStep.shards] },
       ]),
     ).rejects.toThrow('Ambiguous Division history component')
-    data.client('old').exec('DELETE FROM divisionsI18n')
-    await expect(data.parent(plan)).rejects.toThrow(
-      'Missing retained Division history component content',
-    )
+    data.client('new').exec("DELETE FROM divisions WHERE snapshotId='first'")
+    data
+      .client('old')
+      .exec(
+        'PRAGMA ignore_check_constraints=ON; UPDATE divisionsI18n SET versionHash=NULL',
+      )
+    await expect(data.parent(plan)).rejects.toThrow('Missing Division history hash')
   } finally {
     data.close()
   }
@@ -550,7 +559,8 @@ test('bounded exact closures leave unrelated branches and locale components unto
         .filter(row => row.recordType === 'division')
         .map(row => ({ ...row, omitted: true })),
     })
-    expect((data.counts().old ?? 0) - (before.old ?? 0)).toBe(105)
+    expect((data.counts().old ?? 0) - (before.old ?? 0)).toBe(0)
+    expect((data.counts().new ?? 0) - (before.new ?? 0)).toBe(105)
     expect(
       data
         .client('old')
@@ -564,10 +574,7 @@ test('bounded exact closures leave unrelated branches and locale components unto
         .get(),
     ).toEqual({ count: 210 })
     expect(
-      data
-        .client('new')
-        .query('SELECT count(*) AS count FROM snapshotVersionChanges')
-        .get(),
+      data.client('new').query('SELECT count(*) AS count FROM historyEvents').get(),
     ).toEqual({ count: 105 })
     expect(Math.max(...data.parameters)).toBeLessThanOrEqual(100)
   } finally {
@@ -642,9 +649,9 @@ test('geometry evidence changes write only snapshot interpretation, without Divi
       }),
     ).toEqual({ current: 0, old: 0, new: 1 })
     expect(data.client('new').query('SELECT * FROM divisions').all()).toHaveLength(0)
-    expect(
-      data.client('new').query('SELECT * FROM snapshotVersionChanges').all(),
-    ).toHaveLength(0)
+    expect(data.client('new').query('SELECT * FROM historyEvents').all()).toHaveLength(
+      0,
+    )
     const state = await data.parent([...first, step('next', 'first', 'new')])
     expect(
       state.sourceResolutions.get('a')?.resolutions.divisionContainment?.a?.parent

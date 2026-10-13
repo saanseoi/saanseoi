@@ -109,24 +109,6 @@ test('replays Place text and spatial divisions from the selected version without
         TIMESTAMP,
       ],
     )
-    run(
-      history,
-      `INSERT INTO snapshotVersionChanges (
-        snapshotId, recordType, recordId, locale, versionHash, operation,
-        sourceReleaseId, createdAt, updatedAt
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
-        'address-snapshot-old',
-        'address2d',
-        'address-old',
-        '',
-        'address-old-hash',
-        'upsert',
-        'release-old',
-        TIMESTAMP,
-        TIMESTAMP,
-      ],
-    )
 
     for (const versionHash of ['place-old-hash', 'place-new-hash']) {
       run(
@@ -208,29 +190,6 @@ test('replays Place text and spatial divisions from the selected version without
         TIMESTAMP,
       ],
     )
-    for (const [recordType, recordId, locale, versionHash] of [
-      ['place', 'place-1', '', 'place-old-hash'],
-      ['placeI18n', 'place-1', 'en', 'place-old-en-hash'],
-    ] as const) {
-      run(
-        history,
-        `INSERT INTO snapshotVersionChanges (
-          snapshotId, recordType, recordId, locale, versionHash, operation,
-          sourceReleaseId, createdAt, updatedAt
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [
-          'place-snapshot-old',
-          recordType,
-          recordId,
-          locale,
-          versionHash,
-          'upsert',
-          'release-old',
-          TIMESTAMP,
-          TIMESTAMP,
-        ],
-      )
-    }
     for (let index = 0; index < 100; index += 1) {
       const id = `place-extra-${index}`
       const versionHash = `${id}-v1`
@@ -251,24 +210,6 @@ test('replays Place text and spatial divisions from the selected version without
           'release-old',
           'place-snapshot-old',
           1,
-          TIMESTAMP,
-          TIMESTAMP,
-        ],
-      )
-      run(
-        history,
-        `INSERT INTO snapshotVersionChanges (
-          snapshotId, recordType, recordId, locale, versionHash, operation,
-          sourceReleaseId, createdAt, updatedAt
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [
-          'place-snapshot-old',
-          'place',
-          id,
-          '',
-          versionHash,
-          'upsert',
-          'release-old',
           TIMESTAMP,
           TIMESTAMP,
         ],
@@ -317,7 +258,7 @@ test('replays Place text and spatial divisions from the selected version without
     expect(filtered.records[0]?.i18n.en?.name).toBe('Old Place Name')
     run(
       history,
-      `UPDATE snapshotVersionChanges SET operation = 'delete', versionHash = NULL WHERE recordType = 'place' AND recordId = 'place-1'`,
+      `UPDATE places SET operation = 'delete', versionHash = NULL WHERE id = 'place-1'`,
     )
     const deletedPage = await listReplayedPlacePage({ ...lookup, offset: 99 })
     expect(deletedPage.hasMore).toBe(false)
@@ -402,7 +343,7 @@ test('historical Places resolve independently inherited locales across years and
           '2025-01',
           'base-content',
           'source-base',
-          'base',
+          id === 'place' ? 'base' : 'unselected',
           1,
           TIMESTAMP,
           TIMESTAMP,
@@ -423,34 +364,20 @@ test('historical Places resolve independently inherited locales across years and
             id === 'place' ? name : 'Wrong neighbour',
             hash,
             'source-base',
-            'base',
+            id === 'place' ? (db === next ? 'edited' : 'base') : 'unselected',
             1,
             TIMESTAMP,
             TIMESTAMP,
           ],
         )
-    for (const [db, snapshot, recordType, locale, hash, operation] of [
-      [old, 'base', 'place', '', 'base-content', 'upsert'],
-      [old, 'base', 'placeI18n', 'en', 'english-old', 'upsert'],
-      [old, 'base', 'placeI18n', 'zh-hant', 'chinese', 'upsert'],
-      [next, 'edited', 'placeI18n', 'en', 'english-new', 'upsert'],
-      [next, 'removed', 'placeI18n', 'zh-hant', null, 'delete'],
-    ] as const)
-      run(
-        db,
-        'INSERT INTO snapshotVersionChanges(snapshotId,recordType,recordId,locale,versionHash,operation,sourceReleaseId,createdAt,updatedAt) VALUES(?,?,?,?,?,?,?,?,?)',
-        [
-          snapshot,
-          recordType,
-          'place',
-          locale,
-          hash,
-          operation,
-          snapshot,
-          TIMESTAMP,
-          TIMESTAMP,
-        ],
-      )
+    run(
+      next,
+      "UPDATE placesI18n SET snapshotId='edited' WHERE versionHash='english-new'",
+    )
+    run(
+      next,
+      "INSERT INTO placesI18n(placeId,locale,snapshotId,operation) VALUES('place','zh-hant','removed','delete')",
+    )
     const read = (snapshotId: string) =>
       listReplayedPlaceRecords({
         divisionSnapshotId: 'unused',
