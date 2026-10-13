@@ -32,7 +32,6 @@ const record = (overrides: Partial<RecordRow> = {}): RecordRow => ({
   versionHash: 'hash-2025',
   isCurrent: true,
   createdAt: '2025-01-01',
-  updatedAt: '2025-01-01',
   ...overrides,
 })
 
@@ -47,7 +46,6 @@ test('period, provenance, JSON key order and geometry cohort alone do not change
     referencePeriodEndYear: '2024',
     versionHash: 'hash-2024',
     createdAt: 'earlier',
-    updatedAt: 'earlier',
     geography: {
       kind: 'district',
       code: 'one',

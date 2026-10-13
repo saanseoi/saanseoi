@@ -116,6 +116,7 @@ export function insertProjectionRow(
   }
   const table = currentSchema[name as keyof typeof currentSchema] as SQLiteTable
   if (!table) throw new Error(`Unknown current projection table ${name}.`)
+  row = { ...row, updatedAt: row.createdAt }
   const columns = Object.values(getTableColumns(table))
   const values = columns.map(column => {
     const value = row[column.name]

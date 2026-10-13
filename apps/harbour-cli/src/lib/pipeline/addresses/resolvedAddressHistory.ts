@@ -51,7 +51,6 @@ export function closeResolvedAddressHistory(input: {
           locale: prior.locale,
           sourceReleaseId: input.resourceReleaseId,
           createdAt: input.now,
-          updatedAt: input.now,
         }),
       )
   }

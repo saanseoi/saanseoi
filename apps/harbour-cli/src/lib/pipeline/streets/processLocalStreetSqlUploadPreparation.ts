@@ -205,7 +205,7 @@ export function indexCanonicalStreetIdsBySourceRecord(
   for (const street of streets) {
     for (const source of street.sources) {
       if (
-        source.publisherCode !== 'hkgov-landsd' ||
+        source.publisher !== 'hkgov-landsd' ||
         source.dataset !== 'ds-hk-hkgov-landsd-street' ||
         !source.recordId
       )

@@ -66,7 +66,6 @@ export function mergeStatisticRecord(
     versionHash,
     isCurrent: true,
     createdAt: now,
-    updatedAt: now,
   }
 }
 
@@ -148,7 +147,6 @@ export async function planCanonicalStatistics(args: {
           operation: 'upsert',
           sourceReleaseId: args.sourceReleaseId,
           createdAt: now,
-          updatedAt: now,
         },
       })
     }
@@ -188,7 +186,6 @@ export async function planCanonicalStatistics(args: {
     sourceReleaseId: args.sourceReleaseId,
     isCurrent: true,
     createdAt: now,
-    updatedAt: now,
   })
   const dictionaries = [
     {

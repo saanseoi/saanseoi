@@ -209,7 +209,7 @@ export async function normalisePreparedDivision(
     identifiers,
     level: levelNumber(level),
     sources: attributionIds.map(recordId => ({
-      publisherCode: 'hkgov-pland',
+      publisher: 'hkgov-pland',
       dataset: newTown
         ? 'ds-hk-hkgov-pland-division-new-town'
         : 'ds-hk-hkgov-pland-division-pu',

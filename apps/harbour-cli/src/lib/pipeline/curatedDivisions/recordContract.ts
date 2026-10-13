@@ -7,9 +7,9 @@ import geographicCodes from '../../../../../../fixtures/meta/divisionCodes/geogr
 export function groupCuratedUpstreamAttribution(value: unknown) {
   const grouped: Record<string, SourceAttribution[]> = {}
   for (const source of readSourceAttributions(value)) {
-    const sources = grouped[source.publisherCode] ?? []
+    const sources = grouped[source.publisher] ?? []
     sources.push({ ...source })
-    grouped[source.publisherCode] = sources
+    grouped[source.publisher] = sources
   }
   return grouped
 }

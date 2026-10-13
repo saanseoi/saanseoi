@@ -425,7 +425,7 @@ INSERT INTO snapshots(id, code, cohortKey, status, snapshotLineageId) VALUES
     expect(first.addresses).toHaveLength(1)
     expect(first.addresses[0]?.current.sources).toEqual([
       {
-        publisherCode: 'overture',
+        publisher: 'overture',
         dataset: 'ds-hk-overture-place',
         recordId: 'citygate-place',
       },

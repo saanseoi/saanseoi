@@ -237,7 +237,6 @@ async function buildPlandHistorySql(
     'snapshotId',
     'isCurrent',
     'createdAt',
-    'updatedAt',
   ]
   const i18nInsert = prepareRowsForSql(i18nRows, i18nColumns, [
     'divisionId',
@@ -247,7 +246,7 @@ async function buildPlandHistorySql(
   const statements = [
     geometryBuildUpsertSql('divisions', divisionRows as Array<Record<string, unknown>>),
     ...buildInsertStatements('divisionsI18n', i18nColumns, i18nInsert.rows, {
-      suffix: buildUpdateSuffix(i18nColumns, ['divisionId', 'snapshotId', 'locale']),
+      suffix: 'ON CONFLICT(divisionId,snapshotId,locale) DO NOTHING',
     }),
     ...buildLargeTextUpdates('divisionsI18n', i18nInsert.largeTextUpdates),
   ]

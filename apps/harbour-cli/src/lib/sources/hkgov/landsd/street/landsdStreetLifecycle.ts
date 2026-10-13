@@ -377,7 +377,7 @@ function appendSourceReference(
 }
 function streetSourceReference(recordId: string): SourceAttribution {
   return {
-    publisherCode: 'hkgov-landsd',
+    publisher: 'hkgov-landsd',
     dataset: 'ds-hk-hkgov-landsd-street',
     recordId,
   }

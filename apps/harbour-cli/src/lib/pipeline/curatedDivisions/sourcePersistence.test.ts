@@ -117,7 +117,7 @@ test('curated division SOURCE preserves names and source fields through replay, 
         sources: [
           {
             dataset: 'ds-hk-hkgov-landsd-division',
-            publisherCode: 'hkgovLandsd',
+            publisher: 'hkgovLandsd',
             recordId: '3180',
           },
         ],

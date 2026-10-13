@@ -281,7 +281,6 @@ export async function coalesceDivisionHistory(input: {
                 locale: policy.table === 'divisionsI18n' ? String(row.locale) : '',
                 sourceReleaseId: receipt.publicationToken,
                 createdAt: receipt.updatedAt,
-                updatedAt: receipt.updatedAt,
               }),
             )
         }

@@ -249,7 +249,7 @@ test('yearly shards reuse prior content, close locale-only omissions and superse
       ...prior(historyNew, 's2-locale', 'new-history'),
     ]
     historyOld.exec(
-      "INSERT INTO address3dI18n(address3dId,locale,units,versionHash,sourceReleaseId,snapshotId,isCurrent,createdAt,updatedAt) SELECT address3dId,'fr',units,versionHash,sourceReleaseId,snapshotId,1,createdAt,updatedAt FROM address3dI18n WHERE locale='en'",
+      "INSERT INTO address3dI18n(address3dId,locale,units,versionHash,sourceReleaseId,snapshotId,isCurrent,createdAt) SELECT address3dId,'fr',units,versionHash,sourceReleaseId,snapshotId,1,createdAt FROM address3dI18n WHERE locale='en'",
     )
     await run(
       '2026-02-01.0',

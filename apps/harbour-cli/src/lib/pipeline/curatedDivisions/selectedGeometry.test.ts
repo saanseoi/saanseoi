@@ -46,7 +46,7 @@ test('assembly retains the chosen source and component indexes without coordinat
   expect(result.areas[0]!.geometrySource).toEqual(island.geometrySource)
   expect(curatedRecordSources(result.areas[0]!.sources, 'area')).toEqual([
     {
-      publisherCode: 'protomaps',
+      publisher: 'protomaps',
       dataset: 'ds-hk-protomaps-island',
       recordId: 'PROTOMAPS:LAND:selected',
     },
@@ -66,7 +66,7 @@ test('an authored drawing gets no inferred source even when its coordinates are 
   expect(result.areas[0]!.geometrySource).toBeUndefined()
   expect(curatedRecordSources(result.areas[0]!.sources, 'area')).toEqual([
     {
-      publisherCode: 'saanseoi',
+      publisher: 'saanseoi',
       dataset: 'ds-hk-saanseoi-division',
       recordId: island.id,
     },
@@ -125,7 +125,7 @@ test('authored corrections clear selected geometry provenance even for identical
   expect(result.areas[0]!.geometrySource).toBeUndefined()
   expect(curatedRecordSources(result.areas[0]!.sources, 'area')).toEqual([
     {
-      publisherCode: 'saanseoi',
+      publisher: 'saanseoi',
       dataset: 'ds-hk-saanseoi-division',
       recordId: island.id,
     },

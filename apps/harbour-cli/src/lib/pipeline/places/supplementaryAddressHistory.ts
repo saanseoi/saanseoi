@@ -3,6 +3,7 @@ import { resolveSnapshotReplayPlan } from '@repo/core/db/metaRegistry'
 import { resolveSnapshotVersionState } from '@repo/core/pipeline/db/snapshotReplay'
 import { historyDeletionSql } from '@repo/db'
 import { drizzle } from 'drizzle-orm/bun-sqlite'
+import { placeHistoryInsertSql } from './placeHistory'
 import { insertSql } from './processLocalPlaceSqlUploadImport.ts'
 import type { buildSupplementaryAddressRows } from './supplementaryPlaceAddressRows.ts'
 
@@ -58,7 +59,7 @@ export async function materialiseSupplementaryAddressHistory(input: {
     policies.map(policy => policy.table),
   )
   const owners = new Set<string>([input.historyBinding])
-  const timestamp = { createdAt: input.now, updatedAt: input.now }
+  const timestamp = { createdAt: input.now }
   for (const policy of policies) {
     const wanted = input.addresses.flatMap<
       Record<string, unknown> & { versionHash: string }
@@ -84,14 +85,18 @@ export async function materialiseSupplementaryAddressHistory(input: {
       seen.add(key)
       if (previous.get(key)?.versionHash === row.versionHash) continue
       target.exec(
-        insertSql(policy.table, {
-          ...row,
-          snapshotId: input.snapshotId,
-          operation: 'upsert',
-          sourceReleaseId: input.resourceReleaseId,
-          isCurrent: 1,
-          ...timestamp,
-        }),
+        placeHistoryInsertSql(
+          policy.table,
+          {
+            ...row,
+            snapshotId: input.snapshotId,
+            operation: 'upsert',
+            sourceReleaseId: input.resourceReleaseId,
+            isCurrent: 1,
+            ...timestamp,
+          },
+          input.now,
+        ),
       )
     }
     for (const prior of previous.values()) {
@@ -133,6 +138,7 @@ export async function materialiseSupplementaryAddressHistory(input: {
           ...row.current,
           snapshotId: input.scopeId,
           ...timestamp,
+          updatedAt: input.now,
         }),
       )
       for (const value of row.i18n)
@@ -141,6 +147,7 @@ export async function materialiseSupplementaryAddressHistory(input: {
             ...value,
             snapshotId: input.scopeId,
             ...timestamp,
+            updatedAt: input.now,
           }),
         )
       for (const { versionHash: _versionHash, ...lookup } of row.lookups)
@@ -149,6 +156,7 @@ export async function materialiseSupplementaryAddressHistory(input: {
             ...lookup,
             snapshotId: input.scopeId,
             ...timestamp,
+            updatedAt: input.now,
           }),
         )
     }

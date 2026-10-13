@@ -332,7 +332,7 @@ test('base edits retain locale versions and retirement excludes another current 
       "INSERT INTO places(snapshotId,id,resourceReleaseId,lng,lat,firstSeenMonth,lastSeenMonth,createdAt,updatedAt) VALUES('another-scope','foreign','foreign',114,22,'2025','2025','original','original')",
     )
     old.exec(
-      "INSERT INTO places(id,resourceReleaseId,lng,lat,firstSeenMonth,lastSeenMonth,versionHash,sourceReleaseId,snapshotId,isCurrent,createdAt,updatedAt) VALUES('foreign','foreign',114,22,'2025','2025','foreign','foreign','foreign',1,'original','original')",
+      "INSERT INTO places (id,resourceReleaseId,lng,lat,firstSeenMonth,lastSeenMonth,versionHash,sourceReleaseId,snapshotId,isCurrent,createdAt) VALUES ('foreign','foreign',114,22,'2025','2025','foreign','foreign','foreign',1,'original')",
     )
     row.place.operatingStatus = 'temporarily_closed'
     row.versionHash = await hashPlaceMaterialisation(row.place, {

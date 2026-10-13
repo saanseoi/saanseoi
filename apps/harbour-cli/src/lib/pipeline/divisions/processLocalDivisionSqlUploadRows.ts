@@ -170,8 +170,7 @@ export async function buildDivisionHistorySqlFile(
         cartography: jsonText(record.base.cartography),
         sources: jsonText(record.base.sources),
         geometry: jsonText(record.base.geometry),
-        createdAt: record.base.createdAt,
-        updatedAt: record.base.updatedAt,
+        createdAt: record.base.updatedAt ?? record.base.createdAt,
       })
       i18nRows.push(
         ...(await Promise.all(
@@ -189,7 +188,6 @@ export async function buildDivisionHistorySqlFile(
             nameProvenance: localised.nameProvenance,
             isLocaleInferred: localised.isLocaleInferred,
             createdAt: record.base.updatedAt,
-            updatedAt: record.base.updatedAt,
           })),
         )),
       )
@@ -227,16 +225,11 @@ export async function buildDivisionHistorySqlFile(
         'sources',
         'geometry',
         'createdAt',
-        'updatedAt',
       ],
       baseRows,
       {
         suffix: `
-ON CONFLICT(id, snapshotId) DO UPDATE SET
-  isCurrent = 1,
-  sourceReleaseId = excluded.sourceReleaseId,
-  snapshotId = excluded.snapshotId,
-  updatedAt = excluded.updatedAt`.trim(),
+ON CONFLICT(id, snapshotId) DO NOTHING`.trim(),
       },
     ),
     ...buildInsertStatements(
@@ -255,22 +248,11 @@ ON CONFLICT(id, snapshotId) DO UPDATE SET
         'nameProvenance',
         'isLocaleInferred',
         'createdAt',
-        'updatedAt',
       ],
       i18nRows,
       {
         suffix: `
-ON CONFLICT(divisionId, snapshotId, locale) DO UPDATE SET
-  sourceReleaseId = excluded.sourceReleaseId,
-  snapshotId = excluded.snapshotId,
-  isCurrent = 1,
-  name = excluded.name,
-  nameVariant = excluded.nameVariant,
-  nameAlts = excluded.nameAlts,
-  nameRules = excluded.nameRules,
-  nameProvenance = excluded.nameProvenance,
-  isLocaleInferred = excluded.isLocaleInferred,
-  updatedAt = excluded.updatedAt`.trim(),
+ON CONFLICT(divisionId, snapshotId, locale) DO NOTHING`.trim(),
       },
     ),
     ...missingIds.map(recordId =>
@@ -280,7 +262,6 @@ ON CONFLICT(divisionId, snapshotId, locale) DO UPDATE SET
         recordId,
         sourceReleaseId: message.resourceReleaseId ?? message.datasetId,
         createdAt: now,
-        updatedAt: now,
       }),
     ),
   ]

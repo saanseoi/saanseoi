@@ -305,7 +305,7 @@ export function collectionStatements(
   // content has independent identity, so editing one locale leaves it open.
   const base = { ...baseFields, contentHash: als3dHash({ units: baseFields.units }) }
   const sources = sourceRecordIds.map(recordId => ({
-    publisherCode: 'hkgov-dpo',
+    publisher: 'hkgov-dpo',
     dataset: 'ds-hk-hkgov-dpo-address',
     recordId,
   }))
@@ -318,7 +318,6 @@ export function collectionStatements(
     snapshotId,
     isCurrent: 1,
     createdAt: now,
-    updatedAt: now,
   }
   const current = {
     ...base,
@@ -344,12 +343,11 @@ export function collectionStatements(
       locale,
       units,
       createdAt: now,
-      updatedAt: now,
     }
     currentStatements.push(
       insert(
         'address3dI18n',
-        { ...fields, snapshotId: currentSnapshotId },
+        { ...fields, updatedAt: now, snapshotId: currentSnapshotId },
         'ON CONFLICT(snapshotId,address3dId,locale) DO UPDATE SET units=excluded.units,updatedAt=excluded.updatedAt WHERE address3dI18n.units IS NOT excluded.units',
       ),
     )
@@ -388,7 +386,6 @@ function deletionStatement(
       recordId,
       locale,
       createdAt: now,
-      updatedAt: now,
     }),
     params: [],
   }

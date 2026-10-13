@@ -369,7 +369,6 @@ export async function writeGeometryRows(
         snapshotId: version.snapshotId,
         isCurrent: true,
         createdAt: now,
-        updatedAt: now,
       }))) {
       historyRowsById.set(row.id, row)
     }

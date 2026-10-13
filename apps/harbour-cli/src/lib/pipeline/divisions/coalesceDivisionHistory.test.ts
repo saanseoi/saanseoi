@@ -52,8 +52,8 @@ async function fixture(
       [current, false],
       [history, true],
     ] as const) {
-      db.query(`INSERT INTO divisions(${isHistory ? 'versionHash,sourceReleaseId,isCurrent,' : ''}snapshotId,id,class,geometry,sources,hierarchies,createdAt,updatedAt)
-        VALUES(${isHistory ? "'old-base','release-old',1," : ''}?,?,?,?,?,'{}',?,?)`).run(
+      db.query(`INSERT INTO divisions(${isHistory ? 'versionHash,sourceReleaseId,isCurrent,' : ''}snapshotId,id,class,geometry,sources,hierarchies,createdAt${isHistory ? '' : ',updatedAt'})
+        VALUES(${isHistory ? "'old-base','release-old',1," : ''}?,?,?,?,?,'{}',?${isHistory ? '' : ',?'})`).run(
         isHistory ? 'old' : 'scope',
         'district',
         'district',
@@ -62,21 +62,21 @@ async function fixture(
           hkgovPland: { sourceRecordId: 'source', sourceVersion: '2025' },
         }),
         'original',
-        'original',
+        ...(!isHistory ? ['original'] : []),
       )
       for (const [locale, name] of [
         ['en', 'Original'],
         ['zh-hant', '原文'],
       ])
-        db.query(`INSERT INTO divisionsI18n(${isHistory ? 'versionHash,sourceReleaseId,isCurrent,' : ''}isLocaleInferred,snapshotId,divisionId,locale,name,nameVariant,createdAt,updatedAt)
-          VALUES(${isHistory ? "'old-base','release-old',1," : ''}0,?,?,?,?,?,?,?)`).run(
+        db.query(`INSERT INTO divisionsI18n(${isHistory ? 'versionHash,sourceReleaseId,isCurrent,' : ''}isLocaleInferred,snapshotId,divisionId,locale,name,nameVariant,createdAt${isHistory ? '' : ',updatedAt'})
+          VALUES(${isHistory ? "'old-base','release-old',1," : ''}0,?,?,?,?,?,?${isHistory ? '' : ',?'})`).run(
           isHistory ? 'old' : 'scope',
           'district',
           requireDefined(locale),
           requireDefined(name),
           JSON.stringify([name]),
           'original',
-          'original',
+          ...(!isHistory ? ['original'] : []),
         )
     }
     for (const [snapshot, parent, binding] of [
@@ -144,7 +144,7 @@ function stage(candidates: ResolvedSqlCandidates, english = 'Original') {
     current = requireDefined(candidates.DB_CURRENT).db
   next
     .query(
-      "INSERT INTO divisions(versionHash,sourceReleaseId,isCurrent,snapshotId,id,class,geometry,sources,hierarchies,createdAt,updatedAt) VALUES('whole-candidate','release-next',1,'next','district','district',?,?,'{}','now','now')",
+      "INSERT INTO divisions (versionHash,sourceReleaseId,isCurrent,snapshotId,id,class,geometry,sources,hierarchies,createdAt) VALUES ('whole-candidate','release-next',1,'next','district','district',?,?,'{}','now')",
     )
     .run(
       compressJsonBrotli({ type: 'Point', coordinates: [114, 22] }),
@@ -166,7 +166,7 @@ function stage(candidates: ResolvedSqlCandidates, english = 'Original') {
       .run(requireDefined(name), JSON.stringify([name]), requireDefined(locale))
     next
       .query(
-        "INSERT INTO divisionsI18n(versionHash,sourceReleaseId,isCurrent,isLocaleInferred,snapshotId,divisionId,locale,name,nameVariant,createdAt,updatedAt) VALUES('whole-candidate','release-next',1,0,'next','district',?,?,?,'now','now')",
+        "INSERT INTO divisionsI18n (versionHash,sourceReleaseId,isCurrent,isLocaleInferred,snapshotId,divisionId,locale,name,nameVariant,createdAt) VALUES ('whole-candidate','release-next',1,0,'next','district',?,?,?,'now')",
       )
       .run(requireDefined(locale), requireDefined(name), JSON.stringify([name]))
   }
@@ -360,8 +360,7 @@ test('Division publication after rollback compares against selected A when C rep
       requireDefined(f.candidates.DB_HISTORY_NEW).db,
     ])
       db.exec(`
-        INSERT INTO divisionsI18n(versionHash,sourceReleaseId,isCurrent,isLocaleInferred,snapshotId,divisionId,locale,name,nameVariant,createdAt,updatedAt)
-          VALUES('branch-b','release-b',1,0,'branch-b','district','en','Revised','["Revised"]','b','b');
+        INSERT INTO divisionsI18n (versionHash,sourceReleaseId,isCurrent,isLocaleInferred,snapshotId,divisionId,locale,name,nameVariant,createdAt) VALUES ('branch-b','release-b',1,0,'branch-b','district','en','Revised','["Revised"]','b');
         `)
     for (const db of [
       requireDefined(f.before.DB_HISTORY_OLD),

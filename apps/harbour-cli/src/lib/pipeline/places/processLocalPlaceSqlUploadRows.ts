@@ -104,7 +104,6 @@ export async function buildPlaceSql(
       operation: 'delete',
       sourceReleaseId: input.message.resourceReleaseId,
       createdAt: now,
-      updatedAt: now,
     })
   }
 
@@ -269,7 +268,6 @@ export async function buildPlaceSql(
               snapshotId: input.snapshots.snapshotId,
               isCurrent: 1,
               createdAt: now,
-              updatedAt: now,
             },
             now,
           ),
@@ -348,7 +346,6 @@ export async function buildPlaceSql(
             snapshotId: input.snapshots.snapshotId,
             isCurrent: 1,
             createdAt: now,
-            updatedAt: now,
           },
           now,
         ),
@@ -374,7 +371,6 @@ export async function buildPlaceSql(
         operation: 'delete',
         sourceReleaseId: input.message.resourceReleaseId,
         createdAt: now,
-        updatedAt: now,
       })
     }
   }

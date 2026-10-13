@@ -1,6 +1,11 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { statisticDefinitionSet } from '@repo/db'
+import {
+  statisticDefinitionSet,
+  currentSchema,
+  historySchema,
+  getTableColumns,
+} from '@repo/db'
 import type { UploadTarget } from '../../cli/options.ts'
 
 import {
@@ -286,9 +291,14 @@ function buildUpsertStatements(
       ...buildUpsertStatements(table, compact, conflictColumns, immutable),
     ]
   }
+  const storedColumns = getTableColumns(
+    immutable ? historySchema[table] : currentSchema[table],
+  )
   const rowsByColumns = new Map<string, Row[]>()
   for (const row of rows) {
-    const columns = Object.keys(row).sort()
+    const columns = Object.keys(row)
+      .filter(column => column in storedColumns)
+      .sort()
     const key = columns.join('\u0000')
     const groupedRows = rowsByColumns.get(key) ?? []
     groupedRows.push(row)

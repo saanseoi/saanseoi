@@ -174,17 +174,10 @@ export async function insertHistoryRows(
           snapshotId,
           isCurrent: true,
           createdAt: now,
-          updatedAt: now,
         })),
       )
-      .onConflictDoUpdate({
+      .onConflictDoNothing({
         target: [historySchema.divisions.id, historySchema.divisions.snapshotId],
-        set: {
-          isCurrent: true,
-          snapshotId,
-          sourceReleaseId: resourceReleaseId,
-          updatedAt: now,
-        },
       })
       .run()
     processedRecords += chunk.length
@@ -215,7 +208,6 @@ export async function insertHistoryI18nRows(
       snapshotId,
       isCurrent: true,
       createdAt: now,
-      updatedAt: now,
     })),
   )
   let processedRows = 0
@@ -223,18 +215,12 @@ export async function insertHistoryI18nRows(
     await db
       .insert(historySchema.divisionsI18n)
       .values(chunk)
-      .onConflictDoUpdate({
+      .onConflictDoNothing({
         target: [
           historySchema.divisionsI18n.divisionId,
           historySchema.divisionsI18n.snapshotId,
           historySchema.divisionsI18n.locale,
         ],
-        set: {
-          isCurrent: true,
-          snapshotId,
-          sourceReleaseId: resourceReleaseId,
-          updatedAt: now,
-        },
       })
       .run()
     processedRows += chunk.length

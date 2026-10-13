@@ -41,7 +41,7 @@ const identity = (row: Row, columns: readonly string[]) =>
 const semantic = (row: Row) => {
   if ('id' in row) {
     const parsed = { ...row }
-    for (const column of ['geometry', 'bbox', 'identifiers', 'sources'])
+    for (const column of ['geometry', 'identifiers', 'sources'])
       if (typeof parsed[column] === 'string')
         parsed[column] = JSON.parse(parsed[column] as string)
     return JSON.stringify(

@@ -87,7 +87,7 @@ export async function buildSupplementaryAddressRows(input: {
       ADDRESS_DIVISION_FIELDS.map(field => [field, base?.[field] ?? null]),
     ) as Record<(typeof ADDRESS_DIVISION_FIELDS)[number], string | null>
     const attribution: SourceAttribution[] = entries.map(accepted => ({
-      publisherCode: 'overture',
+      publisher: 'overture',
       dataset: input.datasetCode,
       recordId: accepted.placeId,
     }))
@@ -102,7 +102,6 @@ export async function buildSupplementaryAddressRows(input: {
       ...divisions,
       streetId: null,
       geometry: null,
-      bbox: null,
       sources: attribution,
       // Identity-generation inputs remain in the Place curation ledger.
       identifiers: null,

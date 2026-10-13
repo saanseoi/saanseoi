@@ -335,7 +335,7 @@ const historyRecordsTableSql = `
     referencePeriodGranularity TEXT NOT NULL, referencePeriodEndYear TEXT NOT NULL,
     geography TEXT NOT NULL, fieldSources TEXT NOT NULL,
     definitionSetId TEXT NOT NULL, "values" TEXT NOT NULL, versionHash TEXT NOT NULL,
-    isCurrent INTEGER NOT NULL, createdAt TEXT NOT NULL, updatedAt TEXT NOT NULL,
+    isCurrent INTEGER NOT NULL, createdAt TEXT NOT NULL,
     snapshotId TEXT NOT NULL, PRIMARY KEY (id, snapshotId)
   );
 `

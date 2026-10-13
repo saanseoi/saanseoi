@@ -503,7 +503,6 @@ export async function insertHistoryRows(
           isCurrent: true,
           snapshotId,
           sourceReleaseId: record.status === 'deleted' ? null : resourceReleaseId,
-          updatedAt: now,
           operation:
             record.status === 'deleted' ? ('delete' as const) : ('upsert' as const),
           versionHash: record.status === 'deleted' ? null : record.versionHash,
@@ -548,7 +547,6 @@ export async function insertHistoryI18nRows(
             snapshotId,
             sourceReleaseId: resourceReleaseId,
             streetId: record.id,
-            updatedAt: now,
             versionHash: await createHash({
               name: item.name,
               description: item.description,
@@ -589,7 +587,6 @@ export async function insertHistoryI18nRows(
           versionHash: null,
           sourceReleaseId: resourceReleaseId,
           createdAt: now,
-          updatedAt: now,
         })),
       ),
     5,
@@ -643,7 +640,6 @@ export async function insertHistoryStreetChangelog(
           sourceReleaseId: entry.sourceReleaseId,
           sourceShardId: entry.sourceShardId,
           streetId: entry.streetId,
-          updatedAt: now,
           versionHash: entry.versionHash,
         })),
       )

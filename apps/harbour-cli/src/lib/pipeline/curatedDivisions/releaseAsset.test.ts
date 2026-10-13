@@ -132,7 +132,7 @@ test('SaanSeoi archives camelCase inherited JSON and preserve internal containme
   expect(published.cartography).toEqual({ minZoom: 14, maxZoom: 24 })
   expect(published.sources).toEqual([
     {
-      publisherCode: 'overture',
+      publisher: 'overture',
       dataset: 'ds-hk-overture-division',
       recordId: 'native-id',
     },
@@ -228,7 +228,7 @@ test('preprocessing carries inherited attribution and type order into the prepar
   )
   sources.overture = [
     {
-      publisherCode: 'overture',
+      publisher: 'overture',
       dataset: 'ds-hk-overture-division',
       recordId: 'division',
     },
@@ -254,13 +254,13 @@ test('preprocessing carries inherited attribution and type order into the prepar
   expect(inherited.upstreamOf).toBe('overture')
   expect(Object.keys(inherited)).toEqual([
     'property',
-    'publisherCode',
+    'publisher',
     'upstreamOf',
     'dataset',
     'recordId',
     'license',
   ])
-  expect(Object.keys(direct)).toEqual(['publisherCode', 'dataset', 'recordId'])
+  expect(Object.keys(direct)).toEqual(['publisher', 'dataset', 'recordId'])
   expect(direct).not.toHaveProperty('upstreamOf')
 })
 
@@ -288,7 +288,7 @@ test('archive retains authored attribution and keeps selection evidence outside 
   const zip = unzipSync(await readFile(asset.filePath))
   const row = JSON.parse(strFromU8(zip['records.json']!)).rows[0]
   expect(row.sources).toEqual([
-    { publisherCode: 'saanseoi', dataset: input.datasetCode, recordId: 'drawing' },
+    { publisher: 'saanseoi', dataset: input.datasetCode, recordId: 'drawing' },
   ])
   expect(saanseoiSourcePayload({ id: row.id, record: row }).properties.sources).toEqual(
     row.sources,

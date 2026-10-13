@@ -42,7 +42,7 @@ async function fixture(
       if (binding === nextBinding)
         db.exec(`
         INSERT INTO address2d(id,versionHash,snapshotId,sourceReleaseId,granularity,isCurrent) VALUES('other','other-version','other-snapshot','other-release','building',1);
-        INSERT INTO address2dI18n(addressId,versionHash,locale,formattedAddress,sourceReleaseId,snapshotId,isCurrent,createdAt,updatedAt) VALUES('a','returning','en','Second','retained-release','retained-snapshot',0,'retained-created','retained-closed');`)
+        INSERT INTO address2dI18n (addressId,versionHash,locale,formattedAddress,sourceReleaseId,snapshotId,isCurrent,createdAt) VALUES ('a','returning','en','Second','retained-release','retained-snapshot',0,'retained-created');`)
       if (multipleLookups && binding === 'DB_CURRENT')
         db.exec(
           "INSERT INTO address2dBuildingNumberLookup(snapshotId,addressId,buildingNumber,numericStem,evidence,derivation) VALUES('scope','a','2',2,'source_endpoint','single')",

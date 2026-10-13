@@ -10,7 +10,7 @@ import {
 test('assembly preserves flat upstream attribution through its grouped evidence workspace', () => {
   const attribution = [
     {
-      publisherCode: 'openstreetmap',
+      publisher: 'openstreetmap',
       dataset: 'OpenStreetMap',
       property: '/names',
       version: '123',

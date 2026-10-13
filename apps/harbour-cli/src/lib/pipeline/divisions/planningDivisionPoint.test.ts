@@ -35,7 +35,7 @@ test('Planning assembly derives and audits an interior Point without mutating so
   expect(record.base.identifiers).toEqual({ 'hkgov-pland': { ppu: '1' } })
   expect(record.base.sources).toEqual([
     {
-      publisherCode: 'hkgov-pland',
+      publisher: 'hkgov-pland',
       dataset: 'ds-hk-hkgov-pland-division-pu',
       recordId: 'native-cell',
     },

@@ -695,7 +695,7 @@ describe('supplementary Place Address policy', () => {
     })
     expect(components(edition)).toEqual(components(first))
     expect(edition.current.sources).toEqual([
-      { publisherCode: 'overture', dataset: 'places-dataset', recordId: 'p1' },
+      { publisher: 'overture', dataset: 'places-dataset', recordId: 'p1' },
     ])
     const dependency = await build({
       officialAddresses: new Map([
