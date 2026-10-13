@@ -135,11 +135,11 @@ def assert_current_publications(db):
         return
     if 'addressPublicationState' not in names:
         raise ValueError('Missing Address publication state')
-    if db.execute('''SELECT 1 FROM address2d a LEFT JOIN addressPublicationState p ON p.scopeId=a.snapshotId
+    if db.execute('''SELECT 1 FROM address2d a LEFT JOIN addressPublicationState p ON p.scopeId=a.scopeId
         WHERE p.snapshotId IS NULL OR p.preparedAt IS NULL LIMIT 1''').fetchone():
         raise ValueError('Address current rows do not belong to a completed publication')
     if db.execute('''SELECT 1 FROM address2d a WHERE NOT EXISTS
-        (SELECT 1 FROM address2dI18n i WHERE i.snapshotId=a.snapshotId AND i.addressId=a.id
+        (SELECT 1 FROM address2dI18n i WHERE i.scopeId=a.scopeId AND i.addressId=a.id
          AND trim(coalesce(i.formattedAddress,'') || coalesce(i.buildingName,'') || coalesce(i.estateName,'') || coalesce(i.streetName,'')) <> '') LIMIT 1''').fetchone():
         raise ValueError('Empty Address current row')
 
@@ -158,7 +158,7 @@ def retain_address_membership(output, paths):
                 if not path.is_file():
                     raise ValueError(f'Missing acknowledged ALS membership for {snapshot}')
                 membership = json.loads(path.read_text())
-                ids = {row[0] for row in current.execute('SELECT id FROM address2d WHERE snapshotId=?', (scope,))}
+                ids = {row[0] for row in current.execute('SELECT id FROM address2d WHERE scopeId=?', (scope,))}
                 if ids != {row['id'] for row in membership['addresses']}:
                     raise ValueError(f'ALS membership differs from prepared current projection: {snapshot}')
     if not root.exists():

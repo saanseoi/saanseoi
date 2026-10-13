@@ -28,7 +28,7 @@ export function missingDivisionAreaResolver(metaPath: string, currentPath: strin
         for (const area of areas) {
           const rows = current
             .query(`SELECT a.geometry FROM divisionAreas a
-            JOIN divisionAreaPublicationState p ON p.scopeId=a.snapshotId
+            JOIN divisionAreaPublicationState p ON p.scopeId=a.scopeId
             WHERE p.snapshotId=? AND p.status='current' AND a.divisionId=?`)
             .all(area.snapshotId, id) as { geometry: string | Uint8Array }[]
           const polygon = divisionAreaUnion(

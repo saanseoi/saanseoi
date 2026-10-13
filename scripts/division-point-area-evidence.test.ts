@@ -20,7 +20,7 @@ test('missing points use only pinned current area companions and reject conflict
       INSERT INTO apiReleaseSetSnapshots VALUES ('release','identity','native','primary'),
         ('release','selected','native','geometry'),('release','other','unrelated','geometry');
       INSERT INTO snapshots VALUES ('selected','areas'),('other','areas');`)
-    current.exec(`CREATE TABLE divisionAreas(snapshotId TEXT,divisionId TEXT,geometry TEXT);
+    current.exec(`CREATE TABLE divisionAreas(scopeId TEXT,divisionId TEXT,geometry TEXT);
       CREATE TABLE divisionAreaPublicationState(scopeId TEXT,snapshotId TEXT,status TEXT);
       INSERT INTO divisionAreaPublicationState VALUES ('selected-scope','selected','current'),
         ('other-scope','other','current');`)

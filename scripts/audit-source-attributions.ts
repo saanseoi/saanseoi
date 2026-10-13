@@ -63,9 +63,12 @@ export function auditSourceAttributions(directory: string) {
           columns.includes(field),
         )
         if (!fields.length) continue
-        const scopeColumn = ['snapshotId', 'sourceReleaseId', 'releaseId'].find(
-          column => columns.includes(column),
-        )
+        const scopeColumn = [
+          'scopeId',
+          'snapshotId',
+          'sourceReleaseId',
+          'releaseId',
+        ].find(column => columns.includes(column))
         for (const field of fields) {
           const groups = new Map<string | null, Group>()
           let scanned = 0
@@ -163,7 +166,7 @@ export function auditSourceAttributions(directory: string) {
           scopeColumn: string
           groups: Group[]
         }>) {
-          if (scan.scopeColumn !== 'snapshotId') continue
+          if (!['scopeId', 'snapshotId'].includes(scan.scopeColumn)) continue
           for (const group of scan.groups) {
             const entry = {
               file: db.file,
@@ -173,9 +176,10 @@ export function auditSourceAttributions(directory: string) {
               rows: group.rows,
               shapes: Object.keys(group.shapes),
             }
-            if (group.scope === snapshot.id) stored.push(entry)
+            if (scan.scopeColumn === 'snapshotId' && group.scope === snapshot.id)
+              stored.push(entry)
             for (const pointer of publications)
-              if (group.scope === pointer.scopeId)
+              if (scan.scopeColumn === 'scopeId' && group.scope === pointer.scopeId)
                 current.push({ ...entry, publicationStatus: pointer.status })
           }
         }

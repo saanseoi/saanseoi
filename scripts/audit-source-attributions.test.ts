@@ -11,7 +11,7 @@ test('census separates shared-table snapshots and retains empty columns and nest
   try {
     const db = new Database(join(directory, 'current.sqlite'))
     db.exec(
-      'CREATE TABLE places(snapshotId TEXT, sources TEXT); CREATE TABLE empty(sources TEXT); CREATE TABLE native(sourceReleaseId TEXT, properties BLOB)',
+      'CREATE TABLE places(scopeId TEXT, sources TEXT); CREATE TABLE empty(sources TEXT); CREATE TABLE native(sourceReleaseId TEXT, properties BLOB)',
     )
     db.query('INSERT INTO places VALUES (?, ?)').run(
       'first',
@@ -64,7 +64,7 @@ test('logical snapshot coverage includes unmaterialised snapshots and resolves p
       INSERT INTO snapshots VALUES('published','release','published','2026','scope',NULL),('empty','future','draft','2027','scope','published');
       CREATE TABLE placePublicationState(scopeId TEXT,snapshotId TEXT,status TEXT);
       INSERT INTO placePublicationState VALUES('scope','published','current');
-      CREATE TABLE places(snapshotId TEXT,sources TEXT);
+      CREATE TABLE places(scopeId TEXT,sources TEXT);
       INSERT INTO places VALUES('scope','[]');`)
     db.close()
     const report = auditSourceAttributions(directory)
