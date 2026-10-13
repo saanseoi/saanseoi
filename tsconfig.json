@@ -26,6 +26,8 @@
     "noUnusedParameters": false,
     "noPropertyAccessFromIndexSignature": false
   },
+  // Applications and libraries have their own projects. This project owns tooling.
+  "include": ["*.ts", "*.js", "*.mjs", "scripts/**/*"],
   // The Svelte TypeScript plugin also scans these paths for component files.
   // Keep cached workspaces, dependencies and generated output out of the project.
   "exclude": [

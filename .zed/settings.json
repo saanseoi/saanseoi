@@ -2,6 +2,16 @@
   "lsp": {
     "vtsls": {
       "settings": {
+        "typescript": {
+          "preferences": {
+            "includePackageJsonAutoImports": "off"
+          }
+        },
+        "javascript": {
+          "preferences": {
+            "includePackageJsonAutoImports": "off"
+          }
+        },
         "vtsls": {
           "autoUseWorkspaceTsdk": false,
           "typescript": {
