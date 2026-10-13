@@ -80,3 +80,26 @@ test('hierarchy lookup rejects the same unmapped publisher classification', asyn
     ),
   ).rejects.toThrow('explicit SaanSeoi classification')
 })
+
+test('C&SD hierarchy lookup preserves its native classification and null HMA level', async () => {
+  const lookup = await buildDivisionHierarchyLookup(
+    {
+      rows: [
+        {
+          id: 'hma',
+          canonical_type: 'housing-market-area',
+          canonical_level: null,
+          geometry: { type: 'Point', coordinates: [114, 22] },
+          names: { common: { en: 'Example HMA' } },
+        },
+      ],
+    },
+    {
+      source: 'hkgov-censtatd',
+      sourceVersion: '2021',
+      datasetCode:
+        'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups',
+    },
+  )
+  expect(lookup.get('hma')).toMatchObject({ class: 'housing-market-area', level: null })
+})

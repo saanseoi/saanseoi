@@ -143,7 +143,8 @@ test('unregistered evidence, unsafe paths, corrupt downloads and missing objects
 test('Node R2 adapter retains and restores exact bytes through a local Wrangler binding', async () => {
   const { openEvidenceStore } = await import('./evidenceArchive.ts')
   const root = await fixture()
-  const text = '{"synthetic":"evidence transport proof"}\n'
+  // Exercise multipart PUT, bounded verification, idempotence and ranged restore.
+  const text = JSON.stringify({ synthetic: 'x'.repeat(8 * 1024 * 1024 + 17) }) + '\n'
   const item = entry(text)
   const oldLogPath = process.env.WRANGLER_LOG_PATH
   process.env.WRANGLER_LOG_PATH = resolve(root, 'wrangler.log')

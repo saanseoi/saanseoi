@@ -1,7 +1,22 @@
 import { createHash } from 'node:crypto'
+import { retainMultipartEvidence, hashRemoteObject } from './remoteR2Multipart.ts'
 
 export type RemoteR2Bucket = {
-  get(key: string): Promise<{ arrayBuffer(): Promise<ArrayBuffer> } | null>
+  get(
+    key: string,
+    options?: { range: { offset: number; length: number } },
+  ): Promise<{ arrayBuffer(): Promise<ArrayBuffer> } | null>
+  createMultipartUpload?(
+    key: string,
+    options: { httpMetadata: R2Metadata },
+  ): Promise<{
+    uploadPart(
+      partNumber: number,
+      bytes: Uint8Array,
+    ): Promise<{ partNumber: number; etag: string }>
+    complete(parts: { partNumber: number; etag: string }[]): Promise<unknown>
+    abort(): Promise<void>
+  }>
   head(
     key: string,
   ): Promise<{ size: number; checksums?: { sha256?: ArrayBuffer } } | null>
@@ -30,22 +45,22 @@ export async function retainObjectInBucket(
     progress('checking')
     const existing = await bucket.head(key)
     if (!existing) return false
+    if (existing.size !== bytes.byteLength)
+      throw new Error(`R2 immutable object conflict: ${key}`)
     let actual = existing.checksums?.sha256
       ? Buffer.from(existing.checksums.sha256).toString('hex')
       : undefined
     if (!actual) {
       progress('verifying bytes')
-      const object = await bucket.get(key)
-      if (!object) throw new Error(`R2 object disappeared during verification: ${key}`)
-      actual = createHash('sha256')
-        .update(new Uint8Array(await object.arrayBuffer()))
-        .digest('hex')
+      actual = await hashRemoteObject(bucket, key, existing.size, progress)
     }
     if (existing.size !== bytes.byteLength || actual !== sha256)
       throw new Error(`R2 immutable object conflict: ${key}`)
     return true
   }
   if (await matches()) return
+  if (await retainMultipartEvidence(bucket, key, bytes, metadata, matches, progress))
+    return
   progress('uploading')
   const written = await bucket.put(key, bytes, {
     sha256,

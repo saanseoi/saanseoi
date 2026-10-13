@@ -35,9 +35,15 @@ material; maintain an independent backup of the permanent archive too.
 Commit catalogue changes alongside the decisions or implementation that reference them.
 A push runs the archive check before the repository checks. It syncs the current
 retained files and every catalogue version in the outgoing commit range, including
-pushed refs other than the checked-out branch. Existing objects must match; absent
-objects are uploaded conditionally and verified. Unavailable credentials, upload
-failures, corrupt objects, uncatalogued local files, committed payload JSON or an
+pushed refs other than the checked-out branch. Existing objects must match; absent small
+objects are uploaded conditionally and verified. Objects larger than 8 MiB use
+sequential multipart uploads with retries per part. Multipart completion checks for an
+existing object first and requires a destination key matching the payload SHA-256;
+concurrent catalogue writers therefore target identical bytes. The completed object is
+read back in bounded ranges and checked against its full SHA-256. Restores also use
+bounded reads. A failed transfer aborts its multipart upload where possible; a later run
+verifies any completed object before starting another upload. Unavailable credentials,
+upload failures, corrupt objects, uncatalogued local files, committed payload JSON or an
 uncommitted catalogue when pushing HEAD stop the push. Ref deletions require no archive
 sync. The hook never stages or commits changes.
 

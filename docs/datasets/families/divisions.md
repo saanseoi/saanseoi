@@ -134,6 +134,14 @@ processing provenance records the correction and source storage retains the orig
 publisher assertion. This exception does not override a populated publisher class or
 classify an unreviewed identity.
 
+C&SD Housing Market Area ancestor lookup uses the native C&SD classification and
+preserves its null hierarchy level. Overture taxonomy rules do not classify these
+statistical geographies.
+
+Planning assembly groups native `PLAND:*` identifiers under `hkgov-pland` before
+validating ancestor codes and hashing canonical content. Native archive identifiers
+remain unchanged in source evidence.
+
 SaanSeoi preparation owns editorial patches and curated source selection. It writes
 final names, taxonomy, hierarchy and geometry into the published SaanSeoi archive;
 canonical materialisation reads that prepared contract.

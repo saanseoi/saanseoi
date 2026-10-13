@@ -5,6 +5,7 @@ import {
   createDivisionPointGuard,
 } from '@repo/core/pipeline/services/divisions/divisionPoint'
 import { recordContent } from '@repo/core/pipeline/services/sources/recordContent'
+import { canonicalIdentifiers } from '@repo/core/pipeline/services/sources/canonicalIdentifiers'
 import { emptyDivisionHierarchies } from '@repo/db'
 import { materialiseDivisionHierarchies } from '@repo/core/pipeline/services/divisions/divisionHierarchies'
 import ruleFixture from '../../../../../../fixtures/meta/processing-rules/assembly/planning-division-normalisation.json'
@@ -163,7 +164,7 @@ export async function normalisePreparedDivision(
   const id = requireString(value.id, 'id')
   const level = requireString(value.planning_level, 'planning_level')
   const sourceProperties = asRecord(value.source_properties)
-  const identifiers = asRecord(value.identifiers)
+  const identifiers = canonicalIdentifiers(value.identifiers)
   const sourceCellIds =
     typeof value.source_cell_ids === 'string'
       ? JSON.parse(value.source_cell_ids)

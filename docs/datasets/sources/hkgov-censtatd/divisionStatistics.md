@@ -1,5 +1,9 @@
 # Census and Statistics Department division statistics
 
+Housing Market Area ancestor lookup uses the native C&SD classification and preserves
+the null hierarchy level. These statistical geographies use the C&SD normaliser, without
+applying Overture subtype/class mappings.
+
 C&SD statistics ingestion retains the `reuse-censtatd-statistics-geometry` rule under
 the resource child's Ingestion audit. Its input count records statistic geometry
 references; outputs show distinct new geometries, distinct reused geometries and total

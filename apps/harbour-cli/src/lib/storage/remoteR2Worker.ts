@@ -1,6 +1,7 @@
 // Wrangler binding RPC stalls under Bun; run this adapter with Node >=22.18.
 import { createWriteStream, readFileSync, readdirSync, rmSync } from 'node:fs'
-import { readFile, writeFile } from 'node:fs/promises'
+import { open, readFile } from 'node:fs/promises'
+import { readRemoteObject } from './remoteR2Multipart.ts'
 import { getPlatformProxy } from 'wrangler'
 import { retainSourceFileInBucket } from './remoteR2SourceFile.ts'
 import { retryRemoteR2 } from './remoteR2Retry.ts'
@@ -79,10 +80,21 @@ function consumeRequests(bucket: RemoteR2Bucket & SourceAssetStore) {
         await retryRemoteR2(async () => {
           if (request.download) {
             progress('downloading')
-            const object = await bucket.get(request.key)
+            const object = await bucket.head(request.key)
             if (!object)
               throw new Error(`Evidence archive object is missing: ${request.key}`)
-            await writeFile(request.path, new Uint8Array(await object.arrayBuffer()))
+            const file = await open(request.path, 'w')
+            try {
+              for await (const bytes of readRemoteObject(
+                bucket,
+                request.key,
+                object.size,
+                progress,
+              ))
+                await file.writeFile(bytes)
+            } finally {
+              await file.close()
+            }
           } else if (request.sourceFile)
             await retainSourceFileInBucket(
               bucket,

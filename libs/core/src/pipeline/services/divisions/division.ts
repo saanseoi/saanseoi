@@ -2105,7 +2105,7 @@ function collectLocalisedRuleValues(
 export async function buildDivisionHierarchyLookup(
   file: DivisionInput,
   source: Pick<DatasetProcessingMessage, 'source' | 'sourceVersion'> &
-    Partial<Pick<DatasetProcessingMessage, 'regionCode'>>,
+    Partial<Pick<DatasetProcessingMessage, 'regionCode' | 'datasetCode'>>,
 ) {
   const lookup = new Map<string, DivisionHierarchyLookupEntry>()
   const sourceRows: Record<string, unknown>[] = []
@@ -2116,9 +2116,11 @@ export async function buildDivisionHierarchyLookup(
   const columns =
     source.source === 'saanseoi'
       ? ['id', 'source', 'record']
-      : ['id', 'subtype', 'class', 'parent_division_id', 'names']
+      : source.source === 'hkgov-censtatd'
+        ? undefined // Native prepared Parquet omits optional all-null fields.
+        : ['id', 'subtype', 'class', 'parent_division_id', 'names']
   if (schema?.fields.some(field => field.name === 'admin_level')) {
-    columns.push('admin_level')
+    columns?.push('admin_level')
   }
 
   for await (const batch of readDivisionInputBatches(file, DIVISION_BATCH_SIZE, {
@@ -2145,11 +2147,18 @@ export async function buildDivisionHierarchyLookup(
         ])
       }
 
-      if (source.source === 'saanseoi') {
-        const curated = normaliseCuratedDivision(row)
+      if (source.source === 'saanseoi' || source.source === 'hkgov-censtatd') {
+        const curated =
+          source.source === 'saanseoi'
+            ? normaliseCuratedDivision(row)
+            : normaliseHkgovCenstatdStatisticDivisionRow(
+                row,
+                undefined,
+                source.datasetCode,
+              )
         lookup.set(id, {
           class: curated.base.class,
-          level: curated.base.level ?? 0,
+          level: curated.base.level,
           i18n: Object.fromEntries(
             curated.i18n
               .filter(value => value.name)
