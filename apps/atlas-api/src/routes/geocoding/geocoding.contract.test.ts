@@ -51,6 +51,22 @@ async function fixture() {
   const [meta, current, history] = databases as [Database, Database, Database]
   const m = createMetaDb(d1(meta))
   const c = createCurrentDb(d1(current))
+  // Containment evidence is replayed from retained history even for current rows.
+  await m
+    .insert(metaSchema.metaDataShards)
+    .values({
+      id: 'history',
+      shardType: 'history',
+      regionCode: 'hk',
+      year: '2025',
+      environment: 'local',
+      databaseName: 'history',
+      databaseId: 'history',
+      bindingName: 'DB_HISTORY_HK_2025',
+      status: 'active',
+      versionHash: 'history',
+    })
+    .run()
   // Address release sets reference the matching division snapshot, so seed the
   // dependency family first while foreign-key checks are enabled.
   for (const family of ['divisions', 'addresses']) {
@@ -170,6 +186,10 @@ async function fixture() {
           })
           .run()
       } else {
+        await m
+          .insert(metaSchema.metaSnapshotShardAssignments)
+          .values({ snapshotId: snapshot, dataShardId: 'history' })
+          .run()
         await c
           .insert(currentSchema.divisionPublicationState)
           .values({
@@ -244,9 +264,9 @@ async function fixture() {
       current.exec(
         "DELETE FROM addressPublicationState WHERE snapshotId = 'addresses-2025-01-01.0-snapshot'",
       )
-      meta.exec(`INSERT INTO dataShards (id,shardType,regionCode,year,environment,databaseName,databaseId,bindingName,status,versionHash)
-        VALUES ('history','history','hk','2025','preview','history','history','DB_HISTORY_HK_2025','active','hash');
-        INSERT INTO snapshotShardAssignments (snapshotId,dataShardId) VALUES ('addresses-2025-01-01.0-snapshot','history');`)
+      meta.exec(
+        `INSERT INTO snapshotShardAssignments (snapshotId,dataShardId) VALUES ('addresses-2025-01-01.0-snapshot','history');`,
+      )
       history.exec(`INSERT INTO address2d (id,granularity,geometry,versionHash,sourceReleaseId,snapshotId,isCurrent)
         VALUES ('historic-address','building','{"type":"Point","coordinates":[114,22]}','base-hash','source','addresses-2025-01-01.0-snapshot',0);
         INSERT INTO address2dI18n (addressId,locale,formattedAddress,versionHash,sourceReleaseId,snapshotId,isCurrent)
@@ -306,7 +326,7 @@ test('HTTP auth, validation, OpenAPI and exact old pins outside the latest catal
     const old = await f.request(
       '/addresses/v1/geocode?address=Old&releaseSet=addresses-2025-01-01.0&include=divisions',
     )
-    expect(old.status).toBe(200)
+    expect(old.status, await old.clone().text()).toBe(200)
     expect(old.headers.get('content-type')).toContain('application/vnd.api+json')
     expect(await old.json()).toMatchObject({
       included: expect.arrayContaining([

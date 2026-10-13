@@ -239,12 +239,6 @@ exports[`Divisions API responses through the Worker route current alias and map 
     "data": [
       {
         "attributes": {
-          "bbox": [
-            104.19,
-            35.79,
-            104.21000000000001,
-            35.809999999999995,
-          ],
           "cartography": {
             "kind": "label-center",
           },
@@ -284,12 +278,6 @@ exports[`Divisions API responses through the Worker route current alias and map 
       },
       {
         "attributes": {
-          "bbox": [
-            114.16,
-            22.31,
-            114.18,
-            22.330000000000002,
-          ],
           "cartography": {
             "kind": "label-center",
           },
@@ -345,12 +333,6 @@ exports[`Divisions API responses through the Worker route current alias and map 
       },
       {
         "attributes": {
-          "bbox": [
-            114.21,
-            22.27,
-            114.23,
-            22.290000000000003,
-          ],
           "cartography": {
             "kind": "label-center",
           },
@@ -416,12 +398,6 @@ exports[`Divisions API responses through the Worker route current alias and map 
       },
       {
         "attributes": {
-          "bbox": [
-            114.2162,
-            22.2688,
-            114.23620000000001,
-            22.288800000000002,
-          ],
           "cartography": {
             "kind": "label-center",
           },
@@ -850,12 +826,6 @@ exports[`Divisions API responses through the Worker route detail and hierarchy t
   "response": {
     "data": {
       "attributes": {
-        "bbox": [
-          114.2162,
-          22.2688,
-          114.23620000000001,
-          22.288800000000002,
-        ],
         "cartography": {
           "kind": "label-center",
         },
@@ -946,12 +916,6 @@ exports[`Divisions API responses through the Worker route detail and hierarchy t
     "included": [
       {
         "attributes": {
-          "bbox": [
-            104.19,
-            35.79,
-            104.21000000000001,
-            35.809999999999995,
-          ],
           "cartography": {
             "kind": "label-center",
           },
@@ -1005,12 +969,6 @@ exports[`Divisions API responses through the Worker route detail and hierarchy t
       },
       {
         "attributes": {
-          "bbox": [
-            114.16,
-            22.31,
-            114.18,
-            22.330000000000002,
-          ],
           "cartography": {
             "kind": "label-center",
           },
@@ -1080,12 +1038,6 @@ exports[`Divisions API responses through the Worker route detail and hierarchy t
       },
       {
         "attributes": {
-          "bbox": [
-            114.21,
-            22.27,
-            114.23,
-            22.290000000000003,
-          ],
           "cartography": {
             "kind": "label-center",
           },

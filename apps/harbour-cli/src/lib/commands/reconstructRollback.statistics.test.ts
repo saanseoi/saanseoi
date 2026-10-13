@@ -229,7 +229,6 @@ async function fixture(previous = true) {
       datasetId,
       code: `release-${name}`,
       resourceType: 'divisionStatistic',
-      sourceVersion: name,
       status: 'current',
     })
     insert(meta, 'snapshots', {

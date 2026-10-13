@@ -210,8 +210,6 @@ function fixture() {
       datasetId: 'dataset',
       resourceType: 'divisionStatistic',
       code: `${id}-release`,
-      sourceVersion: `${period}-${id}`,
-      cohortKey: period,
       status: 'current',
     })
     insert(meta, 'snapshotResourceReleases', {
