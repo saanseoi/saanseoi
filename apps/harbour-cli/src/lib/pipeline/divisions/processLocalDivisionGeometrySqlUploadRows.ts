@@ -484,7 +484,6 @@ export async function writeGeometryRows(
           geometry: sql`excluded.geometry`,
           isLand: sql`excluded.isLand`,
           isTerritorial: sql`excluded.isTerritorial`,
-          identifiers: sql`excluded.identifiers`,
           sources: sql`excluded.sources`,
           type: sql`excluded.type`,
           variant: sql`excluded.variant`,

@@ -23,11 +23,11 @@ export identities additionally use `osm.areaId`, `osm.nodeId`, `osm.wayId` or
 identifiers, not inferred OSM way or relation IDs. Coastline component IDs are
 content-addressed Protomaps source records and have no OSM element identifier.
 
-Curated Areas can retain identifiers of their associated division. Geometry input
-records remain in `sources`; construction, island-group and partition objects are
-rejected as identifier values. Historical repairs resolve publishers from retained
-native records and do not assign current geometry selections to historical records
-without retained evidence.
+Canonical `divisionAreas` and `divisionBoundaries` contain no `identifiers` field in
+CURRENT, HISTORY or API resources. Entity identifiers belong to `divisions`; historical
+reads resolve the Division identity in the selected release. Publisher geometry feature
+IDs remain in retained source records and lineage, with upstream attribution in
+`sources`. Identifier-only identity changes do not version canonical geometry.
 
 Curated Division and DivisionArea assertions use the retained release archive and
 publisher record identity; neither source table has a `sourceLocator` column. Native
@@ -622,12 +622,12 @@ the curation applies to the source record and does not create it in earlier inve
 
 ### Identifier structure
 
-Division and area identifiers are objects keyed by publisher code, then camelCase
-identifier type. Lands Department matches use `hkgov-landsd.geoNameId`; curated island
-identities use `saanseoi.sourceId`. Values retain their source spelling, including
-leading zeroes and prefixes such as `LANDSD:PLACE_NAME:`. SaanSeoi curation and geometry
-evidence is grouped under `saanseoi`. The same structure is used in release archives,
-retained SaanSeoi source records and canonical records.
+Division identifiers are objects keyed by publisher code, then camelCase identifier
+type. Lands Department matches use `hkgov-landsd.geoNameId`; curated island identities
+use `saanseoi.sourceId`. Values retain their source spelling, including leading zeroes
+and prefixes such as `LANDSD:PLACE_NAME:`. SaanSeoi curation and geometry evidence is
+grouped under `saanseoi`. The same structure is used in release archives, retained
+SaanSeoi source records and canonical records.
 
 ## Dataset references and editorial ownership
 

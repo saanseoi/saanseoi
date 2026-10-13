@@ -90,7 +90,7 @@ test('Division field emission agrees with actual response profiles', () => {
   }
 })
 
-test('geometry source visibility is independent of geometry and identifier visibility', () => {
+test('geometry source visibility is independent of geometry visibility', () => {
   const record = {
     id: 'geometry',
     divisionId: 'division',
@@ -101,7 +101,6 @@ test('geometry source visibility is independent of geometry and identifier visib
     type: 'land',
     isLand: true,
     isTerritorial: false,
-    identifiers: null,
     variant: 'overture',
     sources: null,
     snapshotId: 'snapshot',
@@ -109,13 +108,13 @@ test('geometry source visibility is independent of geometry and identifier visib
   for (const kind of ['area', 'boundary'] as const)
     for (const profile of ['compact', 'default', 'map', 'full'] as const) {
       const response = createIncludedDivisionGeometryResource({ kind, profile, record })
+      expect(response.attributes).not.toHaveProperty('identifiers')
       for (const field of [
         'geometry',
         'bbox',
         'type',
         'isLand',
         'isTerritorial',
-        'identifiers',
         'variant',
         'sources',
         'snapshotId',

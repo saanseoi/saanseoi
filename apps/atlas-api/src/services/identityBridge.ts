@@ -99,15 +99,6 @@ export function extractIdentityMappings(
 const mappingKey = (row: IdentityMapping) =>
   JSON.stringify([row.namespace, row.identifier, row.canonicalId])
 
-/** Regional source codes are also retained in the canonical area record key. */
-export function extractAreaIdentityMappings(
-  _id: string,
-  identifiers: unknown,
-  divisionId: string,
-) {
-  return extractIdentityMappings(identifiers, divisionId)
-}
-
 export function identityBridgePage(
   rows: IdentityMapping[],
   query: IdentityBridgeQuery,
@@ -184,14 +175,11 @@ export async function listIdentityBridge(
   const snapshots = selection.snapshots.filter(
     snapshot =>
       snapshot.role !== 'lookup' &&
-      (snapshot.snapshotResourceType ===
-        (query.resourceType === 'address2d' ? 'address' : query.resourceType) ||
-        (query.resourceType === 'division' &&
-          snapshot.snapshotResourceType === 'divisionArea')),
+      snapshot.snapshotResourceType ===
+        (query.resourceType === 'address2d' ? 'address' : query.resourceType),
   )
   if (!snapshots.some(snapshot => snapshot.role === 'primary')) return null
   const states = []
-  const canonicalIds = new Set<string>()
   for (const snapshot of snapshots) {
     const recordType =
       snapshot.snapshotResourceType === 'address'
@@ -204,16 +192,10 @@ export async function listIdentityBridge(
       deps.resolveSnapshotVersionState(plan, shards, [recordType]),
     )
     states.push({ snapshot, recordType, state })
-    if (recordType !== 'divisionArea')
-      for (const version of state.values()) canonicalIds.add(version.recordId)
   }
   for (const { snapshot, recordType, state } of states) {
     const table =
-      recordType === 'divisionArea'
-        ? historySchema.divisionAreas
-        : recordType === 'division'
-          ? historySchema.divisions
-          : historySchema.address2d
+      recordType === 'division' ? historySchema.divisions : historySchema.address2d
     for (const versions of groupResolvedVersionsByShard(state.values()).values()) {
       for (let offset = 0; offset < versions.length; offset += 90) {
         const batch = versions.slice(offset, offset + 90)
@@ -226,10 +208,7 @@ export async function listIdentityBridge(
               id: table.id,
               versionHash: table.versionHash,
               identifiers: table.identifiers,
-              canonicalId:
-                recordType === 'divisionArea'
-                  ? historySchema.divisionAreas.divisionId
-                  : table.id,
+              canonicalId: table.id,
             })
             .from(table)
             .where(historyVersionSelection(table, batch))
@@ -239,12 +218,7 @@ export async function listIdentityBridge(
         for (const row of rows) {
           if (!expected.has(JSON.stringify([row.id, row.versionHash]))) continue
           found++
-          if (!canonicalIds.has(row.canonicalId)) continue
-          mappings.push(
-            ...(recordType === 'divisionArea'
-              ? extractAreaIdentityMappings(row.id, row.identifiers, row.canonicalId)
-              : extractIdentityMappings(row.identifiers, row.canonicalId)),
-          )
+          mappings.push(...extractIdentityMappings(row.identifiers, row.canonicalId))
         }
         if (found !== expected.size)
           throw new Error(

@@ -1,13 +1,12 @@
-import { requireDefined } from '@repo/core/requireDefined'
-import { expect, test } from 'bun:test'
 import { Database } from 'bun:sqlite'
+import { expect, test } from 'bun:test'
+import { requireDefined } from '@repo/core/requireDefined'
 import { createLocalHarbourDb } from '../../../../libs/core/src/testing/localDb'
 import {
   extractIdentityMappings,
-  extractAreaIdentityMappings,
+  type IdentityBridgeQuery,
   identityBridgePage,
   listIdentityBridge,
-  type IdentityBridgeQuery,
 } from './identityBridge'
 
 const query: IdentityBridgeQuery = {
@@ -17,13 +16,6 @@ const query: IdentityBridgeQuery = {
   releaseSet: 'release-old',
   limit: 1,
 }
-
-test('regional codes target the area record division reference', () => {
-  expect(
-    extractAreaIdentityMappings('ss-geometry', { 'CENSTATD:code': 'HK' }, 'island'),
-  ).toEqual([{ namespace: 'CENSTATD:code', identifier: 'HK', canonicalId: 'island' }])
-  expect(extractAreaIdentityMappings('CENSTATD:area:UNKNOWN', null, 'id')).toEqual([])
-})
 
 test('Planning extraction qualifies subunits and excludes inherited parent codes', () => {
   expect(
@@ -157,13 +149,20 @@ test('lookup reads the selected immutable version, not a later version or a dele
                 snapshotResourceType: 'division',
                 snapshotId: 'selected',
               },
+              {
+                role: 'geometry',
+                snapshotResourceType: 'divisionArea',
+                snapshotId: 'geometry-without-identity-columns',
+              },
             ],
           }) as never,
-        resolveSnapshotReplayPlan: async () =>
-          [
+        resolveSnapshotReplayPlan: async (_db, snapshotId) => {
+          expect(snapshotId).toBe('selected')
+          return [
             { snapshotId: 'base', shards: [{ bindingName: 'history' }] },
             { snapshotId: 'selected', shards: [{ bindingName: 'history' }] },
-          ] as never,
+          ] as never
+        },
         resolveSnapshotVersionState: resolver.resolveSnapshotVersionState,
       },
     )

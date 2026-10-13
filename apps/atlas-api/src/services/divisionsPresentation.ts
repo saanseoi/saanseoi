@@ -127,7 +127,6 @@ type DivisionGeometryResourceAttributes = {
   isLand: boolean | null
   isTerritorial: boolean | null
   sources?: SourcesPayload | null
-  identifiers?: DivisionIdentifiers | null
   variant?:
     | 'hkgov-censtatd'
     | 'hkgov-censtatd-landclipped'
@@ -801,7 +800,6 @@ export function createIncludedDivisionGeometryResource(args: {
           snapshotId: record.snapshotId,
         }
       : {}),
-    identifiers: divisionIdentifiers(record.identifiers),
     variant: record.variant,
   })
   if (args.kind === 'area') {

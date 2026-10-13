@@ -342,11 +342,6 @@ const DivisionGeometryResourceAttributesSchema = z.object({
     .openapi({
       description: openApiText('openapi_divisions_geometry_sources_description'),
     }),
-  identifiers: IdentifiersSchema.nullable()
-    .optional()
-    .openapi({
-      description: openApiText('openapi_divisions_identifiers_field_description'),
-    }),
 })
 
 const DivisionAreaGeometryResourceSchema = z.object({

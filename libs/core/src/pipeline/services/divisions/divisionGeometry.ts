@@ -5,10 +5,7 @@ import { normaliseOvertureAttribution } from '../sources/sourceAttribution'
 import type { SourceAttribution } from '@repo/db'
 import { assertInternalSourceReferences } from '../sources/internalSourceReferences'
 import { camelCaseJson } from '../../../jsonKeys'
-import {
-  divisionIdentifiers,
-  divisionIdentifierProperties,
-} from '../sources/divisionIdentifiers'
+import { divisionIdentifierProperties } from '../sources/divisionIdentifiers'
 import { canonicalGeometryId } from '@repo/db'
 import { recordContent } from '../sources/recordContent'
 import { retainSourceProperties } from '../sources/retainedProperties'
@@ -83,7 +80,6 @@ type GeometryBase = {
   id: string
   isLand: boolean | null
   isTerritorial: boolean | null
-  identifiers: Record<string, unknown> | null
   sources: SourceAttribution[]
   type: 'land' | 'maritime' | 'mixed'
   variant: string
@@ -168,7 +164,6 @@ function normaliseDivisionAreaGeometry(
     throw new Error('Division area row requires non-empty `id` and `division_id`.')
   }
 
-  const identifiers = divisionIdentifiers(buildIdentifiers(row, source))
   const canonicalId =
     source === 'saanseoi' ? id : canonicalGeometryId('divisionArea', source, id)
   const sources = geometrySourceReferences(row, source, options.datasetCode)
@@ -178,7 +173,6 @@ function normaliseDivisionAreaGeometry(
     id: canonicalId,
     isLand,
     isTerritorial,
-    identifiers,
     sources,
     type,
     variant: options.variant ?? source,
@@ -242,7 +236,6 @@ function normaliseDivisionBoundaryGeometry(
     throw new Error(`Division boundary ${id} contains dropped perspectives data.`)
   }
 
-  const identifiers = divisionIdentifiers(buildIdentifiers(row, source))
   const canonicalId = canonicalGeometryId('divisionBoundary', source, id)
   const sources = geometrySourceReferences(row, source, options.datasetCode)
   const base: GeometryBase = {
@@ -251,7 +244,6 @@ function normaliseDivisionBoundaryGeometry(
     id: canonicalId,
     isLand,
     isTerritorial,
-    identifiers,
     sources,
     type,
     variant: options.variant ?? source,
@@ -429,54 +421,6 @@ export function hashDivisionGeometrySourceRow(row: Record<string, unknown>) {
   return createHash(stableJsonStringify(sourceRecordHashInput(row)))
 }
 
-function buildIdentifiers(
-  row: Record<string, unknown>,
-  source: string,
-): Record<string, unknown> | null {
-  if (source === 'saanseoi')
-    return (row.identifiers ?? null) as Record<string, unknown> | null
-  if (source === 'hkgov-had') {
-    return {
-      hkgov: {
-        objectId: asOptionalInteger(row.object_id),
-        cdsiAdminAreaId: asOptionalInteger(row.csdi_admin_area_id),
-        areaId: asNonEmptyString(row.area_id),
-        areaCode: asNonEmptyString(row.area_code),
-      },
-    }
-  }
-
-  if (source === 'hkgov-pland-pu') {
-    return {
-      hkgovPland: {
-        ppu: asNonEmptyString(readIdentifier(row.identifiers, 'PPU')),
-        spu: asNonEmptyString(readIdentifier(row.identifiers, 'SPU')),
-        tpu: asNonEmptyString(readIdentifier(row.identifiers, 'TPU')),
-        subunit: asNonEmptyString(readIdentifier(row.identifiers, 'SUBUNIT')),
-      },
-    }
-  }
-
-  if (source === 'hkgov-censtatd') {
-    const region = /^CENSTATD:area:(HK|KLN|NT)$/.exec(String(row.id))?.[1]
-    return {
-      'CENSTATD:dcClass': asNonEmptyString(row.district_class),
-      'CENSTATD:dcCode': asOptionalInteger(row.district_code),
-      ...(region ? { 'CENSTATD:code': region } : {}),
-    }
-  }
-
-  if (source === 'hkgov-pland-new-town') {
-    return {
-      hkgovPlandNewTown: {
-        id: asNonEmptyString(row.newtown_id),
-      },
-    }
-  }
-
-  return null
-}
-
 function sourceProperties(row: Record<string, unknown>, source: string) {
   if (source === 'overture') return overtureSourcePayload(row).properties
   if (source !== 'hkgov-had' && source !== 'hkgov-censtatd' && source !== 'saanseoi')
@@ -555,11 +499,6 @@ function sourceDerivation(row: Record<string, unknown>, source: string) {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value)
-}
-
-function readIdentifier(value: unknown, key: string) {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) return undefined
-  return divisionIdentifiers(value)?.['hkgov-pland']?.[key.toLowerCase()]
 }
 
 function resolveGeometryType(
@@ -780,10 +719,6 @@ function segmentsIntersect(
 
 function asOptionalBoolean(value: unknown) {
   return typeof value === 'boolean' ? value : null
-}
-
-function asOptionalInteger(value: unknown) {
-  return typeof value === 'number' && Number.isInteger(value) ? value : null
 }
 
 function hadPublisherId(row: Record<string, unknown>) {

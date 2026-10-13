@@ -47,7 +47,6 @@ export function area(id: string, west = 0, east = 10): DivisionAreaRecord {
         ],
       ],
     },
-    identifiers: null,
     sources: null,
     type: 'mixed',
     isLand: null,

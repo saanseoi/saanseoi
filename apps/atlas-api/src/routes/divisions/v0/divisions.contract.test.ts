@@ -493,16 +493,15 @@ function seedCurrent(sqlite: Database) {
     run(
       sqlite,
       `INSERT INTO divisionAreas
-        (snapshotId, id, variant, bbox, geometry, identifiers, sources, type, isLand, isTerritorial,
+        (snapshotId, id, variant, bbox, geometry, sources, type, isLand, isTerritorial,
          divisionId, createdAt, updatedAt)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         `scope:${row.snapshotId}`,
         row.id,
         row.variant,
         json([114.18, 22.25, 114.3, 22.35]),
         json({ type: 'Polygon', coordinates: [] }),
-        null,
         json({
           provider: [{ property: '/id', dataset: row.variant, record_id: row.id }],
         }),
@@ -518,9 +517,9 @@ function seedCurrent(sqlite: Database) {
   run(
     sqlite,
     `INSERT INTO divisionBoundaries
-      (snapshotId, id, variant, bbox, geometry, identifiers, sources, type, isLand, isTerritorial,
+      (snapshotId, id, variant, bbox, geometry, sources, type, isLand, isTerritorial,
        leftDivisionId, rightDivisionId, createdAt, updatedAt)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       'scope:snapshot-overture-2025-boundary-overture',
       'boundary-overture-division-east',
@@ -533,7 +532,6 @@ function seedCurrent(sqlite: Database) {
           [114.2, 22.35],
         ],
       }),
-      null,
       json({
         overture: [
           { property: '/id', dataset: 'overture', record_id: 'boundary-east' },

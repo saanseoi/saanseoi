@@ -1,4 +1,3 @@
-import { divisionIdentifiers } from '../sources/divisionIdentifiers'
 import { expect, test } from 'bun:test'
 import operations from '../../../../../../fixtures/meta/fieldLineage/operations.json'
 import { normaliseDivisionAreaGeometryRow } from './divisionGeometry'
@@ -107,7 +106,6 @@ test('government geometry references follow native identity inputs independently
           recordId: 'town',
         },
       ],
-      identifiers: { 'PLAND:NEWTOWN': 'town' },
     },
     {
       dataset: 'ds-hk-hkgov-pland-division-pu',
@@ -122,7 +120,6 @@ test('government geometry references follow native identity inputs independently
         dataset: 'ds-hk-hkgov-pland-division-pu',
         recordId,
       })),
-      identifiers: { 'PLAND:TPU': '123' },
     },
     {
       dataset: 'ds-hk-hkgov-censtatd-division-area-district',
@@ -140,7 +137,6 @@ test('government geometry references follow native identity inputs independently
           recordId: 'native',
         },
       ],
-      identifiers: { 'CENSTATD:dcCode': 11, 'CENSTATD:dcClass': 'DC' },
     },
   ]
   for (const entry of cases) {
@@ -160,14 +156,14 @@ test('government geometry references follow native identity inputs independently
       { datasetCode: entry.dataset },
     )!
     expect(result.canonical.sources).toEqual(entry.sources)
-    expect(result.canonical.identifiers).toEqual(divisionIdentifiers(entry.identifiers))
+    expect(result.canonical).not.toHaveProperty('identifiers')
     expect(geometryReferenceRule('sources', entry.dataset)?.inputs).toEqual(
       entry.inputs,
     )
   }
   expect(
-    geometryReferenceRule('identifiers', 'ds-hk-overture-division-area')?.inputs,
-  ).toEqual([])
+    geometryReferenceRule('identifiers', 'ds-hk-overture-division-area'),
+  ).toBeNull()
   expect(
     geometryReferenceRule('sources', 'ds-hk-overture-division-area')?.inputs,
   ).toEqual(['id', 'source'])

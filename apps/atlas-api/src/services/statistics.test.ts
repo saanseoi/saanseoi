@@ -250,7 +250,7 @@ function geometryReplayFixture() {
   for (const sqlite of [current, history]) {
     sqlite.exec(`CREATE TABLE divisionAreas (
       snapshotId TEXT, id TEXT, variant TEXT, divisionId TEXT, bbox TEXT,
-      geometry TEXT, identifiers TEXT, sources TEXT, type TEXT,
+      geometry TEXT, sources TEXT, type TEXT,
       isLand INTEGER, isTerritorial INTEGER, versionHash TEXT, operation TEXT
     )`)
     sqlite

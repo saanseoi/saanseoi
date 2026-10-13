@@ -23,7 +23,7 @@ test('included geometry exposes source evidence only in full responses', () => {
       isLand: true,
       isTerritorial: false,
       variant: 'overture',
-      identifiers: { overture: { sourceId: 'original-id' } },
+      bbox: null,
       sources: { overture: [{ dataset: 'publisher', recordId: 'original-id' }] },
     } as Parameters<typeof createIncludedDivisionGeometryResource>[0]['record']
     for (const profile of ['compact', 'default', 'map', 'full'] as const) {
@@ -31,9 +31,7 @@ test('included geometry exposes source evidence only in full responses', () => {
       expect(Object.hasOwn(resource.attributes, 'sources')).toBe(profile === 'full')
       if (profile === 'full')
         expect(record.sources).toEqual(resource.attributes.sources)
-      expect(resource.attributes.identifiers).toEqual({
-        overture: { sourceId: 'original-id' },
-      })
+      expect(resource.attributes).not.toHaveProperty('identifiers')
     }
   }
 })

@@ -128,13 +128,6 @@ export function geometryHumanField(
       '',
       'assign',
     )
-  if (field === 'identifiers')
-    return operation(
-      'Publisher identifiers',
-      sequence('Publisher feature identity', 'Group under the publisher namespace'),
-      '',
-      'normalise',
-    )
   if (field === 'sources')
     return operation(
       'Geometry attribution',

@@ -29,13 +29,8 @@ test('division schemas require publisher objects and describe identifier types',
   })
 })
 
-test('division and geometry identifiers preserve scalar and multiple matching codes', () => {
-  const schemas = [
-    DivisionResourceSchema.shape.attributes.shape.identifiers,
-    ...DivisionGeometryResourceSchema.options.map(
-      resource => resource.shape.attributes.shape.identifiers,
-    ),
-  ]
+test('division identifiers preserve scalar and multiple matching codes', () => {
+  const schemas = [DivisionResourceSchema.shape.attributes.shape.identifiers]
   for (const schema of schemas) {
     expect(schema.parse({ 'hkgov-landsd': { geoNameId: ['001', 42] } })).toEqual({
       'hkgov-landsd': { geoNameId: ['001', 42] },
@@ -53,4 +48,10 @@ test('SaanSeoi source references use the canonical flat attribution schema', () 
   expect(sources.items?.properties).toHaveProperty('publisherCode')
   expect(sources.items?.properties).not.toHaveProperty('componentIndexes')
   expect(sources.items?.additionalProperties).toBe(false)
+})
+
+test('geometry schemas omit entity identifiers', () => {
+  for (const resource of DivisionGeometryResourceSchema.options) {
+    expect(resource.shape.attributes.shape).not.toHaveProperty('identifiers')
+  }
 })

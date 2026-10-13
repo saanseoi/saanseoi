@@ -1,5 +1,8 @@
 # Planning Department TPU and subunit areas
 
+Canonical geometry has no `identifiers` field. Entity identifiers belong to `divisions`;
+publisher feature IDs and native codes remain in retained source records and lineage.
+
 Prepared-artefact cache contract `5` requires the complete PPU → SPU → TPU ancestry
 prefix for each child. Cached immediate-parent-only paths must be regenerated from the
 retained native archive before ingestion.

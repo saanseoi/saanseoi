@@ -190,7 +190,6 @@ export function canonicalDivisionGeometryColumns<Required extends boolean>(
     variant: requiredColumn(text('variant').default('overture'), required),
     bbox: jsonText('bbox'),
     geometry: jsonTextOrBinary('geometry'),
-    identifiers: jsonText('identifiers'),
     sources: jsonText('sources'),
     type: requiredColumn(text('type'), required),
     isLand: integer('isLand', { mode: 'boolean' }),

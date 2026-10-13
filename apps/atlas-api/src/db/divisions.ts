@@ -135,7 +135,6 @@ export type DivisionAreaRecord = {
   divisionId: string
   bbox: typeof divisionAreas.$inferSelect.bbox
   geometry: typeof divisionAreas.$inferSelect.geometry
-  identifiers: typeof divisionAreas.$inferSelect.identifiers
   sources: typeof divisionAreas.$inferSelect.sources
   type: DivisionGeometryType
   isLand: boolean | null
@@ -150,7 +149,6 @@ export type DivisionBoundaryRecord = {
   rightDivisionId: string
   bbox: typeof divisionBoundaries.$inferSelect.bbox
   geometry: typeof divisionBoundaries.$inferSelect.geometry
-  identifiers: typeof divisionBoundaries.$inferSelect.identifiers
   sources: typeof divisionBoundaries.$inferSelect.sources
   type: DivisionGeometryType
   isLand: boolean | null
@@ -173,7 +171,6 @@ export async function listDivisionAreasCurrentByDivisionIds(
             divisionId: divisionAreas.divisionId,
             bbox: divisionAreas.bbox,
             geometry: divisionAreas.geometry,
-            identifiers: divisionAreas.identifiers,
             sources: divisionAreas.sources,
             type: divisionAreas.type,
             isLand: divisionAreas.isLand,
@@ -215,7 +212,6 @@ export async function listDivisionBoundariesCurrentByDivisionIds(
           rightDivisionId: divisionBoundaries.rightDivisionId,
           bbox: divisionBoundaries.bbox,
           geometry: divisionBoundaries.geometry,
-          identifiers: divisionBoundaries.identifiers,
           sources: divisionBoundaries.sources,
           type: divisionBoundaries.type,
           isLand: divisionBoundaries.isLand,

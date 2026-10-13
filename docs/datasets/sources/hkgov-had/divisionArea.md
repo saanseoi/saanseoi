@@ -97,16 +97,9 @@ The managed ZIP is linked after resource-release registration through the releas
 canonical source-release lineage, so its download remains available independently of the
 `divisionArea` materialisation that consumes it.
 
-The compatibility layer exposes these source fields under `hkgov`, with database
-capitalisation, in both source columns and canonical geometry `identifiers`:
-
-| Source field         | Compatibility field     |
-| -------------------- | ----------------------- |
-| `OBJECTID`           | `hkgov.objectId`        |
-| `CSDI_ADMIN_AREA_ID` | `hkgov.cdsiAdminAreaId` |
-| `AREA_TYPE`          | `hkgov.areaType`        |
-| `AREA_ID`            | `hkgov.areaId`          |
-| `AREA_CODE`          | `hkgov.areaCode`        |
+Publisher `OBJECTID`, `CSDI_ADMIN_AREA_ID`, `AREA_TYPE`, `AREA_ID` and `AREA_CODE`
+remain in source `properties`. Canonical geometry has no `identifiers` field; entity
+identifiers belong to `divisions`.
 
 The normalised `divisionArea` fields are the retained EPSG:4326 polygon, `divisionId`,
 `type = mixed`, and `isLand`/`isTerritorial = true`. `NAME_TC`, `NAME_EN`, `DATA_OWNER`,

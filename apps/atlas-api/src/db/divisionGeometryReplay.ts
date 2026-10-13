@@ -35,7 +35,6 @@ async function listReplayedGeometry(
     variant: table.variant,
     bbox: table.bbox,
     geometry: table.geometry,
-    identifiers: table.identifiers,
     sources: table.sources,
     type: table.type,
     isLand: table.isLand,

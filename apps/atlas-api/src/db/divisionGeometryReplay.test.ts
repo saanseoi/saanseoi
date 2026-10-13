@@ -31,7 +31,7 @@ function createDb(history = false) {
   for (const kind of ['divisionAreas', 'divisionBoundaries']) {
     sqlite.exec(`CREATE TABLE ${kind} (
       snapshotId TEXT NOT NULL, id TEXT NOT NULL, variant TEXT,
-      bbox TEXT, geometry BLOB, identifiers TEXT, sources TEXT, type TEXT,
+      bbox TEXT, geometry BLOB, sources TEXT, type TEXT,
       isLand INTEGER, isTerritorial INTEGER, createdAt TEXT, updatedAt TEXT,
       ${kind === 'divisionAreas' ? 'divisionId TEXT' : 'leftDivisionId TEXT, rightDivisionId TEXT'}
       ${history ? ", operation TEXT DEFAULT 'upsert', versionHash TEXT, sourceReleaseId TEXT, isCurrent INTEGER" : ''}
@@ -87,7 +87,6 @@ function createFixture() {
   const common = {
     variant: 'overture',
     bbox: [0, 0, 1, 1],
-    identifiers: null,
     sources: null,
     type: 'land',
     isLand: true,

@@ -22,6 +22,31 @@ const polygon = {
 }
 
 describe('division geometry normalisation', () => {
+  test('identity-only edits preserve geometry hashes and remain in source payloads', async () => {
+    const normalise = (code: string) =>
+      normaliseDivisionAreaGeometryRow(
+        {
+          id: 'PLAND:area',
+          division_id: 'planning-division',
+          geometry: polygon,
+          source_cell_ids: ['native-cell'],
+          identifiers: { 'hkgov-pland': { tpu: code } },
+        },
+        'hkgov-pland-pu',
+      )!
+    const first = normalise('123')
+    const second = normalise('456')
+    expect(first.canonical).not.toHaveProperty('identifiers')
+    expect(await hashDivisionGeometryRow(first.canonical)).toBe(
+      await hashDivisionGeometryRow(second.canonical),
+    )
+    expect(first.source.properties).toHaveProperty('identifiers.hkgov-pland.tpu', '123')
+    expect(second.source.properties).toHaveProperty(
+      'identifiers.hkgov-pland.tpu',
+      '456',
+    )
+  })
+
   test('Planning areas retain all contributing native cells from Parquet JSON', () => {
     const cells = ['PLAND:323:20', 'PLAND:323:21']
     const row = normaliseDivisionAreaGeometryRow(
@@ -368,9 +393,7 @@ describe('division geometry normalisation', () => {
     expect(normalised.canonical.type).toBe('mixed')
     expect(normalised.canonical.isLand).toBe(true)
     expect(normalised.canonical.isTerritorial).toBe(true)
-    expect(normalised.canonical.identifiers).toEqual({
-      'hkgov-had': { objectId: 7, csdiAdminAreaId: 42, areaId: 'A', areaCode: 'CW' },
-    })
+    expect(normalised.canonical).not.toHaveProperty('identifiers')
     expect((normalised.source.properties as Record<string, unknown>).areaCode).toBe(
       'CW',
     )
@@ -414,9 +437,7 @@ describe('division geometry normalisation', () => {
     if (!normalised) throw new Error('Expected a C&SD display area row.')
 
     expect(normalised.canonical.variant).toBe('hkgov-censtatd:simplified')
-    expect(normalised.canonical.identifiers).toEqual({
-      'hkgov-censtatd': { dcClass: 'A', dcCode: 11 },
-    })
+    expect(normalised.canonical).not.toHaveProperty('identifiers')
     expect(normalised.canonical.sources).toEqual([
       {
         publisherCode: 'hkgov-censtatd',
@@ -454,9 +475,7 @@ describe('division geometry normalisation', () => {
 
     expect(normalised.canonical.divisionId).toBe('b3a5b954-9d05-5aa5-bd74-ee2b0c2824e2')
     expect(normalised.canonical.variant).toBe('hkgov-pland-new-town')
-    expect(normalised.canonical.identifiers).toEqual({
-      'hkgov-pland': { newTownId: 'tseung-kwan-o' },
-    })
+    expect(normalised.canonical).not.toHaveProperty('identifiers')
     expect(normalised.canonical.geometry).toEqual(polygon)
     expect(normalised.canonical.bbox).toEqual([0, 0, 1, 1])
     expect(normalised.source.properties).toHaveProperty('geometry', inputGeometry)

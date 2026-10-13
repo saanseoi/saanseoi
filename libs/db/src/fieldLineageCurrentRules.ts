@@ -562,7 +562,6 @@ export function currentDivisionFieldRule(
       divisionId: 'asNonEmptyString(row.division_id)',
       leftDivisionId: 'normaliseDivisionIds(row.division_ids, id)[0]',
       rightDivisionId: 'normaliseDivisionIds(row.division_ids, id)[1]',
-      identifiers: 'canonicalIdentifiers(buildIdentifiers(row, source))',
       sources: 'geometrySourceReferences(row, source, canonicalId)',
       variant: 'options.variant ?? source',
       snapshotId:
@@ -583,7 +582,6 @@ export function currentDivisionFieldRule(
               divisionId: ['division_id'],
               leftDivisionId: ['division_ids'],
               rightDivisionId: ['division_ids'],
-              identifiers: ['identifiers', 'id', 'source'],
               sources: ['sources', 'id', 'source'],
               variant: ['variant', 'source'],
               snapshotId: ['snapshotId'],

@@ -1,5 +1,8 @@
 # Overture division geometry ingestion
 
+Canonical geometry has no `identifiers` field. Entity identifiers belong to `divisions`;
+publisher feature IDs and native codes remain in retained source records and lineage.
+
 Retained source assertions use
 [distinct validity periods for recurring content](../../families/source-evidence.md#recurring-source-validity-periods).
 An unchanged open occurrence continues; returning content starts a new occurrence.

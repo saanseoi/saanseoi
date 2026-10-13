@@ -57,20 +57,21 @@ Source tables follow the family’s source schema conventions (`sourceRecordId`,
 versioning, raw properties, provenance and source version). Canonical history/current
 tables use the same ordering and version-management fragments as `division`.
 
-An area row contains an `id`, `divisionId`, `bbox`, canonical geometry, `identifiers`,
-source provenance, normalised `type` (`land`, `maritime`, or `mixed`), and
-land/territorial flags. A boundary row contains an `id`, ordered `leftDivisionId` and
-`rightDivisionId`, `bbox`, canonical geometry, `identifiers`, source provenance,
-normalised `type`, and the same flags. Providers may add source-specific keys, but
-canonical columns must not be silently overloaded.
+An area row contains an `id`, `divisionId`, `bbox`, canonical geometry, source
+provenance, normalised `type` (`land`, `maritime`, or `mixed`), and land/territorial
+flags. A boundary row contains an `id`, ordered `leftDivisionId` and `rightDivisionId`,
+`bbox`, canonical geometry, source provenance, normalised `type`, and the same flags.
+Providers may add source-specific keys, but canonical columns must not be silently
+overloaded.
 
 Canonical area and boundary geometry omits the optional embedded GeoJSON `bbox`. The
 separate `bbox` column is calculated from the canonical coordinates. Source geometry
 retains any embedded bbox as part of its original evidence.
 
-`identifiers` contains genuine provider identifiers where a provider bridge exists.
-Source versions, classifications, and other source-only fields remain available through
-the source-record API under `properties`.
+Canonical geometry has no `identifiers` field. Entity identifiers belong to `divisions`
+and are resolved in the selected release, including historical reads. Publisher geometry
+feature IDs, source versions, classifications and other source-only fields remain
+available through source records and their `properties`.
 
 ## Domains, identity and hierarchy
 
@@ -106,9 +107,9 @@ assignments; `CURRENT` contains only the selected latest snapshot. For Hong Kong
 assignments are region-scoped through `DB_SOURCE_HK_BEFORE` and `DB_HISTORY_HK_BEFORE`;
 their shard metadata uses `regionCode` `hk` and no numeric `year`.
 
-Public consumers use `/v0.1/identityBridge` to derive mappings from the identifiers
-retained by the selected API release set. Deterministic identity mappings do not need an
-enumerated fixture or a metadata bridge table.
+Public consumers use `/v0.1/identityBridge` to derive mappings from the identifiers on
+identity records retained by the selected API release set. Deterministic identity
+mappings do not need an enumerated fixture or a metadata bridge table.
 
 ## CSDI catalogue planning registry
 

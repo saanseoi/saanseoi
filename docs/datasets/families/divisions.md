@@ -80,11 +80,11 @@ export identities additionally use `osm.areaId`, `osm.nodeId`, `osm.wayId` or
 identifiers, not inferred OSM way or relation IDs. Coastline component IDs are
 content-addressed Protomaps source records and have no OSM element identifier.
 
-Curated Areas can retain identifiers of their associated division. Geometry input
-records remain in `sources`; construction, island-group and partition objects are
-rejected as identifier values. Historical repairs resolve publishers from retained
-native records and do not assign current geometry selections to historical records
-without retained evidence.
+Canonical `divisionAreas` and `divisionBoundaries` contain no `identifiers` field in
+CURRENT, HISTORY or API resources. Entity identifiers belong to `divisions`; historical
+reads resolve the Division identity in the selected release. Publisher geometry feature
+IDs remain in retained source records and lineage, with upstream attribution in
+`sources`. Identifier-only identity changes do not version canonical geometry.
 
 The SaanSeoi preparation audit separates its summary and before/after results from flat
 fixture lists, classifies instructions as rules, bulk/custom curations or patches, and

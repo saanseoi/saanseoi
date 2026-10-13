@@ -1,5 +1,8 @@
 # Census and Statistics Department District Council district areas
 
+Canonical geometry has no `identifiers` field. Entity identifiers belong to `divisions`;
+publisher feature IDs and native codes remain in retained source records and lineage.
+
 Canonical Division identities use representative Points. Canonicalisation preserves a
 valid source point or derives an interior point from polygonal source geometry using JTS
 `InteriorPoint`. The `division-representative-point` audit guard verifies point validity

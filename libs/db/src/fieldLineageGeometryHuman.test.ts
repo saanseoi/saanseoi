@@ -23,7 +23,7 @@ test('every area and boundary field has a schematic contract', () => {
         'id',
         'sources',
         ...(resource === 'divisionArea'
-          ? ['divisionId', 'variant', 'identifiers']
+          ? ['divisionId', 'variant']
           : ['leftDivisionId', 'rightDivisionId']),
       ]) {
         const human = geometryHumanField(resource, field, dataset)!

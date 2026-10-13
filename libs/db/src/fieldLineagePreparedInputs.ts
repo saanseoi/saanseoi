@@ -456,7 +456,7 @@ function compileInput(
             'Map the complete prepared area set through normaliseDivisionAreaGeometryRow in input order, retaining non-null results and their canonical IDs. This is the coverage supplied to the upload display simplifier.',
           steps: [
             'Apply the retained region/Division exclusion policy; require non-empty id/division_id and Polygon/MultiPolygon geometry; apply requested validity checks.',
-            'Normalise canonical IDs, provider identifiers/source references and government land/territorial flags. Recompute bbox from normalised geometry and remove an embedded bbox.',
+            'Normalise canonical IDs, source references and government land/territorial flags. Recompute bbox from normalised geometry and remove an embedded bbox.',
             'Keep the geometry-to-canonical-ID association and original row order. Simplification consumes all accepted geometries together, not independently per feature.',
           ],
         },
