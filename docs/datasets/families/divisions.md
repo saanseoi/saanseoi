@@ -192,7 +192,9 @@ their catalogue revisions. The September geographic edition publishes the first 
 catalogue with those domains included; October publishes the second. Government imports
 use the process-scoped `SAANSEOI_INIT_DEFER_DIVISIONS_CATALOG` marker, which forwards
 `deferApiCatalogRevision` to Harbour without deferring release-set or source
-publication. Standalone government initialisers publish their catalogues normally.
+publication. Receipt promotion, search finalisation and reconciled snapshot cleanup wait
+for catalogue publication, so an intermediate catalogue cannot select superseded current
+rows. Standalone government initialisers publish their catalogues normally.
 
 Division audit actions retain repeated field values in bounded column dictionaries. R2
 delivery uploads independent objects concurrently and registers the release audit only

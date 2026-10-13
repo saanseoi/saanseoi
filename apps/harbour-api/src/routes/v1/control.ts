@@ -331,7 +331,10 @@ export const publishDatasetRoute = defineOpenAPIRoute<
       const result = await handlePublishDataset(db, request, c.env.DATASET_QUEUE, {
         lineageStore: c.env.R2_ASSETS,
       })
-      const deferred = request.deferApiReleaseSet || request.deferSourcePublish
+      const deferred =
+        request.deferApiReleaseSet ||
+        request.deferSourcePublish ||
+        request.deferApiCatalogRevision
       await finalisePublishedResources(db, c.env.DB_CURRENT, {
         deferred,
         publishedFamilies: (result.apiReleaseSetPublications ?? []).map(
@@ -391,6 +394,9 @@ export const reconcileDraftReleaseSetsRoute = defineOpenAPIRoute<
       const request = c.req.valid('json')
       const result = await handleReconcileDraftReleaseSets(db, request, c.env.R2_ASSETS)
       const options = {
+        // A deferred catalogue still selects the previous serving snapshots.
+        // Promote receipts and rebuild search only when its replacement is published.
+        deferred: request.deferApiCatalogRevision,
         publishedFamilies: request.apiFamily ? [request.apiFamily] : undefined,
       }
       await finalisePublishedResources(db, c.env.DB_CURRENT, options)
@@ -401,7 +407,8 @@ export const reconcileDraftReleaseSetsRoute = defineOpenAPIRoute<
         ...options,
         pendingReleaseSetCodes: result.pendingReleaseSetCodes,
       })
-      await scheduleReconciledSnapshotCleanup(db, c.env.DATASET_QUEUE, request)
+      if (!request.deferApiCatalogRevision)
+        await scheduleReconciledSnapshotCleanup(db, c.env.DATASET_QUEUE, request)
       await announcePublishedReleaseSets(c.env, result.publishedReleaseSetAnnouncements)
       const { publishedReleaseSetAnnouncements: _announcements, ...response } = result
       return c.json(response, 200)
