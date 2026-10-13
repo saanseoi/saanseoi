@@ -25,6 +25,18 @@ domainCode: "geographic"
   directly authored by us. Swapping the primary source for divisions necessitated that
   we bumped the API by a minor version. The request/response shape remains unchanged,
   but the composition of the underlying data has fundamentally changed.
+- <orange>SaanSeoi</orange> In short; it is now a curated <code>geographic</code>
+  inventory which supplies Division identities, names, classification and hierarchy from
+  multiple sources. Select <black>inventory=saanseoi</black> (the default) or the
+  separate <black>inventory=overture</black> inventory.
+- <orange>API services</orange> <black>GET /divisions/v0.2/inventories</black> lists the
+  selected release's inventories and geometry defaults. <black>GET
+  /divisions/v0.2/geocode</black> resolves coordinates, place names or addresses to
+  division membership. <black>GET /divisions/v0.2/changes</black> compares published
+  releases, and <black>GET /divisions/v0.2/changes/definitions/{id}</black> retrieves
+  exact before/after definitions. See the [guide](?tab=guide) for examples, selectors
+  and coverage limits. Collection, detail and name search are also available under
+  <black>/divisions/v0.2</black>.
 - <orange>SaanSeoi</orange> Introducing a new hierarchy taxonomy which distinguishes
   <black>administrative</black>, <black>locality</black>, and <black>landform</black>
   ancestry.
@@ -75,8 +87,17 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 - 山水 | SaanSeoi Divisions API v`{{apiVersionNumber}}`
   首次為{{regionName:zh-Hant}}發布。
 - <orange>SaanSeoi</orange> 我們從根本上改變了 <code>geographic</code>
-  區劃 domain 的組裝方式：不再以大量修補的 <black>Overture Divisions</black>
-  資料集投影作為基礎，而是維護自己的區劃 inventory，整合多個來源，並在匯入前完成預處理。由於作為準據的資料由我們直接編製，修正 Overture 所需的補丁亦隨之減少。更換區劃的主要來源，需要將 API 的次版本號遞增。請求及回應的結構保持不變，但底層資料的組成已從根本上改變。
+  區劃 domain 的組裝方式：不再以經大量修補的 <black>Overture Divisions</black>
+  資料集投影為基礎，而是自行維護區劃 inventory，整合多個來源，並在匯入前完成預處理。由於作為準據的資料由我們直接編製，修正 Overture 所需的補丁亦隨之減少。更換區劃的主要來源，因此需要提升 API 的次版本號。請求及回應的結構保持不變，但底層資料的組成已從根本上改變。
+- <orange>SaanSeoi</orange> 簡而言之，現在由經整理的 <code>geographic</code>
+  inventory 整合多個來源，提供區劃識別碼、名稱、分類及層級。可選取預設的
+  <black>inventory=saanseoi</black>，或獨立的 <black>inventory=overture</black>。
+- <orange>API 服務</orange> <black>GET /divisions/v0.2/inventories</black>
+  列出所選發布的 inventory 及幾何預設值。 <black>GET /divisions/v0.2/geocode</black>
+  將座標、地名或地址解析為區劃歸屬。 <black>GET /divisions/v0.2/changes</black>
+  比較已發布版本； <black>GET /divisions/v0.2/changes/definitions/{id}</black>
+  取得確切的前後定義。範例、選擇參數及覆蓋限制請參閱[指南](?tab=guide)。
+  <black>/divisions/v0.2</black> 亦提供列表、詳情及名稱搜尋。
 - <orange>SaanSeoi</orange> 引入新的層級分類，區分
   <black>administrative</black>（行政）、<black>locality</black>（聚落）及
   <black>landform</black>（地貌）祖先關係。
@@ -118,8 +139,17 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 - 山水 | SaanSeoi Divisions API v`{{apiVersionNumber}}`
   首次为{{regionName:zh-Hans}}发布。
 - <orange>SaanSeoi</orange> 我们从根本上改变了 <code>geographic</code>
-  区划 domain 的组装方式：不再以大量修补的 <black>Overture Divisions</black>
-  数据集投影作为基础，而是维护自己的区划 inventory，整合多个来源，并在导入前完成预处理。由于作为依据的数据由我们直接编制，修正 Overture 所需的补丁也随之减少。更换区划的主要来源，需要将 API 的次版本号递增。请求及响应的结构保持不变，但底层数据的组成已从根本上改变。
+  区划 domain 的组装方式：不再以经大量修补的 <black>Overture Divisions</black>
+  数据集投影为基础，而是自行维护区划 inventory，整合多个来源，并在导入前完成预处理。由于作为依据的数据由我们直接编制，修正 Overture 所需的补丁亦随之减少。更换区划的主要来源，因此需要提升 API 的次版本号。请求及响应的结构保持不变，但底层数据的组成已从根本上改变。
+- <orange>SaanSeoi</orange> 简而言之，现在由经整理的 <code>geographic</code>
+  inventory 整合多个来源，提供区划标识符、名称、分类及层级。可选择默认的
+  <black>inventory=saanseoi</black>，或独立的 <black>inventory=overture</black>。
+- <orange>API 服务</orange> <black>GET /divisions/v0.2/inventories</black>
+  列出所选发布的 inventory 及几何默认值。 <black>GET /divisions/v0.2/geocode</black>
+  将坐标、地名或地址解析为区划归属。 <black>GET /divisions/v0.2/changes</black>
+  比较已发布版本； <black>GET /divisions/v0.2/changes/definitions/{id}</black>
+  获取确切的前后定义。示例、选择参数及覆盖限制请参阅[指南](?tab=guide)。
+  <black>/divisions/v0.2</black> 亦提供列表、详情及名称搜索。
 - <orange>SaanSeoi</orange> 引入新的层级分类，区分
   <black>administrative</black>（行政）、<black>locality</black>（聚落）及
   <black>landform</black>（地貌）祖先关系。
