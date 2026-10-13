@@ -239,3 +239,14 @@ SaanSeoi authorship.
 Component indexes belong to `geometrySource` selection evidence, outside `sources`.
 Prepared publisher records omit this selection evidence and expose flat source
 attribution arrays.
+
+## Cartography and search languages
+
+Every curated Division carries `minZoom`, `maxZoom` and `prominence` from its resolved
+class policy in `libs/db/src/divisionTaxonomy.ts`. These values belong to the SaanSeoi
+archive and persist through ingestion. Upstream Overture cartography remains source
+evidence with its publisher's optional zoom bounds and prominence scale.
+
+Division text search indexes English (`en`), Traditional Chinese (`zh-hant`) and
+Simplified Chinese (`zh-hans`). Other retained source locales remain evidence and do not
+participate in search. Code searches also require a supported localisation.

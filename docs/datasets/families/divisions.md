@@ -986,8 +986,10 @@ Search matches localised names, alternate names, name-rule values and curated
 contain one or more characters. Punctuation separates search terms. All terms must
 match, and FTS operators and SQL wildcards are not query syntax. Queries allow at most
 120 characters and eight terms. Optional `locale` restricts the matching localisation;
-otherwise all localisations participate. Code-only records without localised names use
-`locale=und` in results.
+otherwise English (`en`), Traditional Chinese (`zh-hant`) and Simplified Chinese
+(`zh-hans`) participate. Only these three locales are indexed and returned. A division
+requires a name row in a supported locale to participate, including code searches. Other
+source locales remain available as retained evidence.
 
 Ancestor names are excluded unless `ancestors=true`. This option searches the stored
 names from all materialised hierarchy paths; it performs no inferred ancestry or live

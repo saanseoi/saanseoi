@@ -2,7 +2,7 @@ CREATE VIRTUAL TABLE IF NOT EXISTS divisionSearchFts USING fts5(
     scopeId UNINDEXED, divisionId UNINDEXED, locale UNINDEXED, nameText, aliasText, codeText, ancestorText, tokenize='trigram'
   );
 
-WITH selected AS (SELECT scopeId, snapshotId FROM divisionSearchScopes), desired AS (SELECT s.scopeId, d.id AS divisionId, COALESCE(i.locale, 'und') AS locale,
+WITH selected AS (SELECT scopeId, snapshotId FROM divisionSearchScopes), desired AS (SELECT s.scopeId, d.id AS divisionId, i.locale AS locale,
     COALESCE(i.name, '') AS nameText,
     TRIM(REPLACE(COALESCE(i.nameAlts, ''), '|', ' ') || ' ' ||
       COALESCE((SELECT group_concat(DISTINCT json_extract(value, '$.value')
@@ -15,14 +15,15 @@ WITH selected AS (SELECT scopeId, snapshotId FROM divisionSearchScopes), desired
       AND publication.status = 'current' AND publication.preparedAt IS NOT NULL
       AND publication.publicationToken <> ''
     JOIN divisions d ON d.snapshotId = publication.scopeId
-    LEFT JOIN divisionsI18n i ON i.snapshotId = d.snapshotId AND i.divisionId = d.id), removed AS (
+    JOIN divisionsI18n i ON i.snapshotId = d.snapshotId AND i.divisionId = d.id
+      AND i.locale IN ('en', 'zh-hant', 'zh-hans')), removed AS (
       SELECT scopeId, divisionId, locale, nameText, aliasText, codeText, ancestorText FROM divisionSearchFts EXCEPT SELECT scopeId, divisionId, locale, nameText, aliasText, codeText, ancestorText FROM desired
     ) DELETE FROM divisionSearchFts WHERE rowid IN (
       SELECT f.rowid FROM divisionSearchFts f JOIN removed r ON
       f.scopeId IS r.scopeId AND f.divisionId IS r.divisionId AND f.locale IS r.locale AND f.nameText IS r.nameText AND f.aliasText IS r.aliasText AND f.codeText IS r.codeText AND f.ancestorText IS r.ancestorText
     );
 
-WITH selected AS (SELECT scopeId, snapshotId FROM divisionSearchScopes), desired AS (SELECT s.scopeId, d.id AS divisionId, COALESCE(i.locale, 'und') AS locale,
+WITH selected AS (SELECT scopeId, snapshotId FROM divisionSearchScopes), desired AS (SELECT s.scopeId, d.id AS divisionId, i.locale AS locale,
     COALESCE(i.name, '') AS nameText,
     TRIM(REPLACE(COALESCE(i.nameAlts, ''), '|', ' ') || ' ' ||
       COALESCE((SELECT group_concat(DISTINCT json_extract(value, '$.value')
@@ -35,5 +36,6 @@ WITH selected AS (SELECT scopeId, snapshotId FROM divisionSearchScopes), desired
       AND publication.status = 'current' AND publication.preparedAt IS NOT NULL
       AND publication.publicationToken <> ''
     JOIN divisions d ON d.snapshotId = publication.scopeId
-    LEFT JOIN divisionsI18n i ON i.snapshotId = d.snapshotId AND i.divisionId = d.id) INSERT INTO divisionSearchFts (scopeId, divisionId, locale, nameText, aliasText, codeText, ancestorText)
+    JOIN divisionsI18n i ON i.snapshotId = d.snapshotId AND i.divisionId = d.id
+      AND i.locale IN ('en', 'zh-hant', 'zh-hans')) INSERT INTO divisionSearchFts (scopeId, divisionId, locale, nameText, aliasText, codeText, ancestorText)
       SELECT scopeId, divisionId, locale, nameText, aliasText, codeText, ancestorText FROM desired EXCEPT SELECT scopeId, divisionId, locale, nameText, aliasText, codeText, ancestorText FROM divisionSearchFts;

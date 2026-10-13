@@ -293,14 +293,19 @@ test('ancestor ordering causes no writes; changed ancestor text refreshes the af
   }
 })
 
-test('codes remain searchable without localised names and bound scope lists do not grow the parameter count', async () => {
+test('codes require a supported localisation and bound scope lists do not grow the parameter count', async () => {
   const f = fixture()
   try {
     f.add('latest', 'code', 'Placeholder', { code: 'HK_ISLAND' })
     f.sqlite.exec("DELETE FROM divisionsI18n WHERE divisionId='code'")
     f.sync()
+    expect(await f.search('hk_island')).toEqual([])
+    f.sqlite.exec(
+      "INSERT INTO divisionsI18n VALUES ('physical-geographic','code','en','Island',NULL,NULL)",
+    )
+    f.sync()
     expect((await f.search('hk_island')).map(r => [r.divisionId, r.locale])).toEqual([
-      ['code', 'und'],
+      ['code', 'en'],
     ])
     const scopes = Array.from({ length: 120 }, (_, i) => ({
       scopeId: `hk:geographic:lineage${i}`,
@@ -340,6 +345,42 @@ test('Division search discards results when publication changes during the query
     f.sync()
     await expect(f.search('Harbour')).rejects.toThrow('Division search is not ready')
     expect(interrupted).toBe(true)
+  } finally {
+    f.sqlite.close()
+  }
+})
+
+test('only supported languages participate in division search, including existing indexes', async () => {
+  const f = fixture()
+  try {
+    for (const locale of ['en', 'zh-hant', 'zh-hans', 'yue', 'yue-latn-jyutping', 'ja'])
+      f.add('latest', locale, `Unique ${locale}`, { locale, alias: `Alias ${locale}` })
+    f.sync()
+    expect(
+      f.sqlite
+        .query('SELECT DISTINCT locale FROM divisionSearchFts ORDER BY locale')
+        .all(),
+    ).toEqual([{ locale: 'en' }, { locale: 'zh-hans' }, { locale: 'zh-hant' }])
+    expect((await f.search('Unique')).map(row => row.locale).sort()).toEqual([
+      'en',
+      'zh-hans',
+      'zh-hant',
+    ])
+    expect(await f.search('Alias ja')).toEqual([])
+    expect(
+      DivisionSearchQuerySchema.safeParse({ q: 'Unique', locale: 'yue' }).success,
+    ).toBe(false)
+    // A previously built index must also respect the current language contract.
+    f.sqlite.exec(
+      "INSERT INTO divisionSearchFts VALUES ('hk:geographic:geo','ja','ja','Unsupported Japanese','Unsupported alias','','')",
+    )
+    expect(await f.search('Unsupported')).toEqual([])
+    f.sync()
+    expect(
+      f.sqlite
+        .query("SELECT count(*) AS n FROM divisionSearchFts WHERE locale='ja'")
+        .get(),
+    ).toEqual({ n: 0 })
   } finally {
     f.sqlite.close()
   }

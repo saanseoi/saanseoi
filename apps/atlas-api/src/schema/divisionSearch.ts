@@ -41,7 +41,7 @@ export const DivisionSearchResponseSchema = z
         divisionId: z.string(),
         domain: z.enum(divisionSearchDomains),
         snapshotId: z.string(),
-        locale: z.string(),
+        locale: ApiLocale,
         name: z.string(),
         divisionCode: z.string().nullable(),
         class: z.string(),

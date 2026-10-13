@@ -1,3 +1,4 @@
+import { apiLocales } from '../../../lib/apiLocales'
 import {
   buildSearchSyncSql,
   type SearchIndexDefinition,
@@ -30,7 +31,7 @@ export const divisionSearchIndex: SearchIndexDefinition = {
     'ancestorText',
   ],
   unindexed: ['scopeId', 'divisionId', 'locale'],
-  selectSql: `SELECT s.scopeId, d.id AS divisionId, COALESCE(i.locale, 'und') AS locale,
+  selectSql: `SELECT s.scopeId, d.id AS divisionId, i.locale AS locale,
     COALESCE(i.name, '') AS nameText,
     TRIM(REPLACE(COALESCE(i.nameAlts, ''), '|', ' ') || ' ' ||
       COALESCE((SELECT group_concat(DISTINCT json_extract(value, '$.value')
@@ -43,7 +44,8 @@ export const divisionSearchIndex: SearchIndexDefinition = {
       AND publication.status = 'current' AND publication.preparedAt IS NOT NULL
       AND publication.publicationToken <> ''
     JOIN divisions d ON d.snapshotId = publication.scopeId
-    LEFT JOIN divisionsI18n i ON i.snapshotId = d.snapshotId AND i.divisionId = d.id`,
+    JOIN divisionsI18n i ON i.snapshotId = d.snapshotId AND i.divisionId = d.id
+      AND i.locale IN (${apiLocales.map(locale => `'${locale}'`).join(', ')})`,
 }
 
 export const buildDivisionSearchSyncSql = (scopes: readonly SearchScope[]) =>
