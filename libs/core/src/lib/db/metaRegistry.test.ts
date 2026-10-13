@@ -718,7 +718,6 @@ function createSnapshotAssemblyDb() {
       snapshotId TEXT NOT NULL,
       snapshotRecipeId TEXT NOT NULL,
       anchorReleaseId TEXT,
-      status TEXT NOT NULL,
       createdAt TEXT NOT NULL,
       updatedAt TEXT NOT NULL
     );

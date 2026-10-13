@@ -186,7 +186,6 @@ export async function recordEffectiveSnapshotAssembly(
       primary?.sourceReleaseId ??
       args.anchorReleaseId ??
       null,
-    status: sources.length ? 'selected' : 'planning',
     updatedAt: now,
   }
   await db

@@ -24,7 +24,7 @@ const tables = {
   snapshotRecipeInputs:
     'snapshotRecipeId TEXT REFERENCES snapshotRecipes(id), datasetId TEXT, PRIMARY KEY(snapshotRecipeId,datasetId)',
   snapshotAssemblies:
-    'id TEXT PRIMARY KEY, snapshotId TEXT REFERENCES snapshots(id), snapshotRecipeId TEXT REFERENCES snapshotRecipes(id), status TEXT, anchorReleaseId TEXT',
+    'id TEXT PRIMARY KEY, snapshotId TEXT REFERENCES snapshots(id), snapshotRecipeId TEXT REFERENCES snapshotRecipes(id), anchorReleaseId TEXT',
   snapshotDependencies:
     'snapshotId TEXT REFERENCES snapshots(id), dependencySnapshotId TEXT REFERENCES snapshots(id), role TEXT, PRIMARY KEY(snapshotId,role)',
   releaseShardAssignments:
@@ -50,7 +50,7 @@ async function populate(db: Database) {
       INSERT INTO snapshotResourceReleases VALUES('${variant}','release','contributed_geometry');
       INSERT INTO snapshotRecipes VALUES('${variant}','recipe-hash');
       INSERT INTO snapshotRecipeInputs VALUES('${variant}','dataset');
-      INSERT INTO snapshotAssemblies VALUES('${variant}','${variant}','${variant}','selected',NULL);
+      INSERT INTO snapshotAssemblies VALUES('${variant}','${variant}','${variant}',NULL);
       INSERT INTO snapshotShardAssignments VALUES('${variant}','history');`)
   db.exec(
     "INSERT INTO snapshotDependencies VALUES ('simplified','lookup','divisionArea')",
@@ -220,7 +220,7 @@ test('geometry metadata replay resumes a partial second variant and carries real
 
     local.exec(`UPDATE stats SET dimension=NULL,dimensionValue=NULL;
       UPDATE snapshots SET status='published',updatedAt='published' WHERE id='exact';
-      UPDATE snapshotAssemblies SET status='completed' WHERE snapshotId='exact';`)
+      UPDATE snapshotAssemblies SET anchorReleaseId='recovered-release' WHERE snapshotId='exact';`)
     const beforeRecovery = changes(remote) ?? 0
     executeNativeSqlStatements(remote, await capture('exact'))
     expect((changes(remote) ?? 0) - beforeRecovery).toBe(3)

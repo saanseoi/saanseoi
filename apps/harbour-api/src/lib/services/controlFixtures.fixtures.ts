@@ -343,8 +343,8 @@ export function seedSnapshotAssembly(sqlite: Database, snapshotId: string) {
     VALUES (?, ?, ?, 1, ?, ?)`)
     .run(recipeId, recipeId, snapshot.resourceType, definitionId, definitionId)
   sqlite
-    .query(`INSERT INTO snapshotAssemblies (id, snapshotId, snapshotRecipeId, status)
-    VALUES (?, ?, ?, 'completed')
+    .query(`INSERT INTO snapshotAssemblies (id, snapshotId, snapshotRecipeId)
+    VALUES (?, ?, ?)
     ON CONFLICT(snapshotId) DO UPDATE SET snapshotRecipeId = excluded.snapshotRecipeId`)
     .run(`fixture-assembly-${snapshotId}`, snapshotId, recipeId)
 }

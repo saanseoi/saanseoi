@@ -104,7 +104,6 @@ export async function buildDivisionMetaSqlFile(
       snapshotId: metaSnapshotAssemblies.snapshotId,
       snapshotRecipeId: metaSnapshotAssemblies.snapshotRecipeId,
       anchorReleaseId: metaSnapshotAssemblies.anchorReleaseId,
-      status: metaSnapshotAssemblies.status,
       createdAt: metaSnapshotAssemblies.createdAt,
       updatedAt: metaSnapshotAssemblies.updatedAt,
     })
@@ -264,7 +263,6 @@ ON CONFLICT(snapshotId, resourceReleaseId) DO UPDATE SET
         'snapshotId',
         'snapshotRecipeId',
         'anchorReleaseId',
-        'status',
         'createdAt',
         'updatedAt',
       ],
@@ -275,7 +273,6 @@ ON CONFLICT(id) DO UPDATE SET
   snapshotId = excluded.snapshotId,
   snapshotRecipeId = excluded.snapshotRecipeId,
   anchorReleaseId = excluded.anchorReleaseId,
-  status = excluded.status,
   createdAt = excluded.createdAt,
   updatedAt = excluded.updatedAt`.trim(),
       },

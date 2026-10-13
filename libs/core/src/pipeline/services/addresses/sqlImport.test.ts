@@ -97,11 +97,11 @@ INSERT INTO snapshots (id, snapshotLineageId, parentSnapshotId, code, cohortKey,
         'assembly-hash', '2026-09-07T00:00:00.000Z', '2026-09-07T00:00:00.000Z'
       );
       INSERT INTO snapshotAssemblies (
-        id, snapshotId, snapshotRecipeId, anchorReleaseId, status,
+        id, snapshotId, snapshotRecipeId, anchorReleaseId,
         createdAt, updatedAt
       ) VALUES (
         'address-assembly-run', 'address-snapshot', 'address-assembly', 'release-address',
-        'selected', '2026-09-07T00:00:00.000Z', '2026-09-07T00:00:00.000Z'
+        '2026-09-07T00:00:00.000Z', '2026-09-07T00:00:00.000Z'
       );
       INSERT INTO releaseShardAssignments (resourceReleaseId, dataShardId)
       VALUES ('release-address', 'history-shard');

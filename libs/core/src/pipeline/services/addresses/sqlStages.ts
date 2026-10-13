@@ -493,7 +493,6 @@ export async function buildAddressMetaSqlFile(
       snapshotId: metaSnapshotAssemblies.snapshotId,
       snapshotRecipeId: metaSnapshotAssemblies.snapshotRecipeId,
       anchorReleaseId: metaSnapshotAssemblies.anchorReleaseId,
-      status: metaSnapshotAssemblies.status,
       createdAt: metaSnapshotAssemblies.createdAt,
       updatedAt: metaSnapshotAssemblies.updatedAt,
     })
@@ -625,7 +624,6 @@ export async function buildAddressMetaSqlFile(
         'snapshotId',
         'snapshotRecipeId',
         'anchorReleaseId',
-        'status',
         'createdAt',
         'updatedAt',
       ],
@@ -634,7 +632,6 @@ export async function buildAddressMetaSqlFile(
   snapshotId = excluded.snapshotId,
   snapshotRecipeId = excluded.snapshotRecipeId,
   anchorReleaseId = excluded.anchorReleaseId,
-  status = excluded.status,
   createdAt = excluded.createdAt,
   updatedAt = excluded.updatedAt`,
     ),

@@ -81,7 +81,6 @@ test('empty exact Address dependencies resolve from metadata and reject missing 
       id: 'empty',
       snapshotId: 'empty-address',
       snapshotRecipeId: 'assembly',
-      status: 'selected',
     })
     for (const [role, dependencySnapshotId] of Object.entries({
       division: 'empty-division',
@@ -219,7 +218,6 @@ test('exact historical Place dependencies replay independent locale shards and s
         id: snapshotId,
         snapshotId,
         snapshotRecipeId: 'assembly',
-        status: 'selected',
       })
     for (const snapshotId of ['a1', 'a2'])
       for (const [role, dependencySnapshotId] of Object.entries({

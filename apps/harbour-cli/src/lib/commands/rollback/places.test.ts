@@ -81,7 +81,6 @@ async function fixture() {
       id,
       snapshotId: id,
       snapshotRecipeId: id,
-      status: 'selected',
     })
     for (const [role, dependencySnapshotId] of Object.entries(selection))
       insert(meta, 'snapshotDependencies', {

@@ -399,7 +399,6 @@ export const metaSnapshotAssemblies = sqliteTable(
     snapshotId: snapshotIdColumn('cascade'),
     snapshotRecipeId: snapshotRecipeIdColumn('restrict'),
     anchorReleaseId: text('anchorReleaseId'),
-    status: text('status').notNull(),
     ...timestamps,
   },
   table => [uniqueIndex('snapshotAssemblies_snapshotId_idx').on(table.snapshotId)],

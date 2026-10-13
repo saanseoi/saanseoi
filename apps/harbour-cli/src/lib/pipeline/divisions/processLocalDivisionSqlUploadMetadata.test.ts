@@ -24,7 +24,7 @@ UPDATE snapshotLineages SET resourceType='division' WHERE id='lineage' AND resou
 INSERT INTO snapshots (id, snapshotLineageId, code, cohortKey, status) VALUES
 ('snapshot', 'lineage', 'snapshot', '2025', 'draft');
       INSERT INTO snapshotRecipes (id, code, resourceType, version, versionHash) VALUES ('assembly', 'assembly', 'division', 1, 'hash');
-      INSERT INTO snapshotAssemblies (id, snapshotId, snapshotRecipeId, status) VALUES ('run', 'snapshot', 'assembly', 'completed');
+      INSERT INTO snapshotAssemblies (id, snapshotId, snapshotRecipeId) VALUES ('run', 'snapshot', 'assembly');
       INSERT INTO snapshotResourceReleases (snapshotId, datasetId, resourceReleaseId, role) VALUES ('snapshot', 'dataset', 'release', 'primary');
       INSERT INTO releaseShardAssignments VALUES ('release', 'shard');
       INSERT INTO snapshotShardAssignments VALUES ('snapshot', 'shard');

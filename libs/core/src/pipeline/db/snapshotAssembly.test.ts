@@ -60,7 +60,6 @@ function run(sqlite: Database) {
     id: string
     snapshotRecipeId: string
     anchorReleaseId: string
-    status: string
   }
 }
 
@@ -106,15 +105,12 @@ test('fresh ingestion records all inputs, refreshes one draft assembly and repla
     expect(
       target.sqlite.query('SELECT * FROM snapshotRecipeInputs').all(),
     ).toHaveLength(3)
-    local.sqlite.exec(
-      "UPDATE snapshotAssemblies SET anchorReleaseId=NULL,status='planning'",
-    )
+    local.sqlite.exec('UPDATE snapshotAssemblies SET anchorReleaseId=NULL')
     const changedSql = (await readSnapshotAssemblySql(local.db, 'snapshot', true)).join(
       '\n',
     )
     target.sqlite.exec(changedSql)
     expect(run(target.sqlite).anchorReleaseId).toBeNull()
-    expect(run(target.sqlite).status).toBe('planning')
     const changedCount = target.sqlite.query('SELECT total_changes() AS count').get()
     target.sqlite.exec(changedSql)
     expect(target.sqlite.query('SELECT total_changes() AS count').get()).toEqual(
@@ -154,12 +150,10 @@ INSERT INTO snapshots(id, snapshotLineageId, code, cohortKey, status) VALUES
       ...args,
       dependencies: { address: 'als' },
     })
-    expect(run(sqlite).status).toBe('planning')
     await source(db, 'primary')
     await recordPlaceAddressAssembly(db, {
       ...args,
     })
-    expect(run(sqlite).status).toBe('selected')
     expect(await readSnapshotDependencies(db, 'snapshot')).toEqual({ address: 'als' })
     expect(sqlite.query('SELECT * FROM snapshotAssemblies').all()).toHaveLength(1)
   } finally {

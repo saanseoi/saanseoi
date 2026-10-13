@@ -281,7 +281,6 @@ test('restores Address2D/3D, localisations and derived number ranges using exact
       id: 'assembly-b',
       snapshotId: 'b',
       snapshotRecipeId: 'assembly',
-      status: 'selected',
     })
     insert(f.meta, 'snapshots', {
       id: 'division-old',
@@ -406,8 +405,6 @@ test('ALS rollback requires acknowledged exact canonical membership, including e
       datasetId: 'als',
       resourceType: 'address',
       code: 'release',
-      sourceVersion: '2026',
-      cohortKey: '2026',
       status: 'current',
     })
     insert(f.meta, 'snapshotResourceReleases', {
@@ -427,7 +424,6 @@ test('ALS rollback requires acknowledged exact canonical membership, including e
       id: 'assembly-b',
       snapshotId: 'b',
       snapshotRecipeId: 'assembly',
-      status: 'selected',
     })
     insert(f.meta, 'snapshots', {
       id: 'division-old',

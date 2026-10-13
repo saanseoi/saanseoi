@@ -33,7 +33,6 @@ async function composedFixture() {
       datasetId: 'dataset',
       code: `release-address-${name}`,
       resourceType: 'address',
-      sourceVersion: name,
       status: 'current',
     })
     // These sort before Division snapshots; preparation must resolve dependencies explicitly.
@@ -68,7 +67,6 @@ async function composedFixture() {
       id: `assembly-${name}`,
       snapshotId: `address-a-${name}`,
       snapshotRecipeId: 'address-assembly',
-      status: 'selected',
     })
     insert(f.meta, 'snapshotDependencies', {
       snapshotId: `address-a-${name}`,
