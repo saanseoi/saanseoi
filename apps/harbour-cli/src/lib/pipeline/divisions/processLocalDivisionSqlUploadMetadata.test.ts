@@ -34,11 +34,6 @@ test('division metadata replays current-schema statistics without duplicating pr
       { category: 'rows', measure: 'total', unit: 'count', value: 3 },
       { category: 'processing', measure: 'rows', unit: 'count', value: 100 },
     ]
-    for (const row of statsRows)
-      Object.assign(row, {
-        createdAt: '2026-09-11T00:00:00Z',
-        updatedAt: '2026-09-11T00:00:00Z',
-      })
     const result = await buildDivisionMetaSqlFile(
       db as never,
       {
@@ -52,6 +47,13 @@ test('division metadata replays current-schema statistics without duplicating pr
     )
     sqlite.exec(result.sql)
     sqlite.exec(result.sql)
+    const timestamps = sqlite
+      .query(
+        "SELECT createdAt, updatedAt FROM stats WHERE resourceReleaseId = 'release' AND measure = 'total'",
+      )
+      .get() as { createdAt: string; updatedAt: string }
+    expect(Number.isFinite(Date.parse(timestamps.createdAt))).toBe(true)
+    expect(timestamps.updatedAt).toBe(timestamps.createdAt)
     const planningSql = await buildPlandMetaSql(
       { metaDb: db } as never,
       { snapshotId: 'snapshot', resourceReleaseId: 'release' } as never,

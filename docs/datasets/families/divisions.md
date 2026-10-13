@@ -196,6 +196,10 @@ publication. Receipt promotion, search finalisation and reconciled snapshot clea
 for catalogue publication, so an intermediate catalogue cannot select superseded current
 rows. Standalone government initialisers publish their catalogues normally.
 
+Curated assembly groups canonical upstream attribution by publisher only within its
+evidence workspace. Archive preparation restores the flat attribution array and
+preserves upstream property, version, confidence and licence fields.
+
 Division audit actions retain repeated field values in bounded column dictionaries. R2
 delivery uploads independent objects concurrently and registers the release audit only
 after all dependencies and its manifest are verified. The Audit page expands the
@@ -741,16 +745,17 @@ administrative traversal accidentally. Cohort keys identify the period selected 
 release; source publication and validity metadata remain provenance.
 
 The LandsD Place Name database is registered as the separate `hkgov-landsd` geographic
-domain because its settlement points are an alternative primary division collection, not
-an Overture geometry companion. Only `PLACE_CLASS=Settlement` records belong in that
-division domain. Its Hydrographic and Topographic records remain source data for a
-future government place-name projection; they should not be forced into the divisions
-taxonomy. Source records retain the joined official and alias labels in
-`properties.placeNames`, alongside publisher classification attributes. Each joined row
-contains `nameEn`, `nameZhHant` and `nameStatus`. Locale grouping belongs to canonical
-assembly and completeness metrics. This source collection includes Settlement,
-Hydrographic and Topographic records; selection for the settlement domain is a separate
-assembly step.
+domain. Its canonical rows and hierarchy lookup share the `settlement`, level 5 mapping.
+Publisher class values remain in source evidence. Its settlement points are an
+alternative primary division collection, not an Overture geometry companion. Only
+`PLACE_CLASS=Settlement` records belong in that division domain. Its Hydrographic and
+Topographic records remain source data for a future government place-name projection;
+they should not be forced into the divisions taxonomy. Source records retain the joined
+official and alias labels in `properties.placeNames`, alongside publisher classification
+attributes. Each joined row contains `nameEn`, `nameZhHant` and `nameStatus`. Locale
+grouping belongs to canonical assembly and completeness metrics. This source collection
+includes Settlement, Hydrographic and Topographic records; selection for the settlement
+domain is a separate assembly step.
 
 Source-release statistics for LandsD Place Names cover all source records, including
 Settlement, Hydrographic and Topographic. Record counts and class distribution come from

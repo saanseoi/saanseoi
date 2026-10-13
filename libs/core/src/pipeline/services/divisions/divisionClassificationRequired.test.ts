@@ -103,3 +103,20 @@ test('C&SD hierarchy lookup preserves its native classification and null HMA lev
   )
   expect(lookup.get('hma')).toMatchObject({ class: 'housing-market-area', level: null })
 })
+
+test('LandsD hierarchy lookup uses the native settlement projection', async () => {
+  const row = {
+    id: 'landsd-area',
+    source: 'hkgov-landsd',
+    subtype: 'locality',
+    class: 'Area',
+    names: { primary: 'Example area' },
+  }
+  const original = structuredClone(row)
+  const lookup = await buildDivisionHierarchyLookup(
+    { rows: [row] },
+    { source: 'hkgov-landsd', sourceVersion: '2026-06-10.0' },
+  )
+  expect(lookup.get(row.id)).toMatchObject({ class: 'settlement', level: 5 })
+  expect(row).toEqual(original)
+})

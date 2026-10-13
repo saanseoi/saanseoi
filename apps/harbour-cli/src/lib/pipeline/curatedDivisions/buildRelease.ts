@@ -24,7 +24,11 @@ import releaseInputs from '../../../../../../fixtures/meta/datasetInputs/saanseo
 import publicationInputs from '../../../../../../fixtures/meta/datasetInputs/saanseoi-division-release-inputs.json'
 import type { UploadTarget } from '../../cli/options'
 import { applyRvdMembership } from './listMembership'
-import { applyCuratedAreaContract, applyCuratedRecordContract } from './recordContract'
+import {
+  applyCuratedAreaContract,
+  applyCuratedRecordContract,
+  groupCuratedUpstreamAttribution,
+} from './recordContract'
 import { buildAdministrativeAreas } from './administrativeAreas'
 import { attachIngredientMembership } from './ingredientMembership'
 import { selectMonthlyIngredients } from './monthlyInputs'
@@ -184,6 +188,7 @@ export async function buildCuratedDivisionRelease(
         ?.identifiers ?? {}
     divisions.push({
       ...normalised?.base,
+      sources: groupCuratedUpstreamAttribution(normalised?.base.sources),
       id: division.id,
       class: division.class,
       category: division.category,

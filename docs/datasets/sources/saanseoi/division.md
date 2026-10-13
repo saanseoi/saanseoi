@@ -1,5 +1,9 @@
 # SaanSeoi Division statistics
 
+Assembly carries upstream attribution through its internal publisher groups. The
+prepared archive restores flat `sources` entries, preserving upstream property, version,
+confidence and licence fields while keeping curation evidence separate.
+
 Geographic Division classification uses the first matching rule: SaanSeoi correction to
 Overture, explicit SaanSeoi class assignment (including `island_group`), selected
 individual-island polygon size, then the ordered publisher subtype/class mapping.

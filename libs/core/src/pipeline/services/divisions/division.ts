@@ -2187,6 +2187,13 @@ export async function buildDivisionHierarchyLookup(
           .map(localised => [localised.locale, { name: localised.name }]),
       ) as DivisionHierarchyI18n
 
+      // The LandsD settlement projection has its own publisher mapping. Native
+      // classes such as Area are not Overture taxonomy values.
+      if (source.source === 'hkgov-landsd') {
+        lookup.set(id, { i18n, class: 'settlement', level: 5 })
+        continue
+      }
+
       lookup.set(id, {
         i18n,
         displayEquivalentDivisionId:

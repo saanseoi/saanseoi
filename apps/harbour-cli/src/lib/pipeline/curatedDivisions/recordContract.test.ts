@@ -3,7 +3,29 @@ import {
   applyCuratedAreaContract,
   applyCuratedRecordContract,
   curatedNameObject,
+  groupCuratedUpstreamAttribution,
 } from './recordContract'
+import { curatedRecordSources } from '@repo/core/pipeline/services/sources/curatedRecordSources'
+
+test('assembly preserves flat upstream attribution through its grouped evidence workspace', () => {
+  const attribution = [
+    {
+      publisherCode: 'openstreetmap',
+      dataset: 'OpenStreetMap',
+      property: '/names',
+      version: '123',
+      confidence: 0.9,
+    },
+  ]
+  const row: any = {
+    id: 'new',
+    class: 'neighbourhood',
+    sources: groupCuratedUpstreamAttribution(attribution),
+  }
+  applyCuratedRecordContract([row])
+  expect(curatedRecordSources(row.sources, row.id)).toEqual(attribution)
+  expect(attribution[0]).not.toHaveProperty('contributions')
+})
 test('curated records have no bounds, grouped identifiers and classified cartography with attribution', () => {
   const row: any = {
     id: 'new',

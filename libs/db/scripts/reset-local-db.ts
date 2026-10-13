@@ -86,6 +86,10 @@ export async function resetLocalDb(
         recursive: true,
       }),
       rm(resolve(repoRoot, '.local/d1/dev/v3/r2'), { force: true, recursive: true }),
+      rm(resolve(repoRoot, '.local/curated-divisions/audits/dev'), {
+        force: true,
+        recursive: true,
+      }),
     ])
     for (const result of cleanup) {
       if (result.status === 'rejected') throw result.reason

@@ -141,6 +141,7 @@ export async function buildDivisionMetaSqlFile(
   }
 
   const rows: Record<string, SqlValue>[] = []
+  const statsTimestamp = new Date().toISOString()
 
   for (let index = 0; index < state.statsRows.length; index += DIVISION_BATCH_SIZE) {
     const batch = state.statsRows.slice(index, index + DIVISION_BATCH_SIZE)
@@ -155,8 +156,8 @@ export async function buildDivisionMetaSqlFile(
         value: row.value,
         dimension: row.dimension ?? null,
         dimensionValue: row.dimensionValue ?? null,
-        createdAt: row.createdAt,
-        updatedAt: row.updatedAt,
+        createdAt: row.createdAt ?? statsTimestamp,
+        updatedAt: row.updatedAt ?? statsTimestamp,
       })
     }
 

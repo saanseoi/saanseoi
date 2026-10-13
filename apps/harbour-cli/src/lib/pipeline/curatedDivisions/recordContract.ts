@@ -1,5 +1,17 @@
 import { divisionIdentifiersWithWikidata } from '@repo/core/pipeline/services/sources/divisionIdentifiers.ts'
 import geographicCodes from '../../../../../../fixtures/meta/divisionCodes/geographic.json'
+import { readSourceAttributions } from '@repo/core/pipeline/services/sources/sourceAttribution'
+import type { SourceAttribution } from '@repo/db'
+
+/** Group canonical upstream attribution for the internal assembly evidence workspace. */
+export function groupCuratedUpstreamAttribution(value: unknown) {
+  const grouped: Record<string, SourceAttribution[]> = {}
+  for (const source of readSourceAttributions(value)) {
+    grouped[source.publisherCode] ??= []
+    grouped[source.publisherCode].push({ ...source })
+  }
+  return grouped
+}
 
 const object = (value: any) => (typeof value === 'string' ? JSON.parse(value) : value)
 

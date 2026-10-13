@@ -15,6 +15,15 @@ export function curatedRecordSources(
     for (const reference of references) {
       if (!reference || typeof reference !== 'object')
         throw Error('Invalid source reference')
+      // Canonical publisher attribution can be carried through the grouped
+      // assembly workspace alongside internal curation evidence.
+      if (reference.publisherCode !== undefined) {
+        if (reference.publisherCode !== provider)
+          throw Error(`Source attribution publisher mismatch: ${provider}`)
+        const [attribution] = readSourceAttributions([reference])
+        result.set(JSON.stringify(attribution), attribution!)
+        continue
+      }
       if (
         provider === 'saanseoi' &&
         (reference.method || reference.islandGroup || reference.geometryPartition)

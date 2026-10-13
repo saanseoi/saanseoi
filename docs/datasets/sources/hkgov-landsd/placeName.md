@@ -45,6 +45,10 @@ inventory. Canonical settlement statistics belong to the API release set.
 
 ## Divisions projection
 
+Canonical rows and ancestor lookup entries use `settlement` at level 5. Native publisher
+classes such as `Area` remain in source evidence and are not interpreted as Overture
+classification values.
+
 The projection retains registered normalisation declarations and counts in the
 [processing audit](../../processing-provenance.md). Translation fixtures and individual
 translation context are retained separately from bulk rules, with available parent
