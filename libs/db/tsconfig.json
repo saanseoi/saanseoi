@@ -1,0 +1,8 @@
+{
+  "extends": "../config-typescript/tsconfig.json",
+  "compilerOptions": {
+    "types": ["bun-types"]
+  },
+  "include": ["src/**/*.ts", "scripts/**/*.ts", "*.ts"],
+  "exclude": ["node_modules", "migrations"]
+}

@@ -66,8 +66,8 @@ if [[ "${SAANSEOI_LOG_ACTIVE:-}" != 1 ]]; then
     export CI=true
     unset SAANSEOI_TERMINAL_INTERACTIVE SAANSEOI_TERMINAL_COLUMNS
   fi
-  exec > >(tee >(sed -u $'s/\033\\[[0-9;?]*[ -\\/]*[@-~]//g; s/\033\\][^\a]*(\a|\033\\\\)//g' >> "$log_file"))
-  exec 2> >(tee >(sed -u $'s/\033\\[[0-9;?]*[ -\\/]*[@-~]//g; s/\033\\][^\a]*(\a|\033\\\\)//g' >> "$log_file") >&2)
+  exec > >(tee >(sed -u $'s/\033\\[[0-9;?]*[ -\\/]*[@-~]//g; s/\033\\][^\a]*(\a|\033\\\\)//g' | python3 "$repo_root/scripts/rotate-local-log.py" "$log_file" --stdin))
+  exec 2> >(tee >(sed -u $'s/\033\\[[0-9;?]*[ -\\/]*[@-~]//g; s/\033\\][^\a]*(\a|\033\\\\)//g' | python3 "$repo_root/scripts/rotate-local-log.py" "$log_file" --stdin) >&2)
 else
   # Child invocations inherit the mode selected by the top-level wrapper.
   :
