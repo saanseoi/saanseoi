@@ -18,10 +18,10 @@ of unchanged records.
 | `divisionBoundaryPublicationState` | Lineage × cohort (`scopeId`), with unique logical `snapshotId` | Boundary geometry for the lineage's provider variant and cohort. |
 
 The six scoped families keep one mutable current projection and one receipt per scope.
-Their current table columns named `snapshotId` contain the physical scope ID. Address
-Division and Street references identify physical scopes. Places retains exact logical
-Address and Division snapshot references: these identify the definitions used to build
-the Place, independently of later publications of those dependencies. Metadata,
+Their current table columns named `scopeId` contain the physical serving scope ID.
+Address Division and Street references identify physical scopes. Places retains exact
+logical Address and Division snapshot references: these identify the definitions used to
+build the Place, independently of later publications of those dependencies. Metadata,
 immutable history and API responses also retain logical snapshot IDs.
 
 Geometry scopes encode the lineage and cohort as a JSON pair. Provider variants belong
@@ -243,3 +243,7 @@ Street locales remain follow-up work tracked with the Streets implementation tas
 unchanged current rows from being reused. The exported core Division processor uses
 independent component history and sparse source assertions, including exact named owning
 shards.
+
+CURRENT child relations use `placeScopeId` and `streetScopeId` for their owning Place
+and Street projections. Publication receipts, search selections, HISTORY events and
+public responses use `snapshotId` for logical revisions.

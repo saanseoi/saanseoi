@@ -1023,8 +1023,8 @@ existing scope selection; publication/reconciliation owns release selection.
 ## Publication readiness
 
 Current Division records and localisations use the stable snapshot lineage as their
-physical `snapshotId`. `divisionPublicationState` has one receipt per lineage and maps
-it to the logical published snapshot. Division and Planning preparation runs on isolated
+physical `scopeId`. `divisionPublicationState` has one receipt per lineage and maps it
+to the logical published snapshot. Division and Planning preparation runs on isolated
 local candidates. The shared final-difference compiler preserves unchanged content and
 timestamps, and delivers only keyed inserts, changed columns and removals within the
 complete replacement's scope. Source assertions and history remain in their owning

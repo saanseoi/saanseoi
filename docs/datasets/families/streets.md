@@ -172,9 +172,9 @@ products retain a null CRS.
 ## Publication readiness
 
 Current Streets, localisations, changelog, geometry and other companion rows use the
-stable snapshot lineage as their physical `snapshotId`. `streetPublicationState` maps
-that scope to the logical publication. Address links use physical Address and Street
-scopes; source evidence and immutable history retain logical revision provenance.
+stable snapshot lineage as their physical `scopeId`. `streetPublicationState` maps that
+scope to the logical publication. Address links use physical Address and Street scopes;
+source evidence and immutable history retain logical revision provenance.
 
 Street preparation applies source and lifecycle rules to isolated local candidates. The
 shared compiler seals only final keyed current, source and history mutations for

@@ -70,18 +70,18 @@ queries remain local. Geographic prerequisite projections must already be presen
 mirror; the Address mutation plan does not restore missing Division rows or
 translations. Search finalisation follows publication through its own workflow.
 
-Current Address tables hold one serving projection per snapshot lineage. Their
-`snapshotId` key stores the stable scope ID; `addressPublicationState` maps that scope
-to its logical snapshot and publication readiness. Before the first delivered current
-mutation, the scope is claimed with a unique publication token and `publishing` status.
-Every current batch verifies that token in the same transaction as its mutations.
-Delivery records `preparedAt` after validating the complete Address2D and Address3D
-projection, localisations, building-number lookups and references. Local validation
-compares exact canonical IDs, parents, levels, inventory owners, sections and unit IDs
-with the reviewed membership, and rejects addresses or unit translations with no display
-content. Publication alone changes the matching prepared scope to `current`, including
-valid empty snapshots. Unchanged addresses, translations and building-number lookups
-retain their rows and timestamps. Changed content updates only its affected rows. Inline
+Current Address tables hold one serving projection per snapshot lineage. Their `scopeId`
+key stores the stable scope ID; `addressPublicationState` maps that scope to its logical
+snapshot and publication readiness. Before the first delivered current mutation, the
+scope is claimed with a unique publication token and `publishing` status. Every current
+batch verifies that token in the same transaction as its mutations. Delivery records
+`preparedAt` after validating the complete Address2D and Address3D projection,
+localisations, building-number lookups and references. Local validation compares exact
+canonical IDs, parents, levels, inventory owners, sections and unit IDs with the
+reviewed membership, and rejects addresses or unit translations with no display content.
+Publication alone changes the matching prepared scope to `current`, including valid
+empty snapshots. Unchanged addresses, translations and building-number lookups retain
+their rows and timestamps. Changed content updates only its affected rows. Inline
 canonical events supply historical API reads, including retired records and omitted
 translations.
 
@@ -1289,7 +1289,7 @@ relationship remains the explicit individual-island association. Filtering reads
 materialised membership; it does not run geometry tests per API request.
 
 CURRENT division filtering unions indexed lookups across the dedicated role columns.
-Partial `(roleId, snapshotId, id)` indexes omit null memberships. Matching several roles
+Partial `(roleId, scopeId, id)` indexes omit null memberships. Matching several roles
 counts an Address once within its physical scope; identical IDs in separate selected
 scopes remain separate records. List pagination applies after this deduplication, with
 the physical scope breaking equal-ID ordering ties. HISTORY retains the recorded IDs

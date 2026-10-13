@@ -339,7 +339,7 @@ selected release.
 
 Current Division rows and localisations use their stable lineage scope. Areas and
 boundaries use lineage/cohort scopes, preserving independent provider variants and
-retained cohorts. Current columns named `snapshotId` contain those physical scopes;
+retained cohorts. Current columns named `scopeId` contain those physical scopes;
 metadata and immutable history retain logical snapshot IDs.
 
 Local canonical and geometry candidates preserve unchanged rows and timestamps. The
