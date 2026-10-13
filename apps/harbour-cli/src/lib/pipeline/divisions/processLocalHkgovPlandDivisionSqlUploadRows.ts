@@ -24,16 +24,21 @@ import type {
 } from './processLocalHkgovPlandDivisionSqlUploadTypes.ts'
 
 export async function replaceCurrentSnapshot(
-  db: HarbourWritableDb,
+  db: HarbourReadableDb & HarbourWritableDb,
   snapshotId: string,
   records: PreparedDivision[],
   compressedGeometryByDivisionId: CompressedPlanningDivisionGeometry,
-  previousProviderIds: string[],
   now: string,
   reportProgress: (current: number) => void,
 ) {
   const incomingIds = new Set(records.map(record => record.base.id))
-  const providerIds = previousProviderIds.filter(id => !incomingIds.has(id))
+  // Independent cohorts have no history parent but replace the same projection.
+  const currentRows = await db
+    .select({ id: currentSchema.divisions.id })
+    .from(currentSchema.divisions)
+    .where(eq(currentSchema.divisions.snapshotId, snapshotId))
+    .all()
+  const providerIds = currentRows.map(row => row.id).filter(id => !incomingIds.has(id))
   for (const chunk of chunkArray(providerIds, getMaxItemsPerInClause(1, 1))) {
     if (chunk.length === 0) continue
     await db
@@ -112,12 +117,19 @@ export async function replaceCurrentI18n(
   db: HarbourReadableDb & HarbourWritableDb,
   snapshotId: string,
   records: PreparedDivision[],
-  previousProviderIds: string[],
   now: string,
   reportProgress: (current: number) => void,
 ) {
+  const currentRows = await db
+    .select({ id: currentSchema.divisionsI18n.divisionId })
+    .from(currentSchema.divisionsI18n)
+    .where(eq(currentSchema.divisionsI18n.snapshotId, snapshotId))
+    .all()
   const ids = [
-    ...new Set([...previousProviderIds, ...records.map(record => record.base.id)]),
+    ...new Set([
+      ...currentRows.map(row => row.id),
+      ...records.map(record => record.base.id),
+    ]),
   ]
   const rows = records.flatMap(record =>
     record.i18n.map(item => ({

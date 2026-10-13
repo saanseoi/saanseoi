@@ -14,6 +14,91 @@ import type { PreparedDivision } from './processLocalHkgovPlandDivisionSqlUpload
 import { reusePlanningCanonicalProvenance } from './planningCanonicalReuse'
 import { createHash } from '@repo/core/pipeline/utils'
 
+const make = (version: string): PreparedDivision => ({
+  base: {
+    id: 'one',
+    divisionCode: null,
+    category: null,
+    class: 'planning-subunit',
+    level: 6,
+    identifiers: null,
+    cartography: null,
+    hierarchies: { full: [], administrative: [], locality: [], landform: [] },
+    geometry: {
+      type: 'Polygon',
+      coordinates: [
+        [
+          [114, 22],
+          [115, 22],
+          [115, 23],
+          [114, 22],
+        ],
+      ],
+    },
+    sources: [],
+  },
+  versionHash: version,
+  i18n: [
+    { locale: 'en', name: 'One' },
+    { locale: 'zh-hant', name: '一' },
+  ],
+  cells: [],
+  newTown: null,
+  raw: { source_version: version },
+  sourceCellIds: [],
+})
+
+test('independent Planning cohorts replace current membership without a history parent', async () => {
+  const sqlite = new Database(':memory:')
+  sqlite.exec(
+    loadMigrationSql(join(import.meta.dir, '../../../../../../libs/db/migrations'), [
+      'current',
+    ]),
+  )
+  const db = drizzle({ client: sqlite, schema: currentSchema })
+  const publish = async (scope: string, records: PreparedDivision[]) => {
+    await replaceCurrentSnapshot(
+      db as never,
+      scope,
+      records,
+      compressPlanningDivisionGeometry(records, () => {}),
+      '2026-10-13',
+      () => {},
+    )
+    await replaceCurrentI18n(db as never, scope, records, '2026-10-13', () => {})
+  }
+  try {
+    const old = Array.from({ length: 120 }, (_, index) => {
+      const record = make('first')
+      record.base.id = `old-${index}`
+      return record
+    })
+    await publish('lineage', old)
+    await publish('other-lineage', [old[0]!])
+    await publish('lineage', [make('second')])
+    expect(
+      sqlite.query('SELECT id FROM divisions WHERE snapshotId=?').all('lineage'),
+    ).toEqual([{ id: 'one' }])
+    expect(
+      sqlite
+        .query('SELECT DISTINCT divisionId FROM divisionsI18n WHERE snapshotId=?')
+        .all('lineage'),
+    ).toEqual([{ divisionId: 'one' }])
+    expect(
+      sqlite
+        .query('SELECT count(*) AS n FROM divisions WHERE snapshotId=?')
+        .get('other-lineage'),
+    ).toEqual({ n: 1 })
+    expect(
+      sqlite
+        .query('SELECT count(*) AS n FROM divisionsI18n WHERE snapshotId=?')
+        .get('other-lineage'),
+    ).toEqual({ n: 2 })
+  } finally {
+    sqlite.close()
+  }
+})
+
 test('Planning canonical reuse and local/remote current delivery skip an unchanged publication', async () => {
   const mirror = new Database(':memory:')
   const remote = new Database(':memory:')
@@ -32,39 +117,6 @@ test('Planning canonical reuse and local/remote current delivery skip an unchang
       CREATE TRIGGER names_update AFTER UPDATE ON divisionsI18n BEGIN INSERT INTO writes VALUES('update-locale',NEW.divisionId); END;`)
   }
   const db = drizzle({ client: mirror, schema: currentSchema })
-  const make = (version: string): PreparedDivision => ({
-    base: {
-      id: 'one',
-      divisionCode: null,
-      category: null,
-      class: 'planning-subunit',
-      level: 6,
-      identifiers: null,
-      cartography: null,
-      hierarchies: { full: [], administrative: [], locality: [], landform: [] },
-      geometry: {
-        type: 'Polygon',
-        coordinates: [
-          [
-            [114, 22],
-            [115, 22],
-            [115, 23],
-            [114, 22],
-          ],
-        ],
-      },
-      sources: [],
-    },
-    versionHash: version,
-    i18n: [
-      { locale: 'en', name: 'One' },
-      { locale: 'zh-hant', name: '一' },
-    ],
-    cells: [],
-    newTown: null,
-    raw: { source_version: version },
-    sourceCellIds: [],
-  })
   const first = make('first')
   first.versionHash = await createHash({
     base: first.base,
@@ -82,11 +134,10 @@ test('Planning canonical reuse and local/remote current delivery skip an unchang
       'lineage',
       [record],
       compressed,
-      [],
       snapshotId,
       () => {},
     )
-    await replaceCurrentI18n(db as never, 'lineage', [record], [], snapshotId, () => {})
+    await replaceCurrentI18n(db as never, 'lineage', [record], snapshotId, () => {})
     mirror
       .query(
         "INSERT INTO divisionPublicationState(scopeId,snapshotId,status,publicationToken,preparedAt,createdAt,updatedAt) VALUES('lineage',?,'publishing',?,?,?,?) ON CONFLICT(scopeId) DO UPDATE SET snapshotId=excluded.snapshotId,publicationToken=excluded.publicationToken,preparedAt=excluded.preparedAt",

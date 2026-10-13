@@ -71,13 +71,24 @@ export const historyEventsSql = historyEventsSqlForTables()
 
 /** Partial local mirrors expose only the canonical tables they contain. */
 export function historyEventsSqlForTables(tables?: ReadonlySet<string>) {
-  return Object.entries(historyEventTables)
+  const selects = Object.entries(historyEventTables)
     .filter(([, definition]) => !tables || tables.has(definition.table))
     .map(([type, definition]) => {
       const locale = 'locale' in definition ? `"${definition.locale}"` : "''"
       return `SELECT snapshotId, '${type}' AS recordType, ${historyRecordIdSql(definition)} AS recordId, ${locale} AS locale, versionHash, operation, sourceReleaseId, createdAt, updatedAt FROM "${definition.table}"`
     })
-    .join('\nUNION ALL\n')
+  // workerd limits each compound SELECT to five terms, including stored views.
+  // Group the branches so every compound remains within that limit.
+  let groups = selects
+  while (groups.length > 5) {
+    const next: string[] = []
+    for (let offset = 0; offset < groups.length; offset += 5)
+      next.push(
+        `SELECT * FROM (${groups.slice(offset, offset + 5).join('\nUNION ALL\n')})`,
+      )
+    groups = next
+  }
+  return groups.join('\nUNION ALL\n')
 }
 
 export type HistoryDeletion = {

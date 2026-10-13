@@ -426,11 +426,10 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
             'current Planning divisions',
             reportProgress =>
               replaceCurrentSnapshot(
-                context.currentDb as unknown as HarbourWritableDb,
+                context.currentDb as unknown as HarbourReadableDb & HarbourWritableDb,
                 publication.scopeId,
                 records,
                 compressedGeometryByDivisionId,
-                currentHistoryRows.map(row => row.id),
                 now,
                 reportProgress,
               ),
@@ -449,7 +448,6 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
                 context.currentDb as unknown as HarbourReadableDb & HarbourWritableDb,
                 publication.scopeId,
                 records,
-                currentHistoryRows.map(row => row.id),
                 now,
                 reportProgress,
               ),

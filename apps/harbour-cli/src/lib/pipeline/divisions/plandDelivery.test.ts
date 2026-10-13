@@ -106,11 +106,10 @@ test('Planning copies isolate failed preparation and resume partial delivery wit
         }
         await beginSnapshotPublication(copy.currentDb, publication)
         await replaceCurrentSnapshot(
-          copy.currentDb as unknown as HarbourWritableDb,
+          copy.currentDb as never,
           'snapshot',
           [record],
           compressPlanningDivisionGeometry([record], () => {}),
-          [],
           '2026-09-07T00:00:00.000Z',
           () => {},
         )

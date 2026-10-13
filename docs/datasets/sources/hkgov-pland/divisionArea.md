@@ -9,7 +9,10 @@ retained native archive before ingestion.
 
 Planning assembly converts native `PLAND:*` identifiers to grouped `hkgov-pland` codes
 before ancestor validation and canonical content hashing. Source evidence retains the
-native archive representation.
+native archive representation. Each cohort replaces current Division and localisation
+membership within its publication scope. Independent cohorts use that current membership
+to remove omitted identities; their parentless HISTORY checkpoints retain their complete
+historical membership.
 
 Retained source assertions use
 [distinct validity periods for recurring content](../../families/source-evidence.md#recurring-source-validity-periods).

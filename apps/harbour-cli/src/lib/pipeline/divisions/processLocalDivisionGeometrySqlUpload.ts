@@ -364,10 +364,12 @@ export async function processLocalDivisionGeometrySqlUpload(
         ? await openNormalisedArtefactCache({
             filePath: preparedUpload.filePath,
             processingContract: [
-              'division-geometry-normalisation-v3',
+              'division-geometry-normalisation-v4',
               await hashValue(providerBridgeRows),
               previewPlan.source,
               previewPlan.resourceType,
+              datasetCode,
+              geometryVariant(previewPlan),
               previewPlan.cohortKey,
               options.validateGeometry ? 'validate' : 'standard',
             ].join(':'),

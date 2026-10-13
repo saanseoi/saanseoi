@@ -34,12 +34,25 @@ drop_database() {
   fi
 
   printf 'Dropping local %s tables for %s (%s)\n' "$drop_type" "$binding_name" "$database_name"
-  bash "$script_dir/run-d1-execute.sh" "$database_name" \
-    --config "$wrangler_config" \
-    --env "$wrangler_env" \
-    --local \
-    --persist-to "$persist_dir" \
-    --file "$drop_sql_file"
+  # Match local migrations: native SQLite can remove schemas that workerd
+  # refuses to open because a stored view exceeds its query limits.
+  local local_id sqlite_path
+  local_id="$(bun -e '
+    const config = JSON.parse(require("node:fs").readFileSync(process.argv[1], "utf8"));
+    const entry = (config.env?.[process.argv[2]]?.d1_databases ?? config.d1_databases)
+      .find(entry => entry.binding === process.argv[3]);
+    if (!entry) throw new Error("Missing local D1 binding");
+    process.stdout.write(entry.preview_database_id ?? entry.database_id ?? entry.binding);
+  ' "$wrangler_config" "$wrangler_env" "$binding_name")" || return
+  sqlite_path="$(bash "$script_dir/lib/resolve-local-d1-sqlite-path.sh" "$local_id")" || return
+  python3 - "$sqlite_path" "$drop_sql_file" <<'PY'
+import pathlib
+import sqlite3
+import sys
+
+with sqlite3.connect(sys.argv[1], timeout=30) as db:
+    db.executescript(pathlib.Path(sys.argv[2]).read_text())
+PY
 }
 
 if [[ "${#database_names[@]}" -eq 1 ]]; then

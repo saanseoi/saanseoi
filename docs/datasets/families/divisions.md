@@ -85,6 +85,8 @@ CURRENT, HISTORY or API resources. Entity identifiers belong to `divisions`; his
 reads resolve the Division identity in the selected release. Publisher geometry feature
 IDs remain in retained source records and lineage, with upstream attribution in
 `sources`. Identifier-only identity changes do not version canonical geometry.
+Normalised geometry caches are scoped by the canonical schema contract, dataset,
+geometry variant and provider identity mapping so cached rows match stored content.
 
 The SaanSeoi preparation audit separates its summary and before/after results from flat
 fixture lists, classifies instructions as rules, bulk/custom curations or patches, and
@@ -140,7 +142,9 @@ statistical geographies.
 
 Planning assembly groups native `PLAND:*` identifiers under `hkgov-pland` before
 validating ancestor codes and hashing canonical content. Native archive identifiers
-remain unchanged in source evidence.
+remain unchanged in source evidence. Planning cohorts replace the rows and localisations
+in their current publication scope, including when a cohort has no history parent.
+Historical membership remains scoped to its selected snapshot.
 
 SaanSeoi preparation owns editorial patches and curated source selection. It writes
 final names, taxonomy, hierarchy and geometry into the published SaanSeoi archive;

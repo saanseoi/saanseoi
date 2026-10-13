@@ -2,6 +2,8 @@
 
 Canonical geometry has no `identifiers` field. Entity identifiers belong to `divisions`;
 publisher feature IDs and native codes remain in retained source records and lineage.
+Normalised geometry caches include the canonical schema contract, dataset, variant and
+provider identity mapping; cached canonical rows must contain only persisted fields.
 
 Canonical Division identities use representative Points. Canonicalisation preserves a
 valid source point or derives an interior point from polygonal source geometry using JTS
