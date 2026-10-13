@@ -1122,7 +1122,7 @@ const registrySourceSelection = {
   },
   category: metaDatasets.category,
   attribution: metaDatasets.attribution,
-  processingRules: metaDatasets.processingRules,
+  processingRules: processingRulesSelection(metaDatasets.processingRules),
   tags: metaDatasets.tags,
   i18n: metaDatasets.i18n,
   resourceTypes: metaDatasets.resourceTypes,
@@ -6886,7 +6886,7 @@ async function requireDatasetDefinition(
     ((await db
       .select({
         id: metaDatasets.id,
-        processingRules: metaDatasets.processingRules,
+        processingRules: processingRulesSelection(metaDatasets.processingRules),
         resourceTypes: metaDatasets.resourceTypes,
       })
       .from(metaDatasets)

@@ -54,11 +54,10 @@ export const metaDatasets = sqliteTable(
     category: text('category', { enum: datasetCategories }),
     attribution: text('attribution'),
     tags: jsonText('tags'),
-    // Resolved, versioned merge-rule revisions are synchronised from the
-    // registry. Releases copy this value so later dataset changes cannot
-    // rewrite historic processing decisions; per-record exceptions belong in
-    // retained provenance instead.
-    processingRules: jsonText('processingRules'),
+    // Content-addressed reference to the current resolved ingestion policy.
+    // Releases capture this reference so later dataset changes cannot rewrite
+    // historic processing decisions.
+    processingRules: text('processingRules'),
     i18n: jsonText<MetaTranslations>('i18n').notNull().default({}),
     versionHash: text('versionHash').notNull(),
     ...timestamps,

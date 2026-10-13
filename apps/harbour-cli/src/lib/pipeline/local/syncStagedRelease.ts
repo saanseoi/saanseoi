@@ -1,4 +1,7 @@
-import { retainIngestionProcessingRules } from '@repo/core/db/processingRuleDefinitions'
+import {
+  processingRulesSelection,
+  retainIngestionProcessingRules,
+} from '@repo/core/db/processingRuleDefinitions'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import {
   and,
@@ -51,7 +54,7 @@ export async function syncStagedReleaseIntoLocalMetaCache(
     ((await metaDb
       .select({
         id: metaDatasets.id,
-        processingRules: metaDatasets.processingRules,
+        processingRules: processingRulesSelection(metaDatasets.processingRules),
         resourceTypes: metaDatasets.resourceTypes,
       })
       .from(metaDatasets)

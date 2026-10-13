@@ -26,6 +26,7 @@ import {
 import { planUpload, prepareUpload, registerUpload } from './uploadLocal'
 import { createLocalHarbourDb } from '../../testing/localDb'
 import { buildDeterministicReleaseId } from '../db/metaRegistry'
+import { computeVersionHash } from '@repo/db'
 import { resolveSourceRecordSchema } from '../../sourceRecordSchemas'
 
 import type { UploadInspection } from '../../types'
@@ -559,9 +560,17 @@ describe('upload', () => {
     const policy = initialDatasets.find(
       dataset => dataset.code === 'ds-hk-overture-division',
     )!.processingRules
+    const policyId = policy ? computeVersionHash(policy) : null
+    if (policy && policyId) {
+      sqlite
+        .query(
+          'INSERT OR IGNORE INTO processingRuleDefinitions (id, definition) VALUES (?, ?)',
+        )
+        .run(policyId, JSON.stringify(policy))
+    }
     sqlite
       .query('UPDATE datasets SET processingRules = ? WHERE code = ?')
-      .run(JSON.stringify(policy), 'ds-hk-overture-division')
+      .run(policyId, 'ds-hk-overture-division')
     const db = createLocalHarbourDb(sqlite)
 
     const result = await registerUpload(db, {
@@ -597,7 +606,8 @@ describe('upload', () => {
     const sourceMetadata = sqliteCheck
       .query(`
       SELECT (SELECT definition FROM processingRuleDefinitions WHERE id = s.processingRules) AS sourceRules,
-        (SELECT definition FROM processingRuleDefinitions WHERE id = r.processingRules) AS resourceRules, d.processingRules AS datasetRules
+        (SELECT definition FROM processingRuleDefinitions WHERE id = r.processingRules) AS resourceRules,
+        (SELECT definition FROM processingRuleDefinitions WHERE id = d.processingRules) AS datasetRules
       FROM resourceReleases r JOIN sourceReleases s ON s.id = r.sourceReleaseId
       JOIN datasets d ON d.id = r.datasetId WHERE r.code = ?
     `)
@@ -966,7 +976,7 @@ describe('upload', () => {
     const processingRules = sqlite
       .query(
         `
-          SELECT d.processingRules
+          SELECT (SELECT definition FROM processingRuleDefinitions WHERE id = d.processingRules) AS processingRules
           FROM datasets d
           INNER JOIN publishers p ON p.id = d.publisherId
           WHERE d.code = ? AND p.code = ?

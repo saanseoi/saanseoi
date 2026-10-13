@@ -111,11 +111,12 @@ use EPSG:2326. Overture geometry uses EPSG:4326. HyD street-name plates, sensiti
 streets, strategic streets and TD pedestrian streets also retain EPSG:2326 coordinates
 from their native FileGDB layers.
 
-`datasets.processingRules` contains the current resolved ingestion policy, with
-`stage: "ingestion"`. `sourceReleases.processingRules` and
-`resourceReleases.processingRules` retain plain-text SHA-256 references to that exact
-policy in `processingRuleDefinitions` at creation. Dataset synchronisation does not
-rewrite captured release definitions.
+`datasets.processingRules` contains a plain-text SHA-256 reference to the current
+resolved ingestion policy, with `stage: "ingestion"`. Registry synchronisation stores
+the full resolved policy once in `processingRuleDefinitions` and updates the dataset
+reference. `sourceReleases.processingRules` and `resourceReleases.processingRules`
+capture that same reference at creation. Later dataset synchronisation does not rewrite
+captured release references.
 
 Release and recipe references store the hash directly, for example
 `sha256:d43257fbc7629972d11e2ffc357176649e9469480dd40ab1ced1bb95317e52f3`. Readers

@@ -804,6 +804,14 @@ WHERE divisionCodes.versionHash <> excluded.versionHash;`.trim(),
   }
 
   for (const dataset of initialDatasets) {
+    if (!dataset.processingRules) continue
+    const definitionId = computeVersionHash(dataset.processingRules)
+    statements.push(
+      `INSERT OR IGNORE INTO processingRuleDefinitions (id, definition) VALUES (${sqlString(definitionId)}, ${sqlString(JSON.stringify(dataset.processingRules))});`,
+    )
+  }
+
+  for (const dataset of initialDatasets) {
     statements.push(
       `
 INSERT INTO datasets (
@@ -825,9 +833,7 @@ INSERT INTO datasets (
   ${sqlNullable(dataset.attribution)},
   ${sqlNullable(dataset.category)},
   ${sqlString(JSON.stringify(dataset.resourceTypes))},
-  ${sqlNullable(
-    dataset.processingRules ? JSON.stringify(dataset.processingRules) : undefined,
-  )},
+  ${sqlNullable(dataset.processingRules ? computeVersionHash(dataset.processingRules) : undefined)},
   ${sqlString(JSON.stringify(dataset.i18n))},
   ${sqlString(dataset.versionHash)},
   ${nowSql},
@@ -852,7 +858,8 @@ ON CONFLICT(publisherId, code) DO UPDATE SET
   versionHash = excluded.versionHash,
   updatedAt = excluded.updatedAt
 WHERE datasets.versionHash <> excluded.versionHash OR datasets.i18n IS NOT excluded.i18n
-   OR datasets.schemaURL IS NOT excluded.schemaURL;`.trim(),
+   OR datasets.schemaURL IS NOT excluded.schemaURL
+   OR datasets.processingRules IS NOT excluded.processingRules;`.trim(),
     )
   }
 
