@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:810b72e20c3e12890f41e5e25a57cf3fb285801c51cc22e6e992dc6393e5a916",
+  "versionHash": "sha256:f682f02b54158e933094f12e712c35852aff2c49c95d294fbd9280a851abcf2b",
   "apiVersion": "api-divisions-v0.1",
   "domainCode": "geographic",
   "mappingVersion": 2,
@@ -1367,33 +1367,6 @@
           ]
         },
         {
-          "apiField": "attributes.identifiers",
-          "variant": "hkgov-had",
-          "sourceDatasetCode": "ds-hk-hkgov-had-division-area-district",
-          "resolverCode": "normalise-division-area-geometry",
-          "contributionType": "primary",
-          "priority": 0,
-          "confidence": 1,
-          "inputs": [
-            {
-              "origin": "source",
-              "fieldPath": "properties.objectId"
-            },
-            {
-              "origin": "source",
-              "fieldPath": "properties.csdiAdminAreaId"
-            },
-            {
-              "origin": "source",
-              "fieldPath": "properties.areaId"
-            },
-            {
-              "origin": "source",
-              "fieldPath": "properties.areaCode"
-            }
-          ]
-        },
-        {
           "apiField": "attributes.sources",
           "variant": "hkgov-had",
           "sourceDatasetCode": "ds-hk-hkgov-had-division-area-district",
@@ -1522,21 +1495,6 @@
           ]
         },
         {
-          "apiField": "attributes.identifiers",
-          "variant": "hkgov-censtatd-landclipped",
-          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
-          "resolverCode": "normalise-division-area-geometry",
-          "contributionType": "primary",
-          "priority": 0,
-          "confidence": 1,
-          "inputs": [
-            {
-              "origin": "intermediate",
-              "fieldPath": "geometry.identifiers"
-            }
-          ]
-        },
-        {
           "apiField": "attributes.sources",
           "variant": "hkgov-censtatd-landclipped",
           "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
@@ -1665,21 +1623,6 @@
           ]
         },
         {
-          "apiField": "attributes.identifiers",
-          "variant": "hkgov-censtatd-landclipped:simplified",
-          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
-          "resolverCode": "normalise-division-area-geometry",
-          "contributionType": "primary",
-          "priority": 0,
-          "confidence": 1,
-          "inputs": [
-            {
-              "origin": "intermediate",
-              "fieldPath": "geometry.identifiers"
-            }
-          ]
-        },
-        {
           "apiField": "attributes.sources",
           "variant": "hkgov-censtatd-landclipped:simplified",
           "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
@@ -1808,21 +1751,6 @@
           ]
         },
         {
-          "apiField": "attributes.identifiers",
-          "variant": "hkgov-censtatd",
-          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
-          "resolverCode": "normalise-division-area-geometry",
-          "contributionType": "primary",
-          "priority": 0,
-          "confidence": 1,
-          "inputs": [
-            {
-              "origin": "intermediate",
-              "fieldPath": "geometry.identifiers"
-            }
-          ]
-        },
-        {
           "apiField": "attributes.sources",
           "variant": "hkgov-censtatd",
           "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
@@ -1947,21 +1875,6 @@
             {
               "origin": "constant",
               "value": true
-            }
-          ]
-        },
-        {
-          "apiField": "attributes.identifiers",
-          "variant": "hkgov-censtatd:simplified",
-          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
-          "resolverCode": "normalise-division-area-geometry",
-          "contributionType": "primary",
-          "priority": 0,
-          "confidence": 1,
-          "inputs": [
-            {
-              "origin": "intermediate",
-              "fieldPath": "geometry.identifiers"
             }
           ]
         },
