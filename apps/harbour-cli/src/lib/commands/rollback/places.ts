@@ -45,15 +45,13 @@ export async function restorePlaceDerivedRows(input: Input) {
     (
       input.current
         .query(
-          'SELECT id,lng,lat,addressSnapshotId,addressDependencyHash,address2dId,address3dId,address3dUnitId FROM places WHERE snapshotId=?',
+          'SELECT id,lng,lat,addressSnapshotId,addressDependencyHash,address2dId,address3dId,address3dUnitId FROM places WHERE scopeId=?',
         )
         .all(input.scopeId) as PlaceRollbackBase[]
     ).map(row => [row.id, row]),
   )
   const locales = input.current
-    .query(
-      'SELECT placeId,locale,searchDependencyText FROM placesI18n WHERE snapshotId=?',
-    )
+    .query('SELECT placeId,locale,searchDependencyText FROM placesI18n WHERE scopeId=?')
     .all(input.scopeId) as Locale[]
   if (locales.some(row => !bases.has(row.placeId)))
     throw new Error('Place rollback has localisations without a base.')
@@ -134,13 +132,11 @@ export async function restorePlaceDerivedRows(input: Input) {
     )
     input.current.transaction(() => {
       input.current
-        .query('DELETE FROM placesDivision WHERE placeSnapshotId=?')
+        .query('DELETE FROM placesDivision WHERE placeScopeId=?')
         .run(input.scopeId)
-      input.current
-        .query('DELETE FROM placesCells WHERE snapshotId=?')
-        .run(input.scopeId)
+      input.current.query('DELETE FROM placesCells WHERE scopeId=?').run(input.scopeId)
       const insertLink = input.current.query(
-        'INSERT INTO placesDivision(placeSnapshotId,placeId,divisionSnapshotId,divisionId,definition) VALUES (?,?,?,?,?)',
+        'INSERT INTO placesDivision(placeScopeId,placeId,divisionSnapshotId,divisionId,definition) VALUES (?,?,?,?,?)',
       )
       for (const link of links.values())
         insertLink.run(
@@ -151,7 +147,7 @@ export async function restorePlaceDerivedRows(input: Input) {
           JSON.stringify(link.definition),
         )
       const insertCell = input.current.query(
-        'INSERT INTO placesCells(snapshotId,id,h3Level,h3Cell) VALUES (?,?,?,?)',
+        'INSERT INTO placesCells(scopeId,id,h3Level,h3Cell) VALUES (?,?,?,?)',
       )
       for (const base of bases.values())
         for (const level of PLACE_H3_LEVELS)

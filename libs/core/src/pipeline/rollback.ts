@@ -144,7 +144,7 @@ function buildCurrentRollbackSql(input: DraftReleasePurgeInput, plan: RollbackPl
   return joinStatements(
     plan.currentTables.map(
       ({ table, snapshotColumn }) =>
-        `DELETE FROM ${table} WHERE ${currentRollbackPredicateSql(table, snapshotColumn ?? 'snapshotId', input.snapshotId)};`,
+        `DELETE FROM ${table} WHERE ${currentRollbackPredicateSql(table, snapshotColumn ?? (table.endsWith('SearchScopes') || table.endsWith('PublicationState') ? 'snapshotId' : 'scopeId'), input.snapshotId)};`,
     ),
   )
 }

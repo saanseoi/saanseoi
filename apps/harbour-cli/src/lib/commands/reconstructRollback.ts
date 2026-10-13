@@ -83,10 +83,10 @@ const familyForTable = (table: string): RollbackResourceType => {
 }
 const scopeColumn = (table: string) =>
   table === 'placesDivision'
-    ? 'placeSnapshotId'
+    ? 'placeScopeId'
     : table === 'streetsAddress'
-      ? 'streetSnapshotId'
-      : 'snapshotId'
+      ? 'streetScopeId'
+      : 'scopeId'
 
 /** Current-only reconstruction preserves retained evidence and emits keyed row differences. */
 export async function prepareReconstructedRollback(input: {
@@ -113,7 +113,12 @@ export async function prepareReconstructedRollback(input: {
   const tables: NetTablePolicy[] = families.flatMap(family =>
     familyTables[family].map(name => ({
       name,
-      ignoredColumns: name === 'statsDefinitionSets' ? [] : ['createdAt', 'updatedAt'],
+      ignoredColumns:
+        name === 'statsDefinitionSets'
+          ? []
+          : name.startsWith('stats') && name !== 'statsRecords'
+            ? ['createdAt']
+            : ['createdAt', 'updatedAt'],
       ...(name === 'statsDefinitionSets'
         ? {}
         : {
@@ -127,7 +132,7 @@ export async function prepareReconstructedRollback(input: {
         ? {
             collection: {
               name: 'address3d',
-              keyColumns: ['snapshotId', name === 'address3d' ? 'id' : 'address3dId'],
+              keyColumns: ['scopeId', name === 'address3d' ? 'id' : 'address3dId'],
             },
           }
         : {}),

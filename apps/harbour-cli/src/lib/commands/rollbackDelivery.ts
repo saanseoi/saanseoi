@@ -258,7 +258,7 @@ export async function captureRollbackDelivery(input: {
       begin = prepared.claims.map(claim => beginClaim(claim, timestamp))
       const validations: string[] = []
       for (const policy of input.tables) {
-        const column = policy.rowScope?.column ?? 'snapshotId'
+        const column = policy.rowScope?.column ?? 'scopeId'
         for (const scope of policy.rowScope?.values ?? []) {
           const count = current
             .query<{ n: number }, [string]>(

@@ -969,14 +969,14 @@ export async function assertPlacesCurrentResetOwnership(
     },
   ]) {
     const unexpected = await db
-      .select({ snapshotId: table.snapshotId })
+      .select({ snapshotId: table.scopeId })
       .from(table)
       .where(
         and(
           predicate,
           sql`NOT EXISTS (
         SELECT 1 FROM ${publication}
-        WHERE ${publication.scopeId} = ${table.snapshotId}
+        WHERE ${publication.scopeId} = ${table.scopeId}
           AND ${publication.snapshotId} IN (SELECT value FROM json_each(${JSON.stringify(snapshots)}))
       )`,
         ),
@@ -1007,13 +1007,13 @@ export function buildPlacesResetSql(owned: OwnedPlaces) {
   const placeScopes = `SELECT scopeId FROM placePublicationState WHERE snapshotId IN (${placeSnapshots})`
   const addressScopes = `SELECT scopeId FROM addressPublicationState WHERE snapshotId IN (${addressSnapshots})`
   const currentSql = [
-    `DELETE FROM placesCells WHERE snapshotId IN (${placeScopes});`,
-    `DELETE FROM placesDivision WHERE placeSnapshotId IN (${placeScopes});`,
-    `DELETE FROM placesI18n WHERE snapshotId IN (${placeScopes});`,
-    `DELETE FROM places WHERE snapshotId IN (${placeScopes});`,
-    `DELETE FROM address2dBuildingNumberLookup WHERE snapshotId IN (${addressScopes});`,
-    `DELETE FROM address2dI18n WHERE snapshotId IN (${addressScopes});`,
-    `DELETE FROM address2d WHERE snapshotId IN (${addressScopes});`,
+    `DELETE FROM placesCells WHERE scopeId IN (${placeScopes});`,
+    `DELETE FROM placesDivision WHERE placeScopeId IN (${placeScopes});`,
+    `DELETE FROM placesI18n WHERE scopeId IN (${placeScopes});`,
+    `DELETE FROM places WHERE scopeId IN (${placeScopes});`,
+    `DELETE FROM address2dBuildingNumberLookup WHERE scopeId IN (${addressScopes});`,
+    `DELETE FROM address2dI18n WHERE scopeId IN (${addressScopes});`,
+    `DELETE FROM address2d WHERE scopeId IN (${addressScopes});`,
     `DELETE FROM placeSearchScopes WHERE snapshotId IN (${placeSnapshots});`,
     `DELETE FROM addressSearchScopes WHERE snapshotId IN (${addressSnapshots});`,
     `DELETE FROM placePublicationState WHERE snapshotId IN (${placeSnapshots});`,

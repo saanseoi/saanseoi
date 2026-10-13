@@ -82,11 +82,11 @@ export async function collectStatsResetDependencies(
         [true, context.currentBinding],
         ...context.historyTargets.map(target => [false, target.binding] as const),
       ] as const) {
-        const divisions = `SELECT id FROM divisions WHERE snapshotId IN (${current ? `SELECT scopeId FROM divisionPublicationState WHERE snapshotId IN (${ids})` : ids})`
+        const divisions = `SELECT id FROM divisions WHERE ${current ? 'scopeId' : 'snapshotId'} IN (${current ? `SELECT scopeId FROM divisionPublicationState WHERE snapshotId IN (${ids})` : ids})`
         const dependants = await resetRows(
           binding,
           current
-            ? `SELECT DISTINCT state.snapshotId FROM divisionAreas row JOIN divisionAreaPublicationState state ON state.scopeId=row.snapshotId WHERE row.divisionId IN (${divisions}) UNION SELECT DISTINCT state.snapshotId FROM divisionBoundaries row JOIN divisionBoundaryPublicationState state ON state.scopeId=row.snapshotId WHERE row.leftDivisionId IN (${divisions}) OR row.rightDivisionId IN (${divisions})`
+            ? `SELECT DISTINCT state.snapshotId FROM divisionAreas row JOIN divisionAreaPublicationState state ON state.scopeId=row.scopeId WHERE row.divisionId IN (${divisions}) UNION SELECT DISTINCT state.snapshotId FROM divisionBoundaries row JOIN divisionBoundaryPublicationState state ON state.scopeId=row.scopeId WHERE row.leftDivisionId IN (${divisions}) OR row.rightDivisionId IN (${divisions})`
             : `SELECT DISTINCT snapshotId FROM divisionAreas WHERE divisionId IN (${divisions}) UNION SELECT DISTINCT snapshotId FROM divisionBoundaries WHERE leftDivisionId IN (${divisions}) OR rightDivisionId IN (${divisions})`,
         )
         for (const row of dependants) {

@@ -148,7 +148,7 @@ export async function statsResetBlockers(context: ResetReadContext) {
       ...context.historyTargets.map(t => [t.bindingName, t.binding] as const),
     ] as const) {
       const current = label === 'current'
-      const divisions = `SELECT id FROM divisions WHERE snapshotId IN (${current ? `SELECT scopeId FROM divisionPublicationState WHERE snapshotId IN (${ids})` : ids})`
+      const divisions = `SELECT id FROM divisions WHERE ${current ? 'scopeId' : 'snapshotId'} IN (${current ? `SELECT scopeId FROM divisionPublicationState WHERE snapshotId IN (${ids})` : ids})`
       await check(
         binding,
         `${label}: addresses reference contributed divisions`,
@@ -157,7 +157,7 @@ export async function statsResetBlockers(context: ResetReadContext) {
       await check(
         binding,
         `${label}: other geometry references contributed divisions`,
-        `SELECT 1 FROM divisionAreas WHERE snapshotId NOT IN (${current ? `SELECT scopeId FROM divisionAreaPublicationState WHERE snapshotId IN (${allGeometryIds})` : allGeometryIds}) AND divisionId IN (${divisions}) UNION ALL SELECT 1 FROM divisionBoundaries WHERE snapshotId NOT IN (${current ? `SELECT scopeId FROM divisionBoundaryPublicationState WHERE snapshotId IN (${allGeometryIds})` : allGeometryIds}) AND (leftDivisionId IN (${divisions}) OR rightDivisionId IN (${divisions})) LIMIT 1`,
+        `SELECT 1 FROM divisionAreas WHERE ${current ? 'scopeId' : 'snapshotId'} NOT IN (${current ? `SELECT scopeId FROM divisionAreaPublicationState WHERE snapshotId IN (${allGeometryIds})` : allGeometryIds}) AND divisionId IN (${divisions}) UNION ALL SELECT 1 FROM divisionBoundaries WHERE ${current ? 'scopeId' : 'snapshotId'} NOT IN (${current ? `SELECT scopeId FROM divisionBoundaryPublicationState WHERE snapshotId IN (${allGeometryIds})` : allGeometryIds}) AND (leftDivisionId IN (${divisions}) OR rightDivisionId IN (${divisions})) LIMIT 1`,
       )
     }
     await check(
@@ -214,7 +214,7 @@ export function buildStatsResetSql(plan: StatsResetPlan) {
         .filter(row => row.family === family)
         .map(
           row =>
-            `DELETE FROM ${table} WHERE snapshotId = ${literal(String(row.scopeId))} AND EXISTS (SELECT 1 FROM ${family}PublicationState WHERE scopeId = ${literal(String(row.scopeId))} AND snapshotId = ${literal(String(row.snapshotId))} AND publicationToken = ${literal(String(row.publicationToken))} AND preparedAt IS NOT NULL);`,
+            `DELETE FROM ${table} WHERE scopeId = ${literal(String(row.scopeId))} AND EXISTS (SELECT 1 FROM ${family}PublicationState WHERE scopeId = ${literal(String(row.scopeId))} AND snapshotId = ${literal(String(row.snapshotId))} AND publicationToken = ${literal(String(row.publicationToken))} AND preparedAt IS NOT NULL);`,
         )
     }),
     ...plan.dependencies.publications.map(

@@ -77,7 +77,7 @@ async function countCurrentRollbackRows(
       sql.raw(
         currentRollbackPredicateSql(
           tableName,
-          tableName === 'placesDivision' ? 'placeSnapshotId' : 'snapshotId',
+          tableName === 'placesDivision' ? 'placeScopeId' : 'snapshotId',
           input.snapshotId,
         ),
       ),
@@ -572,7 +572,7 @@ async function countPurgeCurrentRows(
       sql.raw(
         currentRollbackPredicateSql(
           tableName,
-          tableName === 'placesDivision' ? 'placeSnapshotId' : 'snapshotId',
+          tableName === 'placesDivision' ? 'placeScopeId' : 'snapshotId',
           input.snapshotId,
         ),
       ),

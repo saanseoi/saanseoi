@@ -728,7 +728,7 @@ async function collectOwnedRecordsFromRemoteMeta(
       `SELECT id, assetKey, coalesce(resourceReleaseId, (SELECT r.id FROM resourceReleases r WHERE r.sourceReleaseId = assets.sourceReleaseId ORDER BY r.id LIMIT 1)) AS resourceReleaseId FROM assets WHERE coalesce(resourceReleaseId, (SELECT r.id FROM resourceReleases r WHERE r.sourceReleaseId = assets.sourceReleaseId ORDER BY r.id LIMIT 1)) IN (${sqlList(values)})`,
   )
   const currentRows = (await current.query(
-    'SELECT DISTINCT snapshotId FROM divisions ORDER BY snapshotId',
+    'SELECT DISTINCT scopeId FROM divisions ORDER BY scopeId',
   )) as Array<{ snapshotId: string }>
   return {
     apiReleaseSetIds: selectOwnedOfficialAddressApiReleaseSetIds(apiRows),
@@ -1172,7 +1172,7 @@ export function buildOfficialAddressCurrentResetSql(
 ) {
   const addresses = sqlList(addressScopeIds)
   const divisions = sqlList(divisionScopeIds)
-  return `DELETE FROM address2d WHERE snapshotId IN (${addresses});\nDELETE FROM addressPublicationState WHERE scopeId IN (${addresses});\nDELETE FROM divisions WHERE snapshotId IN (${divisions});\nDELETE FROM divisionPublicationState WHERE scopeId IN (${divisions});`
+  return `DELETE FROM address2d WHERE scopeId IN (${addresses});\nDELETE FROM addressPublicationState WHERE scopeId IN (${addresses});\nDELETE FROM divisions WHERE scopeId IN (${divisions});\nDELETE FROM divisionPublicationState WHERE scopeId IN (${divisions});`
 }
 export async function readBeforeImage(
   path: string,

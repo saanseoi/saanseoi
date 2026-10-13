@@ -202,7 +202,7 @@ async function assertStreetSideTablesReconstructable(
   ] as const) {
     if (
       input.current
-        .query(`SELECT 1 FROM ${name} WHERE snapshotId=? LIMIT 1`)
+        .query(`SELECT 1 FROM ${name} WHERE scopeId=? LIMIT 1`)
         .get(input.scopeId)
     )
       throw new Error(
@@ -238,19 +238,19 @@ function rebuildAddressBuildingNumbers(current: Database, scopeId: string) {
       },
       [string]
     >(
-      'SELECT addressId,buildingNumberConnector,buildingNumberFrom,buildingNumberTo FROM address2dI18n WHERE snapshotId=?',
+      'SELECT addressId,buildingNumberConnector,buildingNumberFrom,buildingNumberTo FROM address2dI18n WHERE scopeId=?',
     )
     .all(scopeId)
   const timestamps = current.query<
     { createdAt: string; updatedAt: string },
     [string, string]
-  >('SELECT createdAt,updatedAt FROM address2d WHERE snapshotId=? AND id=?')
+  >('SELECT createdAt,updatedAt FROM address2d WHERE scopeId=? AND id=?')
   for (const row of buildAddressBuildingNumberLookupRows(rows)) {
     const times = timestamps.get(scopeId, row.addressId)
     if (!times) throw new Error(`Missing reconstructed Address owner ${row.addressId}.`)
     insertProjectionRow(current, 'address2dBuildingNumberLookup', {
       ...row,
-      snapshotId: scopeId,
+      scopeId: scopeId,
       ...times,
     })
   }
@@ -313,7 +313,7 @@ export async function restoreSnapshotProjection(input: RestoreSnapshotProjection
   input.current.exec('BEGIN')
   try {
     for (const name of tables) {
-      const scopeColumn = name === 'placesDivision' ? 'placeSnapshotId' : 'snapshotId'
+      const scopeColumn = name === 'placesDivision' ? 'placeScopeId' : 'scopeId'
       input.current
         .query(`DELETE FROM ${quote(name)} WHERE ${quote(scopeColumn)}=?`)
         .run(input.scopeId)
@@ -338,14 +338,14 @@ export async function restoreSnapshotProjection(input: RestoreSnapshotProjection
                 continue
             } else if (!activeStreetVersions.has(String(row.streetId))) continue
           }
-          const restored = { ...row, snapshotId: input.scopeId }
+          const restored = { ...row, scopeId: input.scopeId }
           if (component.localised && input.resourceType !== 'street') {
             const owner =
               component.table === 'address3dI18n' ? 'address3d' : selected[0]?.table
             if (
               !owner ||
               !input.current
-                .query(`SELECT 1 FROM ${quote(owner)} WHERE snapshotId=? AND id=?`)
+                .query(`SELECT 1 FROM ${quote(owner)} WHERE scopeId=? AND id=?`)
                 .get(input.scopeId, row[component.id] as SQLQueryBindings)
             )
               continue
@@ -381,7 +381,7 @@ export async function restoreSnapshotProjection(input: RestoreSnapshotProjection
       counts.address2dBuildingNumberLookup =
         input.current
           .query<{ count: number }, [string]>(
-            'SELECT count(*) AS count FROM address2dBuildingNumberLookup WHERE snapshotId=?',
+            'SELECT count(*) AS count FROM address2dBuildingNumberLookup WHERE scopeId=?',
           )
           .get(input.scopeId)?.count ?? 0
       if (membership)
