@@ -1,5 +1,6 @@
 import { readFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
+import { syncPushEvidence } from './evidence-push-cache.ts'
 import {
   MANIFEST_PATH,
   hydrateEvidence,
@@ -132,6 +133,15 @@ async function main() {
     buckets.set(manifest.bucket, target)
   }
   for (const manifest of buckets.values()) {
+    if (command === 'push') {
+      await syncPushEvidence(root, manifest, {
+        accountId: process.env.CLOUDFLARE_ACCOUNT_ID,
+      })
+      console.log(
+        `Evidence retained: ${manifest.entries.length} objects in ${manifest.bucket} (fresh or cached verification).`,
+      )
+      continue
+    }
     const store = await openEvidenceStore(manifest.bucket)
     try {
       if (command === 'restore')

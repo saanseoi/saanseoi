@@ -363,6 +363,7 @@ export async function syncEvidence(
   root: string,
   manifest: EvidenceManifest,
   store: EvidenceStore,
+  options: { onVerified?: (entry: EvidenceEntry) => Promise<void> } = {},
 ) {
   let next = 0
   let failed = false
@@ -374,6 +375,7 @@ export async function syncEvidence(
         const entry = manifest.entries[next++]!
         try {
           await syncEvidenceEntry(root, entry, store)
+          await options.onVerified?.(entry)
         } catch (error) {
           if (!failed) failure = error
           failed = true
