@@ -334,7 +334,7 @@ export function seedSnapshotAssembly(sqlite: Database, snapshotId: string) {
   sqlite
     .query(`INSERT OR IGNORE INTO processingAudits (resourceReleaseId,stage,ownerId,manifestHash,byteLength,applicationCount,attemptStatus)
     SELECT resourceReleaseId, 'assembly', snapshotId, ?, 1, 0, 'completed' FROM snapshotResourceReleases WHERE snapshotId = ?`)
-    .run('sha256:' + '0'.repeat(64), snapshotId)
+    .run(`sha256:${'0'.repeat(64)}`, snapshotId)
   const snapshot = sqlite
     .query<{ resourceType: string; cohortKey: string }, [string]>(
       'SELECT sl.resourceType, s.cohortKey FROM snapshots s JOIN snapshotLineages sl ON sl.id=s.snapshotLineageId WHERE s.id = ?',

@@ -55,16 +55,16 @@ const comparisonOrder = $derived(
   <div class="flex items-center gap-1.5 text-[11px] font-semibold">
     <span class="rounded-[4px] bg-(--bar-control-background) px-1.5 py-1">
       {formatReleaseVersion(
-  comparisonOrder.oldest === 'primary' ? primaryVersion : comparisonVersion,
-  text.latest,
-)}
+        comparisonOrder.oldest === 'primary' ? primaryVersion : comparisonVersion,
+        text.latest,
+      )}
     </span>
     <span aria-hidden="true" class="text-(--bar-muted)">→</span>
     <span class="rounded-[4px] bg-(--bar-control-background) px-1.5 py-1">
       {formatReleaseVersion(
-  comparisonOrder.newest === 'primary' ? primaryVersion : comparisonVersion,
-  text.latest,
-)}
+        comparisonOrder.newest === 'primary' ? primaryVersion : comparisonVersion,
+        text.latest,
+      )}
     </span>
   </div>
   <p class="m-0 w-full text-[11px] leading-[1.35] text-(--bar-muted)">

@@ -91,7 +91,9 @@ $effect(() => {
       <span class="font-medium">{all[0]?.title}</span>
       <span class="ml-2 text-xs tabular-nums opacity-55"
         >{query ? `${visible.length} / ` : ''}{all.length.toLocaleString()}
-        {all.length === 1 ? m.source_audit_decision() : m.source_audit_decisions()}</span
+        {all.length === 1
+          ? m.source_audit_decision()
+          : m.source_audit_decisions()}</span
       >
     </summary>
     {#if open}
@@ -118,7 +120,10 @@ $effect(() => {
               class="w-full rounded-lg border border-current/15 px-4 py-3 hover:bg-current/5"
               onclick={() => load()}
             >
-              {m.source_audit_show_more({ shown: decisions.length, total: visible.length })}
+              {m.source_audit_show_more({
+                shown: decisions.length,
+                total: visible.length,
+              })}
             </button>
           {/if}
         </div>

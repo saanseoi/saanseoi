@@ -381,7 +381,7 @@ function deletionStatement(
   recordType: string,
   recordId: string,
   locale: string,
-  versionHash: null,
+  _versionHash: null,
   now: string,
 ) {
   return {

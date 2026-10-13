@@ -39,13 +39,13 @@ let {
     <Dialog.Content
       class="fixed top-1/2 left-1/2 z-90 flex h-[calc(100svh-2rem)] w-[calc(100vw-4rem)] max-w-[120ch] -translate-x-1/2 -translate-y-1/2 flex-col rounded-lg border border-data-outline-variant/60 bg-data-surface-container-lowest shadow-popover focus:outline-none"
       onEscapeKeydown={event => {
-  event.preventDefault()
-  onClose()
-}}
+        event.preventDefault()
+        onClose()
+      }}
       onInteractOutside={event => {
-  event.preventDefault()
-  onClose()
-}}
+        event.preventDefault()
+        onClose()
+      }}
     >
       <div
         class="flex items-center justify-between gap-4 border-b border-data-outline-variant/60 px-5 py-4"

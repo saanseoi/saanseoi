@@ -20,8 +20,8 @@ let definition = $derived(getMarkdownTransclusion(href))
 <Popover.Root>
   <Popover.Trigger openOnHover openDelay={180}>
     {#snippet child({
-  props,
-})}
+      props,
+    })}
       <button
         {...props}
         class="font-inherit font-semibold text-secondary underline decoration-dotted underline-offset-4 hover:text-primary"

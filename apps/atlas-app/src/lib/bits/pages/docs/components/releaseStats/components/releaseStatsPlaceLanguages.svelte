@@ -106,16 +106,16 @@ let chartRows = $derived(
           <thead class="text-caption text-foreground-alt">
             <tr>
               {#each [
-   'Language',
-   'Coverage',
-   'Values',
-   'Provided',
-   'Inferred',
-   'AI translated',
-   'Human translated',
-   'Missing',
-   'Conflicts',
- ] as label}
+                'Language',
+                'Coverage',
+                'Values',
+                'Provided',
+                'Inferred',
+                'AI translated',
+                'Human translated',
+                'Missing',
+                'Conflicts',
+              ] as label}
                 <th class="px-2 py-2 font-medium whitespace-nowrap">{label}</th>
               {/each}
             </tr>
@@ -125,15 +125,15 @@ let chartRows = $derived(
               <tr class="border-t border-data-outline-variant/40">
                 <th class="px-2 py-3 font-medium whitespace-nowrap">{row.label}</th>
                 {#each [
-   row.coverageLabel,
-   row.count,
-   row.provided,
-   row.inferred,
-   row.ai,
-   row.human,
-   row.missing,
-   row.conflicts,
- ] as value}
+                  row.coverageLabel,
+                  row.count,
+                  row.provided,
+                  row.inferred,
+                  row.ai,
+                  row.human,
+                  row.missing,
+                  row.conflicts,
+                ] as value}
                   <td class="px-2 py-3 font-mono tabular-nums whitespace-nowrap">
                     {value}
                   </td>

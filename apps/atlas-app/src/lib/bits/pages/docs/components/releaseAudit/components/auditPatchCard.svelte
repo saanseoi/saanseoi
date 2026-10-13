@@ -95,8 +95,12 @@ const display = (value: Json): string =>
         <button
           type="button"
           class="rounded-md p-1.5 opacity-60 hover:bg-current/10 hover:opacity-100"
-          aria-label={copied ? m.source_audit_record_id_copied() : m.source_audit_copy_record_id()}
-          title={copied ? m.source_audit_copied() : m.source_audit_copy_id_value({ id })}
+          aria-label={copied
+            ? m.source_audit_record_id_copied()
+            : m.source_audit_copy_record_id()}
+          title={copied
+            ? m.source_audit_copied()
+            : m.source_audit_copy_id_value({ id })}
           onclick={copyId}
         >
           <Badge class="size-4" />
@@ -109,9 +113,9 @@ const display = (value: Json): string =>
   </p>
   <div class="grid grid-cols-2 divide-x divide-current/10 border-t border-current/10">
     {#each [
-   { title: m.source_audit_input(), value: input },
-   { title: m.source_audit_output(), value: output },
- ] as side}
+      { title: m.source_audit_input(), value: input },
+      { title: m.source_audit_output(), value: output },
+    ] as side}
       <div class="min-w-0 space-y-2 p-4">
         <p class="text-xs font-medium uppercase tracking-wide opacity-45">
           {side.title}
@@ -123,12 +127,16 @@ const display = (value: Json): string =>
             {title}
             {exclusion}
           />
-        {:else if side.value && typeof side.value === 'object' && !Array.isArray(side.value)}
+        {:else if side.value &&
+          typeof side.value === 'object' &&
+          !Array.isArray(side.value)}
           <dl class="space-y-2">
             {#each fields(side.value) as [key, value]}
               <div class="flex flex-wrap justify-between gap-x-3 gap-y-1">
                 <dt class="capitalize opacity-55">
-                  {key === 'districtLandDivisionIds' ? m.source_audit_districts() : label(key)}
+                  {key === 'districtLandDivisionIds'
+                    ? m.source_audit_districts()
+                    : label(key)}
                 </dt>
                 <dd
                   class="min-w-0 wrap-break-word font-medium"

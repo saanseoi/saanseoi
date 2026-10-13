@@ -2,11 +2,7 @@ import { requireDefined } from '../../../requireDefined'
 import { expect, test } from 'bun:test'
 import { buildDeterministicUuidV5 } from '@repo/db'
 import { expandedPatch, compactExample } from './reviewGraph.fixtures'
-import {
-  compactHierarchyPatch,
-  expandHierarchyPatch,
-  type CompactHierarchyPatch,
-} from './compactHierarchyPatch'
+import { compactHierarchyPatch, expandHierarchyPatch } from './compactHierarchyPatch'
 
 const { patch, catalogue } = await compactHierarchyPatch(
   expandedPatch,

@@ -37,12 +37,16 @@ let distributionColumns = $derived.by(() => {
       <span class="inline-flex items-baseline gap-2.5 whitespace-nowrap">
         <strong
           class="font-display text-4xl font-semibold leading-none tracking-tight text-primary tabular-nums sm:text-5xl"
-          >{profile.coverage.uniform ? profile.coverage.fieldCount : profile.coverage.standardCount}</strong
+          >{profile.coverage.uniform
+            ? profile.coverage.fieldCount
+            : profile.coverage.standardCount}</strong
         >
         <span
           class="text-caption font-medium tracking-[0.12em] text-foreground-alt uppercase"
         >
-          {profile.coverage.uniform ? 'fields' : `of ${profile.coverage.fieldCount} fields`}
+          {profile.coverage.uniform
+            ? 'fields'
+            : `of ${profile.coverage.fieldCount} fields`}
         </span>
       </span>
       <span class="text-label-md text-foreground-alt">each with</span>

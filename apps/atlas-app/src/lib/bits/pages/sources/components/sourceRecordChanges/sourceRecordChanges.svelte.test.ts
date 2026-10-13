@@ -17,7 +17,7 @@ const stats = (removed: number) => [
   { category: 'changes', measure: 'count', value: 10 },
   ...['added', 'changed', 'removed', 'unchanged'].map(key => ({
     category: 'changes',
-    measure: key + '_count',
+    measure: `${key}_count`,
     value: key === 'removed' ? removed : key === 'unchanged' ? 10 : 0,
   })),
 ]

@@ -99,7 +99,7 @@ export async function retainCuratedSourceReleases(
     }
     resolved.push({ release, source })
   }
-  for (const { release, source } of resolved)
+  for (const { release } of resolved)
     await upsertSnapshotSource(db, snapshotId, release.id, 'enrichment', {
       anchorReleaseId,
       selectedByRule: 'provenance:curated-division:build-inputs:v1',

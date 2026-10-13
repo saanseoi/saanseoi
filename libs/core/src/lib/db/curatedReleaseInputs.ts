@@ -10,14 +10,7 @@ type SelectedSnapshot = {
   variant: string
 }
 
-const {
-  metaDatasets,
-  metaPublishers,
-  metaResourceReleases,
-  metaSnapshotResourceReleases,
-  metaSnapshotLineages,
-  metaSnapshots,
-} = metaSchema
+const { metaDatasets, metaPublishers, metaSnapshotLineages, metaSnapshots } = metaSchema
 
 /** Published companions must use the publisher releases retained by the curated build. */
 export async function assertCuratedReleaseInputs(

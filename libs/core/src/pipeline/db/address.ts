@@ -55,7 +55,7 @@ const HISTORY_ADDRESS2D_BUILDING_LOOKUP_VERSION_COLUMN_COUNT = Object.keys(
   getTableColumns(historySchema.address2dBuildingNumberLookup),
 ).length
 const HISTORY_ADDRESS2D_VERSION_UPSERT_FIXED_VARIABLE_COUNT = 7
-const SEEN_ADDRESS_ID_INSERT_COLUMN_COUNT = 1
+const _SEEN_ADDRESS_ID_INSERT_COLUMN_COUNT = 1
 const ADDRESS_DIVISION_REFERENCE_COLUMNS = [
   'countryId',
   'landformId',
@@ -70,7 +70,7 @@ const ADDRESS_DIVISION_REFERENCE_COLUMNS = [
   'microhoodId',
 ] as const
 
-const tempSeenAddressIds = sqliteTable('tempSeenAddressIds', {
+const _tempSeenAddressIds = sqliteTable('tempSeenAddressIds', {
   id: text('id').primaryKey(),
 })
 
@@ -224,12 +224,12 @@ function selectCurrentAddressVersionFields() {
   }
 }
 
-function normaliseAddressMatchToken(value: string | null) {
+function _normaliseAddressMatchToken(value: string | null) {
   const normalised = value?.trim().toUpperCase().replace(/\s+/g, ' ')
   return normalised || null
 }
 
-function normaliseAddressSqlMatchToken(value: string) {
+function _normaliseAddressSqlMatchToken(value: string) {
   return value.replace(/\s+/g, '')
 }
 

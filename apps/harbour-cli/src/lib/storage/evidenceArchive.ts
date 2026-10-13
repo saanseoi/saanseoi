@@ -173,7 +173,7 @@ async function updateManifest(
     await update(manifest)
     manifest.entries.sort((a, b) => a.path.localeCompare(b.path, 'en'))
     parseEvidenceManifest(manifest)
-    await writeFile(temporary, JSON.stringify(manifest, null, 2) + '\n', { flag: 'wx' })
+    await writeFile(temporary, `${JSON.stringify(manifest, null, 2)}\n`, { flag: 'wx' })
     await rename(temporary, path)
   } finally {
     await rm(temporary, { force: true })

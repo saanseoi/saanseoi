@@ -204,7 +204,7 @@ let showNoteDiff = $state(
 $effect(() => {
   showNoteDiff = currentUrl.searchParams.get('view') === 'diff'
 })
-let showBulkActions = $state(false)
+let _showBulkActions = $state(false)
 let bulkActions = $derived(
   version?.processingRules?.rulesets
     .flatMap(ruleset => ruleset.rules)

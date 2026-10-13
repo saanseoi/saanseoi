@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test'
-import { curatedPreparationField, validateHumanOperation } from './fieldLineageHuman'
+import { validateHumanOperation } from './fieldLineageHuman'
 
 test('human operations reject ambiguous kinds and malformed field effects', () => {
   const valid = {

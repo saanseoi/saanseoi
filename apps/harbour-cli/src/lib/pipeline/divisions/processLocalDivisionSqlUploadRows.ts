@@ -218,13 +218,13 @@ export async function buildDivisionHistorySqlFile(
   })
 
   const missingIds = [...state.currentRows.keys()].filter(id => !state.seenIds.has(id))
-  const changedExistingIdsInPrimary =
+  const _changedExistingIdsInPrimary =
     groupIdsByOwnerShard(
       state.currentRows,
       changedExistingIds,
       PRIMARY_HISTORY_OWNER_KEY,
     ).get(PRIMARY_HISTORY_OWNER_KEY) ?? []
-  const missingIdsInPrimary =
+  const _missingIdsInPrimary =
     groupIdsByOwnerShard(state.currentRows, missingIds, PRIMARY_HISTORY_OWNER_KEY).get(
       PRIMARY_HISTORY_OWNER_KEY,
     ) ?? []

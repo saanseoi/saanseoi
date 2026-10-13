@@ -25,8 +25,8 @@ import { navigationItems } from './navigationItems'
       <Tooltip.Root>
         <Tooltip.Trigger>
           {#snippet child({
-  props,
-})}
+            props,
+          })}
             <Button
               {...props}
               class="hidden size-12 min-h-12 px-0 text-foreground-alt hover:text-foreground [@container(max-width:859px)]:inline-flex [@container(min-width:860px)]:hidden"

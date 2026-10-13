@@ -28,7 +28,7 @@ export async function loadAlsDivisionHistory(
     if (!db) continue
     for (let index = 0; index < versions.length; index += 80) {
       const batch = versions.slice(index, index + 80)
-      const hashes = [...new Set(batch.map(version => version.versionHash))]
+      const _hashes = [...new Set(batch.map(version => version.versionHash))]
       const expected = new Set(
         batch.map(
           version =>

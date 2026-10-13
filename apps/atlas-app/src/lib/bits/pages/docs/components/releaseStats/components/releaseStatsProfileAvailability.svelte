@@ -23,8 +23,11 @@ const colour = {
       <InfoTooltip
         label="Value availability details"
         description={rows
-  .map(row => `${row.label}: ${row.value} (${row.percentageLabel}). ${row.description}`)
-  .join(' ')}
+          .map(
+            row =>
+              `${row.label}: ${row.value} (${row.percentageLabel}). ${row.description}`,
+          )
+          .join(' ')}
       />
     </div>
   </Header>
@@ -32,7 +35,9 @@ const colour = {
     <div
       class="flex h-5 overflow-hidden bg-data-outline-variant/20"
       role="img"
-      aria-label={rows.map(row => `${row.label}: ${row.value} (${row.percentageLabel})`).join(', ')}
+      aria-label={rows
+        .map(row => `${row.label}: ${row.value} (${row.percentageLabel})`)
+        .join(', ')}
     >
       {#each rows as row}
         <div

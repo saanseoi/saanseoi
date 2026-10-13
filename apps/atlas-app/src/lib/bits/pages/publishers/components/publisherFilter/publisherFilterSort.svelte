@@ -77,7 +77,9 @@ const selectSort = (sort: PublisherSort) => {
             <span>{option.label}</span>
             {#if option.value === value}
               <Icon
-                icon={direction === 'ascending' ? 'proicons:arrow-up' : 'proicons:arrow-down'}
+                icon={direction === 'ascending'
+                  ? 'proicons:arrow-up'
+                  : 'proicons:arrow-down'}
                 class="size-4 shrink-0 text-secondary"
                 aria-hidden="true"
               />

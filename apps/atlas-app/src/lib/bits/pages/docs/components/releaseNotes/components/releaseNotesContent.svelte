@@ -86,11 +86,11 @@ function sanitiseUrl(url: string) {
     extensions={releaseNotesMarkdownExtensions}
   >
     {#snippet heading({
-  depth,
-  text,
-  children,
-  slug,
-})}
+      depth,
+      text,
+      children,
+      slug,
+    })}
       <ReleaseNotesHeading
         {depth}
         id={getMarkdownHeadingId(slug(text))}
@@ -101,73 +101,73 @@ function sanitiseUrl(url: string) {
     {/snippet}
 
     {#snippet rawtext({
-  text,
-})}
+      text,
+    })}
       <span class="contents">{text}</span>
     {/snippet}
 
     {#snippet code({
-  lang,
-  text,
-})}
+      lang,
+      text,
+    })}
       <ApiUrlCodeBlock {lang} {text} />
     {/snippet}
 
     {#snippet codespan({
-  raw,
-})}
+      raw,
+    })}
       <ReleaseNotesCodeSpan {raw} {nested} />
     {/snippet}
 
     {#snippet html_mono({
-  children,
-})}
+      children,
+    })}
       <span class="not-prose mx-0.75 font-mono text-[0.9em]"
         >{@render children?.()}</span
       >
     {/snippet}
 
     {#snippet html_saanseoi({
-  children,
-})}
+      children,
+    })}
       <ReleaseNotesBadge tone="saanseoi" {nested}
         >{@render children?.()}</ReleaseNotesBadge
       >
     {/snippet}
 
     {#snippet html_red({
-  children,
-})}
+      children,
+    })}
       <ReleaseNotesBadge tone="red" {nested}>{@render children?.()}</ReleaseNotesBadge>
     {/snippet}
 
     {#snippet html_orange({
-  children,
-})}
+      children,
+    })}
       <ReleaseNotesBadge tone="orange" {nested}
         >{@render children?.()}</ReleaseNotesBadge
       >
     {/snippet}
 
     {#snippet html_blue({
-  children,
-})}
+      children,
+    })}
       <ReleaseNotesBadge tone="blue" {nested}>{@render children?.()}</ReleaseNotesBadge>
     {/snippet}
 
     {#snippet html_black({
-  children,
-})}
+      children,
+    })}
       <ReleaseNotesBadge tone="black" {nested}
         >{@render children?.()}</ReleaseNotesBadge
       >
     {/snippet}
 
     {#snippet link({
-  href,
-  title,
-  children,
-})}
+      href,
+      title,
+      children,
+    })}
       <ReleaseNotesLink {href} {title} {labels} {transclusions}>
         {@render children?.()}
       </ReleaseNotesLink>

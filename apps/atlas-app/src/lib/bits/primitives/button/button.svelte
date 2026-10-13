@@ -72,12 +72,12 @@ const anchorTarget = $derived(target ?? (isExternalHref ? '_blank' : undefined))
   <a
     {...restProps}
     class={cn(
-  baseClasses,
-  sizeClasses[size],
-  anchorClasses,
-  'focus-visible:ring-offset-background',
-  className,
-)}
+      baseClasses,
+      sizeClasses[size],
+      anchorClasses,
+      'focus-visible:ring-offset-background',
+      className,
+    )}
     href={href ?? ''}
     rel={anchorRel}
     target={anchorTarget}
@@ -88,12 +88,12 @@ const anchorTarget = $derived(target ?? (isExternalHref ? '_blank' : undefined))
   <button
     {...restProps}
     class={cn(
-  baseClasses,
-  sizeClasses[size],
-  buttonClasses,
-  'focus-visible:ring-offset-background',
-  className,
-)}
+      baseClasses,
+      sizeClasses[size],
+      buttonClasses,
+      'focus-visible:ring-offset-background',
+      className,
+    )}
     {disabled}
     {type}
   >

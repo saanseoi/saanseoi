@@ -74,20 +74,20 @@ const previewHeight = $derived(
   class="relative w-full max-w-232 min-w-0 overflow-hidden font-mono shadow-card"
   style:height={previewHeight}
   style:max-height={expanded
-  ? undefined
-  : view === 'preview'
-    ? 'min(2160px, calc(200dvh - 4.5rem))'
-    : 'min(1080px, calc(100dvh - 4.5rem))'}
+    ? undefined
+    : view === 'preview'
+      ? 'min(2160px, calc(200dvh - 4.5rem))'
+      : 'min(1080px, calc(100dvh - 4.5rem))'}
 >
   <section
     bind:this={promptPanel}
     aria-hidden={view !== 'prompt'}
     inert={view !== 'prompt'}
     class={`absolute inset-0 overflow-hidden border border-[color-mix(in_srgb,var(--color-secondary)_55%,#5a4a85)] bg-[#171521] transition-[opacity,transform] duration-500 backface-hidden transform-3d motion-reduce:transition-none ${
-  view === 'prompt'
-    ? 'pointer-events-auto opacity-100 transform-[rotateY(0deg)]'
-    : 'pointer-events-none opacity-0 transform-[rotateY(-180deg)]'
-}`}
+      view === 'prompt'
+        ? 'pointer-events-auto opacity-100 transform-[rotateY(0deg)]'
+        : 'pointer-events-none opacity-0 transform-[rotateY(-180deg)]'
+    }`}
     class:relative={view === 'prompt'}
   >
     <GuideCodeBlock
@@ -133,10 +133,10 @@ const previewHeight = $derived(
     aria-hidden={view !== 'code'}
     inert={view !== 'code'}
     class={`absolute inset-0 overflow-hidden transition-[opacity,transform] duration-500 backface-hidden transform-3d motion-reduce:transition-none ${
-  view === 'code'
-    ? 'pointer-events-auto opacity-100 transform-[rotateY(0deg)]'
-    : 'pointer-events-none opacity-0 transform-[rotateY(180deg)]'
-}`}
+      view === 'code'
+        ? 'pointer-events-auto opacity-100 transform-[rotateY(0deg)]'
+        : 'pointer-events-none opacity-0 transform-[rotateY(180deg)]'
+    }`}
     class:relative={view === 'code'}
   >
     {#if reference}
@@ -213,14 +213,14 @@ const previewHeight = $derived(
       aria-hidden={view !== 'preview'}
       inert={view !== 'preview'}
       class={`${
-  expanded
-    ? 'top-1/2 left-1/2 z-100 h-[calc(100dvh-2rem)] max-h-[1080px] w-[calc(100dvw-2rem)] -translate-x-1/2 -translate-y-1/2'
-    : 'inset-0'
-} absolute flex min-h-0 flex-col overflow-hidden border border-[#596074] bg-[#131722] transition-[opacity,transform] duration-500 backface-hidden transform-3d motion-reduce:transition-none ${
-  view === 'preview'
-    ? 'pointer-events-auto opacity-100 transform-[rotateY(0deg)]'
-    : 'pointer-events-none opacity-0 transform-[rotateY(180deg)]'
-}`}
+        expanded
+          ? 'top-1/2 left-1/2 z-100 h-[calc(100dvh-2rem)] max-h-[1080px] w-[calc(100dvw-2rem)] -translate-x-1/2 -translate-y-1/2'
+          : 'inset-0'
+      } absolute flex min-h-0 flex-col overflow-hidden border border-[#596074] bg-[#131722] transition-[opacity,transform] duration-500 backface-hidden transform-3d motion-reduce:transition-none ${
+        view === 'preview'
+          ? 'pointer-events-auto opacity-100 transform-[rotateY(0deg)]'
+          : 'pointer-events-none opacity-0 transform-[rotateY(180deg)]'
+      }`}
       style:position={expanded ? 'fixed' : undefined}
       class:relative={!expanded && view === 'preview'}
       class:h-full={!expanded && view === 'preview'}

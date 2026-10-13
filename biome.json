@@ -1,5 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.5.13/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.5.15/schema.json",
   "vcs": {
     "enabled": true,
     "clientKind": "git",
@@ -93,5 +93,29 @@
       "cssModules": true,
       "tailwindDirectives": true
     }
-  }
+  },
+  "overrides": [
+    {
+      "includes": [
+        "scripts/build-island-review-inventory.ts",
+        "scripts/divisions/prepare-review.ts"
+      ],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noUndeclaredEnvVars": {
+              "level": "warn",
+              "options": {
+                "allowedEnvVars": [
+                  "SAANSEOI_REVIEW_API_URL",
+                  "SAANSEOI_REVIEW_ARCHIVE_URL",
+                  "SAANSEOI_REVIEW_OPTIONS"
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
 }

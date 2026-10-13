@@ -835,7 +835,7 @@ describe('upload', () => {
       rawObjectKey: 'hk/overture/2026-05-20.0/division.parquet',
     })
 
-    const dataset = sqlite
+    const _dataset = sqlite
       .query(
         'SELECT code AS datasetId FROM resourceReleaseDetails AS resourceReleases WHERE code = ?',
       )

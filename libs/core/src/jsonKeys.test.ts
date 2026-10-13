@@ -51,7 +51,9 @@ test('preserves nulls, arrays and JSON keys without prototype mutation', () => {
   )
   const result = camelCaseJson(input)
   expect(Object.hasOwn(result, '__proto__')).toBe(true)
-  expect(result.__proto__).toEqual({ recordId: 'x' })
+  expect(Object.getOwnPropertyDescriptor(result, '__proto__')?.value).toEqual({
+    recordId: 'x',
+  })
   expect(result.valueList).toEqual([null, false, 0])
   expect(Object.getPrototypeOf(result)).toBe(Object.prototype)
 })

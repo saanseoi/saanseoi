@@ -143,7 +143,7 @@ async function fixture(
 }
 
 function stage(candidates: ResolvedSqlCandidates, english = 'Original') {
-  const old = requireDefined(candidates.DB_HISTORY_OLD).db,
+  const _old = requireDefined(candidates.DB_HISTORY_OLD).db,
     next = requireDefined(candidates.DB_HISTORY_NEW).db,
     current = requireDefined(candidates.DB_CURRENT).db
   next

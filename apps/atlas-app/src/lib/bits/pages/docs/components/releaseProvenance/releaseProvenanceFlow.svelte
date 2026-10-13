@@ -2,10 +2,7 @@
 import type { HumanSourceUse } from '@repo/db/fieldLineageHuman'
 import { isTransportNode, retainedOperation } from './humanPresentation'
 import type { LineageDefinition, ReleaseBinding } from '@repo/db/fieldLineageTypes'
-import {
-  reverseFieldFlow,
-  type ReverseBranch,
-} from './presentation'
+import { reverseFieldFlow, type ReverseBranch } from './presentation'
 import FieldDependency from './releaseProvenanceFieldDependency.svelte'
 import Preparation from './releaseProvenancePreparation.svelte'
 import ProvenanceNode from './releaseProvenanceNode.svelte'
@@ -26,17 +23,22 @@ let {
 } = $props()
 let trace = $derived(reverseFieldFlow(definition, terminalNode))
 function preparationRun(item: ReverseBranch) {
-  const nodes: Extract<ReverseBranch, {kind:'node'}>[] = []
+  const nodes: Extract<ReverseBranch, { kind: 'node' }>[] = []
   const sources: ReverseBranch[] = []
   let current: ReverseBranch | undefined = item
   while (current?.kind === 'node' && current.node.stage === 'preparation') {
     nodes.push(current)
-    const next: ReverseBranch[] = current.children.filter(child => child.kind !== 'source')
+    const next: ReverseBranch[] = current.children.filter(
+      child => child.kind !== 'source',
+    )
     sources.push(...current.children.filter(child => child.kind === 'source'))
-    if (next.length !== 1) { sources.push(...next); current = undefined } else current = next[0]
+    if (next.length !== 1) {
+      sources.push(...next)
+      current = undefined
+    } else current = next[0]
   }
   if (current) sources.push(current)
-  return {nodes, sources}
+  return { nodes, sources }
 }
 </script>
 {#snippet branch(
@@ -48,12 +50,22 @@ function preparationRun(item: ReverseBranch) {
     <Preparation>
       {#each run.nodes as entry}
         {#if !isTransportNode(entry.node, definition)}
-          <ProvenanceNode node={entry.node} humanOverride={entry.human} {definition} {binding} {scopeLabels} reference={entry.reference} references={trace.references} />
+          <ProvenanceNode
+            node={entry.node}
+            humanOverride={entry.human}
+            {definition}
+            {binding}
+            {scopeLabels}
+            reference={entry.reference}
+            references={trace.references}
+          />
         {/if}
       {/each}
     </Preparation>
     <div class="ml-5 h-4 border-l border-foreground/25"></div>
-    {#each run.sources as source}{@render branch(source, inheritedSources)}{/each}
+    {#each run.sources as source}
+      {@render branch(source, inheritedSources)}
+    {/each}
   {:else if item.kind === 'node'}
     {@const uses =
       (
@@ -94,7 +106,11 @@ function preparationRun(item: ReverseBranch) {
             <span class="absolute -left-3 top-3 w-3 border-t border-primary/30"></span>
             {#if child.kind === 'node'}
               <p class="mb-2 text-xs leading-6">
-                <Condition {definition} condition={child.node.when} labels={scopeLabels} />
+                <Condition
+                  {definition}
+                  condition={child.node.when}
+                  labels={scopeLabels}
+                />
               </p>
             {/if}
             {@render branch(child)}
@@ -121,5 +137,5 @@ function preparationRun(item: ReverseBranch) {
   {/if}
 {/snippet}
 <div class="space-y-3">
-  <div aria-label="Value flow">{@render branch(trace.root)}</div>
+  <section aria-label="Value flow">{@render branch(trace.root)}</section>
 </div>

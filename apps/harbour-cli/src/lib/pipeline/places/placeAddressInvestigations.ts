@@ -54,7 +54,7 @@ export async function deferPlaceAddressReviews(input: {
   await mkdir(input.directory ?? directory, { recursive: true })
   await writeFile(
     path,
-    JSON.stringify({
+    `${JSON.stringify({
       schemaVersion: 1,
       status: 'needs-further-investigation',
       priority: 'low',
@@ -62,7 +62,7 @@ export async function deferPlaceAddressReviews(input: {
       authority: input.authority,
       evidenceSha256: digest,
       report,
-    }) + '\n',
+    })}\n`,
     { flag: 'wx' },
   )
   if (!input.directory) await registerReviewEvidence(path)

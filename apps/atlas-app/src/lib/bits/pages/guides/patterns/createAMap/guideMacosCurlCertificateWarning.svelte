@@ -19,9 +19,9 @@ const removal = "sed -i '' '/^insecure$/d' ~/.curlrc"
   </GuideParagraph>
   <GuideCodeBlock
     label={m.guide_setup_terminal_label({
-  action: m.guide_setup_macos_curl_certificate_temporary_fix(),
-  path: '~/',
-})}
+      action: m.guide_setup_macos_curl_certificate_temporary_fix(),
+      path: '~/',
+    })}
     code={temporaryFix}
     language="bash"
     copyLabel={m.common_copy()}
@@ -35,9 +35,9 @@ const removal = "sed -i '' '/^insecure$/d' ~/.curlrc"
   </GuideParagraph>
   <GuideCodeBlock
     label={m.guide_setup_terminal_label({
-  action: m.guide_setup_macos_curl_certificate_removal(),
-  path: '~/',
-})}
+      action: m.guide_setup_macos_curl_certificate_removal(),
+      path: '~/',
+    })}
     code={removal}
     language="bash"
     copyLabel={m.common_copy()}

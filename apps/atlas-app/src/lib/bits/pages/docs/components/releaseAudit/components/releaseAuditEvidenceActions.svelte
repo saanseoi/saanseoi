@@ -27,27 +27,27 @@ let { analyticsSurface, copied, evidence, evidenceId, onCopy, onFullscreen }: Pr
     title={m.source_audit_copy_evidence_json()}
     disabled={!evidenceId}
     onclick={() => {
-  if (!evidenceId) return
-  void onCopy(evidenceId, evidence)
-    .then(outcome => {
-      trackClientProductUsage({
-        event: 'client.copy_evidence_json',
-        surface: analyticsSurface,
-        entityType: 'action',
-        entityId: 'copy',
-        outcome: outcome ? 'success' : 'failure',
-      })
-    })
-    .catch(() => {
-      trackClientProductUsage({
-        event: 'client.copy_evidence_json',
-        surface: analyticsSurface,
-        entityType: 'action',
-        entityId: 'copy',
-        outcome: 'failure',
-      })
-    })
-}}
+      if (!evidenceId) return
+      void onCopy(evidenceId, evidence)
+        .then(outcome => {
+          trackClientProductUsage({
+            event: 'client.copy_evidence_json',
+            surface: analyticsSurface,
+            entityType: 'action',
+            entityId: 'copy',
+            outcome: outcome ? 'success' : 'failure',
+          })
+        })
+        .catch(() => {
+          trackClientProductUsage({
+            event: 'client.copy_evidence_json',
+            surface: analyticsSurface,
+            entityType: 'action',
+            entityId: 'copy',
+            outcome: 'failure',
+          })
+        })
+    }}
   >
     <Icon
       icon={copied ? 'ion:checkmark-outline' : 'ion:copy-outline'}
@@ -62,14 +62,14 @@ let { analyticsSurface, copied, evidence, evidenceId, onCopy, onFullscreen }: Pr
       aria-label={m.source_audit_view_evidence_fullscreen()}
       title={m.source_audit_view_evidence_fullscreen()}
       onclick={() => {
-  trackClientProductUsage({
-    event: 'client.evidence_fullscreen',
-    surface: analyticsSurface,
-    entityType: 'action',
-    entityId: 'open',
-  })
-  onFullscreen(evidenceId, evidence)
-}}
+        trackClientProductUsage({
+          event: 'client.evidence_fullscreen',
+          surface: analyticsSurface,
+          entityType: 'action',
+          entityId: 'open',
+        })
+        onFullscreen(evidenceId, evidence)
+      }}
     >
       <Icon icon="ion:expand-outline" class="size-4" aria-hidden="true" />
     </button>

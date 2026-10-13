@@ -8,7 +8,7 @@ import { readHistoryDictionaryVersions } from '@repo/core/pipeline/db/historyDic
 import type { RetainedStatisticRecord } from '@repo/core/pipeline/services/statistics/statisticSnapshotRecords'
 import { readStatisticSnapshotRecords } from '@repo/core/pipeline/services/statistics/statisticSnapshotRecords'
 import type { currentSchema, HistoryContent } from '@repo/db'
-import { and, eq, historySchema, inArray, metaSchema } from '@repo/db'
+import { and, eq, type historySchema, inArray, metaSchema } from '@repo/db'
 import type { ApiReleaseSetScopedStatsRow } from '@repo/db/metaSchema'
 import type { DivisionHistoryTarget } from './divisionApiReleaseSetStats'
 import { buildStatisticsRecordChurn } from './statisticsApiRecordChurn'

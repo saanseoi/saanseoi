@@ -6,7 +6,6 @@ import {
   metaDatasets,
   metaSnapshotLineages,
   metaSnapshots,
-  metaSnapshotResourceReleases,
 } from '@repo/db'
 import type { HarbourReadableDb } from '../../lib/db/types'
 import { listApiReleaseSetSnapshotsForRegistryRequest } from '../../lib/db/metaRegistry'

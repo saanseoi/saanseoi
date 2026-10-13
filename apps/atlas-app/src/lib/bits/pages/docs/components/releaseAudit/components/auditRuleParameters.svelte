@@ -40,11 +40,11 @@ const label = (key: string) =>
       {/if}
       <dd>
         {#if key === 'exclusion' &&
-  item &&
-  typeof item === 'object' &&
-  !Array.isArray(item) &&
-  (item.type === 'Polygon' || item.type === 'MultiPolygon') &&
-  Array.isArray(item.coordinates)}
+          item &&
+          typeof item === 'object' &&
+          !Array.isArray(item) &&
+          (item.type === 'Polygon' || item.type === 'MultiPolygon') &&
+          Array.isArray(item.coordinates)}
           <ExclusionMap geometry={item as unknown as Polygon | MultiPolygon} />
         {:else}
           {@render value(item)}

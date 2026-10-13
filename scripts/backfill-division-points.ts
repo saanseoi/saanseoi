@@ -241,7 +241,7 @@ export async function backfillDivisionPoints(
       db.exec('ROLLBACK')
       throw error
     }
-    const quote = (value: string) => "'" + value.replaceAll("'", "''") + "'"
+    const quote = (value: string) => `'${value.replaceAll("'", "''")}'`
     const rollback = [
       ...paths.map(
         (path, index) => `ATTACH DATABASE ${quote(resolve(path))} AS db${index};`,

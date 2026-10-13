@@ -15,8 +15,8 @@ let { metrics, class: className = '' }: Props = $props()
   <Tooltip.Root>
     <Tooltip.Trigger>
       {#snippet child({
-  props,
-})}
+        props,
+      })}
         <dl
           {...props}
           class={`flex flex-wrap gap-x-5 gap-y-3 ${className}`}

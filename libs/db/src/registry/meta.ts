@@ -8,10 +8,7 @@ import { readdirSync, readFileSync } from 'node:fs'
 import { basename, join } from 'node:path'
 
 import type { ResourceType } from '@repo/core'
-import {
-  type ruleDeclarationFromFixture,
-  resolveRuleFixtureCatalog,
-} from '@repo/core/provenance/ruleFixture'
+import { resolveRuleFixtureCatalog } from '@repo/core/provenance/ruleFixture'
 import { profileNames, resolverCodes } from '../constants/schema'
 import type {
   ApiFamilyType,
@@ -483,9 +480,9 @@ export function resolveMergeRulesetDefinitions(
   return { ...resolved, versionHash: computeVersionHash(resolved) }
 }
 
-const mergeRulesetFixtures = readFixtureDir<MergeRulesetFixture>('rulesetVersions').map(
-  fixture => resolveMergeRulesetDefinitions(fixture),
-)
+const _mergeRulesetFixtures = readFixtureDir<MergeRulesetFixture>(
+  'rulesetVersions',
+).map(fixture => resolveMergeRulesetDefinitions(fixture))
 const apiCompositionFixtures = readFixtureDir<ApiCompositionFixture>('apiCompositions')
 const apiEndpointFixtures = readFixtureDir<ApiEndpointFileFixture>('apiEndpoints')
 const dataShardFixtures = readFixtureDir<DataShardFileFixture>('dataShards')

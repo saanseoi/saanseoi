@@ -102,15 +102,15 @@ const result = buildGeographicCrosswalk(
 await mkdir(directory, { recursive: true })
 await Bun.write(
   resolve(directory, 'crosswalk.json'),
-  JSON.stringify(
+  `${JSON.stringify(
     { ...result, missingGeographicGeometry: geographic.missing },
     null,
     2,
-  ) + '\n',
+  )}\n`,
 )
 await Bun.write(
   resolve(directory, 'crosswalk.sql'),
-  geographicCrosswalkStatements(result).join('\n') + '\n',
+  `${geographicCrosswalkStatements(result).join('\n')}\n`,
 )
 console.log(
   JSON.stringify(

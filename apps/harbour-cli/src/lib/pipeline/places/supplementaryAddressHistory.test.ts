@@ -197,7 +197,7 @@ test.each(['scope-a', 'scope-b'] as const)(
       await publish(firstOwner, `${firstOwner}-empty`, priorSnapshots[firstOwner], [])
       expect(components(old)).toEqual(originalComponents)
       expect(components(next)).toEqual(
-        nextComponents.map((rows, i) => expect.arrayContaining(rows)),
+        nextComponents.map((rows, _i) => expect.arrayContaining(rows)),
       )
       expect(
         next

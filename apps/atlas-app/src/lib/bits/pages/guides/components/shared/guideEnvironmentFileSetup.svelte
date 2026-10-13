@@ -85,15 +85,15 @@ const environmentFileStructureCode = $derived(
     class="mt-3 [&_code]:rounded-sm [&_code]:border [&_code]:border-border-card [&_code]:bg-surface-container-low [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.85em] [&_kbd]:rounded-sm [&_kbd]:border [&_kbd]:border-border-card [&_kbd]:bg-surface-container-low [&_kbd]:px-1 [&_kbd]:font-mono [&_kbd]:text-[0.85em]"
   >
     {@html editorLabel && newFileShortcut
-  ? environmentFileExists
-    ? m.guide_basemap_env_file_editor_existing_instruction({ editor: editorLabel })
-    : m.guide_basemap_env_file_editor_instruction({
-        editor: editorLabel,
-        shortcut: newFileShortcut,
-      })
-  : environmentFileExists
-    ? m.guide_basemap_env_file_other_existing_instruction()
-    : m.guide_basemap_env_file_other_instruction()}
+      ? environmentFileExists
+        ? m.guide_basemap_env_file_editor_existing_instruction({ editor: editorLabel })
+        : m.guide_basemap_env_file_editor_instruction({
+            editor: editorLabel,
+            shortcut: newFileShortcut,
+          })
+      : environmentFileExists
+        ? m.guide_basemap_env_file_other_existing_instruction()
+        : m.guide_basemap_env_file_other_instruction()}
   </GuideParagraph>
   {#if editorLabel === 'Sublime Text'}
     <GuideCallout class="mt-4">
@@ -147,8 +147,8 @@ const environmentFileStructureCode = $derived(
       class="mt-3 [&_code]:rounded-sm [&_code]:border [&_code]:border-border-card [&_code]:bg-surface-container-low [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.85em]"
     >
       {@html operatingSystem === 'windows'
-  ? m.guide_basemap_env_file_structure_description_windows()
-  : m.guide_basemap_env_file_structure_description()}
+        ? m.guide_basemap_env_file_structure_description_windows()
+        : m.guide_basemap_env_file_structure_description()}
     </GuideParagraph>
     <div class="mt-5">
       <GuideCodeBlock

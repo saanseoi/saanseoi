@@ -402,15 +402,15 @@ onMount(() => {
       additionalSources={processingTileSources}
       center={[114.16, 22.32]}
       onMapReady={map => {
-  previewMap = map
-  updateExclusionSources()
-  for (let index = 0; index < completedTiles; index += 1) {
-    const completedTile = processingTiles[index]
-    if (completedTile) setTileStatus(completedTile, 'complete')
-  }
-  if (activeTile) setTileStatus(activeTile, 'active')
-  showTileOutline(activeTile)
-}}
+        previewMap = map
+        updateExclusionSources()
+        for (let index = 0; index < completedTiles; index += 1) {
+          const completedTile = processingTiles[index]
+          if (completedTile) setTileStatus(completedTile, 'complete')
+        }
+        if (activeTile) setTileStatus(activeTile, 'active')
+        showTileOutline(activeTile)
+      }}
       {renderer}
       {styleUrl}
       {tilejsonUrl}
@@ -429,7 +429,7 @@ onMount(() => {
         class="mt-1.5 font-mono text-3xl font-bold leading-none tracking-tight text-[#79e7d1]"
       >
         {districtNameByCode[activeDistrict.properties.divisionCode] ??
-  activeDistrict.properties.divisionCode}
+          activeDistrict.properties.divisionCode}
       </h2>
     {/if}
     {#if phase === 'districts'}

@@ -6,8 +6,8 @@ let { label, description }: { label: string; description: string } = $props()
 <Tooltip.Root>
   <Tooltip.Trigger>
     {#snippet child({
-  props,
-})}
+      props,
+    })}
       <button
         {...props}
         class="inline-flex size-5 shrink-0 items-center justify-center rounded-full text-foreground-alt transition hover:bg-data-surface-container-high hover:text-data-primary"

@@ -79,9 +79,9 @@ const resetPassword = async () => {
       aria-busy={busy}
       class="mt-8 space-y-4"
       onsubmit={event => {
-  event.preventDefault()
-  resetPassword()
-}}
+        event.preventDefault()
+        resetPassword()
+      }}
     >
       <label class="block font-body text-body-sm font-semibold text-foreground"
         >{m.account_new_password()}

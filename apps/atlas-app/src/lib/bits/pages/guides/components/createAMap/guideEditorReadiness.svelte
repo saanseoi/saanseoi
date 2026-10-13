@@ -88,7 +88,9 @@ let expanded = $state(false)
   {#if !complete || expanded}
     <div
       id="code-editor-readiness-details"
-      class={complete ? 'mt-5 border-t border-secondary/35 pt-6 dark:border-[#6fdec9]/35' : 'mt-4'}
+      class={complete
+        ? 'mt-5 border-t border-secondary/35 pt-6 dark:border-[#6fdec9]/35'
+        : 'mt-4'}
     >
       {#if welcomeDescription}
         <GuideParagraph> {@html welcomeDescription} </GuideParagraph>

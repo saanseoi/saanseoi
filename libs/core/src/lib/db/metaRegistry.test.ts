@@ -9,11 +9,9 @@ import { describe, expect, test } from 'bun:test'
 
 import { Database as SQLiteDatabase } from 'bun:sqlite'
 
-import divisionFixtureOverture116To118 from '../../../../../fixtures/meta/apiFields/api-divisions-v0.1@geographic-v2.json'
 import { createLocalHarbourDb } from '../../testing/localDb'
 import { computeVersionHash } from '@repo/db'
 import {
-  buildDeterministicApiReleaseSetId,
   buildDeterministicApiVersionReleaseSetId,
   ensureDraftReleaseSetForRelease,
   ensureDraftSnapshotForRelease,
@@ -230,14 +228,10 @@ id TEXT PRIMARY KEY,
 
   `)
 
-  return {
-    sqlite,
-    db:
-      (sqlite.exec(
-        'CREATE TABLE IF NOT EXISTS processingRuleDefinitions (id TEXT PRIMARY KEY, definition TEXT NOT NULL)',
-      ),
-      createLocalHarbourDb(sqlite)),
-  }
+  sqlite.exec(
+    'CREATE TABLE IF NOT EXISTS processingRuleDefinitions (id TEXT PRIMARY KEY, definition TEXT NOT NULL)',
+  )
+  return { sqlite, db: createLocalHarbourDb(sqlite) }
 }
 
 describe('listRegistryReleases', () => {
@@ -464,14 +458,10 @@ function createShardLookupDb() {
     );
   `)
 
-  return {
-    sqlite,
-    db:
-      (sqlite.exec(
-        'CREATE TABLE IF NOT EXISTS processingRuleDefinitions (id TEXT PRIMARY KEY, definition TEXT NOT NULL)',
-      ),
-      createLocalHarbourDb(sqlite)),
-  }
+  sqlite.exec(
+    'CREATE TABLE IF NOT EXISTS processingRuleDefinitions (id TEXT PRIMARY KEY, definition TEXT NOT NULL)',
+  )
+  return { sqlite, db: createLocalHarbourDb(sqlite) }
 }
 
 function createProcessingRunDb() {
@@ -493,14 +483,10 @@ function createProcessingRunDb() {
     );
   `)
 
-  return {
-    sqlite,
-    db:
-      (sqlite.exec(
-        'CREATE TABLE IF NOT EXISTS processingRuleDefinitions (id TEXT PRIMARY KEY, definition TEXT NOT NULL)',
-      ),
-      createLocalHarbourDb(sqlite)),
-  }
+  sqlite.exec(
+    'CREATE TABLE IF NOT EXISTS processingRuleDefinitions (id TEXT PRIMARY KEY, definition TEXT NOT NULL)',
+  )
+  return { sqlite, db: createLocalHarbourDb(sqlite) }
 }
 
 function createSnapshotLookupDb() {
@@ -530,14 +516,10 @@ function createSnapshotLookupDb() {
     );
   `)
 
-  return {
-    sqlite,
-    db:
-      (sqlite.exec(
-        'CREATE TABLE IF NOT EXISTS processingRuleDefinitions (id TEXT PRIMARY KEY, definition TEXT NOT NULL)',
-      ),
-      createLocalHarbourDb(sqlite)),
-  }
+  sqlite.exec(
+    'CREATE TABLE IF NOT EXISTS processingRuleDefinitions (id TEXT PRIMARY KEY, definition TEXT NOT NULL)',
+  )
+  return { sqlite, db: createLocalHarbourDb(sqlite) }
 }
 
 function createDraftSnapshotDb() {
@@ -588,14 +570,10 @@ function createDraftSnapshotDb() {
     );
   `)
 
-  return {
-    sqlite,
-    db:
-      (sqlite.exec(
-        'CREATE TABLE IF NOT EXISTS processingRuleDefinitions (id TEXT PRIMARY KEY, definition TEXT NOT NULL)',
-      ),
-      createLocalHarbourDb(sqlite)),
-  }
+  sqlite.exec(
+    'CREATE TABLE IF NOT EXISTS processingRuleDefinitions (id TEXT PRIMARY KEY, definition TEXT NOT NULL)',
+  )
+  return { sqlite, db: createLocalHarbourDb(sqlite) }
 }
 
 function createDraftReleaseSetDb() {
@@ -693,14 +671,10 @@ id TEXT PRIMARY KEY,
     );
   `)
 
-  return {
-    sqlite,
-    db:
-      (sqlite.exec(
-        'CREATE TABLE IF NOT EXISTS processingRuleDefinitions (id TEXT PRIMARY KEY, definition TEXT NOT NULL)',
-      ),
-      createLocalHarbourDb(sqlite)),
-  }
+  sqlite.exec(
+    'CREATE TABLE IF NOT EXISTS processingRuleDefinitions (id TEXT PRIMARY KEY, definition TEXT NOT NULL)',
+  )
+  return { sqlite, db: createLocalHarbourDb(sqlite) }
 }
 
 function createSnapshotAssemblyDb() {
@@ -771,14 +745,10 @@ INSERT INTO snapshots (id, snapshotLineageId, status, cohortKey) VALUES
     CREATE TABLE snapshotRecipeInputs (snapshotRecipeId TEXT, datasetId TEXT, role TEXT, isRequired INTEGER, maxLagDays INTEGER, priority INTEGER, selectionPolicyJson TEXT, PRIMARY KEY(snapshotRecipeId, datasetId, role));
   `)
 
-  return {
-    sqlite,
-    db:
-      (sqlite.exec(
-        'CREATE TABLE IF NOT EXISTS processingRuleDefinitions (id TEXT PRIMARY KEY, definition TEXT NOT NULL)',
-      ),
-      createLocalHarbourDb(sqlite)),
-  }
+  sqlite.exec(
+    'CREATE TABLE IF NOT EXISTS processingRuleDefinitions (id TEXT PRIMARY KEY, definition TEXT NOT NULL)',
+  )
+  return { sqlite, db: createLocalHarbourDb(sqlite) }
 }
 
 function createRegionalSnapshotLookupDb() {
@@ -831,14 +801,10 @@ function createRegionalSnapshotLookupDb() {
     );
   `)
 
-  return {
-    sqlite,
-    db:
-      (sqlite.exec(
-        'CREATE TABLE IF NOT EXISTS processingRuleDefinitions (id TEXT PRIMARY KEY, definition TEXT NOT NULL)',
-      ),
-      createLocalHarbourDb(sqlite)),
-  }
+  sqlite.exec(
+    'CREATE TABLE IF NOT EXISTS processingRuleDefinitions (id TEXT PRIMARY KEY, definition TEXT NOT NULL)',
+  )
+  return { sqlite, db: createLocalHarbourDb(sqlite) }
 }
 
 function createLatestDatasetLookupDb() {
@@ -871,14 +837,10 @@ function createLatestDatasetLookupDb() {
 
   `)
 
-  return {
-    sqlite,
-    db:
-      (sqlite.exec(
-        'CREATE TABLE IF NOT EXISTS processingRuleDefinitions (id TEXT PRIMARY KEY, definition TEXT NOT NULL)',
-      ),
-      createLocalHarbourDb(sqlite)),
-  }
+  sqlite.exec(
+    'CREATE TABLE IF NOT EXISTS processingRuleDefinitions (id TEXT PRIMARY KEY, definition TEXT NOT NULL)',
+  )
+  return { sqlite, db: createLocalHarbourDb(sqlite) }
 }
 
 function createCleanupCandidatesDb() {
@@ -949,14 +911,10 @@ id TEXT PRIMARY KEY,
     );
   `)
 
-  return {
-    sqlite,
-    db:
-      (sqlite.exec(
-        'CREATE TABLE IF NOT EXISTS processingRuleDefinitions (id TEXT PRIMARY KEY, definition TEXT NOT NULL)',
-      ),
-      createLocalHarbourDb(sqlite)),
-  }
+  sqlite.exec(
+    'CREATE TABLE IF NOT EXISTS processingRuleDefinitions (id TEXT PRIMARY KEY, definition TEXT NOT NULL)',
+  )
+  return { sqlite, db: createLocalHarbourDb(sqlite) }
 }
 
 function createActiveSnapshotLookupDb() {
@@ -1030,14 +988,10 @@ id TEXT PRIMARY KEY,
     );
   `)
 
-  return {
-    sqlite,
-    db:
-      (sqlite.exec(
-        'CREATE TABLE IF NOT EXISTS processingRuleDefinitions (id TEXT PRIMARY KEY, definition TEXT NOT NULL)',
-      ),
-      createLocalHarbourDb(sqlite)),
-  }
+  sqlite.exec(
+    'CREATE TABLE IF NOT EXISTS processingRuleDefinitions (id TEXT PRIMARY KEY, definition TEXT NOT NULL)',
+  )
+  return { sqlite, db: createLocalHarbourDb(sqlite) }
 }
 
 function createPublishReleaseArtefactsDb() {
@@ -1220,14 +1174,10 @@ id TEXT PRIMARY KEY,
       ('dataset-hkgov-censtatd-area-type', 'publisher-hkgov-censtatd', 'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters');
   `)
 
-  return {
-    sqlite,
-    db:
-      (sqlite.exec(
-        'CREATE TABLE IF NOT EXISTS processingRuleDefinitions (id TEXT PRIMARY KEY, definition TEXT NOT NULL)',
-      ),
-      createLocalHarbourDb(sqlite)),
-  }
+  sqlite.exec(
+    'CREATE TABLE IF NOT EXISTS processingRuleDefinitions (id TEXT PRIMARY KEY, definition TEXT NOT NULL)',
+  )
+  return { sqlite, db: createLocalHarbourDb(sqlite) }
 }
 
 function seedSnapshotProcessingPolicies(sqlite: SQLiteDatabase) {
@@ -1245,13 +1195,13 @@ function seedSnapshotProcessingPolicies(sqlite: SQLiteDatabase) {
     sqlite
       .query('INSERT OR REPLACE INTO snapshotRecipes VALUES (?,?,?)')
       .run(
-        id + '-recipe',
+        `${id}-recipe`,
         selected[0]!.resourceType,
         captureFixtureRules(sqlite, policy),
       )
     sqlite
       .query('INSERT OR REPLACE INTO snapshotAssemblies VALUES (?,?,?)')
-      .run(id + '-assembly', id, id + '-recipe')
+      .run(`${id}-assembly`, id, `${id}-recipe`)
   }
 }
 

@@ -351,7 +351,10 @@ onMount(() => {
       class="absolute inset-0 grid place-items-center bg-[#10151a] px-6 text-center font-body text-body-sm leading-6 text-white/70"
     >
       <span
-        >{m.guide_mapping_preview_unavailable({ library: libraryName(renderer), error })}</span
+        >{m.guide_mapping_preview_unavailable({
+          library: libraryName(renderer),
+          error,
+        })}</span
       >
     </div>
   {/if}

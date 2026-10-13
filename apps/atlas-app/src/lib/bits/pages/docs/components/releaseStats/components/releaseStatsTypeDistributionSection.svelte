@@ -21,7 +21,9 @@ const legend = $derived([
 </script>
 <Section id={distribution.id}
   ><Header
-    eyebrow={distribution.showChangeLegend ? labels.changeDistribution : distribution.eyebrow}
+    eyebrow={distribution.showChangeLegend
+      ? labels.changeDistribution
+      : distribution.eyebrow}
     title={distribution.title}
     ><div class="flex items-center gap-3">
       {#if distribution.showChangeLegend}

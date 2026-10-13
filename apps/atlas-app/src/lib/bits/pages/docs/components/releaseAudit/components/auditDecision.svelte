@@ -22,8 +22,8 @@ async function load() {
 
 <details
   ontoggle={event => {
-  if (event.currentTarget.open && !result) void load()
-}}
+    if (event.currentTarget.open && !result) void load()
+  }}
 >
   <summary class="cursor-pointer">{m.source_audit_declaration_fixture()}</summary>
   <div class="space-y-4 pt-3">

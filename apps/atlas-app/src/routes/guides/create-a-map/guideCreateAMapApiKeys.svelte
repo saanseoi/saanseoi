@@ -178,9 +178,9 @@ $effect(() => {
           <form
             class="mt-4 grid grid-cols-2 gap-3 md:grid-cols-[minmax(0,1fr)_auto_auto]"
             onsubmit={event => {
-  event.preventDefault()
-  createKey()
-}}
+              event.preventDefault()
+              createKey()
+            }}
           >
             <input
               bind:value={name}
@@ -195,7 +195,9 @@ $effect(() => {
               type="submit"
               variant="primary"
             >
-              {createGuideApiKey.pending > 0 ? m.api_keys_creating() : m.api_keys_create_button()}
+              {createGuideApiKey.pending > 0
+                ? m.api_keys_creating()
+                : m.api_keys_create_button()}
             </Button>
             {#if allowExistingKey && !isApiKeyReady}
               <Button
@@ -238,14 +240,14 @@ $effect(() => {
               <Button
                 class="h-12 w-full sm:w-auto"
                 onclick={() => {
-  isNewKeyRevealed = !isNewKeyRevealed
-  trackClientProductUsage({
-    event: 'api_key.reveal',
-    surface: 'guide',
-    entityType: 'key_action',
-    entityId: isNewKeyRevealed ? 'reveal' : 'hide',
-  })
-}}
+                  isNewKeyRevealed = !isNewKeyRevealed
+                  trackClientProductUsage({
+                    event: 'api_key.reveal',
+                    surface: 'guide',
+                    entityType: 'key_action',
+                    entityId: isNewKeyRevealed ? 'reveal' : 'hide',
+                  })
+                }}
                 size="compact"
                 variant="secondary"
               >

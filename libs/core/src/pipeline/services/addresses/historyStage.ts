@@ -40,7 +40,6 @@ export async function writeAddressHistoryChunkStage(
   message: DatasetProcessingMessage,
 ): Promise<AddressPipelineMessage> {
   const {
-    changedExistingIds,
     changedI18nVersionRows,
     changedVersionRows,
     changedLookupRows,
@@ -334,7 +333,7 @@ export async function buildResolvedAddressChunkArtefact(
   }
 }
 
-function buildCurrentAddressLookupFromCache(
+function _buildCurrentAddressLookupFromCache(
   cache: NonNullable<AddressPipelineMessage['addressCurrentLookupCache']>,
 ) {
   return {

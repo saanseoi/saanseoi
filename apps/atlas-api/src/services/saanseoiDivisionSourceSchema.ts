@@ -16,7 +16,7 @@ type Schema = {
 
 const text = (description: string): Schema => ({ type: 'string', description })
 const number = (description: string): Schema => ({ type: 'number', description })
-const strings = (description: string): Schema => ({
+const _strings = (description: string): Schema => ({
   type: 'array',
   items: { type: 'string' },
   description,

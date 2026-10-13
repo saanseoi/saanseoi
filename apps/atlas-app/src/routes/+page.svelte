@@ -390,29 +390,29 @@ onMount(() => {
   title={m.saanseoi()}
   description={m.hero_description()}
   structuredData={{
-  '@context': 'https://schema.org',
-  '@graph': [
-    {
-      '@type': 'Organization',
-      name: 'SaanSeoi',
-      alternateName: '山水',
-      url: 'https://saanseoi.hk',
-      description: m.hero_description(),
-      areaServed: {
-        '@type': 'AdministrativeArea',
-        name: 'Hong Kong',
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'Organization',
+        name: 'SaanSeoi',
+        alternateName: '山水',
+        url: 'https://saanseoi.hk',
+        description: m.hero_description(),
+        areaServed: {
+          '@type': 'AdministrativeArea',
+          name: 'Hong Kong',
+        },
       },
-    },
-    {
-      '@type': 'WebSite',
-      name: 'SaanSeoi',
-      alternateName: '山水',
-      url: 'https://saanseoi.hk',
-      description: m.hero_description(),
-      inLanguage: ['en', 'zh-Hant', 'zh-Hans'],
-    },
-  ],
-}}
+      {
+        '@type': 'WebSite',
+        name: 'SaanSeoi',
+        alternateName: '山水',
+        url: 'https://saanseoi.hk',
+        description: m.hero_description(),
+        inLanguage: ['en', 'zh-Hant', 'zh-Hans'],
+      },
+    ],
+  }}
 />
 
 <div bind:this={landingPage}>

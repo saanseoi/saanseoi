@@ -26,7 +26,7 @@ export async function upsertPlaceMetadata(
     snapshotId: string
     supplementaryAddressSnapshotId: string
   },
-  datasetId: string,
+  _datasetId: string,
   resourceReleaseId: string,
   plan: PlaceUploadPlan,
   target: UploadTarget,

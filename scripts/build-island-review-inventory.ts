@@ -13,5 +13,5 @@ const inputs = await loadDivisionReviewInputs({
   archiveBaseUrl: process.env.SAANSEOI_REVIEW_ARCHIVE_URL,
 })
 await mkdir(dirname(output), { recursive: true })
-await writeFile(output, JSON.stringify(inputs.islands, null, 2) + '\n')
+await writeFile(output, `${JSON.stringify(inputs.islands, null, 2)}\n`)
 console.log(output)

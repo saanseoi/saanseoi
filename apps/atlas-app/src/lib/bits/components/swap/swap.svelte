@@ -55,12 +55,12 @@ function handleChange(event: Event) {
 
 <label
   class={cn(
-  'swap relative inline-grid cursor-pointer place-content-center align-middle select-none',
-  transition === 'rotate' && 'swap-rotate',
-  transition === 'flip' && 'swap-flip',
-  checked && 'swap-active',
-  className,
-)}
+    'swap relative inline-grid cursor-pointer place-content-center align-middle select-none',
+    transition === 'rotate' && 'swap-rotate',
+    transition === 'flip' && 'swap-flip',
+    checked && 'swap-active',
+    className,
+  )}
 >
   <input
     bind:checked

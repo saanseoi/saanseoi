@@ -330,7 +330,7 @@ export async function closeHistoryRows(
   ids: string[],
   snapshotId: string,
   _cohortKey: string,
-  now: string,
+  _now: string,
 ) {
   await recordHistoryDeletions(db, {
     snapshotId,

@@ -20,7 +20,6 @@ const namespace = '747dc748-4086-5dc5-a0de-7d1fefcd0c51'
 const {
   metaSnapshotLineages,
   metaSnapshots,
-  metaSnapshotResourceReleases,
   metaSnapshotRecipes,
   metaSnapshotRecipeInputs,
   metaSnapshotAssemblies,

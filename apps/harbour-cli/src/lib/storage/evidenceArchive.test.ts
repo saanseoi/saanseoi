@@ -144,7 +144,7 @@ test('Node R2 adapter retains and restores exact bytes through a local Wrangler 
   const { openEvidenceStore } = await import('./evidenceArchive.ts')
   const root = await fixture()
   // Exercise multipart PUT, bounded verification, idempotence and ranged restore.
-  const text = JSON.stringify({ synthetic: 'x'.repeat(8 * 1024 * 1024 + 17) }) + '\n'
+  const text = `${JSON.stringify({ synthetic: 'x'.repeat(8 * 1024 * 1024 + 17) })}\n`
   const item = entry(text)
   const oldLogPath = process.env.WRANGLER_LOG_PATH
   process.env.WRANGLER_LOG_PATH = resolve(root, 'wrangler.log')

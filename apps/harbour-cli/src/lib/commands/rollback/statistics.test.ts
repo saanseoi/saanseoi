@@ -433,7 +433,7 @@ test('missing or corrupt retained definitions fail atomically even when current 
 test('Statistics restoration rejects missing exact owners, incomplete assignments and a mismatched scope', async () => {
   const f = fixture()
   try {
-    const before = f.tableState()
+    const _before = f.tableState()
     await expect(
       restoreStatisticsProjection({
         ...f.input,

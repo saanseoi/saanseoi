@@ -375,11 +375,11 @@ export function reverseFieldFlow(definition: LineageDefinition, terminalNode: st
         ? []
         : Object.values(node.inputs).filter(input => input.role === 'value')
     for (const [index, input] of dependencies.entries()) {
-      const next = `${Number.parseInt(reference) + 1}${reference.replace(/^\d+/, '')}${dependencies.length > 1 ? String.fromCharCode(97 + index) : ''}`
+      const next = `${Number.parseInt(reference, 10) + 1}${reference.replace(/^\d+/, '')}${dependencies.length > 1 ? String.fromCharCode(97 + index) : ''}`
       if ('node' in input) children.push(visit(input.node, next))
       else if ('group' in input) {
         const group = groups.get(input.group)
-        if (!group || !group.candidates.length) {
+        if (!group?.candidates.length) {
           children.push({ kind: 'missing', id: input.group })
           continue
         }

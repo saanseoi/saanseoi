@@ -10,7 +10,7 @@ import {
   currentSchema,
   eq,
   getTableColumns,
-  historySchema,
+  type historySchema,
   metaSchema,
   ne,
 } from '@repo/db'

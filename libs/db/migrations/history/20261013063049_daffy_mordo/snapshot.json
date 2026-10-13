@@ -2,9 +2,7 @@
   "version": "7",
   "dialect": "sqlite",
   "id": "533611ac-fd9c-44f6-9c6b-5b4c4926ddfb",
-  "prevIds": [
-    "3fc09b13-1725-4aac-91c1-f8208bfc6201"
-  ],
+  "prevIds": ["3fc09b13-1725-4aac-91c1-f8208bfc6201"],
   "ddl": [
     {
       "name": "divisions",
@@ -4101,279 +4099,182 @@
       "table": "statsValuesI18n"
     },
     {
-      "columns": [
-        "id",
-        "snapshotId"
-      ],
+      "columns": ["id", "snapshotId"],
       "nameExplicit": false,
       "name": "divisions_pk",
       "entityType": "pks",
       "table": "divisions"
     },
     {
-      "columns": [
-        "divisionId",
-        "snapshotId",
-        "locale"
-      ],
+      "columns": ["divisionId", "snapshotId", "locale"],
       "nameExplicit": false,
       "name": "divisionsI18n_pk",
       "entityType": "pks",
       "table": "divisionsI18n"
     },
     {
-      "columns": [
-        "id",
-        "snapshotId"
-      ],
+      "columns": ["id", "snapshotId"],
       "nameExplicit": false,
       "name": "address2d_pk",
       "entityType": "pks",
       "table": "address2d"
     },
     {
-      "columns": [
-        "addressId",
-        "snapshotId",
-        "buildingNumber"
-      ],
+      "columns": ["addressId", "snapshotId", "buildingNumber"],
       "nameExplicit": false,
       "name": "address2dBuildingNumberLookup_pk",
       "entityType": "pks",
       "table": "address2dBuildingNumberLookup"
     },
     {
-      "columns": [
-        "addressId",
-        "snapshotId",
-        "locale"
-      ],
+      "columns": ["addressId", "snapshotId", "locale"],
       "nameExplicit": false,
       "name": "address2dI18n_pk",
       "entityType": "pks",
       "table": "address2dI18n"
     },
     {
-      "columns": [
-        "id",
-        "snapshotId"
-      ],
+      "columns": ["id", "snapshotId"],
       "nameExplicit": false,
       "name": "address3d_pk",
       "entityType": "pks",
       "table": "address3d"
     },
     {
-      "columns": [
-        "address3dId",
-        "snapshotId",
-        "locale"
-      ],
+      "columns": ["address3dId", "snapshotId", "locale"],
       "nameExplicit": false,
       "name": "address3dI18n_pk",
       "entityType": "pks",
       "table": "address3dI18n"
     },
     {
-      "columns": [
-        "id",
-        "snapshotId"
-      ],
+      "columns": ["id", "snapshotId"],
       "nameExplicit": false,
       "name": "streets_pk",
       "entityType": "pks",
       "table": "streets"
     },
     {
-      "columns": [
-        "streetId",
-        "snapshotId",
-        "locale"
-      ],
+      "columns": ["streetId", "snapshotId", "locale"],
       "nameExplicit": false,
       "name": "streetsI18n_pk",
       "entityType": "pks",
       "table": "streetsI18n"
     },
     {
-      "columns": [
-        "streetId",
-        "recordKey",
-        "snapshotId"
-      ],
+      "columns": ["streetId", "recordKey", "snapshotId"],
       "nameExplicit": false,
       "name": "streetChangelog_pk",
       "entityType": "pks",
       "table": "streetChangelog"
     },
     {
-      "columns": [
-        "nameChangeId",
-        "snapshotId",
-        "streetId",
-        "role"
-      ],
+      "columns": ["nameChangeId", "snapshotId", "streetId", "role"],
       "nameExplicit": false,
       "name": "streetNameChangeStreets_pk",
       "entityType": "pks",
       "table": "streetNameChangeStreets"
     },
     {
-      "columns": [
-        "id",
-        "snapshotId"
-      ],
+      "columns": ["id", "snapshotId"],
       "nameExplicit": false,
       "name": "streetNameChanges_pk",
       "entityType": "pks",
       "table": "streetNameChanges"
     },
     {
-      "columns": [
-        "streetId",
-        "snapshotId"
-      ],
+      "columns": ["streetId", "snapshotId"],
       "nameExplicit": false,
       "name": "streetGeometry_pk",
       "entityType": "pks",
       "table": "streetGeometry"
     },
     {
-      "columns": [
-        "id",
-        "snapshotId"
-      ],
+      "columns": ["id", "snapshotId"],
       "nameExplicit": false,
       "name": "places_pk",
       "entityType": "pks",
       "table": "places"
     },
     {
-      "columns": [
-        "placeId",
-        "snapshotId",
-        "locale"
-      ],
+      "columns": ["placeId", "snapshotId", "locale"],
       "nameExplicit": false,
       "name": "placesI18n_pk",
       "entityType": "pks",
       "table": "placesI18n"
     },
     {
-      "columns": [
-        "id",
-        "snapshotId"
-      ],
+      "columns": ["id", "snapshotId"],
       "nameExplicit": false,
       "name": "divisionAreas_pk",
       "entityType": "pks",
       "table": "divisionAreas"
     },
     {
-      "columns": [
-        "id",
-        "snapshotId"
-      ],
+      "columns": ["id", "snapshotId"],
       "nameExplicit": false,
       "name": "divisionBoundaries_pk",
       "entityType": "pks",
       "table": "divisionBoundaries"
     },
     {
-      "columns": [
-        "scopeId",
-        "sourceReleaseId",
-        "sourceRecordId",
-        "sourceVersionHash"
-      ],
+      "columns": ["scopeId", "sourceReleaseId", "sourceRecordId", "sourceVersionHash"],
       "nameExplicit": false,
       "name": "sourceResolutions_pk",
       "entityType": "pks",
       "table": "sourceResolutions"
     },
     {
-      "columns": [
-        "id",
-        "snapshotId"
-      ],
+      "columns": ["id", "snapshotId"],
       "nameExplicit": false,
       "name": "divisionStatistics_pk",
       "entityType": "pks",
       "table": "divisionStatistics"
     },
     {
-      "columns": [
-        "datasetCode",
-        "fieldName",
-        "snapshotId"
-      ],
+      "columns": ["datasetCode", "fieldName", "snapshotId"],
       "nameExplicit": false,
       "name": "statsFields_pk",
       "entityType": "pks",
       "table": "statsFields"
     },
     {
-      "columns": [
-        "datasetCode",
-        "fieldName",
-        "locale",
-        "snapshotId"
-      ],
+      "columns": ["datasetCode", "fieldName", "locale", "snapshotId"],
       "nameExplicit": false,
       "name": "statsFieldsI18n_pk",
       "entityType": "pks",
       "table": "statsFieldsI18n"
     },
     {
-      "columns": [
-        "datasetCode",
-        "measureCode",
-        "snapshotId"
-      ],
+      "columns": ["datasetCode", "measureCode", "snapshotId"],
       "nameExplicit": false,
       "name": "statsMeasures_pk",
       "entityType": "pks",
       "table": "statsMeasures"
     },
     {
-      "columns": [
-        "datasetCode",
-        "measureCode",
-        "locale",
-        "snapshotId"
-      ],
+      "columns": ["datasetCode", "measureCode", "locale", "snapshotId"],
       "nameExplicit": false,
       "name": "statsMeasuresI18n_pk",
       "entityType": "pks",
       "table": "statsMeasuresI18n"
     },
     {
-      "columns": [
-        "id",
-        "snapshotId"
-      ],
+      "columns": ["id", "snapshotId"],
       "nameExplicit": false,
       "name": "statsRecords_pk",
       "entityType": "pks",
       "table": "statsRecords"
     },
     {
-      "columns": [
-        "datasetCode",
-        "dimensionCode",
-        "valueCode",
-        "locale",
-        "snapshotId"
-      ],
+      "columns": ["datasetCode", "dimensionCode", "valueCode", "locale", "snapshotId"],
       "nameExplicit": false,
       "name": "statsValuesI18n_pk",
       "entityType": "pks",
       "table": "statsValuesI18n"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "statsDefinitionSets_pk",
       "table": "statsDefinitionSets",

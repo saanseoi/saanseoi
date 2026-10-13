@@ -38,9 +38,9 @@ const buttonClass =
       aria-pressed={mode === item.value}
       class={`${index ? 'border-l border-(--bar-border) ' : 'rounded-l-[4px] '}${index === modes.length - 1 ? 'rounded-r-[4px] ' : ''}${buttonClass}`}
       onclick={() =>
-  mode === item.value
-    ? callbacks.onComparisonVersion(null)
-    : callbacks.onComparisonMode(item.value)}
+        mode === item.value
+          ? callbacks.onComparisonVersion(null)
+          : callbacks.onComparisonMode(item.value)}
       type="button"
     >
       {text[item.label]}

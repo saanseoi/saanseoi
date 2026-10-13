@@ -57,11 +57,15 @@ const previewLabel = $derived(
     <GuideMappingPreview
       ariaLabel={previewLabel}
       center={openingPosition.center}
-      leafletAttribution={renderer === 'leaflet' && !unstyled ? '© OpenStreetMap contributors' : undefined}
+      leafletAttribution={renderer === 'leaflet' && !unstyled
+        ? '© OpenStreetMap contributors'
+        : undefined}
       leafletTileUrl={renderer === 'leaflet' && !unstyled
-  ? 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
-  : undefined}
-      mapboxStyleUrl={renderer === 'mapbox' && !unstyled ? 'mapbox://styles/mapbox/standard' : undefined}
+        ? 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
+        : undefined}
+      mapboxStyleUrl={renderer === 'mapbox' && !unstyled
+        ? 'mapbox://styles/mapbox/standard'
+        : undefined}
       {renderer}
       {unstyled}
       zoom={openingPosition.zoom}

@@ -278,7 +278,9 @@ const providerDetails = (providerId: string) =>
                 disabled={unlinkingAccountId !== null}
                 size="compact"
                 variant="secondary"
-                >{unlinkingAccountId === account.id ? m.account_removing() : m.account_remove()}</Button
+                >{unlinkingAccountId === account.id
+                  ? m.account_removing()
+                  : m.account_remove()}</Button
               >
             {/if}
           </div>
@@ -307,8 +309,12 @@ const providerDetails = (providerId: string) =>
               size="compact"
               variant="primary"
               ><Icon
-                icon={linkingProvider === provider.id ? 'ion:reload-outline' : 'ion:link-outline'}
-                class="size-4 {linkingProvider === provider.id ? 'motion-safe:animate-spin' : ''}"
+                icon={linkingProvider === provider.id
+                  ? 'ion:reload-outline'
+                  : 'ion:link-outline'}
+                class="size-4 {linkingProvider === provider.id
+                  ? 'motion-safe:animate-spin'
+                  : ''}"
                 aria-hidden="true"
               />{m.account_connect()}</Button
             >
@@ -329,21 +335,24 @@ const providerDetails = (providerId: string) =>
               </p>
               <p class="mt-1 font-body text-sm text-foreground-alt">
                 {m.account_passkey_added_on({
-  date: new Intl.DateTimeFormat(getCurrentLocale(), {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-    timeZone: 'Asia/Hong_Kong',
-  }).format(new Date(passkey.createdAt)),
-})}
+                  date: new Intl.DateTimeFormat(getCurrentLocale(), {
+                    dateStyle: 'medium',
+                    timeStyle: 'short',
+                    timeZone: 'Asia/Hong_Kong',
+                  }).format(new Date(passkey.createdAt)),
+                })}
               </p>
             </div>
           </div>
           <Button
             onclick={() => removePasskey(passkey.id)}
-            disabled={removingPasskeyId !== null || accounts.length + passkeys.length <= 1}
+            disabled={removingPasskeyId !== null ||
+              accounts.length + passkeys.length <= 1}
             size="compact"
             variant="secondary"
-            >{removingPasskeyId === passkey.id ? m.account_removing() : m.account_remove()}</Button
+            >{removingPasskeyId === passkey.id
+              ? m.account_removing()
+              : m.account_remove()}</Button
           >
         </article>
       {/each}
@@ -356,7 +365,9 @@ const providerDetails = (providerId: string) =>
           </div>
           <div>
             <p class="font-body font-semibold text-foreground">
-              {passkeys.length ? m.account_add_another_passkey() : m.account_add_passkey()}
+              {passkeys.length
+                ? m.account_add_another_passkey()
+                : m.account_add_passkey()}
             </p>
             <p class="mt-1 font-body text-sm text-foreground-alt">
               {m.account_passkey_description()}
@@ -373,7 +384,9 @@ const providerDetails = (providerId: string) =>
             icon={addingPasskey ? 'ion:reload-outline' : 'ion:key-outline'}
             class="size-4 {addingPasskey ? 'motion-safe:animate-spin' : ''}"
             aria-hidden="true"
-          />{passkeys.length ? m.account_add_another_passkey() : m.account_add_passkey()}</Button
+          />{passkeys.length
+            ? m.account_add_another_passkey()
+            : m.account_add_passkey()}</Button
         >
       </article>
       {#if !linked('credential')}
@@ -412,20 +425,20 @@ const providerDetails = (providerId: string) =>
       class="fixed top-1/2 left-1/2 z-50 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 border border-border-card bg-background-alt p-6 shadow-popover focus:outline-none"
       ><Dialog.Title class="font-display text-headline-sm font-bold text-primary"
         >{passwordDialogMode === 'add'
-  ? m.account_add_email_password()
-  : m.account_change_password()}</Dialog.Title
+          ? m.account_add_email_password()
+          : m.account_change_password()}</Dialog.Title
       ><Dialog.Description
         class="mt-3 font-body text-body-md leading-7 text-foreground-alt"
         >{passwordDialogMode === 'add'
-  ? m.account_add_password_description()
-  : m.account_change_password_description()}</Dialog.Description
+          ? m.account_add_password_description()
+          : m.account_change_password_description()}</Dialog.Description
       >
       <form
         class="mt-6"
         onsubmit={event => {
-  event.preventDefault()
-  passwordDialogMode === 'add' ? addPassword() : changePassword()
-}}
+          event.preventDefault()
+          passwordDialogMode === 'add' ? addPassword() : changePassword()
+        }}
       >
         {#if passwordDialogMode === 'change'}
           <label class="font-body text-sm font-semibold text-foreground"
@@ -451,7 +464,9 @@ const providerDetails = (providerId: string) =>
         {#if passwordMessage}
           <p
             role={passwordSuccess ? 'status' : 'alert'}
-            class="mt-3 font-body text-sm {passwordSuccess ? 'text-secondary' : 'text-destructive'}"
+            class="mt-3 font-body text-sm {passwordSuccess
+              ? 'text-secondary'
+              : 'text-destructive'}"
           >
             {passwordMessage}
           </p>
@@ -463,7 +478,9 @@ const providerDetails = (providerId: string) =>
             disabled={passwordBusy || passwordSuccess}
             type="submit"
             variant="primary"
-            >{passwordDialogMode === 'add' ? m.account_add_password() : m.account_change_password()}</Button
+            >{passwordDialogMode === 'add'
+              ? m.account_add_password()
+              : m.account_change_password()}</Button
           >
         </div>
       </form></Dialog.Content

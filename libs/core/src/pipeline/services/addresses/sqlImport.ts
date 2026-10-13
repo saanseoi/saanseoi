@@ -882,8 +882,8 @@ function buildAddressHistoryApplySql(
 ) {
   const run = sqlLiteral(runId)
   const resourceReleaseId = sqlLiteral(message.resourceReleaseId ?? message.datasetId)
-  const snapshot = sqlLiteral(snapshotId)
-  const now = sqlLiteral(message.processingRunStartedAt ?? new Date().toISOString())
+  const _snapshot = sqlLiteral(snapshotId)
+  const _now = sqlLiteral(message.processingRunStartedAt ?? new Date().toISOString())
 
   return `
 INSERT INTO address2d (

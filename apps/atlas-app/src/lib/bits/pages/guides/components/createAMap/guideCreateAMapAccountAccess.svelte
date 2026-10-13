@@ -124,8 +124,8 @@ const switchMode = (nextMode: AccountMode) => {
   <div class="min-w-0">
     <GuideParagraph>
       {accountMode === 'sign-up'
-  ? m.guide_basemap_account_options()
-  : m.guide_basemap_sign_in_options()}
+        ? m.guide_basemap_account_options()
+        : m.guide_basemap_sign_in_options()}
     </GuideParagraph>
     <div class="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3">
       {#each providers as provider (provider.id)}
@@ -138,8 +138,12 @@ const switchMode = (nextMode: AccountMode) => {
           type="button"
         >
           <Icon
-            icon={pendingProvider === provider.id ? 'ion:reload-outline' : provider.icon}
-            class="size-7 text-secondary {pendingProvider === provider.id ? 'motion-safe:animate-spin' : ''}"
+            icon={pendingProvider === provider.id
+              ? 'ion:reload-outline'
+              : provider.icon}
+            class="size-7 text-secondary {pendingProvider === provider.id
+              ? 'motion-safe:animate-spin'
+              : ''}"
             aria-hidden="true"
           />
           <span>{provider.label()}</span>
@@ -169,7 +173,9 @@ const switchMode = (nextMode: AccountMode) => {
       >
         <Icon
           icon={passkeyPending ? 'ion:reload-outline' : 'ion:key-outline'}
-          class="size-7 text-secondary {passkeyPending ? 'motion-safe:animate-spin' : ''}"
+          class="size-7 text-secondary {passkeyPending
+            ? 'motion-safe:animate-spin'
+            : ''}"
           aria-hidden="true"
         />
         <span>{m.account_passkey()}</span>
@@ -192,9 +198,9 @@ const switchMode = (nextMode: AccountMode) => {
       <form
         class="mt-5 grid gap-4 sm:grid-cols-2"
         onsubmit={event => {
-  event.preventDefault()
-  continueWithEmail(accountMode)
-}}
+          event.preventDefault()
+          continueWithEmail(accountMode)
+        }}
         transition:slide={{ duration: 200 }}
       >
         {#if accountMode === 'sign-up'}
@@ -222,7 +228,9 @@ const switchMode = (nextMode: AccountMode) => {
           >{m.common_password()}
           <input
             bind:value={password}
-            autocomplete={accountMode === 'sign-up' ? 'new-password' : 'current-password'}
+            autocomplete={accountMode === 'sign-up'
+              ? 'new-password'
+              : 'current-password'}
             class="mt-2 min-h-12 w-full border border-border-input bg-background-alt px-4 font-body font-normal"
             required
             type="password"
@@ -244,12 +252,12 @@ const switchMode = (nextMode: AccountMode) => {
           type="submit"
         >
           {emailPending
-  ? accountMode === 'sign-up'
-    ? m.auth_creating()
-    : m.auth_signing_in()
-  : accountMode === 'sign-up'
-    ? m.auth_create_account()
-    : m.auth_sign_in_title()}
+            ? accountMode === 'sign-up'
+              ? m.auth_creating()
+              : m.auth_signing_in()
+            : accountMode === 'sign-up'
+              ? m.auth_create_account()
+              : m.auth_sign_in_title()}
         </button>
       </form>
     {/if}

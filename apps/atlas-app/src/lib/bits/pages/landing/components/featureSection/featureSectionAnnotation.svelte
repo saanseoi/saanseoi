@@ -32,10 +32,10 @@ onMount(() => {
   <div class="annotation-floating flex items-start gap-3" style={floatStyle}>
     <svg
       class={`block h-28 w-auto shrink-0 fill-current scale-150 pt-6 pr-4 transition-[opacity,transform] duration-500 ease-out motion-reduce:transition-none ${
-  isCardActive
-    ? 'translate-x-12 -translate-y-8 opacity-0 delay-0'
-    : 'translate-x-0 translate-y-0 opacity-100 delay-200'
-}`}
+        isCardActive
+          ? 'translate-x-12 -translate-y-8 opacity-0 delay-0'
+          : 'translate-x-0 translate-y-0 opacity-100 delay-200'
+      }`}
       viewBox="0 0 100 125"
       xmlns="http://www.w3.org/2000/svg"
     >
@@ -48,10 +48,10 @@ onMount(() => {
     </svg>
     <span
       class={`mt-2 block w-fit whitespace-nowrap font-[Caveat] text-[clamp(2rem,3.1vw,3.1rem)] font-bold leading-[0.82] tracking-[-0.055em] [text-shadow:0.07em_0.07em_0_color-mix(in_srgb,var(--secondary)_12%,transparent)] transition-[opacity,transform] duration-300 ease-out motion-reduce:transition-none ${
-  isCardActive
-    ? 'translate-y-1 opacity-0 delay-200'
-    : 'translate-y-0 opacity-100 delay-0'
-}`}
+        isCardActive
+          ? 'translate-y-1 opacity-0 delay-200'
+          : 'translate-y-0 opacity-100 delay-0'
+      }`}
     >
       {m.architecture_difference_callout()}
     </span>

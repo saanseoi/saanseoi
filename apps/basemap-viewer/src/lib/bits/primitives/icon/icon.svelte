@@ -21,7 +21,11 @@ let { name, class: className = '' }: { name: IconName; class?: string } = $props
 <svg
   aria-hidden="true"
   class={className}
-  viewBox={name === 'language' ? '0 0 512 512' : name === 'identify' ? '0 0 32 32' : '0 0 24 24'}
+  viewBox={name === 'language'
+    ? '0 0 512 512'
+    : name === 'identify'
+      ? '0 0 32 32'
+      : '0 0 24 24'}
 >
   {#if name === 'menu'}
     <path

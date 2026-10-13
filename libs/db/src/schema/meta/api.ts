@@ -1,15 +1,8 @@
 import type { MetaTranslations } from './i18n'
-import type {
-  ApiFieldInput,
-  ApiFieldRulePin,
-  PublisherFields,
-} from '../../apiFieldInputs'
 import {
-  foreignKey,
   index,
   integer,
   primaryKey,
-  real,
   sqliteTable,
   sqliteView,
   text,
@@ -23,7 +16,6 @@ import {
   apiReleaseSetStatuses,
   apiVersionStatuses,
   datasetTypes,
-  provenanceContributionTypes,
   snapshotStatuses,
 } from '../../constants/schema'
 import { isoTimestamp, jsonText, primaryUuid, timestamps } from '../shared'

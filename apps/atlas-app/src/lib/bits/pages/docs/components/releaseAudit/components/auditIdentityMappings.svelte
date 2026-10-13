@@ -42,13 +42,13 @@ const object = (v: Json) => (v && typeof v === 'object' && !Array.isArray(v) ? v
             <code
               class="rounded bg-emerald-500/10 px-1.5 py-0.5 text-emerald-500"
               title={row.divisionCode
-  ? m.source_audit_retained_division_code()
-  : m.source_audit_current_division_code()}
+                ? m.source_audit_retained_division_code()
+                : m.source_audit_current_division_code()}
               >{String(
-  row.divisionCode ??
-    auditDivisionCode(String(row.canonicalId)) ??
-    m.source_audit_not_recorded(),
-)}</code
+                row.divisionCode ??
+                  auditDivisionCode(String(row.canonicalId)) ??
+                  m.source_audit_not_recorded(),
+              )}</code
             >
           </td>
           <td class="p-2">

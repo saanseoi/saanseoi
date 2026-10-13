@@ -12,8 +12,8 @@ let { class: className = '', observerContainer = false }: Props = $props()
 
 <div
   class="{className} {observerContainer
-  ? 'mx-auto max-w-(--spacing-container-max) px-(--spacing-margin-md) md:px-8 xl:px-(--spacing-margin-xl)'
-  : ''}"
+    ? 'mx-auto max-w-(--spacing-container-max) px-(--spacing-margin-md) md:px-8 xl:px-(--spacing-margin-xl)'
+    : ''}"
 >
   <div class="border-t border-border-card/60"></div>
 </div>

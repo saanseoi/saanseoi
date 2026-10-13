@@ -142,8 +142,8 @@ let {
                   class="mt-1 block font-body text-label-sm font-semibold uppercase tracking-widest text-foreground-alt"
                 >
                   {provider.requiresPaste
-  ? m.guide_llm_modal_copy_and_open()
-  : m.guide_llm_modal_open_with_prompt()}
+                    ? m.guide_llm_modal_copy_and_open()
+                    : m.guide_llm_modal_open_with_prompt()}
                 </span>
               </span>
               <Icon

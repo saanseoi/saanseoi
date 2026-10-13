@@ -40,7 +40,9 @@ const notLiveableOutlineLayer: LayerSpecification = {
       ariaLabel={label}
       center={[114.165, 22.34]}
       {renderer}
-      additionalLayers={showExclusions ? [notLiveableLayer, notLiveableOutlineLayer] : []}
+      additionalLayers={showExclusions
+        ? [notLiveableLayer, notLiveableOutlineLayer]
+        : []}
       {styleUrl}
       {tilejsonUrl}
       zoom={10.5}

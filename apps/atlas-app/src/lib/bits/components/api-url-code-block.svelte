@@ -201,7 +201,8 @@ async function copyUrl() {
             class:text-blue-300={token.kind === 'parameterQualifier'}
             class:text-data-warning={token.kind === 'value'}
             class:px-1={token.kind === 'separator' && token.value !== '?'}
-            class:text-primary-fixed-dim={token.kind === 'bracket' || token.kind === 'separator'}
+            class:text-primary-fixed-dim={token.kind === 'bracket' ||
+              token.kind === 'separator'}
             >{token.value}</span
           >
         {/each}

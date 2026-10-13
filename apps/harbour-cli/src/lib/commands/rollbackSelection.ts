@@ -52,7 +52,7 @@ const getSnapshotMembers = (db: Database, id: string) =>
     )
     .all(id)
 
-const getSnapshotMembersForVersionReleaseSet = (db: Database, id: string) => {
+const _getSnapshotMembersForVersionReleaseSet = (db: Database, id: string) => {
   const releaseSet = db
     .query<{ apiReleaseSetId: string }, [string]>(
       'SELECT apiReleaseSetId FROM apiVersionReleaseSets WHERE id=?',

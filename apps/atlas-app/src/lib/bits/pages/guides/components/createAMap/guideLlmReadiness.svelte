@@ -100,7 +100,9 @@ let expanded = $state(false)
   {#if !complete || expanded}
     <div
       id="llm-readiness-details"
-      class={complete ? 'mt-10 border-t border-secondary/35 pt-5 dark:border-[#6fdec9]/35' : 'mt-5'}
+      class={complete
+        ? 'mt-10 border-t border-secondary/35 pt-5 dark:border-[#6fdec9]/35'
+        : 'mt-5'}
     >
       {#if complete}
         <GuideParagraph> {@html detailsDescription} </GuideParagraph>
@@ -150,7 +152,9 @@ let expanded = $state(false)
             variant="secondary"
           >
             <Icon
-              icon={aiAccess === 'web' ? (option.icon ?? 'proicons:user-add') : 'proicons:user-add'}
+              icon={aiAccess === 'web'
+                ? (option.icon ?? 'proicons:user-add')
+                : 'proicons:user-add'}
               class="size-4"
               aria-hidden="true"
             />

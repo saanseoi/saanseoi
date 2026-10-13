@@ -8,7 +8,6 @@ import {
   metaApiReleaseSetSnapshots,
   metaApiVersions,
   metaDatasets,
-  metaSnapshotResourceReleases,
   metaSnapshotLineages,
   metaSnapshots,
   ne,

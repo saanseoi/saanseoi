@@ -44,7 +44,8 @@ async function copy() {
     <div class="flex shrink-0 items-center gap-2">
       <span
         class="rounded-full bg-current/5 px-2 py-1 text-xs capitalize"
-        class:text-emerald-500={row.outcome === 'applied' || row.outcome === 'no-change'}
+        class:text-emerald-500={row.outcome === 'applied' ||
+          row.outcome === 'no-change'}
         class:text-amber-500={row.outcome === 'skipped' || row.outcome === 'unmatched'}
         class:text-red-500={row.outcome === 'guard-mismatch'}
         >{auditStatus(row.outcome)}</span
@@ -52,7 +53,9 @@ async function copy() {
       <button
         type="button"
         class="rounded-md p-1.5 opacity-50 hover:bg-current/10 hover:opacity-100"
-        aria-label={copied ? m.source_audit_application_id_copied() : m.source_audit_copy_application_id()}
+        aria-label={copied
+          ? m.source_audit_application_id_copied()
+          : m.source_audit_copy_application_id()}
         title={copied ? m.source_audit_copied() : m.source_audit_copy_record_id()}
         onclick={copy}
       >

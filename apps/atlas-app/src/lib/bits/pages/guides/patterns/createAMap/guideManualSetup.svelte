@@ -127,13 +127,13 @@ const terminalLabel = (path: string, action: string) =>
         copyLabel={m.common_copy()}
         copiedLabel={m.common_copied()}
         instruction={showGuidance
-  ? {
-      description: bunInstallExplanation,
-      stepLabel: m.guide_setup_install_step_label(),
-      stepNumber: 1,
-      title: m.guide_setup_install_bun(),
-    }
-  : undefined}
+          ? {
+              description: bunInstallExplanation,
+              stepLabel: m.guide_setup_install_step_label(),
+              stepNumber: 1,
+              title: m.guide_setup_install_bun(),
+            }
+          : undefined}
       />
       {#if operatingSystem === 'macos'}
         <GuideMacosCurlCertificateWarning />
@@ -145,13 +145,13 @@ const terminalLabel = (path: string, action: string) =>
         copyLabel={m.common_copy()}
         copiedLabel={m.common_copied()}
         instruction={showGuidance
-  ? {
-      description: m.guide_setup_project_explanation(),
-      stepLabel: m.guide_setup_create_step_label(),
-      stepNumber: 2,
-      title: m.guide_setup_project(),
-    }
-  : undefined}
+          ? {
+              description: m.guide_setup_project_explanation(),
+              stepLabel: m.guide_setup_create_step_label(),
+              stepNumber: 2,
+              title: m.guide_setup_project(),
+            }
+          : undefined}
       />
       <GuideParagraph>
         {@html m.guide_setup_project_directory_note({ path: terminalProjectPath })}
@@ -163,13 +163,13 @@ const terminalLabel = (path: string, action: string) =>
         copyLabel={m.common_copy()}
         copiedLabel={m.common_copied()}
         instruction={showGuidance
-  ? {
-      description: m.guide_setup_start_server_explanation(),
-      stepLabel: m.guide_setup_start_step_label(),
-      stepNumber: setupStartStepNumber,
-      title: m.guide_setup_start_server(),
-    }
-  : undefined}
+          ? {
+              description: m.guide_setup_start_server_explanation(),
+              stepLabel: m.guide_setup_start_step_label(),
+              stepNumber: setupStartStepNumber,
+              title: m.guide_setup_start_server(),
+            }
+          : undefined}
       />
       <div class="space-y-5">
         <GuideParagraph> {@html m.guide_setup_complete()} </GuideParagraph>
@@ -180,12 +180,12 @@ const terminalLabel = (path: string, action: string) =>
           copyLabel={m.common_copy()}
           copiedLabel={m.common_copied()}
           instruction={showGuidance
-  ? {
-      description: m.guide_setup_server_address_description(),
-      label: m.guide_setup_server_address_label(),
-      title: m.guide_setup_server_address_title(),
-    }
-  : undefined}
+            ? {
+                description: m.guide_setup_server_address_description(),
+                label: m.guide_setup_server_address_label(),
+                title: m.guide_setup_server_address_title(),
+              }
+            : undefined}
         />
         <GuideParagraph>
           {@html m.guide_setup_complete_browser_before()}
@@ -230,13 +230,13 @@ const terminalLabel = (path: string, action: string) =>
           copyLabel={m.common_copy()}
           copiedLabel={m.common_copied()}
           instruction={showGuidance
-  ? {
-      description: m.guide_setup_continue_explanation(),
-      stepLabel: m.guide_setup_resume_step_label(),
-      stepNumber: setupContinueStepNumber,
-      title: m.guide_setup_continue_command(),
-    }
-  : undefined}
+            ? {
+                description: m.guide_setup_continue_explanation(),
+                stepLabel: m.guide_setup_resume_step_label(),
+                stepNumber: setupContinueStepNumber,
+                title: m.guide_setup_continue_command(),
+              }
+            : undefined}
         />
       </div>
     </div>

@@ -21,7 +21,7 @@ import { resolve } from 'node:path'
 
 import { prepareUpload } from '@repo/core/uploadLocal'
 import type { UploadInspection } from '@repo/core'
-import type { ProvenanceStore, RuleDeclaration } from '@repo/core/provenance'
+import type { ProvenanceStore } from '@repo/core/provenance'
 import {
   buildSourceReleaseCode,
   getDatasetById,

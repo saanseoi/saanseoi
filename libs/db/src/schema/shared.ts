@@ -377,7 +377,7 @@ export type StatsFieldComparability = {
 
 /** A reusable, dimension-free statistical concept within one dataset. */
 export function canonicalStatsMeasureColumns<Required extends boolean>(
-  required: Required,
+  _required: Required,
 ) {
   return {
     datasetCode: text('datasetCode').notNull(),
@@ -668,7 +668,7 @@ export function canonicalPlaceColumns<Required extends boolean>(required: Requir
 export const canonicalPlace = canonicalPlaceColumns(true)
 
 export function canonicalPlaceI18nColumns<Required extends boolean>(
-  required: Required,
+  _required: Required,
 ) {
   return {
     /** Exact dependency text and revision evidence resolved during local preparation. */

@@ -324,7 +324,10 @@ onMount(() => {
         >
       {/snippet}
       <GuideCodeBlock
-        label={m.guide_setup_terminal_label({ action: m.guide_setup_install_bun(), path })}
+        label={m.guide_setup_terminal_label({
+          action: m.guide_setup_install_bun(),
+          path,
+        })}
         labelContent={terminalLabel}
         code={command}
         copyCode={command}

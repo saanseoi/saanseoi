@@ -31,7 +31,7 @@ export function validateOperationExplanation(
     throw Error('Invalid structured operation explanation')
   }
   function expression(raw: unknown, depth = 0): void {
-    if (!raw || typeof raw !== 'object' || depth > 40) return fail()
+    if (!raw || typeof raw !== 'object' || depth > 40) fail()
     const v = raw as Record<string, any>
     const next = (child: unknown) => expression(child, depth + 1)
     switch (v.kind) {
@@ -55,7 +55,7 @@ export function validateOperationExplanation(
         next(v.input)
         break
       case 'choice':
-        if (!Array.isArray(v.branches) || !v.branches.length) return fail()
+        if (!Array.isArray(v.branches) || !v.branches.length) fail()
         for (const branch of v.branches) {
           if (
             !branch?.when ||
@@ -77,7 +77,7 @@ export function validateOperationExplanation(
     }
   }
   const v = value as OperationExplanation
-  if (!v || v.version !== 1) fail()
+  if (v?.version !== 1) fail()
   expression(v.result)
   if (v.upstream) {
     if (

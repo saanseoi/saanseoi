@@ -3413,7 +3413,7 @@ function derive() {
 }
 function download(name: string, data: unknown) {
   const url = URL.createObjectURL(
-    new Blob([JSON.stringify(data, null, 2) + '\n'], { type: 'application/json' }),
+    new Blob([`${JSON.stringify(data, null, 2)}\n`], { type: 'application/json' }),
   )
   const a = document.createElement('a')
   a.href = url

@@ -4,13 +4,7 @@ import { and, asc, desc, eq, inArray, metaSchema, ne, sql } from '@repo/db'
 
 import type { HarbourReadableDb } from './types'
 
-const {
-  metaDatasets,
-  metaResourceReleases,
-  metaSnapshotLineages,
-  metaSnapshots,
-  metaSnapshotResourceReleases,
-} = metaSchema
+const { metaDatasets, metaSnapshotLineages, metaSnapshots } = metaSchema
 
 /**
  * Current geometry follows the resource releases that are still published.

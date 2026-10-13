@@ -14,7 +14,7 @@ import type {
 } from '@repo/db'
 import {
   and,
-  currentSchema,
+  type currentSchema,
   desc,
   eq,
   type HistoryContent,

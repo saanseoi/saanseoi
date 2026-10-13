@@ -29,10 +29,10 @@ onMount(() => {
 <div
   bind:this={featureSectionElement}
   class={`landing-feature-section-content ${
-  isFeatureSectionActive
-    ? ''
-    : '[&_.principle-animation_*]:paused [&_.principle-animation:before]:paused [&_.principle-animation:after]:paused'
-}`}
+    isFeatureSectionActive
+      ? ''
+      : '[&_.principle-animation_*]:paused [&_.principle-animation:before]:paused [&_.principle-animation:after]:paused'
+  }`}
 >
   <div
     class="feature-section-panel relative mx-auto flex min-h-[max(42.75rem,calc(100svh-var(--landing-header-height,4.5rem)))] w-full max-w-(--spacing-container-max) flex-col justify-start px-6 pb-16 pt-[calc(clamp(2.25rem,5svh,3.5rem)+24px)] md:px-8 md:pb-20 md:pt-[calc(clamp(2.75rem,5.5svh,4rem)+24px)] lg:pt-[calc(clamp(2.75rem,5.5svh,4rem)+4.5rem+24px)]"

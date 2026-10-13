@@ -22,11 +22,14 @@ export function humanField(
   const label = words(field)
   if (resource === 'statistic-field') {
     const descriptions: Record<string, string> = {
-      aggregation: 'Use the SaanSeoi curated aggregation method; otherwise mark it unreviewed.',
-      statisticKind: 'Use the SaanSeoi curated statistic kind; otherwise mark it unreviewed.',
+      aggregation:
+        'Use the SaanSeoi curated aggregation method; otherwise mark it unreviewed.',
+      statisticKind:
+        'Use the SaanSeoi curated statistic kind; otherwise mark it unreviewed.',
       fieldName:
         'Use the SaanSeoi curated field name, falling back to the publisher column name.',
-      measureCode: 'Use the SaanSeoi curated measure code, falling back to the field name.',
+      measureCode:
+        'Use the SaanSeoi curated measure code, falling back to the field name.',
       unitCode:
         'Use the SaanSeoi curated unit, otherwise the dataset’s unit mapping for this publisher column.',
       valueKind:

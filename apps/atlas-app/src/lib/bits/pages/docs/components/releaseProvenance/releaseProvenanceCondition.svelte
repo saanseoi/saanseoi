@@ -5,7 +5,11 @@ let {
   condition,
   labels = {},
   definition,
-}: { condition: Condition; labels?: Record<string, string>; definition?: LineageDefinition } = $props()
+}: {
+  condition: Condition
+  labels?: Record<string, string>
+  definition?: LineageDefinition
+} = $props()
 </script>
 {#snippet show(
   value: Condition,
@@ -39,15 +43,27 @@ let {
       >
     {/each}
   {:else if value.kind === 'predicate'}
-    {@const rule = definition?.definitions[value.definition.definitionId] as { human?: { title: string }; id?: string; localeKey?: string; apiField?: string } | undefined}
+    {@const rule = definition?.definitions[value.definition.definitionId] as
+      | {
+          human?: { title: string }
+          id?: string
+          localeKey?: string
+          apiField?: string
+        }
+      | undefined}
     {#if rule?.id === 'division-response-field' && rule.localeKey}
       This language is requested and has a primary name
-    {:else if rule?.id === 'division-response-field' && rule.apiField?.startsWith('relationships.')}
-      The related {rule.apiField.endsWith('areas') ? 'areas' : 'boundaries'} collection is included
-    {:else if rule?.id === 'division-response-field' && rule.apiField === 'attributes.divisionCode'}
+    {:else if rule?.id === 'division-response-field' &&
+      rule.apiField?.startsWith('relationships.')}
+      The related {rule.apiField.endsWith('areas') ? 'areas' : 'boundaries'} collection
+      is included
+    {:else if rule?.id === 'division-response-field' &&
+      rule.apiField === 'attributes.divisionCode'}
       A Division code is available
     {:else}
-      {rule?.human ? `Matches: ${rule.human.title}` : 'The retained field-specific rule applies'}
+      {rule?.human
+        ? `Matches: ${rule.human.title}`
+        : 'The retained field-specific rule applies'}
     {/if}
   {:else}
     {conditionLabel(value, labels)}

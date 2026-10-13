@@ -221,11 +221,7 @@ export async function coalesceDivisionHistory(input: {
             locale: version.locale,
             snapshotId: version.snapshotId,
           })[0]
-          if (
-            !row ||
-            row.operation !== 'upsert' ||
-            row.versionHash !== version.versionHash
-          )
+          if (row?.operation !== 'upsert' || row.versionHash !== version.versionHash)
             throw new Error(
               `Missing exact Division parent ${version.recordId}/${version.locale}.`,
             )

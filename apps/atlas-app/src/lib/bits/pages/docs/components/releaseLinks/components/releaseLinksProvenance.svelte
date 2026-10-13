@@ -91,7 +91,10 @@ function positionConnector(node: HTMLElement) {
                 style="top: calc(var(--release-connector-y, 1.625rem) - 0.25rem)"
                 aria-hidden="true"
               ></span>
-              {#if entry.description || entry.request || entry.facts?.length || entry.actions?.length}
+              {#if entry.description ||
+                entry.request ||
+                entry.facts?.length ||
+                entry.actions?.length}
                 <ReleaseLinksCard {...entry}>
                   <div class="grid gap-5">
                     {#if entry.description}

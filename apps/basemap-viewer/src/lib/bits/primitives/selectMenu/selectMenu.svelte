@@ -76,8 +76,8 @@ const badgeTriggerClass =
     <Tooltip.Root>
       <Tooltip.Trigger>
         {#snippet child({
-  props,
-})}
+          props,
+        })}
           <Select.Trigger
             {...props}
             aria-label={ariaLabel}
@@ -160,8 +160,8 @@ const badgeTriggerClass =
             value={item.value}
           >
             {#snippet children({
-  selected,
-})}
+              selected,
+            })}
               <span>{item.label}</span>
               {#if selected}
                 <Icon class="size-[15px] text-(--bar-accent)" name="checkmark" />

@@ -143,7 +143,8 @@ const actionClass =
                 ariaLabel={text.compare}
                 disabled={!$ui.catalogueReady}
                 items={comparisonReleaseOptions($ui.versions, text)}
-                onValueChange={value => callbacks.onComparisonVersion(value === 'off' ? null : value)}
+                onValueChange={value =>
+                  callbacks.onComparisonVersion(value === 'off' ? null : value)}
                 optionClass="font-mono"
                 placeholder={text.noComparison}
                 theme={$viewerState.theme}

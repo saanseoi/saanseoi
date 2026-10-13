@@ -922,6 +922,8 @@ $effect(() => {
     evidenceId={selectedEvidenceId}
     onClose={closeEvidenceFullscreen}
     onCopy={copyEvidence}
-    transitionName={selectedEvidenceId ? evidenceTransitionName(selectedEvidenceId) : undefined}
+    transitionName={selectedEvidenceId
+      ? evidenceTransitionName(selectedEvidenceId)
+      : undefined}
   />
 </Tooltip.Provider>

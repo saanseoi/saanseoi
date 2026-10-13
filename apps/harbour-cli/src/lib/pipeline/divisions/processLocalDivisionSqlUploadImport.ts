@@ -149,8 +149,8 @@ export function normaliseError(error: unknown) {
 }
 
 export function buildExtraHistorySqlOperations(
-  state: DivisionSqlState,
-  importTargets: Awaited<ReturnType<typeof resolveDivisionImportTargets>>,
+  _state: DivisionSqlState,
+  _importTargets: Awaited<ReturnType<typeof resolveDivisionImportTargets>>,
 ) {
   // All new events belong to the selected snapshot shard. Ancestors stay immutable.
   return [] as ExtraSqlImportOperation[]

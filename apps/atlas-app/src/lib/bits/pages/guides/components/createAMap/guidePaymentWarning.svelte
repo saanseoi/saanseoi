@@ -66,8 +66,8 @@ $effect(() => {
     <div class="flex items-start gap-3">
       <Icon
         icon={completed
-  ? 'material-symbols-light:check-circle-rounded'
-  : 'material-symbols-light:warning-rounded'}
+          ? 'material-symbols-light:check-circle-rounded'
+          : 'material-symbols-light:warning-rounded'}
         class={`mt-0.5 size-5 shrink-0 ${completed ? 'text-secondary dark:text-[#6fdec9]' : 'text-[#b42318] dark:text-[#ef8b88]'}`}
         aria-hidden="true"
       />

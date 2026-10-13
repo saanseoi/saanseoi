@@ -30,7 +30,7 @@ export async function prepareHkgovCenstatdDistrictStatisticUpload(input: {
     )
   }
 
-  const rows = features.map((feature, index) => {
+  const rows = features.map((_feature, index) => {
     const assertion = assertions[index]
     if (!assertion) throw new Error(`Missing Density feature ${index + 1}.`)
     const properties = assertion.properties

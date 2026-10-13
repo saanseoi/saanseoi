@@ -37,10 +37,10 @@ export const canonicalPlaceJson = (value: unknown): string =>
 export function placeHistoryInsertSql(
   table: string,
   values: Record<string, unknown>,
-  now: string,
+  _now: string,
 ) {
   const insert = insertSql(table, values)
-  return insert.slice(0, insert.indexOf(' ON CONFLICT')) + ` ON CONFLICT DO NOTHING;`
+  return `${insert.slice(0, insert.indexOf(' ON CONFLICT'))} ON CONFLICT DO NOTHING;`
 }
 
 export function placeLocaleHash(

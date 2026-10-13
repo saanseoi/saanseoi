@@ -28,8 +28,8 @@ const locales = ['en', 'zh-hant', 'zh-hans']
         </td>
         {#each locales as locale}
           {@const entry = (Array.isArray(row.localisations) ? row.localisations : [])
-  .map(object)
-  .find(item => String(item.locale).toLowerCase() === locale)}
+            .map(object)
+            .find(item => String(item.locale).toLowerCase() === locale)}
           <td class="wrap-break-word p-2">
             {#if entry}
               <p class="font-medium">{String(entry.name ?? '')}</p>

@@ -691,7 +691,7 @@ async function loadReplayedDivisionRows(versions: ResolvedSnapshotVersion[]) {
     if (!db) continue
 
     for (const versionBatch of chunk(shardVersions, SNAPSHOT_REPLAY_QUERY_BATCH_SIZE)) {
-      const versionHashes = [
+      const _versionHashes = [
         ...new Set(versionBatch.map(version => version.versionHash)),
       ]
       const batchRows = await db
@@ -740,7 +740,7 @@ async function loadReplayedDivisionI18nRows(versions: ResolvedSnapshotVersion[])
     if (!db) continue
 
     for (const versionBatch of chunk(shardVersions, SNAPSHOT_REPLAY_QUERY_BATCH_SIZE)) {
-      const versionHashes = [
+      const _versionHashes = [
         ...new Set(versionBatch.map(version => version.versionHash)),
       ]
       const batchRows = await db

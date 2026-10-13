@@ -82,7 +82,9 @@ const toggleExpanded = () => {
   {#if details && (!complete || expanded)}
     <div
       id={`${id}-details`}
-      class={complete ? 'mt-5 border-t border-secondary/35 pt-5 dark:border-[#6fdec9]/35' : 'mt-4'}
+      class={complete
+        ? 'mt-5 border-t border-secondary/35 pt-5 dark:border-[#6fdec9]/35'
+        : 'mt-4'}
     >
       {@render details()}
     </div>

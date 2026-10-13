@@ -238,7 +238,7 @@ test('deferred investigations pass the review gate without claiming a resolved i
   const resolutionPath = join(directory, 'resolutions.jsonl')
   await writeFile(
     resolutionPath,
-    JSON.stringify({
+    `${JSON.stringify({
       placeId: 'pending',
       fingerprint: 'pending',
       tier: 'investigation',
@@ -251,7 +251,7 @@ test('deferred investigations pass the review gate without claiming a resolved i
         priority: 'low',
         evidenceId: 'retained.json',
       },
-    }) + '\n',
+    })}\n`,
   )
   const store = new LocalPipelineBucket(directory)
   const result = await retainPlaceProvenance(store, {

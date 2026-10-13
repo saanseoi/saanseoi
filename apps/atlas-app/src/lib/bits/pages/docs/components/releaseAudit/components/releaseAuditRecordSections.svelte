@@ -85,8 +85,8 @@ const toggleSection = (section: AuditSection) => {
                   {m.source_audit_record_action()}
                   •
                   {section.mode === 'automatic'
-  ? m.source_audit_mode_automatic()
-  : m.source_audit_mode_manual()}
+                    ? m.source_audit_mode_automatic()
+                    : m.source_audit_mode_manual()}
                 </p>
               </div>
               <h2
@@ -116,7 +116,9 @@ const toggleSection = (section: AuditSection) => {
                   aria-expanded={expanded}
                   onclick={() => toggleSection(section)}
                 >
-                  {expanded ? m.source_audit_collapse_records() : m.source_audit_expand_records()}
+                  {expanded
+                    ? m.source_audit_collapse_records()
+                    : m.source_audit_expand_records()}
                   <Icon
                     icon="ion:chevron-down-outline"
                     class={`size-4 transition-transform ${expanded ? 'rotate-180' : ''}`}

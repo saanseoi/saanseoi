@@ -72,57 +72,57 @@ function tileLabel(summary: TileWeightSummary): string {
       <dd class="m-0 font-mono font-bold">{text.diagnosticComparison}</dd>
     {/if}
     {#each [
-   {
-     label: text.tileWeightRequests,
-     primary: formatNumber(diagnostics.tileWeight.primary.tileRequests),
-     comparison: comparison && formatNumber(comparison.tileRequests),
-   },
-   {
-     label: text.tileWeightCompleted,
-     primary: formatNumber(diagnostics.tileWeight.primary.completedLoads),
-     comparison: comparison && formatNumber(comparison.completedLoads),
-   },
-   {
-     label: text.tileWeightFailed,
-     primary: formatNumber(diagnostics.tileWeight.primary.failedLoads),
-     comparison: comparison && formatNumber(comparison.failedLoads),
-   },
-   {
-     label: text.tileWeightTransfer,
-     primary: formatBytes(diagnostics.tileWeight.primary.totalTransferBytes),
-     comparison: comparison && formatBytes(comparison.totalTransferBytes),
-   },
-   {
-     label: text.tileWeightEncoded,
-     primary: formatBytes(diagnostics.tileWeight.primary.totalEncodedBodyBytes),
-     comparison: comparison && formatBytes(comparison.totalEncodedBodyBytes),
-   },
-   {
-     label: text.tileWeightDecoded,
-     primary: formatBytes(diagnostics.tileWeight.primary.totalDecodedBodyBytes),
-     comparison: comparison && formatBytes(comparison.totalDecodedBodyBytes),
-   },
-   {
-     label: text.tileWeightDurationMean,
-     primary: formatMilliseconds(diagnostics.tileWeight.primary.meanDurationMs),
-     comparison: comparison && formatMilliseconds(comparison.meanDurationMs),
-   },
-   {
-     label: text.tileWeightDurationP95,
-     primary: formatMilliseconds(diagnostics.tileWeight.primary.p95DurationMs),
-     comparison: comparison && formatMilliseconds(comparison.p95DurationMs),
-   },
-   {
-     label: text.tileWeightTransferMean,
-     primary: formatBytes(diagnostics.tileWeight.primary.meanTransferBytes),
-     comparison: comparison && formatBytes(comparison.meanTransferBytes),
-   },
-   {
-     label: text.tileWeightTransferP95,
-     primary: formatBytes(diagnostics.tileWeight.primary.p95TransferBytes),
-     comparison: comparison && formatBytes(comparison.p95TransferBytes),
-   },
- ] as metric}
+      {
+        label: text.tileWeightRequests,
+        primary: formatNumber(diagnostics.tileWeight.primary.tileRequests),
+        comparison: comparison && formatNumber(comparison.tileRequests),
+      },
+      {
+        label: text.tileWeightCompleted,
+        primary: formatNumber(diagnostics.tileWeight.primary.completedLoads),
+        comparison: comparison && formatNumber(comparison.completedLoads),
+      },
+      {
+        label: text.tileWeightFailed,
+        primary: formatNumber(diagnostics.tileWeight.primary.failedLoads),
+        comparison: comparison && formatNumber(comparison.failedLoads),
+      },
+      {
+        label: text.tileWeightTransfer,
+        primary: formatBytes(diagnostics.tileWeight.primary.totalTransferBytes),
+        comparison: comparison && formatBytes(comparison.totalTransferBytes),
+      },
+      {
+        label: text.tileWeightEncoded,
+        primary: formatBytes(diagnostics.tileWeight.primary.totalEncodedBodyBytes),
+        comparison: comparison && formatBytes(comparison.totalEncodedBodyBytes),
+      },
+      {
+        label: text.tileWeightDecoded,
+        primary: formatBytes(diagnostics.tileWeight.primary.totalDecodedBodyBytes),
+        comparison: comparison && formatBytes(comparison.totalDecodedBodyBytes),
+      },
+      {
+        label: text.tileWeightDurationMean,
+        primary: formatMilliseconds(diagnostics.tileWeight.primary.meanDurationMs),
+        comparison: comparison && formatMilliseconds(comparison.meanDurationMs),
+      },
+      {
+        label: text.tileWeightDurationP95,
+        primary: formatMilliseconds(diagnostics.tileWeight.primary.p95DurationMs),
+        comparison: comparison && formatMilliseconds(comparison.p95DurationMs),
+      },
+      {
+        label: text.tileWeightTransferMean,
+        primary: formatBytes(diagnostics.tileWeight.primary.meanTransferBytes),
+        comparison: comparison && formatBytes(comparison.meanTransferBytes),
+      },
+      {
+        label: text.tileWeightTransferP95,
+        primary: formatBytes(diagnostics.tileWeight.primary.p95TransferBytes),
+        comparison: comparison && formatBytes(comparison.p95TransferBytes),
+      },
+    ] as metric}
       <DefinitionItem label={metric.label} valueClass="font-mono font-medium">
         {metric.primary}
       </DefinitionItem>

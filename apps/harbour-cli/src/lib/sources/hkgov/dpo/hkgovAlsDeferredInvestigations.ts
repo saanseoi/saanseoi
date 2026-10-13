@@ -85,7 +85,7 @@ export async function deferAlsDeletionReview(input: {
   )
   for (const collection of previous.collections) {
     const owner = old.get(collection.ownerId)
-    for (const [id, floor, unit, en, zhHant] of collection.units) {
+    for (const [id, _floor, _unit, en, zhHant] of collection.units) {
       if (!ids.has(id)) continue
       old.set(id, {
         id,
@@ -150,7 +150,7 @@ export async function deferAlsDeletionReview(input: {
     evidenceHash: alsMembershipHash({ cases, inventories }),
   }
   await mkdir(dirname(file), { recursive: true })
-  await writeFile(file, JSON.stringify(record, null, 2) + '\n', { flag: 'wx' })
+  await writeFile(file, `${JSON.stringify(record, null, 2)}\n`, { flag: 'wx' })
   if (!input.directory) await registerReviewEvidence(file)
   return file
 }
@@ -208,7 +208,7 @@ export async function deferAlsPreparationReview(input: {
   await mkdir(dirname(path), { recursive: true })
   await writeFile(
     path,
-    JSON.stringify(
+    `${JSON.stringify(
       {
         schemaVersion: 1,
         status: 'needs-further-investigation',
@@ -221,7 +221,7 @@ export async function deferAlsPreparationReview(input: {
       },
       null,
       2,
-    ) + '\n',
+    )}\n`,
     { flag: 'wx' },
   )
   if (!input.directory) await registerReviewEvidence(path)

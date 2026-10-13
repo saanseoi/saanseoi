@@ -37,8 +37,12 @@ async function copy() {
   {/if}
   <button
     type="button"
-    aria-label={kind === 'rule' ? m.source_audit_copy_rule() : m.source_audit_copy_fixture()}
-    title={kind === 'rule' ? m.source_audit_copy_full_rule() : m.source_audit_copy_full_fixture()}
+    aria-label={kind === 'rule'
+      ? m.source_audit_copy_rule()
+      : m.source_audit_copy_fixture()}
+    title={kind === 'rule'
+      ? m.source_audit_copy_full_rule()
+      : m.source_audit_copy_full_fixture()}
     disabled={pending}
     onclick={copy}
     class="rounded-md p-1.5 opacity-50 hover:bg-current/10 hover:opacity-100 disabled:cursor-wait motion-safe:disabled:animate-pulse"

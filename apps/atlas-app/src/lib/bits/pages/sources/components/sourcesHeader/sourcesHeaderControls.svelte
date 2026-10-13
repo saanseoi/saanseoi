@@ -43,19 +43,19 @@ let {
       type="button"
       variant="secondary"
       onclick={() => {
-  expandAll = !expandAll
-  trackClientProductUsage({
-    event: 'client.source_flow_expand',
-    surface: 'sources',
-    entityType: 'action',
-    entityId: expandAll ? 'expand_all' : 'collapse_all',
-  })
-}}
+        expandAll = !expandAll
+        trackClientProductUsage({
+          event: 'client.source_flow_expand',
+          surface: 'sources',
+          entityType: 'action',
+          entityId: expandAll ? 'expand_all' : 'collapse_all',
+        })
+      }}
     >
       <Icon
         icon={expandAll
-  ? 'material-symbols-light:fullscreen-exit'
-  : 'material-symbols-light:fullscreen'}
+          ? 'material-symbols-light:fullscreen-exit'
+          : 'material-symbols-light:fullscreen'}
         class="size-4"
         aria-hidden="true"
       />
