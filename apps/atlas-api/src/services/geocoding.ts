@@ -63,7 +63,7 @@ export async function resolveGeocode(
   const release = await deps.resolveGeocodingRelease(
     args.metaDb,
     args.family,
-    query.apiReleaseSet,
+    query.releaseSet,
     undefined,
     { apiVersion: args.apiVersion, inventory: query.inventory },
   )

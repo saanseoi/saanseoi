@@ -14,6 +14,7 @@ test('exactly one named coordinate pair or forward input', () => {
     { address: 'a', placename: 'b' },
     { address: ' ' },
     { address: 'a', x: '1' },
+    { placename: 'a', apiReleaseSet: 'old' },
   ])
     expect(GeocodingQuerySchema.safeParse(input).success).toBe(false)
   expect(GeocodingQuerySchema.parse({ lat: '0', lng: '0' })).toMatchObject({
@@ -22,7 +23,7 @@ test('exactly one named coordinate pair or forward input', () => {
   })
   expect(GeocodingQuerySchema.safeParse({ address: 'a' }).success).toBe(true)
   expect(
-    GeocodingQuerySchema.safeParse({ placename: 'a', apiReleaseSet: 'old' }).success,
+    GeocodingQuerySchema.safeParse({ placename: 'a', releaseSet: 'old' }).success,
   ).toBe(true)
 })
 

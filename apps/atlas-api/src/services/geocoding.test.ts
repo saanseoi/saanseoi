@@ -86,7 +86,7 @@ test('one release resolution per family and exact companion snapshot pin', async
   const result = await f.run('address', {
     lat: '1',
     lng: '1',
-    apiReleaseSet: 'older',
+    releaseSet: 'older',
     include: 'divisions',
   })
   expect(f.calls).toEqual([

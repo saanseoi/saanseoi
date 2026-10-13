@@ -1,13 +1,13 @@
 # Division changes
 
 ```http
-GET /divisions/v1/changes?fromApiReleaseSet=<required>&toApiReleaseSet=<optional>
+GET /divisions/v1/changes?fromReleaseSet=<required>&toReleaseSet=<optional>
 ```
 
 Compare effective Hong Kong geographic division definitions by stable division ID.
-Selectors accept published release-set codes or IDs. `fromApiReleaseSet` is required.
-Omitting `toApiReleaseSet` resolves the latest published geographic release selected by
-the current catalogue. The response returns both resolved IDs and codes.
+Selectors accept published release-set codes or IDs. `fromReleaseSet` is required.
+Omitting `toReleaseSet` resolves the latest published geographic release selected by the
+current catalogue. The response returns both resolved IDs and codes.
 
 ## Example queries
 
@@ -16,31 +16,31 @@ These release codes must be published and retained in the selected environment.
 1. Compare June's definitions with the latest published release:
 
    ```http
-   GET /divisions/v1/changes?fromApiReleaseSet=data-hk-divisions-2026-06-17.0
+   GET /divisions/v1/changes?fromReleaseSet=data-hk-divisions-2026-06-17.0
    ```
 
 2. Compare two specific releases:
 
    ```http
-   GET /divisions/v1/changes?fromApiReleaseSet=data-hk-divisions-2026-06-17.0&toApiReleaseSet=data-hk-divisions-2026-07-22.0
+   GET /divisions/v1/changes?fromReleaseSet=data-hk-divisions-2026-06-17.0&toReleaseSet=data-hk-divisions-2026-07-22.0
    ```
 
 3. Include before/after membership geometry:
 
    ```http
-   GET /divisions/v1/changes?fromApiReleaseSet=data-hk-divisions-2026-06-17.0&toApiReleaseSet=data-hk-divisions-2026-07-22.0&include=geometry
+   GET /divisions/v1/changes?fromReleaseSet=data-hk-divisions-2026-06-17.0&toReleaseSet=data-hk-divisions-2026-07-22.0&include=geometry
    ```
 
 4. Request ten changes per page, then follow `links.next`:
 
    ```http
-   GET /divisions/v1/changes?fromApiReleaseSet=data-hk-divisions-2026-06-17.0&toApiReleaseSet=data-hk-divisions-2026-07-22.0&page[limit]=10
+   GET /divisions/v1/changes?fromReleaseSet=data-hk-divisions-2026-06-17.0&toReleaseSet=data-hk-divisions-2026-07-22.0&page[limit]=10
    ```
 
 5. Compare in reverse for a rollback:
 
    ```http
-   GET /divisions/v1/changes?fromApiReleaseSet=data-hk-divisions-2026-07-22.0&toApiReleaseSet=data-hk-divisions-2026-06-17.0
+   GET /divisions/v1/changes?fromReleaseSet=data-hk-divisions-2026-07-22.0&toReleaseSet=data-hk-divisions-2026-06-17.0
    ```
 
 ## Representation
@@ -70,7 +70,7 @@ descriptive metadata. This lets consumers refresh labels without another request
 The definition URL has this form:
 
 ```http
-GET /divisions/v1/changes/definitions/{id}?apiReleaseSet=<id>&definitionHash=<sha256>
+GET /divisions/v1/changes/definitions/{id}?releaseSet=<id>&definitionHash=<sha256>
 ```
 
 It returns the exact definition and its authoritative polygons, or `503` if that content
@@ -126,7 +126,7 @@ descendant paths also appear as ordinary revisions.
 
 `page[limit]` defaults to 25 and accepts 1–100. Changes sort by stable division ID using
 code-unit order. Follow `links.next` or pass `meta.nextCursor` as `page[cursor]`,
-keeping `fromApiReleaseSet`. The cursor pins both release IDs, the full comparison
+keeping `fromReleaseSet`. The cursor pins both release IDs, the full comparison
 fingerprint and the last division ID. Omitting the target on later pages uses the
 cursor's target; publishing a newer release cannot change the comparison. A supplied
 target must match the cursor. Returned self, first and next URLs pin both IDs and the

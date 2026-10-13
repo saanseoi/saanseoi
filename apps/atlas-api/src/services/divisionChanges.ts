@@ -208,7 +208,7 @@ function reference(
     'api-divisions-v0.2'
   )
     record.pathname = record.pathname.replace('/v1/', '/v0.2/')
-  record.searchParams.set('apiReleaseSet', release.id)
+  record.searchParams.set('releaseSet', release.id)
   record.searchParams.set('definitionHash', definition.hash)
   const { membershipGeometry, ...attributes } = definition.content
   return {
@@ -227,7 +227,7 @@ function reference(
 export async function getDivisionChangeDefinition(
   args: GeocodingDatabases & {
     id: string
-    apiReleaseSet: string
+    releaseSet: string
     inventory?: string
     apiVersion?: string
     definitionHash: string
@@ -243,7 +243,7 @@ export async function getDivisionChangeDefinition(
   try {
     const release = await dependencies.resolveRelease(
       args.metaDb,
-      args.apiReleaseSet,
+      args.releaseSet,
       args.inventory,
       args.apiVersion,
     )
@@ -299,17 +299,17 @@ export async function listDivisionChanges(
   }
   try {
     const cursor = decodeCursor(args.query['page[cursor]'])
-    // A cursor owns the target even when the caller omits toApiReleaseSet again.
+    // A cursor owns the target even when the caller omits toReleaseSet again.
     const [from, to] = await Promise.all([
       dependencies.resolveRelease(
         args.metaDb,
-        args.query.fromApiReleaseSet,
+        args.query.fromReleaseSet,
         args.query.inventory ?? cursor?.inventory,
         args.apiVersion,
       ),
       dependencies.resolveRelease(
         args.metaDb,
-        args.query.toApiReleaseSet ?? cursor?.to,
+        args.query.toReleaseSet ?? cursor?.to,
         args.query.inventory ?? cursor?.inventory,
         args.apiVersion,
       ),
@@ -450,8 +450,8 @@ export async function listDivisionChanges(
     const nextCursor = remaining.length > limit ? makeCursor(selected.at(-1)!) : null
     const link = (value: string) => {
       const url = new URL('/divisions/v1/changes', origin)
-      url.searchParams.set('fromApiReleaseSet', from.id)
-      url.searchParams.set('toApiReleaseSet', to.id)
+      url.searchParams.set('fromReleaseSet', from.id)
+      url.searchParams.set('toReleaseSet', to.id)
       url.searchParams.set('page[limit]', String(limit))
       url.searchParams.set('page[cursor]', value)
       if (args.query.include) url.searchParams.set('include', args.query.include)

@@ -2,6 +2,7 @@ import { expect, test } from 'bun:test'
 import {
   DivisionChangesQuerySchema,
   DivisionChangesResponseSchema,
+  DivisionChangeDefinitionQuerySchema,
 } from '../schema/divisionChanges'
 import { DivisionChangesError } from '../db/divisionChanges'
 import { PublicationReadUnavailableError } from '../db/publicationState'
@@ -51,7 +52,7 @@ function fixture(before: Definitions, after: Definitions) {
       ...({} as GeocodingDatabases),
       requestUrl: 'https://api.example/divisions/v1/changes?access_token=secret',
       query: DivisionChangesQuerySchema.parse({
-        fromApiReleaseSet: 'old',
+        fromReleaseSet: 'old',
         include: 'geometry',
         ...query,
       }),
@@ -200,7 +201,7 @@ test('additions and deletions retain identity, old/new geometry and descendant d
     },
     affectedDescendantIds: { before: ['child'], after: [] },
   })
-  expect(body.data[2]!.before!.record).toContain('apiReleaseSet=id-old')
+  expect(body.data[2]!.before!.record).toContain('releaseSet=id-old')
 })
 
 test.each(['category', 'class', 'level'] as const)(
@@ -284,7 +285,7 @@ test('pagination pins latest once even after publication; replay and change iden
   )
   expect(replay).toEqual(first)
   expect(first.links.next).not.toContain('secret')
-  const whole = successful(await f.run({ toApiReleaseSet: 'new' }))
+  const whole = successful(await f.run({ toReleaseSet: 'new' }))
   expect(whole.data.map(change => change.id)).toEqual([
     first.data[0]!.id,
     second.data[0]!.id,
@@ -301,7 +302,7 @@ test('rejects malformed, mismatched and unavailable cursor definitions explicitl
     body: { error: 'invalid_cursor' },
   })
   expect(
-    await f.run({ 'page[cursor]': first.meta.nextCursor!, toApiReleaseSet: 'another' }),
+    await f.run({ 'page[cursor]': first.meta.nextCursor!, toReleaseSet: 'another' }),
   ).toMatchObject({ status: 422, body: { error: 'cursor_release_mismatch' } })
   after.records[0]!.i18n.en!.name = 'Changed outside publication'
   expect(await f.run({ 'page[cursor]': first.meta.nextCursor! })).toMatchObject({
@@ -346,15 +347,30 @@ test('unavailable releases/history and incompatible schema or rulesets fail expl
     ).toMatchObject({ status: 409, body: { error: 'incompatible_release_sets' } })
 })
 
-test('fromApiReleaseSet is required and old spellings/invalid limits are rejected', () => {
+test('fromReleaseSet is required and old spellings/invalid limits are rejected', () => {
   for (const query of [
     {},
-    { fromReleaseSet: 'old' },
-    { fromApiReleaseSet: '' },
-    { fromApiReleaseSet: 'old', 'page[limit]': 0 },
-    { fromApiReleaseSet: 'old', 'page[limit]': 101 },
+    { fromApiReleaseSet: 'old' },
+    { fromReleaseSet: 'old', toApiReleaseSet: 'new' },
+    { fromReleaseSet: '' },
+    { fromReleaseSet: 'old', 'page[limit]': 0 },
+    { fromReleaseSet: 'old', 'page[limit]': 101 },
   ])
     expect(DivisionChangesQuerySchema.safeParse(query).success).toBe(false)
+})
+
+test('exact definitions require the canonical releaseSet selector', () => {
+  const definitionHash = 'a'.repeat(64)
+  expect(
+    DivisionChangeDefinitionQuerySchema.safeParse({ releaseSet: 'old', definitionHash })
+      .success,
+  ).toBe(true)
+  expect(
+    DivisionChangeDefinitionQuerySchema.safeParse({
+      apiReleaseSet: 'old',
+      definitionHash,
+    }).success,
+  ).toBe(false)
 })
 
 test('before/after links retrieve exact definitions and reject content drift rather than returning replacements', async () => {
@@ -367,7 +383,7 @@ test('before/after links retrieve exact definitions and reject content drift rat
     ...({} as GeocodingDatabases),
     id: 'gone',
     requestUrl: url.toString(),
-    apiReleaseSet: url.searchParams.get('apiReleaseSet')!,
+    releaseSet: url.searchParams.get('releaseSet')!,
     definitionHash: url.searchParams.get('definitionHash')!,
     dependencies: f.dependencies,
   }

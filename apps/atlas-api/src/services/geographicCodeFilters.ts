@@ -128,8 +128,7 @@ export function createGeographicCodeFilterMiddleware(
             releaseSet ??
             (isGeographic
               ? (url.searchParams.get('releaseSet') ??
-                url.searchParams.get('apiReleaseSet') ??
-                url.searchParams.get('toApiReleaseSet') ??
+                url.searchParams.get('toReleaseSet') ??
                 undefined)
               : undefined),
           ...(isGeographic

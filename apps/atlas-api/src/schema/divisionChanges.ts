@@ -6,11 +6,11 @@ export const DivisionChangesQuerySchema = z
   .object({
     ...geographicCodeQueryShape,
     inventory: z.string().min(1).optional(),
-    fromApiReleaseSet: releaseSelector.openapi({
+    fromReleaseSet: releaseSelector.openapi({
       description: 'Required published geographic division release-set code or ID.',
       example: 'data-hk-divisions-2026-06-17.0',
     }),
-    toApiReleaseSet: releaseSelector.optional().openapi({
+    toReleaseSet: releaseSelector.optional().openapi({
       description:
         'Published target code or ID. Omission resolves the latest published geographic release once; subsequent pages pin its ID.',
       example: 'data-hk-divisions-2026-07-22.0',
@@ -63,7 +63,7 @@ export const DivisionChangeDefinitionQuerySchema = z
   .object({
     ...geographicCodeQueryShape,
     inventory: z.string().min(1).optional(),
-    apiReleaseSet: releaseSelector,
+    releaseSet: releaseSelector,
     definitionHash: z.string().regex(/^[a-f0-9]{64}$/),
   })
   .strict()

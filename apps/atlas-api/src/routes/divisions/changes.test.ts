@@ -258,7 +258,7 @@ test('real HTTP/SQLite: archived history outside latest catalogue, current targe
   const f = fixture()
   try {
     const response = await f.app.request(
-      'http://test/divisions/v1/changes?fromApiReleaseSet=old&page[limit]=1',
+      'http://test/divisions/v1/changes?fromReleaseSet=old&page[limit]=1',
     )
     expect(response.status).toBe(200)
     const first = (await response.json()) as DivisionChangesResponse
@@ -303,14 +303,14 @@ test('real release resolution rejects drafts, unknown sets, incompatible domains
       ['stats', 409, 'incompatible_release_sets'],
     ] as const) {
       const response = await f.app.request(
-        `http://test/divisions/v1/changes?fromApiReleaseSet=${pin}`,
+        `http://test/divisions/v1/changes?fromReleaseSet=${pin}`,
       )
       expect(response.status).toBe(status)
       expect(await response.json()).toMatchObject({ error: code })
     }
     f.meta.exec("DELETE FROM snapshotShardAssignments WHERE snapshotId='snapshot-old'")
     const response = await f.app.request(
-      'http://test/divisions/v1/changes?fromApiReleaseSet=old',
+      'http://test/divisions/v1/changes?fromReleaseSet=old',
     )
     expect(response.status).toBe(503)
   } finally {
@@ -325,7 +325,7 @@ test.each(['divisions', 'divisionsI18n'])(
     try {
       f.history.exec(`DELETE FROM ${table}`)
       const response = await f.app.request(
-        'http://test/divisions/v1/changes?fromApiReleaseSet=old',
+        'http://test/divisions/v1/changes?fromReleaseSet=old',
       )
       expect(response.status).toBe(503)
       expect(await response.json()).toMatchObject({ error: 'release_set_unavailable' })
@@ -342,7 +342,7 @@ test('missing retained parent snapshots produce an explicit unavailable response
       "UPDATE snapshots SET parentSnapshotId='missing-parent' WHERE id='snapshot-old'",
     )
     const response = await f.app.request(
-      'http://test/divisions/v1/changes?fromApiReleaseSet=old',
+      'http://test/divisions/v1/changes?fromReleaseSet=old',
     )
     expect(response.status).toBe(503)
     expect(await response.json()).toMatchObject({ error: 'release_set_unavailable' })
@@ -361,7 +361,7 @@ test('HTTP validates the required source selector and publishes both OpenAPI con
       info: { title: 'test', version: '1' },
     })
     expect(doc.paths?.['/divisions/v1/changes']?.get?.parameters).toContainEqual(
-      expect.objectContaining({ name: 'fromApiReleaseSet', required: true }),
+      expect.objectContaining({ name: 'fromReleaseSet', required: true }),
     )
     expect(doc.paths?.['/divisions/v1/changes/definitions/{id}']).toBeDefined()
   } finally {

@@ -22,7 +22,7 @@ export const GeocodingQuerySchema = z
     lng: coordinate(-180, 180).optional(),
     address: z.string().trim().min(1).max(500).optional(),
     placename: z.string().trim().min(1).max(500).optional(),
-    apiReleaseSet: z.string().trim().min(1).optional(),
+    releaseSet: z.string().trim().min(1).optional(),
     locales: z
       .string()
       .superRefine((value, ctx) => {

@@ -5,23 +5,23 @@ const path = '/divisions/v1/changes'
 export const divisionChangesExamples = [
   {
     name: 'Compare with the latest published release',
-    query: `${path}?fromApiReleaseSet=${from}`,
+    query: `${path}?fromReleaseSet=${from}`,
   },
   {
     name: 'Compare two specific releases',
-    query: `${path}?fromApiReleaseSet=${from}&toApiReleaseSet=${to}`,
+    query: `${path}?fromReleaseSet=${from}&toReleaseSet=${to}`,
   },
   {
     name: 'Include before/after membership geometry',
-    query: `${path}?fromApiReleaseSet=${from}&toApiReleaseSet=${to}&include=geometry`,
+    query: `${path}?fromReleaseSet=${from}&toReleaseSet=${to}&include=geometry`,
   },
   {
     name: 'Request ten changes per page',
-    query: `${path}?fromApiReleaseSet=${from}&toApiReleaseSet=${to}&page[limit]=10`,
+    query: `${path}?fromReleaseSet=${from}&toReleaseSet=${to}&page[limit]=10`,
   },
   {
     name: 'Compare in reverse for a rollback',
-    query: `${path}?fromApiReleaseSet=${to}&toApiReleaseSet=${from}`,
+    query: `${path}?fromReleaseSet=${to}&toReleaseSet=${from}`,
   },
 ] as const
 

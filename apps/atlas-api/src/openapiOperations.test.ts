@@ -82,6 +82,26 @@ test('all five changes examples are valid queries included in OpenAPI', async ()
     ).toBe(true)
   }
   expect(operation.parameters).toContainEqual(
-    expect.objectContaining({ name: 'fromApiReleaseSet', required: true }),
+    expect.objectContaining({ name: 'fromReleaseSet', required: true }),
+  )
+})
+
+test('release selectors use consistent public query names', async () => {
+  const doc = await document('/openapi/divisions/v0.2')
+  for (const path of [
+    '/divisions/v1/geocode',
+    '/divisions/v0.2/changes/definitions/{id}',
+  ]) {
+    const parameters = doc.paths[path]!.get!.parameters!
+    expect(parameters).toContainEqual(expect.objectContaining({ name: 'releaseSet' }))
+    expect(parameters.some(parameter => parameter.name === 'apiReleaseSet')).toBe(false)
+  }
+  const parameters = doc.paths['/divisions/v0.2/changes']!.get!.parameters!
+  expect(parameters).toContainEqual(
+    expect.objectContaining({ name: 'fromReleaseSet', required: true }),
+  )
+  expect(parameters).toContainEqual(expect.objectContaining({ name: 'toReleaseSet' }))
+  expect(parameters.some(parameter => /ApiReleaseSet$/.test(parameter.name))).toBe(
+    false,
   )
 })

@@ -272,7 +272,7 @@ test('HTTP auth, validation, OpenAPI and exact old pins outside the latest catal
     })
 
     expect(
-      (await f.request('/divisions/v1/changes?fromApiReleaseSet=example', true)).status,
+      (await f.request('/divisions/v1/changes?fromReleaseSet=example', true)).status,
     ).toBe(401)
     expect(
       (await f.request('/divisions/v1/changes/definitions/example', true)).status,
@@ -292,7 +292,7 @@ test('HTTP auth, validation, OpenAPI and exact old pins outside the latest catal
       (await f.request('/divisions/v1/geocode?lat=22&lng=114&profile=unknown')).status,
     ).toBe(422)
     const old = await f.request(
-      '/addresses/v1/geocode?address=Old&apiReleaseSet=addresses-2025-01-01.0&include=divisions',
+      '/addresses/v1/geocode?address=Old&releaseSet=addresses-2025-01-01.0&include=divisions',
     )
     expect(old.status).toBe(200)
     expect(old.headers.get('content-type')).toContain('application/vnd.api+json')
@@ -324,7 +324,7 @@ test('HTTP auth, validation, OpenAPI and exact old pins outside the latest catal
       meta: { release: { apiReleaseSet: 'addresses-2026-08-19.0' } },
     })
     const divisions = await f.request(
-      '/divisions/v1/geocode?placename=Old&apiReleaseSet=divisions-2025-01-01.0',
+      '/divisions/v1/geocode?placename=Old&releaseSet=divisions-2025-01-01.0',
     )
     expect(divisions.status).toBe(200)
     expect(await divisions.json()).toMatchObject({
@@ -363,7 +363,7 @@ test('HTTP auth, validation, OpenAPI and exact old pins outside the latest catal
     }
     f.retireOldAddress()
     const historical = await f.request(
-      '/addresses/v1/geocode?address=Historic&apiReleaseSet=addresses-2025-01-01.0&include=divisions',
+      '/addresses/v1/geocode?address=Historic&releaseSet=addresses-2025-01-01.0&include=divisions',
     )
     expect(historical.status).toBe(200)
     expect(await historical.json()).toMatchObject({
@@ -382,7 +382,7 @@ test('HTTP auth, validation, OpenAPI and exact old pins outside the latest catal
     expect(
       (
         await f.request(
-          '/addresses/v1/geocode?lat=22&lng=114&apiReleaseSet=addresses-2025-01-01.0',
+          '/addresses/v1/geocode?lat=22&lng=114&releaseSet=addresses-2025-01-01.0',
         )
       ).status,
     ).toBe(503)
