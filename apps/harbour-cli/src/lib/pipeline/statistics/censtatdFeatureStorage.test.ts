@@ -78,6 +78,7 @@ test('statistics and geometry share native feature identity, payload and hash', 
       sources: [{ dataset: 'hkgov-censtatd' }],
     },
     'hkgov-censtatd',
+    { datasetCode },
   )!
   const row = statistic()
   expect(geometry.source.sourceRecordId).toBe(row.sourceRecordId)

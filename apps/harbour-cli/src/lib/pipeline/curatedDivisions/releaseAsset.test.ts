@@ -149,8 +149,13 @@ test('SaanSeoi archives camelCase inherited JSON and preserve internal containme
   })
   expect(ingested.base.hierarchies.full[0]![0]).toMatchObject({
     full_containment: true,
-    containment_geometry: { division: 'sha256:a', ancestor: 'sha256:b' },
   })
+  expect(ingested.base.hierarchies.full[0]![0]).not.toHaveProperty(
+    'containment_geometry',
+  )
+  expect(ingested.base.hierarchies.full[0]![0]).not.toHaveProperty(
+    'containmentGeometry',
+  )
   expect(original.sources.overture[0]).toHaveProperty('record_id', 'native-id')
 })
 

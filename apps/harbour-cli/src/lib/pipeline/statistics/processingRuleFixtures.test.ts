@@ -10,7 +10,7 @@ const names = readdirSync(fixtures, { recursive: true })
   .filter((name): name is string => typeof name === 'string' && name.endsWith('.json'))
   .sort()
 
-test('every authored processing rule field is retained by its registered executor', async () => {
+test('every authored processing rule field is retained by its exported executor declaration', async () => {
   const ids = new Set<string>()
   expect(names.length).toBeGreaterThanOrEqual(15)
   const catalogue = resolveRuleFixtureCatalog(
@@ -29,11 +29,23 @@ test('every authored processing rule field is retained by its registered executo
     ids.add(fixture.id)
     const module = await import(new URL(fixture.implementation.path, root).href)
     const rule = module[fixture.implementation.symbol]
-    expect(typeof rule.execute).toBe('function')
-    // Executors may add derived branch descriptions; authored values must match.
-    expect(rule.declaration).toMatchObject(fixture)
-    expect(Object.isFrozen(rule.declaration)).toBe(true)
-    expect(Object.isFrozen(rule.declaration.parameters)).toBe(true)
+    if (typeof rule === 'function') {
+      const declarations = Object.values(module).filter(
+        value =>
+          value &&
+          typeof value === 'object' &&
+          'id' in value &&
+          value.id === fixture.id,
+      )
+      expect(declarations).toHaveLength(1)
+      expect(declarations[0]).toMatchObject(fixture)
+    } else {
+      expect(typeof rule.execute).toBe('function')
+      // Registered executors may add branches; authored values remain immutable.
+      expect(rule.declaration).toMatchObject(fixture)
+      expect(Object.isFrozen(rule.declaration)).toBe(true)
+      expect(Object.isFrozen(rule.declaration.parameters)).toBe(true)
+    }
   }
 })
 

@@ -24,7 +24,10 @@ test('assembly preserves flat upstream attribution through its grouped evidence 
     sources: groupCuratedUpstreamAttribution(attribution),
   }
   applyCuratedRecordContract([row])
-  expect(curatedRecordSources(row.sources, row.id)).toEqual(attribution)
+  expect(curatedRecordSources(row.sources, row.id)).toEqual([
+    ...attribution,
+    { publisher: 'saanseoi', dataset: 'ds-hk-saanseoi-division', recordId: row.id },
+  ])
   expect(attribution[0]).not.toHaveProperty('contributions')
 })
 test('curated records have no bounds, grouped identifiers and classified cartography with attribution', () => {

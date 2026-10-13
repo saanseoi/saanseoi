@@ -109,7 +109,9 @@ test('curated area ingestion preserves geometry and identity without upstream re
         isLand: true,
         isTerritorial: true,
         identifiers: { saanseoi: { test: 'id' } },
-        sources: { saanseoi: [{ record_id: 'drawing' }] },
+        sources: {
+          saanseoi: [{ dataset: 'ds-hk-saanseoi-division', recordId: 'drawing' }],
+        },
       },
     ]),
   )
@@ -118,7 +120,12 @@ test('curated area ingestion preserves geometry and identity without upstream re
     'saanseoi',
     { validateGeometry: true },
   )
-  expect(result!.source.properties).toMatchObject({ isLand: true, isTerritorial: true })
+  expect(result!.source.properties).toMatchObject({
+    isLand: true,
+    isTerritorial: true,
+    identifiers: { saanseoi: { test: 'id' } },
+  })
+  expect(result!.canonical).not.toHaveProperty('identifiers')
   expect(result!.canonical).toMatchObject({
     id: 'curated-area',
     divisionId: 'child',
@@ -127,8 +134,13 @@ test('curated area ingestion preserves geometry and identity without upstream re
     type: 'mixed',
     isLand: true,
     isTerritorial: true,
-    identifiers: { saanseoi: { test: 'id' } },
-    sources: {},
+    sources: [
+      {
+        publisher: 'saanseoi',
+        dataset: 'ds-hk-saanseoi-division',
+        recordId: 'drawing',
+      },
+    ],
   })
 })
 test('duplicate identities are rejected and both resources use ordinary SQL ingestion', () => {
@@ -164,7 +176,9 @@ test('area preparation parses archive JSON fields and preserves false and absent
           type: 'land',
           geometry: encode(geometry),
           identifiers: encode({ 'PLAND:TPU': '123' }),
-          sources: encode({ saanseoi: [{ record_id: 'drawing' }] }),
+          sources: encode({
+            saanseoi: [{ dataset: 'ds-hk-saanseoi-division', recordId: 'drawing' }],
+          }),
           isLand: false,
         },
       ]),
@@ -177,7 +191,9 @@ test('area preparation parses archive JSON fields and preserves false and absent
       identifiers: { 'PLAND:TPU': '123' },
       is_land: false,
       is_territorial: null,
-      sources: { saanseoi: [{ record_id: 'drawing' }] },
+      sources: {
+        saanseoi: [{ dataset: 'ds-hk-saanseoi-division', recordId: 'drawing' }],
+      },
     })
   }
 })
