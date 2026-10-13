@@ -24,11 +24,6 @@ export function curatedRecordSources(
         result.set(JSON.stringify(attribution), attribution!)
         continue
       }
-      if (
-        provider === 'saanseoi' &&
-        (reference.method || reference.islandGroup || reference.geometryPartition)
-      )
-        continue
       // External lookups without a retained dataset belong to field provenance.
       if (!reference.dataset) continue
       const recordId = reference.recordId ?? reference.record_id

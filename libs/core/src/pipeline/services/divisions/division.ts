@@ -1,3 +1,4 @@
+import { prcCountryAnchor } from './prcCountryAnchor'
 import type {
   CurrentDatabase,
   HistoryDatabase,
@@ -600,7 +601,9 @@ export async function processDivisionDataset(
           divisionCode:
             divisionCodeAssignments.get(
               `${divisionCodeDomain}\u0000${normalised.base.id}`,
-            ) ?? null,
+            ) ??
+            normalised.base.divisionCode ??
+            null,
         })
       }
       const canonicalI18n = buildCanonicalDivisionApiI18n(normalised.i18n, branchCounts)
@@ -1266,6 +1269,7 @@ function normaliseDivisionRowInternal(
     ),
     assignment: enrichedPaths.find(path => path.assignment)?.assignment ?? null,
   }
+  const countryAnchor = !landsdPlaceName ? prcCountryAnchor(id) : null
   const normalisedGeometry = parseWkbGeometry(row.geometry)
   if (options.editorial && !options.deferHierarchyGuard)
     for (const enrichedPath of enrichedPaths)
@@ -1286,13 +1290,16 @@ function normaliseDivisionRowInternal(
 
   return {
     base: {
-      cartography: row.cartography ?? null,
+      cartography: countryAnchor?.cartography ?? row.cartography ?? null,
       createdAt: now,
-      divisionCode: null,
-      geometry: normalisedGeometry,
+      divisionCode: countryAnchor?.divisionCode ?? null,
+      geometry: normalisedGeometry ?? countryAnchor?.geometry ?? null,
       hierarchies: hierarchyWithHongKongArea.hierarchy,
       id,
-      identifiers: divisionIdentifiersWithWikidata(row.identifiers, row.wikidata),
+      identifiers: divisionIdentifiersWithWikidata(
+        row.identifiers,
+        row.wikidata ?? countryAnchor?.identifiers.wikidata.id,
+      ),
       level,
       category: geographicDivisionClassification(type)?.category ?? null,
       class: type,
@@ -1304,7 +1311,7 @@ function normaliseDivisionRowInternal(
               recordId: requirePublisherPlaceNameId(row),
             },
           ]
-        : normaliseOvertureSources(row.sources),
+        : (countryAnchor?.sources ?? normaliseOvertureSources(row.sources)),
       updatedAt: now,
     } satisfies Omit<NewDivisionRow, 'snapshotId'>,
     i18n,

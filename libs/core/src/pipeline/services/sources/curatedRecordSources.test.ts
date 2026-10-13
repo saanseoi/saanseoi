@@ -59,3 +59,33 @@ test('authored curation retains publisher attribution without processing metadat
   expect(result).toEqual(expected)
   expect(curatedRecordSources(result, 'area')).toEqual(expected)
 })
+
+test('authored geometry keeps attribution alongside construction evidence', () => {
+  for (const evidence of [
+    { method: 'union' },
+    { islandGroup: { memberIds: ['island'] } },
+    { geometryPartition: { method: 'intersect' } },
+  ]) {
+    expect(
+      curatedRecordSources(
+        {
+          saanseoi: [
+            {
+              dataset: 'ds-hk-saanseoi-division',
+              recordId: 'group',
+              contributions: ['geometry'],
+              ...evidence,
+            },
+          ],
+        },
+        'area',
+      ),
+    ).toEqual([
+      {
+        publisher: 'saanseoi',
+        dataset: 'ds-hk-saanseoi-division',
+        recordId: 'group',
+      },
+    ])
+  }
+})
