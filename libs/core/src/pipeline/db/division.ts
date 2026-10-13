@@ -44,9 +44,9 @@ const HISTORY_DIVISION_I18N_VERSION_COLUMN_COUNT = Object.keys(
 ).length
 const HISTORY_DIVISION_VERSION_UPSERT_FIXED_VARIABLE_COUNT = 7
 
-type CurrentDivisionWriteRow = Omit<NewDivisionRow, 'snapshotId'>
-type CurrentDivisionI18nWriteRow = Omit<NewDivisionI18nRow, 'snapshotId'>
-type DivisionHashInput = Omit<DivisionRow, 'snapshotId' | 'createdAt' | 'updatedAt'>
+type CurrentDivisionWriteRow = Omit<NewDivisionRow, 'scopeId'>
+type CurrentDivisionI18nWriteRow = Omit<NewDivisionI18nRow, 'scopeId'>
+type DivisionHashInput = Omit<DivisionRow, 'scopeId' | 'createdAt' | 'updatedAt'>
 export type DivisionBaseRecord = CurrentDivisionWriteRow
 export type DivisionI18nRecord = CurrentDivisionI18nWriteRow
 
@@ -122,7 +122,7 @@ export async function getDivisionVersionMapForSnapshot(
       class: currentSchema.divisions.class,
     })
     .from(currentSchema.divisions)
-    .where(eq(currentSchema.divisions.snapshotId, snapshotId))
+    .where(eq(currentSchema.divisions.scopeId, snapshotId))
     .all()) as Array<Omit<CurrentDivisionVersionRow, 'versionHash'>>
 
   const i18nRows = (await db
@@ -137,7 +137,7 @@ export async function getDivisionVersionMapForSnapshot(
       nameVariant: currentSchema.divisionsI18n.nameVariant,
     })
     .from(currentSchema.divisionsI18n)
-    .where(eq(currentSchema.divisionsI18n.snapshotId, snapshotId))
+    .where(eq(currentSchema.divisionsI18n.scopeId, snapshotId))
     .all()) as DivisionI18nPayload[]
   const i18nById = new Map<string, DivisionI18nPayload[]>()
   for (const row of i18nRows) {
@@ -276,7 +276,7 @@ export async function countDivisionCurrentSnapshotRows(
       count: sql<number>`count(*)`,
     })
     .from(currentSchema.divisions)
-    .where(eq(currentSchema.divisions.snapshotId, snapshotId))
+    .where(eq(currentSchema.divisions.scopeId, snapshotId))
     .get()
 
   return Number(row?.count ?? 0)
@@ -291,7 +291,7 @@ export async function countDivisionCurrentSnapshotI18nRows(
       count: sql<number>`count(*)`,
     })
     .from(currentSchema.divisionsI18n)
-    .where(eq(currentSchema.divisionsI18n.snapshotId, snapshotId))
+    .where(eq(currentSchema.divisionsI18n.scopeId, snapshotId))
     .get()
 
   return Number(row?.count ?? 0)
@@ -325,7 +325,7 @@ export async function getDivisionCurrentSnapshotTraceState(
           .from(currentSchema.divisions)
           .where(
             and(
-              eq(currentSchema.divisions.snapshotId, snapshotId),
+              eq(currentSchema.divisions.scopeId, snapshotId),
               inArray(currentSchema.divisions.id, ids),
             ),
           )
@@ -344,7 +344,7 @@ export async function getDivisionCurrentSnapshotTraceState(
           .from(currentSchema.divisionsI18n)
           .where(
             and(
-              eq(currentSchema.divisionsI18n.snapshotId, snapshotId),
+              eq(currentSchema.divisionsI18n.scopeId, snapshotId),
               inArray(currentSchema.divisionsI18n.divisionId, ids),
             ),
           )
@@ -382,7 +382,7 @@ export async function deleteStaleDivisionCurrentRows(
       id: currentSchema.divisions.id,
     })
     .from(currentSchema.divisions)
-    .where(eq(currentSchema.divisions.snapshotId, snapshotId))
+    .where(eq(currentSchema.divisions.scopeId, snapshotId))
     .all()) as Array<{ id: string }>
 
   const staleIds = stagedRows.map(row => row.id).filter(id => !seenIds.has(id))
@@ -410,7 +410,7 @@ async function deleteDivisionCurrentRowsByIds(
         .delete(currentSchema.divisionsI18n)
         .where(
           and(
-            eq(currentSchema.divisionsI18n.snapshotId, snapshotId),
+            eq(currentSchema.divisionsI18n.scopeId, snapshotId),
             inArray(currentSchema.divisionsI18n.divisionId, divisionIdChunk),
           ),
         ),
@@ -420,7 +420,7 @@ async function deleteDivisionCurrentRowsByIds(
         .delete(currentSchema.divisions)
         .where(
           and(
-            eq(currentSchema.divisions.snapshotId, snapshotId),
+            eq(currentSchema.divisions.scopeId, snapshotId),
             inArray(currentSchema.divisions.id, divisionIdChunk),
           ),
         ),
@@ -451,13 +451,13 @@ export async function upsertDivisionCurrentStates(
   for (const chunk of chunkArray(rows, chunkSize)) {
     const statement = db
       .insert(currentSchema.divisions)
-      .values(chunk.map(row => ({ ...row, snapshotId })))
+      .values(chunk.map(row => ({ ...row, scopeId: snapshotId })))
 
     statements.push(
       options?.assumeSnapshotEmpty
         ? statement.onConflictDoNothing()
         : statement.onConflictDoUpdate({
-            target: [currentSchema.divisions.snapshotId, currentSchema.divisions.id],
+            target: [currentSchema.divisions.scopeId, currentSchema.divisions.id],
             set: {
               divisionCode: excluded('divisionCode'),
               cartography: excluded('cartography'),
@@ -511,7 +511,7 @@ export async function replaceDivisionCurrentI18n(
         .from(currentSchema.divisionsI18n)
         .where(
           and(
-            eq(currentSchema.divisionsI18n.snapshotId, snapshotId),
+            eq(currentSchema.divisionsI18n.scopeId, snapshotId),
             inArray(currentSchema.divisionsI18n.divisionId, divisionIdChunk),
           ),
         )
@@ -523,7 +523,7 @@ export async function replaceDivisionCurrentI18n(
             .delete(currentSchema.divisionsI18n)
             .where(
               and(
-                eq(currentSchema.divisionsI18n.snapshotId, snapshotId),
+                eq(currentSchema.divisionsI18n.scopeId, snapshotId),
                 eq(currentSchema.divisionsI18n.divisionId, row.divisionId),
                 eq(currentSchema.divisionsI18n.locale, row.locale),
               ),
@@ -662,7 +662,7 @@ async function insertDivisionsI18nInChunks(
         ? statement.onConflictDoNothing()
         : statement.onConflictDoUpdate({
             target: [
-              currentSchema.divisionsI18n.snapshotId,
+              currentSchema.divisionsI18n.scopeId,
               currentSchema.divisionsI18n.divisionId,
               currentSchema.divisionsI18n.locale,
             ],

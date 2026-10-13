@@ -67,7 +67,7 @@ export type AddressCurrentLookupCache = {
 
 export type NormalisedAddressRecord = {
   canonicalId: string
-  base: Omit<AddressRow, 'id' | 'snapshotId' | 'createdAt' | 'updatedAt'>
+  base: Omit<AddressRow, 'id' | 'scopeId' | 'createdAt' | 'updatedAt'>
   coverageComponents: string[]
   i18n: AddressI18nPayload[]
   matchKey: string | null
@@ -88,11 +88,11 @@ export type NormalisedAddressChunkArtefact = {
 
 export type ResolvedAddressRecord = {
   addressId: string
-  base: AddressRow
+  base: Omit<AddressRow, 'scopeId'> & { snapshotId: string }
   changed: boolean
   changedExistingId: string | null
   coverageComponents: string[]
-  i18n: NewAddressI18nRow[]
+  i18n: Array<Omit<NewAddressI18nRow, 'scopeId'> & { snapshotId: string }>
   sourceId: string
   versionHash: string
 }

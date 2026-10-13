@@ -25,7 +25,7 @@ import { streets } from './streets'
 export const streetNameChanges = sqliteTable(
   'streetNameChanges',
   {
-    snapshotId: text('snapshotId').notNull(),
+    scopeId: text('scopeId').notNull(),
     id: text('id').notNull(),
     noticeRef: text('noticeRef').notNull(),
     intentionNotificationDate: text('intentionNotificationDate'),
@@ -37,7 +37,7 @@ export const streetNameChanges = sqliteTable(
     ...timestamps,
   },
   table => [
-    primaryKey({ columns: [table.snapshotId, table.id] }),
+    primaryKey({ columns: [table.scopeId, table.id] }),
     index('streetNameChanges_noticeRef_idx').on(table.noticeRef),
     index('streetNameChanges_status_idx').on(table.status),
   ],
@@ -46,26 +46,26 @@ export const streetNameChanges = sqliteTable(
 export const streetNameChangeStreets = sqliteTable(
   'streetNameChangeStreets',
   {
-    snapshotId: text('snapshotId').notNull(),
+    scopeId: text('scopeId').notNull(),
     nameChangeId: text('nameChangeId').notNull(),
     streetId: text('streetId').notNull(),
     role: text('role', { enum: streetNameChangeStreetRoles }).notNull(),
   },
   table => [
     primaryKey({
-      columns: [table.snapshotId, table.nameChangeId, table.streetId, table.role],
+      columns: [table.scopeId, table.nameChangeId, table.streetId, table.role],
     }),
     foreignKey({
-      columns: [table.snapshotId, table.nameChangeId],
-      foreignColumns: [streetNameChanges.snapshotId, streetNameChanges.id],
+      columns: [table.scopeId, table.nameChangeId],
+      foreignColumns: [streetNameChanges.scopeId, streetNameChanges.id],
       name: 'streetNameChangeStreets_change_fk',
     }).onDelete('cascade'),
     foreignKey({
-      columns: [table.snapshotId, table.streetId],
-      foreignColumns: [streets.snapshotId, streets.id],
+      columns: [table.scopeId, table.streetId],
+      foreignColumns: [streets.scopeId, streets.id],
       name: 'streetNameChangeStreets_street_fk',
     }).onDelete('cascade'),
-    index('streetNameChangeStreets_streetId_idx').on(table.snapshotId, table.streetId),
+    index('streetNameChangeStreets_streetId_idx').on(table.scopeId, table.streetId),
   ],
 )
 
@@ -78,7 +78,7 @@ export const streetNameChangeStreets = sqliteTable(
 export const streetChangelog = sqliteTable(
   'streetChangelog',
   {
-    snapshotId: text('snapshotId').notNull(),
+    scopeId: text('scopeId').notNull(),
     recordKey: text('recordKey').notNull(),
     streetId: text('streetId').notNull(),
     /** SaanSeoi replay outcome, derived from the publisher notice kind. */
@@ -93,8 +93,8 @@ export const streetChangelog = sqliteTable(
     ...timestamps,
   },
   table => [
-    primaryKey({ columns: [table.snapshotId, table.recordKey, table.streetId] }),
-    index('streetChangelog_street_idx').on(table.snapshotId, table.streetId),
+    primaryKey({ columns: [table.scopeId, table.recordKey, table.streetId] }),
+    index('streetChangelog_street_idx').on(table.scopeId, table.streetId),
     index('streetChangelog_recordKey_idx').on(table.recordKey),
   ],
 )

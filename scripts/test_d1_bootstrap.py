@@ -53,7 +53,7 @@ class BootstrapTests(unittest.TestCase):
             self.assertNotIn('CREATE TABLE "addressSearchFts_data"', path.read_text())
 
     def test_address_staging_and_oversized_rows_are_rejected(self):
-        self.assertTrue(bootstrap.transient('ssAddressImportResolvedRows'))
+        self.assertTrue(bootstrap.transient('zzAddressImportResolvedRows'))
         self.assertTrue(bootstrap.transient('zzAddressImportResolvedI18n'))
         with tempfile.TemporaryDirectory() as directory:
             db = sqlite3.connect(':memory:')

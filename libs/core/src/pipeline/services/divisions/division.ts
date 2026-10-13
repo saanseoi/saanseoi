@@ -554,14 +554,14 @@ export async function processDivisionDataset(
     const sourceVersionRows: Array<
       typeof sourceSchema.sourceOvertureDivisions.$inferInsert
     > = []
-    const currentDivisionRows: Array<Omit<NewDivisionRow, 'snapshotId'>> = []
+    const currentDivisionRows: Array<Omit<NewDivisionRow, 'scopeId'>> = []
     const currentDivisionI18nRowIds = new Set<string>()
-    const currentDivisionI18nRows: Array<Omit<NewDivisionI18nRow, 'snapshotId'>> = []
+    const currentDivisionI18nRows: Array<Omit<NewDivisionI18nRow, 'scopeId'>> = []
     const changedHistoryComponents: Array<
       DivisionHistoryComponent & { omitted?: boolean }
     > = []
     const changedDivisionVersionRows: Array<
-      Omit<NewDivisionRow, 'snapshotId'> & {
+      Omit<NewDivisionRow, 'scopeId'> & {
         versionHash: string
       }
     > = []
@@ -1313,7 +1313,7 @@ function normaliseDivisionRowInternal(
           ]
         : (countryAnchor?.sources ?? normaliseOvertureSources(row.sources)),
       updatedAt: now,
-    } satisfies Omit<NewDivisionRow, 'snapshotId'>,
+    } satisfies Omit<NewDivisionRow, 'scopeId'>,
     i18n,
     overtureHongKongDivisionClassificationCorrection,
     overtureHongKongAreaHierarchyAssignment: hierarchyWithHongKongArea.assignment,
@@ -1568,7 +1568,7 @@ function normaliseHkgovCenstatdStatisticDivisionRow(
       class: type,
       category: geographicDivisionClassification(type)?.category ?? null,
       updatedAt: now,
-    } satisfies Omit<NewDivisionRow, 'snapshotId'>,
+    } satisfies Omit<NewDivisionRow, 'scopeId'>,
     i18n: normaliseDivisionI18n(id, names, branchCounts),
     overtureHongKongDivisionClassificationCorrection: null,
     overtureHongKongAreaHierarchyAssignment: null,
@@ -1605,8 +1605,8 @@ function asOptionalInteger(value: unknown) {
 
 export function buildDivisionBaseHashInput(
   base:
-    | Omit<DivisionRow, 'snapshotId' | 'createdAt' | 'updatedAt'>
-    | Omit<NewDivisionRow, 'snapshotId'>,
+    | Omit<DivisionRow, 'scopeId' | 'createdAt' | 'updatedAt'>
+    | Omit<NewDivisionRow, 'scopeId'>,
 ) {
   return {
     cartography: base.cartography ?? null,
@@ -1619,7 +1619,7 @@ export function buildDivisionBaseHashInput(
     sources: recordContent(withoutDivisionPublicationVersion(base.sources)),
     class: base.class,
     category: base.category ?? null,
-  } satisfies Omit<DivisionRow, 'snapshotId' | 'createdAt' | 'updatedAt'>
+  } satisfies Omit<DivisionRow, 'scopeId' | 'createdAt' | 'updatedAt'>
 }
 
 function resolveParentDivisionIdFromHierarchy(hierarchy: unknown): string | null {

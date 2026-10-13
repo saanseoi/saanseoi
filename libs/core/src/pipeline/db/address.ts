@@ -114,7 +114,7 @@ type AddressVersionLookupOptions = {
 
 type AddressHashInput = Omit<
   AddressRow,
-  'snapshotId' | 'createdAt' | 'updatedAt' | 'divisionSnapshotId' | 'streetSnapshotId'
+  'scopeId' | 'createdAt' | 'updatedAt' | 'divisionSnapshotId' | 'streetSnapshotId'
 >
 
 type CurrentAddressVersionLookupRow = Pick<
@@ -177,7 +177,7 @@ export function buildAlignAddressCurrentDivisionSnapshotSql(
     WHEN EXISTS (
       SELECT 1
       FROM divisions
-      WHERE divisions.snapshotId = ${sqlLiteral(divisionSnapshotId)}
+      WHERE divisions.scopeId = ${sqlLiteral(divisionSnapshotId)}
         AND divisions.id = address2d.${column}
     ) THEN ${column}
     ELSE NULL
@@ -608,7 +608,7 @@ export async function cloneAddressCurrentSnapshot(
             updatedAt: sql<string>`${clonedAt}`,
           })
           .from(currentSchema.address2d)
-          .where(eq(currentSchema.address2d.snapshotId, fromSnapshotId)),
+          .where(eq(currentSchema.address2d.scopeId, fromSnapshotId)),
       )
       .onConflictDoNothing()
       .run(),
@@ -644,7 +644,7 @@ export async function cloneAddressCurrentSnapshot(
             updatedAt: sql<string>`${clonedAt}`,
           })
           .from(currentSchema.address2dI18n)
-          .where(eq(currentSchema.address2dI18n.snapshotId, fromSnapshotId)),
+          .where(eq(currentSchema.address2dI18n.scopeId, fromSnapshotId)),
       )
       .onConflictDoNothing()
       .run(),
@@ -667,7 +667,7 @@ export async function cloneAddressCurrentSnapshot(
           })
           .from(currentSchema.address2dBuildingNumberLookup)
           .where(
-            eq(currentSchema.address2dBuildingNumberLookup.snapshotId, fromSnapshotId),
+            eq(currentSchema.address2dBuildingNumberLookup.scopeId, fromSnapshotId),
           ),
       )
       .onConflictDoNothing()
@@ -695,7 +695,7 @@ export async function touchAddressCurrentRows(
         .set({ updatedAt })
         .where(
           and(
-            eq(currentSchema.address2d.snapshotId, snapshotId),
+            eq(currentSchema.address2d.scopeId, snapshotId),
             inArray(currentSchema.address2d.id, chunk),
           ),
         )
@@ -752,7 +752,7 @@ export async function upsertAddressCurrentStates(
         .insert(currentSchema.address2d)
         .values(chunk)
         .onConflictDoUpdate({
-          target: [currentSchema.address2d.snapshotId, currentSchema.address2d.id],
+          target: [currentSchema.address2d.scopeId, currentSchema.address2d.id],
           set: {
             divisionSnapshotId: excluded('divisionSnapshotId'),
             streetSnapshotId: excluded('streetSnapshotId'),
@@ -797,7 +797,7 @@ export async function replaceAddressCurrentI18n(
         .delete(currentSchema.address2dI18n)
         .where(
           and(
-            eq(currentSchema.address2dI18n.snapshotId, snapshotId),
+            eq(currentSchema.address2dI18n.scopeId, snapshotId),
             inArray(currentSchema.address2dI18n.addressId, chunk),
           ),
         )
@@ -824,7 +824,7 @@ export async function replaceAddressCurrentBuildingNumberLookups(
         .delete(currentSchema.address2dBuildingNumberLookup)
         .where(
           and(
-            eq(currentSchema.address2dBuildingNumberLookup.snapshotId, snapshotId),
+            eq(currentSchema.address2dBuildingNumberLookup.scopeId, snapshotId),
             inArray(currentSchema.address2dBuildingNumberLookup.addressId, chunk),
           ),
         )
@@ -865,7 +865,7 @@ export async function materialiseReplayedAddressCurrentSnapshot(
   const existing = await db
     .select({ id: currentSchema.address2d.id })
     .from(currentSchema.address2d)
-    .where(eq(currentSchema.address2d.snapshotId, snapshotId))
+    .where(eq(currentSchema.address2d.scopeId, snapshotId))
     .limit(1)
     .get()
   if (existing) {
@@ -879,14 +879,14 @@ export async function materialiseReplayedAddressCurrentSnapshot(
       await db
         .select({ id: currentSchema.divisions.id })
         .from(currentSchema.divisions)
-        .where(eq(currentSchema.divisions.snapshotId, divisionSnapshotId))
+        .where(eq(currentSchema.divisions.scopeId, divisionSnapshotId))
         .all()
     ).map(row => row.id),
   )
   const rows = [...versions]
   const baseRows: AddressBaseRecord[] = rows.map(({ base }) => ({
     ...base,
-    snapshotId,
+    scopeId: snapshotId,
     divisionSnapshotId,
     streetId: null,
     streetSnapshotId: null,
@@ -910,7 +910,7 @@ export async function materialiseReplayedAddressCurrentSnapshot(
   const i18nRows: NewAddressI18nRow[] = rows.flatMap(version =>
     version.localisedRows.map(row => ({
       ...row,
-      snapshotId,
+      scopeId: snapshotId,
       createdAt: materialisedAt,
       updatedAt: materialisedAt,
     })),
@@ -949,7 +949,7 @@ async function deleteAddressCurrentRowsByIds(
         .delete(currentSchema.address2dI18n)
         .where(
           and(
-            eq(currentSchema.address2dI18n.snapshotId, snapshotId),
+            eq(currentSchema.address2dI18n.scopeId, snapshotId),
             inArray(currentSchema.address2dI18n.addressId, chunk),
           ),
         )
@@ -960,7 +960,7 @@ async function deleteAddressCurrentRowsByIds(
         .delete(currentSchema.address2d)
         .where(
           and(
-            eq(currentSchema.address2d.snapshotId, snapshotId),
+            eq(currentSchema.address2d.scopeId, snapshotId),
             inArray(currentSchema.address2d.id, chunk),
           ),
         )
@@ -1078,7 +1078,7 @@ async function insertAddressI18nInChunks(
 ) {
   const uniqueRows = [
     ...new Map(
-      rows.map(row => [`${row.snapshotId}\0${row.addressId}\0${row.locale}`, row]),
+      rows.map(row => [`${row.scopeId}\0${row.addressId}\0${row.locale}`, row]),
     ).values(),
   ]
 
@@ -1092,7 +1092,7 @@ async function insertAddressI18nInChunks(
         .values(chunk)
         .onConflictDoUpdate({
           target: [
-            currentSchema.address2dI18n.snapshotId,
+            currentSchema.address2dI18n.scopeId,
             currentSchema.address2dI18n.addressId,
             currentSchema.address2dI18n.locale,
           ],

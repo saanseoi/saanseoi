@@ -234,7 +234,7 @@ function normalisePreparedHkgovAddressRow(
       geometry: parseOptionalJson(row.geometry),
       identifiers: canonicalIdentifiers(row.identifiers),
       sources: addressSourceReferences(row, canonicalId),
-    } satisfies Omit<AddressRow, 'id' | 'snapshotId' | 'createdAt' | 'updatedAt'>,
+    } satisfies Omit<AddressRow, 'id' | 'scopeId' | 'createdAt' | 'updatedAt'>,
     coverageComponents: [...coverageComponents],
     i18n,
     source: {},
@@ -244,7 +244,7 @@ function normalisePreparedHkgovAddressRow(
 export function buildAddressBaseHashInput(
   base: Omit<
     AddressRow,
-    'createdAt' | 'updatedAt' | 'snapshotId' | 'divisionSnapshotId' | 'streetSnapshotId'
+    'createdAt' | 'updatedAt' | 'scopeId' | 'divisionSnapshotId' | 'streetSnapshotId'
   >,
 ) {
   return {
@@ -268,7 +268,7 @@ export function buildAddressBaseHashInput(
     sources: recordContent(excludeReleaseProvenance(base.sources)),
   } satisfies Omit<
     AddressRow,
-    'createdAt' | 'updatedAt' | 'snapshotId' | 'divisionSnapshotId' | 'streetSnapshotId'
+    'createdAt' | 'updatedAt' | 'scopeId' | 'divisionSnapshotId' | 'streetSnapshotId'
   >
 }
 

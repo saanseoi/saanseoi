@@ -32,7 +32,7 @@ export const address2d = sqliteTable(
   'address2d',
   {
     /** Stable serving scope; addressPublicationState holds the logical snapshot ID. */
-    snapshotId: text('snapshotId').notNull(),
+    scopeId: text('scopeId').notNull(),
     divisionSnapshotId: text('divisionSnapshotId').notNull(),
     streetSnapshotId: text('streetSnapshotId'),
     ...canonicalAddress2d,
@@ -40,66 +40,66 @@ export const address2d = sqliteTable(
   },
   table => [
     primaryKey({
-      columns: [table.snapshotId, table.id],
+      columns: [table.scopeId, table.id],
     }),
     foreignKey({
       columns: [table.divisionSnapshotId, table.countryId],
-      foreignColumns: [divisions.snapshotId, divisions.id],
+      foreignColumns: [divisions.scopeId, divisions.id],
       name: 'address2d_divisionSnapshotId_countryId_divisions_fk',
     }),
     foreignKey({
       columns: [table.divisionSnapshotId, table.landformId],
-      foreignColumns: [divisions.snapshotId, divisions.id],
+      foreignColumns: [divisions.scopeId, divisions.id],
       name: 'address2d_divisionSnapshotId_landformId_divisions_fk',
     }),
     foreignKey({
       columns: [table.divisionSnapshotId, table.areaId],
-      foreignColumns: [divisions.snapshotId, divisions.id],
+      foreignColumns: [divisions.scopeId, divisions.id],
       name: 'address2d_divisionSnapshotId_areaId_divisions_fk',
     }),
     foreignKey({
       columns: [table.divisionSnapshotId, table.districtId],
-      foreignColumns: [divisions.snapshotId, divisions.id],
+      foreignColumns: [divisions.scopeId, divisions.id],
       name: 'address2d_divisionSnapshotId_districtId_divisions_fk',
     }),
     foreignKey({
       columns: [table.divisionSnapshotId, table.townId],
-      foreignColumns: [divisions.snapshotId, divisions.id],
+      foreignColumns: [divisions.scopeId, divisions.id],
       name: 'address2d_divisionSnapshotId_townId_divisions_fk',
     }),
     foreignKey({
       columns: [table.divisionSnapshotId, table.ruralAreaId],
-      foreignColumns: [divisions.snapshotId, divisions.id],
+      foreignColumns: [divisions.scopeId, divisions.id],
       name: 'address2d_divisionSnapshotId_ruralAreaId_divisions_fk',
     }),
     foreignKey({
       columns: [table.divisionSnapshotId, table.macrohoodId],
-      foreignColumns: [divisions.snapshotId, divisions.id],
+      foreignColumns: [divisions.scopeId, divisions.id],
       name: 'address2d_divisionSnapshotId_macrohoodId_divisions_fk',
     }),
     foreignKey({
       columns: [table.divisionSnapshotId, table.villageId],
-      foreignColumns: [divisions.snapshotId, divisions.id],
+      foreignColumns: [divisions.scopeId, divisions.id],
       name: 'address2d_divisionSnapshotId_villageId_divisions_fk',
     }),
     foreignKey({
       columns: [table.divisionSnapshotId, table.neighbourhoodId],
-      foreignColumns: [divisions.snapshotId, divisions.id],
+      foreignColumns: [divisions.scopeId, divisions.id],
       name: 'address2d_divisionSnapshotId_neighbourhoodId_divisions_fk',
     }),
     foreignKey({
       columns: [table.divisionSnapshotId, table.hamletId],
-      foreignColumns: [divisions.snapshotId, divisions.id],
+      foreignColumns: [divisions.scopeId, divisions.id],
       name: 'address2d_divisionSnapshotId_hamletId_divisions_fk',
     }),
     foreignKey({
       columns: [table.divisionSnapshotId, table.microhoodId],
-      foreignColumns: [divisions.snapshotId, divisions.id],
+      foreignColumns: [divisions.scopeId, divisions.id],
       name: 'address2d_divisionSnapshotId_microhoodId_divisions_fk',
     }),
     foreignKey({
       columns: [table.streetSnapshotId, table.streetId],
-      foreignColumns: [streets.snapshotId, streets.id],
+      foreignColumns: [streets.scopeId, streets.id],
       name: 'address2d_streetSnapshotId_streetId_streets_fk',
     }),
     check(
@@ -107,40 +107,40 @@ export const address2d = sqliteTable(
       sql`(${table.streetSnapshotId} IS NULL) = (${table.streetId} IS NULL)`,
     ),
     index('address2d_countryId_scope_id_idx')
-      .on(table.countryId, table.snapshotId, table.id)
+      .on(table.countryId, table.scopeId, table.id)
       .where(sql`${table.countryId} IS NOT NULL`),
     index('address2d_landformId_scope_id_idx')
-      .on(table.landformId, table.snapshotId, table.id)
+      .on(table.landformId, table.scopeId, table.id)
       .where(sql`${table.landformId} IS NOT NULL`),
     index('address2d_areaId_scope_id_idx')
-      .on(table.areaId, table.snapshotId, table.id)
+      .on(table.areaId, table.scopeId, table.id)
       .where(sql`${table.areaId} IS NOT NULL`),
     index('address2d_districtId_scope_id_idx')
-      .on(table.districtId, table.snapshotId, table.id)
+      .on(table.districtId, table.scopeId, table.id)
       .where(sql`${table.districtId} IS NOT NULL`),
     index('address2d_townId_scope_id_idx')
-      .on(table.townId, table.snapshotId, table.id)
+      .on(table.townId, table.scopeId, table.id)
       .where(sql`${table.townId} IS NOT NULL`),
     index('address2d_ruralAreaId_scope_id_idx')
-      .on(table.ruralAreaId, table.snapshotId, table.id)
+      .on(table.ruralAreaId, table.scopeId, table.id)
       .where(sql`${table.ruralAreaId} IS NOT NULL`),
     index('address2d_macrohoodId_scope_id_idx')
-      .on(table.macrohoodId, table.snapshotId, table.id)
+      .on(table.macrohoodId, table.scopeId, table.id)
       .where(sql`${table.macrohoodId} IS NOT NULL`),
     index('address2d_neighbourhoodId_scope_id_idx')
-      .on(table.neighbourhoodId, table.snapshotId, table.id)
+      .on(table.neighbourhoodId, table.scopeId, table.id)
       .where(sql`${table.neighbourhoodId} IS NOT NULL`),
     index('address2d_microhoodId_scope_id_idx')
-      .on(table.microhoodId, table.snapshotId, table.id)
+      .on(table.microhoodId, table.scopeId, table.id)
       .where(sql`${table.microhoodId} IS NOT NULL`),
     index('address2d_villageId_scope_id_idx')
-      .on(table.villageId, table.snapshotId, table.id)
+      .on(table.villageId, table.scopeId, table.id)
       .where(sql`${table.villageId} IS NOT NULL`),
     index('address2d_hamletId_scope_id_idx')
-      .on(table.hamletId, table.snapshotId, table.id)
+      .on(table.hamletId, table.scopeId, table.id)
       .where(sql`${table.hamletId} IS NOT NULL`),
     index('address2d_streetId_idx').on(table.streetId),
-    index('address2d_parentAddressId_idx').on(table.snapshotId, table.parentAddressId),
+    index('address2d_parentAddressId_idx').on(table.scopeId, table.parentAddressId),
     index('address2d_divisionSnapshotId_idx').on(table.divisionSnapshotId),
   ],
 )
@@ -148,18 +148,18 @@ export const address2d = sqliteTable(
 export const address2dI18n = sqliteTable(
   'address2dI18n',
   {
-    snapshotId: text('snapshotId').notNull(),
+    scopeId: text('scopeId').notNull(),
     ...canonicalAddress2dI18n,
     ...timestamps,
   },
   table => [
     primaryKey({
-      columns: [table.snapshotId, table.addressId, table.locale],
+      columns: [table.scopeId, table.addressId, table.locale],
     }),
     foreignKey({
-      columns: [table.snapshotId, table.addressId],
-      foreignColumns: [address2d.snapshotId, address2d.id],
-      name: 'address2dI18n_snapshotId_addressId_address2d_fk',
+      columns: [table.scopeId, table.addressId],
+      foreignColumns: [address2d.scopeId, address2d.id],
+      name: 'address2dI18n_scopeId_addressId_address2d_fk',
     }).onDelete('cascade'),
     index('address2dI18n_locale_idx').on(table.locale),
   ],
@@ -168,25 +168,25 @@ export const address2dI18n = sqliteTable(
 export const address2dBuildingNumberLookup = sqliteTable(
   'address2dBuildingNumberLookup',
   {
-    snapshotId: text('snapshotId').notNull(),
+    scopeId: text('scopeId').notNull(),
     ...canonicalAddress2dBuildingNumberLookup,
     ...timestamps,
   },
   table => [
     primaryKey({
-      columns: [table.snapshotId, table.addressId, table.buildingNumber],
+      columns: [table.scopeId, table.addressId, table.buildingNumber],
     }),
     foreignKey({
-      columns: [table.snapshotId, table.addressId],
-      foreignColumns: [address2d.snapshotId, address2d.id],
-      name: 'address2dBuildingNumberLookup_snapshotId_addressId_address2d_fk',
+      columns: [table.scopeId, table.addressId],
+      foreignColumns: [address2d.scopeId, address2d.id],
+      name: 'address2dBuildingNumberLookup_scopeId_addressId_address2d_fk',
     }).onDelete('cascade'),
     index('address2dBuildingNumberLookup_lookup_idx').on(
-      table.snapshotId,
+      table.scopeId,
       table.buildingNumber,
     ),
     index('address2dBuildingNumberLookup_numericStem_idx').on(
-      table.snapshotId,
+      table.scopeId,
       table.numericStem,
     ),
   ],
@@ -219,41 +219,38 @@ export const addressesFtsMatch = (query: string) => sql`${addressesFts} MATCH ${
 export const address3d = sqliteTable(
   'address3d',
   {
-    snapshotId: text('snapshotId').notNull(),
+    scopeId: text('scopeId').notNull(),
     ...canonicalAddress3d,
     ...timestamps,
   },
   table => [
     primaryKey({
-      columns: [table.snapshotId, table.id],
+      columns: [table.scopeId, table.id],
     }),
     foreignKey({
-      columns: [table.snapshotId, table.address2dId],
-      foreignColumns: [address2d.snapshotId, address2d.id],
-      name: 'address3d_snapshotId_address2dId_address2d_fk',
+      columns: [table.scopeId, table.address2dId],
+      foreignColumns: [address2d.scopeId, address2d.id],
+      name: 'address3d_scopeId_address2dId_address2d_fk',
     }).onDelete('cascade'),
-    uniqueIndex('address3d_snapshot_owner_unique').on(
-      table.snapshotId,
-      table.address2dId,
-    ),
+    uniqueIndex('address3d_snapshot_owner_unique').on(table.scopeId, table.address2dId),
   ],
 )
 
 export const address3dI18n = sqliteTable(
   'address3dI18n',
   {
-    snapshotId: text('snapshotId').notNull(),
+    scopeId: text('scopeId').notNull(),
     ...canonicalAddress3dI18n,
     ...timestamps,
   },
   table => [
     primaryKey({
-      columns: [table.snapshotId, table.address3dId, table.locale],
+      columns: [table.scopeId, table.address3dId, table.locale],
     }),
     foreignKey({
-      columns: [table.snapshotId, table.address3dId],
-      foreignColumns: [address3d.snapshotId, address3d.id],
-      name: 'address3dI18n_snapshotId_address3dId_address3d_fk',
+      columns: [table.scopeId, table.address3dId],
+      foreignColumns: [address3d.scopeId, address3d.id],
+      name: 'address3dI18n_scopeId_address3dId_address3d_fk',
     }).onDelete('cascade'),
     index('address3dI18n_locale_idx').on(table.locale),
   ],

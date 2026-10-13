@@ -92,7 +92,7 @@ def table_names(db):
 
 def transient(name):
     return name in TRANSIENT or name.lower().startswith((
-        'staging', 'ssaddressimport', 'zzaddressimport',
+        'staging', 'zzaddressimport',
     ))
 
 

@@ -998,7 +998,7 @@ WHERE EXISTS (
   SELECT 1 FROM ${RESOLVED_ROWS_TABLE} r
   WHERE r.runId = ${run}
     AND r.changed = 1
-    AND r.snapshotId = address2dI18n.snapshotId
+    AND r.snapshotId = address2dI18n.scopeId
     AND r.addressId = address2dI18n.addressId
 ) AND NOT EXISTS (
   SELECT 1 FROM ${RESOLVED_I18N_TABLE} i WHERE i.runId = ${run}
@@ -1060,7 +1060,7 @@ WHERE EXISTS (
   SELECT 1 FROM ${RESOLVED_ROWS_TABLE} r
   WHERE r.runId = ${run}
     AND r.changed = 1
-    AND r.snapshotId = address2dBuildingNumberLookup.snapshotId
+    AND r.snapshotId = address2dBuildingNumberLookup.scopeId
     AND r.addressId = address2dBuildingNumberLookup.addressId
 ) AND NOT EXISTS (
   SELECT 1 FROM ${RESOLVED_BUILDING_LOOKUPS_TABLE} lookup WHERE lookup.runId = ${run}

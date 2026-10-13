@@ -6,7 +6,7 @@ import { jsonText, timestamps } from '../shared'
 export const streetGeometry = sqliteTable(
   'streetGeometry',
   {
-    snapshotId: text('snapshotId').notNull(),
+    scopeId: text('scopeId').notNull(),
     streetId: text('streetId').notNull(),
     sourceReleaseId: text('sourceReleaseId').notNull(),
     geometry: jsonText('geometry').notNull(),
@@ -14,7 +14,7 @@ export const streetGeometry = sqliteTable(
     ...timestamps,
   },
   table => [
-    primaryKey({ columns: [table.snapshotId, table.streetId] }),
+    primaryKey({ columns: [table.scopeId, table.streetId] }),
     index('streetGeometry_streetId_idx').on(table.streetId),
     index('streetGeometry_sourceReleaseId_idx').on(table.sourceReleaseId),
   ],

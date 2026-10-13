@@ -14,13 +14,13 @@ import { canonicalPlace, canonicalPlaceI18n, timestamps } from '../shared'
 export const places = sqliteTable(
   'places',
   {
-    snapshotId: text('snapshotId').notNull(),
+    scopeId: text('scopeId').notNull(),
     ...canonicalPlace,
     ...timestamps,
   },
   table => [
     primaryKey({
-      columns: [table.snapshotId, table.id],
+      columns: [table.scopeId, table.id],
     }),
     // Logical Address references are validated against immutable history during preparation.
     check(
@@ -32,31 +32,27 @@ export const places = sqliteTable(
       sql`(${table.address3dId} IS NULL AND ${table.address3dUnitId} IS NULL AND ${table.address3dMembership} IS NULL) OR (${table.address3dId} IS NOT NULL AND ${table.address3dUnitId} IS NOT NULL AND ${table.address3dMembership} IS NOT NULL AND ${table.address2dId} IS NOT NULL)`,
     ),
     index('places_resourceReleaseId_idx').on(table.resourceReleaseId),
-    index('places_category_id_idx').on(table.snapshotId, table.basicCategory, table.id),
-    index('places_taxonomy_id_idx').on(
-      table.snapshotId,
-      table.taxonomyPrimary,
-      table.id,
-    ),
-    index('places_status_id_idx').on(table.snapshotId, table.operatingStatus, table.id),
+    index('places_category_id_idx').on(table.scopeId, table.basicCategory, table.id),
+    index('places_taxonomy_id_idx').on(table.scopeId, table.taxonomyPrimary, table.id),
+    index('places_status_id_idx').on(table.scopeId, table.operatingStatus, table.id),
   ],
 )
 
 export const placesI18n = sqliteTable(
   'placesI18n',
   {
-    snapshotId: text('snapshotId').notNull(),
+    scopeId: text('scopeId').notNull(),
     ...canonicalPlaceI18n,
     ...timestamps,
   },
   table => [
     primaryKey({
-      columns: [table.snapshotId, table.placeId, table.locale],
+      columns: [table.scopeId, table.placeId, table.locale],
     }),
     foreignKey({
-      columns: [table.snapshotId, table.placeId],
-      foreignColumns: [places.snapshotId, places.id],
-      name: 'placesI18n_snapshotId_placeId_places_fk',
+      columns: [table.scopeId, table.placeId],
+      foreignColumns: [places.scopeId, places.id],
+      name: 'placesI18n_scopeId_placeId_places_fk',
     }).onDelete('cascade'),
     index('placesI18n_name_idx').on(table.locale, table.name),
   ],
@@ -65,7 +61,7 @@ export const placesI18n = sqliteTable(
 export const placesDivision = sqliteTable(
   'placesDivision',
   {
-    placeSnapshotId: text('placeSnapshotId').notNull(),
+    placeScopeId: text('placeScopeId').notNull(),
     placeId: text('placeId').notNull(),
     divisionSnapshotId: text('divisionSnapshotId').notNull(),
     divisionId: text('divisionId').notNull(),
@@ -79,15 +75,15 @@ export const placesDivision = sqliteTable(
   },
   table => [
     primaryKey({
-      columns: [table.placeSnapshotId, table.placeId, table.divisionId],
+      columns: [table.placeScopeId, table.placeId, table.divisionId],
     }),
     foreignKey({
-      columns: [table.placeSnapshotId, table.placeId],
-      foreignColumns: [places.snapshotId, places.id],
-      name: 'placesDivision_placeSnapshotId_placeId_places_fk',
+      columns: [table.placeScopeId, table.placeId],
+      foreignColumns: [places.scopeId, places.id],
+      name: 'placesDivision_placeScopeId_placeId_places_fk',
     }).onDelete('cascade'),
     index('placesDivision_scope_division_place_idx').on(
-      table.placeSnapshotId,
+      table.placeScopeId,
       table.divisionId,
       table.placeId,
     ),
@@ -97,22 +93,22 @@ export const placesDivision = sqliteTable(
 export const placesCells = sqliteTable(
   'placesCells',
   {
-    snapshotId: text('snapshotId').notNull(),
+    scopeId: text('scopeId').notNull(),
     id: text('id').notNull(),
     h3Level: integer('h3Level').notNull(),
     h3Cell: text('h3Cell').notNull(),
   },
   table => [
     primaryKey({
-      columns: [table.snapshotId, table.id, table.h3Level, table.h3Cell],
+      columns: [table.scopeId, table.id, table.h3Level, table.h3Cell],
     }),
     foreignKey({
-      columns: [table.snapshotId, table.id],
-      foreignColumns: [places.snapshotId, places.id],
-      name: 'placesCells_snapshotId_id_places_fk',
+      columns: [table.scopeId, table.id],
+      foreignColumns: [places.scopeId, places.id],
+      name: 'placesCells_scopeId_id_places_fk',
     }).onDelete('cascade'),
     index('placesCells_lookup_idx').on(
-      table.snapshotId,
+      table.scopeId,
       table.h3Level,
       table.h3Cell,
       table.id,

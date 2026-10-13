@@ -86,13 +86,13 @@ type GeometryBase = {
 }
 
 export type NormalisedDivisionArea = {
-  canonical: Omit<NewDivisionAreaRow, 'snapshotId' | 'createdAt' | 'updatedAt'> &
+  canonical: Omit<NewDivisionAreaRow, 'scopeId' | 'createdAt' | 'updatedAt'> &
     Pick<GeometryBase, 'variant'>
   source: StagedSourceRow<NewSourceDivisionAreaRow>
 }
 
 export type NormalisedDivisionBoundary = {
-  canonical: Omit<NewDivisionBoundaryRow, 'snapshotId' | 'createdAt' | 'updatedAt'>
+  canonical: Omit<NewDivisionBoundaryRow, 'scopeId' | 'createdAt' | 'updatedAt'>
   source: StagedSourceRow<NewSourceDivisionBoundaryRow>
 }
 
