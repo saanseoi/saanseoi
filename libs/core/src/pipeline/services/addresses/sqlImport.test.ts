@@ -242,8 +242,8 @@ describe('address SQL import staging cleanup', () => {
         }).sql,
       )
       expect(
-        db.query('SELECT snapshotId,divisionSnapshotId FROM address2d').get(),
-      ).toEqual({ snapshotId: 'address-scope', divisionSnapshotId: 'division-scope' })
+        db.query('SELECT scopeId,divisionSnapshotId FROM address2d').get(),
+      ).toEqual({ scopeId: 'address-scope', divisionSnapshotId: 'division-scope' })
       db.exec(buildAddressHistorySqlImportFile(message, artefact).sql)
       expect(
         db
@@ -289,7 +289,7 @@ describe('address SQL import staging cleanup', () => {
     expect(alignmentIndex).toBeGreaterThan(applyIndex)
     expect(currentFile?.sql).toContain("divisionSnapshotId = 'division-snapshot'")
     expect(currentFile?.sql).toContain(
-      "WHERE snapshotId = 'snapshot-address'\n  AND divisionSnapshotId IS NOT 'division-snapshot';",
+      "WHERE scopeId = 'snapshot-address'\n  AND divisionSnapshotId IS NOT 'division-snapshot';",
     )
   })
 

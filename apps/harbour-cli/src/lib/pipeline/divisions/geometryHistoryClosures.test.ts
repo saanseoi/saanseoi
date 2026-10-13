@@ -283,7 +283,7 @@ for (const resourceType of ['divisionArea', 'divisionBoundary'] as const) {
       expect(f.retained()).toEqual(beforeReissue)
       expect(reissue.churn.unchanged).toBe(2)
       expect(
-        f.current.query(`SELECT count(DISTINCT snapshotId) AS n FROM ${f.table}`).get(),
+        f.current.query(`SELECT count(DISTINCT scopeId) AS n FROM ${f.table}`).get(),
       ).toEqual({ n: 3 })
     } finally {
       f.close()
@@ -344,8 +344,8 @@ for (const resourceType of ['divisionArea', 'divisionBoundary'] as const) {
       expect((await f.replay('cohort-other')).map(value => value.id)).toEqual([
         'shared',
       ])
-      expect(f.current.query(`SELECT snapshotId,id FROM ${f.table}`).all()).toEqual([
-        { snapshotId: f.scopeId(otherCohort), id: 'shared' },
+      expect(f.current.query(`SELECT scopeId,id FROM ${f.table}`).all()).toEqual([
+        { scopeId: f.scopeId(otherCohort), id: 'shared' },
       ])
     } finally {
       f.close()
@@ -454,7 +454,7 @@ for (const resourceType of ['divisionArea', 'divisionBoundary'] as const) {
       )
       expect(await f.replay('latest')).toEqual(latestState)
       const projected = f.current
-        .query(`SELECT id,geometry FROM ${f.table} WHERE snapshotId=? ORDER BY id`)
+        .query(`SELECT id,geometry FROM ${f.table} WHERE scopeId=? ORDER BY id`)
         .all(f.scopeId(exact)) as Array<{ id: string; geometry: unknown }>
       expect(
         projected.map(row => ({

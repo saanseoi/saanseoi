@@ -177,7 +177,7 @@ INSERT INTO snapshots(id, code, cohortKey, status, snapshotLineageId) VALUES
     currentDb
       .insert(currentSchema.divisions)
       .values({
-        snapshotId: 'division',
+        scopeId: 'division',
         id: 'hk',
         class: 'country',
         category: 'administrative',
@@ -187,7 +187,7 @@ INSERT INTO snapshots(id, code, cohortKey, status, snapshotLineageId) VALUES
     currentDb
       .insert(currentSchema.address2d)
       .values({
-        snapshotId: officialScopeId,
+        scopeId: officialScopeId,
         id: 'als-citygate',
         geometry: Buffer.from('01010000004e621058397c5c400ad7a3703d4a3640', 'hex'),
         divisionSnapshotId: 'division',
@@ -197,7 +197,7 @@ INSERT INTO snapshots(id, code, cohortKey, status, snapshotLineageId) VALUES
     currentDb
       .insert(currentSchema.address2dI18n)
       .values({
-        snapshotId: officialScopeId,
+        scopeId: officialScopeId,
         addressId: 'als-citygate',
         locale: 'en',
         formattedAddress: 'Citygate, 20 Tat Tung Road',
@@ -439,7 +439,7 @@ INSERT INTO snapshots(id, code, cohortKey, status, snapshotLineageId) VALUES
     expect(
       current
         .query(
-          'SELECT countryId FROM address2d WHERE snapshotId = (SELECT scopeId FROM addressPublicationState WHERE snapshotId = ?)',
+          'SELECT countryId FROM address2d WHERE scopeId = (SELECT scopeId FROM addressPublicationState WHERE snapshotId = ?)',
         )
         .get(first.snapshotId),
     ).toEqual({ countryId: 'hk' })

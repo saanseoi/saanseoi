@@ -18,10 +18,10 @@ describe('draft release purge SQL', () => {
       "DELETE FROM hkgovPlandNewTowns WHERE resourceReleaseId = 'release-draft';\n",
     )
     expect(sql.current).toContain(
-      "DELETE FROM divisionsI18n WHERE snapshotId IN (SELECT scopeId FROM divisionPublicationState WHERE snapshotId = 'snapshot-draft');",
+      "DELETE FROM divisionsI18n WHERE scopeId IN (SELECT scopeId FROM divisionPublicationState WHERE snapshotId = 'snapshot-draft');",
     )
     expect(sql.current).toContain(
-      "DELETE FROM divisions WHERE snapshotId IN (SELECT scopeId FROM divisionPublicationState WHERE snapshotId = 'snapshot-draft');",
+      "DELETE FROM divisions WHERE scopeId IN (SELECT scopeId FROM divisionPublicationState WHERE snapshotId = 'snapshot-draft');",
     )
     expect(sql.current).not.toContain('SET isCurrent')
     expect(sql.history).toContain(
@@ -66,7 +66,7 @@ describe('draft release purge SQL', () => {
       sql.current.indexOf(placesDelete),
     )
     expect(sql.current).toContain(
-      "DELETE FROM placesDivision WHERE placeSnapshotId IN (SELECT scopeId FROM placePublicationState WHERE snapshotId = 'places-snapshot-new');",
+      "DELETE FROM placesDivision WHERE placeScopeId IN (SELECT scopeId FROM placePublicationState WHERE snapshotId = 'places-snapshot-new');",
     )
     expect(sql.current).toContain(
       "DELETE FROM placeSearchScopes WHERE snapshotId = 'places-snapshot-new';",
@@ -147,8 +147,8 @@ describe('draft release purge SQL', () => {
 test('draft purge resolves the selected logical revision to its scope and leaves a newer owner alone', () => {
   const db = new Database(':memory:')
   db.exec(`CREATE TABLE divisionSearchScopes(scopeId PRIMARY KEY,snapshotId);
-    CREATE TABLE divisions(snapshotId,id,PRIMARY KEY(snapshotId,id));
-    CREATE TABLE divisionsI18n(snapshotId,divisionId,locale);
+    CREATE TABLE divisions(scopeId,id,PRIMARY KEY(scopeId,id));
+    CREATE TABLE divisionsI18n(scopeId,divisionId,locale);
     CREATE TABLE divisionPublicationState(scopeId PRIMARY KEY,snapshotId UNIQUE);
     INSERT INTO divisionPublicationState VALUES('selected-scope','selected'),('other-scope','newer');
     INSERT INTO divisions VALUES('selected-scope','a'),('other-scope','b');
@@ -164,7 +164,7 @@ test('draft purge resolves the selected logical revision to its scope and leaves
   try {
     db.exec(buildDraftReleasePurgeSql(input).current)
     expect(db.query('SELECT * FROM divisions').all()).toEqual([
-      { snapshotId: 'other-scope', id: 'b' },
+      { scopeId: 'other-scope', id: 'b' },
     ])
     expect(db.query('SELECT * FROM divisionPublicationState').all()).toEqual([
       { scopeId: 'other-scope', snapshotId: 'newer' },

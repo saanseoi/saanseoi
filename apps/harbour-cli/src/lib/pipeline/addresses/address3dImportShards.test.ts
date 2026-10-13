@@ -51,7 +51,7 @@ test('yearly shards reuse prior content, close locale-only omissions and superse
     for (const table of [currentSchema.address3d, currentSchema.address3dI18n])
       createTable(current, table)
     current.exec(
-      "CREATE TABLE address2d(snapshotId TEXT,id TEXT,parentAddressId TEXT); INSERT INTO address2d VALUES ('scope','building',NULL)",
+      "CREATE TABLE address2d(scopeId TEXT,id TEXT,parentAddressId TEXT); INSERT INTO address2d VALUES ('scope','building',NULL)",
     )
     for (const db of [historyOld, historyNew])
       for (const table of [historySchema.address3d, historySchema.address3dI18n])

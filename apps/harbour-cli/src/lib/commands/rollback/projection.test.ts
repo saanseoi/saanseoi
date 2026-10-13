@@ -13,6 +13,23 @@ const migrations = join(import.meta.dir, '../../../../../../libs/db/migrations')
 const insert = (db: Database, table: string, row: Record<string, unknown>) => {
   if (table === 'snapshots') row = snapshotFixtureFields(db, row) as typeof row
 
+  row = { ...row }
+  const fixtureColumns = new Set(
+    db
+      .query<{ name: string }, []>(`PRAGMA table_info(${table})`)
+      .all()
+      .map(column => column.name),
+  )
+  if (
+    fixtureColumns.has('scopeId') &&
+    !fixtureColumns.has('snapshotId') &&
+    'snapshotId' in row
+  ) {
+    row.scopeId ??= row.snapshotId
+    delete row.snapshotId
+  }
+  if (!fixtureColumns.has('updatedAt')) delete row.updatedAt
+
   db.query(
     `INSERT INTO ${table} (${Object.keys(row).join(',')}) VALUES (${Object.keys(row)
       .map(() => '?')
@@ -141,10 +158,10 @@ test('restores independent inherited Division components across shards and prese
       divisionsI18n: 2,
     })
     expect(
-      f.current.query('SELECT snapshotId,id FROM divisions ORDER BY snapshotId').all(),
+      f.current.query('SELECT scopeId,id FROM divisions ORDER BY scopeId').all(),
     ).toEqual([
-      { snapshotId: 'scope', id: 'd' },
-      { snapshotId: 'unrelated', id: 'safe' },
+      { scopeId: 'scope', id: 'd' },
+      { scopeId: 'unrelated', id: 'safe' },
     ])
     expect(
       f.current.query('SELECT locale,name FROM divisionsI18n ORDER BY locale').all(),
@@ -526,8 +543,8 @@ for (const [resourceType, table, relation] of [
         ...relation,
       })
       expect((await restoreSnapshotProjection(f.input)).counts[table]).toBe(1)
-      expect(f.current.query(`SELECT snapshotId,id FROM ${table}`).get()).toEqual({
-        snapshotId: 'scope',
+      expect(f.current.query(`SELECT scopeId,id FROM ${table}`).get()).toEqual({
+        scopeId: 'scope',
         id: 'geometry',
       })
     } finally {

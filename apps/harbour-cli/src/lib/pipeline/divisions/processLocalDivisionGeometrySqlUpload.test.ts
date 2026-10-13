@@ -594,9 +594,9 @@ describe('geometryBuildUpsertSql', () => {
       coordinates: geometry.coordinates,
     })
     const sql = geometryBuildUpsertSql('divisionAreas', [
-      { geometry: 'small', id: 'area-1', snapshotId: 'snapshot-1' },
-      { geometry, id: 'area-2', snapshotId: 'snapshot-1' },
-      { geometry: 'small', id: 'area-3', snapshotId: 'snapshot-1' },
+      { geometry: 'small', id: 'area-1', scopeId: 'snapshot-1' },
+      { geometry, id: 'area-2', scopeId: 'snapshot-1' },
+      { geometry: 'small', id: 'area-3', scopeId: 'snapshot-1' },
     ])
     const statements = sql.split('\n')
 
@@ -608,13 +608,13 @@ describe('geometryBuildUpsertSql', () => {
 
     const database = new Database(':memory:')
     database.exec(
-      'CREATE TABLE divisionAreas (snapshotId TEXT NOT NULL, id TEXT NOT NULL, geometry TEXT NOT NULL, PRIMARY KEY (snapshotId, id));',
+      'CREATE TABLE divisionAreas (scopeId TEXT NOT NULL, id TEXT NOT NULL, geometry TEXT NOT NULL, PRIMARY KEY (scopeId, id));',
     )
     database.exec(sql)
 
     expect(
       database
-        .query('SELECT geometry FROM divisionAreas WHERE snapshotId = ? AND id = ?')
+        .query('SELECT geometry FROM divisionAreas WHERE scopeId = ? AND id = ?')
         .get('snapshot-1', 'area-2'),
     ).toEqual({ geometry: geometryText })
     database.close()
@@ -732,7 +732,7 @@ describe('geometryBuildUpsertSql', () => {
         geometry,
         id: 'area-1',
         metadata: 'x'.repeat(3_000),
-        snapshotId: 'snapshot-1',
+        scopeId: 'snapshot-1',
       },
     ])
     const statements = sql.split('\n')
@@ -746,14 +746,14 @@ describe('geometryBuildUpsertSql', () => {
 
     const database = new Database(':memory:')
     database.exec(
-      'CREATE TABLE divisionAreas (snapshotId TEXT NOT NULL, id TEXT NOT NULL, geometry BLOB NOT NULL, metadata TEXT NOT NULL, PRIMARY KEY (snapshotId, id));',
+      'CREATE TABLE divisionAreas (scopeId TEXT NOT NULL, id TEXT NOT NULL, geometry BLOB NOT NULL, metadata TEXT NOT NULL, PRIMARY KEY (scopeId, id));',
     )
     database.exec(sql)
 
     expect(
       database
         .query(
-          'SELECT geometry, metadata FROM divisionAreas WHERE snapshotId = ? AND id = ?',
+          'SELECT geometry, metadata FROM divisionAreas WHERE scopeId = ? AND id = ?',
         )
         .get('snapshot-1', 'area-1'),
     ).toEqual({ geometry: Buffer.from(geometry), metadata: 'x'.repeat(3_000) })

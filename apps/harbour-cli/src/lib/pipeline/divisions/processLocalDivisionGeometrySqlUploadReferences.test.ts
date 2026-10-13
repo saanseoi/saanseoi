@@ -59,7 +59,7 @@ INSERT INTO resourceReleases(id,sourceReleaseId,code,resourceType,status) VALUES
         ('early','history-2025'),('complete','history-2026'),('latest','history-2026');`)
     current.exec(`INSERT INTO divisionPublicationState(scopeId,snapshotId,status,publicationToken,preparedAt)
         VALUES('lineage','latest','current','latest-release','ready');
-      INSERT INTO divisions(snapshotId,id,class,hierarchies)
+      INSERT INTO divisions(scopeId,id,class,hierarchies)
         VALUES('lineage','current-only','district','{"full":[],"administrative":[],"locality":[]}');`)
     history2025.exec(`INSERT INTO divisions(id,versionHash,snapshotId,sourceReleaseId,isCurrent,class,hierarchies)
         VALUES('hong-kong-island','v1','early','release-2025',0,'district','{"full":[],"administrative":[],"locality":[]}');
@@ -151,8 +151,8 @@ INSERT INTO resourceReleases(id,sourceReleaseId,code,resourceType,status) VALUES
     expect(current.query('SELECT total_changes() AS count').get()).toEqual(
       changesBefore,
     )
-    expect(current.query('SELECT snapshotId,id FROM divisions').all()).toEqual([
-      { snapshotId: 'lineage', id: 'current-only' },
+    expect(current.query('SELECT scopeId,id FROM divisions').all()).toEqual([
+      { scopeId: 'lineage', id: 'current-only' },
     ])
     // An Overture inventory cannot satisfy the SaanSeoi-only area dependency.
     meta.exec("UPDATE publishers SET code='overture'")

@@ -103,8 +103,8 @@ test('Division current writes insert, change and remove only the affected rows w
       await deleteStaleDivisionCurrentRows(db as never, scope, new Set(['a'])),
     ).toBe(1)
     expect(changes() - beforeRemoval).toBe(2)
-    expect(client.query('SELECT DISTINCT snapshotId FROM divisions').all()).toEqual([
-      { snapshotId: scope },
+    expect(client.query('SELECT DISTINCT scopeId FROM divisions').all()).toEqual([
+      { scopeId: scope },
     ])
     expect(client.query('PRAGMA foreign_key_check').all()).toEqual([])
   } finally {

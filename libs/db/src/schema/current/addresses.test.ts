@@ -28,7 +28,7 @@ describe('Address division indexes', () => {
     )
 
     for (const column of divisionIdColumns) {
-      const index = indexesByColumns.get(`${column},snapshotId,id`)
+      const index = indexesByColumns.get(`${column},scopeId,id`)
       expect(index, `${column} should have a current lookup index`).toBeDefined()
       expect(
         index?.config.where,

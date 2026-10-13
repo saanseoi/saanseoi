@@ -11,9 +11,9 @@ test('search indexes exact retained inventories beside the latest lineage only a
         scopeId TEXT PRIMARY KEY, snapshotId TEXT, status TEXT,
         preparedAt TEXT, publicationToken TEXT
       );
-      CREATE TABLE divisions (snapshotId TEXT, id TEXT, divisionCode TEXT, hierarchies TEXT);
+      CREATE TABLE divisions (scopeId TEXT, id TEXT, divisionCode TEXT, hierarchies TEXT);
       CREATE TABLE divisionsI18n (
-        snapshotId TEXT, divisionId TEXT, locale TEXT, name TEXT,
+        scopeId TEXT, divisionId TEXT, locale TEXT, name TEXT,
         nameAlts TEXT, nameRules TEXT
       );
       CREATE TABLE divisionSearchScopes (scopeId TEXT PRIMARY KEY, snapshotId TEXT);

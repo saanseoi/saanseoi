@@ -190,8 +190,8 @@ INSERT INTO snapshots (id, snapshotLineageId, parentSnapshotId) VALUES
       INSERT INTO snapshotShardAssignments (snapshotId, dataShardId) VALUES ('root', 'old'), ('leaf', 'new');`)
     older.exec(`INSERT INTO divisions (id, versionHash, class, level) VALUES ('keep', 'v1', 'district', 2), ('remove', 'v2', 'district', 2);
       INSERT INTO divisionsI18n (divisionId, locale, versionHash, name) VALUES ('keep', 'en', 'n1', 'Kept'), ('remove', 'en', 'n2', 'Removed');
-      UPDATE divisions SET snapshotId='root', sourceReleaseId='source';
-      UPDATE divisionsI18n SET snapshotId='root', sourceReleaseId='source' ;`)
+      UPDATE divisions SET scopeId='root', sourceReleaseId='source';
+      UPDATE divisionsI18n SET scopeId='root', sourceReleaseId='source' ;`)
     newer.exec(
       `INSERT INTO divisions (snapshotId,id,operation) VALUES ('leaf','remove','delete');`,
     )

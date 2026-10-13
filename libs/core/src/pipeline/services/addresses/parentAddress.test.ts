@@ -33,7 +33,7 @@ test('SQL imports retain and clear parent links in current and versioned history
       )
     }
     current.exec(`
-      INSERT INTO divisions (snapshotId, id, class, hierarchies, createdAt, updatedAt)
+      INSERT INTO divisions (scopeId, id, class, hierarchies, createdAt, updatedAt)
       VALUES ('division-snapshot', 'district-central', 'administrative', '{}', '${timestamp}', '${timestamp}');
     `)
     const normalised = normaliseAddressRowForPipeline({

@@ -48,7 +48,7 @@ for (const sourceName of [
       )
       for (const db of [local.DB_CURRENT, remote.current])
         db?.exec(
-          'CREATE TABLE divisionAreas(snapshotId,id,geometry,PRIMARY KEY(snapshotId,id)); CREATE TABLE divisionAreaPublicationState(scopeId PRIMARY KEY,snapshotId UNIQUE,status,publicationToken,preparedAt,createdAt,updatedAt);',
+          'CREATE TABLE divisionAreas(scopeId,id,geometry,PRIMARY KEY(scopeId,id)); CREATE TABLE divisionAreaPublicationState(scopeId PRIMARY KEY,snapshotId UNIQUE,status,publicationToken,preparedAt,createdAt,updatedAt);',
         )
       for (const db of [local[historyBinding], remote.history])
         db?.exec(
@@ -66,14 +66,14 @@ for (const sourceName of [
           )
       }
       local.DB_CURRENT?.exec(
-        `INSERT INTO divisionAreas(snapshotId,id,geometry) VALUES('scope','changed',X'AAFF'),('scope','reused',X'03'); INSERT INTO divisionAreaPublicationState VALUES('scope','new','publishing','new-release','new','old','new');`,
+        `INSERT INTO divisionAreas(scopeId,id,geometry) VALUES('scope','changed',X'AAFF'),('scope','reused',X'03'); INSERT INTO divisionAreaPublicationState VALUES('scope','new','publishing','new-release','new','old','new');`,
       )
       remote.current.exec(
-        `INSERT INTO divisionAreas(snapshotId,id,geometry) VALUES('scope','changed',X'00FF'),('scope','removed',X'01'); INSERT INTO divisionAreaPublicationState VALUES('scope','old','current','old-release','old','old','old');`,
+        `INSERT INTO divisionAreas(scopeId,id,geometry) VALUES('scope','changed',X'00FF'),('scope','removed',X'01'); INSERT INTO divisionAreaPublicationState VALUES('scope','old','current','old-release','old','old','old');`,
       )
       for (const db of [local.DB_CURRENT, remote.current])
         db?.exec(
-          `INSERT INTO divisionAreas(snapshotId,id,geometry) VALUES('scope','unchanged',X'04');`,
+          `INSERT INTO divisionAreas(scopeId,id,geometry) VALUES('scope','unchanged',X'04');`,
         )
       for (const db of [local[historyBinding], remote.history])
         db?.exec(
@@ -166,9 +166,9 @@ for (const sourceName of [
       expect(
         remote.current.query('SELECT * FROM divisionAreas ORDER BY id').all(),
       ).toEqual([
-        { snapshotId: 'scope', id: 'changed', geometry: new Uint8Array([0xaa, 0xff]) },
-        { snapshotId: 'scope', id: 'reused', geometry: new Uint8Array([0x03]) },
-        { snapshotId: 'scope', id: 'unchanged', geometry: new Uint8Array([0x04]) },
+        { scopeId: 'scope', id: 'changed', geometry: new Uint8Array([0xaa, 0xff]) },
+        { scopeId: 'scope', id: 'reused', geometry: new Uint8Array([0x03]) },
+        { scopeId: 'scope', id: 'unchanged', geometry: new Uint8Array([0x04]) },
       ])
       expect(remote.history.query('SELECT * FROM historyMutations').all()).toEqual([])
       expect(

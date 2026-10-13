@@ -42,12 +42,12 @@ test('Address division UNION preserves scoped identity, filters and global pagin
   try {
     sqlite.exec(`
       PRAGMA foreign_keys = ON;
-      INSERT INTO divisions(snapshotId,id,class,hierarchies)
+      INSERT INTO divisions(scopeId,id,class,hierarchies)
       VALUES ('divisions','target','district','{}'),('divisions','hk','country','{}');
       INSERT INTO addressPublicationState(scopeId,snapshotId,status,publicationToken,preparedAt)
       VALUES ('s1','p1','current','t1','ready'),('s2','p2','current','t2','ready'),
              ('outside','p3','current','t3','ready'),('pending','p4','publishing','t4','ready');
-      INSERT INTO address2d(snapshotId,divisionSnapshotId,id,granularity,countryId,districtId,townId)
+      INSERT INTO address2d(scopeId,divisionSnapshotId,id,granularity,countryId,districtId,townId)
       VALUES ('s1','divisions','same','building','hk','target','target'),
              ('s2','divisions','same','building','hk','target',NULL),
              ('s1','divisions','unmatched','building','hk',NULL,NULL),
@@ -57,7 +57,7 @@ test('Address division UNION preserves scoped identity, filters and global pagin
     `)
     for (const [i, role] of roles.entries()) {
       sqlite
-        .query(`INSERT INTO address2d(snapshotId,divisionSnapshotId,id,granularity,${role})
+        .query(`INSERT INTO address2d(scopeId,divisionSnapshotId,id,granularity,${role})
         VALUES ('s1','divisions',?,'building','target')`)
         .run(`r${i}`)
     }
@@ -127,7 +127,7 @@ test('Address division UNION preserves scoped identity, filters and global pagin
     for (const queryPlan of plans) {
       for (const role of roles) {
         expect(queryPlan).toContain(
-          `COVERING INDEX address2d_${role}_scope_id_idx (${role}=? AND snapshotId=?)`,
+          `COVERING INDEX address2d_${role}_scope_id_idx (${role}=? AND scopeId=?)`,
         )
       }
       expect(queryPlan).not.toMatch(/SCAN address2d\b/)
@@ -156,7 +156,7 @@ test('CURRENT filter indexes also serve deterministic list ordering', () => {
   try {
     const divisionPlan = plan(
       sqlite,
-      'SELECT id FROM divisions WHERE snapshotId = ? AND level = ? ORDER BY level, class, id LIMIT 25',
+      'SELECT id FROM divisions WHERE scopeId = ? AND level = ? ORDER BY level, class, id LIMIT 25',
       ['scope', 3],
     )
     expect(divisionPlan).toContain('COVERING INDEX divisions_scope_order_idx')
@@ -168,7 +168,7 @@ test('CURRENT filter indexes also serve deterministic list ordering', () => {
     ]) {
       const queryPlan = plan(
         sqlite,
-        `SELECT id FROM places WHERE snapshotId = ? AND ${column} = ? ORDER BY id LIMIT 25`,
+        `SELECT id FROM places WHERE scopeId = ? AND ${column} = ? ORDER BY id LIMIT 25`,
         ['scope', 'value'],
       )
       expect(queryPlan).toContain(`COVERING INDEX ${index}`)
@@ -186,12 +186,12 @@ test('Place division filtering uses the reverse index and preserves scope, count
       INSERT INTO placePublicationState(scopeId,snapshotId,status,publicationToken,preparedAt)
       VALUES ('scope','publication','current','token','2026-09-23'),
              ('other','other-publication','current','other-token','2026-09-23');
-      INSERT INTO places(snapshotId,id,resourceReleaseId,lng,lat,firstSeenMonth,lastSeenMonth,basicCategory)
+      INSERT INTO places(scopeId,id,resourceReleaseId,lng,lat,firstSeenMonth,lastSeenMonth,basicCategory)
       VALUES ('scope','a','release',114,22,'2026-01','2026-01','shop'),
              ('scope','b','release',114,22,'2026-01','2026-01','shop'),
              ('scope','c','release',114,22,'2026-01','2026-01','shop'),
              ('other','a','release',114,22,'2026-01','2026-01','shop');
-      INSERT INTO placesDivision(placeSnapshotId,placeId,divisionSnapshotId,divisionId,definition)
+      INSERT INTO placesDivision(placeScopeId,placeId,divisionSnapshotId,divisionId,definition)
       VALUES ('scope','a','divisions','target','{}'),
              ('scope','c','divisions','target','{}'),
              ('scope','b','divisions','elsewhere','{}'),

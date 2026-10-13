@@ -32,8 +32,8 @@ test('the final canonical inventory must match curated identities, parents, owne
     ],
   }
   try {
-    db.exec(`CREATE TABLE address2d(snapshotId TEXT,id TEXT,parentAddressId TEXT,granularity TEXT);
-      CREATE TABLE address3d(snapshotId TEXT,id TEXT,address2dId TEXT,units TEXT,unresolvedSectionIds TEXT);
+    db.exec(`CREATE TABLE address2d(scopeId TEXT,id TEXT,parentAddressId TEXT,granularity TEXT);
+      CREATE TABLE address3d(scopeId TEXT,id TEXT,address2dId TEXT,units TEXT,unresolvedSectionIds TEXT);
       INSERT INTO address2d VALUES('scope','a',NULL,'building'),('scope','b',NULL,'building'),('scope','section','a','building'),('other','unrelated',NULL,'building');
       INSERT INTO address3d VALUES('scope','inventory','a','[{"id":"unit"}]','["section"]');`)
     expect(() =>

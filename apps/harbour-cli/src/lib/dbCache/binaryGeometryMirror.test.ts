@@ -22,7 +22,7 @@ test('geometry metadata keyset pagination visits every composite key exactly onc
   const db = new Database(':memory:')
   try {
     db.exec(
-      'CREATE TABLE address2d (snapshotId TEXT, id TEXT, geometry TEXT, PRIMARY KEY(snapshotId,id))',
+      'CREATE TABLE address2d (scopeId TEXT, id TEXT, geometry TEXT, PRIMARY KEY(scopeId,id))',
     )
     const insert = db.query('INSERT INTO address2d VALUES (?,?,?)')
     for (let i = 0; i < 251; i++) {

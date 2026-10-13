@@ -19,7 +19,7 @@ test('Place search follows scope promotion and refuses an unindexed snapshot', a
       CREATE TABLE placePublicationState(scopeId TEXT PRIMARY KEY,snapshotId TEXT UNIQUE,status TEXT,publicationToken TEXT,preparedAt TEXT,updatedAt TEXT);
       INSERT INTO placePublicationState VALUES ('physical-places','latest','current','token','2026-01-01','2026-01-01');
       CREATE TABLE placeSearchScopes(scopeId TEXT PRIMARY KEY, snapshotId TEXT);
-      CREATE TABLE places(snapshotId TEXT,id TEXT,resourceReleaseId TEXT);
+      CREATE TABLE places(scopeId TEXT,id TEXT,resourceReleaseId TEXT);
       INSERT INTO places VALUES ('physical-places','shop','latest-release');
       INSERT INTO placeSearchScopes VALUES ('hk:overture:places','old');
     `)

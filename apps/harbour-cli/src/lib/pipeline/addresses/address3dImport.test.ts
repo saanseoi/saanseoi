@@ -79,7 +79,7 @@ test('writes large bound collections, replays idempotently and journals removed 
     createTable(databases.source, sourceSchema.sourceHkgovAlsAddresses3d)
     createTable(databases.source, sourceSchema.sourceHkgovAlsAddresses2d)
     databases.current.exec(
-      "CREATE TABLE address2d (snapshotId TEXT,id TEXT,parentAddressId TEXT); INSERT INTO address2d VALUES ('snapshot','building',NULL),('snapshot','762','building'),('snapshot','772','building'); CREATE UNIQUE INDEX one_collection_per_owner ON address3d(snapshotId,address2dId);",
+      "CREATE TABLE address2d (scopeId TEXT,id TEXT,parentAddressId TEXT); INSERT INTO address2d VALUES ('snapshot','building',NULL),('snapshot','762','building'),('snapshot','772','building'); CREATE UNIQUE INDEX one_collection_per_owner ON address3d(scopeId,address2dId);",
     )
     const units = Array.from({ length: 1440 }, (_, i) => ({
       id: `00000000-0000-5000-8000-${String(i).padStart(12, '0')}`,

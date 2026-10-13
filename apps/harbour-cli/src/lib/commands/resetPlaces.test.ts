@@ -38,17 +38,17 @@ function createPlacesResetCurrentDb() {
       .run(scope, snapshot)
     sqlite
       .query(
-        "INSERT INTO address2d(snapshotId,id,divisionSnapshotId) VALUES(?,?,'division')",
+        "INSERT INTO address2d(scopeId,id,divisionSnapshotId) VALUES(?,?,'division')",
       )
       .run(scope, addressId)
     sqlite
       .query(
-        "INSERT INTO address2dI18n(snapshotId,addressId,locale,formattedAddress) VALUES(?,?,'en','1 TEST ROAD')",
+        "INSERT INTO address2dI18n(scopeId,addressId,locale,formattedAddress) VALUES(?,?,'en','1 TEST ROAD')",
       )
       .run(scope, addressId)
     sqlite
       .query(
-        "INSERT INTO address2dBuildingNumberLookup(snapshotId,addressId,buildingNumber,evidence) VALUES(?,?,'1','source_endpoint')",
+        "INSERT INTO address2dBuildingNumberLookup(scopeId,addressId,buildingNumber,evidence) VALUES(?,?,'1','source_endpoint')",
       )
       .run(scope, addressId)
   }
@@ -64,21 +64,21 @@ function createPlacesResetCurrentDb() {
       .query('INSERT INTO placeSearchScopes(scopeId,snapshotId) VALUES(?,?)')
       .run(scope, snapshot)
     sqlite
-      .query(`INSERT INTO places(snapshotId,id,resourceReleaseId,lng,lat,firstSeenMonth,lastSeenMonth)
+      .query(`INSERT INTO places(scopeId,id,resourceReleaseId,lng,lat,firstSeenMonth,lastSeenMonth)
       VALUES(?,'place','release',114,22,'2026-09','2026-09')`)
       .run(scope)
     sqlite
       .query(
-        "INSERT INTO placesI18n(snapshotId,placeId,locale,name) VALUES(?,'place','en','Test')",
+        "INSERT INTO placesI18n(scopeId,placeId,locale,name) VALUES(?,'place','en','Test')",
       )
       .run(scope)
     sqlite
       .query(
-        "INSERT INTO placesCells(snapshotId,id,h3Level,h3Cell) VALUES(?,'place',5,'cell')",
+        "INSERT INTO placesCells(scopeId,id,h3Level,h3Cell) VALUES(?,'place',5,'cell')",
       )
       .run(scope)
     sqlite
-      .query(`INSERT INTO placesDivision(placeSnapshotId,placeId,divisionSnapshotId,divisionId,definition)
+      .query(`INSERT INTO placesDivision(placeScopeId,placeId,divisionSnapshotId,divisionId,definition)
       VALUES(?,'place','division-scope','division','{}')`)
       .run(scope)
   }
@@ -211,16 +211,16 @@ describe('Overture Places initialisation ownership', () => {
         'address2dI18n',
         'address2dBuildingNumberLookup',
       ])
-        expect(current.sqlite.query(`SELECT snapshotId FROM ${table}`).all()).toEqual([
-          { snapshotId: 'als-lineage' },
+        expect(current.sqlite.query(`SELECT scopeId FROM ${table}`).all()).toEqual([
+          { scopeId: 'als-lineage' },
         ])
       for (const table of ['places', 'placesI18n', 'placesCells'])
-        expect(current.sqlite.query(`SELECT snapshotId FROM ${table}`).all()).toEqual([
-          { snapshotId: 'unrelated-place-lineage' },
+        expect(current.sqlite.query(`SELECT scopeId FROM ${table}`).all()).toEqual([
+          { scopeId: 'unrelated-place-lineage' },
         ])
       expect(
-        current.sqlite.query('SELECT placeSnapshotId FROM placesDivision').all(),
-      ).toEqual([{ placeSnapshotId: 'unrelated-place-lineage' }])
+        current.sqlite.query('SELECT placeScopeId FROM placesDivision').all(),
+      ).toEqual([{ placeScopeId: 'unrelated-place-lineage' }])
       for (const table of ['addressPublicationState', 'addressSearchScopes'])
         expect(
           current.sqlite.query(`SELECT scopeId,snapshotId FROM ${table}`).all(),

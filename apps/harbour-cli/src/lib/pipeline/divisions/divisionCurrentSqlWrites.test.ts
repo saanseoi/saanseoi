@@ -114,8 +114,8 @@ test('Division SQL delivers only changed current records and localisations acros
         baseline,
       ),
     ).toBe(2)
-    expect(db.query('SELECT snapshotId,id FROM divisions').all()).toEqual([
-      { snapshotId: 'lineage', id: 'a' },
+    expect(db.query('SELECT scopeId,id FROM divisions').all()).toEqual([
+      { scopeId: 'lineage', id: 'a' },
     ])
   } finally {
     db.close()

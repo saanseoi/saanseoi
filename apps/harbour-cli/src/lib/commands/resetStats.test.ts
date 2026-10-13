@@ -76,7 +76,7 @@ function insert(
       scopeId,
       values.snapshotId,
     )
-    values = { ...values, snapshotId: scopeId }
+    values = { ...values, scopeId: scopeId }
   }
   const fields = db.query(`PRAGMA table_info(${table})`).all() as Array<{
     name: string
@@ -85,6 +85,14 @@ function insert(
     dflt_value: unknown
   }>
   const row = { ...values }
+  if (
+    fields.some(field => field.name === 'scopeId') &&
+    !fields.some(field => field.name === 'snapshotId') &&
+    'snapshotId' in row
+  ) {
+    row.scopeId ??= row.snapshotId
+    delete row.snapshotId
+  }
   for (const field of fields) {
     if (
       (field.notnull || fields.some(column => column.name === 'operation')) &&
@@ -97,6 +105,22 @@ function insert(
           : '{}'
     }
   }
+  const fixtureColumns = new Set(
+    db
+      .query<{ name: string }, []>(`PRAGMA table_info(${table})`)
+      .all()
+      .map(column => column.name),
+  )
+  if (
+    fixtureColumns.has('scopeId') &&
+    !fixtureColumns.has('snapshotId') &&
+    'snapshotId' in row
+  ) {
+    row.scopeId ??= row.snapshotId
+    delete row.snapshotId
+  }
+  if (!fixtureColumns.has('updatedAt')) delete row.updatedAt
+
   db.query(
     `INSERT INTO ${table} (${Object.keys(row)
       .map(key => `"${key}"`)
@@ -413,7 +437,7 @@ describe('all-statistics reset', () => {
     meta.exec("UPDATE datasets SET theme='stats'")
     insert(current, 'places', { id: 'p', snapshotId: 'place-scope' })
     insert(current, 'placesDivision', {
-      placeSnapshotId: 'place-scope',
+      placeScopeId: 'place-scope',
       placeId: 'p',
       divisionSnapshotId: 'divisionArea',
       divisionId: 'd',

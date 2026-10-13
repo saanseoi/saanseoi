@@ -140,7 +140,7 @@ test('unlinked Places use corrected coordinates and geometry changes invalidate 
         publicationToken: 'ready',
       })
     insert('divisions', {
-      snapshotId: 'd-scope',
+      scopeId: 'd-scope',
       id: 'town',
       class: 'town',
       category: 'locality',
@@ -148,14 +148,14 @@ test('unlinked Places use corrected coordinates and geometry changes invalidate 
       hierarchies: { full: [] },
     })
     insert('divisionsI18n', {
-      snapshotId: 'd-scope',
+      scopeId: 'd-scope',
       divisionId: 'town',
       locale: 'en',
       name: 'Town',
       isLocaleInferred: 0,
     })
     insert('divisionAreas', {
-      snapshotId: 'g-scope',
+      scopeId: 'g-scope',
       id: 'polygon',
       divisionId: 'town',
       type: 'division_area',

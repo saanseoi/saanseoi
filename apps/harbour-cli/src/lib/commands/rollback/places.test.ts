@@ -21,6 +21,23 @@ function open(family: string) {
 function insert(db: Database, table: string, row: Record<string, unknown>) {
   if (table === 'snapshots') row = snapshotFixtureFields(db, row)
 
+  row = { ...row }
+  const fixtureColumns = new Set(
+    db
+      .query<{ name: string }, []>(`PRAGMA table_info(${table})`)
+      .all()
+      .map(column => column.name),
+  )
+  if (
+    fixtureColumns.has('scopeId') &&
+    !fixtureColumns.has('snapshotId') &&
+    'snapshotId' in row
+  ) {
+    row.scopeId ??= row.snapshotId
+    delete row.snapshotId
+  }
+  if (!fixtureColumns.has('updatedAt')) delete row.updatedAt
+
   const columns = Object.keys(row)
   db.query(
     `INSERT INTO ${table}(${columns.join(',')}) VALUES (${columns.map(() => '?').join(',')})`,

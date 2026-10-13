@@ -48,17 +48,17 @@ function fixture(beforeQuery?: (sqlite: Database, query: string) => void) {
   const row = (family: (typeof families)[number]) => {
     const insert = {
       divisionArea:
-        "INSERT INTO divisionAreas(snapshotId,id,divisionId,type) VALUES ('scope','area','division','district')",
+        "INSERT INTO divisionAreas(scopeId,id,divisionId,type) VALUES ('scope','area','division','district')",
       divisionBoundary:
-        "INSERT INTO divisionBoundaries(snapshotId,id,type,leftDivisionId,rightDivisionId) VALUES ('scope','boundary','district','left','right')",
+        "INSERT INTO divisionBoundaries(scopeId,id,type,leftDivisionId,rightDivisionId) VALUES ('scope','boundary','district','left','right')",
       division:
-        "INSERT INTO divisions(snapshotId,id,class,hierarchies) VALUES ('scope','division','district','{}')",
+        "INSERT INTO divisions(scopeId,id,class,hierarchies) VALUES ('scope','division','district','{}')",
       street:
-        "INSERT INTO streets(snapshotId,id,version,status) VALUES ('scope','street',1,'active')",
+        "INSERT INTO streets(scopeId,id,version,status) VALUES ('scope','street',1,'active')",
       address:
-        "INSERT INTO address2d(snapshotId,id,divisionSnapshotId) VALUES ('scope','address','division-scope')",
+        "INSERT INTO address2d(scopeId,id,divisionSnapshotId) VALUES ('scope','address','division-scope')",
       place:
-        "INSERT INTO places(snapshotId,id,resourceReleaseId,lng,lat,firstSeenMonth,lastSeenMonth) VALUES ('scope','place','release',114,22,'2026-01','2026-01')",
+        "INSERT INTO places(scopeId,id,resourceReleaseId,lng,lat,firstSeenMonth,lastSeenMonth) VALUES ('scope','place','release',114,22,'2026-01','2026-01')",
     }[family]
     sqlite.exec(insert)
   }
@@ -125,7 +125,7 @@ test('physical Address scope references protect Street and Division dependencies
     for (const family of ['street', 'division'] as const) f.receipt(family)
     f.row('street')
     f.sqlite.exec(
-      "INSERT INTO address2d(snapshotId,id,divisionSnapshotId,streetSnapshotId,streetId) VALUES ('dependent','address','scope','scope','street')",
+      "INSERT INTO address2d(scopeId,id,divisionSnapshotId,streetSnapshotId,streetId) VALUES ('dependent','address','scope','scope','street')",
     )
     for (const family of ['street', 'division'] as const)
       expect(await f.clean(family)).toBe(false)
@@ -145,7 +145,7 @@ test.each(['obsolete', 'scope'])(
       }
       f.sqlite
         .query(
-          "INSERT INTO places(snapshotId,id,resourceReleaseId,lng,lat,firstSeenMonth,lastSeenMonth,addressSnapshotId) VALUES ('dependent','place','release',114,22,'2026-01','2026-01',?)",
+          "INSERT INTO places(scopeId,id,resourceReleaseId,lng,lat,firstSeenMonth,lastSeenMonth,addressSnapshotId) VALUES ('dependent','place','release',114,22,'2026-01','2026-01',?)",
         )
         .run(logicalSnapshotId)
       const definition = JSON.stringify({
@@ -154,7 +154,7 @@ test.each(['obsolete', 'scope'])(
       })
       f.sqlite
         .query(
-          "INSERT INTO placesDivision(placeSnapshotId,placeId,divisionSnapshotId,divisionId,definition) VALUES ('dependent','place',?,'division',?)",
+          "INSERT INTO placesDivision(placeScopeId,placeId,divisionSnapshotId,divisionId,definition) VALUES ('dependent','place',?,'division',?)",
         )
         .run(logicalSnapshotId, definition)
       for (const family of ['address', 'division'] as const)
@@ -188,7 +188,7 @@ test.each(['replacement', 'new-token', 'interrupted', 'search', 'dependent'] as 
           )
         else if (race === 'dependent')
           sqlite.exec(
-            "INSERT INTO address2d(snapshotId,id,divisionSnapshotId) VALUES ('dependent','address','scope')",
+            "INSERT INTO address2d(scopeId,id,divisionSnapshotId) VALUES ('dependent','address','scope')",
           )
         else
           sqlite.exec(
@@ -220,7 +220,7 @@ test('failed cleanup rolls back companion deletions and preserves its receipt', 
     f.receipt('street')
     f.row('street')
     f.sqlite.exec(
-      "INSERT INTO streetsI18n(snapshotId,streetId,locale,name) VALUES ('scope','street','en','Street')",
+      "INSERT INTO streetsI18n(scopeId,streetId,locale,name) VALUES ('scope','street','en','Street')",
     )
     f.sqlite.exec(
       "CREATE TRIGGER fail_receipt BEFORE DELETE ON streetPublicationState BEGIN SELECT RAISE(ABORT,'injected cleanup failure'); END",

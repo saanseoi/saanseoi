@@ -187,7 +187,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
     currentDb
       .insert(currentSchema.divisions)
       .values({
-        snapshotId: 'division',
+        scopeId: 'division',
         id: 'hk',
         class: 'country',
         category: 'administrative',
@@ -197,7 +197,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
     currentDb
       .insert(currentSchema.divisions)
       .values({
-        snapshotId: 'division',
+        scopeId: 'division',
         id: 'division-district',
         class: 'district',
         category: 'administrative',
@@ -226,7 +226,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
         .insert(currentSchema.addressPublicationState)
         .values({
           scopeId: `scope:${snapshotId}`,
-          snapshotId,
+          snapshotId: snapshotId,
           status: 'current',
           publicationToken: snapshotId,
           preparedAt: '2026-01-01',
@@ -237,7 +237,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
         .insert(currentSchema.address2d)
         .values({
           id,
-          snapshotId: `scope:${snapshotId}`,
+          scopeId: `scope:${snapshotId}`,
           divisionSnapshotId: 'division',
           countryId,
           identifiers:
@@ -268,7 +268,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
         currentDb
           .insert(currentSchema.address2dI18n)
           .values({
-            snapshotId: `scope:${snapshotId}`,
+            scopeId: `scope:${snapshotId}`,
             addressId: id,
             locale,
             formattedAddress: `Harbour ${id}`,
@@ -281,7 +281,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
       currentDb
         .insert(currentSchema.address2dBuildingNumberLookup)
         .values({
-          snapshotId: `scope:${snapshotId}`,
+          scopeId: `scope:${snapshotId}`,
           addressId: id,
           buildingNumber: '20',
           evidence: 'source_endpoint',
@@ -606,7 +606,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
     if (!alsSnapshotId) throw new Error('Missing ALS fixture snapshot')
     current
       .query(
-        'INSERT INTO address3d(snapshotId,id,address2dId,units,unitCount,contentHash,unresolvedSectionIds) VALUES (?,?,?,?,?,?,?)',
+        'INSERT INTO address3d(scopeId,id,address2dId,units,unitCount,contentHash,unresolvedSectionIds) VALUES (?,?,?,?,?,?,?)',
       )
       .run(
         `scope:${alsSnapshotId}`,
@@ -623,7 +623,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
     ] as const)
       current
         .query(
-          'INSERT INTO address3dI18n(snapshotId,address3dId,locale,units) VALUES (?,?,?,?)',
+          'INSERT INTO address3dI18n(scopeId,address3dId,locale,units) VALUES (?,?,?,?)',
         )
         .run(
           `scope:${alsSnapshotId}`,

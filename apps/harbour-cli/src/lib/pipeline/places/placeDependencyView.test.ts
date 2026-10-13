@@ -26,6 +26,23 @@ const init = (family: 'meta' | 'history' | 'current') => {
 const insert = (db: Database, table: string, row: Record<string, unknown>) => {
   if (table === 'snapshots') row = snapshotFixtureFields(db, row) as typeof row
 
+  row = { ...row }
+  const fixtureColumns = new Set(
+    db
+      .query<{ name: string }, []>(`PRAGMA table_info(${table})`)
+      .all()
+      .map(column => column.name),
+  )
+  if (
+    fixtureColumns.has('scopeId') &&
+    !fixtureColumns.has('snapshotId') &&
+    'snapshotId' in row
+  ) {
+    row.scopeId ??= row.snapshotId
+    delete row.snapshotId
+  }
+  if (!fixtureColumns.has('updatedAt')) delete row.updatedAt
+
   db.query(
     `INSERT INTO ${table} (${Object.keys(row).join(',')}) VALUES (${Object.keys(row)
       .map(() => '?')
@@ -429,7 +446,7 @@ test('exact historical Place dependencies replay independent locale shards and s
       searchDependencyText: dependencies.searchDependencies.en,
     })
     insert(current, 'placesDivision', {
-      placeSnapshotId: 'place-scope',
+      placeScopeId: 'place-scope',
       placeId: 'shop',
       divisionSnapshotId: 'd',
       divisionId: 'country',

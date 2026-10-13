@@ -414,13 +414,13 @@ test('parent moves precede retired parent deletion with and without cascading fo
 
 test('Address3D ownership moves preserve unchanged locales across bounded delivery transactions', async () => {
   await fixture(async ({ db, path }) => {
-    db.exec(`CREATE TABLE address2d(snapshotId TEXT, id TEXT, PRIMARY KEY(snapshotId,id));
-      CREATE TABLE address3d(snapshotId TEXT, id TEXT, address2dId TEXT,
-        PRIMARY KEY(snapshotId,id), UNIQUE(snapshotId,address2dId),
-        FOREIGN KEY(snapshotId,address2dId) REFERENCES address2d(snapshotId,id) ON DELETE CASCADE);
-      CREATE TABLE address3dI18n(snapshotId TEXT, address3dId TEXT, locale TEXT, name TEXT,
-        PRIMARY KEY(snapshotId,address3dId,locale),
-        FOREIGN KEY(snapshotId,address3dId) REFERENCES address3d(snapshotId,id) ON DELETE CASCADE);
+    db.exec(`CREATE TABLE address2d(scopeId TEXT, id TEXT, PRIMARY KEY(scopeId,id));
+      CREATE TABLE address3d(scopeId TEXT, id TEXT, address2dId TEXT,
+        PRIMARY KEY(scopeId,id), UNIQUE(scopeId,address2dId),
+        FOREIGN KEY(scopeId,address2dId) REFERENCES address2d(scopeId,id) ON DELETE CASCADE);
+      CREATE TABLE address3dI18n(scopeId TEXT, address3dId TEXT, locale TEXT, name TEXT,
+        PRIMARY KEY(scopeId,address3dId,locale),
+        FOREIGN KEY(scopeId,address3dId) REFERENCES address3d(scopeId,id) ON DELETE CASCADE);
       INSERT INTO address2d VALUES('scope','old-owner');
       INSERT INTO address3d VALUES('scope','collection','old-owner');
       INSERT INTO address3dI18n VALUES('scope','collection','en','old'),('scope','collection','zh','unchanged'),('scope','collection','fr','removed');`)
@@ -428,11 +428,11 @@ test('Address3D ownership moves preserve unchanged locales across bounded delive
       { name: 'address2d' },
       {
         name: 'address3d',
-        collection: { name: 'collection', keyColumns: ['snapshotId', 'id'] },
+        collection: { name: 'collection', keyColumns: ['scopeId', 'id'] },
       },
       {
         name: 'address3dI18n',
-        collection: { name: 'collection', keyColumns: ['snapshotId', 'address3dId'] },
+        collection: { name: 'collection', keyColumns: ['scopeId', 'address3dId'] },
       },
     ]
     const payloads: NetStatement[][] = []

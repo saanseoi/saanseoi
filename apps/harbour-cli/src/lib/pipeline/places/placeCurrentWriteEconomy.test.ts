@@ -151,8 +151,8 @@ test('Places delivery writes only current content changes and removals, with rec
         { tableName: 'placesCells', operation: 'DELETE', n: 3 },
         { tableName: 'placesI18n', operation: 'DELETE', n: 3 },
       ])
-      expect(local.query('SELECT DISTINCT snapshotId FROM places').all()).toEqual([
-        { snapshotId: 'place-scope' },
+      expect(local.query('SELECT DISTINCT scopeId FROM places').all()).toEqual([
+        { scopeId: 'place-scope' },
       ])
       for (const db of [f.remote, local]) db.exec('DELETE FROM audit')
       await run(5, [])

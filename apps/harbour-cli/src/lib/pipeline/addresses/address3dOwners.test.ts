@@ -14,7 +14,7 @@ async function fixture(
   ) => Promise<void>,
 ) {
   const db = new Database(':memory:')
-  db.exec('CREATE TABLE address2d(snapshotId TEXT, id TEXT, parentAddressId TEXT)')
+  db.exec('CREATE TABLE address2d(scopeId TEXT, id TEXT, parentAddressId TEXT)')
   try {
     await work(db, async rows => {
       const sizes: number[] = []

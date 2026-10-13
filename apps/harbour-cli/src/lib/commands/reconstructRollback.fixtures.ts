@@ -14,6 +14,23 @@ const migrations = join(import.meta.dir, '../../../../../libs/db/migrations')
 export const insert = (db: Database, table: string, row: Record<string, unknown>) => {
   if (table === 'snapshots') row = snapshotFixtureFields(db, row) as typeof row
 
+  row = { ...row }
+  const fixtureColumns = new Set(
+    db
+      .query<{ name: string }, []>(`PRAGMA table_info(${table})`)
+      .all()
+      .map(column => column.name),
+  )
+  if (
+    fixtureColumns.has('scopeId') &&
+    !fixtureColumns.has('snapshotId') &&
+    'snapshotId' in row
+  ) {
+    row.scopeId ??= row.snapshotId
+    delete row.snapshotId
+  }
+  if (!fixtureColumns.has('updatedAt')) delete row.updatedAt
+
   db.query(
     `INSERT INTO ${table} (${Object.keys(row).join(',')}) VALUES (${Object.keys(row)
       .map(() => '?')
@@ -202,21 +219,21 @@ export async function fixture(previous = true) {
       preparedAt: '2026-01-01',
     })
     insert(current, 'divisions', {
-      snapshotId: scopeId,
+      scopeId: scopeId,
       id: 'district',
       class: 'district',
       hierarchies: [],
       divisionCode: 'CW',
     })
     insert(current, 'divisionsI18n', {
-      snapshotId: scopeId,
+      scopeId: scopeId,
       divisionId: 'district',
       locale: 'en',
       name: scopeId === 'lineage' ? 'New Name' : 'Unrelated Name',
       isLocaleInferred: 0,
     })
     insert(current, 'divisionsI18n', {
-      snapshotId: scopeId,
+      scopeId: scopeId,
       divisionId: 'district',
       locale: 'zh-hant',
       name: '中文',

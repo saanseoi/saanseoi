@@ -23,7 +23,7 @@ test('geometry dependency reads use current scope or replay old Division members
     CREATE TABLE snapshotShardAssignments(snapshotId,dataShardId); INSERT INTO snapshotShardAssignments VALUES('parent','history'),('old','history');
     CREATE TABLE dataShards(id PRIMARY KEY,bindingName); INSERT INTO dataShards VALUES('history','DB_HISTORY');`)
   current.exec(`INSERT INTO divisionPublicationState(scopeId,snapshotId,status,publicationToken,preparedAt) VALUES('lineage','latest','current','token','ready');
-    INSERT INTO divisions(snapshotId,id,class,hierarchies) VALUES('lineage','latest-only','district','{"full":[],"administrative":[],"locality":[]}');`)
+    INSERT INTO divisions(scopeId,id,class,hierarchies) VALUES('lineage','latest-only','district','{"full":[],"administrative":[],"locality":[]}');`)
   history.exec(`INSERT INTO divisions(id,versionHash,snapshotId,sourceReleaseId,isCurrent,class,hierarchies) VALUES
     ('inherited','v1','parent','r1',0,'district','{"full":[],"administrative":[],"locality":[]}'),
     ('revised','v1','parent','r1',0,'district','{"full":[],"administrative":[],"locality":[]}'),
@@ -60,8 +60,8 @@ test('geometry dependency reads use current scope or replay old Division members
     ])
     expect(result.i18n).toHaveLength(1)
     expect(current.query('SELECT total_changes() AS n').get()).toEqual(before)
-    expect(current.query('SELECT snapshotId,id FROM divisions').all()).toEqual([
-      { snapshotId: 'lineage', id: 'latest-only' },
+    expect(current.query('SELECT scopeId,id FROM divisions').all()).toEqual([
+      { scopeId: 'lineage', id: 'latest-only' },
     ])
   } finally {
     current.close()

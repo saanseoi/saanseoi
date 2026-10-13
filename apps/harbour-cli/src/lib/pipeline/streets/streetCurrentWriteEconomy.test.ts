@@ -178,8 +178,8 @@ test('Street native delivery preserves unchanged current rows and only writes ch
       { tableName: 'streets', operation: 'DELETE', n: 1 },
       { tableName: 'streetsI18n', operation: 'DELETE', n: 3 },
     ])
-    expect(current.query('SELECT DISTINCT snapshotId FROM streets').all()).toEqual([
-      { snapshotId: 'street-scope' },
+    expect(current.query('SELECT DISTINCT scopeId FROM streets').all()).toEqual([
+      { scopeId: 'street-scope' },
     ])
   } finally {
     for (const db of Object.values(databases)) db.close()

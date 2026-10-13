@@ -150,7 +150,7 @@ function fixture(kind: DivisionGeometryKind) {
       ).values(),
     ].sort((a, b) => a.recordId.localeCompare(b.recordId))
   const state = () => [
-    current.query(`SELECT * FROM ${table} ORDER BY snapshotId,id`).all(),
+    current.query(`SELECT * FROM ${table} ORDER BY scopeId,id`).all(),
     current.query(`SELECT * FROM ${publicationTable} ORDER BY snapshotId`).all(),
     ...[old, next].flatMap(db => [
       db.query(`SELECT * FROM ${table} ORDER BY id,versionHash`).all(),
@@ -313,7 +313,7 @@ for (const kind of ['divisionArea', 'divisionBoundary'] as const) {
       ])
       expect(
         f.current
-          .query(`SELECT id FROM ${f.table} WHERE snapshotId=? ORDER BY id`)
+          .query(`SELECT id FROM ${f.table} WHERE scopeId=? ORDER BY id`)
           .all(JSON.stringify(['lineage', '2027'])),
       ).toEqual([{ id: 'a' }, { id: 'b' }, { id: 'c' }])
       expect(

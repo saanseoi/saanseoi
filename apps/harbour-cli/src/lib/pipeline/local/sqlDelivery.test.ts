@@ -558,7 +558,7 @@ for (const family of ['statistics', 'geometry'] as const) {
       const geometry = { type: 'Polygon', coordinates: ['香港;'.repeat(40_000)] }
       const schema =
         family === 'geometry'
-          ? 'CREATE TABLE divisionAreas (snapshotId TEXT, id TEXT, geometry TEXT, PRIMARY KEY(snapshotId,id));'
+          ? 'CREATE TABLE divisionAreas (scopeId TEXT, id TEXT, geometry TEXT, PRIMARY KEY(scopeId,id));'
           : `CREATE TABLE hkgovCenstatdStatistics (
             createdAt TEXT, datasetCode TEXT, isCurrent INTEGER, properties TEXT, resourceReleaseId TEXT,
             geometryId TEXT, sourceRecordId TEXT, sources TEXT, updatedAt TEXT,
@@ -568,7 +568,7 @@ for (const family of ['statistics', 'geometry'] as const) {
       const sql =
         family === 'geometry'
           ? geometryBuildUpsertSql('divisionAreas', [
-              { snapshotId: 'snapshot', id: 'area', geometry },
+              { scopeId: 'snapshot', id: 'area', geometry },
             ])
           : buildStatisticSqlBatches({
               resourceReleaseId: 'release',

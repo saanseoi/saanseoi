@@ -30,7 +30,7 @@ function createDb(history = false) {
   const parameterCounts: number[] = []
   for (const kind of ['divisionAreas', 'divisionBoundaries']) {
     sqlite.exec(`CREATE TABLE ${kind} (
-      snapshotId TEXT NOT NULL, id TEXT NOT NULL, variant TEXT,
+      ${history ? 'snapshotId' : 'scopeId'} TEXT NOT NULL, id TEXT NOT NULL, variant TEXT,
       bbox TEXT, geometry BLOB, sources TEXT, type TEXT,
       isLand INTEGER, isTerritorial INTEGER, createdAt TEXT, updatedAt TEXT,
       ${kind === 'divisionAreas' ? 'divisionId TEXT' : 'leftDivisionId TEXT, rightDivisionId TEXT'}
@@ -157,13 +157,13 @@ function createFixture() {
     insertHistory(root, 'divisionBoundary', row, row.id)
     current.db
       .insert(currentSchema.divisionBoundaries)
-      .values({ ...row, snapshotId: 'scope:boundary-leaf' })
+      .values({ ...row, scopeId: 'scope:boundary-leaf' })
       .run()
   }
   for (const row of [area, unchanged]) {
     current.db
       .insert(currentSchema.divisionAreas)
-      .values({ ...row, snapshotId: 'scope:area-leaf' })
+      .values({ ...row, scopeId: 'scope:area-leaf' })
       .run()
   }
   const plans: Record<string, SnapshotReplayStep[]> = Object.fromEntries(

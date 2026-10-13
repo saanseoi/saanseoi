@@ -145,7 +145,6 @@ function fixture() {
   function row(id: string, label: string, snapshot: string, retained = false) {
     const base = {
       id,
-      snapshotId: snapshot,
       category: 'administrative',
       class: 'district',
       level: 2,
@@ -172,9 +171,9 @@ function fixture() {
         createdAt: stamp,
       })
     } else {
-      insert(current, 'divisions', { ...base, updatedAt: stamp })
+      insert(current, 'divisions', { ...base, scopeId: snapshot, updatedAt: stamp })
       insert(current, 'divisionsI18n', {
-        snapshotId: snapshot,
+        scopeId: snapshot,
         divisionId: id,
         locale: 'en',
         name: label,

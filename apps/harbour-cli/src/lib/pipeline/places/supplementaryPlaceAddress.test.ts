@@ -588,7 +588,7 @@ describe('supplementary Place Address policy', () => {
           citygate.addressId,
           {
             id: citygate.addressId,
-            snapshotId: 'als-snapshot',
+            scopeId: 'als-snapshot',
             divisionSnapshotId: 'division',
             countryId: 'hk',
             districtId: 'islands',
@@ -664,7 +664,7 @@ describe('supplementary Place Address policy', () => {
     resolution.addressId = accepted.addressId
     const base = {
       id: citygate.addressId,
-      snapshotId: 'als-selected',
+      scopeId: 'als-selected',
       divisionSnapshotId: 'division-selected',
       countryId: 'hk',
       districtId: 'islands',

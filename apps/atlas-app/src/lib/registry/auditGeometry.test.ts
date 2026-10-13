@@ -68,7 +68,7 @@ test('audit replays cleaned geometry by its exact content version and owning sha
     }
     current
       .query(
-        'INSERT INTO divisionAreas (id,snapshotId,divisionId,geometry) VALUES (?,?,?,?)',
+        'INSERT INTO divisionAreas (id,scopeId,divisionId,geometry) VALUES (?,?,?,?)',
       )
       .run('area', 'old', 'division', compressJsonBrotli(geometry))
     // A later import reuses this content and changes its cache ownership fields.
@@ -106,7 +106,7 @@ test('audit replays cleaned geometry by its exact content version and owning sha
         }) as never,
     }
     expect(await readAuditGeometry(input)).toEqual(geometry)
-    current.exec("DELETE FROM divisionAreas WHERE snapshotId = 'old'")
+    current.exec("DELETE FROM divisionAreas WHERE scopeId = 'old'")
     expect(await readAuditGeometry(input)).toEqual(geometry)
 
     // Deletion in the selected branch must suppress the ancestor's geometry.

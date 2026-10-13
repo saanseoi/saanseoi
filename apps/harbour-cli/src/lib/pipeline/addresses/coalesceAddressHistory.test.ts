@@ -31,8 +31,8 @@ async function fixture(
       )
       if (binding === 'DB_CURRENT')
         db.exec(`
-        INSERT INTO address2d(snapshotId,id,divisionSnapshotId,granularity) VALUES('scope','a','division','building'),('other-scope','other','division','building');
-        INSERT INTO address2dBuildingNumberLookup(snapshotId,addressId,buildingNumber,numericStem,evidence,derivation) VALUES('scope','a','1',1,'source_endpoint','single');`)
+        INSERT INTO address2d(scopeId,id,divisionSnapshotId,granularity) VALUES('scope','a','division','building'),('other-scope','other','division','building');
+        INSERT INTO address2dBuildingNumberLookup(scopeId,addressId,buildingNumber,numericStem,evidence,derivation) VALUES('scope','a','1',1,'source_endpoint','single');`)
       if (binding === oldBinding)
         db.exec(`
         INSERT INTO address2d(id,versionHash,snapshotId,sourceReleaseId,granularity,isCurrent) VALUES('a','v1','one','r1','building',1);
@@ -45,7 +45,7 @@ async function fixture(
         INSERT INTO address2dI18n (addressId,versionHash,locale,formattedAddress,sourceReleaseId,snapshotId,isCurrent,createdAt) VALUES ('a','returning','en','Second','retained-release','retained-snapshot',0,'retained-created');`)
       if (multipleLookups && binding === 'DB_CURRENT')
         db.exec(
-          "INSERT INTO address2dBuildingNumberLookup(snapshotId,addressId,buildingNumber,numericStem,evidence,derivation) VALUES('scope','a','2',2,'source_endpoint','single')",
+          "INSERT INTO address2dBuildingNumberLookup(scopeId,addressId,buildingNumber,numericStem,evidence,derivation) VALUES('scope','a','2',2,'source_endpoint','single')",
         )
       if (multipleLookups && binding === oldBinding)
         db.exec(

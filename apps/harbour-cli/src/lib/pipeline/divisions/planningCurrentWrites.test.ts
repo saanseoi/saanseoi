@@ -77,21 +77,21 @@ test('independent Planning cohorts replace current membership without a history 
     await publish('other-lineage', [old[0]!])
     await publish('lineage', [make('second')])
     expect(
-      sqlite.query('SELECT id FROM divisions WHERE snapshotId=?').all('lineage'),
+      sqlite.query('SELECT id FROM divisions WHERE scopeId=?').all('lineage'),
     ).toEqual([{ id: 'one' }])
     expect(
       sqlite
-        .query('SELECT DISTINCT divisionId FROM divisionsI18n WHERE snapshotId=?')
+        .query('SELECT DISTINCT divisionId FROM divisionsI18n WHERE scopeId=?')
         .all('lineage'),
     ).toEqual([{ divisionId: 'one' }])
     expect(
       sqlite
-        .query('SELECT count(*) AS n FROM divisions WHERE snapshotId=?')
+        .query('SELECT count(*) AS n FROM divisions WHERE scopeId=?')
         .get('other-lineage'),
     ).toEqual({ n: 1 })
     expect(
       sqlite
-        .query('SELECT count(*) AS n FROM divisionsI18n WHERE snapshotId=?')
+        .query('SELECT count(*) AS n FROM divisionsI18n WHERE scopeId=?')
         .get('other-lineage'),
     ).toEqual({ n: 2 })
   } finally {

@@ -23,7 +23,7 @@ const receipt = {
 function database() {
   const db = new Database(':memory:')
   db.exec(
-    `CREATE TABLE divisionPublicationState(scopeId TEXT PRIMARY KEY, snapshotId TEXT UNIQUE NOT NULL, status TEXT NOT NULL, publicationToken TEXT NOT NULL, preparedAt TEXT, createdAt TEXT NOT NULL, updatedAt TEXT NOT NULL); CREATE TABLE divisions(snapshotId TEXT, id TEXT);`,
+    `CREATE TABLE divisionPublicationState(scopeId TEXT PRIMARY KEY, snapshotId TEXT UNIQUE NOT NULL, status TEXT NOT NULL, publicationToken TEXT NOT NULL, preparedAt TEXT, createdAt TEXT NOT NULL, updatedAt TEXT NOT NULL); CREATE TABLE divisions(scopeId TEXT, id TEXT);`,
   )
   return db
 }

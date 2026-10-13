@@ -52,7 +52,7 @@ async function fixture(
       [current, false],
       [history, true],
     ] as const) {
-      db.query(`INSERT INTO divisions(${isHistory ? 'versionHash,sourceReleaseId,isCurrent,' : ''}snapshotId,id,class,geometry,sources,hierarchies,createdAt${isHistory ? '' : ',updatedAt'})
+      db.query(`INSERT INTO divisions(${isHistory ? 'versionHash,sourceReleaseId,isCurrent,' : ''}${isHistory ? 'snapshotId' : 'scopeId'},id,class,geometry,sources,hierarchies,createdAt${isHistory ? '' : ',updatedAt'})
         VALUES(${isHistory ? "'old-base','release-old',1," : ''}?,?,?,?,?,'{}',?${isHistory ? '' : ',?'})`).run(
         isHistory ? 'old' : 'scope',
         'district',
@@ -68,7 +68,7 @@ async function fixture(
         ['en', 'Original'],
         ['zh-hant', '原文'],
       ])
-        db.query(`INSERT INTO divisionsI18n(${isHistory ? 'versionHash,sourceReleaseId,isCurrent,' : ''}isLocaleInferred,snapshotId,divisionId,locale,name,nameVariant,createdAt${isHistory ? '' : ',updatedAt'})
+        db.query(`INSERT INTO divisionsI18n(${isHistory ? 'versionHash,sourceReleaseId,isCurrent,' : ''}isLocaleInferred,${isHistory ? 'snapshotId' : 'scopeId'},divisionId,locale,name,nameVariant,createdAt${isHistory ? '' : ',updatedAt'})
           VALUES(${isHistory ? "'old-base','release-old',1," : ''}0,?,?,?,?,?,?${isHistory ? '' : ',?'})`).run(
           isHistory ? 'old' : 'scope',
           'district',
@@ -424,7 +424,7 @@ test('Division coalescing permits a new locale with no predecessor', () =>
   fixture(async f => {
     stage(f.candidates)
     requireDefined(f.candidates.DB_CURRENT).db.exec(
-      "INSERT INTO divisionsI18n(snapshotId,divisionId,locale,name,isLocaleInferred) VALUES('scope','district','fr','District',0)",
+      "INSERT INTO divisionsI18n(scopeId,divisionId,locale,name,isLocaleInferred) VALUES('scope','district','fr','District',0)",
     )
     const next = requireDefined(f.candidates.DB_HISTORY_NEW).db
     next.exec(`

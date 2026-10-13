@@ -66,6 +66,14 @@ function insert(
     dflt_value: unknown
   }>
   const row = { ...values }
+  if (
+    fields.some(field => field.name === 'scopeId') &&
+    !fields.some(field => field.name === 'snapshotId') &&
+    'snapshotId' in row
+  ) {
+    row.scopeId ??= row.snapshotId
+    delete row.snapshotId
+  }
   for (const field of fields) {
     if (
       (field.notnull || fields.some(column => column.name === 'operation')) &&
@@ -78,6 +86,22 @@ function insert(
           : '{}'
     }
   }
+  const fixtureColumns = new Set(
+    db
+      .query<{ name: string }, []>(`PRAGMA table_info(${table})`)
+      .all()
+      .map(column => column.name),
+  )
+  if (
+    fixtureColumns.has('scopeId') &&
+    !fixtureColumns.has('snapshotId') &&
+    'snapshotId' in row
+  ) {
+    row.scopeId ??= row.snapshotId
+    delete row.snapshotId
+  }
+  if (!fixtureColumns.has('updatedAt')) delete row.updatedAt
+
   db.query(
     `INSERT INTO ${table} (${Object.keys(row)
       .map(key => `"${key}"`)

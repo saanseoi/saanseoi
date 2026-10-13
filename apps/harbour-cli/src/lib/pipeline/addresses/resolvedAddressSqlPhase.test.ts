@@ -37,18 +37,18 @@ test('supplementary Address native delivery resolves guarded net changes and res
       "createdAt TEXT NOT NULL DEFAULT 'old',updatedAt TEXT NOT NULL DEFAULT 'old'"
     db.exec(`CREATE TABLE addressPublicationState(scopeId TEXT PRIMARY KEY,snapshotId TEXT UNIQUE,status TEXT NOT NULL,
       publicationToken TEXT NOT NULL,preparedAt TEXT,${timestamps});
-      CREATE TABLE address2d(snapshotId TEXT,id TEXT,parentAddressId TEXT,${timestamps},PRIMARY KEY(snapshotId,id));
-      CREATE TABLE address2dI18n(snapshotId TEXT,addressId TEXT,locale TEXT,formattedAddress TEXT,buildingName TEXT,estateName TEXT,streetName TEXT,phaseName TEXT,blockExpression TEXT,buildingNumberFrom TEXT,buildingNumberTo TEXT,buildingNumberConnector TEXT,${timestamps},PRIMARY KEY(snapshotId,addressId,locale));
-      CREATE TABLE address2dBuildingNumberLookup(snapshotId TEXT,addressId TEXT,buildingNumber TEXT,numericStem TEXT,evidence TEXT,derivation TEXT,${timestamps},PRIMARY KEY(snapshotId,addressId,buildingNumber));
-      CREATE TABLE address3d(snapshotId TEXT,id TEXT,address2dId TEXT,unresolvedSectionIds TEXT,units TEXT,unitCount INTEGER,${timestamps},PRIMARY KEY(snapshotId,id));
-      CREATE TABLE address3dI18n(snapshotId TEXT,address3dId TEXT,locale TEXT,units TEXT,${timestamps},PRIMARY KEY(snapshotId,address3dId,locale));
+      CREATE TABLE address2d(scopeId TEXT,id TEXT,parentAddressId TEXT,${timestamps},PRIMARY KEY(scopeId,id));
+      CREATE TABLE address2dI18n(scopeId TEXT,addressId TEXT,locale TEXT,formattedAddress TEXT,buildingName TEXT,estateName TEXT,streetName TEXT,phaseName TEXT,blockExpression TEXT,buildingNumberFrom TEXT,buildingNumberTo TEXT,buildingNumberConnector TEXT,${timestamps},PRIMARY KEY(scopeId,addressId,locale));
+      CREATE TABLE address2dBuildingNumberLookup(scopeId TEXT,addressId TEXT,buildingNumber TEXT,numericStem TEXT,evidence TEXT,derivation TEXT,${timestamps},PRIMARY KEY(scopeId,addressId,buildingNumber));
+      CREATE TABLE address3d(scopeId TEXT,id TEXT,address2dId TEXT,unresolvedSectionIds TEXT,units TEXT,unitCount INTEGER,${timestamps},PRIMARY KEY(scopeId,id));
+      CREATE TABLE address3dI18n(scopeId TEXT,address3dId TEXT,locale TEXT,units TEXT,${timestamps},PRIMARY KEY(scopeId,address3dId,locale));
       INSERT INTO addressPublicationState(scopeId,snapshotId,status,publicationToken,preparedAt) VALUES ('scope','old','current','old-token','prepared');
-      INSERT INTO address2d(snapshotId,id) VALUES ('scope','a');
-      INSERT INTO address2dI18n(snapshotId,addressId,locale,formattedAddress) VALUES ('scope','a','en','Example address');`)
+      INSERT INTO address2d(scopeId,id) VALUES ('scope','a');
+      INSERT INTO address2dI18n(scopeId,addressId,locale,formattedAddress) VALUES ('scope','a','en','Example address');`)
     await deliverResolvedAddressSqlPhase(phase, async () => {
       await executeSqlText(
         { binding, databaseId: 'configured-database-id', name: 'current' },
-        "UPDATE address2dI18n SET buildingNumberFrom = '1' WHERE snapshotId = 'scope'; INSERT INTO address2dBuildingNumberLookup(snapshotId,addressId,buildingNumber,numericStem,evidence) VALUES ('scope','a','1','1','source_endpoint');",
+        "UPDATE address2dI18n SET buildingNumberFrom = '1' WHERE scopeId = 'scope'; INSERT INTO address2dBuildingNumberLookup(scopeId,addressId,buildingNumber,numericStem,evidence) VALUES ('scope','a','1','1','source_endpoint');",
         { isLocal: true },
       )
       expect(db.query('SELECT buildingNumberFrom FROM address2dI18n').get()).toEqual({

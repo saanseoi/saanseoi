@@ -230,7 +230,7 @@ for (const sourceKind of ['overture', 'saanseoi'] as const)
         ).toEqual({ n: 0 })
         expect(
           current
-            .query('SELECT count(*) AS n FROM divisionAreas WHERE snapshotId=?')
+            .query('SELECT count(*) AS n FROM divisionAreas WHERE scopeId=?')
             .get(JSON.stringify(['geometry-lineage', '2026'])),
         ).toEqual({ n: 2 })
         const again = await writeGeometryRowsDurably(

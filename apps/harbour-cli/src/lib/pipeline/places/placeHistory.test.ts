@@ -329,7 +329,7 @@ test('base edits retain locale versions and retirement excludes another current 
     await f.run([row])
     const old = getDatabase(f.databases, 'old')
     f.current.exec(
-      "INSERT INTO places(snapshotId,id,resourceReleaseId,lng,lat,firstSeenMonth,lastSeenMonth,createdAt,updatedAt) VALUES('another-scope','foreign','foreign',114,22,'2025','2025','original','original')",
+      "INSERT INTO places(scopeId,id,resourceReleaseId,lng,lat,firstSeenMonth,lastSeenMonth,createdAt,updatedAt) VALUES('another-scope','foreign','foreign',114,22,'2025','2025','original','original')",
     )
     old.exec(
       "INSERT INTO places (id,resourceReleaseId,lng,lat,firstSeenMonth,lastSeenMonth,versionHash,sourceReleaseId,snapshotId,isCurrent,createdAt) VALUES ('foreign','foreign',114,22,'2025','2025','foreign','foreign','foreign',1,'original')",
@@ -355,8 +355,8 @@ test('base edits retain locale versions and retirement excludes another current 
     expect(old.query("SELECT isCurrent FROM places WHERE id='foreign'").get()).toEqual({
       isCurrent: 1,
     })
-    expect(f.current.query('SELECT id,snapshotId FROM places').all()).toEqual([
-      { id: 'foreign', snapshotId: 'another-scope' },
+    expect(f.current.query('SELECT id,scopeId FROM places').all()).toEqual([
+      { id: 'foreign', scopeId: 'another-scope' },
     ])
   } finally {
     f.close()

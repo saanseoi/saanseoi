@@ -97,8 +97,8 @@ test('current writes retain a stable key and leave unchanged content and compone
     // A changed version can still have identical components; those stay open too.
     apply(fixture('three', true))
     expect(db.query('SELECT * FROM writeAudit').all()).toEqual([])
-    expect(db.query('SELECT snapshotId, updatedAt FROM address2d').all()).toEqual([
-      { snapshotId: 'lineage', updatedAt: '2026-09-01T00:00:00.000Z' },
+    expect(db.query('SELECT scopeId, updatedAt FROM address2d').all()).toEqual([
+      { scopeId: 'lineage', updatedAt: '2026-09-01T00:00:00.000Z' },
     ])
     const changed = fixture('four')
     changed.rows[0]!.base.granularity = 'complex'
@@ -133,8 +133,8 @@ test('retirement appends a base tombstone, preserves ancestors and deletes only 
     })
     for (const file of files)
       (file.target === 'current' ? current : history).exec(file.sql)
-    expect(current.query('SELECT snapshotId FROM address2d').all()).toEqual([
-      { snapshotId: 'other' },
+    expect(current.query('SELECT scopeId FROM address2d').all()).toEqual([
+      { scopeId: 'other' },
     ])
     for (const table of [
       'address2d',

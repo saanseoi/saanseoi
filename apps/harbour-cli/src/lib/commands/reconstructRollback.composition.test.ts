@@ -73,9 +73,9 @@ async function composedFixture() {
     })
   }
   f.current.exec('PRAGMA foreign_keys=OFF')
-  f.current.exec("UPDATE divisions SET id='district-new' WHERE snapshotId='lineage'")
+  f.current.exec("UPDATE divisions SET id='district-new' WHERE scopeId='lineage'")
   f.current.exec(
-    "UPDATE divisionsI18n SET divisionId='district-new' WHERE snapshotId='lineage'",
+    "UPDATE divisionsI18n SET divisionId='district-new' WHERE scopeId='lineage'",
   )
   f.current.exec('PRAGMA foreign_keys=ON')
   insert(f.current, 'addressPublicationState', {
@@ -134,7 +134,7 @@ test('composed rollback reconstructs Division before Address and validates forei
   const f = await composedFixture()
   try {
     const unrelated = f.current
-      .query("SELECT rowid,* FROM divisions WHERE snapshotId='other'")
+      .query("SELECT rowid,* FROM divisions WHERE scopeId='other'")
       .all()
     const plan = await f.prepare()
     const terminal = plan.outputs?.terminal as RollbackTerminal | undefined
@@ -145,19 +145,19 @@ test('composed rollback reconstructs Division before Address and validates forei
     ])
     expect(
       f.current
-        .query("SELECT districtId FROM address2d WHERE snapshotId='address-lineage'")
+        .query("SELECT districtId FROM address2d WHERE scopeId='address-lineage'")
         .get(),
     ).toEqual({ districtId: 'district-new' })
     await runNativeSqlDelivery(f.directory, { files: f.files })
     await verifyRollbackTerminal(f.files, terminal)
     expect(f.current.query('PRAGMA foreign_key_check').all()).toEqual([])
     expect(
-      f.current.query("SELECT id FROM divisions WHERE snapshotId='lineage'").all(),
+      f.current.query("SELECT id FROM divisions WHERE scopeId='lineage'").all(),
     ).toEqual([{ id: 'district' }])
     expect(
       f.current
         .query(
-          "SELECT divisionSnapshotId,districtId FROM address2d WHERE snapshotId='address-lineage'",
+          "SELECT divisionSnapshotId,districtId FROM address2d WHERE scopeId='address-lineage'",
         )
         .get(),
     ).toEqual({ divisionSnapshotId: 'lineage', districtId: 'district' })
@@ -183,7 +183,7 @@ test('composed rollback reconstructs Division before Address and validates forei
         .get(),
     ).toEqual({ divisionId: 'district', nameText: 'Old Name' })
     expect(
-      f.current.query("SELECT rowid,* FROM divisions WHERE snapshotId='other'").all(),
+      f.current.query("SELECT rowid,* FROM divisions WHERE scopeId='other'").all(),
     ).toEqual(unrelated)
   } finally {
     await f.close()
@@ -204,7 +204,7 @@ test('composition preparation refuses unresolved retained foreign keys before se
     expect(f.current.query('PRAGMA foreign_key_check').all()).toEqual([])
     expect(
       f.current
-        .query("SELECT districtId FROM address2d WHERE snapshotId='unrelated-address'")
+        .query("SELECT districtId FROM address2d WHERE scopeId='unrelated-address'")
         .get(),
     ).toEqual({ districtId: 'district-new' })
   } finally {
@@ -217,7 +217,7 @@ test('first-publication rollback can leave a completely empty search selection a
   try {
     f.current.exec("DELETE FROM divisionSearchFts WHERE scopeId='search-other'")
     f.current.exec("DELETE FROM divisionSearchScopes WHERE scopeId='search-other'")
-    f.current.exec("DELETE FROM divisions WHERE snapshotId='other'")
+    f.current.exec("DELETE FROM divisions WHERE scopeId='other'")
     f.current.exec("DELETE FROM divisionPublicationState WHERE scopeId='other'")
     f.meta.exec(
       "DELETE FROM apiCatalogRevisionReleaseSets WHERE apiVersionReleaseSetId='version-set-other'",

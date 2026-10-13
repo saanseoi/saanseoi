@@ -393,7 +393,7 @@ function seedCurrent(sqlite: Database) {
       run(
         sqlite,
         `INSERT INTO divisions
-          (snapshotId, id, identifiers, level, category, class, geometry,
+          (scopeId, id, identifiers, level, category, class, geometry,
            hierarchies, cartography, sources, createdAt, updatedAt)
           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
@@ -446,7 +446,7 @@ function seedCurrent(sqlite: Database) {
         run(
           sqlite,
           `INSERT INTO divisionsI18n
-            (snapshotId, divisionId, locale, name, nameVariant, nameAlts, nameRules, isLocaleInferred, createdAt, updatedAt)
+            (scopeId, divisionId, locale, name, nameVariant, nameAlts, nameRules, isLocaleInferred, createdAt, updatedAt)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [
             `scope:${snapshotId}`,
@@ -493,7 +493,7 @@ function seedCurrent(sqlite: Database) {
     run(
       sqlite,
       `INSERT INTO divisionAreas
-        (snapshotId, id, variant, bbox, geometry, sources, type, isLand, isTerritorial,
+        (scopeId, id, variant, bbox, geometry, sources, type, isLand, isTerritorial,
          divisionId, createdAt, updatedAt)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
@@ -517,7 +517,7 @@ function seedCurrent(sqlite: Database) {
   run(
     sqlite,
     `INSERT INTO divisionBoundaries
-      (snapshotId, id, variant, bbox, geometry, sources, type, isLand, isTerritorial,
+      (scopeId, id, variant, bbox, geometry, sources, type, isLand, isTerritorial,
        leftDivisionId, rightDivisionId, createdAt, updatedAt)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
@@ -650,7 +650,7 @@ function createFixtureEnvironment() {
     ['divisionBoundary', 'divisionBoundaries'],
   ]) {
     currentSqlite.exec(`INSERT INTO ${family}PublicationState(snapshotId,scopeId,status,publicationToken,preparedAt)
-      SELECT DISTINCT substr(snapshotId,7),snapshotId,'current','fixture','2026-01-01' FROM ${dataTable}`)
+      SELECT DISTINCT substr(scopeId,7),scopeId,'current','fixture','2026-01-01' FROM ${dataTable}`)
   }
   seedHistory(historyBeforeSqlite, [
     'snapshot-pland-pu-2021',

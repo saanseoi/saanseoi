@@ -27,8 +27,8 @@ test('all Stats maps select ready SaanSeoi district land polygons and exclude go
       createdAt TEXT NOT NULL DEFAULT '2026-01-01T00:00:00.000Z',
       updatedAt TEXT NOT NULL DEFAULT '2026-01-01T00:00:00.000Z'
     );
-      CREATE TABLE divisionAreas(divisionId, geometry, updatedAt, variant, snapshotId, isLand, isTerritorial);
-      CREATE TABLE divisions(id, class, snapshotId);
+      CREATE TABLE divisionAreas(divisionId, geometry, updatedAt, variant, scopeId, isLand, isTerritorial);
+      CREATE TABLE divisions(id, class, scopeId);
       CREATE TABLE divisionPublicationState(scopeId, snapshotId, status, preparedAt, publicationToken);
       CREATE TABLE divisionAreaPublicationState(scopeId, snapshotId, status, preparedAt, publicationToken);
       INSERT INTO snapshotLineages (id,resourceType,variant,regionCode) VALUES

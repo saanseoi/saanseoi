@@ -14,8 +14,8 @@ function fixture(beforeQuery?: (sqlite: Database, sql: string) => void) {
     CREATE TABLE divisionPublicationState(scopeId TEXT PRIMARY KEY,snapshotId TEXT UNIQUE,status TEXT,publicationToken TEXT,preparedAt TEXT,updatedAt TEXT);
     INSERT INTO divisionPublicationState VALUES ('physical-geographic','latest','current','latest-token','prepared','updated'),('physical-planning','planning','current','planning-token','prepared','updated');
     CREATE TABLE divisionSearchScopes(scopeId TEXT PRIMARY KEY, snapshotId TEXT);
-    CREATE TABLE divisions(snapshotId,id,divisionCode,class,category,level,hierarchies);
-    CREATE TABLE divisionsI18n(snapshotId,divisionId,locale,name,nameAlts,nameRules);
+    CREATE TABLE divisions(scopeId,id,divisionCode,class,category,level,hierarchies);
+    CREATE TABLE divisionsI18n(scopeId,divisionId,locale,name,nameAlts,nameRules);
   `)
   const add = (
     snapshot: string,
@@ -219,7 +219,7 @@ test('identical snapshot promotion writes one mapping; repeat writes nothing; ed
     await expect(f.search('Harbour')).rejects.toThrow('not ready')
     expect((await f.search('Harbour', {}, promoted))[0]?.snapshotId).toBe('next')
     f.sqlite.exec(
-      "UPDATE divisionsI18n SET name='Changed' WHERE snapshotId='physical-geographic'",
+      "UPDATE divisionsI18n SET name='Changed' WHERE scopeId='physical-geographic'",
     )
     expect(() =>
       f.sqlite.transaction(() => {

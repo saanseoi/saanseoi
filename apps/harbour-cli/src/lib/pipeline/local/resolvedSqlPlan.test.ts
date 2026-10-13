@@ -15,8 +15,8 @@ async function fixture(run: (db: Database, path: string) => Promise<void>) {
   const path = join(root, 'current.sqlite')
   const db = new Database(path)
   try {
-    db.exec(`CREATE TABLE divisions(snapshotId TEXT,id TEXT,name TEXT,payload BLOB,updatedAt TEXT,PRIMARY KEY(snapshotId,id));
-      CREATE TABLE divisionsI18n(snapshotId TEXT,divisionId TEXT,locale TEXT,name TEXT,updatedAt TEXT,PRIMARY KEY(snapshotId,divisionId,locale));
+    db.exec(`CREATE TABLE divisions(scopeId TEXT,id TEXT,name TEXT,payload BLOB,updatedAt TEXT,PRIMARY KEY(scopeId,id));
+      CREATE TABLE divisionsI18n(scopeId TEXT,divisionId TEXT,locale TEXT,name TEXT,updatedAt TEXT,PRIMARY KEY(scopeId,divisionId,locale));
       CREATE TABLE unrelated(id TEXT PRIMARY KEY,value TEXT);
       INSERT INTO unrelated VALUES('other','preserved');
       INSERT INTO divisions VALUES('scope','a','A',NULL,'old'),('other','b','B',NULL,'old');
@@ -68,7 +68,7 @@ test('resolved release delivers only one changed locale and separate publication
         const copy = currentClient(candidates)
         copy.exec(buildBeginPublicationSql(preparation))
         copy.exec(
-          "UPDATE divisions SET updatedAt='new' WHERE snapshotId='scope'; UPDATE divisionsI18n SET name='Revised',updatedAt='new' WHERE snapshotId='scope' AND locale='en';",
+          "UPDATE divisions SET updatedAt='new' WHERE scopeId='scope'; UPDATE divisionsI18n SET name='Revised',updatedAt='new' WHERE scopeId='scope' AND locale='en';",
         )
         copy.exec(buildCompletePublicationSql(preparation))
       },
@@ -86,7 +86,7 @@ test('resolved release delivers only one changed locale and separate publication
       name: 'Revised',
     })
     expect(
-      db.query("SELECT name,updatedAt FROM divisions WHERE snapshotId='other'").get(),
+      db.query("SELECT name,updatedAt FROM divisions WHERE scopeId='other'").get(),
     ).toEqual({ name: 'B', updatedAt: 'old' })
     expect(
       db.query('SELECT status,preparedAt FROM divisionPublicationState').get(),
@@ -95,7 +95,7 @@ test('resolved release delivers only one changed locale and separate publication
 })
 
 for (const change of [
-  "UPDATE divisions SET name='bad' WHERE snapshotId='other'",
+  "UPDATE divisions SET name='bad' WHERE scopeId='other'",
   "UPDATE unrelated SET value='bad'",
 ])
   test(`resolved preparation rejects unowned changes before append: ${change}`, async () => {
@@ -133,9 +133,7 @@ test('large binary geometry binds as bounded SQL and replays one changed row', a
       generate: async candidates => {
         const copy = currentClient(candidates)
         copy.exec(buildBeginPublicationSql(preparation))
-        copy
-          .query("UPDATE divisions SET payload=? WHERE snapshotId='scope'")
-          .run(expected)
+        copy.query("UPDATE divisions SET payload=? WHERE scopeId='scope'").run(expected)
         copy.exec(buildCompletePublicationSql(preparation))
       },
     })
@@ -150,7 +148,7 @@ test('large binary geometry binds as bounded SQL and replays one changed row', a
     expect(
       db
         .query<{ payload: Uint8Array }, []>(
-          "SELECT payload FROM divisions WHERE snapshotId='scope'",
+          "SELECT payload FROM divisions WHERE scopeId='scope'",
         )
         .get()?.payload,
     ).toEqual(expected)

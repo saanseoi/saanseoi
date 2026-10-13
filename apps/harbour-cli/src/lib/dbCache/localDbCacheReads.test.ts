@@ -15,7 +15,7 @@ test('completed geometry contributors can precede shared composition publication
   const current = new Database(currentPath)
   try {
     current.exec(
-      `CREATE TABLE divisionAreas(snapshotId TEXT);
+      `CREATE TABLE divisionAreas(scopeId TEXT);
        INSERT INTO divisionAreas VALUES ('["lineage","2026"]');
        CREATE TABLE divisionAreaPublicationState(snapshotId TEXT, scopeId TEXT, status TEXT, preparedAt TEXT, publicationToken TEXT);
        INSERT INTO divisionAreaPublicationState VALUES ('snapshot','["lineage","2026"]','publishing','complete','delivery');`,
@@ -158,7 +158,7 @@ INSERT INTO snapshots (id, snapshotLineageId, status, revision, cohortKey) VALUE
       INSERT INTO snapshotShardAssignments VALUES ('snapshot');
     `)
     current.exec(`
-      CREATE TABLE divisions(snapshotId TEXT);
+      CREATE TABLE divisions(scopeId TEXT);
       INSERT INTO divisions VALUES ('lineage');
       CREATE TABLE divisionPublicationState(snapshotId TEXT, scopeId TEXT, status TEXT, preparedAt TEXT, publicationToken TEXT);
     `)

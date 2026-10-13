@@ -16,7 +16,7 @@ test('cross-year replacement appends missing locale without changing parent cont
     history.exec(
       `CREATE TABLE address2dI18n(snapshotId TEXT,addressId TEXT,locale TEXT,versionHash TEXT,operation TEXT,sourceReleaseId TEXT,isCurrent INTEGER,createdAt TEXT,updatedAt TEXT,PRIMARY KEY(addressId,snapshotId,locale));`,
     )
-    current.exec(`CREATE TABLE address2d(snapshotId TEXT,id TEXT); CREATE TABLE address2dI18n(snapshotId TEXT,addressId TEXT,locale TEXT);
+    current.exec(`CREATE TABLE address2d(scopeId TEXT,id TEXT); CREATE TABLE address2dI18n(scopeId TEXT,addressId TEXT,locale TEXT);
       INSERT INTO address2d VALUES('scope','a'); INSERT INTO address2dI18n VALUES('scope','a','en');`)
     const prior = [
       ['address2d', ''],

@@ -48,7 +48,7 @@ test('only acknowledged predecessor membership can authorise a deletion comparis
     }
     await writeAlsMembership(`${preparedFile}.membership.json`, current)
     db.exec(`CREATE TABLE addressPublicationState(scopeId TEXT,snapshotId TEXT,preparedAt TEXT,publicationToken TEXT);
-      CREATE TABLE address2d(snapshotId TEXT,id TEXT); CREATE TABLE address3d(snapshotId TEXT,id TEXT,address2dId TEXT,units TEXT);
+      CREATE TABLE address2d(scopeId TEXT,id TEXT); CREATE TABLE address3d(scopeId TEXT,id TEXT,address2dId TEXT,units TEXT);
       INSERT INTO addressPublicationState VALUES('scope','one','prepared','token');`)
     const input = {
       cacheDir: directory,

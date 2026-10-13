@@ -17,11 +17,11 @@ test('reconstructed rollback writes only the changed locale and updates FTS whil
   const f = await fixture()
   try {
     const baseRows = f.current
-      .query('SELECT rowid,* FROM divisions ORDER BY snapshotId')
+      .query('SELECT rowid,* FROM divisions ORDER BY scopeId')
       .all()
     const retainedLocales = f.current
       .query(
-        "SELECT rowid,* FROM divisionsI18n WHERE snapshotId='other' OR locale='zh-hant' ORDER BY snapshotId,locale",
+        "SELECT rowid,* FROM divisionsI18n WHERE scopeId='other' OR locale='zh-hant' ORDER BY scopeId,locale",
       )
       .all()
     const retainedFts = f.current
@@ -37,20 +37,18 @@ test('reconstructed rollback writes only the changed locale and updates FTS whil
     expect(summary.tables.DB_CURRENT?.divisionsI18n?.updated).toBe(1)
     expect(
       f.current
-        .query(
-          "SELECT name FROM divisionsI18n WHERE snapshotId='lineage' AND locale='en'",
-        )
+        .query("SELECT name FROM divisionsI18n WHERE scopeId='lineage' AND locale='en'")
         .get(),
     ).toEqual({ name: 'New Name' })
     await runNativeSqlDelivery(f.directory, { files: f.files })
     await verifyRollbackTerminal(f.files, plan.outputs?.terminal as RollbackTerminal)
     expect(
-      f.current.query('SELECT rowid,* FROM divisions ORDER BY snapshotId').all(),
+      f.current.query('SELECT rowid,* FROM divisions ORDER BY scopeId').all(),
     ).toEqual(baseRows)
     expect(
       f.current
         .query(
-          "SELECT rowid,* FROM divisionsI18n WHERE snapshotId='other' OR locale='zh-hant' ORDER BY snapshotId,locale",
+          "SELECT rowid,* FROM divisionsI18n WHERE scopeId='other' OR locale='zh-hant' ORDER BY scopeId,locale",
         )
         .all(),
     ).toEqual(retainedLocales)
@@ -91,16 +89,16 @@ test('initial publication rollback removes only its own serving projection and s
   const f = await fixture(false)
   try {
     const unrelated = f.current
-      .query("SELECT rowid,* FROM divisions WHERE snapshotId='other'")
+      .query("SELECT rowid,* FROM divisions WHERE scopeId='other'")
       .all()
     const plan = await f.prepare()
     await runNativeSqlDelivery(f.directory, { files: f.files })
     await verifyRollbackTerminal(f.files, plan.outputs?.terminal as RollbackTerminal)
     expect(
-      f.current.query("SELECT 1 FROM divisions WHERE snapshotId='lineage'").get(),
+      f.current.query("SELECT 1 FROM divisions WHERE scopeId='lineage'").get(),
     ).toBeNull()
     expect(
-      f.current.query("SELECT rowid,* FROM divisions WHERE snapshotId='other'").all(),
+      f.current.query("SELECT rowid,* FROM divisions WHERE scopeId='other'").all(),
     ).toEqual(unrelated)
     expect(
       f.current
@@ -130,9 +128,7 @@ test('unavailable historical ownership produces no delivery payload or ownership
     expect(await readPendingSqlDelivery(f.root)).toBeNull()
     expect(
       f.current
-        .query(
-          "SELECT name FROM divisionsI18n WHERE snapshotId='lineage' AND locale='en'",
-        )
+        .query("SELECT name FROM divisionsI18n WHERE scopeId='lineage' AND locale='en'")
         .get(),
     ).toEqual({ name: 'New Name' })
   } finally {
@@ -170,9 +166,7 @@ test('interrupted rollback resumes the identical sealed payload after content de
     ).toEqual({ status: 'publishing' })
     expect(
       f.current
-        .query(
-          "SELECT name FROM divisionsI18n WHERE snapshotId='lineage' AND locale='en'",
-        )
+        .query("SELECT name FROM divisionsI18n WHERE scopeId='lineage' AND locale='en'")
         .get(),
     ).toEqual({ name: 'Old Name' })
     f.history.exec('DELETE FROM divisionsI18n')
@@ -208,7 +202,7 @@ test('stale publication ownership stops sealed rollback before any canonical or 
       "UPDATE divisionPublicationState SET publicationToken='intervening-publication' WHERE scopeId='lineage'",
     )
     const before = f.current
-      .query('SELECT rowid,* FROM divisionsI18n ORDER BY snapshotId,locale')
+      .query('SELECT rowid,* FROM divisionsI18n ORDER BY scopeId,locale')
       .all()
     const ftsBefore = f.current
       .query('SELECT rowid,* FROM divisionSearchFts ORDER BY rowid')
@@ -218,7 +212,7 @@ test('stale publication ownership stops sealed rollback before any canonical or 
     ).rejects.toThrow()
     expect(
       f.current
-        .query('SELECT rowid,* FROM divisionsI18n ORDER BY snapshotId,locale')
+        .query('SELECT rowid,* FROM divisionsI18n ORDER BY scopeId,locale')
         .all(),
     ).toEqual(before)
     expect(

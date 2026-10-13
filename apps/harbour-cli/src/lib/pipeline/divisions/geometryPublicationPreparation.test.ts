@@ -147,7 +147,7 @@ test('geometry merge and canonical reuse reject unprepared snapshots before writ
     ).toEqual({ count: 0 })
     expect(
       f.current
-        .query('SELECT id FROM divisionAreas WHERE snapshotId=?')
+        .query('SELECT id FROM divisionAreas WHERE scopeId=?')
         .all(JSON.stringify(['lineage', '2021'])),
     ).toEqual([{ id: 'retained' }])
     f.current
@@ -158,7 +158,7 @@ test('geometry merge and canonical reuse reject unprepared snapshots before writ
     await writeGeometryRows(f.context, 'divisionArea', [row('new')], child)
     expect(
       f.current
-        .query('SELECT id FROM divisionAreas WHERE snapshotId=? ORDER BY id')
+        .query('SELECT id FROM divisionAreas WHERE scopeId=? ORDER BY id')
         .all(JSON.stringify(['lineage', '2021'])),
     ).toEqual([{ id: 'new' }, { id: 'retained' }])
     expect(

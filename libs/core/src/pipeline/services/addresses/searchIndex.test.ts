@@ -6,17 +6,17 @@ function fixture() {
   const db = new Database(':memory:')
   db.exec(`CREATE TABLE addressPublicationState(scopeId TEXT PRIMARY KEY, snapshotId TEXT UNIQUE,status TEXT DEFAULT 'current',preparedAt TEXT DEFAULT 'prepared');
     CREATE TABLE addressSearchScopes(scopeId TEXT PRIMARY KEY, snapshotId TEXT NOT NULL);
-    CREATE TABLE address2dI18n(snapshotId TEXT, addressId TEXT, locale TEXT,
+    CREATE TABLE address2dI18n(scopeId TEXT, addressId TEXT, locale TEXT,
       formattedAddress TEXT, buildingName TEXT, buildingNumberExpression TEXT,
       buildingNumberFrom TEXT, buildingNumberTo TEXT, blockExpression TEXT,
       phaseExpression TEXT, estateName TEXT, streetName TEXT,
-      PRIMARY KEY(snapshotId,addressId,locale));`)
+      PRIMARY KEY(scopeId,addressId,locale));`)
   const add = (snapshot: string, id: string, text: string) => {
     db.query(
       'INSERT OR IGNORE INTO addressPublicationState(scopeId,snapshotId) VALUES (?, ?)',
     ).run(`scope:${snapshot}`, snapshot)
     db.query(
-      'INSERT INTO address2dI18n(snapshotId,addressId,locale,formattedAddress) VALUES(?,?,?,?)',
+      'INSERT INTO address2dI18n(scopeId,addressId,locale,formattedAddress) VALUES(?,?,?,?)',
     ).run(`scope:${snapshot}`, id, 'en', text)
   }
   const sync = (snapshot: string, fail = false) =>

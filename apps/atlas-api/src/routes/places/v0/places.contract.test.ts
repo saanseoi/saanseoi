@@ -243,7 +243,7 @@ function seedCurrent(sqlite: Database) {
   run(
     sqlite,
     `INSERT INTO divisions
-      (snapshotId, id, level, class, createdAt, updatedAt, hierarchies)
+      (scopeId, id, level, class, createdAt, updatedAt, hierarchies)
       VALUES (?, ?, ?, ?, ?, ?, '{"administrative":[],"locality":[],"landform":[],"full":[]}')`,
     [
       `scope:${DIVISION_SNAPSHOT}`,
@@ -257,7 +257,7 @@ function seedCurrent(sqlite: Database) {
   run(
     sqlite,
     `INSERT INTO divisionsI18n
-      (snapshotId, divisionId, locale, name, isLocaleInferred, createdAt, updatedAt)
+      (scopeId, divisionId, locale, name, isLocaleInferred, createdAt, updatedAt)
       VALUES (?, ?, ?, ?, ?, ?, ?)`,
     [
       `scope:${DIVISION_SNAPSHOT}`,
@@ -298,7 +298,7 @@ function seedCurrent(sqlite: Database) {
     run(
       sqlite,
       `INSERT INTO places
-        (snapshotId, id, resourceReleaseId, lng, lat, bbox, operatingStatus, basicCategory,
+        (scopeId, id, resourceReleaseId, lng, lat, bbox, operatingStatus, basicCategory,
          taxonomyPrimary, taxonomyHierarchy, taxonomyAlternates, websites, confidence,
          sources, firstSeenMonth, lastSeenMonth, createdAt, updatedAt)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -326,7 +326,7 @@ function seedCurrent(sqlite: Database) {
     run(
       sqlite,
       `INSERT INTO placesI18n
-        (snapshotId, placeId, locale, name, brandName, freeformAddress, provenance, createdAt, updatedAt)
+        (scopeId, placeId, locale, name, brandName, freeformAddress, provenance, createdAt, updatedAt)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         `scope:${PLACE_SNAPSHOT}`,
@@ -343,7 +343,7 @@ function seedCurrent(sqlite: Database) {
     run(
       sqlite,
       `INSERT INTO placesDivision
-        (placeSnapshotId, placeId, divisionSnapshotId, divisionId, definition)
+        (placeScopeId, placeId, divisionSnapshotId, divisionId, definition)
         VALUES (?, ?, ?, ?, ?)`,
       [
         `scope:${PLACE_SNAPSHOT}`,

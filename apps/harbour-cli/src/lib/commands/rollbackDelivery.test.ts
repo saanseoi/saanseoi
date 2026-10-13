@@ -31,8 +31,8 @@ async function fixture() {
   meta.exec(
     "CREATE TABLE resourceReleases(id TEXT PRIMARY KEY,status TEXT);INSERT INTO resourceReleases VALUES('release','current')",
   )
-  current.exec(`INSERT INTO divisions(snapshotId,id,class,category,level,hierarchies) VALUES('scope','id','district','administrative',2,'{}'),('other','else','district','administrative',2,'{}');
-    INSERT INTO divisionsI18n(snapshotId,divisionId,locale,name,nameProvenance,isLocaleInferred) VALUES('scope','id','en','New term','provided',0),('scope','id','zh-hant','保留','provided',0),('other','else','en','Other name','provided',0);
+  current.exec(`INSERT INTO divisions(scopeId,id,class,category,level,hierarchies) VALUES('scope','id','district','administrative',2,'{}'),('other','else','district','administrative',2,'{}');
+    INSERT INTO divisionsI18n(scopeId,divisionId,locale,name,nameProvenance,isLocaleInferred) VALUES('scope','id','en','New term','provided',0),('scope','id','zh-hant','保留','provided',0),('other','else','en','Other name','provided',0);
     INSERT INTO divisionPublicationState(scopeId,snapshotId,status,publicationToken,preparedAt) VALUES('scope','new','current','original','date'),('other','other-snapshot','current','other-token','date');`)
   current.exec(
     buildDivisionSearchSyncSql([
@@ -53,7 +53,7 @@ async function fixture() {
   const tables = ['divisions', 'divisionsI18n'].map(name => ({
     name,
     ignoredColumns: ['createdAt', 'updatedAt'],
-    rowScope: { column: 'snapshotId', values: ['scope'] },
+    rowScope: { column: 'scopeId', values: ['scope'] },
   }))
   const capture = (
     append: Parameters<typeof captureRollbackDelivery>[0]['append'],
@@ -66,12 +66,12 @@ async function fixture() {
       append,
       prepare: async candidate => {
         if (remove) {
-          candidate.query("DELETE FROM divisionsI18n WHERE snapshotId='scope'").run()
-          candidate.query("DELETE FROM divisions WHERE snapshotId='scope'").run()
+          candidate.query("DELETE FROM divisionsI18n WHERE scopeId='scope'").run()
+          candidate.query("DELETE FROM divisions WHERE scopeId='scope'").run()
         } else
           candidate
             .query(
-              "UPDATE divisionsI18n SET name=?,updatedAt='changed' WHERE snapshotId='scope' AND locale='en'",
+              "UPDATE divisionsI18n SET name=?,updatedAt='changed' WHERE scopeId='scope' AND locale='en'",
             )
             .run(change)
         const guard = {
@@ -137,9 +137,7 @@ test('rollback emits one locale change, gates interrupted reads, restores FTS an
     expect(result.mutationSummary.tables.DB_CURRENT?.divisions?.updated).toBe(0)
     expect(
       f.current
-        .query(
-          "SELECT name FROM divisionsI18n WHERE locale='en' AND snapshotId='scope'",
-        )
+        .query("SELECT name FROM divisionsI18n WHERE locale='en' AND scopeId='scope'")
         .get(),
     ).toEqual({ name: 'New term' })
     for (const [index, batch] of batches.entries()) {
@@ -219,9 +217,7 @@ test('rollback refuses stale owners before any content mutation', async () => {
     expect(() => run(f.current, batches[1]!.statements)).toThrow()
     expect(
       f.current
-        .query(
-          "SELECT name FROM divisionsI18n WHERE locale='en' AND snapshotId='scope'",
-        )
+        .query("SELECT name FROM divisionsI18n WHERE locale='en' AND scopeId='scope'")
         .get(),
     ).toEqual({ name: 'New term' })
   } finally {
@@ -246,7 +242,7 @@ test('first-release rollback removes only its owned scope and search documents',
     for (const batch of batches)
       run(batch.binding === 'DB_CURRENT' ? f.current : f.meta, batch.statements)
     expect(
-      f.current.query("SELECT 1 FROM divisions WHERE snapshotId='scope'").get(),
+      f.current.query("SELECT 1 FROM divisions WHERE scopeId='scope'").get(),
     ).toBeNull()
     expect(f.current.query('SELECT scopeId FROM divisionSearchFts').all()).toEqual([
       { scopeId: 'other-search' },

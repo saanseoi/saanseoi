@@ -140,7 +140,7 @@ test.each(['scope-a', 'scope-b'] as const)(
       ].map(table =>
         current
           .query<Record<string, unknown>, []>(
-            `SELECT * FROM ${table} WHERE snapshotId='scope-a'`,
+            `SELECT * FROM ${table} WHERE scopeId='scope-a'`,
           )
           .all(),
       )
@@ -152,7 +152,7 @@ test.each(['scope-a', 'scope-b'] as const)(
       expect(originalComponents.map(rows => rows.length)).toEqual([1, 2, 1])
       expect(
         current
-          .query("SELECT count(*) AS n FROM address2d WHERE snapshotId='scope-b'")
+          .query("SELECT count(*) AS n FROM address2d WHERE scopeId='scope-b'")
           .get(),
       ).toEqual({ n: 0 })
       const owners = await publish('scope-b', 'b-first', [])
@@ -161,13 +161,13 @@ test.each(['scope-a', 'scope-b'] as const)(
       expect(components(next).map(rows => rows.length)).toEqual([1, 2, 1])
       expect(
         ['address2d', 'address2dI18n', 'address2dBuildingNumberLookup'].map(table =>
-          current.query(`SELECT * FROM ${table} WHERE snapshotId='scope-b'`).all(),
+          current.query(`SELECT * FROM ${table} WHERE scopeId='scope-b'`).all(),
         ),
       ).toEqual(
         originalCurrent.map(rows =>
           rows.map(row => ({
             ...row,
-            snapshotId: 'scope-b',
+            scopeId: 'scope-b',
             createdAt: '2026-01-21T00:00:00Z',
             updatedAt: '2026-01-21T00:00:00Z',
           })),
@@ -206,8 +206,8 @@ test.each(['scope-a', 'scope-b'] as const)(
           )
           .get(`${firstOwner}-empty`),
       ).toEqual({ n: 4 })
-      expect(current.query('SELECT snapshotId FROM address2d').all()).toEqual([
-        { snapshotId: lastOwner },
+      expect(current.query('SELECT scopeId FROM address2d').all()).toEqual([
+        { scopeId: lastOwner },
       ])
       await publish(lastOwner, `${lastOwner}-empty`, priorSnapshots[lastOwner], [])
       expect(components(old)).toEqual(originalComponents)

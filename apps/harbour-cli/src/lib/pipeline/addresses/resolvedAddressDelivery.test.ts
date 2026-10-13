@@ -265,8 +265,8 @@ test('combined Address planning seals only final changes and rejects incomplete 
         for (const row of payload.rows)
           opened[payload.binding]!.query(row.sql).run(...row.params)
       })()
-    expect(current.query('SELECT snapshotId,id FROM address2d').all()).toEqual([
-      { snapshotId: 'scope', id: 'a' },
+    expect(current.query('SELECT scopeId,id FROM address2d').all()).toEqual([
+      { scopeId: 'scope', id: 'a' },
     ])
     expect(history.query('SELECT count(*) AS n FROM address2d').get()).toEqual({ n: 1 })
     expect(source.query('SELECT isCurrent FROM hkgovAlsAddresses2d').get()).toEqual({
@@ -413,9 +413,9 @@ test('combined Address planning seals only final changes and rejects incomplete 
       }),
     ).rejects.toThrow('reviewed canonical membership')
     expect(appended).toBe(0)
-    current.exec(`INSERT INTO address3d(snapshotId,id,address2dId,contentHash,unitCount,units,unresolvedSectionIds,sources)
+    current.exec(`INSERT INTO address3d(scopeId,id,address2dId,contentHash,unitCount,units,unresolvedSectionIds,sources)
       VALUES('scope','inventory','a','hash',1,'[{"id":"unit"}]','[]','[]');
-      INSERT INTO address3dI18n(snapshotId,address3dId,locale,units) VALUES('scope','inventory','en','{"unit":{}}');`)
+      INSERT INTO address3dI18n(scopeId,address3dId,locale,units) VALUES('scope','inventory','en','{"unit":{}}');`)
     expect(() => validateResolvedAddressProjection(current, 'scope', 1)).toThrow(
       'incomplete Address3D',
     )

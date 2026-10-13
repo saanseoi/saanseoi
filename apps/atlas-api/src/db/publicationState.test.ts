@@ -98,7 +98,7 @@ for (const family of families) {
     try {
       sqlite.exec(`CREATE TABLE ${table}(scopeId TEXT PRIMARY KEY,snapshotId TEXT UNIQUE,status TEXT,publicationToken TEXT,preparedAt TEXT,updatedAt TEXT);
         INSERT INTO ${table} VALUES ('stable-scope','first','current','first-token','prepared','updated');
-        CREATE TABLE places(snapshotId TEXT,id TEXT);
+        CREATE TABLE places(scopeId TEXT,id TEXT);
         INSERT INTO places VALUES ('stable-scope','unchanged');`)
       const read = (snapshotId: string) =>
         db

@@ -20,7 +20,7 @@ describe('official address reset ownership', () => {
     try {
       for (const table of ['address2d', 'divisions']) {
         db.exec(
-          `CREATE TABLE ${table}(snapshotId TEXT); INSERT INTO ${table} VALUES ('owned-scope'), ('other-scope');`,
+          `CREATE TABLE ${table}(scopeId TEXT); INSERT INTO ${table} VALUES ('owned-scope'), ('other-scope');`,
         )
       }
       for (const table of ['addressPublicationState', 'divisionPublicationState']) {
@@ -30,10 +30,10 @@ describe('official address reset ownership', () => {
       }
       db.exec(buildOfficialAddressCurrentResetSql(['owned-scope'], ['owned-scope']))
       expect(db.query('SELECT * FROM address2d').all()).toEqual([
-        { snapshotId: 'other-scope' },
+        { scopeId: 'other-scope' },
       ])
       expect(db.query('SELECT * FROM divisions').all()).toEqual([
-        { snapshotId: 'other-scope' },
+        { scopeId: 'other-scope' },
       ])
       for (const table of ['addressPublicationState', 'divisionPublicationState'])
         expect(db.query(`SELECT * FROM ${table}`).all()).toEqual([

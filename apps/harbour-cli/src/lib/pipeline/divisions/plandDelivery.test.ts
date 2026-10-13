@@ -126,7 +126,7 @@ test('Planning copies isolate failed preparation and resume partial delivery wit
         await completeSnapshotPublication(
           copy.currentDb,
           publication,
-          "(SELECT count(*) FROM divisions WHERE snapshotId='snapshot')=1",
+          "(SELECT count(*) FROM divisions WHERE scopeId='snapshot')=1",
         )
         clients.DB_HISTORY.exec(
           "CREATE TRIGGER fail BEFORE INSERT ON divisions BEGIN SELECT RAISE(ABORT, 'delivery interrupted'); END",
@@ -151,9 +151,9 @@ test('Planning copies isolate failed preparation and resume partial delivery wit
     ).toEqual({ n: 1 })
     expect(
       clients.DB_CURRENT.query(
-        'SELECT id, snapshotId, typeof(geometry) AS encoding FROM divisions',
+        'SELECT id, scopeId, typeof(geometry) AS encoding FROM divisions',
       ).all(),
-    ).toEqual([{ id: 'planning-test', snapshotId: 'snapshot', encoding: 'blob' }])
+    ).toEqual([{ id: 'planning-test', scopeId: 'snapshot', encoding: 'blob' }])
   } finally {
     for (const db of Object.values(clients)) db.close()
     await rm(root, { recursive: true, force: true })

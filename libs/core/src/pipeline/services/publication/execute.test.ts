@@ -23,7 +23,7 @@ const receipt = {
 function database() {
   const client = new Database(':memory:')
   client.exec(
-    'CREATE TABLE divisions(id TEXT PRIMARY KEY, snapshotId TEXT); CREATE TABLE divisionPublicationState(scopeId TEXT PRIMARY KEY, snapshotId TEXT UNIQUE NOT NULL, publicationToken TEXT, status TEXT, preparedAt TEXT, createdAt TEXT, updatedAt TEXT);',
+    'CREATE TABLE divisions(id TEXT PRIMARY KEY, scopeId TEXT); CREATE TABLE divisionPublicationState(scopeId TEXT PRIMARY KEY, snapshotId TEXT UNIQUE NOT NULL, publicationToken TEXT, status TEXT, preparedAt TEXT, createdAt TEXT, updatedAt TEXT);',
   )
   return { client, db: drizzle({ client }) }
 }
@@ -43,7 +43,7 @@ test('fluent and awaited Drizzle mutations enforce the preparation owner', async
   ).rejects.toThrow()
   expect(
     client
-      .query('SELECT count(*) AS count FROM divisions WHERE snapshotId = ?')
+      .query('SELECT count(*) AS count FROM divisions WHERE scopeId = ?')
       .get('snapshot'),
   ).toEqual({ count: 2 })
   client.close()

@@ -48,7 +48,7 @@ function fixture() {
     CREATE TABLE apiReleaseSetSnapshots(apiReleaseSetId TEXT,snapshotId TEXT);
     CREATE TABLE divisionAreaPublicationState(scopeId TEXT PRIMARY KEY,snapshotId TEXT UNIQUE NOT NULL,
       status TEXT,publicationToken TEXT,preparedAt TEXT);
-    CREATE TABLE divisionAreas(snapshotId TEXT,id TEXT,PRIMARY KEY(snapshotId,id));
+    CREATE TABLE divisionAreas(scopeId TEXT,id TEXT,PRIMARY KEY(scopeId,id));
     INSERT INTO publishers VALUES ('publisher','hkgov-pland');
     INSERT INTO datasets VALUES ('geometry','publisher','ds-hk-hkgov-pland-division-new-town','hk','new-town');
     INSERT INTO sourceReleases VALUES ('geometry','geometry');

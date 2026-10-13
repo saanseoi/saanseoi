@@ -170,7 +170,7 @@ async function fixture(
         await c
           .insert(currentSchema.address2d)
           .values({
-            snapshotId: id,
+            scopeId: id,
             divisionSnapshotId: `divisions-${cohort}`,
             id: 'address',
             granularity: 'building',
@@ -180,7 +180,7 @@ async function fixture(
         await c
           .insert(currentSchema.address2dI18n)
           .values({
-            snapshotId: id,
+            scopeId: id,
             addressId: 'address',
             locale: 'en',
             formattedAddress: cohort === '2025-01-01.0' ? 'Old Harbour' : 'New Harbour',
@@ -205,7 +205,7 @@ async function fixture(
         await c
           .insert(currentSchema.divisions)
           .values({
-            snapshotId: id,
+            scopeId: id,
             id: 'division',
             class: 'village',
             category: 'locality',
@@ -216,7 +216,7 @@ async function fixture(
         await c
           .insert(currentSchema.divisionsI18n)
           .values({
-            snapshotId: id,
+            scopeId: id,
             divisionId: 'division',
             locale: 'en',
             isLocaleInferred: false,

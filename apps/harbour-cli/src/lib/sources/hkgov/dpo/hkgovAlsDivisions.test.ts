@@ -37,13 +37,13 @@ INSERT INTO snapshots (id, snapshotLineageId, status, cohortKey, revision) VALUE
 ('revision-1', 'division-scope', 'published', '2026-09', 1),
 ('revision-2', 'division-scope', 'published', '2026-09', 2),
 ('area', 'area-scope', 'published', '2026-09', 1);`)
-    current.exec(`CREATE TABLE divisionAreas(snapshotId TEXT, divisionId TEXT, geometry TEXT);
+    current.exec(`CREATE TABLE divisionAreas(scopeId TEXT, divisionId TEXT, geometry TEXT);
       CREATE TABLE divisionAreaPublicationState(scopeId TEXT,snapshotId TEXT,preparedAt TEXT,publicationToken TEXT);
       INSERT INTO divisionAreaPublicationState VALUES ('area-scope','area','ready','release');
       CREATE TABLE divisionPublicationState(scopeId TEXT,snapshotId TEXT,preparedAt TEXT,publicationToken TEXT);
       INSERT INTO divisionPublicationState VALUES ('division-scope','revision-2','ready','release-2');
-      CREATE TABLE divisions(snapshotId TEXT,id TEXT,level INTEGER,category TEXT,class TEXT,hierarchies TEXT);
-      CREATE TABLE divisionsI18n(snapshotId TEXT,divisionId TEXT,locale TEXT,name TEXT);
+      CREATE TABLE divisions(scopeId TEXT,id TEXT,level INTEGER,category TEXT,class TEXT,hierarchies TEXT);
+      CREATE TABLE divisionsI18n(scopeId TEXT,divisionId TEXT,locale TEXT,name TEXT);
       INSERT INTO divisions VALUES ('division-scope','hk',0,'land','country',NULL),('division-scope','central',2,'land','district',NULL);
       INSERT INTO divisionsI18n VALUES ('division-scope','hk','en','China'),('division-scope','central','en','Central and Western');`)
     const options = {
