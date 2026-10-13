@@ -1,7 +1,13 @@
 {
-  "versionHash": "sha256:0cf20521fbfe594e4e772ae3915ab01862b2703c7d1d3f44a72c5661b03a5737",
+  "versionHash": "sha256:dc096fe2eac4c87e3692a3f9017c7dc4eb986003fa76caa0261cfa0ef93c036a",
   "domainCode": "geographic",
   "assignments": [
+    {
+      "divisionCode": "PRC",
+      "canonicalId": "fb68fc73-3ac6-41c9-a692-22fcf20cb5be",
+      "divisionClass": "country",
+      "divisionCategory": "administrative"
+    },
     {
       "divisionCode": "HKSAR",
       "canonicalId": "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
