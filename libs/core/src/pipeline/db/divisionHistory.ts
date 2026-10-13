@@ -100,7 +100,6 @@ export async function planDivisionHistoryChanges(input: {
       ...content,
       versionHash: await createHash(content),
       createdAt: timestamp,
-      updatedAt: timestamp,
     })
   }
   for (const prior of previousLocales.values()) {

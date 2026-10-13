@@ -29,7 +29,6 @@ describe('resolveSnapshotVersionState', () => {
           operation: 'upsert',
           sourceReleaseId: 'parent-release',
           createdAt: '2026-05-20T00:00:00.000Z',
-          updatedAt: '2026-05-20T00:00:00.000Z',
         },
         {
           snapshotId: 'parent-snapshot',
@@ -40,7 +39,6 @@ describe('resolveSnapshotVersionState', () => {
           operation: 'upsert',
           sourceReleaseId: 'parent-release',
           createdAt: '2026-05-20T00:00:00.000Z',
-          updatedAt: '2026-05-20T00:00:00.000Z',
         },
         {
           snapshotId: 'target-snapshot',
@@ -51,7 +49,6 @@ describe('resolveSnapshotVersionState', () => {
           operation: 'upsert',
           sourceReleaseId: 'target-release',
           createdAt: '2026-06-17T00:00:00.000Z',
-          updatedAt: '2026-06-17T00:00:00.000Z',
         },
       ])
       .run()

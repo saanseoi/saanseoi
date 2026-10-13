@@ -123,7 +123,6 @@ type CurrentAddressVersionLookupRow = Pick<
   | 'granularity'
   | 'landformId'
   | 'areaId'
-  | 'bbox'
   | 'countryId'
   | 'createdAt'
   | 'districtId'
@@ -138,7 +137,6 @@ type CurrentAddressVersionLookupRow = Pick<
   | 'sources'
   | 'streetId'
   | 'townId'
-  | 'updatedAt'
   | 'versionHash'
   | 'villageId'
 >
@@ -217,9 +215,7 @@ function selectCurrentAddressVersionFields() {
     createdAt: historySchema.address2d.createdAt,
     geometry: historySchema.address2d.geometry,
     identifiers: historySchema.address2d.identifiers,
-    bbox: historySchema.address2d.bbox,
     sources: historySchema.address2d.sources,
-    updatedAt: historySchema.address2d.updatedAt,
     versionHash: historySchema.address2d.versionHash,
   }
 }
@@ -608,7 +604,6 @@ export async function cloneAddressCurrentSnapshot(
             parentAddressId: currentSchema.address2d.parentAddressId,
             granularity: currentSchema.address2d.granularity,
             geometry: currentSchema.address2d.geometry,
-            bbox: currentSchema.address2d.bbox,
             createdAt: sql<string>`${clonedAt}`,
             updatedAt: sql<string>`${clonedAt}`,
           })
@@ -775,7 +770,6 @@ export async function upsertAddressCurrentStates(
             countryId: excluded('countryId'),
             geometry: excluded('geometry'),
             identifiers: excluded('identifiers'),
-            bbox: excluded('bbox'),
             sources: excluded('sources'),
             parentAddressId: excluded('parentAddressId'),
             granularity: excluded('granularity'),
@@ -990,7 +984,6 @@ export async function insertAddressVersionRows(
       isCurrent: boolean
       versionHash: string
       createdAt: string
-      updatedAt: string
     }
   >,
   lookupRows: Parameters<
@@ -1027,13 +1020,11 @@ export async function insertAddressVersionRows(
             areaId: row.areaId,
             countryId: row.countryId,
             geometry: row.geometry,
-            bbox: row.bbox,
             identifiers: row.identifiers,
             sources: row.sources,
             parentAddressId: row.parentAddressId,
             granularity: row.granularity,
-            createdAt: row.createdAt,
-            updatedAt: row.updatedAt,
+            createdAt: row.updatedAt ?? row.createdAt,
           })),
         )
         .onConflictDoNothing({
@@ -1058,7 +1049,6 @@ async function insertAddressBuildingNumberLookupVersionsInChunks(
       isCurrent: boolean
       versionHash: string
       createdAt: string
-      updatedAt: string
     }
   >,
 ) {
@@ -1139,7 +1129,6 @@ async function insertAddressVersionsI18nInChunks(
       isCurrent: boolean
       versionHash: string
       createdAt: string
-      updatedAt: string
     }
   >,
 ) {

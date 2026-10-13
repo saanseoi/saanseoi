@@ -74,15 +74,15 @@ export const apiProfileDocumentationByFamily = {
     map: {
       en: {
         useCase: 'drawing or fitting address markers',
-        coverage: 'default fields plus point geometry and bounding box',
+        coverage: 'default fields plus point geometry',
       },
       'zh-Hant': {
         useCase: '繪製或縮放地址標記',
-        coverage: '預設欄位，加上點幾何及邊界框',
+        coverage: '預設欄位，加上點幾何',
       },
       'zh-Hans': {
         useCase: '绘制或缩放地址标记',
-        coverage: '默认字段，加上点几何及边界框',
+        coverage: '默认字段，加上点几何',
       },
     },
     full: {

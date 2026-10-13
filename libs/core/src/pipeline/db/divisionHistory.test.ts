@@ -280,9 +280,9 @@ test('core Division writes inherit unchanged base/locales and close only changed
     expect(
       data
         .client('old')
-        .query('SELECT isCurrent,sourceReleaseId,updatedAt FROM divisions')
+        .query('SELECT isCurrent,sourceReleaseId,createdAt FROM divisions')
         .get(),
-    ).toEqual({ isCurrent: 1, sourceReleaseId: 'release-first', updatedAt: timestamp })
+    ).toEqual({ isCurrent: 1, sourceReleaseId: 'release-first', createdAt: timestamp })
     expect(
       data
         .client('old')
@@ -306,7 +306,11 @@ test('core Division writes inherit unchanged base/locales and close only changed
     const translatedPlan = [...same, step('translated', 'same', 'new')]
     const revised = {
       ...translated,
-      base: { ...translated.base, identifiers: { publisher: 'revised' } },
+      base: {
+        ...translated.base,
+        createdAt: timestamp,
+        identifiers: { publisher: 'revised' },
+      },
     }
     expect(
       await data.write({
@@ -319,6 +323,12 @@ test('core Division writes inherit unchanged base/locales and close only changed
     expect(
       data.client('new').query('SELECT count(*) AS count FROM divisionsI18n').get(),
     ).toEqual({ count: 1 })
+    expect(
+      data
+        .client('new')
+        .query("SELECT createdAt FROM divisions WHERE snapshotId='base-change'")
+        .get(),
+    ).toEqual({ createdAt: updated })
     const revisedPlan = [...translatedPlan, step('base-change', 'translated', 'new')]
     const baseline = await data.parent(revisedPlan)
     expect(baseline.components.get(divisionHistoryKey('a'))?.shard.bindingName).toBe(

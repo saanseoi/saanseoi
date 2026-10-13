@@ -84,7 +84,7 @@ test('supplementary replay retains source attribution without an evidence table'
   try {
     const sources = [
       {
-        publisherCode: 'overture',
+        publisher: 'overture',
         dataset: 'ds-hk-overture-place',
         recordId: 'place-a',
       },

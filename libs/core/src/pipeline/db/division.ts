@@ -571,7 +571,6 @@ export async function insertDivisionVersionRows(
     } & {
       versionHash: string
       createdAt: string
-      updatedAt: string
     }
   >,
   options?: {
@@ -605,8 +604,7 @@ export async function insertDivisionVersionRows(
         identifiers: row.identifiers,
         cartography: row.cartography,
         sources: row.sources,
-        createdAt: row.createdAt,
-        updatedAt: row.updatedAt,
+        createdAt: row.updatedAt ?? row.createdAt,
       })),
     )
 
@@ -638,7 +636,6 @@ export async function insertDivisionVersionRows(
         isCurrent: true,
         versionHash: row.versionHash,
         createdAt: row.createdAt,
-        updatedAt: row.updatedAt,
       })),
       options,
     )
@@ -710,7 +707,6 @@ async function insertDivisionVersionsI18nInChunks(
     isCurrent: boolean
     versionHash: string
     createdAt: string
-    updatedAt: string
   }>,
   options?: {
     assumeVersionRowsAbsent?: boolean

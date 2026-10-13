@@ -57,7 +57,6 @@ export async function recordHistoryDeletions(
             sourceReleaseId: args.sourceReleaseId ?? null,
             isCurrent: false,
             createdAt: now,
-            updatedAt: now,
           }
         }),
       )
