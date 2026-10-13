@@ -12,7 +12,7 @@ export function assertAddressProjectionMembership(
   const addressRows = db.prepare<
     { id: string; parentAddressId: string | null; granularity: string },
     [string]
-  >('SELECT id,parentAddressId,granularity FROM address2d WHERE snapshotId=?')
+  >('SELECT id,parentAddressId,granularity FROM address2d WHERE scopeId=?')
   try {
     for (const row of addressRows.iterate(scopeId)) {
       const expected = addresses.get(row.id)
@@ -39,9 +39,7 @@ export function assertAddressProjectionMembership(
   const collectionRows = db.prepare<
     { id: string; address2dId: string; units: string; unresolvedSectionIds: string },
     [string]
-  >(
-    'SELECT id,address2dId,units,unresolvedSectionIds FROM address3d WHERE snapshotId=?',
-  )
+  >('SELECT id,address2dId,units,unresolvedSectionIds FROM address3d WHERE scopeId=?')
   try {
     for (const row of collectionRows.iterate(scopeId)) {
       const expected = collections.get(row.id)

@@ -170,7 +170,7 @@ export async function buildPlaceSql(
       )
     }
     currentInserts.add('places', {
-      snapshotId: scopeId,
+      scopeId,
       id: place.id,
       resourceReleaseId: unchanged
         ? previous.row.resourceReleaseId
@@ -208,7 +208,7 @@ export async function buildPlaceSql(
         h3Level,
         h3Cell: latLngToCell(lat, lng, h3Level),
       }))
-    const rowScope = `snapshotId = ${lit(scopeId)}`
+    const rowScope = `scopeId = ${lit(scopeId)}`
     currentSql.push(
       `DELETE FROM placesI18n WHERE ${rowScope} AND placeId = ${lit(place.id)}${place.i18n.length ? ` AND locale NOT IN (${place.i18n.map(row => lit(row.locale)).join(',')})` : ''};`,
     )
@@ -216,12 +216,12 @@ export async function buildPlaceSql(
       `DELETE FROM placesCells WHERE ${rowScope} AND id = ${lit(place.id)}${projectedCells.length ? ` AND NOT (${projectedCells.map(cell => `(h3Level = ${cell.h3Level} AND h3Cell = ${lit(cell.h3Cell)})`).join(' OR ')})` : ''};`,
     )
     currentSql.push(
-      `DELETE FROM placesDivision WHERE placeSnapshotId = ${lit(scopeId)} AND placeId = ${lit(place.id)}${row.divisionIds.length ? ` AND divisionId NOT IN (${row.divisionIds.map(lit).join(',')})` : ''};`,
+      `DELETE FROM placesDivision WHERE placeScopeId = ${lit(scopeId)} AND placeId = ${lit(place.id)}${row.divisionIds.length ? ` AND divisionId NOT IN (${row.divisionIds.map(lit).join(',')})` : ''};`,
     )
     for (const { h3Level, h3Cell } of projectedCells) {
       publicationCounts.cells += 1
       currentInserts.add('placesCells', {
-        snapshotId: scopeId,
+        scopeId,
         id: place.id,
         h3Level,
         h3Cell,
@@ -238,7 +238,7 @@ export async function buildPlaceSql(
         (await placeLocaleHash(localised, searchDependencyText))
       publicationCounts.localisedRows += 1
       currentInserts.add('placesI18n', {
-        snapshotId: scopeId,
+        scopeId,
         placeId: place.id,
         locale: localised.locale,
         name: localised.name,
@@ -302,7 +302,7 @@ export async function buildPlaceSql(
           : input.snapshots.divisionSnapshotId
       publicationCounts.divisionLinks += 1
       currentInserts.add('placesDivision', {
-        placeSnapshotId: scopeId,
+        placeScopeId: scopeId,
         placeId: place.id,
         divisionSnapshotId,
         divisionId,
@@ -385,7 +385,7 @@ export async function buildPlaceSql(
       ...(options.seenPlaceIds ?? new Set(input.places.map(row => row.place.id))),
     ]))
       currentSql.push(
-        `DELETE FROM places WHERE snapshotId = ${lit(scopeId)} AND ${predicate};`,
+        `DELETE FROM places WHERE scopeId = ${lit(scopeId)} AND ${predicate};`,
       )
     for (const sourceRecordId of input.sourceRows?.keys() ?? []) {
       if (seenSourceIds.has(sourceRecordId)) continue

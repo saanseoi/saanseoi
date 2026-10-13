@@ -315,7 +315,7 @@ async function prepareSupplementaryAddressesLocked(
     | 'macrohoodId'
     | 'microhoodId'
     | 'neighbourhoodId'
-    | 'snapshotId'
+    | 'scopeId'
     | 'townId'
     | 'villageId'
   >[]

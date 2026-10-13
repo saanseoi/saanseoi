@@ -20,7 +20,7 @@ export async function validateAddress3dOwners(
     const ids = [...new Set(pending.map(requirement => requirement.id))]
     const rows = await execute('current', [
       {
-        sql: `SELECT id,parentAddressId FROM address2d WHERE snapshotId = ? AND id IN (${ids.map(() => '?').join(',')});`,
+        sql: `SELECT id,parentAddressId FROM address2d WHERE scopeId = ? AND id IN (${ids.map(() => '?').join(',')});`,
         params: [snapshotId, ...ids],
       },
     ])

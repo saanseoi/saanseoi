@@ -179,14 +179,14 @@ export async function coalesceDivisionHistory(input: {
       } else {
         for (const table of ['divisions', 'divisionsI18n'])
           for (const row of baseline
-            .query<Row, [string]>(`SELECT * FROM ${quote(table)} WHERE snapshotId=?`)
+            .query<Row, [string]>(`SELECT * FROM ${quote(table)} WHERE scopeId=?`)
             .iterate(receipt.scopeId))
             replace(
               selectedBaseline,
               table,
               table === 'divisions'
-                ? ['snapshotId', 'id']
-                : ['snapshotId', 'divisionId', 'locale'],
+                ? ['scopeId', 'id']
+                : ['scopeId', 'divisionId', 'locale'],
               row,
             )
       }
@@ -229,7 +229,7 @@ export async function coalesceDivisionHistory(input: {
         if (parentSnapshotId && parentSnapshotId === previous?.snapshotId) {
           for (const row of selectedBaseline
             .query<Row, [string]>(
-              `SELECT * FROM ${quote(policy.table)} WHERE snapshotId=?`,
+              `SELECT * FROM ${quote(policy.table)} WHERE scopeId=?`,
             )
             .all(receipt.scopeId)) {
             if (!priorRows.has(canonical(policy.identity.map(key => row[key]))))
@@ -250,7 +250,7 @@ export async function coalesceDivisionHistory(input: {
               if (policy.table === 'divisions')
                 current
                   .query(
-                    'UPDATE divisions SET sources=? WHERE snapshotId=? AND id=? AND sources IS NOT ?',
+                    'UPDATE divisions SET sources=? WHERE scopeId=? AND id=? AND sources IS NOT ?',
                   )
                   .run(
                     prior.sources ?? null,
@@ -269,7 +269,7 @@ export async function coalesceDivisionHistory(input: {
         for (const row of priorRows.values()) {
           const present = current
             .query(
-              `SELECT 1 FROM ${quote(policy.table)} WHERE snapshotId=? AND ${policy.identity.map(key => `${quote(key)} IS ?`).join(' AND ')}`,
+              `SELECT 1 FROM ${quote(policy.table)} WHERE scopeId=? AND ${policy.identity.map(key => `${quote(key)} IS ?`).join(' AND ')}`,
             )
             .get(receipt.scopeId, ...policy.identity.map(key => row[key] ?? null))
           if (!present)

@@ -150,7 +150,7 @@ export async function loadCurrentPlaceHistory(
   const links = await ownership.currentDb
     .select()
     .from(currentSchema.placesDivision)
-    .where(eq(currentSchema.placesDivision.placeSnapshotId, ownership.scopeId))
+    .where(eq(currentSchema.placesDivision.placeScopeId, ownership.scopeId))
     .all()
   for (const link of links) {
     const state = states.get(String(link.placeId))

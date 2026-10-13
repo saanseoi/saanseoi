@@ -43,7 +43,7 @@ export async function readGeometrySnapshot(
     return context.currentDb
       .select()
       .from(table)
-      .where(eq(table.snapshotId, receipt.scopeId))
+      .where(eq(table.scopeId, receipt.scopeId))
       .all()
   }
 

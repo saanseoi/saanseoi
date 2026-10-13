@@ -82,14 +82,14 @@ export async function validateResolvedPlaces(
     if (count !== totalRows)
       throw new Error('Places staged membership differs from its declared row count.')
     for (const [table, expected, columns, scopeColumn] of [
-      ['places', 'expectedPlaces', 'id', 'snapshotId'],
-      ['placesI18n', 'expectedPlaceLocales', 'placeId,locale', 'snapshotId'],
-      ['placesCells', 'expectedPlaceCells', 'id,h3Level,h3Cell', 'snapshotId'],
+      ['places', 'expectedPlaces', 'id', 'scopeId'],
+      ['placesI18n', 'expectedPlaceLocales', 'placeId,locale', 'scopeId'],
+      ['placesCells', 'expectedPlaceCells', 'id,h3Level,h3Cell', 'scopeId'],
       [
         'placesDivision',
         'expectedPlaceDivisions',
         'placeId,divisionId',
-        'placeSnapshotId',
+        'placeScopeId',
       ],
     ]) {
       const actual = `SELECT ${columns} FROM ${table} WHERE ${scopeColumn}=?`
@@ -102,7 +102,7 @@ export async function validateResolvedPlaces(
     }
     if (
       db
-        .query(`SELECT 1 FROM places p JOIN expectedPlaces e ON p.id=e.id WHERE p.snapshotId=? AND (
+        .query(`SELECT 1 FROM places p JOIN expectedPlaces e ON p.id=e.id WHERE p.scopeId=? AND (
       p.address2dId IS NOT e.address2dId OR p.address3dId IS NOT e.address3dId OR p.address3dUnitId IS NOT e.address3dUnitId
       OR p.addressDependencyHash IS NOT e.addressDependencyHash OR (p.address2dId IS NOT NULL AND p.addressSnapshotId IS NULL)) LIMIT 1`)
         .get(scopeId)
@@ -112,8 +112,8 @@ export async function validateResolvedPlaces(
       )
     if (
       db
-        .query(`SELECT 1 FROM placesI18n l JOIN places p ON p.snapshotId=l.snapshotId AND p.id=l.placeId
-      WHERE p.snapshotId=? AND p.address2dId IS NOT NULL
+        .query(`SELECT 1 FROM placesI18n l JOIN places p ON p.scopeId=l.scopeId AND p.id=l.placeId
+      WHERE p.scopeId=? AND p.address2dId IS NOT NULL
       AND (l.searchDependencyText IS NULL OR json_extract(l.searchDependencyText,'$.addressSnapshotId') IS NULL) LIMIT 1`)
         .get(scopeId)
     )
@@ -122,7 +122,7 @@ export async function validateResolvedPlaces(
       )
     if (
       db
-        .query(`SELECT 1 FROM placesI18n p JOIN expectedPlaceLocales e ON p.placeId=e.placeId AND p.locale=e.locale WHERE p.snapshotId=? AND (
+        .query(`SELECT 1 FROM placesI18n p JOIN expectedPlaceLocales e ON p.placeId=e.placeId AND p.locale=e.locale WHERE p.scopeId=? AND (
       COALESCE(json_extract(p.searchDependencyText,'$.addressText'),'') IS NOT e.addressText OR
       COALESCE(json_extract(p.searchDependencyText,'$.divisionText'),'') IS NOT e.divisionText OR
       COALESCE(json_extract(p.searchDependencyText,'$.streetText'),'') IS NOT e.streetText) LIMIT 1`)
@@ -134,7 +134,7 @@ export async function validateResolvedPlaces(
     if (
       db
         .query(`SELECT 1 FROM placesDivision p JOIN expectedPlaceDivisions e ON p.placeId=e.placeId AND p.divisionId=e.divisionId
-      WHERE p.placeSnapshotId=? AND p.definition IS NOT e.definition LIMIT 1`)
+      WHERE p.placeScopeId=? AND p.definition IS NOT e.definition LIMIT 1`)
         .get(scopeId)
     )
       throw new Error(

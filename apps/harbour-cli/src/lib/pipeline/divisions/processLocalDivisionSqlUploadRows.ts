@@ -292,13 +292,13 @@ export async function buildDivisionCurrentSqlFile(
       for (const previous of state.currentRows.get(record.id)?.localisedRows ?? []) {
         if (incomingLocales.has(previous.locale)) continue
         removedI18nStatements.push(
-          `DELETE FROM divisionsI18n WHERE snapshotId = ${sqlLiteral(scopeId)} AND divisionId = ${sqlLiteral(record.id)} AND locale = ${sqlLiteral(previous.locale)};`,
+          `DELETE FROM divisionsI18n WHERE scopeId = ${sqlLiteral(scopeId)} AND divisionId = ${sqlLiteral(record.id)} AND locale = ${sqlLiteral(previous.locale)};`,
         )
       }
 
       if (record.baseChanged) {
         baseRows.push({
-          snapshotId: scopeId,
+          scopeId: scopeId,
           id: record.id,
           divisionCode: record.base.divisionCode,
           identifiers: jsonText(record.base.identifiers),
@@ -326,7 +326,7 @@ export async function buildDivisionCurrentSqlFile(
               ),
           )
           .map(localised => ({
-            snapshotId: scopeId,
+            scopeId: scopeId,
             divisionId: record.id,
             locale: localised.locale,
             name: localised.name ?? null,
@@ -347,7 +347,7 @@ export async function buildDivisionCurrentSqlFile(
     ...buildInsertStatements(
       'divisions',
       [
-        'snapshotId',
+        'scopeId',
         'id',
         'divisionCode',
         'identifiers',
@@ -364,7 +364,7 @@ export async function buildDivisionCurrentSqlFile(
       baseRows,
       {
         suffix: `
-ON CONFLICT(snapshotId, id) DO UPDATE SET
+ON CONFLICT(scopeId, id) DO UPDATE SET
   divisionCode = excluded.divisionCode,
   identifiers = excluded.identifiers,
   level = excluded.level,
@@ -381,7 +381,7 @@ ON CONFLICT(snapshotId, id) DO UPDATE SET
     ...buildInsertStatements(
       'divisionsI18n',
       [
-        'snapshotId',
+        'scopeId',
         'divisionId',
         'locale',
         'name',
@@ -396,7 +396,7 @@ ON CONFLICT(snapshotId, id) DO UPDATE SET
       i18nRows,
       {
         suffix: `
-ON CONFLICT(snapshotId, divisionId, locale) DO UPDATE SET
+ON CONFLICT(scopeId, divisionId, locale) DO UPDATE SET
   name = excluded.name,
   nameVariant = excluded.nameVariant,
   nameAlts = excluded.nameAlts,
@@ -449,7 +449,7 @@ function _buildDeleteCurrentI18nStatements(snapshotId: string, divisionIds: stri
   return chunkArray(divisionIds, getMaxItemsPerInClause(1, 1)).map(chunk =>
     `
 DELETE FROM divisionsI18n
-WHERE snapshotId = ${sqlLiteral(snapshotId)}
+WHERE scopeId = ${sqlLiteral(snapshotId)}
   AND divisionId IN (${chunk.map(sqlLiteral).join(', ')});`.trim(),
   )
 }
@@ -468,11 +468,11 @@ function buildDeleteCurrentDivisionStatements(
     return [
       `
 DELETE FROM divisionsI18n
-WHERE snapshotId = ${sqlLiteral(snapshotId)}
+WHERE scopeId = ${sqlLiteral(snapshotId)}
   AND divisionId IN (${values});`.trim(),
       `
 DELETE FROM divisions
-WHERE snapshotId = ${sqlLiteral(snapshotId)}
+WHERE scopeId = ${sqlLiteral(snapshotId)}
   AND id IN (${values});`.trim(),
     ]
   })

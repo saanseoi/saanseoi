@@ -131,12 +131,12 @@ export async function materialiseSupplementaryAddressHistory(input: {
   // Final-difference filtering removes unchanged current locale and lookup rewrites.
   current.transaction(() => {
     for (const table of ['address2dBuildingNumberLookup', 'address2dI18n', 'address2d'])
-      current.query(`DELETE FROM ${table} WHERE snapshotId=?`).run(input.scopeId)
+      current.query(`DELETE FROM ${table} WHERE scopeId=?`).run(input.scopeId)
     for (const row of input.addresses) {
       current.exec(
         insertSql('address2d', {
           ...row.current,
-          snapshotId: input.scopeId,
+          scopeId: input.scopeId,
           ...timestamp,
           updatedAt: input.now,
         }),
@@ -145,7 +145,7 @@ export async function materialiseSupplementaryAddressHistory(input: {
         current.exec(
           insertSql('address2dI18n', {
             ...value,
-            snapshotId: input.scopeId,
+            scopeId: input.scopeId,
             ...timestamp,
             updatedAt: input.now,
           }),
@@ -154,7 +154,7 @@ export async function materialiseSupplementaryAddressHistory(input: {
         current.exec(
           insertSql('address2dBuildingNumberLookup', {
             ...lookup,
-            snapshotId: input.scopeId,
+            scopeId: input.scopeId,
             ...timestamp,
             updatedAt: input.now,
           }),

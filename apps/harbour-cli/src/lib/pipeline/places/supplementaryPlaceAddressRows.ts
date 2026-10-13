@@ -37,7 +37,7 @@ type AddressDivisionReference = Pick<
   | 'macrohoodId'
   | 'microhoodId'
   | 'neighbourhoodId'
-  | 'snapshotId'
+  | 'scopeId'
   | 'townId'
   | 'villageId'
 >
@@ -129,7 +129,7 @@ export async function buildSupplementaryAddressRows(input: {
       lookups,
       current: {
         ...canonical,
-        snapshotId: input.snapshotId,
+        scopeId: input.snapshotId,
         divisionSnapshotId: base?.divisionSnapshotId ?? input.divisionSnapshotId,
         streetSnapshotId: null,
       },
@@ -179,8 +179,8 @@ export async function assertSupplementaryAddressRows(
           Object.fromEntries(
             Object.keys(wanted).map(key => [
               key,
-              key === 'snapshotId'
-                ? row.current.snapshotId
+              key === 'scopeId'
+                ? row.current.scopeId
                 : (actual as Record<string, unknown>)[key],
             ]),
           ),

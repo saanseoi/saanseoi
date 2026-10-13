@@ -655,7 +655,7 @@ async function materialiseDivisionSnapshotForAddressRelease(
           rows.map(row => ({
             ...row,
             createdAt: now,
-            snapshotId: snapshot.id,
+            scopeId: snapshot.id,
             updatedAt: now,
           })),
         )
@@ -669,7 +669,7 @@ async function materialiseDivisionSnapshotForAddressRelease(
           rows.map(row => ({
             ...row,
             createdAt: now,
-            snapshotId: snapshot.id,
+            scopeId: snapshot.id,
             updatedAt: now,
           })),
         )
@@ -694,7 +694,7 @@ async function loadReplayedDivisionRows(versions: ResolvedSnapshotVersion[]) {
   const rows: Array<
     Omit<
       typeof currentSchema.divisions.$inferSelect,
-      'snapshotId' | 'createdAt' | 'updatedAt'
+      'scopeId' | 'createdAt' | 'updatedAt'
     > & { versionHash: string }
   > = []
 
@@ -740,7 +740,7 @@ async function loadReplayedDivisionI18nRows(versions: ResolvedSnapshotVersion[])
   const rows: Array<
     Omit<
       typeof currentSchema.divisionsI18n.$inferSelect,
-      'snapshotId' | 'createdAt' | 'updatedAt'
+      'scopeId' | 'createdAt' | 'updatedAt'
     > & { versionHash: string }
   > = []
 

@@ -58,9 +58,7 @@ export async function prepareAddressMembershipBaseline(input: {
       )
     const ids = new Set(
       db
-        .query<{ id: string }, [string]>(
-          'SELECT id FROM address2d WHERE snapshotId = ?',
-        )
+        .query<{ id: string }, [string]>('SELECT id FROM address2d WHERE scopeId = ?')
         .all(input.scopeId)
         .map(row => row.id),
     )
@@ -74,7 +72,7 @@ export async function prepareAddressMembershipBaseline(input: {
     const collections = new Map(
       db
         .query<{ id: string; address2dId: string; units: string }, [string]>(
-          'SELECT id,address2dId,units FROM address3d WHERE snapshotId=?',
+          'SELECT id,address2dId,units FROM address3d WHERE scopeId=?',
         )
         .all(input.scopeId)
         .map(row => [row.id, row]),

@@ -217,7 +217,7 @@ export async function writeGeometryRows(
   for (const ids of chunkArray(removedCurrentIds, getMaxItemsPerInClause(1, 1))) {
     await context.currentDb
       .delete(currentTable)
-      .where(and(eq(currentTable.snapshotId, scopeId), inArray(currentTable.id, ids)))
+      .where(and(eq(currentTable.scopeId, scopeId), inArray(currentTable.id, ids)))
       .run()
   }
   const churn = createGeometryChurnCounts(rows, historyHashes, previousById, {
@@ -309,7 +309,7 @@ export async function writeGeometryRows(
       ? parentRows
       : []
   const currentRowsById = new Map<string, Record<string, unknown>>(
-    inheritedCurrentRows.map(row => [row.id, { ...row, snapshotId: scopeId }]),
+    inheritedCurrentRows.map(row => [row.id, { ...row, scopeId: scopeId }]),
   )
   const materialisedGeometryById = new Map<string, unknown>()
   if (!version.skipCanonicalMaterialisation) {
@@ -333,7 +333,7 @@ export async function writeGeometryRows(
     for (const row of rows.map(row => ({
       ...row.canonical,
       geometry: requireMaterialisedGeometry(materialisedGeometryById, row.canonical.id),
-      snapshotId: scopeId,
+      scopeId: scopeId,
       createdAt: now,
       updatedAt: now,
     }))) {
@@ -434,7 +434,7 @@ export async function writeGeometryRows(
       .insert(currentTable)
       .values(chunk as never)
       .onConflictDoUpdate({
-        target: [currentTable.snapshotId, currentTable.id],
+        target: [currentTable.scopeId, currentTable.id],
         set: {
           ...(resourceType === 'divisionArea'
             ? { divisionId: sql`excluded.divisionId` }

@@ -115,7 +115,7 @@ export function coalesceAddressHistory(input: {
         if (policy.table === 'address2d')
           input.candidates
             .DB_CURRENT!.db.query(
-              'UPDATE address2d SET sources=? WHERE snapshotId=? AND id=?',
+              'UPDATE address2d SET sources=? WHERE scopeId=? AND id=?',
             )
             .run(prior.row.sources ?? null, input.scopeId, row.id!)
       }

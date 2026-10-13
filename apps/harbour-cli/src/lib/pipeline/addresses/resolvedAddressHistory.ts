@@ -26,20 +26,20 @@ export function closeResolvedAddressHistory(input: {
     const present =
       prior.recordType === 'address2d'
         ? current
-            .query('SELECT 1 FROM address2d WHERE snapshotId=? AND id=?')
+            .query('SELECT 1 FROM address2d WHERE scopeId=? AND id=?')
             .get(input.scopeId, prior.recordId)
         : prior.recordType === 'address2dBuildingNumberLookup'
           ? (() => {
               const [addressId, buildingNumber] = JSON.parse(prior.recordId)
               return current
                 .query(
-                  'SELECT 1 FROM address2dBuildingNumberLookup WHERE snapshotId=? AND addressId=? AND buildingNumber=?',
+                  'SELECT 1 FROM address2dBuildingNumberLookup WHERE scopeId=? AND addressId=? AND buildingNumber=?',
                 )
                 .get(input.scopeId, addressId, buildingNumber)
             })()
           : current
               .query(
-                'SELECT 1 FROM address2dI18n WHERE snapshotId=? AND addressId=? AND locale=?',
+                'SELECT 1 FROM address2dI18n WHERE scopeId=? AND addressId=? AND locale=?',
               )
               .get(input.scopeId, prior.recordId, prior.locale)
     if (!present)

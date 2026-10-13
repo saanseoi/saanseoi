@@ -110,8 +110,8 @@ export async function loadDivisionLookupMaps(
       'current',
       `
       SELECT p.snapshotId,d.id,d.level,d.class,d.hierarchies,di.locale,di.name
-      FROM divisions d JOIN divisionPublicationState p ON p.scopeId=d.snapshotId
-      JOIN divisionsI18n di ON di.snapshotId=d.snapshotId AND di.divisionId=d.id
+      FROM divisions d JOIN divisionPublicationState p ON p.scopeId=d.scopeId
+      JOIN divisionsI18n di ON di.scopeId=d.scopeId AND di.divisionId=d.id
       WHERE p.snapshotId=${sqlLiteral(snapshot.id)} AND p.preparedAt IS NOT NULL AND p.publicationToken<>''`,
     )
   }
@@ -154,7 +154,7 @@ export async function loadDivisionLookupMaps(
       )
     areas = await query<MembershipArea>(
       'current',
-      `SELECT divisionId,geometry FROM divisionAreas WHERE snapshotId=${sqlLiteral(receipt.scopeId)}`,
+      `SELECT divisionId,geometry FROM divisionAreas WHERE scopeId=${sqlLiteral(receipt.scopeId)}`,
     )
   }
   return {

@@ -322,7 +322,7 @@ export function collectionStatements(
   const current = {
     ...base,
     sources,
-    snapshotId: currentSnapshotId,
+    scopeId: currentSnapshotId,
     createdAt: now,
     updatedAt: now,
   }
@@ -330,7 +330,7 @@ export function collectionStatements(
     insert(
       'address3d',
       current,
-      `ON CONFLICT(snapshotId,id) DO UPDATE SET address2dId=excluded.address2dId, units=excluded.units, unitCount=excluded.unitCount, contentHash=excluded.contentHash, unresolvedSectionIds=excluded.unresolvedSectionIds, sources=excluded.sources, updatedAt=excluded.updatedAt WHERE address3d.address2dId IS NOT excluded.address2dId OR address3d.units IS NOT excluded.units OR address3d.unitCount IS NOT excluded.unitCount OR address3d.contentHash IS NOT excluded.contentHash OR address3d.unresolvedSectionIds IS NOT excluded.unresolvedSectionIds OR address3d.sources IS NOT excluded.sources`,
+      `ON CONFLICT(scopeId,id) DO UPDATE SET address2dId=excluded.address2dId, units=excluded.units, unitCount=excluded.unitCount, contentHash=excluded.contentHash, unresolvedSectionIds=excluded.unresolvedSectionIds, sources=excluded.sources, updatedAt=excluded.updatedAt WHERE address3d.address2dId IS NOT excluded.address2dId OR address3d.units IS NOT excluded.units OR address3d.unitCount IS NOT excluded.unitCount OR address3d.contentHash IS NOT excluded.contentHash OR address3d.unresolvedSectionIds IS NOT excluded.unresolvedSectionIds OR address3d.sources IS NOT excluded.sources`,
     ),
   ]
   const historyStatements = [
@@ -347,8 +347,8 @@ export function collectionStatements(
     currentStatements.push(
       insert(
         'address3dI18n',
-        { ...fields, updatedAt: now, snapshotId: currentSnapshotId },
-        'ON CONFLICT(snapshotId,address3dId,locale) DO UPDATE SET units=excluded.units,updatedAt=excluded.updatedAt WHERE address3dI18n.units IS NOT excluded.units',
+        { ...fields, updatedAt: now, scopeId: currentSnapshotId },
+        'ON CONFLICT(scopeId,address3dId,locale) DO UPDATE SET units=excluded.units,updatedAt=excluded.updatedAt WHERE address3dI18n.units IS NOT excluded.units',
       ),
     )
     historyStatements.push(
@@ -491,14 +491,14 @@ export async function importAddress3dCollections(args: {
   // Remove only omitted collections; retries preserve unchanged current inventories.
   await args.execute('current', [
     {
-      sql: 'DELETE FROM address3dI18n WHERE snapshotId = ? AND address3dId NOT IN (SELECT value FROM json_each(?))',
+      sql: 'DELETE FROM address3dI18n WHERE scopeId = ? AND address3dId NOT IN (SELECT value FROM json_each(?))',
       params: [
         args.currentSnapshotId ?? args.snapshotId,
         JSON.stringify(collectionIds),
       ],
     },
     {
-      sql: 'DELETE FROM address3d WHERE snapshotId = ? AND id NOT IN (SELECT value FROM json_each(?))',
+      sql: 'DELETE FROM address3d WHERE scopeId = ? AND id NOT IN (SELECT value FROM json_each(?))',
       params: [
         args.currentSnapshotId ?? args.snapshotId,
         JSON.stringify(collectionIds),

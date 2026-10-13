@@ -271,7 +271,7 @@ export async function buildPlandCurrentSql(
       .all(),
   ])
   const i18nColumns = [
-    'snapshotId',
+    'scopeId',
     'divisionId',
     'locale',
     'name',
@@ -289,7 +289,7 @@ export async function buildPlandCurrentSql(
       changedI18nKeys.has(JSON.stringify([row.divisionId, row.locale])),
     ),
     i18nColumns,
-    ['snapshotId', 'divisionId', 'locale'],
+    ['scopeId', 'divisionId', 'locale'],
   )
 
   const receipt = await context.currentDb
@@ -310,7 +310,7 @@ export async function buildPlandCurrentSql(
     buildGuardedPublicationSql(publication, [
       ...state.missingHistoryIds.map(
         id =>
-          `DELETE FROM divisions WHERE snapshotId = ${sqlLiteral(publication.scopeId)} AND id = ${sqlLiteral(id)};`,
+          `DELETE FROM divisions WHERE scopeId = ${sqlLiteral(publication.scopeId)} AND id = ${sqlLiteral(id)};`,
       ),
       geometryBuildUpsertSql(
         'divisions',
@@ -321,13 +321,13 @@ export async function buildPlandCurrentSql(
       ),
       ...state.records.map(
         record =>
-          `DELETE FROM divisionsI18n WHERE snapshotId = ${sqlLiteral(publication.scopeId)} AND divisionId = ${sqlLiteral(record.base.id)}${record.i18n.length ? ` AND locale NOT IN (${record.i18n.map(row => sqlLiteral(row.locale)).join(',')})` : ''};`,
+          `DELETE FROM divisionsI18n WHERE scopeId = ${sqlLiteral(publication.scopeId)} AND divisionId = ${sqlLiteral(record.base.id)}${record.i18n.length ? ` AND locale NOT IN (${record.i18n.map(row => sqlLiteral(row.locale)).join(',')})` : ''};`,
       ),
       ...buildInsertStatements('divisionsI18n', i18nColumns, i18nInsert.rows, {
-        suffix: `ON CONFLICT(snapshotId,divisionId,locale) DO UPDATE SET ${i18nColumns
+        suffix: `ON CONFLICT(scopeId,divisionId,locale) DO UPDATE SET ${i18nColumns
           .filter(
             column =>
-              !['snapshotId', 'divisionId', 'locale', 'createdAt'].includes(column),
+              !['scopeId', 'divisionId', 'locale', 'createdAt'].includes(column),
           )
           .map(column => `${column} = excluded.${column}`)
           .join(

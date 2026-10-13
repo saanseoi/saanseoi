@@ -161,11 +161,11 @@ export async function captureResolvedSqlPlan<T>(input: {
                 const columns = required(current, 'DB_CURRENT')
                   .query<{ name: string }, []>(`PRAGMA table_info("${policy.name}")`)
                   .all()
-                if (!columns.some(column => column.name === 'snapshotId')) return []
+                if (!columns.some(column => column.name === 'scopeId')) return []
                 const count =
                   required(current, 'DB_CURRENT')
                     .query<{ n: number }, [string]>(
-                      `SELECT count(*) AS n FROM "${policy.name}" WHERE snapshotId=?`,
+                      `SELECT count(*) AS n FROM "${policy.name}" WHERE scopeId=?`,
                     )
                     .get(row.scopeId)?.n ?? 0
                 return [buildPublicationRowCountSql(policy.name, row.scopeId, count)]
@@ -189,8 +189,8 @@ export async function captureResolvedSqlPlan<T>(input: {
         const columns = required(current, 'DB_CURRENT')
           .query<{ name: string }, []>(`PRAGMA table_info("${policy.name}")`)
           .all()
-        const column = ['snapshotId', 'placeSnapshotId', 'streetSnapshotId'].find(
-          name => columns.some(column => column.name === name),
+        const column = ['scopeId', 'placeScopeId', 'streetScopeId'].find(name =>
+          columns.some(column => column.name === name),
         )
         const owner: PublicationTable =
           policy.name === 'divisionAreas'

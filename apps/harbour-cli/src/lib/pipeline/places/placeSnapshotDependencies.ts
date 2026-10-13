@@ -69,7 +69,7 @@ export async function resolvePlaceDivisionDependency(
     .from(addresses)
     .where(
       and(
-        sql`${addresses.snapshotId} = (SELECT ${addressPublication.scopeId} FROM ${addressPublication} WHERE ${addressPublication.snapshotId} = ${addressSnapshotId} AND ${addressPublication.preparedAt} IS NOT NULL)`,
+        sql`${addresses.scopeId} = (SELECT ${addressPublication.scopeId} FROM ${addressPublication} WHERE ${addressPublication.snapshotId} = ${addressSnapshotId} AND ${addressPublication.preparedAt} IS NOT NULL)`,
         sql`${addresses.divisionSnapshotId} IS NOT ${divisionPublication.scopeId}`,
       ),
     )

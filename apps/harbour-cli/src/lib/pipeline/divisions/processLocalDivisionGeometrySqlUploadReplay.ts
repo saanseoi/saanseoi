@@ -89,7 +89,7 @@ export async function generateGeometryReplaySql(
       : iterateGeometryCacheRows(
           context.state.dbCacheDir,
           currentBindingName,
-          `SELECT * FROM "${currentTable}" WHERE "snapshotId" = ${geometrySqlLiteral(publication?.scopeId)}`,
+          `SELECT * FROM "${currentTable}" WHERE "scopeId" = ${geometrySqlLiteral(publication?.scopeId)}`,
         )
     if (!skipCanonicalMaterialisation && !currentChanges)
       throw new Error('Missing planned geometry current changes.')
@@ -134,7 +134,7 @@ export async function generateGeometryReplaySql(
                 let count = 0
                 for (const id of currentChanges?.removedCurrentIds ?? [])
                   yield buildGuardedPublicationSql(publication, [
-                    `DELETE FROM "${currentTable}" WHERE snapshotId = ${geometrySqlLiteral(publication.scopeId)} AND id = ${geometrySqlLiteral(id)};`,
+                    `DELETE FROM "${currentTable}" WHERE scopeId = ${geometrySqlLiteral(publication.scopeId)} AND id = ${geometrySqlLiteral(id)};`,
                   ])
                 for (const statement of geometryIterateUpsertSql(
                   currentTable,
@@ -591,6 +591,9 @@ function geometryReplayKeyColumns(row: Record<string, unknown>) {
   if (typeof row.geometryId === 'string' && typeof row.transformHash === 'string') {
     return ['geometryId', 'transform', 'transformHash']
   }
+
+  if (typeof row.id === 'string' && typeof row.scopeId === 'string')
+    return ['scopeId', 'id']
 
   if (typeof row.id === 'string' && typeof row.snapshotId === 'string') {
     return ['id', 'snapshotId']

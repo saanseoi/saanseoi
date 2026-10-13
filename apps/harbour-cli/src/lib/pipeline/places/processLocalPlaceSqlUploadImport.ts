@@ -212,7 +212,7 @@ export async function importPlaceSqlBatches(
           'placesDivision',
           publication.scopeId,
           divisionLinks,
-          'placeSnapshotId',
+          'placeScopeId',
         ),
         buildPublicationRowCountSql('placesCells', publication.scopeId, cells),
       ].join(' AND '),

@@ -69,10 +69,10 @@ export class PlaceDependencyView {
     }
     for (const [, name, id] of components)
       sqlite.exec(
-        `CREATE INDEX ${quote(`${name}_dependency_idx`)} ON ${quote(name)} (snapshotId,${quote(id)})`,
+        `CREATE INDEX ${quote(`${name}_dependency_idx`)} ON ${quote(name)} (scopeId,${quote(id)})`,
       )
     sqlite.exec(
-      'CREATE INDEX address3d_owner_dependency_idx ON address3d(snapshotId,address2dId)',
+      'CREATE INDEX address3d_owner_dependency_idx ON address3d(scopeId,address2dId)',
     )
   }
 
@@ -228,7 +228,7 @@ export class PlaceDependencyView {
               found.add(key)
               this.insert(tables[name], {
                 ...row,
-                snapshotId,
+                scopeId: snapshotId,
                 ...(name === 'address2d'
                   ? { divisionSnapshotId, streetSnapshotId: null }
                   : {}),

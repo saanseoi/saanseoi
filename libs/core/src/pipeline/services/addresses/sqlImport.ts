@@ -610,7 +610,7 @@ SELECT ${snapshot}, value, NULL, 'delete', ${release}, ${now}
 FROM json_each(${sqlLiteral(JSON.stringify(ids.slice(offset, offset + 100)))}) WHERE 1
 ON CONFLICT(id, snapshotId) DO NOTHING;`)
     currentStatements.push(
-      `DELETE FROM address2d WHERE snapshotId = ${scope} AND id IN (${membership});`,
+      `DELETE FROM address2d WHERE scopeId = ${scope} AND id IN (${membership});`,
     )
   }
   const runId = buildAddressSqlImportRunId(message)
@@ -941,7 +941,7 @@ function buildAddressCurrentApplySql(runId: string) {
 
   return `
 INSERT INTO address2d (
-  snapshotId, id, geometry, divisionSnapshotId, countryId, landformId, areaId,
+  scopeId, id, geometry, divisionSnapshotId, countryId, landformId, areaId,
   districtId, townId, ruralAreaId, macrohoodId, villageId, neighbourhoodId, hamletId,
   microhoodId, streetSnapshotId, streetId, identifiers, sources, parentAddressId, granularity, createdAt, updatedAt
 )
@@ -953,7 +953,7 @@ SELECT
 FROM ${RESOLVED_ROWS_TABLE} r
 WHERE r.runId = ${run}
   AND r.changed = 1
-ON CONFLICT(snapshotId, id) DO UPDATE SET
+ON CONFLICT(scopeId, id) DO UPDATE SET
   divisionSnapshotId = excluded.divisionSnapshotId,
   streetSnapshotId = excluded.streetSnapshotId,
   streetId = excluded.streetId,
@@ -1005,7 +1005,7 @@ WHERE EXISTS (
     AND i.addressId = address2dI18n.addressId AND i.locale = address2dI18n.locale
 );
 INSERT INTO address2dI18n (
-  snapshotId, addressId, locale, formattedAddress, buildingName,
+  scopeId, addressId, locale, formattedAddress, buildingName,
   buildingNumberExpression, buildingNumberFrom, buildingNumberTo, buildingNumberConnector,
   blockExpression, blockType, blockRef, blockTypeBeforeNumber,
   phaseExpression, phaseName, phaseRef, estateName,
@@ -1023,7 +1023,7 @@ WHERE i.runId = ${run}
     SELECT 1 FROM ${RESOLVED_ROWS_TABLE} r
     WHERE r.runId = i.runId AND r.addressId = i.addressId AND r.changed = 1
   )
-ON CONFLICT(snapshotId, addressId, locale) DO UPDATE SET
+ON CONFLICT(scopeId, addressId, locale) DO UPDATE SET
   formattedAddress = excluded.formattedAddress,
   buildingName = excluded.buildingName,
   buildingNumberExpression = excluded.buildingNumberExpression,
@@ -1068,7 +1068,7 @@ WHERE EXISTS (
     AND lookup.buildingNumber = address2dBuildingNumberLookup.buildingNumber
 );
 INSERT INTO address2dBuildingNumberLookup (
-  snapshotId, addressId, buildingNumber, numericStem, evidence, derivation, createdAt, updatedAt
+  scopeId, addressId, buildingNumber, numericStem, evidence, derivation, createdAt, updatedAt
 )
 SELECT
   lookup.snapshotId,
@@ -1085,7 +1085,7 @@ WHERE lookup.runId = ${run}
     SELECT 1 FROM ${RESOLVED_ROWS_TABLE} r
     WHERE r.runId = ${run} AND r.addressId = lookup.addressId AND r.changed = 1
   )
-ON CONFLICT(snapshotId, addressId, buildingNumber) DO UPDATE SET
+ON CONFLICT(scopeId, addressId, buildingNumber) DO UPDATE SET
   numericStem = excluded.numericStem,
   evidence = excluded.evidence,
   derivation = excluded.derivation,

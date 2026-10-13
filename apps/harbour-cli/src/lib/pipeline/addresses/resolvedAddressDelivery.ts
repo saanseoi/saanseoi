@@ -56,7 +56,7 @@ export function addressMutationTables(binding: string): NetTablePolicy[] {
       ? {
           collection: {
             name: 'address3d',
-            keyColumns: ['snapshotId', name === 'address3d' ? 'id' : 'address3dId'],
+            keyColumns: ['scopeId', name === 'address3d' ? 'id' : 'address3dId'],
           },
         }
       : {}),
@@ -349,7 +349,7 @@ export function validateResolvedAddressProjection(
 ) {
   const count = db
     .query<{ count: number }, [string]>(
-      'SELECT COUNT(*) AS count FROM address2d WHERE snapshotId = ?',
+      'SELECT COUNT(*) AS count FROM address2d WHERE scopeId = ?',
     )
     .get(scopeId)?.count
   if (
@@ -363,15 +363,15 @@ export function validateResolvedAddressProjection(
   const orphan = db
     .query(
       `SELECT child.id FROM address2d child
-     LEFT JOIN address2d parent ON parent.snapshotId = child.snapshotId AND parent.id = child.parentAddressId
-     WHERE child.snapshotId = ? AND child.parentAddressId IS NOT NULL AND parent.id IS NULL LIMIT 1`,
+     LEFT JOIN address2d parent ON parent.scopeId = child.scopeId AND parent.id = child.parentAddressId
+     WHERE child.scopeId = ? AND child.parentAddressId IS NOT NULL AND parent.id IS NULL LIMIT 1`,
     )
     .get(scopeId)
   if (orphan) throw new Error('Address projection has a missing parent.')
   const missingLocale = db
     .query(
-      `SELECT a.id FROM address2d a WHERE a.snapshotId = ? AND NOT EXISTS
-     (SELECT 1 FROM address2dI18n i WHERE i.snapshotId = a.snapshotId AND i.addressId = a.id
+      `SELECT a.id FROM address2d a WHERE a.scopeId = ? AND NOT EXISTS
+     (SELECT 1 FROM address2dI18n i WHERE i.scopeId = a.scopeId AND i.addressId = a.id
       AND TRIM(COALESCE(i.formattedAddress,'') || COALESCE(i.buildingName,'') || COALESCE(i.estateName,'') || COALESCE(i.streetName,'') || COALESCE(i.phaseName,'') || COALESCE(i.blockExpression,'')) <> '') LIMIT 1`,
     )
     .get(scopeId)
@@ -379,13 +379,13 @@ export function validateResolvedAddressProjection(
     throw new Error('Address projection has an address without localised values.')
   validateAddressBuildingNumberLookups(db, scopeId)
   const missing3dOwner = db
-    .query(`SELECT a.id FROM address3d a WHERE a.snapshotId = ? AND
-    (NOT EXISTS (SELECT 1 FROM address2d owner WHERE owner.snapshotId = a.snapshotId AND owner.id = a.address2dId)
+    .query(`SELECT a.id FROM address3d a WHERE a.scopeId = ? AND
+    (NOT EXISTS (SELECT 1 FROM address2d owner WHERE owner.scopeId = a.scopeId AND owner.id = a.address2dId)
     OR EXISTS (SELECT 1 FROM json_each(a.unresolvedSectionIds) section WHERE NOT EXISTS
-      (SELECT 1 FROM address2d child WHERE child.snapshotId = a.snapshotId AND child.id = section.value AND child.parentAddressId = a.address2dId))
-    OR NOT EXISTS (SELECT 1 FROM address3dI18n i WHERE i.snapshotId = a.snapshotId AND i.address3dId = a.id)
+      (SELECT 1 FROM address2d child WHERE child.scopeId = a.scopeId AND child.id = section.value AND child.parentAddressId = a.address2dId))
+    OR NOT EXISTS (SELECT 1 FROM address3dI18n i WHERE i.scopeId = a.scopeId AND i.address3dId = a.id)
     OR a.unitCount <= 0 OR json_array_length(a.units) <> a.unitCount
-    OR EXISTS (SELECT 1 FROM address3dI18n i WHERE i.snapshotId=a.snapshotId AND i.address3dId=a.id AND
+    OR EXISTS (SELECT 1 FROM address3dI18n i WHERE i.scopeId=a.scopeId AND i.address3dId=a.id AND
       ((SELECT count(*) FROM json_each(i.units)) <> a.unitCount OR EXISTS
         (SELECT 1 FROM json_each(i.units) translation WHERE
           TRIM(COALESCE(json_extract(translation.value,'$.formattedAddressPart'),
@@ -410,24 +410,24 @@ export function buildDeliveredAddressValidationSql(db: Database, scopeId: string
   const counts = addressTables.map(table => {
     const count = db
       .query<{ count: number }, [string]>(
-        `SELECT count(*) AS count FROM ${table} WHERE snapshotId = ?`,
+        `SELECT count(*) AS count FROM ${table} WHERE scopeId = ?`,
       )
       .get(scopeId)?.count
     if (!Number.isSafeInteger(count))
       throw new Error('Invalid Address preparation count.')
-    return `(SELECT count(*) FROM ${table} WHERE snapshotId = ${scope}) = ${count}`
+    return `(SELECT count(*) FROM ${table} WHERE scopeId = ${scope}) = ${count}`
   })
   return [
     ...counts,
-    `NOT EXISTS (SELECT 1 FROM address2d a WHERE a.snapshotId = ${scope} AND (
-      (a.parentAddressId IS NOT NULL AND NOT EXISTS (SELECT 1 FROM address2d parent WHERE parent.snapshotId = a.snapshotId AND parent.id = a.parentAddressId))
-      OR NOT EXISTS (SELECT 1 FROM address2dI18n i WHERE i.snapshotId = a.snapshotId AND i.addressId = a.id)))`,
-    `NOT EXISTS (SELECT 1 FROM address3d a WHERE a.snapshotId = ${scope} AND (
-      NOT EXISTS (SELECT 1 FROM address2d owner WHERE owner.snapshotId = a.snapshotId AND owner.id = a.address2dId)
-      OR NOT EXISTS (SELECT 1 FROM address3dI18n i WHERE i.snapshotId = a.snapshotId AND i.address3dId = a.id)
+    `NOT EXISTS (SELECT 1 FROM address2d a WHERE a.scopeId = ${scope} AND (
+      (a.parentAddressId IS NOT NULL AND NOT EXISTS (SELECT 1 FROM address2d parent WHERE parent.scopeId = a.scopeId AND parent.id = a.parentAddressId))
+      OR NOT EXISTS (SELECT 1 FROM address2dI18n i WHERE i.scopeId = a.scopeId AND i.addressId = a.id)))`,
+    `NOT EXISTS (SELECT 1 FROM address3d a WHERE a.scopeId = ${scope} AND (
+      NOT EXISTS (SELECT 1 FROM address2d owner WHERE owner.scopeId = a.scopeId AND owner.id = a.address2dId)
+      OR NOT EXISTS (SELECT 1 FROM address3dI18n i WHERE i.scopeId = a.scopeId AND i.address3dId = a.id)
       OR json_array_length(a.units) <> a.unitCount
       OR EXISTS (SELECT 1 FROM json_each(a.unresolvedSectionIds) section WHERE NOT EXISTS
-        (SELECT 1 FROM address2d child WHERE child.snapshotId = a.snapshotId AND child.id = section.value AND child.parentAddressId = a.address2dId))))`,
+        (SELECT 1 FROM address2d child WHERE child.scopeId = a.scopeId AND child.id = section.value AND child.parentAddressId = a.address2dId))))`,
   ].join(' AND ')
 }
 
@@ -439,7 +439,7 @@ function validateAddressBuildingNumberLookups(db: Database, scopeId: string) {
       Lookup,
       [string]
     >(`SELECT addressId,buildingNumber,numericStem,evidence,derivation
-    FROM address2dBuildingNumberLookup WHERE snapshotId = ? ORDER BY addressId,buildingNumber`)
+    FROM address2dBuildingNumberLookup WHERE scopeId = ? ORDER BY addressId,buildingNumber`)
     .iterate(scopeId)
   let pending: Localisation[] = []
   const flush = () => {
@@ -467,7 +467,7 @@ function validateAddressBuildingNumberLookups(db: Database, scopeId: string) {
       Localisation,
       [string]
     >(`SELECT addressId,buildingNumberFrom,buildingNumberTo,buildingNumberConnector
-    FROM address2dI18n WHERE snapshotId = ? ORDER BY addressId,locale`)
+    FROM address2dI18n WHERE scopeId = ? ORDER BY addressId,locale`)
     .iterate(scopeId)) {
     if (pending.length && pending[0]!.addressId !== row.addressId) flush()
     pending.push(row)
