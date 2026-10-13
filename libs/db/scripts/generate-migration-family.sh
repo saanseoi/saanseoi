@@ -35,6 +35,7 @@ esac
 
 cd "$db_dir"
 mkdir -p "$migrations_dir"
+previous_migration="$(bun -e 'const fs = require("node:fs"); process.stdout.write(fs.readdirSync(process.argv[1], {withFileTypes: true}).filter(entry => entry.isDirectory()).map(entry => entry.name).sort().at(-1) ?? "")' "$migrations_dir")"
 
 if [[ -t 0 && -t 1 ]]; then
   bun drizzle-kit generate --config="$config_file"
@@ -62,4 +63,5 @@ else
   fi
 fi
 
+bun ./scripts/order-migration-view-drops.ts "$migrations_dir" "$previous_migration"
 echo "Generated Drizzle migration artefacts for $family in $migrations_dir"
