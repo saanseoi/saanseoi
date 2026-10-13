@@ -1,0 +1,1 @@
+ALTER TABLE `apiVersionReleaseSets` RENAME COLUMN `supersedesApiReleaseSetId` TO `previousRevisionApiReleaseSetId`;

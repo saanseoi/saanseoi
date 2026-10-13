@@ -248,7 +248,8 @@ export const metaApiVersionReleaseSets = sqliteTable(
     apiCompositionId: text('apiCompositionId').references(() => metaApiComposition.id, {
       onDelete: 'restrict',
     }),
-    supersedesApiReleaseSetId: text('supersedesApiReleaseSetId').references(
+    /** Preceding non-draft revision in the same API version, region, domain and cohort. */
+    previousRevisionApiReleaseSetId: text('previousRevisionApiReleaseSetId').references(
       () => metaApiReleaseSets.id,
       { onDelete: 'restrict' },
     ),

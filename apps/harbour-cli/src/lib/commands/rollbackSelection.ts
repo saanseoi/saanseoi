@@ -27,7 +27,7 @@ type ReleaseSet = {
   regionCode: string
   domainCode: string
   cohortKey: string
-  supersedesApiReleaseSetId: string | null
+  previousRevisionApiReleaseSetId: string | null
   status: string
 }
 type Catalog = {
@@ -85,7 +85,7 @@ export function resolveRollbackSelection(meta: Database, resourceReleaseId: stri
     throw new Error('Rollback requires a published source release.')
   const candidates = meta
     .query<ReleaseSet, [string]>(
-      `SELECT DISTINCT r.id,vrs.id AS apiVersionReleaseSetId,vrs.apiVersionId,r.regionCode,r.domainCode,r.cohortKey,vrs.supersedesApiReleaseSetId,vrs.status FROM apiReleaseSets r JOIN apiVersionReleaseSets vrs ON vrs.apiReleaseSetId=r.id JOIN apiReleaseSetSnapshots m ON m.apiReleaseSetId=r.id JOIN snapshotResourceReleases s ON s.snapshotId=m.snapshotId WHERE s.resourceReleaseId=? AND s.role<>'lookup' AND vrs.status<>'draft'`,
+      `SELECT DISTINCT r.id,vrs.id AS apiVersionReleaseSetId,vrs.apiVersionId,r.regionCode,r.domainCode,r.cohortKey,vrs.previousRevisionApiReleaseSetId,vrs.status FROM apiReleaseSets r JOIN apiVersionReleaseSets vrs ON vrs.apiReleaseSetId=r.id JOIN apiReleaseSetSnapshots m ON m.apiReleaseSetId=r.id JOIN snapshotResourceReleases s ON s.snapshotId=m.snapshotId WHERE s.resourceReleaseId=? AND s.role<>'lookup' AND vrs.status<>'draft'`,
     )
     .all(resourceReleaseId)
   const catalogs = new Map<string, Catalog>()
@@ -124,16 +124,16 @@ export function resolveRollbackSelection(meta: Database, resourceReleaseId: stri
       .map(snapshot => snapshot.parentSnapshotId)
       .filter((id): id is string => Boolean(id))
     let previous: ReleaseSet | null = null
-    if (candidate.supersedesApiReleaseSetId)
+    if (candidate.previousRevisionApiReleaseSetId)
       previous = meta
         .query<ReleaseSet, [string, string]>(
-          `SELECT r.*,vrs.id AS apiVersionReleaseSetId,vrs.apiVersionId,vrs.supersedesApiReleaseSetId,vrs.status FROM apiReleaseSets r JOIN apiVersionReleaseSets vrs ON vrs.apiReleaseSetId=r.id WHERE r.id=? AND vrs.apiVersionId=?`,
+          `SELECT r.*,vrs.id AS apiVersionReleaseSetId,vrs.apiVersionId,vrs.previousRevisionApiReleaseSetId,vrs.status FROM apiReleaseSets r JOIN apiVersionReleaseSets vrs ON vrs.apiReleaseSetId=r.id WHERE r.id=? AND vrs.apiVersionId=?`,
         )
-        .get(candidate.supersedesApiReleaseSetId, candidate.apiVersionId)
+        .get(candidate.previousRevisionApiReleaseSetId, candidate.apiVersionId)
     if (!previous && parentIds.length === 1)
       previous = meta
         .query<ReleaseSet, [string, string, string, string]>(
-          `SELECT r.*,vrs.id AS apiVersionReleaseSetId,vrs.apiVersionId,vrs.supersedesApiReleaseSetId,vrs.status FROM apiReleaseSets r JOIN apiVersionReleaseSets vrs ON vrs.apiReleaseSetId=r.id JOIN apiReleaseSetSnapshots m ON m.apiReleaseSetId=r.id WHERE m.snapshotId=? AND vrs.apiVersionId=? AND r.regionCode=? AND r.domainCode=? AND vrs.status<>'draft' ORDER BY vrs.publishedAt DESC,r.revision DESC LIMIT 1`,
+          `SELECT r.*,vrs.id AS apiVersionReleaseSetId,vrs.apiVersionId,vrs.previousRevisionApiReleaseSetId,vrs.status FROM apiReleaseSets r JOIN apiVersionReleaseSets vrs ON vrs.apiReleaseSetId=r.id JOIN apiReleaseSetSnapshots m ON m.apiReleaseSetId=r.id WHERE m.snapshotId=? AND vrs.apiVersionId=? AND r.regionCode=? AND r.domainCode=? AND vrs.status<>'draft' ORDER BY vrs.publishedAt DESC,r.revision DESC LIMIT 1`,
         )
         .get(
           parentIds[0]!,

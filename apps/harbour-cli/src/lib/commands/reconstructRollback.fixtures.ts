@@ -147,7 +147,7 @@ export async function fixture(previous = true) {
       id: `version-set-${name}`,
       apiVersionId: 'api',
       apiReleaseSetId: `set-${name}`,
-      supersedesApiReleaseSetId: name === 'new' && previous ? 'set-old' : null,
+      previousRevisionApiReleaseSetId: name === 'new' && previous ? 'set-old' : null,
       status: name === 'old' ? 'archived' : 'current',
       publishedAt: '2026-01-01T00:00:00.000Z',
       versionHash: name,

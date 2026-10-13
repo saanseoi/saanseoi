@@ -4365,7 +4365,7 @@ export async function ensureDraftReleaseSetForRelease(
       apiVersionId: apiVersion.id,
       apiReleaseSetId: existingContent?.id ?? releaseSetId,
       apiCompositionId: composition?.id ?? null,
-      supersedesApiReleaseSetId: latestReleaseSet?.id ?? null,
+      previousRevisionApiReleaseSetId: latestReleaseSet?.id ?? null,
       status: 'draft',
       publishedAt: null,
       validFrom: null,
@@ -4742,7 +4742,8 @@ export async function publishReleaseArtefacts(
         rulesetVersion: metaApiReleaseSets.rulesetVersion,
         schemaVersion: metaApiReleaseSets.schemaVersion,
         status: metaApiVersionReleaseSets.status,
-        supersedesApiReleaseSetId: metaApiVersionReleaseSets.supersedesApiReleaseSetId,
+        previousRevisionApiReleaseSetId:
+          metaApiVersionReleaseSets.previousRevisionApiReleaseSetId,
       })
       .from(metaApiReleaseSets)
       .innerJoin(

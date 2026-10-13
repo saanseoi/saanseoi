@@ -58,7 +58,7 @@ test('publication metadata reads locale values from the selected domain member a
       CREATE TABLE publishers(code TEXT, i18n TEXT);
       CREATE TABLE apiVersions(id TEXT, code TEXT, familyType TEXT);
       CREATE TABLE apiReleaseSets(id TEXT, code TEXT, regionCode TEXT, domainCode TEXT, cohortKey TEXT, revision INTEGER, effectiveFrom TEXT, schemaVersion TEXT, rulesetVersion TEXT, versionHash TEXT, createdAt TEXT, updatedAt TEXT);
-      CREATE TABLE apiVersionReleaseSets(id TEXT, apiVersionId TEXT, apiReleaseSetId TEXT, apiCompositionId TEXT, supersedesApiReleaseSetId TEXT, status TEXT, publishedAt TEXT, validFrom TEXT, validTo TEXT, notes TEXT, guide TEXT, versionHash TEXT, createdAt TEXT, updatedAt TEXT);
+      CREATE TABLE apiVersionReleaseSets(id TEXT, apiVersionId TEXT, apiReleaseSetId TEXT, apiCompositionId TEXT, previousRevisionApiReleaseSetId TEXT, status TEXT, publishedAt TEXT, validFrom TEXT, validTo TEXT, notes TEXT, guide TEXT, versionHash TEXT, createdAt TEXT, updatedAt TEXT);
       CREATE TABLE apiComposition(id TEXT, apiVersionId TEXT, status TEXT);
       CREATE TABLE apiCompositionMembers(apiCompositionId TEXT, domainCode TEXT, i18n TEXT);
       INSERT INTO publishers VALUES ('publisher', '{"en":{"name":"Publisher name"}}');

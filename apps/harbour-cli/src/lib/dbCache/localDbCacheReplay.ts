@@ -164,7 +164,7 @@ async function applyPublishMetadataDeltaLocked(
           apiReleaseSetId: releaseSet.apiReleaseSetId,
           apiVersionId: releaseSet.apiVersionId,
           apiCompositionId: releaseSet.apiCompositionId,
-          supersedesApiReleaseSetId: releaseSet.supersedesApiReleaseSetId,
+          previousRevisionApiReleaseSetId: releaseSet.previousRevisionApiReleaseSetId,
           status: releaseSet.status,
           publishedAt: releaseSet.publishedAt,
           validFrom: releaseSet.validFrom,

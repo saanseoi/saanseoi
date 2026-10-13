@@ -134,7 +134,7 @@ id TEXT PRIMARY KEY,
       apiVersionId TEXT NOT NULL,
       apiReleaseSetId TEXT NOT NULL,
       apiCompositionId TEXT,
-      supersedesApiReleaseSetId TEXT,
+      previousRevisionApiReleaseSetId TEXT,
       status TEXT NOT NULL,
       publishedAt TEXT,
       validFrom TEXT,
@@ -619,7 +619,7 @@ id TEXT PRIMARY KEY,
       cohortKey TEXT,
       revision INTEGER NOT NULL DEFAULT 0,
       effectiveFrom TEXT,
-      supersedesApiReleaseSetId TEXT,
+      previousRevisionApiReleaseSetId TEXT,
       schemaVersion TEXT NOT NULL,
       rulesetVersion TEXT NOT NULL,
       status TEXT NOT NULL DEFAULT 'draft',
@@ -638,7 +638,7 @@ id TEXT PRIMARY KEY,
       apiVersionId TEXT NOT NULL,
       apiReleaseSetId TEXT NOT NULL,
       apiCompositionId TEXT,
-      supersedesApiReleaseSetId TEXT,
+      previousRevisionApiReleaseSetId TEXT,
       status TEXT NOT NULL,
       publishedAt TEXT,
       validFrom TEXT,
@@ -1078,7 +1078,7 @@ id TEXT PRIMARY KEY,
       cohortKey TEXT DEFAULT '2026-05-20.0',
       revision INTEGER NOT NULL DEFAULT 0,
       effectiveFrom INTEGER,
-      supersedesApiReleaseSetId TEXT,
+      previousRevisionApiReleaseSetId TEXT,
       schemaVersion TEXT NOT NULL,
       rulesetVersion TEXT NOT NULL,
       status TEXT NOT NULL,
@@ -1088,10 +1088,10 @@ id TEXT PRIMARY KEY,
       updatedAt INTEGER NOT NULL
     );
 
-    CREATE TABLE apiVersionReleaseSets (id TEXT PRIMARY KEY, apiReleaseSetId TEXT, apiVersionId TEXT, apiCompositionId TEXT, supersedesApiReleaseSetId TEXT, status TEXT, publishedAt INTEGER, validFrom INTEGER, validTo INTEGER, notes TEXT, guide TEXT, versionHash TEXT, createdAt INTEGER, updatedAt INTEGER);
+    CREATE TABLE apiVersionReleaseSets (id TEXT PRIMARY KEY, apiReleaseSetId TEXT, apiVersionId TEXT, apiCompositionId TEXT, previousRevisionApiReleaseSetId TEXT, status TEXT, publishedAt INTEGER, validFrom INTEGER, validTo INTEGER, notes TEXT, guide TEXT, versionHash TEXT, createdAt INTEGER, updatedAt INTEGER);
     CREATE TRIGGER seedVersionRelease AFTER INSERT ON apiReleaseSets BEGIN
-      INSERT INTO apiVersionReleaseSets (id,apiReleaseSetId,apiVersionId,apiCompositionId,supersedesApiReleaseSetId,status,publishedAt,validFrom,validTo,versionHash,createdAt,updatedAt)
-      VALUES (NEW.id || '-version',NEW.id,NEW.apiVersionId,NEW.apiCompositionId,NEW.supersedesApiReleaseSetId,NEW.status,NEW.publishedAt,NEW.validFrom,NEW.validTo,'hash',NEW.updatedAt,NEW.updatedAt);
+      INSERT INTO apiVersionReleaseSets (id,apiReleaseSetId,apiVersionId,apiCompositionId,previousRevisionApiReleaseSetId,status,publishedAt,validFrom,validTo,versionHash,createdAt,updatedAt)
+      VALUES (NEW.id || '-version',NEW.id,NEW.apiVersionId,NEW.apiCompositionId,NEW.previousRevisionApiReleaseSetId,NEW.status,NEW.publishedAt,NEW.validFrom,NEW.validTo,'hash',NEW.updatedAt,NEW.updatedAt);
     END;
     CREATE TABLE snapshotRecipes (id TEXT PRIMARY KEY, resourceType TEXT, processingRules TEXT);
     CREATE TABLE snapshotAssemblies (id TEXT PRIMARY KEY, snapshotId TEXT, snapshotRecipeId TEXT);
@@ -2366,7 +2366,7 @@ describe('ensureDraftReleaseSetForRelease', () => {
     )
     const row = sqlite
       .query(
-        `SELECT apiReleaseSets.revision, apiVersionReleaseSets.supersedesApiReleaseSetId
+        `SELECT apiReleaseSets.revision, apiVersionReleaseSets.previousRevisionApiReleaseSetId
          FROM apiReleaseSets
          INNER JOIN apiVersionReleaseSets ON apiVersionReleaseSets.apiReleaseSetId = apiReleaseSets.id
          WHERE apiReleaseSets.id = ?`,
@@ -2376,8 +2376,21 @@ describe('ensureDraftReleaseSetForRelease', () => {
     expect(enriched.code).toBe('data-hk-divisions-2025-09-24.0-r1')
     expect(row).toEqual({
       revision: 1,
-      supersedesApiReleaseSetId: first.id,
+      previousRevisionApiReleaseSetId: first.id,
     })
+    const nextCohort = await ensureDraftReleaseSetForRelease(
+      db as never,
+      'division',
+      { ...release, cohortKey: '2025-10-22.0' },
+      versions,
+    )
+    expect(
+      sqlite
+        .query(
+          'SELECT previousRevisionApiReleaseSetId FROM apiVersionReleaseSets WHERE apiReleaseSetId = ?',
+        )
+        .get(nextCohort.id),
+    ).toEqual({ previousRevisionApiReleaseSetId: null })
     sqlite.close()
   })
 })
@@ -3953,7 +3966,7 @@ describe('publishReleaseArtefacts', () => {
     sqlite.exec(`
       INSERT INTO apiReleaseSets (
         id, apiVersionId, regionCode, domainCode, cohortKey, revision,
-        supersedesApiReleaseSetId, schemaVersion, rulesetVersion, status,
+        previousRevisionApiReleaseSetId, schemaVersion, rulesetVersion, status,
         publishedAt, validFrom, validTo, updatedAt
       ) VALUES (
         'release-set-2',

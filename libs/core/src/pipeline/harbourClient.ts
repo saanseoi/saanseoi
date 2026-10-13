@@ -17,7 +17,7 @@ export type ApiReleaseSetMetadataDelta = {
   cohortKey: string | null
   revision: number
   effectiveFrom: string | null
-  supersedesApiReleaseSetId: string | null
+  previousRevisionApiReleaseSetId: string | null
   schemaVersion: string
   rulesetVersion: string
   status: 'current' | 'draft' | 'archived'

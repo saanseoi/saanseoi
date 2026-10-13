@@ -264,7 +264,7 @@ export function buildStatsResetSql(plan: StatsResetPlan) {
     ...deleteIds('snapshotResourceReleases', 'snapshotId', snapshotIds),
     ...setIds.map(
       id =>
-        `UPDATE apiVersionReleaseSets SET supersedesApiReleaseSetId = NULL WHERE supersedesApiReleaseSetId = ${literal(id)};`,
+        `UPDATE apiVersionReleaseSets SET previousRevisionApiReleaseSetId = NULL WHERE previousRevisionApiReleaseSetId = ${literal(id)};`,
     ),
     ...deleteIds('apiVersionReleaseSets', 'apiReleaseSetId', setIds),
     ...deleteIds('apiReleaseSets', 'id', setIds),

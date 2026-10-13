@@ -869,8 +869,13 @@ data-hk-divisions-2006--hkgov-pland-pu
 data-hk-divisions-2006-r1--hkgov-pland-pu
 ```
 
-Revision 1 records `supersedesApiReleaseSetId` pointing to the implicit revision 0. The
-unadorned initial revision remains addressable by catalogues that already published it.
+Revision 1 records `previousRevisionApiReleaseSetId` pointing to the implicit
+revision 0. This nullable reference belongs to `apiVersionReleaseSets` and identifies
+the preceding non-draft revision within the same API version, region, domain and cohort.
+The initial revision has no predecessor. A later cohort does not use this field to link
+to an earlier cohort. Rollback uses the reference as its preferred predecessor and
+verifies that the composition contains the required parent snapshots. The unadorned
+initial revision remains addressable by catalogues that already published it.
 
 `status=current` means this is the latest published composition for its
 `(region, domain)`. Publishing a later cohort or a later revision archives every older
