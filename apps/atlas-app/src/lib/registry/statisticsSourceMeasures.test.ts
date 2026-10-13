@@ -21,6 +21,7 @@ test('source catalogue preserves unchanged reissue counts and frozen definitions
     createTables(meta, [
       metaSchema.metaResourceReleases,
       metaSchema.metaSnapshots,
+      metaSchema.metaSnapshotLineages,
       metaSchema.metaSnapshotResourceReleases,
       metaSchema.metaSnapshotShardAssignments,
       metaSchema.metaDataShards,
@@ -34,8 +35,11 @@ test('source catalogue preserves unchanged reissue counts and frozen definitions
       historySchema.snapshotVersionChanges,
     ])
     meta.exec(`INSERT INTO resourceReleases (id,sourceReleaseId,resourceType) VALUES ('resource-reissue','publisher-reissue','divisionStatistic');
-      INSERT INTO snapshots (id,resourceType,parentSnapshotId,cohortKey,revision) VALUES
-        ('base','divisionStatistic',NULL,'2025',0),('reissue','divisionStatistic','base','2025',1);
+      INSERT INTO snapshotLineages (id,code,resourceType,regionCode,variant,identityMode)
+      VALUES ('statistics','statistics','divisionStatistic','hk','default','persistent');
+      INSERT INTO snapshots (id, snapshotLineageId, parentSnapshotId, cohortKey, revision) VALUES
+('base', 'statistics', NULL, '2025', 0),
+('reissue', 'statistics', 'base', '2025', 1);
       INSERT INTO snapshotResourceReleases (snapshotId,resourceReleaseId) VALUES ('reissue','resource-reissue');
       INSERT INTO stats (resourceReleaseId,category,measure,dimension,dimensionValue,value) VALUES
         ('resource-reissue','observations','count','field','population',3495);`)

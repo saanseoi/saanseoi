@@ -134,7 +134,7 @@ describe('fixture version hashes', () => {
       newTownAssignments.find(
         assignment => assignment.divisionCode === 'TSUEN_WAN_TSING_YI_AREA',
       ),
-    ).toMatchObject({ canonicalId: 'd0b06deb-4842-507b-8284-a3254615e5aa' })
+    ).toMatchObject({ canonicalId: 'ss-d0b06deb-4842-507b-8284-a3254615e5aa' })
   })
   test('derives deterministic content hashes for versioned fixture records', () => {
     expect(initialApiVersions.length).toBeGreaterThan(0)
@@ -147,7 +147,7 @@ describe('fixture version hashes', () => {
   })
 
   test('seeds API lifecycle transitions as append-only journal events', () => {
-    const archivedVersion = initialApiVersions.find(
+    const deprecatedVersion = initialApiVersions.find(
       apiVersion => apiVersion.code === 'api-divisions-v0.1',
     )
     const statements = buildMetaRegistrySyncStatements('preview')
@@ -158,7 +158,7 @@ describe('fixture version hashes', () => {
       statement.startsWith('INSERT INTO apiVersions'),
     )
 
-    expect(archivedVersion?.lifecycleEvents).toEqual([
+    expect(deprecatedVersion?.lifecycleEvents).toEqual([
       {
         statusFrom: 'draft',
         statusTo: 'current',
@@ -166,9 +166,10 @@ describe('fixture version hashes', () => {
       },
       {
         statusFrom: 'current',
-        statusTo: 'archived',
+        statusTo: 'deprecated',
         occurredAt: '2026-09-01T00:00:00.000Z',
-        reason: 'No further releases are planned for this API version.',
+        reason:
+          'Overture inventories remain publishable; use v0.2 for curated SaanSeoi editions.',
       },
     ])
     expect(lifecycleStatements.length).toBeGreaterThanOrEqual(7)
@@ -287,8 +288,16 @@ describe('fixture version hashes', () => {
       'hkgov-censtatd-landclipped',
     ])
     expect(
-      censtatdStats.filter(dataset => dataset.releaseFrequency === 'census'),
-    ).toHaveLength(2)
+      censtatdStats
+        .filter(dataset => dataset.releaseFrequency === 'census')
+        .map(dataset => dataset.code)
+        .sort(),
+    ).toEqual([
+      'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups',
+      'ds-hk-hkgov-censtatd-division-statistic-major-housing-estates',
+      'ds-hk-hkgov-censtatd-division-statistic-new-towns',
+      'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district',
+    ])
     expect(
       initialApiCompositions.find(
         composition => composition.apiVersion === 'api-stats-v0.1',
@@ -315,10 +324,15 @@ describe('fixture version hashes', () => {
       censtatdStats.every(dataset =>
         dataset.processingRules?.rulesets.some(
           ruleset =>
-            ruleset.rulesetVersion === 'rs-division-statistic-merge-v1' &&
+            ruleset.rulesetVersion === 'rs-source-ingestion-v1' &&
             ruleset.rules.some(
               rule =>
-                rule.operationCode === 'normalise_censtatd_statistic_source_assertion',
+                rule.operationCode ===
+                  `ingest-${dataset.code.replace(/^ds-hk-/, '')}` &&
+                rule.definition?.id ===
+                  (dataset.code.endsWith('-land-area-population-density-district')
+                    ? 'normalise_censtatd_statistic_source_assertion'
+                    : 'retain-censtatd-source'),
             ),
         ),
       ),
@@ -576,7 +590,12 @@ describe('buildMetaRegistrySyncStatements', () => {
             ),
           )
           expect(JSON.parse(row.i18n)).toEqual(seed.i18n)
-          expect(Array.isArray(JSON.parse(row.i18n))).toBe(true)
+          expect(Array.isArray(JSON.parse(row.i18n))).toBe(false)
+          expect(Object.keys(JSON.parse(row.i18n)).sort()).toEqual([
+            'en',
+            'zh-hans',
+            'zh-hant',
+          ])
         }
       }
       expect(
@@ -931,8 +950,9 @@ test('resource releases omit notes while source releases retain published docume
       VALUES ('notes-dataset', 'notes-publisher', 'notes-dataset', 'hk', 'static', 'monthly', 'divisions', '["division"]', 'hash');
       INSERT INTO sourceReleases (id, datasetId, code, sourceVersion, status, notes)
       VALUES ('notes-source', 'notes-dataset', 'notes-source', '2026-10', 'staged', 'Published source documentation');
-      INSERT INTO resourceReleases (id, sourceReleaseId, datasetId, code, resourceType, sourceVersion, status)
-      VALUES ('notes-resource', 'notes-source', 'notes-dataset', 'notes-resource', 'division', '2026-10', 'staged');
+      INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status) VALUES ('notes-source', 'notes-dataset', 'source-' || 'notes-resource', '2026-10', 'staged');
+UPDATE sourceReleases SET sourceVersion = '2026-10' WHERE id = 'notes-source';
+INSERT INTO resourceReleases (id, sourceReleaseId, datasetId, code, resourceType, status) VALUES ('notes-resource', 'notes-source', 'notes-dataset', 'notes-resource', 'division', 'staged');
     `)
     expect(
       db
