@@ -3,10 +3,6 @@ import { createReadStream } from 'node:fs'
 import { createInterface } from 'node:readline'
 import type { DatasetProcessingMessage } from '@repo/core'
 import {
-  resolvedEntities,
-  sourceResolutionSql,
-} from '@repo/core/pipeline/db/sourceResolutions'
-import {
   type AddressSqlImportStageOptions,
   resolveImportTarget,
 } from '@repo/core/pipeline/services/addresses/sqlImportStages'
@@ -493,17 +489,8 @@ export async function importAddress3dCollections(args: {
     remainingSources.set(table, remaining)
   }
   const collectionIds: string[] = []
-  const ownersBySource = new Map<string, { address2d: string[]; address3d: string[] }>()
-  for await (const record of records(args.path)) {
-    if (record.kind !== 'collection') continue
-    collectionIds.push(record.id)
-    for (const source of record.sourceRecordIds) {
-      const owners = ownersBySource.get(source) ?? { address2d: [], address3d: [] }
-      owners.address2d = [...new Set([...owners.address2d, record.address2dId])].sort()
-      owners.address3d = [...new Set([...owners.address3d, record.id])].sort()
-      ownersBySource.set(source, owners)
-    }
-  }
+  for await (const record of records(args.path))
+    if (record.kind === 'collection') collectionIds.push(record.id)
   // Remove only omitted collections; retries preserve unchanged current inventories.
   await args.execute('current', [
     {
@@ -531,26 +518,8 @@ export async function importAddress3dCollections(args: {
           typeof value === 'object' &&
           (value as { dataset?: string }).dataset?.startsWith('hkgov-dpo-als-'),
       )
-      const decisions = record.sources.filter(
-        value => !publisherSources.includes(value),
-      ) as Array<Record<string, unknown>>
       if (record.kind === 'source') {
         sourceVersions.set(record.sourceRecordId, record.versionHash)
-        await args.execute('history', [
-          {
-            sql: sourceResolutionSql({
-              snapshotId: args.snapshotId,
-              sourceReleaseId: args.resourceReleaseId,
-              sourceRecordId: record.sourceRecordId,
-              sourceVersionHash: record.versionHash,
-              resolutions: {
-                entities: ownersBySource.get(record.sourceRecordId) ?? {},
-                ...(decisions.length ? { decisions } : {}),
-              },
-            }),
-            params: [],
-          },
-        ])
       }
       const remaining = remainingSources.get(sourceTable)
       if (!remaining) throw new Error(`Missing source membership for ${sourceTable}`)
@@ -617,31 +586,6 @@ export async function importAddress3dCollections(args: {
           ),
         ])
     } else if (record.kind === 'collection') {
-      if (record.processingSources?.length) {
-        await args.execute('history', [
-          {
-            sql: sourceResolutionSql({
-              snapshotId: args.snapshotId,
-              sourceReleaseId: args.resourceReleaseId,
-              sourceRecordId: `curation:${record.id}`,
-              sourceVersionHash: als3dHash(record.processingSources),
-              resolutions: {
-                entities: resolvedEntities({
-                  address3d: record.id,
-                  address2d: record.address2dId,
-                }),
-                decisions: [
-                  {
-                    action: 'als_inventory_curated',
-                    evidence: record.processingSources,
-                  },
-                ],
-              },
-            }),
-            params: [],
-          },
-        ])
-      }
       for (const sourceRecordId of record.sourceRecordIds) {
         const sourceVersionHash = sourceVersions.get(sourceRecordId)
         if (!sourceVersionHash)

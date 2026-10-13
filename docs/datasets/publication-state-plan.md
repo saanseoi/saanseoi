@@ -64,9 +64,8 @@ release assertions without touching every unchanged Place.
 
 Place base and locale history are independent. Unchanged components retain their
 original version and owning shard; only changed components acquire new versions and
-journal entries. Source resolutions inherit through snapshot ancestry. Identical
-interpretations add no resolution rows; changed interpretations and explicit
-`source_omission` decisions remain auditable.
+journal entries. SOURCE validity periods record publisher changes and omissions;
+preparation artefacts and processing audits retain interpretation evidence.
 
 Family membership rules remain explicit:
 
@@ -239,8 +238,7 @@ Current delivery uses the shared compiler across CLI families. History optimisat
 a narrower component contract: Address, Places and Division/Planning reuse independent
 unchanged base and locale versions. Streets retains its complete logical version
 timeline, including the locales belonging to each version. Independently inherited
-Street locales and sparse area/boundary source-resolution assertions remain follow-up
-work tracked with the Streets implementation tasks in
+Street locales remain follow-up work tracked with the Streets implementation tasks in
 [issue #64](https://github.com/saanseoi/saanseoi/issues/64). They do not prevent
 unchanged current rows from being reused. The exported core Division processor uses
 independent component history and sparse source assertions, including exact named owning

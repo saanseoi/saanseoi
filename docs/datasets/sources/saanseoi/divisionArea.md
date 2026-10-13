@@ -156,14 +156,10 @@ label point, bounding box or vertex samples. Polygon coverage uses a topological
 `covers` test over the union of each division's area parts.
 
 Internal `containment_geometry` evidence records SHA-256 identities for the division and
-ancestor geometries. Fingerprints retain exact coordinates and are independent of
-area-row order and Polygon/MultiPolygon packaging. Assembly recomputes the flags and
-fingerprints after identity remapping and all geometry replacements. The reviewed
-archive carries this evidence; ingestion stores it separately in
-`sourceResolutions.resolutions.divisionContainment`, keyed by division and ancestor ID.
-Canonical hierarchies and retained SaanSeoi source-record properties contain the
-containment result but no geometry fingerprints. An evidence-only update writes a
-snapshot interpretation without creating a Division or source-content version.
+ancestor geometries. Assembly recomputes the flags and fingerprints after identity
+remapping and geometry replacements, and the reviewed archive retains this evidence.
+Canonical hierarchies and retained SaanSeoi source properties contain the containment
+result without the fingerprints. Geocoding tests the loaded polygons directly.
 
 The geocoder checks children before ancestors. After a spatial child match, it can
 inherit an ancestor's membership when `full_containment` is `true` and both fingerprints
@@ -455,8 +451,8 @@ Both curated resources retain their own SOURCE assertions: `ssDivision` for iden
 and `ssDivisionArea` for polygons. The ZIP remains the immutable source archive; its
 records are also stored with publisher attributes in `properties`, geometry in
 `sourceGeometry`, and version identity and release-validity metadata. The tables do not
-reuse Overture's SOURCE ledger. Canonical HISTORY records retain source-resolution links
-to the SaanSeoi assertions as well as the archive's upstream contribution evidence.
+reuse Overture's SOURCE ledger. Canonical HISTORY records retain publisher attribution;
+the archive retains upstream contribution evidence and processing decisions.
 
 Area ingestion uses archive field names for SOURCE retention and maps geometry adapter
 fields only into canonical processing. A division can have multiple source area records,

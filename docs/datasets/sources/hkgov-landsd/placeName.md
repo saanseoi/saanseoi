@@ -111,10 +111,10 @@ names. Canonical geometry uses the decoded WGS84 point; native properties and EP
 geometry remain unchanged in the complete source ledger. Each division resolves to the
 exact retained native source version.
 
-Delivery writes current rows, immutable history, localised names and source resolutions,
-then verifies row counts before completing the publication receipt. Source-ledger counts
-or snapshot metadata alone cannot make the division snapshot ready. Reconciliation
-reports the codes of snapshots missing a complete receipt.
+Delivery writes current rows, immutable history, localised names and publisher
+attribution, then verifies row counts before completing the publication receipt.
+Source-ledger counts or snapshot metadata alone cannot make the division snapshot ready.
+Reconciliation reports the codes of snapshots missing a complete receipt.
 
 The initialiser checks that receipt before skipping a published LandsD release. A
 published release without complete canonical delivery remains eligible for recovery from
@@ -123,8 +123,8 @@ its verified native archive.
 ## Publisher source boundary
 
 Native properties and publisher names retain their literal values, including whitespace
-and empty strings. Division resolutions reference the native publisher identity and the
-exact retained source version in the interpreting snapshot's `sourceResolutions`.
+and empty strings. Canonical Division `sources` references the native publisher identity
+and dataset; the snapshot pins its source edition.
 
 Publisher values, acquisition references, original geometry and canonical resolutions
 follow the [source record storage contract](../../source-records.md). Field renaming and

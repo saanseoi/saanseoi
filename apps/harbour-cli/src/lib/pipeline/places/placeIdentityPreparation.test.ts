@@ -4,8 +4,8 @@ import { mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import {
-  normaliseOverturePlace,
   type NormalisedPlace,
+  normaliseOverturePlace,
 } from '@repo/core/pipeline/services/places/place'
 import {
   canonicalAddressResolutions,
@@ -101,7 +101,7 @@ test('SQL and batched omission use publisher IDs while canonical membership uses
   const db = new Database(':memory:')
   try {
     db.exec(`CREATE TABLE overturePlaces(sourceRecordId TEXT, properties TEXT, sourceGeometry TEXT, versionHash TEXT, resourceReleaseId TEXT, validFromRelease TEXT, validToRelease TEXT, isCurrent INTEGER, createdAt TEXT, updatedAt TEXT, PRIMARY KEY(sourceRecordId,versionHash,validFromRelease));
-      CREATE TABLE sourceResolutions(scopeId TEXT, snapshotId TEXT, sourceReleaseId TEXT, sourceRecordId TEXT, sourceVersionHash TEXT, resolutions TEXT, PRIMARY KEY(scopeId,sourceReleaseId,sourceRecordId,sourceVersionHash));`)
+`)
     const place = { ...normalised('publisher-new'), id: 'canonical-retained' }
     const row = {
       place,
@@ -128,49 +128,19 @@ test('SQL and batched omission use publisher IDs while canonical membership uses
       },
       historyRows: [],
       places: [row],
-      sourceResolutions: new Map([
-        [
-          'publisher-old',
-          {
-            sourceVersionHash: 'before-source',
-            resolutions: { entities: { place: ['canonical-retained'] } },
-          },
-        ],
-      ]),
     }
+    input.sourceRows = new Map([
+      ['publisher-old', { bindingName: 'source', versionHash: 'old' }],
+    ])
     const generated = await buildPlaceSql(input)
     for (const sql of generated.sourceSqlByBinding.values()) db.exec(sql.join('\n'))
-    for (const sql of generated.historySqlByBinding.values())
-      for (const statement of sql)
-        if (statement.startsWith('INSERT INTO sourceResolutions')) db.exec(statement)
     expect(db.query('SELECT sourceRecordId FROM overturePlaces').all()).toEqual([
       { sourceRecordId: 'publisher-new' },
     ])
-    const rows = db
-      .query<{ sourceRecordId: string; resolutions: string }, []>(
-        'SELECT sourceRecordId,resolutions FROM sourceResolutions ORDER BY sourceRecordId',
-      )
-      .all()
-    expect(JSON.parse(rows[0]!.resolutions).entities.place).toEqual([
-      'canonical-retained',
-    ])
-    expect(JSON.parse(rows[1]!.resolutions).decisions).toEqual([
-      { type: 'source_omission' },
-    ])
     const path = join(root, 'enriched.jsonl')
     await writeFile(path, `${JSON.stringify(row)}\n`)
-    input.sourceResolutions = new Map([
-      ...input.sourceResolutions!,
-      [
-        'publisher-new',
-        {
-          sourceVersionHash: 'after-source',
-          resolutions: { entities: { place: ['canonical-retained'] } },
-        },
-      ],
-    ])
     const batches = await Array.fromAsync(buildPlaceSqlBatches(input, path, 'now'))
-    const final = [...batches.at(-1)!.historySqlByBinding.values()].flat().join('\n')
+    const final = [...batches.at(-1)!.sourceSqlByBinding.values()].flat().join('\n')
     expect(final).toContain('publisher-old')
     expect(final).not.toContain('publisher-new')
   } finally {

@@ -177,7 +177,7 @@ describe('Places SQL materialisation', () => {
 
     const history = new Database(':memory:')
     history.exec(`
-      CREATE TABLE sourceResolutions (scopeId TEXT, snapshotId TEXT, sourceReleaseId TEXT, sourceRecordId TEXT, sourceVersionHash TEXT, resolutions TEXT, PRIMARY KEY(scopeId, sourceReleaseId, sourceRecordId, sourceVersionHash));
+
       CREATE TABLE places (
         id TEXT, resourceReleaseId TEXT, addressSnapshotId TEXT, addressDependencyHash TEXT, address2dId TEXT,
         address3dId TEXT, address3dUnitId TEXT, address3dMembership TEXT, lng REAL, lat REAL, bbox TEXT, operatingStatus TEXT,

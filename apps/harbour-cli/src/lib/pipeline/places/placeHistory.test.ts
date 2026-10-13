@@ -6,7 +6,6 @@ import {
   type ReplayShard,
   resolveSnapshotVersionState,
 } from '@repo/core/pipeline/db/snapshotReplay'
-import { resolveSnapshotSourceResolutions } from '@repo/core/pipeline/db/sourceResolutionReplay'
 import {
   hashPlaceMaterialisation,
   normaliseOverturePlace,
@@ -93,7 +92,6 @@ function fixture() {
       activeSourceBindingName: source,
       sourceBindingNames: ['source', 'source-next'],
       sourceRows: await loadCurrentPlaceSources(sourceTargets),
-      sourceResolutions: await resolveSnapshotSourceResolutions(plan, shards),
       historyRows: await loadCurrentPlaceHistory(historyTargets, {
         currentDb: drizzle({ client: current }) as never,
         scopeId: 'scope',
@@ -228,9 +226,6 @@ test('Places inherit independent base, locales and source resolutions across yea
     expect(next.query('SELECT locale FROM placesI18n').all()).toEqual([
       { locale: 'en' },
     ])
-    expect(next.query('SELECT count(*) AS n FROM sourceResolutions').get()).toEqual({
-      n: 0,
-    })
     const inherited = await resolveSnapshotVersionState(f.plan, f.shards, [
       'place',
       'placeI18n',
@@ -244,10 +239,6 @@ test('Places inherit independent base, locales and source resolutions across yea
       ['placeI18n', 'en', 'new'],
       ['placeI18n', 'zh-hant', 'old'],
     ])
-    expect(
-      (await resolveSnapshotSourceResolutions(f.plan, f.shards)).get('place')?.shard
-        .bindingName,
-    ).toBe('old')
 
     row.place.i18n = row.place.i18n.filter(locale => locale.locale === 'en')
     await f.run([row], 'new', 'source-next')
@@ -271,10 +262,6 @@ test('Places inherit independent base, locales and source resolutions across yea
     ).toEqual({
       isCurrent: 1,
     })
-    expect(
-      (await resolveSnapshotSourceResolutions(f.plan, f.shards)).get('place')
-        ?.resolutions,
-    ).toEqual({ entities: {}, decisions: [{ type: 'source_omission' }] })
     expect((await f.run([], 'new', 'source-next')).historySqlByBinding.size).toBe(0)
   } finally {
     f.close()

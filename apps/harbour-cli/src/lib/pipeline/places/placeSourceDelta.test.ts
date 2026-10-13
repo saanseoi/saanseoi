@@ -1,10 +1,11 @@
 import { Database } from 'bun:sqlite'
-import { test, expect } from 'bun:test'
+import { expect, test } from 'bun:test'
 import { mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { drizzle } from 'drizzle-orm/bun-sqlite'
 import { normaliseOverturePlace } from '@repo/core/pipeline/services/places/place'
+import { drizzle } from 'drizzle-orm/bun-sqlite'
+import { loadMigrationSql } from '../../../../../../libs/core/src/testing/metaFixtures.ts'
 import {
   buildPlaceSql,
   buildPlaceSqlBatches,
@@ -14,7 +15,6 @@ import type {
   BuildPlaceSqlInput,
   EnrichedPlace,
 } from './processLocalPlaceSqlUploadTypes.ts'
-import { loadMigrationSql } from '../../../../../../libs/core/src/testing/metaFixtures.ts'
 
 function place(id: string, hash = 'same'): EnrichedPlace {
   const normalised = normaliseOverturePlace(
@@ -130,15 +130,6 @@ test('source deltas preserve unchanged assertions across shards, close changes a
       ['changed', { bindingName: 'old', versionHash: 'before' }],
       ['removed', { bindingName: 'old', versionHash: 'same' }],
     ])
-    data.sourceResolutions = new Map(
-      [...data.sourceRows].map(([id, row]) => [
-        id,
-        {
-          sourceVersionHash: row.versionHash,
-          resolutions: { entities: { place: [id] } },
-        },
-      ]),
-    )
     const sql = await buildPlaceSql(data, { timestamp: 'now' })
     expect(sql.sourceSqlByBinding.get('old')?.join('')).not.toContain('properties')
     let previousChanges: unknown[] = []
@@ -268,15 +259,6 @@ test('streamed source finalisation runs after all chunks even without removed hi
       ...data.sourceRows,
       ['source-only-removal', { bindingName: 'new', versionHash: 'same' }],
     ])
-    data.sourceResolutions = new Map(
-      [...data.sourceRows].map(([id, row]) => [
-        id,
-        {
-          sourceVersionHash: row.versionHash,
-          resolutions: { entities: { place: [id] } },
-        },
-      ]),
-    )
     seed(db, 'another-scope')
     const path = join(directory, 'places.jsonl')
     await Bun.write(path, data.places.map(row => JSON.stringify(row)).join('\n'))
@@ -330,19 +312,6 @@ test('Places retain A to B to A as three disjoint source periods, including retr
       data.sourceRows = new Map(
         current
           ? [['recurring', { bindingName: 'new', versionHash: current.versionHash }]]
-          : [],
-      )
-      data.sourceResolutions = new Map(
-        current
-          ? [
-              [
-                'recurring',
-                {
-                  sourceVersionHash: current.versionHash,
-                  resolutions: { entities: { place: ['recurring'] } },
-                },
-              ],
-            ]
           : [],
       )
       const sql = await buildPlaceSql(data, { timestamp: version })

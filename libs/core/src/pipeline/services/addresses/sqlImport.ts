@@ -3,7 +3,6 @@ import { stringifyGeoJson } from '@repo/db/geoJsonSerialisation'
 import type { DatasetProcessingMessage } from '../../../types'
 import { buildAlignAddressCurrentDivisionSnapshotSql } from '../../db/address'
 import { buildSourceReleaseId } from '../../db/source'
-import { sourceResolutionSql } from '../../db/sourceResolutions'
 import { readAlsPublisherSource } from '../sources/alsSourcePayload'
 import { sourceLocatorFromReferences } from '../sources/sourcePayload'
 import { buildAddressBuildingNumberLookupRows } from './normalisation'
@@ -373,9 +372,6 @@ export function buildAddressHistorySqlImportFile(
 ): AddressSqlImportFile {
   const runId = options.runId ?? buildAddressSqlImportRunId(message)
   const historyStatements = [
-    ...artefact.rows.flatMap(row =>
-      row.sourceResolution ? [sourceResolutionSql(row.sourceResolution)] : [],
-    ),
     buildAddressResolvedStagingSchemaSql(),
     ...(artefact.rowStart === 0
       ? [

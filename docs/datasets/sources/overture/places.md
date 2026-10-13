@@ -95,7 +95,7 @@ changed and returning records send full payloads to the active shard; changed as
 close in their original shard. Release metadata assigns every shard containing one of
 these retained assertions, so source-record reads and validity counts cover the complete
 release without annual payload copies. Finalisation compares incoming membership with
-the selected predecessor's source resolutions, including source-only removals and empty
+the current retained publisher IDs and hashes, including source-only removals and empty
 releases. Other datasets' source assertions remain outside this membership boundary. The
 sealed plan contains final keyed differences and is reused unchanged for remote
 delivery, local replay and interrupted recovery.
@@ -109,11 +109,10 @@ release counts every retained Place as added, and an empty release counts every
 predecessor record as removed. Ambiguous retained identities stop calculation.
 
 Canonical base and locale history versions inherit independently. Unchanged reissues add
-no history versions, events or source resolutions. Changed interpretations and explicit
-`source_omission` entries override inherited snapshot ancestry. Snapshot journal
-assignments point to the owning history shard. A year-shard boundary does not create a
-source copy for an unchanged Place assertion; source-shard assignments retain the
-complete set of owners for each release, including older annual shards.
+no history versions or events. Publisher omissions close SOURCE validity periods.
+Snapshot journal assignments point to the owning history shard. A year-shard boundary
+does not create a source copy for an unchanged Place assertion; source-shard assignments
+retain the complete set of owners for each release, including older annual shards.
 
 Places and supplementary Address assembly runs preserve analysis and finalisation
 evidence, alongside exact source and lookup selections. Metadata replay includes their
@@ -432,9 +431,11 @@ Geometry does not rewrite the supplementary Address's fields.
 The final materialisation writes `placesDivision` from these resolved spatial and
 inherited memberships, including Places without an Address. It retains canonical
 ancestors and individual islands separately from locality levels. Overlapping peers and
-shared boundaries do not arbitrarily select a division. The Place version and source
-resolution retain membership methods and exact Division/DivisionArea snapshot IDs;
-historical filtering reads the recorded Place membership.
+shared boundaries do not arbitrarily select a division. Preparation artefacts and
+processing audits retain membership methods. META pins the Division and DivisionArea
+inputs. Rollback reconstructs membership with the ingestion rules from historical Place
+coordinates and Address references, without selecting newer geometry or reading mutable
+serving scopes.
 
 ### Required ingestion order
 
@@ -782,11 +783,11 @@ resolve through `fixtures/meta/sourceAttributions/overture.json`. Unknown names 
 an explicit mapping. No ingestion release is added to the attribution.
 
 Place identity and Division association decisions are retained as immutable R2
-record-evidence objects before SQL delivery. Source resolutions hold entity membership
-and a content digest/byte-length locator. Supplementary Address decisions belong to the
-Place audit and retained source archives; Address history retains canonical values and
-attribution without a separate evidence index. Public record attribution excludes these
-processing assertions.
+record-evidence objects before SQL delivery, with collection and record identity in each
+object. Preparation artefacts and processing audits retain their context. Supplementary
+Address decisions belong to the Place audit and retained source archives; Address
+history retains canonical values and attribution without a separate evidence index.
+Public record attribution excludes these processing assertions.
 
 When a publisher ID changes but canonical Place identity continues, Address preparation
 can carry its predecessor's supplementary entry forward. Matching address evidence and a

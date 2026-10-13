@@ -25,7 +25,7 @@ export function planningDivisionFieldRule(field: string): CurrentFieldRule | nul
     ],
     identifiers: ['asRecord(value.identifiers)', ['identifiers']],
     sources: [
-      '{ sourceResolutions: { entityId: requireString(value.id, "id") } }',
+      'attributionIds.map(recordId => ({ publisherCode: "hkgov-pland", dataset: newTown ? "ds-hk-hkgov-pland-division-new-town" : "ds-hk-hkgov-pland-division-pu", recordId }))',
       ['id'],
     ],
     divisionCode: [

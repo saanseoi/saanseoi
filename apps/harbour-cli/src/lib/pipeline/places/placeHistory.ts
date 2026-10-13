@@ -1,30 +1,6 @@
-import { resolveSnapshotReplayPlan } from '@repo/core/db/metaRegistry'
-import type { HarbourReadableDb } from '@repo/core/db/types'
-import { resolveSnapshotSourceResolutions } from '@repo/core/pipeline/db/sourceResolutionReplay'
 import { createHash } from '@repo/core/pipeline/utils'
-import type { LocalAddressDbContext } from '../../dbCache/localDbCache.ts'
 import { insertSql } from './processLocalPlaceSqlUploadImport.ts'
 import type { EnrichedPlace } from './processLocalPlaceSqlUploadTypes.ts'
-
-export async function loadPreviousPlaceSourceResolutions(
-  metaDb: HarbourReadableDb,
-  targets: LocalAddressDbContext['historyTargets'],
-  parentSnapshotId?: string | null,
-) {
-  if (!parentSnapshotId) return new Map()
-  return resolveSnapshotSourceResolutions(
-    await resolveSnapshotReplayPlan(metaDb, parentSnapshotId),
-    new Map(
-      targets.map(target => [
-        target.bindingName,
-        {
-          bindingName: target.bindingName,
-          db: target.db as HarbourReadableDb,
-        },
-      ]),
-    ),
-  )
-}
 
 export const canonicalPlaceJson = (value: unknown): string =>
   JSON.stringify(value, (_key, item) =>

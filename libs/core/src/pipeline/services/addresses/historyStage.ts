@@ -7,11 +7,9 @@ import {
   prepareAddressVersionInsertContext,
 } from '../../db/address'
 import { recordHistoryDeletions } from '../../db/historyDeletions'
-import { recordSourceResolutions, resolvedEntities } from '../../db/sourceResolutions'
 import { createHash } from '../../utils'
 import type { HarbourWorkerBucket } from '../divisions/division'
 import { resolveDataShardEnvironment } from '../runtime'
-import { readAlsPublisherSource } from '../sources/alsSourcePayload'
 import {
   buildPipelineArtefactKey,
   type PipelineArtefactBucket,
@@ -64,10 +62,6 @@ export async function writeAddressHistoryChunkStage(
       operation: 'delete',
       changes,
     })
-  await recordSourceResolutions(
-    historyRepoDb,
-    artefact.rows.flatMap(row => (row.sourceResolution ? [row.sourceResolution] : [])),
-  )
 
   const resolvedArtefactKey = buildPipelineArtefactKey(
     message,
@@ -177,32 +171,8 @@ export async function buildResolvedAddressChunkArtefact(
         .sort((left, right) => left.locale.localeCompare(right.locale)),
     })
     const changed = matchedCurrent?.churnHash !== versionHash
-    const publisherSource = readAlsPublisherSource(row.raw)
 
     resolvedRowsByAddressId.set(addressId, {
-      ...(publisherSource
-        ? {
-            sourceResolution: {
-              snapshotId: versionInsertContext.snapshotId,
-              sourceReleaseId: versionInsertContext.resourceReleaseId,
-              sourceRecordId: publisherSource.sourceRecordId,
-              sourceVersionHash: publisherSource.versionHash,
-              resolutions: {
-                entities: resolvedEntities({
-                  address2d: addressId,
-                  district: base.districtId,
-                  landform: base.landformId,
-                  area: base.areaId,
-                  country: base.countryId,
-                  parentAddress: base.parentAddressId,
-                }),
-                ...(typeof row.raw.identityMatchMethod === 'string'
-                  ? { methods: { identity: row.raw.identityMatchMethod } }
-                  : {}),
-              },
-            },
-          }
-        : {}),
       addressId,
       base,
       changed,

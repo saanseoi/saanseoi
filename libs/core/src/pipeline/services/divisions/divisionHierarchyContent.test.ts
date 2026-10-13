@@ -1,12 +1,11 @@
 import { expect, test } from 'bun:test'
-import { normaliseCuratedDivision } from './curatedDivision'
-import { buildDivisionBaseHashInput } from './division'
-import { divisionSourceResolutions } from './divisionContainmentEvidence'
+import { createHash } from '../../utils'
 import {
   nativeSourcePayloadHashInput,
   saanseoiSourcePayload,
 } from '../sources/sourcePayload'
-import { createHash } from '../../utils'
+import { normaliseCuratedDivision } from './curatedDivision'
+import { buildDivisionBaseHashInput } from './division'
 
 const row = (ancestor: string, fullContainment = true, parentId = 'parent') => ({
   id: 'child',
@@ -30,7 +29,7 @@ const row = (ancestor: string, fullContainment = true, parentId = 'parent') => (
   },
 })
 
-test('evidence-only updates change snapshot interpretation, not stored content or version hashes', async () => {
+test('geometry fingerprints do not change stored content or version hashes', async () => {
   const before = row('sha256:old'),
     after = row('sha256:new')
   const canonical = (raw: ReturnType<typeof row>) => normaliseCuratedDivision(raw).base
@@ -47,9 +46,6 @@ test('evidence-only updates change snapshot interpretation, not stored content o
     'containment_geometry',
   )
   expect(saanseoiSourcePayload(before)).toEqual(saanseoiSourcePayload(after))
-  expect(divisionSourceResolutions('child', before)).not.toEqual(
-    divisionSourceResolutions('child', after),
-  )
   expect(before.record.hierarchies.full[0]![0]!.containmentGeometry.ancestor).toBe(
     'sha256:old',
   )
@@ -57,12 +53,4 @@ test('evidence-only updates change snapshot interpretation, not stored content o
     expect(await canonicalHash(changed)).not.toBe(await canonicalHash(after))
     expect(await sourceHash(changed)).not.toBe(await sourceHash(after))
   }
-})
-
-test('conflicting proofs across hierarchy paths block evidence publication', () => {
-  const raw = row('sha256:old')
-  raw.record.hierarchies.full.push(row('sha256:new').record.hierarchies.full[0]!)
-  expect(() => divisionSourceResolutions('child', raw)).toThrow(
-    'Conflicting containment evidence',
-  )
 })

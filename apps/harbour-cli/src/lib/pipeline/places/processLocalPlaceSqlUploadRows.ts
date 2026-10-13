@@ -1,5 +1,4 @@
 import type { HarbourReadableDb } from '@repo/core/db/types'
-import { sourceResolutionSql } from '@repo/core/pipeline/db/sourceResolutions'
 import { publisherPlaceId } from '@repo/core/pipeline/services/places/place'
 import { normaliseOvertureAttribution } from '@repo/core/pipeline/services/sources/sourceAttribution'
 import { overtureSourcePayload } from '@repo/core/pipeline/services/sources/sourcePayload'
@@ -124,37 +123,7 @@ export async function buildPlaceSql(
         ? { divisionAssociation: row.divisionAssociation }
         : {}),
     })
-    const resolutions = {
-      evidence: retained.reference,
-      entities: {
-        place: [place.id],
-        ...(row.divisionIds.length
-          ? { division: [...new Set(row.divisionIds)].sort() }
-          : {}),
-        ...(row.address2dId ? { address2d: [row.address2dId] } : {}),
-        ...(row.address3dId ? { address3d: [row.address3dId] } : {}),
-        ...(row.address3dUnitId ? { address3dUnit: [row.address3dUnitId] } : {}),
-      },
-    }
-    const priorResolution = input.sourceResolutions?.get(sourceId)
-    if (
-      priorResolution?.sourceVersionHash !== row.sourcePayloadHash ||
-      canonicalPlaceJson(priorResolution.resolutions) !==
-        canonicalPlaceJson(resolutions)
-    ) {
-      evidenceDocuments.push(retained.document)
-      const sourceReleaseId = input.message.resourceReleaseId
-      if (!sourceReleaseId) throw new Error('Places require a source release ID.')
-      historyStatements(input.activeHistoryBindingName).push(
-        sourceResolutionSql({
-          snapshotId: input.snapshots.snapshotId,
-          sourceReleaseId,
-          sourceRecordId: sourceId,
-          sourceVersionHash: row.sourcePayloadHash,
-          resolutions,
-        }),
-      )
-    }
+    evidenceDocuments.push(retained.document)
     const lng = row.effectiveLng ?? place.lng
     const lat = row.effectiveLat ?? place.lat
     const previous = previousById.get(place.id)
@@ -416,30 +385,13 @@ export async function buildPlaceSql(
     const seenSourceIds =
       options.seenSourceRecordIds ??
       new Set(input.places.map(row => publisherPlaceId(row.place)))
-    for (const [sourceRecordId, previous] of input.sourceResolutions ?? []) {
-      if (seenSourceIds.has(sourceRecordId)) continue
-      const resolutions = { entities: {}, decisions: [{ type: 'source_omission' }] }
-      if (canonicalPlaceJson(previous.resolutions) === canonicalPlaceJson(resolutions))
-        continue
-      const sourceReleaseId = input.message.resourceReleaseId
-      if (!sourceReleaseId) throw new Error('Places require a source release ID.')
-      historyStatements(input.activeHistoryBindingName).push(
-        sourceResolutionSql({
-          snapshotId: input.snapshots.snapshotId,
-          sourceReleaseId,
-          sourceRecordId,
-          sourceVersionHash: previous.sourceVersionHash,
-          resolutions,
-        }),
-      )
-    }
     for (const predicate of missingPlaceMembershipPredicates([
       ...(options.seenPlaceIds ?? new Set(input.places.map(row => row.place.id))),
     ]))
       currentSql.push(
         `DELETE FROM places WHERE snapshotId = ${lit(scopeId)} AND ${predicate};`,
       )
-    for (const sourceRecordId of input.sourceResolutions?.keys() ?? []) {
+    for (const sourceRecordId of input.sourceRows?.keys() ?? []) {
       if (seenSourceIds.has(sourceRecordId)) continue
       const source = input.sourceRows?.get(sourceRecordId)
       if (source)

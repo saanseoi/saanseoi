@@ -76,37 +76,6 @@ export function reconcileAddressIdCopy(db: Database, mapping: AddressIdMapping) 
           .run(kind, kind)
         if (result.changes) counts[`${table}.${field}`] = result.changes
       }
-      if (table === 'sourceResolutions') {
-        const rows = db
-          .query<{ rowid: number; resolutions: string }, []>(
-            'SELECT rowid,resolutions FROM sourceResolutions',
-          )
-          .all()
-        for (const row of rows) {
-          const value = JSON.parse(row.resolutions)
-          let changed = false
-          for (const [entity, kind] of [
-            ['address2d', 'address2d'],
-            ['address3d', 'address3d'],
-            ['parentAddress', 'address2d'],
-          ] as const) {
-            if (!Array.isArray(value.entities?.[entity])) continue
-            value.entities[entity] = value.entities[entity].map((id: string) => {
-              const replacement = mapping[kind].get(id)
-              if (replacement) changed = true
-              return replacement ?? id
-            })
-          }
-          if (changed) {
-            db.query('UPDATE sourceResolutions SET resolutions=? WHERE rowid=?').run(
-              JSON.stringify(value),
-              row.rowid,
-            )
-            counts['sourceResolutions.entities'] =
-              (counts['sourceResolutions.entities'] ?? 0) + 1
-          }
-        }
-      }
     }
     db.exec('DROP TABLE addressIdMapping')
     const violations = db.query('PRAGMA foreign_key_check').all()

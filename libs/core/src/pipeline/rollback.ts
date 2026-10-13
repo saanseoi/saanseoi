@@ -172,11 +172,7 @@ export function currentRollbackPredicateSql(
 
 function buildPurgeHistorySql(input: DraftReleasePurgeInput, plan: RollbackPlan) {
   return joinStatements([
-    ...(input.resourceType === 'street'
-      ? []
-      : [
-          `DELETE FROM sourceResolutions WHERE snapshotId = ${literal(input.snapshotId)};`,
-        ]),
+    ...(input.resourceType === 'street' ? [] : []),
     ...plan.historyTables.map(
       ({ table }) =>
         `DELETE FROM ${table} WHERE snapshotId = ${literal(input.snapshotId)};`,

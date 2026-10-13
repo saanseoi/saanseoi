@@ -132,24 +132,6 @@ async function fixture() {
       ...(locale ? { locale } : {}),
     })
   }
-  const interpretation = (
-    db: Database,
-    snapshotId: string,
-    entities: Record<string, string[]>,
-  ) =>
-    insert(db, 'sourceResolutions', {
-      scopeId: `snapshot:${snapshotId}`,
-      snapshotId,
-      sourceReleaseId: `release-${snapshotId}`,
-      sourceRecordId: 'place',
-      sourceVersionHash: `source-${snapshotId}`,
-      resolutions: {
-        entities,
-        ...(!Object.keys(entities).length
-          ? { decisions: [{ type: 'source_omission' }] }
-          : {}),
-      },
-    })
   snapshot('areas', 'divisionArea', null, 'OLD')
   for (let i = 0; i < 4; i++) {
     const shard = i < 2 ? 'OLD' : 'NEW'
@@ -240,11 +222,6 @@ async function fixture() {
     },
     'en',
   )
-  interpretation(old, 'p0', {
-    place: ['place'],
-    address2d: ['building'],
-    division: ['division'],
-  })
   const hydrate = (db = old, baseHash = 'place-old', localeHash = 'locale-old') => {
     current.exec(
       'DELETE FROM placesCells; DELETE FROM placesDivision; DELETE FROM placesI18n; DELETE FROM places;',
@@ -290,7 +267,6 @@ async function fixture() {
     assembly,
     deleteEvent,
     history,
-    interpretation,
     hydrate,
     restore,
     close() {
@@ -331,9 +307,6 @@ test('Place rollback reconstructs unjournaled Division definition changes and th
       ).toEqual({ n: 3 })
       expect(f.old.query('SELECT total_changes() AS n').get()).toEqual(before)
     }
-    expect(f.recent.query('SELECT COUNT(*) AS n FROM sourceResolutions').get()).toEqual(
-      { n: 0 },
-    )
     expect(f.recent.query('SELECT COUNT(*) AS n FROM places').get()).toEqual({ n: 0 })
   } finally {
     f.close()
@@ -347,7 +320,6 @@ test('Place rollback clears empty predecessor companions and resets pointers whe
     f.snapshot('p4', 'place', 'p3', 'NEW')
     f.deleteEvent(f.recent, 'p4', 'place', 'place')
     f.deleteEvent(f.recent, 'p4', 'placeI18n', 'place', 'en')
-    f.interpretation(f.recent, 'p4', {})
     f.current.exec('DELETE FROM placesI18n; DELETE FROM places;')
     expect(await f.restore('p4')).toEqual({ places: 0, divisionLinks: 0, cells: 0 })
     expect(f.current.query('SELECT COUNT(*) AS n FROM placesDivision').get()).toEqual({
@@ -376,11 +348,6 @@ test('Place rollback clears empty predecessor companions and resets pointers whe
       },
       'en',
     )
-    f.interpretation(f.recent, 'p5', {
-      place: ['place'],
-      address2d: ['building'],
-      division: ['division'],
-    })
     f.hydrate(f.recent, 'place-new', 'locale-new')
     await f.restore('p5')
     expect(
@@ -434,11 +401,6 @@ test('Place rollback validates retained locale Address text against its original
       addressSnapshotId: 'a1',
       addressDependencyHash: hash,
     })
-    f.interpretation(f.old, 'p1', {
-      place: ['place'],
-      address2d: ['replacement'],
-      division: ['division'],
-    })
     f.hydrate(f.old, 'place-reidentified', 'locale-old')
     expect(await f.restore('p1')).toEqual({ places: 1, divisionLinks: 1, cells: 3 })
     expect(
@@ -459,7 +421,6 @@ test.each([
   'assignment',
   'address-content',
   'assembly',
-  'source',
   'text',
 ] as const)(
   'Place rollback rejects missing %s dependency evidence before mutating derived rows',
@@ -481,7 +442,6 @@ test.each([
       if (failure === 'address-content') f.old.exec('DELETE FROM address2d')
       if (failure === 'assembly')
         f.meta.exec("DELETE FROM snapshotDependencies WHERE snapshotId='p0'")
-      if (failure === 'source') f.old.exec('DELETE FROM sourceResolutions')
       if (failure === 'text') {
         f.current.exec('UPDATE placesI18n SET searchDependencyText=NULL')
         currentChanges++
@@ -498,3 +458,63 @@ test.each([
     }
   },
 )
+
+test('Place rollback rebuilds address-free membership from the pinned geometry, not newer geometry', async () => {
+  const f = await fixture()
+  try {
+    f.old.exec(
+      'UPDATE places SET addressSnapshotId=NULL,addressDependencyHash=NULL,address2dId=NULL',
+    )
+    f.old.query('UPDATE placesI18n SET searchDependencyText=?').run(
+      JSON.stringify({
+        addressSnapshotId: null,
+        addressText: '',
+        streetText: '',
+        divisionText: 'County',
+      }),
+    )
+    const polygon = (offset: number) => ({
+      type: 'Polygon',
+      coordinates: [
+        [
+          [114 + offset, 22],
+          [115 + offset, 22],
+          [115 + offset, 23],
+          [114 + offset, 23],
+          [114 + offset, 22],
+        ],
+      ],
+    })
+    f.history(f.old, 'divisionAreas', 'areas', 'area', 'area-old', {
+      divisionId: 'division',
+      variant: 'saanseoi',
+      type: 'land',
+      geometry: polygon(0),
+    })
+    f.snapshot('areas-new', 'divisionArea', 'areas', 'NEW')
+    f.history(f.recent, 'divisionAreas', 'areas-new', 'area', 'area-new', {
+      divisionId: 'division',
+      variant: 'saanseoi',
+      type: 'land',
+      geometry: polygon(5),
+    })
+    f.hydrate()
+    expect(await f.restore('p0')).toEqual({ places: 1, divisionLinks: 1, cells: 3 })
+    expect(f.current.query('SELECT divisionId FROM placesDivision').all()).toEqual([
+      { divisionId: 'division' },
+    ])
+    expect(
+      f.old
+        .query("SELECT name FROM sqlite_schema WHERE name='sourceResolutions'")
+        .all(),
+    ).toEqual([])
+    const before = f.current.query('SELECT * FROM placesDivision').all()
+    f.meta.exec(
+      "DELETE FROM snapshotDependencies WHERE snapshotId='a0' AND role='divisionArea'",
+    )
+    await expect(f.restore('p0')).rejects.toThrow('DivisionArea dependency')
+    expect(f.current.query('SELECT * FROM placesDivision').all()).toEqual(before)
+  } finally {
+    f.close()
+  }
+})

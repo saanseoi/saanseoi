@@ -406,8 +406,6 @@ test('canonical replacement retains only real publisher geometry and resolves it
     expect(current.query('SELECT id FROM divisionAreas').all()).toEqual([
       { id: 'district-union' },
     ])
-    const resolutions = history.query('SELECT resolutions FROM sourceResolutions').all()
-    expect(JSON.stringify(resolutions)).toContain('district-union')
     expect(publisher.canonical.geometry).not.toEqual(canonical.canonical.geometry)
   } finally {
     current.close()

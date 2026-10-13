@@ -52,7 +52,6 @@ import {
   planningDivisionChurn,
   planningDivisionContentHash,
 } from './planningDivisionChurn'
-import { recordPlanningSourceResolutions } from './planningSourceResolutions'
 import {
   LOCAL_RELEASE_ROOT,
   PLANNING_DIVISION_SNAPSHOT_SOURCE_ROLE,
@@ -301,7 +300,6 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
             missingHistoryIds,
             missingNativeIds,
             nativeRecords,
-            omittedNativeRecords,
           } = await runPlandProgressPhase(
             progress,
             'Compare',
@@ -367,9 +365,6 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
                 missingHistoryIds,
                 missingNativeIds,
                 nativeRecords,
-                omittedNativeRecords: currentNativeRows.filter(row =>
-                  missingNativeIds.includes(row.sourceRecordId),
-                ),
               }
             },
           )
@@ -468,13 +463,6 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
             'Record',
             'Planning division history',
             async reportProgress => {
-              await recordPlanningSourceResolutions(
-                context.historyDb as unknown as HarbourWritableDb,
-                snapshot.id,
-                resourceReleaseId,
-                records,
-                omittedNativeRecords,
-              )
               await insertHistoryRows(
                 context.historyDb as unknown as HarbourWritableDb,
                 snapshot.id,

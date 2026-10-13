@@ -119,17 +119,6 @@ test('omits the rebuilt Address full-text index from the mirror profile', () => 
   const tables = resolveCacheTablesForBinding('DB_CURRENT', 'address')
   expect(tables).not.toContain('addressesFts')
   expect(tables).toContain('address2dBuildingNumberLookup')
-  expect(resolveCacheTablesForBinding('DB_HISTORY_HK_2026', 'address')).toEqual([
-    'divisionAreas',
-    'divisions',
-    'divisionsI18n',
-    'address2d',
-    'address2dI18n',
-    'address2dBuildingNumberLookup',
-    'address3d',
-    'address3dI18n',
-    'sourceResolutions',
-  ])
 })
 
 test('uses the bounded family profiles for remote mirrors', () => {
@@ -149,14 +138,11 @@ test('uses the bounded family profiles for remote mirrors', () => {
     localDatabaseId: 'acceptance-local-database',
   }))
 
-  expect(countRemoteCacheWorkUnits(targets)).toBe(167)
-  expect(countRemoteCacheWorkUnits(targets, 'division')).toBe(41)
-  expect(countRemoteCacheWorkUnits(targets, 'address')).toBe(118)
-  expect(countRemoteCacheWorkUnits(targets, 'places')).toBe(73)
-  expect(countRemoteCacheWorkUnits(targets, 'statistics')).toBe(55)
-  expect(resolveCacheTablesForBinding('DB_HISTORY_HK_2026', 'street')).not.toContain(
-    'sourceResolutions',
-  )
+  expect(countRemoteCacheWorkUnits(targets)).toBe(164)
+  expect(countRemoteCacheWorkUnits(targets, 'division')).toBe(38)
+  expect(countRemoteCacheWorkUnits(targets, 'address')).toBe(115)
+  expect(countRemoteCacheWorkUnits(targets, 'places')).toBe(70)
+  expect(countRemoteCacheWorkUnits(targets, 'statistics')).toBe(52)
   expect(resolveCacheTablesForBinding('DB_CURRENT', 'divisionGeometry')).toEqual([
     'divisions',
     'divisionPublicationState',
@@ -166,7 +152,7 @@ test('uses the bounded family profiles for remote mirrors', () => {
     'divisionBoundaries',
     'divisionBoundaryPublicationState',
   ])
-  expect(countRemoteCacheWorkUnits(targets, 'divisionGeometry')).toBe(60)
+  expect(countRemoteCacheWorkUnits(targets, 'divisionGeometry')).toBe(57)
 })
 
 test('retains every HISTORY branch and tombstone while pruning superseded SOURCE rows', () => {

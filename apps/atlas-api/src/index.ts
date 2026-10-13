@@ -1,80 +1,81 @@
+import { OpenAPIHono } from '@hono/zod-openapi'
+import { InventorySelectionError } from '@repo/core/db/apiInventory'
+import {
+  isPublicKeyOriginAllowed,
+  type PublicKeyLease,
+  PublicKeyLeaseUnavailableError,
+  readPublicApiKey,
+} from '@repo/core/publicApiKey'
+import { createCurrentDb, createHistoryDb, createMetaDb } from '@repo/db'
+import { Scalar } from '@scalar/hono-api-reference'
+import { createMarkdownFromOpenApi } from '@scalar/openapi-to-markdown'
+import type { Context } from 'hono'
+import { cors } from 'hono/cors'
+import { poweredBy } from 'hono/powered-by'
+import { prettyJSON } from 'hono/pretty-json'
+import { isTransientD1ReadError } from './lib/d1'
+import { GeographicCrosswalkUnavailableError } from './lib/geographicFilterContext'
+import { defaultOpenAPIHook } from './lib/openapi'
+import {
+  localiseOpenApiDocument,
+  type OpenApiLocale,
+  openApiText,
+  resolveOpenApiLocale,
+} from './lib/openapi-i18n'
+import { resolvePublicKeyLease } from './lib/public-key-lease'
 import {
   camelCaseJson,
   isJsonContentType,
   usesCanonicalResponseKeys,
 } from './lib/responseKeys'
-import { GeographicCrosswalkUnavailableError } from './lib/geographicFilterContext'
-import { apiVersionLifecycleMiddleware } from './services/apiVersionLifecycle'
-import { geographicCodeFilterMiddleware } from './services/geographicCodeFilters'
-import { divisionInventoriesRoute } from './routes/divisions/v0/inventories'
 import {
-  divisionChangesV02Route,
   divisionChangeDefinitionV02Route,
+  divisionChangesV02Route,
 } from './routes/divisions/changes'
-import { InventorySelectionError } from '@repo/core/db/apiInventory'
+import { divisionInventoriesRoute } from './routes/divisions/v0/inventories'
 import { geocodingJsonApiErrors } from './routes/geocoding/jsonApiErrors'
-import { OpenAPIHono } from '@hono/zod-openapi'
-import type { Context } from 'hono'
-import { Scalar } from '@scalar/hono-api-reference'
-import { createMarkdownFromOpenApi } from '@scalar/openapi-to-markdown'
-import { cors } from 'hono/cors'
-import { poweredBy } from 'hono/powered-by'
-import { prettyJSON } from 'hono/pretty-json'
-
-import { createCurrentDb, createHistoryDb, createMetaDb } from '@repo/db'
+import { apiVersionLifecycleMiddleware } from './services/apiVersionLifecycle'
 import {
   hydrateCanonicalSourceDocument,
   requiresCanonicalSourceExpansion,
 } from './services/canonicalSourceDocument'
-import { isTransientD1ReadError } from './lib/d1'
-import {
-  localiseOpenApiDocument,
-  openApiText,
-  resolveOpenApiLocale,
-  type OpenApiLocale,
-} from './lib/openapi-i18n'
-import { defaultOpenAPIHook } from './lib/openapi'
-import { resolvePublicKeyLease } from './lib/public-key-lease'
-import {
-  PublicKeyLeaseUnavailableError,
-  isPublicKeyOriginAllowed,
-  readPublicApiKey,
-  type PublicKeyLease,
-} from '@repo/core/publicApiKey'
+import { geographicCodeFilterMiddleware } from './services/geographicCodeFilters'
+
 export { PublicKeyLeaseCoordinator } from './publicKeyLeaseCoordinator'
-import { metaRoutes } from './routes/v0/meta'
-import { probeRoutes } from './routes/v0/probe'
-import { divisionRoutes } from './routes/divisions/v0/divisions'
-import {
-  divisionChangesRoute,
-  divisionChangeDefinitionRoute,
-} from './routes/divisions/changes'
-import { addressRoutes } from './routes/addresses/v0/addresses'
-import { geocodingRoutes } from './routes/geocoding/geocoding'
-import { placeRoutes } from './routes/places/v0/places'
-import { registryRoutes } from './routes/v0/registry'
-import { identityBridgeRoutes } from './routes/v0/identityBridge'
-import { managedAssetRoutes } from './routes/v0/assets'
-import { styleRoutes } from './routes/v0/styles'
-import { streetRoutes } from './routes/streets/v0/streets'
-import { statisticRoutes } from './routes/statistics/v0/statistics'
-import { statisticRegistryRoutes } from './routes/statistics/v0/registry'
-import {
-  sourceRoutes,
-  streamSourceRecordsMiddleware,
-} from './routes/api-family/v0/sources'
-import { rollUpApiKeyUsage } from './services/apiKeyUsageRollup'
-import {
-  completeAccessAnalyticsDownload,
-  recordAccessAnalyticsEvent,
-} from './services/accessAnalytics'
-import { rollUpAccessAnalyticsDaily } from './services/accessAnalyticsRollup'
-import { asRollupJobError, type RollupPhase } from './services/rollupRetry'
+
 import {
   isFirstPartyWebOrigin,
   productApiOutcome,
   writeProductUsage,
 } from './lib/productUsage'
+import { addressRoutes } from './routes/addresses/v0/addresses'
+import {
+  sourceRoutes,
+  streamSourceRecordsMiddleware,
+} from './routes/api-family/v0/sources'
+import {
+  divisionChangeDefinitionRoute,
+  divisionChangesRoute,
+} from './routes/divisions/changes'
+import { divisionRoutes } from './routes/divisions/v0/divisions'
+import { geocodingRoutes } from './routes/geocoding/geocoding'
+import { placeRoutes } from './routes/places/v0/places'
+import { statisticRegistryRoutes } from './routes/statistics/v0/registry'
+import { statisticRoutes } from './routes/statistics/v0/statistics'
+import { streetRoutes } from './routes/streets/v0/streets'
+import { managedAssetRoutes } from './routes/v0/assets'
+import { identityBridgeRoutes } from './routes/v0/identityBridge'
+import { metaRoutes } from './routes/v0/meta'
+import { probeRoutes } from './routes/v0/probe'
+import { registryRoutes } from './routes/v0/registry'
+import { styleRoutes } from './routes/v0/styles'
+import {
+  completeAccessAnalyticsDownload,
+  recordAccessAnalyticsEvent,
+} from './services/accessAnalytics'
+import { rollUpAccessAnalyticsDaily } from './services/accessAnalyticsRollup'
+import { rollUpApiKeyUsage } from './services/apiKeyUsageRollup'
+import { asRollupJobError, type RollupPhase } from './services/rollupRetry'
 import type { AppBindings, AppEnv } from './types'
 
 const app = new OpenAPIHono<AppEnv>({
@@ -455,7 +456,6 @@ for (const path of apiRoutePaths) {
       if (requiresCanonicalSourceExpansion(c.req.path, c.req.query('profile'))) {
         await hydrateCanonicalSourceDocument(document as never, {
           metaDb: c.get('metaDb'),
-          historyDbsByBinding,
         })
       }
       const headers = new Headers(c.res.headers)

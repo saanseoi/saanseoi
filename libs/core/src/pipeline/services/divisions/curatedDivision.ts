@@ -1,9 +1,9 @@
-import { curatedRecordSources } from '../sources/curatedRecordSources'
-import { divisionHierarchyContent } from './divisionContainmentEvidence'
-import { assertInternalSourceReferences } from '../sources/internalSourceReferences'
 import { geographicDivisionClassification } from '@repo/db'
+import type { DivisionI18nPayload, NewDivisionRow } from '@repo/db/currentSchema'
 import type { GeoJsonGeometry } from '../../geojson'
-import type { NewDivisionRow, DivisionI18nPayload } from '@repo/db/currentSchema'
+import { curatedRecordSources } from '../sources/curatedRecordSources'
+import { assertInternalSourceReferences } from '../sources/internalSourceReferences'
+import { divisionHierarchyContent } from './divisionHierarchyContent'
 
 const json = (value: unknown) => (typeof value === 'string' ? JSON.parse(value) : value)
 

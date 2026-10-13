@@ -1,17 +1,14 @@
-import type { Polygon, MultiPolygon } from 'geojson'
-import { createHash } from 'node:crypto'
-import { containmentGeometryKey } from '@repo/core/pipeline/services/divisions/containmentGeometry.ts'
-import type { DivisionRecord, DivisionAreaRecord } from '../db/divisions'
-import type { DivisionContainmentEvidence } from './divisionContainmentEvidence'
-import {
-  geographicDivisionClassification,
-  type DivisionHierarchies,
-  type DivisionHierarchyEntry,
-} from '@repo/db'
 import {
   containsReviewPoint,
   reviewAreaBounds,
 } from '@repo/core/pipeline/services/divisions/geographicReview.ts'
+import {
+  type DivisionHierarchies,
+  type DivisionHierarchyEntry,
+  geographicDivisionClassification,
+} from '@repo/db'
+import type { MultiPolygon, Polygon } from 'geojson'
+import type { DivisionAreaRecord, DivisionRecord } from '../db/divisions'
 
 export type Coordinate = [number, number]
 export function pointGeometry(value: unknown): Coordinate | null {
@@ -76,7 +73,6 @@ export function createDivisionResolver(
   areas: DivisionAreaRecord[],
   options: {
     containsPoint?: typeof containsReviewPoint
-    containmentEvidence?: DivisionContainmentEvidence
   } = {},
 ) {
   const byId = new Map(records.map(record => [record.division.id, record]))
@@ -120,46 +116,6 @@ export function createDivisionResolver(
   const areasById = new Map<string, typeof index>()
   for (const area of index)
     areasById.set(area.id, [...(areasById.get(area.id) ?? []), area])
-  const containedChildren = new Map<
-    string,
-    Array<{
-      id: string
-      evidence: { division: string; ancestor: string }
-    }>
-  >()
-  for (const [id, hierarchy] of hierarchiesById) {
-    if (!covered.has(id)) continue
-    const seen = new Set<string>()
-    for (const entry of Object.values(hierarchy).flat(2)) {
-      const evidence = options.containmentEvidence?.get(id)?.[entry.id]
-      if (
-        entry.full_containment !== true ||
-        !evidence ||
-        entry.id === id ||
-        seen.has(entry.id) ||
-        !covered.has(id) ||
-        !covered.has(entry.id)
-      )
-        continue
-      seen.add(entry.id)
-      containedChildren.set(entry.id, [
-        ...(containedChildren.get(entry.id) ?? []),
-        { id, evidence },
-      ])
-    }
-  }
-  // Validate evidence once per request-owned index, against the actual loaded areas.
-  const fingerprints = new Map<string, string>()
-  const fingerprint = (id: string) => {
-    let hash = fingerprints.get(id)
-    if (!hash) {
-      hash = `sha256:${createHash('sha256')
-        .update(containmentGeometryKey(areasById.get(id)!.map(area => area.geometry)))
-        .digest('hex')}`
-      fingerprints.set(id, hash)
-    }
-    return hash
-  }
   const containsPoint = options.containsPoint ?? containsReviewPoint
   function resolve(point: Coordinate | null, withGeometry = false, namedId?: string) {
     const checked = new Map<string, boolean>()
@@ -176,16 +132,7 @@ export function createDivisionResolver(
           point[1] <= bbox[3],
       )
       visiting.add(id)
-      const inherited =
-        candidates.length > 0 &&
-        (containedChildren.get(id) ?? []).some(
-          child =>
-            contains(child.id) &&
-            fingerprint(child.id) === child.evidence.division &&
-            fingerprint(id) === child.evidence.ancestor,
-        )
-      const result =
-        inherited || candidates.some(area => containsPoint(point, area.geometry))
+      const result = candidates.some(area => containsPoint(point, area.geometry))
       visiting.delete(id)
       checked.set(id, result)
       return result

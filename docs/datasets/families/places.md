@@ -144,11 +144,10 @@ inputs and references.
 Each snapshot asserts complete Place membership. The local compiler validates the
 candidate and emits only final current, source and history differences. Base and each
 locale history inherit independently; unchanged parented reissues create no component or
-source-resolution rows. Sparse source resolutions inherit along snapshot ancestry, while
-changed interpretations and explicit source omissions remain recorded. Changed
-components append events without updating their ancestors. Snapshot events assignments
-identify history shards. The CLI reports reused and computed record counts for each
-cache stage.
+history rows. SOURCE validity periods record publisher changes and omissions
+independently. Changed components append events without updating their ancestors.
+Snapshot events assignments identify history shards. The CLI reports reused and computed
+record counts for each cache stage.
 
 `bun run scripts/benchmark-place-incremental.ts` compares direct, cold-cache and warm
 record-cache preparation for 1,000 synthetic Places and official definitions. It checks
@@ -299,9 +298,12 @@ including text-resolved village and hamlet membership. A Place without an Addres
 still have spatial Division links. Geometry takes precedence over inherited Address
 references. Shared boundaries and overlapping peers remain unresolved.
 
-Each Place version retains its resolved Division membership and association evidence in
-`sources.divisionAssociation`; source-resolution evidence retains the same result.
-Snapshot IDs and geometry content participate in preparation cache invalidation.
+Retained preparation artefacts and processing audits carry Division association
+evidence. Rollback rebuilds `placesDivision` with the ingestion membership function
+using historical Place coordinates, the referenced Address and the pinned Division and
+DivisionArea snapshots. It preserves the original Division pointer while the association
+and its definition remain unchanged. Missing dependencies fail before replacing serving
+rows. Snapshot IDs and geometry content participate in preparation cache invalidation.
 
 The Places collection endpoint is `GET /places/v0.1`. All API families accept the
 optional `region` query parameter: `hk` (default), `mo`, or `gba`. GBA currently selects
@@ -651,10 +653,10 @@ address and location, plus candidate scores and competing observations. Missing 
 is shown as unknown. The audit retains partitioned immutable copies and a reference to
 the staged ledger hash; retention fails if the ledger and prepared decisions differ.
 
-Publisher SOURCE rows keep their own IDs. Canonical history retains identity evidence
-and source resolutions map publisher records to canonical Places. Local staging and
-caches are disposable. Generated ledgers are not stored in Git; published historical
-audits require an explicit rebuild to contain the evidence.
+Publisher SOURCE rows keep their own IDs. Canonical history retains canonical content
+and publisher attribution; the retained identity ledger records assignment decisions.
+Local staging and caches are disposable. Generated ledgers are not stored in Git;
+published historical audits require an explicit rebuild to contain the evidence.
 
 ## Record attribution and evidence
 
@@ -665,11 +667,11 @@ resolve through `fixtures/meta/sourceAttributions/overture.json`. Unknown names 
 an explicit mapping. No ingestion release is added to the attribution.
 
 Place identity and Division association decisions are retained as immutable R2
-record-evidence objects before SQL delivery. Source resolutions hold entity membership
-and a content digest/byte-length locator. Supplementary Address decisions belong to the
-Place audit and retained source archives; Address history retains canonical values and
-attribution without a separate evidence index. Public record attribution excludes these
-processing assertions.
+record-evidence objects before SQL delivery, with collection and record identity in each
+object. Preparation artefacts and processing audits retain their context. Supplementary
+Address decisions belong to the Place audit and retained source archives; Address
+history retains canonical values and attribution without a separate evidence index.
+Public record attribution excludes these processing assertions.
 
 Address preparation follows the matched canonical predecessor across publisher-ID
 changes. It carries the predecessor's generated supplementary entry to the new publisher

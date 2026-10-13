@@ -460,15 +460,6 @@ SPU for each TPU, and PPU for each SPU. Ancestor identifiers must match the chil
 publisher codes. Incomplete prepared artefacts fail with a request to prepare the
 release again.
 
-`scripts/backfill-planning-hierarchies.ts` repairs retained local Planning paths with
-`--meta`, `--history`, `--source`, `--current` and `--output` database/output paths. It
-defaults to a dry run. Each snapshot inventory is replayed and checked against exact
-pinned publisher assertions and source resolutions; omissions remain intact. `--apply`
-updates canonical paths, content hashes and replay references in one transaction,
-retaining affected rows in `rollback.sqlite` and a `rollback.sql` script. Run rollback
-with the history, current and backup databases attached as `history`, `current` and
-`repairBackup`. Rehearse on copies and verify a repeat dry run before using the repair.
-
 ## Division name completion
 
 Division name completion targets English and Traditional Chinese. Publisher Simplified
@@ -516,14 +507,6 @@ Divisions, and retains explicit omissions for removed publisher assertions. Nati
 Town assertions resolve their own canonical Division. Division identities remain Points;
 companion DivisionAreas retain polygonal geometry.
 
-`scripts/backfill-planning-source-resolutions.py` validates existing Planning Unit
-interpretations against exact retained source hashes, pinned releases and replayed
-canonical membership. Supply `--meta`, `--history`, `--source` and `--output` paths for
-a dry run. `--apply` updates eligible interpretations transactionally after writing row
-backups, replay references and rollback SQL. Explicit omissions, source payloads and
-canonical geometry are preserved. Run a second dry run in a separate output directory to
-verify that no further changes are needed.
-
 ## Source record identity declarations
 
 Planning cell deliveries contain repeated TPU/subunit codes and no native feature ID.
@@ -538,11 +521,9 @@ runs replaced with `-`, and leading/trailing hyphens removed. Empty or duplicate
 block intake. These keys have release-local stability; canonical cohort-scoped Division
 IDs remain independent.
 
-Planning Unit area imports require a non-empty `source_cell_ids` array and retain every
-contributing cell as `sources.hkgovPland[].cell_id` in both current and history records.
-Missing cell membership rejects the import. Canonical Divisions use
-`sources.sourceResolutions.entityId` to request replay of their retained
-interpretations.
+Planning Unit area imports require a non-empty `source_cell_ids` array. Canonical
+Divisions and areas retain contributing publisher record IDs as flat `sources`
+attribution entries. Missing cell membership rejects the import.
 
 ## Canonical source attribution
 

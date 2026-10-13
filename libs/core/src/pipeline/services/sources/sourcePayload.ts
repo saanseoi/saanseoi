@@ -1,14 +1,15 @@
-import { curatedRecordSources } from './curatedRecordSources'
-import { divisionHierarchyContent } from '../divisions/divisionContainmentEvidence'
-import { assertInternalSourceReferences } from './internalSourceReferences'
-import { divisionIdentifierProperties } from './divisionIdentifiers'
+import overtureFixture from '../../../../../../fixtures/meta/processing-rules/ingestion/overture-source-retention.json'
+import saanseoiFixture from '../../../../../../fixtures/meta/processing-rules/ingestion/saanseoi-source-retention.json'
 import { camelCaseJson } from '../../../jsonKeys'
 import { registerRule } from '../../../provenance/auditTypes'
 import { ruleDeclarationFromFixture } from '../../../provenance/ruleFixture'
-import overtureFixture from '../../../../../../fixtures/meta/processing-rules/ingestion/overture-source-retention.json'
-import saanseoiFixture from '../../../../../../fixtures/meta/processing-rules/ingestion/saanseoi-source-retention.json'
+import { divisionHierarchyContent } from '../divisions/divisionHierarchyContent'
+import { curatedRecordSources } from './curatedRecordSources'
+import { divisionIdentifierProperties } from './divisionIdentifiers'
+import { assertInternalSourceReferences } from './internalSourceReferences'
 import { recordContent } from './recordContent'
 import { retainSourceProperties } from './retainedProperties'
+
 /**
  * Separate publisher attributes from fields represented once by the source
  * envelope. This is a storage mapping, not canonical normalisation: values are

@@ -1,10 +1,10 @@
-import type { DatasetProcessingMessage } from '../../../types'
-import type { ReplayedAddressVersionSnapshot } from '../../db/address'
 import type {
   AddressI18nPayload,
   AddressRow,
   NewAddressI18nRow,
 } from '@repo/db/currentSchema'
+import type { DatasetProcessingMessage } from '../../../types'
+import type { ReplayedAddressVersionSnapshot } from '../../db/address'
 
 export type AddressPipelineStage =
   | 'normalise'
@@ -87,7 +87,6 @@ export type NormalisedAddressChunkArtefact = {
 }
 
 export type ResolvedAddressRecord = {
-  sourceResolution?: import('@repo/db/historySchema').NewSourceResolution
   addressId: string
   base: AddressRow
   changed: boolean

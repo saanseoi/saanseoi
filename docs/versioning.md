@@ -661,11 +661,10 @@ requires only its identity and snapshot, with a null hash. Unchanged components 
 from the selected parent and require no new HISTORY row. Reversions and independent
 branch changes store their own event, even when the content hash matches an older row.
 
-`historyEvents` is a read-only SQL view over these inline events. It stores no rows and
+`historyEvents` is a read-only SQL view over inline events. It stores no rows and
 receives no inserts, updates or deletes. There is no second membership write for an
-upsert. `sourceResolutions` retains scoped interpretation evidence, while
-`statsDefinitionSets` retains content-addressed field-reference maps; neither is a
-second canonical membership journal. SOURCE release validity remains independent.
+upsert. `statsDefinitionSets` retains content-addressed field-reference maps. Publisher
+attribution belongs to canonical `sources`; SOURCE release validity remains independent.
 
 To reconstruct a snapshot, follow its `parentSnapshotId` chain and recorded
 `snapshotShardAssignments`. Resolve the nearest event for each component identity, then

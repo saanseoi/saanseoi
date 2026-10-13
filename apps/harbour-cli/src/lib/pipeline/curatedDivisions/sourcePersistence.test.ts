@@ -1,26 +1,26 @@
-import { camelCaseJson } from '@repo/core/jsonKeys'
-import { divisionHierarchyContent } from '@repo/core/pipeline/services/divisions/divisionContainmentEvidence'
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { join } from 'node:path'
-import { drizzle } from 'drizzle-orm/bun-sqlite'
-import { currentSchema, historySchema, sourceSchema } from '@repo/db'
 import type { DatasetProcessingMessage } from '@repo/core'
-import { loadMigrationSql } from '../../../../../../libs/core/src/testing/metaFixtures'
+import { camelCaseJson } from '@repo/core/jsonKeys'
 import { getCurrentSourceDivisionMap } from '@repo/core/pipeline/db/source'
-import { createHash } from '@repo/core/pipeline/utils'
+import { normaliseDivisionAreaGeometryRow } from '@repo/core/pipeline/services/divisions/divisionGeometry'
+import { divisionHierarchyContent } from '@repo/core/pipeline/services/divisions/divisionHierarchyContent'
 import {
   nativeSourcePayloadHashInput,
   saanseoiSourcePayload,
 } from '@repo/core/pipeline/services/sources/sourcePayload'
-import { normaliseDivisionAreaGeometryRow } from '@repo/core/pipeline/services/divisions/divisionGeometry'
+import { createHash } from '@repo/core/pipeline/utils'
+import { currentSchema, historySchema, sourceSchema } from '@repo/db'
+import { drizzle } from 'drizzle-orm/bun-sqlite'
+import { loadMigrationSql } from '../../../../../../libs/core/src/testing/metaFixtures'
+import type { LocalAddressDbContext } from '../../dbCache/localDbCacheTypes'
+import { writeGeometryRows } from '../divisions/processLocalDivisionGeometrySqlUploadRows'
 import {
-  buildDivisionSourceSqlFile,
   buildDivisionHistorySqlFile,
+  buildDivisionSourceSqlFile,
 } from '../divisions/processLocalDivisionSqlUploadRows'
 import type { DivisionSqlState } from '../divisions/processLocalDivisionSqlUploadTypes'
-import { writeGeometryRows } from '../divisions/processLocalDivisionGeometrySqlUploadRows'
-import type { LocalAddressDbContext } from '../../dbCache/localDbCacheTypes'
 
 const migrations = join(import.meta.dir, '../../../../../../libs/db/migrations')
 function database(family: 'source' | 'history' | 'current') {
@@ -131,15 +131,6 @@ test('curated division SOURCE preserves names and source fields through replay, 
     await run('2026-10-01.0', [october])
     expect(db.query('SELECT * FROM ssDivision').all()).toHaveLength(1)
     expect(db.query('SELECT * FROM ssDivision').get()).toEqual(retained)
-    const proof = db
-      .query(
-        "SELECT resolutions, sourceVersionHash FROM sourceResolutions WHERE snapshotId='snapshot-2026-10-01.0'",
-      )
-      .get() as any
-    expect(proof.sourceVersionHash).toBe(retained.versionHash)
-    expect(
-      JSON.parse(proof.resolutions).divisionContainment.division.parent.ancestor,
-    ).toBe('sha256:october')
     await run('2026-11-01.0', [
       { ...original, names: { ...original.names, en: { name: 'Changed' } } },
     ])
@@ -150,7 +141,6 @@ test('curated division SOURCE preserves names and source fields through replay, 
     await run('2026-12-01.0', [])
     expect(db.query('SELECT * FROM ssDivision WHERE isCurrent=1').all()).toHaveLength(0)
     expect(db.query('SELECT * FROM overtureDivisions').all()).toHaveLength(0)
-    expect(db.query('SELECT * FROM sourceResolutions').all()).toHaveLength(3)
   } finally {
     db.close()
   }
@@ -226,9 +216,6 @@ test('curated areas write their own SOURCE before the publication receipt comple
     expect(JSON.parse(retained.properties)).toEqual(camelCaseJson(properties))
     expect(JSON.parse(retained.sourceGeometry)).toEqual(geometry)
     expect(source.query('SELECT * FROM overtureDivisionAreas').all()).toHaveLength(0)
-    expect(history.query('SELECT sourceRecordId FROM sourceResolutions').all()).toEqual(
-      [{ sourceRecordId: 'area' }],
-    )
     expect(
       current
         .query(

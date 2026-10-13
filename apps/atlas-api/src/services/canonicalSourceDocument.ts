@@ -1,59 +1,16 @@
-import { hydrateCanonicalSourceReferences } from './canonicalSourceReferences'
-import { eq, sql, metaSchema } from '@repo/db'
 import { listSnapshotResourceReleases } from '@repo/core/db/metaRegistry'
+import { eq, metaSchema, sql } from '@repo/db'
+import type { AppEnv } from '../types'
 
 /** Resolve primary and included evidence together; compact responses have no sources. */
 export async function hydrateCanonicalSourceDocument(
   document: { data?: unknown; included?: unknown[]; meta?: Record<string, unknown> },
-  databases: Pick<
-    Parameters<typeof hydrateCanonicalSourceReferences>[0],
-    'metaDb' | 'historyDbsByBinding'
-  >,
+  databases: { metaDb: AppEnv['Variables']['metaDb'] },
 ) {
-  const types: Record<string, string> = {
-    addresses: 'address2d',
-    address3d: 'address3d',
-    divisions: 'division',
-    'division-areas': 'divisionArea',
-    'division-boundaries': 'divisionBoundary',
-  }
   const resources = [
     ...(Array.isArray(document.data) ? document.data : [document.data]),
     ...(document.included ?? []),
   ]
-  for (const [type, resourceType] of Object.entries(types)) {
-    const selected = resources.filter(
-      (
-        value,
-      ): value is {
-        id: string
-        type: string
-        attributes: { snapshotId: string; sources: unknown }
-      } => {
-        if (!value || typeof value !== 'object') return false
-        const row = value as {
-          id?: unknown
-          type?: unknown
-          attributes?: Record<string, unknown>
-        }
-        return (
-          row.type === type &&
-          typeof row.id === 'string' &&
-          typeof row.attributes?.snapshotId === 'string' &&
-          !!row.attributes.sources
-        )
-      },
-    )
-    const records = selected.map(resource => ({
-      id: resource.id,
-      snapshotId: resource.attributes.snapshotId,
-      sources: resource.attributes.sources,
-    }))
-    await hydrateCanonicalSourceReferences({ ...databases, resourceType, records })
-    selected.forEach((resource, index) => {
-      resource.attributes.sources = records[index]!.sources
-    })
-  }
   const releases = new Set<string>()
   const native = resources.flatMap(resource => {
     const row = resource as {

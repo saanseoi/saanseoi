@@ -197,7 +197,6 @@ function deleteIds(table: string, column: string, ids: string[]) {
 
 export function buildDivisionResetSql(plan: DivisionResetPlan) {
   const releaseIds = plan.releases.map(row => String(row.id))
-  const snapshotIds = plan.snapshots.map(row => String(row.id))
   const sourceReleaseIds = [
     ...new Set(plan.releases.map(row => String(row.sourceReleaseId))),
   ]
@@ -207,11 +206,9 @@ export function buildDivisionResetSql(plan: DivisionResetPlan) {
     ),
     ...CANONICAL_TABLES.map(table => `DELETE FROM ${table};`),
   ].join('\n')
-  const historySql = [
-    ...CANONICAL_TABLES.map(table => `DELETE FROM ${table};`),
-    ...deleteIds('sourceResolutions', 'snapshotId', snapshotIds),
-    ...deleteIds('sourceResolutions', 'sourceReleaseId', releaseIds),
-  ].join('\n')
+  const historySql = [...CANONICAL_TABLES.map(table => `DELETE FROM ${table};`)].join(
+    '\n',
+  )
   const sourceSql = [
     ...SOURCE_TABLES.flatMap(table =>
       deleteIds(table, 'resourceReleaseId', releaseIds),

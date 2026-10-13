@@ -145,29 +145,12 @@ reads only that envelope; missing preparation envelopes require preparation from
 upstream artefacts. The normalisation stage verifies the captured publisher hash.
 Synthetic canonical rows have no publisher assertion of their own.
 
-## Resolutions
+## Canonical references
 
-The history database's `sourceResolutions` relation records interpretations without
-mutating publisher assertions:
-
-| Column                                | Content                                                                            |
-| ------------------------------------- | ---------------------------------------------------------------------------------- |
-| `scopeId`                             | `snapshot:<snapshotId>` or `release:<sourceReleaseId>`.                            |
-| `snapshotId`                          | Interpreting snapshot; null for release-versioned Statistics.                      |
-| `sourceReleaseId`                     | Source release being interpreted.                                                  |
-| `sourceRecordId`, `sourceVersionHash` | Exact retained publisher assertion.                                                |
-| `resolutions`                         | JSON with resolved entity references, processing methods and applicable decisions. |
-
-The key is `(scopeId, sourceReleaseId, sourceRecordId, sourceVersionHash)`. `entities`
-contains arrays of canonical IDs, allowing one assertion to support several entities.
-Different snapshots retain independent interpretations of the same source version.
-Canonical attributes and geometry remain in canonical records; they are not copied into
-this relation. Statistics resolve observations under their release scope and retain
-resolution rows in the corresponding observation history shard.
-
-LandsD division resolutions select the retained native Place Name assertion by its
-publisher ID and source-version validity. The canonical upload shape does not supply the
-source fingerprint. Native publisher names preserve whitespace and empty strings.
+Canonical records retain publisher attribution in `sources`. Exact snapshot and source
+release selections remain in META, while publisher assertions and validity periods
+remain in SOURCE. Statistics retain field-specific source references in `fieldSources`.
+Processing decisions belong to retained processing audits.
 
 ## Verification
 

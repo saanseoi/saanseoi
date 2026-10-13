@@ -270,16 +270,11 @@ export async function planCanonicalStatistics(args: {
   return {
     changedRecords: changed,
     unchangedRecords: args.canonical.records.length - changed.length,
-    buildBatches: (
-      resolutions: Parameters<
-        typeof buildCanonicalStatsSqlBatches
-      >[0]['resolutions'] = [],
-    ) =>
+    buildBatches: () =>
       buildCanonicalStatsSqlBatches({
         current: [],
         history: [{ rows: changed, table: 'statsRecords' }, ...dictionaryHistory],
         dictionaries: [],
-        resolutions,
       }),
   }
 }

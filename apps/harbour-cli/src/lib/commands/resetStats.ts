@@ -227,8 +227,6 @@ export function buildStatsResetSql(plan: StatsResetPlan) {
     ...GEOMETRY_TABLES.flatMap(table =>
       deleteIds(table, 'sourceReleaseId', releaseIds),
     ),
-    ...deleteIds('sourceResolutions', 'snapshotId', snapshotIds),
-    ...deleteIds('sourceResolutions', 'sourceReleaseId', releaseIds),
   ].join('\n')
   const sourceSql = [
     ...SOURCE_TABLES.flatMap(table =>

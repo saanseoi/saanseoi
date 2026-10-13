@@ -54,11 +54,7 @@ test('yearly shards reuse prior content, close locale-only omissions and superse
       "CREATE TABLE address2d(snapshotId TEXT,id TEXT,parentAddressId TEXT); INSERT INTO address2d VALUES ('scope','building',NULL)",
     )
     for (const db of [historyOld, historyNew])
-      for (const table of [
-        historySchema.address3d,
-        historySchema.address3dI18n,
-        historySchema.sourceResolutions,
-      ])
+      for (const table of [historySchema.address3d, historySchema.address3dI18n])
         createTable(db, table)
     for (const db of [historyOld, historyNew])
       db.exec(
@@ -226,17 +222,6 @@ test('yearly shards reuse prior content, close locale-only omissions and superse
     expect(count(historyNew, 'historyEvents')).toBe(0)
     expect(count(sourceNew, 'hkgovAlsAddresses2d')).toBe(0)
     expect(count(sourceNew, 'hkgovAlsAddresses3d')).toBe(0)
-    expect(
-      JSON.parse(
-        String(
-          historyNew
-            .query<{ resolutions: string }, []>(
-              'SELECT resolutions FROM sourceResolutions',
-            )
-            .get()?.resolutions,
-        ),
-      ),
-    ).toEqual({ entities: { address3d: ['inventory'], address2d: ['building'] } })
     const localeEdited = structuredClone(collection)
     localeEdited.locales.en!['unit-1']!.floorExpression = 'FIRST FLOOR'
     localeEdited.contentHash = als3dHash({
@@ -403,14 +388,6 @@ test('yearly shards reuse prior content, close locale-only omissions and superse
           ?.sources ?? 'null',
       ),
     ).toEqual([])
-    const audit = historyNew
-      .query<{ resolutions: string }, [string]>(
-        'SELECT resolutions FROM sourceResolutions WHERE sourceRecordId = ?',
-      )
-      .get(`curation:${retained.id}`)
-    expect(JSON.parse(audit!.resolutions).decisions).toEqual([
-      { action: 'als_inventory_curated', evidence: retained.processingSources },
-    ])
   } finally {
     for (const db of [current, historyOld, historyNew, sourceOld, sourceNew]) db.close()
     await rm(directory, { recursive: true, force: true })

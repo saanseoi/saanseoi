@@ -3,7 +3,6 @@ import { expect, test } from 'bun:test'
 import { join } from 'node:path'
 import { historySchema } from '@repo/db'
 import type { DivisionI18nPayload } from '@repo/db/currentSchema'
-import type { NewSourceResolution } from '@repo/db/historySchema'
 import { drizzle } from 'drizzle-orm/bun-sqlite'
 import type { SnapshotReplayStep } from '../../lib/db/metaRegistry'
 import { loadMigrationSql } from '../../testing/metaFixtures'
@@ -12,7 +11,6 @@ import {
   buildDivisionBaseHashInput,
   normaliseDivisionI18nSnapshotRow,
 } from '../services/divisions/division'
-import { divisionSourceResolutions } from '../services/divisions/divisionContainmentEvidence'
 import { createHash } from '../utils'
 import {
   type DivisionBaseRecord,
@@ -23,17 +21,14 @@ import {
   upsertDivisionCurrentStates,
 } from './division'
 import {
-  changedDivisionSourceResolutions,
   closeDivisionHistoryComponents,
   type DivisionHistoryShard,
   divisionHistoryKey,
   divisionLocaleContent,
   identifyDivisionHistoryShards,
   loadDivisionHistoryBaseline,
-  omittedDivisionSourceResolutions,
   planDivisionHistoryChanges,
 } from './divisionHistory'
-import { recordSourceResolutions } from './sourceResolutions'
 
 const timestamp = '2025-01-01T00:00:00Z'
 const updated = '2026-01-01T00:00:00Z'
@@ -69,13 +64,6 @@ const locale = (language: string, id = 'a'): DivisionI18nPayload => ({
   nameVariant: null,
   nameProvenance: 'provided',
   isLocaleInferred: false,
-})
-const assertion = (snapshotId: string, hash = 'source-hash'): NewSourceResolution => ({
-  snapshotId,
-  sourceReleaseId: `release-${snapshotId}`,
-  sourceRecordId: 'source-a',
-  sourceVersionHash: hash,
-  resolutions: { entities: { division: ['a'] } },
 })
 
 function fixture() {
@@ -138,7 +126,6 @@ function fixture() {
     snapshotId: string
     binding: 'old' | 'new'
     rows: Array<{ base: DivisionBaseRecord; i18n: DivisionI18nPayload[] }>
-    assertions?: NewSourceResolution[]
   }) => {
     const baseline = await parent(input.plan)
     const active = input.binding === 'old' ? old : next
@@ -204,24 +191,6 @@ function fixture() {
         .map(row => ({ ...row, omitted: true })),
     })
     await deleteStaleDivisionCurrentRows(current as never, 'scope', seen)
-    const seenSources = new Set<string>()
-    await recordSourceResolutions(
-      active as never,
-      changedDivisionSourceResolutions(
-        baseline.sourceResolutions,
-        input.assertions ?? [],
-        seenSources,
-      ),
-    )
-    await recordSourceResolutions(
-      active as never,
-      omittedDivisionSourceResolutions(
-        baseline.sourceResolutions,
-        seenSources,
-        input.snapshotId,
-        `release-${input.snapshotId}`,
-      ),
-    )
     return Object.fromEntries(
       [...clients.keys()].map(name => [name, count(name) - (before[name] ?? 0)]),
     )
@@ -242,7 +211,7 @@ function fixture() {
   }
 }
 
-test('core Division writes inherit unchanged base/locales/assertions and close only changed owning components', async () => {
+test('core Division writes inherit unchanged base/locales and close only changed owning components', async () => {
   const data = fixture()
   try {
     const initial = { base: base(), i18n: [locale('en'), locale('zh-hant')] }
@@ -252,9 +221,8 @@ test('core Division writes inherit unchanged base/locales/assertions and close o
         snapshotId: 'first',
         binding: 'old',
         rows: [initial],
-        assertions: [assertion('first')],
       }),
-    ).toEqual({ current: 3, old: 4, new: 0 })
+    ).toEqual({ current: 3, old: 3, new: 0 })
     const first = [step('first', null, 'old')]
     const baseRow = data
       .client('old')
@@ -284,7 +252,6 @@ test('core Division writes inherit unchanged base/locales/assertions and close o
         snapshotId: 'same',
         binding: 'new',
         rows: [reissued],
-        assertions: [assertion('same')],
       }),
     ).toEqual({ current: 0, old: 0, new: 0 })
     expect(
@@ -308,7 +275,6 @@ test('core Division writes inherit unchanged base/locales/assertions and close o
         snapshotId: 'translated',
         binding: 'new',
         rows: [translated],
-        assertions: [assertion('translated')],
       }),
     ).toEqual({ current: 1, old: 0, new: 1 })
     expect(
@@ -348,7 +314,6 @@ test('core Division writes inherit unchanged base/locales/assertions and close o
         snapshotId: 'base-change',
         binding: 'new',
         rows: [revised],
-        assertions: [assertion('base-change')],
       }),
     ).toEqual({ current: 1, old: 0, new: 1 })
     expect(
@@ -365,23 +330,21 @@ test('core Division writes inherit unchanged base/locales/assertions and close o
     expect(
       baseline.components.get(divisionHistoryKey('a', 'zh-hant'))?.shard.bindingName,
     ).toBe('old')
-    expect(baseline.sourceResolutions.get('source-a')?.snapshotId).toBe('first')
     expect(
       await data.write({
         plan: revisedPlan,
         snapshotId: 'source-change',
         binding: 'new',
         rows: [revised],
-        assertions: [assertion('source-change', 'changed-source-hash')],
       }),
-    ).toEqual({ current: 0, old: 0, new: 1 })
+    ).toEqual({ current: 0, old: 0, new: 0 })
     expect(Math.max(...data.parameters)).toBeLessThanOrEqual(100)
   } finally {
     data.close()
   }
 })
 
-test('locale/base/source omissions are sparse and reappearance preserves original component provenance', async () => {
+test('locale/base omissions are sparse and reappearance preserves original component provenance', async () => {
   const data = fixture()
   try {
     const row = { base: base(), i18n: [locale('en'), locale('zh-hant')] }
@@ -390,7 +353,6 @@ test('locale/base/source omissions are sparse and reappearance preserves origina
       snapshotId: 'first',
       binding: 'new',
       rows: [row],
-      assertions: [assertion('first')],
     })
     const first = [step('first', null, 'new')]
     const kept = { base: { ...row.base, updatedAt: updated }, i18n: [locale('en')] }
@@ -400,9 +362,8 @@ test('locale/base/source omissions are sparse and reappearance preserves origina
         snapshotId: 'locale-removed',
         binding: 'new',
         rows: [kept],
-        assertions: [],
       }),
-    ).toEqual({ current: 1, old: 0, new: 2 })
+    ).toEqual({ current: 1, old: 0, new: 1 })
     const removed = [...first, step('locale-removed', 'first', 'new')]
     expect(
       await data.write({
@@ -410,7 +371,6 @@ test('locale/base/source omissions are sparse and reappearance preserves origina
         snapshotId: 'still-absent',
         binding: 'new',
         rows: [kept],
-        assertions: [],
       }),
     ).toEqual({ current: 0, old: 0, new: 0 })
     const absent = [...removed, step('still-absent', 'locale-removed', 'new')]
@@ -420,7 +380,6 @@ test('locale/base/source omissions are sparse and reappearance preserves origina
         snapshotId: 'empty',
         binding: 'new',
         rows: [],
-        assertions: [],
       }),
     ).toEqual({ current: 2, old: 0, new: 2 })
     const empty = [...absent, step('empty', 'still-absent', 'new')]
@@ -430,9 +389,8 @@ test('locale/base/source omissions are sparse and reappearance preserves origina
         snapshotId: 'reappeared',
         binding: 'new',
         rows: [{ ...row, base: { ...row.base, updatedAt: updated } }],
-        assertions: [assertion('reappeared')],
       }),
-    ).toEqual({ current: 3, old: 0, new: 4 })
+    ).toEqual({ current: 3, old: 0, new: 3 })
     expect(
       data
         .client('new')
@@ -457,7 +415,6 @@ test('locale/base/source omissions are sparse and reappearance preserves origina
       'reappeared',
       'reappeared',
     ])
-    expect(final.sourceResolutions.get('source-a')?.snapshotId).toBe('reappeared')
   } finally {
     data.close()
   }
@@ -495,14 +452,7 @@ test('parent replay rejects unavailable content, ambiguous journals, and incompl
       snapshotId: 'first',
       binding: 'old',
       rows: [row],
-      assertions: [assertion('first')],
     })
-    await recordSourceResolutions(data.next as never, [
-      assertion('source-only', 'changed'),
-    ])
-    expect(
-      (await data.parent(plan)).sourceResolutions.get('source-a')?.sourceVersionHash,
-    ).toBe('changed')
     await data.next
       .insert(historySchema.divisions)
       .values({
@@ -598,7 +548,7 @@ test('locale content identity includes name provenance independently of base fie
   )
 })
 
-test('geometry evidence changes write only snapshot interpretation, without Division versions or current-row churn', async () => {
+test('geometry fingerprints do not write Division versions or current rows', async () => {
   const data = fixture()
   const raw = (ancestor: string) => ({
     id: 'a',
@@ -625,18 +575,12 @@ test('geometry evidence changes write only snapshot interpretation, without Divi
     const value = normaliseCuratedDivision(raw(ancestor))
     return { base: value.base, i18n: value.i18n }
   }
-  const evidence = (snapshotId: string, ancestor: string): NewSourceResolution => ({
-    ...assertion(snapshotId),
-    sourceRecordId: 'a',
-    resolutions: divisionSourceResolutions('a', raw(ancestor)),
-  })
   try {
     await data.write({
       plan: [],
       snapshotId: 'first',
       binding: 'old',
       rows: [record('sha256:old')],
-      assertions: [evidence('first', 'sha256:old')],
     })
     const first = [step('first', null, 'old')]
     expect(
@@ -645,18 +589,12 @@ test('geometry evidence changes write only snapshot interpretation, without Divi
         snapshotId: 'next',
         binding: 'new',
         rows: [record('sha256:new')],
-        assertions: [evidence('next', 'sha256:new')],
       }),
-    ).toEqual({ current: 0, old: 0, new: 1 })
+    ).toEqual({ current: 0, old: 0, new: 0 })
     expect(data.client('new').query('SELECT * FROM divisions').all()).toHaveLength(0)
     expect(data.client('new').query('SELECT * FROM historyEvents').all()).toHaveLength(
       0,
     )
-    const state = await data.parent([...first, step('next', 'first', 'new')])
-    expect(
-      state.sourceResolutions.get('a')?.resolutions.divisionContainment?.a?.parent
-        ?.ancestor,
-    ).toBe('sha256:new')
     expect(
       JSON.stringify(
         data.client('old').query('SELECT hierarchies FROM divisions').get(),
@@ -668,7 +606,6 @@ test('geometry evidence changes write only snapshot interpretation, without Divi
         snapshotId: 'same',
         binding: 'new',
         rows: [record('sha256:new')],
-        assertions: [evidence('same', 'sha256:new')],
       }),
     ).toEqual({ current: 0, old: 0, new: 0 })
   } finally {

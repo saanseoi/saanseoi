@@ -1,7 +1,7 @@
-import { releaseFixtureSchemaSql } from '../../../../libs/core/src/testing/releaseFixtures'
 import { Database } from 'bun:sqlite'
-import { drizzle } from 'drizzle-orm/bun-sqlite'
 import { expect, test } from 'bun:test'
+import { drizzle } from 'drizzle-orm/bun-sqlite'
+import { releaseFixtureSchemaSql } from '../../../../libs/core/src/testing/releaseFixtures'
 import {
   hydrateCanonicalSourceDocument,
   requiresCanonicalSourceExpansion,
@@ -38,7 +38,6 @@ INSERT INTO resourceReleases (id, code, sourceReleaseId, resourceType, status) V
   try {
     await hydrateCanonicalSourceDocument(document, {
       metaDb: drizzle({ client: sqlite }) as never,
-      historyDbsByBinding: {} as never,
     })
     expect(document.meta.sourceSpecifications).toMatchObject({
       old: {
@@ -53,7 +52,7 @@ INSERT INTO resourceReleases (id, code, sourceReleaseId, resourceType, status) V
     )
     await hydrateCanonicalSourceDocument(
       { data: [{ type: 'statistics', attributes: { values: { population: 1 } } }] },
-      { metaDb: {} as never, historyDbsByBinding: {} as never },
+      { metaDb: {} as never as never },
     )
   } finally {
     sqlite.close()
@@ -97,7 +96,6 @@ INSERT INTO resourceReleases (id, code, sourceReleaseId, resourceType, status) V
   try {
     await hydrateCanonicalSourceDocument(document, {
       metaDb: drizzle({ client: sqlite }) as never,
-      historyDbsByBinding: {} as never,
     })
     expect(document.data.attributes.sources.hkgovPland).toEqual([
       {
@@ -112,4 +110,22 @@ INSERT INTO resourceReleases (id, code, sourceReleaseId, resourceType, status) V
   } finally {
     sqlite.close()
   }
+})
+
+test('full Division documents expose stored publisher attribution without history lookups', async () => {
+  const sources = [
+    { publisherCode: 'openstreetmap', dataset: 'openstreetmap', recordId: 'r42@2' },
+  ]
+  const document = {
+    data: [
+      {
+        type: 'divisions',
+        id: 'division',
+        attributes: { snapshotId: 'snapshot', sources },
+      },
+    ],
+  }
+  await hydrateCanonicalSourceDocument(document, { metaDb: {} as never })
+  expect(document.data[0]!.attributes.sources).toEqual(sources)
+  expect(document).not.toHaveProperty('meta.sourceSpecifications')
 })

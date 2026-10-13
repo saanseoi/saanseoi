@@ -1,104 +1,47 @@
-import { canonicalDivisionPoint, createDivisionPointGuard } from './divisionPoint'
+import type {
+  CurrentDatabase,
+  HistoryDatabase,
+  MetaDatabase,
+  SourceDatabase,
+  sourceSchema,
+} from '@repo/db'
 import {
-  divisionHierarchyContent,
-  divisionSourceResolutions,
-} from './divisionContainmentEvidence'
-import { buildSourceChurnCounts, type SourceChurnRecord } from '../sources/sourceChurn'
-import { buildSaanseoiDivisionSourceStats } from '../sources/saanseoiDivisionSourceStats'
-import { applyDivisionNamePatch } from './divisionNamePatch'
-import {
-  saanseoiSourcePayload,
-  nativeSourcePayloadHashInput,
-} from '../sources/sourcePayload'
-import {
-  curatedDivisionClassification,
-  applyCuratedDivisionNames,
-} from './curatedDivisionPolicy'
-import { normaliseCuratedDivision } from './curatedDivision'
-import {
-  divisionIdentifiers,
-  divisionIdentifiersWithWikidata,
-} from '../sources/divisionIdentifiers'
-import { recordContent } from '../sources/recordContent'
-import { normaliseOvertureAttribution } from '../sources/sourceAttribution'
-import {
-  beginSnapshotPublication,
-  completeSnapshotPublication,
-  guardSnapshotPublicationWrites,
-  assertPublishedSnapshotMaterialised,
-  getPreparedPublication,
-} from '../publication/execute'
-import {
-  buildPublicationRowCountSql,
-  type PublicationPreparation,
-} from '../publication/sql'
-import { geographicDivisionClassification, emptyDivisionHierarchies } from '@repo/db'
-import { materialiseDivisionHierarchies } from './divisionHierarchies'
-import { recordSourceResolutions } from '../../db/sourceResolutions'
-import { landsdPlaceNameResolutions } from '../../db/landsdPlaceNameSources'
-import type { NewSourceResolution } from '@repo/db/historySchema'
-import { overtureSourcePayload } from '../sources/sourcePayload'
-import {
-  createBranchCounts,
-  selectBranch,
-  type BranchCounts,
-} from '../../../provenance/branches'
-import { divisionTaxonomyBranches } from './divisionTaxonomy'
-import { matchesBranch } from '../../../provenance/branches'
-import { divisionLocaleBranches } from './divisionLocaleBranches'
-import { localeDetection, localeInferenceBranches } from '../../localeInference'
-import {
-  divisionLevel,
-  divisionClass,
-  hierarchyClassification,
-  validateDivisionPolicy,
-} from './divisionTaxonomy'
+  emptyDivisionHierarchies,
+  geographicDivisionClassification,
+  metaSchema,
+} from '@repo/db'
+import type {
+  DivisionI18nPayload,
+  DivisionRow,
+  NewDivisionI18nRow,
+  NewDivisionRow,
+} from '@repo/db/currentSchema'
+import type { AsyncBuffer } from 'hyparquet'
 import ruleFixture from '../../../../../../fixtures/meta/processing-rules/assembly/division-normalisation.json'
-import {
-  checkHongKongHierarchy,
-  createHongKongHierarchyGuard,
-} from './hongKongHierarchyGuard'
 import wkbFixture from '../../../../../../fixtures/meta/processing-rules/assembly/wkb-geometry.json'
-import { ruleDeclarationFromFixture } from '../../../provenance/ruleFixture'
-import type { DatasetProcessingMessage } from '../../../types'
-import {
-  registerProcessingResult,
-  registerRule,
-  ProcessingGuardError,
-  type ProvenanceStore,
-} from '../../../provenance'
-import { retainDivisionProvenance } from './divisionProvenance'
-import {
-  applyDivisionClassificationPatch,
-  applyMissingPublisherIslandClassification,
-  divisionClassificationFixture,
-} from './divisionClassificationPatch'
 import type { ApiLocale } from '../../../lib/apiLocales'
 import {
   resolveLatestPublishedSnapshotForResourceTypeRegion,
   resolveSnapshotReplayPlan,
 } from '../../../lib/db/metaRegistry'
 import type { HarbourReadableDb, HarbourWritableDb } from '../../../lib/db/types'
-import type {
-  CurrentDatabase,
-  HistoryDatabase,
-  MetaDatabase,
-  sourceSchema,
-  SourceDatabase,
-} from '@repo/db'
-import { metaSchema } from '@repo/db'
-import type {
-  DivisionI18nPayload,
-  DivisionRow,
-  NewDivisionRow,
-  NewDivisionI18nRow,
-} from '@repo/db/currentSchema'
-import type { GeoJsonGeometry, GeoJsonPosition } from '../../geojson'
-import type { AsyncBuffer } from 'hyparquet'
-import { readDivisionInputBatches, type DivisionInput } from './divisionInput'
+import {
+  ProcessingGuardError,
+  type ProvenanceStore,
+  registerProcessingResult,
+  registerRule,
+} from '../../../provenance'
+import {
+  type BranchCounts,
+  createBranchCounts,
+  matchesBranch,
+  selectBranch,
+} from '../../../provenance/branches'
+import type { ReleaseProcessingAction } from '../../../provenance/processingAction'
+import { ruleDeclarationFromFixture } from '../../../provenance/ruleFixture'
 import { resolveSourceRecordSchema } from '../../../sourceRecordSchemas'
-
-import { createAsyncBufferFromR2, readParquetObjectsInBatches } from '../../parquetR2'
+import type { DatasetProcessingMessage } from '../../../types'
+import type { DivisionVersionSnapshot } from '../../db/division'
 import {
   countDivisionCurrentSnapshotI18nRows,
   countDivisionCurrentSnapshotRows,
@@ -111,23 +54,37 @@ import {
   upsertDivisionCurrentStates,
 } from '../../db/division'
 import {
-  changedDivisionSourceResolutions,
   closeDivisionHistoryComponents,
+  type DivisionHistoryComponent,
   identifyDivisionHistoryShards,
   loadDivisionHistoryBaseline,
-  omittedDivisionSourceResolutions,
   planDivisionHistoryChanges,
   withoutDivisionPublicationVersion,
-  type DivisionHistoryComponent,
 } from '../../db/divisionHistory'
-import { replaceDatasetStats } from '../../db/stats'
-import type { ReleaseProcessingAction } from '../../../provenance/processingAction'
 import {
   buildSourceReleaseId,
   closeSourceDivisionVersions,
   getMergedCurrentSourceDivisionMap,
   insertSourceDivisionVersions,
 } from '../../db/source'
+import { replaceDatasetStats } from '../../db/stats'
+import type { GeoJsonGeometry, GeoJsonPosition } from '../../geojson'
+import { localeDetection, localeInferenceBranches } from '../../localeInference'
+import {
+  logDivisionTrace,
+  logDivisionTraceGroup,
+  logStructuredInfo,
+  resolveDivisionTraceIds,
+} from '../../logging'
+import { createAsyncBufferFromR2, readParquetObjectsInBatches } from '../../parquetR2'
+import {
+  addLocalisedValue,
+  asNonEmptyString,
+  createHash,
+  inferLocale,
+  normaliseLocale,
+  stableJsonStringify,
+} from '../../utils'
 import {
   buildChurnCounts,
   buildChurnStatsRows,
@@ -141,34 +98,70 @@ import {
   updateLocaleStatsAccumulator,
 } from '../metrics/releaseStats'
 import {
-  addLocalisedValue,
-  asNonEmptyString,
-  createHash,
-  inferLocale,
-  normaliseLocale,
-  stableJsonStringify,
-} from '../../utils'
+  assertPublishedSnapshotMaterialised,
+  beginSnapshotPublication,
+  completeSnapshotPublication,
+  getPreparedPublication,
+  guardSnapshotPublicationWrites,
+} from '../publication/execute'
+import {
+  buildPublicationRowCountSql,
+  type PublicationPreparation,
+} from '../publication/sql'
 import {
   createOperationTimer,
   resolveDataShardEnvironment,
   resolveDebugEnabled,
 } from '../runtime'
 import {
-  logDivisionTrace,
-  logDivisionTraceGroup,
-  logStructuredInfo,
-  resolveDivisionTraceIds,
-} from '../../logging'
+  divisionIdentifiers,
+  divisionIdentifiersWithWikidata,
+} from '../sources/divisionIdentifiers'
+import { recordContent } from '../sources/recordContent'
+import { buildSaanseoiDivisionSourceStats } from '../sources/saanseoiDivisionSourceStats'
+import { normaliseOvertureAttribution } from '../sources/sourceAttribution'
+import { buildSourceChurnCounts, type SourceChurnRecord } from '../sources/sourceChurn'
+import {
+  nativeSourcePayloadHashInput,
+  overtureSourcePayload,
+  saanseoiSourcePayload,
+} from '../sources/sourcePayload'
+import { normaliseCuratedDivision } from './curatedDivision'
+import {
+  applyCuratedDivisionNames,
+  curatedDivisionClassification,
+} from './curatedDivisionPolicy'
+import {
+  applyDivisionClassificationPatch,
+  applyMissingPublisherIslandClassification,
+  divisionClassificationFixture,
+} from './divisionClassificationPatch'
 import { readDivisionRowsWithFixtures } from './divisionFixtures'
+import { materialiseDivisionHierarchies } from './divisionHierarchies'
+import { divisionHierarchyContent } from './divisionHierarchyContent'
+import { type DivisionInput, readDivisionInputBatches } from './divisionInput'
+import { divisionLocaleBranches } from './divisionLocaleBranches'
+import { applyDivisionNamePatch } from './divisionNamePatch'
+import { canonicalDivisionPoint, createDivisionPointGuard } from './divisionPoint'
+import { retainDivisionProvenance } from './divisionProvenance'
+import {
+  divisionClass,
+  divisionLevel,
+  divisionTaxonomyBranches,
+  hierarchyClassification,
+  validateDivisionPolicy,
+} from './divisionTaxonomy'
+import {
+  checkHongKongHierarchy,
+  createHongKongHierarchyGuard,
+} from './hongKongHierarchyGuard'
 import {
   buildOvertureHongKongAreaHierarchyEntry,
   OVERTURE_HONG_KONG_SAR_DIVISION_ID,
+  type OvertureHongKongArea,
   overtureHongKongAreaForDistrictName,
   overtureHongKongAreas,
-  type OvertureHongKongArea,
 } from './overtureHongKongAreas'
-
-import type { DivisionVersionSnapshot } from '../../db/division'
 
 export type HarbourWorkerBucket = {
   head(key: string): Promise<{ size: number } | null>
@@ -417,10 +410,6 @@ export async function processDivisionDataset(
     current: currentRows,
     baseHashInput: buildDivisionBaseHashInput,
   })
-  if (!sourceDb && historyBaseline.sourceResolutions.size > 0)
-    throw new Error(
-      'Division processing with inherited source assertions requires retained publisher source storage.',
-    )
   const activeSnapshot = await resolveLatestPublishedSnapshotForResourceTypeRegion(
     metaRepoDb,
     'division',
@@ -491,7 +480,6 @@ export async function processDivisionDataset(
   const seenIds = new Set<string>()
   const seenPublisherIds = new Set<string>()
   const publisherPayloads = new Map<string, SourceChurnRecord>()
-  const seenSourceResolutionIds = new Set<string>()
   const processedRowsById = new Map<string, DivisionVersionSnapshot>()
 
   let processedRows = 0
@@ -562,25 +550,6 @@ export async function processDivisionDataset(
     processingActions: fixtureActions,
   } of readDivisionRowsWithFixtures(file, message, DIVISION_BATCH_SIZE)) {
     processingActions.push(...fixtureActions)
-    const sourceResolutionRows: NewSourceResolution[] = []
-    if (message.source === 'hkgov-landsd') {
-      if (!sourceDb)
-        throw new Error(
-          'LandsD division resolution requires retained publisher source storage.',
-        )
-      sourceResolutionRows.push(
-        ...(await landsdPlaceNameResolutions(
-          [
-            ...(options.previousSourceDbs ?? []),
-            sourceDb,
-          ] as unknown as HarbourReadableDb[],
-          message.sourceVersion,
-          versionInsertContext.snapshotId,
-          batch.map(raw => ({ id: String(raw.id), raw })),
-          buildSourceReleaseId(message),
-        )),
-      )
-    }
     const sourceVersionRows: Array<
       typeof sourceSchema.sourceOvertureDivisions.$inferInsert
     > = []
@@ -660,16 +629,6 @@ export async function processDivisionDataset(
             ? nativeSourcePayloadHashInput(saanseoiSourcePayload(row))
             : recordContent(row),
         )
-        sourceResolutionRows.push({
-          snapshotId: versionInsertContext.snapshotId,
-          sourceReleaseId: resourceReleaseId,
-          sourceRecordId: normalised.base.id,
-          sourceVersionHash: sourcePayloadHash,
-          resolutions: divisionSourceResolutions(
-            normalised.base.id,
-            message.source === 'saanseoi' ? row : undefined,
-          ),
-        })
         const currentSource = currentSourceRows?.get(normalised.base.id) ?? null
         sourceChanged = currentSource?.sourcePayloadHash !== sourcePayloadHash
         publisherPayloads.set(
@@ -868,14 +827,6 @@ export async function processDivisionDataset(
         }),
       )
     }
-    await recordSourceResolutions(
-      historyRepoDb,
-      changedDivisionSourceResolutions(
-        historyBaseline.sourceResolutions,
-        sourceResolutionRows,
-        seenSourceResolutionIds,
-      ),
-    )
 
     if (reportProgress && !isSupplemental) {
       await reportProgress({
@@ -909,15 +860,6 @@ export async function processDivisionDataset(
 
       return missingCurrentIds.length
     },
-  )
-  await recordSourceResolutions(
-    historyRepoDb,
-    omittedDivisionSourceResolutions(
-      historyBaseline.sourceResolutions,
-      seenSourceResolutionIds,
-      versionInsertContext.snapshotId,
-      versionInsertContext.resourceReleaseId,
-    ),
   )
   await timings.measure('deleteStaleDivisionCurrentRowsMs', () =>
     deleteStaleDivisionCurrentRows(currentRepoDb, currentScopeId, seenIds),

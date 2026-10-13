@@ -1,7 +1,8 @@
-import type { ProducerSpecification } from './fieldLineageProducer'
+import selection from '../../../fixtures/meta/processing-rules/assembly/landsd-settlement-selection.json'
 import type { CurrentFieldRule } from './fieldLineageCurrentRules'
 import { hierarchyProducer } from './fieldLineageHierarchyPreparation'
-import selection from '../../../fixtures/meta/processing-rules/assembly/landsd-settlement-selection.json'
+import type { ProducerSpecification } from './fieldLineageProducer'
+
 const root = 'apps/harbour-cli/src/lib/'
 const landsd = `${root}sources/hkgov/landsd/landsdPlaceName.ts`
 const census = `${root}sources/hkgov/censtatd/hkgovCenstatdStatistics.ts`
@@ -259,7 +260,7 @@ export function nativeDivisionFieldRule(
     sources: [
       hma
         ? '{hkgovCenstatd: sources.map(reference => ({record_id: reference.sourceRecordId}))}; require non-empty record identities.'
-        : '{sourceResolutions:{entityId:id}}',
+        : '[{publisherCode: "hkgov-landsd", dataset: "ds-hk-hkgov-landsd-division", recordId: requirePublisherPlaceNameId(row)}]',
       hma ? ['sources'] : ['id'],
     ],
     hierarchies: [

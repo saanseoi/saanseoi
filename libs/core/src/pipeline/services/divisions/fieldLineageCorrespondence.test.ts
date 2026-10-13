@@ -166,7 +166,7 @@ test('government geometry references follow native identity inputs independently
   ).toBeNull()
   expect(
     geometryReferenceRule('sources', 'ds-hk-overture-division-area')?.inputs,
-  ).toEqual(['id', 'source'])
+  ).toEqual(['id', 'source', 'sources'])
 })
 
 test('HMA fixture constants match the native government geometry output, including mixed type', async () => {

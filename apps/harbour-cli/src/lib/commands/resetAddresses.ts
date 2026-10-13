@@ -1056,7 +1056,7 @@ async function buildResetSql(
     apiSets = sqlList(owned.apiReleaseSetIds),
     assets = sqlList(owned.assetIds.map(asset => asset.id))
   const sourceSql = `DELETE FROM hkgovAlsAddresses2d WHERE resourceReleaseId IN (${ids});`
-  const historySql = `DELETE FROM address2dBuildingNumberLookup WHERE sourceReleaseId IN (${ids}) OR snapshotId IN (${snapshots});\nDELETE FROM address2dI18n WHERE sourceReleaseId IN (${ids}) OR snapshotId IN (${snapshots});\nDELETE FROM address2d WHERE sourceReleaseId IN (${ids}) OR snapshotId IN (${snapshots});\nDELETE FROM sourceResolutions WHERE snapshotId IN (${snapshots}) OR sourceReleaseId IN (${ids});`
+  const historySql = `DELETE FROM address2dBuildingNumberLookup WHERE sourceReleaseId IN (${ids}) OR snapshotId IN (${snapshots});\nDELETE FROM address2dI18n WHERE sourceReleaseId IN (${ids}) OR snapshotId IN (${snapshots});\nDELETE FROM address2d WHERE sourceReleaseId IN (${ids}) OR snapshotId IN (${snapshots});`
   const scopeIds: string[] = []
   for (const ids of chunkArray(owned.snapshotIds, getMaxItemsPerInClause())) {
     const rows = await context.metaDb

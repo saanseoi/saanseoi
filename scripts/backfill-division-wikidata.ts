@@ -61,8 +61,6 @@ export async function backfillDivisionWikidata(
     applied: false,
     counts: {} as Record<string, number>,
     wikidataValues: 0,
-    replayReferences: 0,
-    sourceReferences: 0,
   }
   const changes: Row[] = []
   try {
@@ -156,28 +154,6 @@ export async function backfillDivisionWikidata(
           ],
         )
       if (result.changes !== 1) throw Error(`Concurrent change: ${c.table}/${c.id}`)
-      if (!c.source || !c.hash || c.hash === c.oldHash) continue
-      for (const [i, names] of tables.entries()) {
-        const table = 'sourceResolutions'
-        if (!names.has(table)) continue
-        const hashColumn = c.source ? 'sourceVersionHash' : 'versionHash'
-        const predicate = c.source
-          ? 'sourceRecordId=? AND sourceVersionHash=?'
-          : "recordType='division' AND recordId=? AND versionHash=?"
-        const refs = db
-          .query(`SELECT rowid FROM db${i}.${table} WHERE ${predicate}`)
-          .all(c.id, c.oldHash) as { rowid: number }[]
-        for (const r of refs)
-          appendFileSync(
-            rollback,
-            `UPDATE db${i}.${table} SET ${hashColumn}=${q(c.oldHash)} WHERE rowid=${r.rowid};\n`,
-          )
-        const changed = db
-          .query(`UPDATE db${i}.${table} SET ${hashColumn}=? WHERE ${predicate}`)
-          .run(c.hash, c.id, c.oldHash).changes
-        if (c.source) report.sourceReferences += changed
-        else report.replayReferences += changed
-      }
     }
     appendFileSync(rollback, 'COMMIT;\n')
     for (const [i] of tables.entries()) {

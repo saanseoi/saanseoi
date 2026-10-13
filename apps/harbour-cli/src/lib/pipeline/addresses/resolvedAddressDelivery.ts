@@ -23,10 +23,7 @@ import {
 import { assertAddressProjectionMembership } from './addressProjectionMembership.ts'
 import { addressPublicationDelivery } from './addressPublicationDelivery.ts'
 import { coalesceAddressHistory } from './coalesceAddressHistory.ts'
-import {
-  closeResolvedAddressHistory,
-  coalesceAddressSourceResolutions,
-} from './resolvedAddressHistory.ts'
+import { closeResolvedAddressHistory } from './resolvedAddressHistory.ts'
 
 const addressTables = [
   'address2d',
@@ -42,13 +39,13 @@ export function addressMutationTables(binding: string): NetTablePolicy[] {
     binding === 'DB_CURRENT'
       ? addressTables
       : binding.startsWith('DB_HISTORY_')
-        ? [...addressTables, 'sourceResolutions']
+        ? addressTables
         : binding.startsWith('DB_SOURCE_')
           ? ['hkgovAlsAddresses2d', 'hkgovAlsAddresses3d']
           : []
   return names.map(name => ({
     name,
-    ...(!['addressPublicationState', 'sourceResolutions'].includes(name)
+    ...(!['addressPublicationState'].includes(name)
       ? { ignoredColumns: ['createdAt', 'updatedAt'] }
       : {}),
     ...(binding === 'DB_CURRENT' && ['address3d', 'address3dI18n'].includes(name)
@@ -287,16 +284,6 @@ export async function captureResolvedAddressDelivery(input: {
           resourceReleaseId: input.message.resourceReleaseId ?? input.message.datasetId,
           now: input.message.processingRunStartedAt ?? new Date().toISOString(),
         })
-        if (input.membership)
-          coalesceAddressSourceResolutions({
-            candidates,
-            historyBinding,
-            membership: input.membership,
-            parentPlan: input.parentReplayPlan,
-            snapshotId: input.snapshotId,
-            resourceReleaseId:
-              input.message.resourceReleaseId ?? input.message.datasetId,
-          })
         validateResolvedAddressProjection(
           current,
           input.scopeId,

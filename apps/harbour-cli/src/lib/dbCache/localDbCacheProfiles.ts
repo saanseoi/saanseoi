@@ -149,7 +149,6 @@ export function resolveCacheTablesForBinding(
   if (/^DB_HISTORY_[A-Z]{2}_(?:\d{4}|BEFORE)$/.test(bindingName)) {
     if (cacheTableProfile === 'divisionStatistic') {
       return [
-        'sourceResolutions',
         'divisionStatistics',
         'statsDefinitionSets',
         'statsRecords',
@@ -163,7 +162,6 @@ export function resolveCacheTablesForBinding(
 
     if (cacheTableProfile === 'statistics') {
       return [
-        'sourceResolutions',
         'statsDefinitionSets',
         'statsRecords',
         'statsFields',
@@ -179,7 +177,7 @@ export function resolveCacheTablesForBinding(
     }
 
     if (cacheTableProfile === 'division') {
-      return ['divisions', 'divisionsI18n', 'sourceResolutions']
+      return ['divisions', 'divisionsI18n']
     }
 
     if (cacheTableProfile === 'places') {
@@ -194,7 +192,6 @@ export function resolveCacheTablesForBinding(
         'address2d',
         'address2dI18n',
         'address2dBuildingNumberLookup',
-        'sourceResolutions',
       ]
     }
 
@@ -208,7 +205,6 @@ export function resolveCacheTablesForBinding(
         'address2dBuildingNumberLookup',
         'address3d',
         'address3dI18n',
-        'sourceResolutions',
       ]
     }
 
@@ -217,14 +213,8 @@ export function resolveCacheTablesForBinding(
       cacheTableProfile === 'planningDivisionGeometry'
     ) {
       return cacheTableProfile === 'planningDivisionGeometry'
-        ? [
-            'divisions',
-            'divisionsI18n',
-            'divisionAreas',
-            'divisionBoundaries',
-            'sourceResolutions',
-          ]
-        : ['divisionAreas', 'divisionBoundaries', 'sourceResolutions']
+        ? ['divisions', 'divisionsI18n', 'divisionAreas', 'divisionBoundaries']
+        : ['divisionAreas', 'divisionBoundaries']
     }
 
     return [
@@ -247,7 +237,6 @@ export function resolveCacheTablesForBinding(
       'statsMeasures',
       'statsMeasuresI18n',
       'statsValuesI18n',
-      'sourceResolutions',
     ]
   }
 

@@ -20,23 +20,31 @@ export function geometryReferenceRule(
     implementation,
     ...(guards ? { guards } : {}),
   })
-  if (saanseoi) return result('row.sources', ['sources'])
+  if (saanseoi)
+    return result('curatedRecordSources(row.sources, String(row.id))', [
+      'sources',
+      'id',
+    ])
   if (town)
     return result(
-      '{ hkgovPland: [{ record_id: asNonEmptyString(row.newtown_id) }] }',
+      '[{ publisherCode: "hkgov-pland", dataset: "ds-hk-hkgov-pland-division-new-town", recordId: asNonEmptyString(row.newtown_id) }]',
       ['newtown_id'],
       ['Require a non-empty native town ID.'],
     )
   if (planning)
     return result(
-      '(typeof row.source_cell_ids === "string" ? JSON.parse(row.source_cell_ids) : row.source_cell_ids).map(cell_id => ({ cell_id })) wrapped as { hkgovPland: cells }',
+      '(typeof row.source_cell_ids === "string" ? JSON.parse(row.source_cell_ids) : row.source_cell_ids).map(recordId => ({ publisherCode: "hkgov-pland", dataset: "ds-hk-hkgov-pland-division-pu", recordId }))',
       ['source_cell_ids'],
       ['Require a non-empty array of non-empty string cell IDs.'],
     )
   if (census)
     return result(
-      'When row.sources is an array containing non-empty string sourceRecordId values, return { hkgovCenstatd: ids.map(record_id => ({ record_id })) }; otherwise return { sourceResolutions: { entityId: canonicalId } }.',
+      'Select sourceRecordId values from row.sources or censtatdPublisherId(row); map to hkgov-censtatd publisher attribution with datasetCode.',
       ['sources', 'id', 'source'],
     )
-  return result('{ sourceResolutions: { entityId: canonicalId } }', ['id', 'source'])
+  return result('geometrySourceReferences(row, source, datasetCode)', [
+    'id',
+    'source',
+    'sources',
+  ])
 }

@@ -5,7 +5,6 @@ import type { LocalAddressDbContext } from '../../dbCache/localDbCacheTypes.ts'
 import type { NetTablePolicy } from '../local/netSqlitePlan.ts'
 import { captureResolvedSqlPlan } from '../local/resolvedSqlPlan.ts'
 import type { SqlDeliveryTarget } from '../local/sqlDeliveryTypes.ts'
-import { loadPreviousPlaceSourceResolutions } from './placeHistory.ts'
 import { importPlaceSqlBatches } from './processLocalPlaceSqlUploadImport.ts'
 import {
   loadCurrentPlaceHistory,
@@ -22,19 +21,15 @@ export function placeMutationTables(binding: string): NetTablePolicy[] {
     binding === 'DB_CURRENT'
       ? ['places', 'placesI18n', 'placesCells', 'placesDivision']
       : binding.startsWith('DB_HISTORY_')
-        ? ['places', 'placesI18n', 'sourceResolutions']
+        ? ['places', 'placesI18n']
         : binding.startsWith('DB_SOURCE_')
           ? ['overturePlaces']
           : []
   return names.map(name => ({
     name,
-    ...(name !== 'sourceResolutions'
-      ? {
-          ignoredColumns: ['createdAt', 'updatedAt'].filter(
-            () => !['placesCells', 'placesDivision'].includes(name),
-          ),
-        }
-      : {}),
+    ignoredColumns: ['createdAt', 'updatedAt'].filter(
+      () => !['placesCells', 'placesDivision'].includes(name),
+    ),
   }))
 }
 
@@ -138,11 +133,6 @@ export async function captureResolvedPlaceDelivery(input: {
             : [],
         }),
         sourceRows: await loadCurrentPlaceSources(sourceTargets),
-        sourceResolutions: await loadPreviousPlaceSourceResolutions(
-          input.context.metaDb as unknown as HarbourReadableDb,
-          historyTargets,
-          previous?.snapshotId,
-        ),
       }
       await importPlaceSqlBatches(
         {

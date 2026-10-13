@@ -78,10 +78,10 @@ prerequisite rows must already exist; the Address plan does not hydrate Division
 The shared SQLite compiler computes keyed inserts, updates and deletes. Identical rows
 produce no mutations, repeated intermediate writes collapse to their final result, and
 changes confined to ignored timestamp columns preserve the baseline values. Component
-history and unchanged source resolutions inherit from earlier snapshots and shards.
-Staging tables, local journals and resolution scans stay local. The sealed report
-records before/after counts, inserts, updates, deletes, unchanged rows, statement counts
-and payload bytes by table and target.
+history inherits from earlier snapshots and shards; unchanged publisher assertions
+retain their SOURCE validity periods. Staging tables, local journals and resolution
+scans stay local. The sealed report records before/after counts, inserts, updates,
+deletes, unchanged rows, statement counts and payload bytes by table and target.
 
 Each bound statement is limited to 100 parameters and 100,000 SQL bytes; logical rows
 use a conservative 2,000,000-byte budget. Address batches reserve one statement and

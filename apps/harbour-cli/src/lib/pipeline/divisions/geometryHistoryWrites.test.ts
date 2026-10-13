@@ -155,9 +155,6 @@ function fixture(kind: DivisionGeometryKind) {
     ...[old, next].flatMap(db => [
       db.query(`SELECT * FROM ${table} ORDER BY id,versionHash`).all(),
       db.query('SELECT * FROM historyEvents ORDER BY snapshotId,recordId').all(),
-      db
-        .query('SELECT * FROM sourceResolutions ORDER BY snapshotId,sourceRecordId')
-        .all(),
     ]),
     source
       .query(
@@ -206,14 +203,6 @@ for (const kind of ['divisionArea', 'divisionBoundary'] as const) {
         ['a', 'root', 'DB_HISTORY_2025'],
         ['b', 'root', 'DB_HISTORY_2025'],
       ])
-      // Publisher occurrences keep their independent provenance contract.
-      expect(
-        f.next
-          .query(
-            "SELECT count(*) AS n FROM sourceResolutions WHERE snapshotId='child' AND sourceReleaseId='child'",
-          )
-          .get(),
-      ).toEqual({ n: 2 })
       await f.write('grandchild', 'child', rows, { binding: 'next' })
       expect(f.journal(f.next, 'grandchild')).toEqual([])
       expect(

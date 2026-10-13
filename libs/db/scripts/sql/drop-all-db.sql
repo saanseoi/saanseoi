@@ -125,7 +125,6 @@ DROP TABLE IF EXISTS `statsFields`;
 DROP TABLE IF EXISTS `statsDefinitionSets`;
 DROP TABLE IF EXISTS `streetGeometry`;
 
-DROP TABLE IF EXISTS `sourceResolutions`;
 DROP TABLE IF EXISTS `__new_streetChangelog`;
 DROP TABLE IF EXISTS `streetChangelog`;
 DROP TABLE IF EXISTS `streetNameChangeStreets`;

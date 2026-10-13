@@ -1,32 +1,28 @@
 import { selectApiInventory } from '@repo/core/db/apiInventory'
 import {
-  loadDivisionContainmentEvidence,
-  type DivisionContainmentEvidence,
-} from './divisionContainmentEvidence'
-import { listDivisionAreasCurrentByDivisionIds } from '../db/divisions'
-import { listReplayedDivisionAreasByDivisionIds } from '../db/divisionGeometryReplay'
-import { and, desc, eq, sql, metaSchema } from '@repo/db'
-import {
   listApiReleaseSetSnapshots,
   resolveApiReleaseSetSnapshotsForRequest,
   resolveSnapshotReplayPlan,
 } from '@repo/core/db/metaRegistry'
 import { resolveSnapshotVersionState } from '@repo/core/pipeline/db/snapshotReplay.ts'
+import { and, desc, eq, metaSchema, sql } from '@repo/db'
+import type { AddressRecord } from '../db/addresses'
+import { listReplayedAddressPage } from '../db/addressesHistory'
+import { listReplayedDivisionAreasByDivisionIds } from '../db/divisionGeometryReplay'
 import {
+  listDivisionAreasCurrentByDivisionIds,
   listDivisionRecordsCurrent,
   listReplayedDivisionRecords,
 } from '../db/divisions'
 import { addressGeocodingCandidates } from '../db/geocoding'
-import type { AddressRecord } from '../db/addresses'
-import type { GeocodingQuery } from '../schema/geocoding'
-import { listReplayedAddressPage } from '../db/addressesHistory'
-import { collectAddressCandidates } from './addressGeocoding'
 import {
   getPublicationReadiness,
   guardPublicationRead,
   PublicationReadUnavailableError,
 } from '../db/publicationState'
+import type { GeocodingQuery } from '../schema/geocoding'
 import type { AppEnv } from '../types'
+import { collectAddressCandidates } from './addressGeocoding'
 
 export type GeocodingDatabases = Pick<
   AppEnv['Variables'],
@@ -144,11 +140,9 @@ function snapshotIds(release: GeocodingRelease, family: 'address' | 'division') 
 export async function loadGeocodingDivisions(
   db: GeocodingDatabases,
   release: GeocodingRelease,
-  options: { includeContainmentEvidence?: boolean } = {},
 ): Promise<{
   records: Awaited<ReturnType<typeof listDivisionRecordsCurrent>>
   areas: Awaited<ReturnType<typeof listDivisionAreasCurrentByDivisionIds>>
-  containmentEvidence?: DivisionContainmentEvidence
 }> {
   const ids = snapshotIds(release, 'division')
   if (!ids.length)
@@ -246,25 +240,8 @@ export async function loadGeocodingDivisions(
     if (!result) throw new PublicationReadUnavailableError('Area publication changed.')
     areas = result
   }
-  const containmentEvidence: DivisionContainmentEvidence = new Map()
-  const owners = new Map(
-    unique.map(record => [record.division.id, record.division.snapshotId]),
-  )
-  const shards = new Map(
-    Object.entries(db.historyDbsByBinding).map(([bindingName, history]) => [
-      bindingName,
-      { bindingName, db: history as never },
-    ]),
-  )
-  for (const id of options.includeContainmentEvidence ? ids : []) {
-    const evidence = await loadDivisionContainmentEvidence(
-      await replayPlan(db, id),
-      shards,
-    )
-    for (const [divisionId, proof] of evidence)
-      if (owners.get(divisionId) === id) containmentEvidence.set(divisionId, proof)
-  }
-  return { records: unique, areas, containmentEvidence }
+
+  return { records: unique, areas }
 }
 
 export async function loadGeocodingAddresses(

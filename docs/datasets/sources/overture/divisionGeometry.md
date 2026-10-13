@@ -38,8 +38,8 @@ Dataset-prefixed release codes belong to release metadata.
 
 Area and boundary source assertions are keyed by source record ID, content hash and
 validity start. A return to identical content opens a separate validity period; closed
-periods remain closed. Release-specific source resolutions retain complete publisher
-membership, including records excluded from canonical materialisation.
+periods remain closed. Source-release selections retain publisher membership, including
+records excluded from canonical materialisation.
 
 Each newly published area or boundary resource release supersedes the preceding release
 of that resource. Current snapshot cleanup removes superseded geometry once it is no
@@ -368,18 +368,15 @@ the parent's membership; changed and reappearing features receive upserts. Paren
 checkpoints retain full membership, including when their content matches another cohort.
 Arbitrary removed versions in older annual shards are not reused.
 
-Source-release assertions and shard assignments retain their separate lifecycle. Native
-geometry plans retain `sourceResolutions`; remote geometry SQL does not export that
-table, and the separately delivered R2 processing audit does not populate it. Remote
-per-record source-resolution delivery requires separate work; its rows are excluded from
-savings attributed to sparse canonical journals.
+Source-release assertions and shard assignments retain their separate lifecycle.
+Canonical geometry stores publisher attribution in `sources`. R2 processing audits
+retain preparation evidence independently of sparse canonical history.
 
 CLI Division history compares the base and each locale independently, retaining
 unchanged component versions and their original owning shards. A publication-version
-change alone does not replace canonical source provenance. Identical source
-interpretations inherit through snapshot ancestry; changed interpretations and source
-omissions remain explicit. This component optimisation applies to canonical Divisions;
-area and boundary source-resolution assertions retain their geometry lifecycle.
+change alone does not replace canonical source provenance. Canonical components inherit
+through snapshot ancestry, while publisher omissions close SOURCE validity periods. Area
+and boundary history retain their geometry lifecycle.
 
 ## Local review derivatives
 

@@ -1,9 +1,8 @@
-import type { ReleaseScopedStatsRow } from '@repo/db/metaSchema'
-import type { NewSourceResolution } from '@repo/db/historySchema'
-import type { DivisionI18nPayload, NewDivisionRow } from '@repo/db/currentSchema'
+import type { DivisionVersionSnapshot } from '@repo/core/pipeline/db/division'
 import type { CurrentSourceRecord } from '@repo/core/pipeline/db/source'
 import type { ReleaseProcessingAction } from '@repo/core/provenance/processingAction'
-import type { DivisionVersionSnapshot } from '@repo/core/pipeline/db/division'
+import type { DivisionI18nPayload, NewDivisionRow } from '@repo/db/currentSchema'
+import type { ReleaseScopedStatsRow } from '@repo/db/metaSchema'
 import type { SqlImportTargetContext } from '../local/sqlImport.ts'
 
 export type UploadResult = {
@@ -36,7 +35,6 @@ export type DivisionPreparedRecord = {
   isSupplemental?: boolean
   /** Retain the publisher assertion without creating canonical division records. */
   omitCanonical?: boolean
-  sourceResolution?: NewSourceResolution
   raw: Record<string, unknown>
   sourceChanged: boolean
   sourcePayloadHash: string

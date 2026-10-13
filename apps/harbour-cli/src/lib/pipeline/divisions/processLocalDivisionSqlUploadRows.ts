@@ -1,8 +1,6 @@
 import type { DatasetProcessingMessage } from '@repo/core'
 import { divisionLocaleContent } from '@repo/core/pipeline/db/divisionHistory'
 import { buildSourceReleaseId } from '@repo/core/pipeline/db/source'
-import { sourceResolutionSql } from '@repo/core/pipeline/db/sourceResolutions'
-import { divisionSourceResolutions } from '@repo/core/pipeline/services/divisions/divisionContainmentEvidence'
 import {
   overtureSourcePayload,
   saanseoiSourcePayload,
@@ -143,31 +141,12 @@ export async function buildDivisionHistorySqlFile(
   state: DivisionSqlState,
   reportProgress: (current: number) => Promise<void>,
 ) {
-  const resolutionStatements: string[] = []
   const baseRows: Record<string, SqlValue>[] = []
   const i18nRows: Record<string, SqlValue>[] = []
   const changedExistingIds: string[] = []
   await processDivisionRecordBatches(state.records, reportProgress, async batch => {
     for (const record of batch) {
       if (record.omitCanonical) continue
-      if (
-        (message.source === 'overture' || message.source === 'saanseoi') &&
-        !record.isSupplemental
-      )
-        resolutionStatements.push(
-          sourceResolutionSql({
-            snapshotId: state.snapshotId,
-            sourceReleaseId: message.resourceReleaseId ?? message.datasetId,
-            sourceRecordId: record.id,
-            sourceVersionHash: record.sourcePayloadHash,
-            resolutions: divisionSourceResolutions(
-              record.id,
-              message.source === 'saanseoi' ? record.raw : undefined,
-            ),
-          }),
-        )
-      if (record.sourceResolution)
-        resolutionStatements.push(sourceResolutionSql(record.sourceResolution))
       if (!record.currentChanged) {
         continue
       }
@@ -230,7 +209,6 @@ export async function buildDivisionHistorySqlFile(
     ) ?? []
   const now = new Date().toISOString()
   const statements = [
-    ...resolutionStatements,
     ...buildInsertStatements(
       'divisions',
       [

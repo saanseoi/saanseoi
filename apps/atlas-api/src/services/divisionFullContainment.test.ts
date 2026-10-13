@@ -1,14 +1,10 @@
 import { expect, test } from 'bun:test'
-import { createDivisionResolver } from './divisionGeocoding'
-import { division, area, entry } from './geocoding.fixtures'
+import { divisionHierarchyContent } from '@repo/core/pipeline/services/divisions/divisionHierarchyContent.ts'
 import { createFullContainmentAnnotator } from '@repo/core/pipeline/services/divisions/fullContainment.ts'
 import { containsReviewPoint } from '@repo/core/pipeline/services/divisions/geographicReview.ts'
-import type { Polygon, MultiPolygon } from 'geojson'
-import {
-  divisionHierarchyContent,
-  divisionSourceResolutions,
-} from '@repo/core/pipeline/services/divisions/divisionContainmentEvidence.ts'
-import type { DivisionContainmentEvidence } from './divisionContainmentEvidence'
+import type { MultiPolygon, Polygon } from 'geojson'
+import { createDivisionResolver } from './divisionGeocoding'
+import { area, division, entry } from './geocoding.fixtures'
 
 function fixture() {
   const areas = [
@@ -38,16 +34,10 @@ function fixture() {
       record.division.hierarchies!,
     )
   const calls: string[] = []
-  const containmentEvidence: DivisionContainmentEvidence = new Map()
   for (const record of records) {
-    const id = record.division.id
-    const resolution = divisionSourceResolutions(id, { record: record.division })
-    const evidence = resolution.divisionContainment?.[id]
-    if (evidence) containmentEvidence.set(id, evidence)
     record.division.hierarchies = divisionHierarchyContent(record.division.hierarchies)
   }
   const options = {
-    containmentEvidence,
     containsPoint: ((point, geometry) => {
       calls.push(areas.find(a => a.geometry === geometry)!.divisionId)
       return containsReviewPoint(point, geometry)
@@ -56,10 +46,10 @@ function fixture() {
   return { areas, records, calls, options }
 }
 
-test('a matched child skips proven ancestors while preserving coordinate-selected alternatives', () => {
+test('full containment annotations preserve coordinate-selected alternatives', () => {
   const { areas, records, calls, options } = fixture()
   const result = createDivisionResolver(records, areas, options).resolve([2, 2])
-  expect(calls).toEqual(['village'])
+  expect(calls).toEqual(['root', 'west', 'village'])
   expect(result.path).toEqual(['root', 'west', 'village'])
   expect(result.memberships.find(member => member.id === 'west')?.evidence).toBe(
     'containment',
@@ -80,7 +70,7 @@ test('a point outside the child still checks its ancestors', () => {
 })
 
 test.each(['root', 'village'])(
-  'changed %s geometry invalidates the containment shortcut',
+  'changed %s geometry is checked independently of containment annotations',
   id => {
     const { areas, records, calls, options } = fixture()
     const target = areas.find(a => a.divisionId === id)!
@@ -100,7 +90,6 @@ test.each(['root', 'village'])(
 
 test('a bare true flag, absent polygon or named identity supplies no shortcut', () => {
   const { areas, records, calls, options } = fixture()
-  options.containmentEvidence.clear()
   createDivisionResolver(records, areas, options).resolve([2, 2])
   expect(calls).toContain('root')
   expect(calls).toContain('west')

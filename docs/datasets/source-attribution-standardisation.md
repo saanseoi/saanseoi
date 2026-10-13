@@ -65,10 +65,10 @@ belong to the Place audit. Address history retains canonical components and attr
 without a separate evidence payload or evidence index.
 
 Place identity and Division association evidence lives in immutable R2 record-evidence
-objects. Each object identifies its collection, record ID and schema version. Place
-`sourceResolutions` retains entity membership and an evidence locator; readers verify
-both bytes and record identity. Upload acknowledgement precedes SQL writes that expose
-these references.
+objects and retained preparation artefacts. Each evidence object identifies its
+collection, record ID and schema version. Canonical `sources` remains publisher-only.
+Place Division lookup rows are reconstructed from retained coordinates, Address history
+and pinned Division and DivisionArea snapshots using the ingestion membership rules.
 
 ## Retained-record migration and replay
 

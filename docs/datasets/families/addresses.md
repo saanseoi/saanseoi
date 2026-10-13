@@ -104,11 +104,10 @@ component writes; parented revisions inherit unchanged components. Published eve
 retained Place audits are immutable; changed accepted materialisation requires a release
 revision.
 
-ALS source interpretations in `sourceResolutions` inherit through snapshot ancestry.
-Repeated identical source hashes and resolutions need no new row. Changed resolutions,
-source reappearances and explicit `source_omission` decisions remain recorded. A source
-omission can coexist with a curated canonical retention; raw publisher evidence is
-preserved.
+ALS publisher assertions retain their SOURCE validity periods independently of canonical
+Address history. A publisher omission can coexist with a curated canonical retention.
+Publisher references remain in canonical `sources`; processing decisions remain in the
+retained preparation and audit artefacts.
 
 The API returns a readiness response while a selected scope is being updated. Complete
 initial uploads prepare the retained history locally and deliver the final contents of
@@ -203,8 +202,8 @@ ALS 2D and 3D source rows use `(sourceRecordId, versionHash)` identity and retai
 reused across releases without updating its release ID, timestamps or indexes. Changed
 and removed assertions close their validity range. The complete publisher membership,
 not the last-written release ID, determines omissions. Reappearance of a closed
-assertion requires a write. Canonical inline events and scoped source-resolution
-evidence record the changes needed to reconstruct each snapshot.
+assertion requires a write. Canonical inline events record the changes needed to
+reconstruct each snapshot; SOURCE retains publisher validity independently.
 
 ALS ingestion prepares each pending release and retains its unresolved cases locally.
 Assembly and upload wait until those cases are resolved before advancing

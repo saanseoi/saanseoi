@@ -12,8 +12,7 @@ test('ports Wikidata, repairs replay hashes and is idempotent', async () => {
   try {
     db.exec(`CREATE TABLE divisions (id TEXT, identifiers TEXT, wikidata TEXT, hierarchies TEXT, class TEXT, versionHash TEXT, PRIMARY KEY(id,versionHash));
       CREATE VIEW historyEvents AS SELECT 'division' AS recordType,id AS recordId,versionHash FROM divisions;
-      CREATE TABLE ssDivision (sourceRecordId TEXT, properties TEXT, versionHash TEXT);
-      CREATE TABLE sourceResolutions (sourceRecordId TEXT,sourceVersionHash TEXT);`)
+      CREATE TABLE ssDivision (sourceRecordId TEXT, properties TEXT, versionHash TEXT);`)
     db.query('INSERT INTO divisions VALUES (?,?,?,?,?,?)').run(
       'village',
       '{"overture":{"divisionId":"native"}}',
@@ -27,15 +26,12 @@ test('ports Wikidata, repairs replay hashes and is idempotent', async () => {
       '{"id":"village","wikidata":"Q123","identifiers":{"overture":{"divisionId":"native"}}}',
       'source-old',
     )
-    db.exec("INSERT INTO sourceResolutions VALUES ('village','source-old')")
     const plan = await backfillDivisionWikidata([path], join(dir, 'dry'))
     expect(plan.applied).toBe(false)
     expect(
       (db.query('SELECT identifiers FROM divisions').get() as any).identifiers,
     ).not.toContain('wikidata')
-    const result = await backfillDivisionWikidata([path], join(dir, 'apply'), true)
-    expect(result.replayReferences).toBe(0)
-    expect(result.sourceReferences).toBe(1)
+    await backfillDivisionWikidata([path], join(dir, 'apply'), true)
     const row = db.query('SELECT * FROM divisions').get() as any
     expect(JSON.parse(row.identifiers)).toEqual({
       overture: { divisionId: 'native' },
@@ -47,10 +43,6 @@ test('ports Wikidata, repairs replay hashes and is idempotent', async () => {
     const source = db.query('SELECT * FROM ssDivision').get() as any
     expect(JSON.parse(source.properties)).not.toHaveProperty('wikidata')
     expect(JSON.parse(source.properties).identifiers.wikidata).toEqual({ id: 'Q123' })
-    expect(
-      (db.query('SELECT sourceVersionHash FROM sourceResolutions').get() as any)
-        .sourceVersionHash,
-    ).toBe(source.versionHash)
     expect(
       (await backfillDivisionWikidata([path], join(dir, 'repeat'))).counts,
     ).toEqual({})

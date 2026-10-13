@@ -13,13 +13,13 @@ test('reconciles canonical links and replay membership without changing publishe
     CREATE TABLE address2dI18n(addressId TEXT REFERENCES address2d(id),locale TEXT);
     CREATE TABLE places(id TEXT,address2dId TEXT,address3dId TEXT);
     CREATE VIEW historyEvents AS SELECT 'address2d' AS recordType,id AS recordId FROM address2d WHERE parentAddressId IS NOT NULL;
-    CREATE TABLE sourceResolutions(resolutions TEXT);
+
     CREATE TABLE publisher(properties TEXT);
     INSERT INTO address2d VALUES('parent',NULL),('child','parent');
     INSERT INTO address3d VALUES('collection','child');
     INSERT INTO address2dI18n VALUES('child','en');
     INSERT INTO places VALUES('place','child','collection');
-    INSERT INTO sourceResolutions VALUES('{"entities":{"address2d":["child"],"address3d":["collection"]},"decisions":[{"originalId":"child"}]}');
+
     INSERT INTO publisher VALUES('{"addressId":"child"}');`)
   try {
     const mapping = planAddressIdReconciliation([db])
@@ -35,18 +35,6 @@ test('reconciles canonical links and replay membership without changing publishe
     })
     expect(db.query('SELECT recordId FROM historyEvents').get()).toEqual({
       recordId: 'ss-child',
-    })
-    expect(
-      JSON.parse(
-        (
-          db.query('SELECT resolutions FROM sourceResolutions').get() as {
-            resolutions: string
-          }
-        ).resolutions,
-      ),
-    ).toEqual({
-      entities: { address2d: ['ss-child'], address3d: ['ss-collection'] },
-      decisions: [{ originalId: 'child' }],
     })
     expect(db.query('SELECT properties FROM publisher').get()).toEqual({
       properties: '{"addressId":"child"}',

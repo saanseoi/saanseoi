@@ -73,7 +73,6 @@ test('writes large bound collections, replays idempotently and journals removed 
     createTable(databases.current, currentSchema.address3dI18n)
     createTable(databases.history, historySchema.address3d)
     createTable(databases.history, historySchema.address3dI18n)
-    createTable(databases.history, historySchema.sourceResolutions)
     databases.history.exec(
       `CREATE VIEW historyEvents AS ${historyEventsSqlForTables(new Set(['address3d', 'address3dI18n']))}`,
     )
@@ -270,15 +269,6 @@ test('writes large bound collections, replays idempotently and journals removed 
       properties: JSON.stringify({ source: true }),
       sourceGeometry: JSON.stringify({ type: 'Point', coordinates: [114, 22, 8] }),
       sourceLocator: JSON.stringify({ sourceFile: 'original.json' }),
-    })
-    const interpretation = databases.history
-      .query('SELECT resolutions FROM sourceResolutions WHERE sourceRecordId = ?')
-      .get('source-1') as { resolutions: string }
-    expect(JSON.parse(interpretation.resolutions)).toEqual({
-      entities: { address3d: ['collection'], address2d: ['building'] },
-      decisions: [
-        { dataset: 'reviewed-ownership', method: 'reviewed', address2dId: 'building' },
-      ],
     })
     expect(
       databases.current.query('SELECT count(*) AS n FROM address3d').get(),

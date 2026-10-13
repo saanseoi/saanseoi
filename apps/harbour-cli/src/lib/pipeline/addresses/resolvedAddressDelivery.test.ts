@@ -150,13 +150,6 @@ test('combined Address planning seals only final changes and rejects incomplete 
           changedExistingId: null,
           versionHash: 'v1',
           coverageComponents: [],
-          sourceResolution: {
-            snapshotId: 'snapshot',
-            sourceReleaseId: 'release',
-            sourceRecordId: 'raw',
-            sourceVersionHash: 'raw-hash',
-            resolutions: { entities: { address2d: ['a'] } },
-          },
           base: {
             id: 'a',
             snapshotId: 'snapshot',
@@ -310,8 +303,6 @@ test('combined Address planning seals only final changes and rejects incomplete 
     artefact.rows[0]!.changed = false
     artefact.rows[0]!.base.snapshotId = 'snapshot2'
     artefact.rows[0]!.i18n[0]!.snapshotId = 'snapshot2'
-    artefact.rows[0]!.sourceResolution!.snapshotId = 'snapshot2'
-    artefact.rows[0]!.sourceResolution!.sourceReleaseId = 'release2'
     message.addressSqlArtefactKeys = []
     for (const file of [
       buildAddressCurrentSqlImportFile(message, artefact, {
@@ -355,8 +346,6 @@ test('combined Address planning seals only final changes and rejects incomplete 
     ]
     for (const row of artefact.rows[0]!.i18n) row.snapshotId = 'snapshot3'
     artefact.rows[0]!.i18n[0]!.formattedAddress = 'Harbour Street'
-    artefact.rows[0]!.sourceResolution!.snapshotId = 'snapshot3'
-    artefact.rows[0]!.sourceResolution!.sourceReleaseId = 'release3'
     message.addressSqlArtefactKeys = []
     for (const file of [
       buildAddressCurrentSqlImportFile(message, artefact, {

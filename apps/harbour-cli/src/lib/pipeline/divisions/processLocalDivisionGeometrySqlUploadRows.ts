@@ -1,10 +1,6 @@
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import { recordHistoryDeletions } from '@repo/core/pipeline/db/historyDeletions'
 import {
-  recordSourceResolutions,
-  resolvedEntities,
-} from '@repo/core/pipeline/db/sourceResolutions'
-import {
   hashDivisionGeometryRow,
   hashDivisionGeometrySourceRow,
 } from '@repo/core/pipeline/services/divisions/divisionGeometry'
@@ -377,39 +373,6 @@ export async function writeGeometryRows(
       }))) {
       historyRowsById.set(row.id, row)
     }
-  await recordSourceResolutions(
-    context.historyDb as unknown as HarbourWritableDb,
-    publisherRows.flatMap(row => {
-      const sourceVersionHash = sourceHashes.get(row.source.sourceRecordId)
-      if (!sourceVersionHash) return []
-      const canonical = (rows.find(
-        candidate => candidate.canonical.id === row.canonical.id,
-      )?.canonical ??
-        rows.find(
-          candidate =>
-            'divisionId' in candidate.canonical &&
-            'divisionId' in row.canonical &&
-            candidate.canonical.divisionId === row.canonical.divisionId,
-        )?.canonical ??
-        row.canonical) as Record<string, unknown>
-      return [
-        {
-          snapshotId: version.snapshotId,
-          sourceReleaseId: version.resourceReleaseId,
-          sourceRecordId: row.source.sourceRecordId,
-          sourceVersionHash,
-          resolutions: {
-            entities: resolvedEntities({
-              [resourceType]: canonical.id,
-              division: canonical.divisionId,
-              leftDivision: canonical.leftDivisionId,
-              rightDivision: canonical.rightDivisionId,
-            }),
-          },
-        },
-      ]
-    }),
-  )
   const historyRows = [...historyRowsById.values()]
   const sourceRows =
     isDisplayDerivative ||

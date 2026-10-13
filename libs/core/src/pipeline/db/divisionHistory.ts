@@ -1,6 +1,5 @@
 import { historySchema } from '@repo/db'
 import type { DivisionI18nPayload } from '@repo/db/currentSchema'
-import type { NewSourceResolution } from '@repo/db/historySchema'
 import { and, eq, or } from 'drizzle-orm'
 import type { SnapshotReplayStep } from '../../lib/db/metaRegistry'
 import type { HarbourReadableDb, HarbourWritableDb } from '../../lib/db/types'
@@ -17,10 +16,6 @@ import type {
 } from './division'
 import { recordHistoryDeletions } from './historyDeletions'
 import { resolveSnapshotVersionState } from './snapshotReplay'
-import {
-  type ResolvedSnapshotSourceResolution,
-  resolveSnapshotSourceResolutions,
-} from './sourceResolutionReplay'
 
 export type DivisionHistoryShard = {
   bindingName: string
@@ -153,11 +148,6 @@ export async function loadDivisionHistoryBaseline(input: {
   current: ReadonlyMap<string, DivisionVersionSnapshot>
   baseHashInput: (row: DivisionBaseRecord) => unknown
 }) {
-  // Also validates complete ancestry and required bindings, including source-only deltas.
-  const sourceResolutions = await resolveSnapshotSourceResolutions(
-    input.plan,
-    input.shards,
-  )
   const components = new Map<string, DivisionHistoryComponent>()
   const resolved = await resolveSnapshotVersionState(input.plan, input.shards, [
     'division',
@@ -226,7 +216,7 @@ export async function loadDivisionHistoryBaseline(input: {
       }
     }
   }
-  return { components, sourceResolutions }
+  return { components }
 }
 
 function divisionComponentPredicate(row: DivisionHistoryComponent) {
@@ -262,43 +252,4 @@ export async function closeDivisionHistoryComponents(input: {
         .filter(row => row.omitted && row.recordType === recordType)
         .map(row => ({ recordId: row.recordId, locale: row.locale })),
     })
-}
-
-export function changedDivisionSourceResolutions(
-  previous: ReadonlyMap<string, ResolvedSnapshotSourceResolution>,
-  rows: NewSourceResolution[],
-  seen: Set<string>,
-) {
-  return rows.filter(row => {
-    seen.add(row.sourceRecordId)
-    const prior = previous.get(row.sourceRecordId)
-    return (
-      !prior ||
-      prior.sourceVersionHash !== row.sourceVersionHash ||
-      stableJsonStringify(prior.resolutions) !== stableJsonStringify(row.resolutions)
-    )
-  })
-}
-
-export function omittedDivisionSourceResolutions(
-  previous: ReadonlyMap<string, ResolvedSnapshotSourceResolution>,
-  seen: ReadonlySet<string>,
-  snapshotId: string,
-  sourceReleaseId: string,
-): NewSourceResolution[] {
-  return [...previous.values()]
-    .filter(
-      row =>
-        !seen.has(row.sourceRecordId) &&
-        !row.resolutions.decisions?.some(
-          decision => decision.type === 'source_omission',
-        ),
-    )
-    .map(row => ({
-      snapshotId,
-      sourceReleaseId,
-      sourceRecordId: row.sourceRecordId,
-      sourceVersionHash: row.sourceVersionHash,
-      resolutions: { entities: {}, decisions: [{ type: 'source_omission' }] },
-    }))
 }

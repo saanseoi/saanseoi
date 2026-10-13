@@ -1,27 +1,27 @@
-import { insertFixtureSnapshot } from '../../../../../../libs/core/src/testing/snapshotFixtures'
-import { retainObject } from '@repo/core/provenance'
-import { LocalPipelineBucket } from '../local/localBucket'
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { drizzle } from 'drizzle-orm/bun-sqlite'
-import { currentSchema, historySchema, metaSchema, sourceSchema } from '@repo/db'
 import {
   hashPlaceMaterialisation,
   normaliseOverturePlace,
 } from '@repo/core/pipeline/services/places/place'
+import { retainObject } from '@repo/core/provenance'
+import { currentSchema, historySchema, metaSchema, sourceSchema } from '@repo/db'
+import { drizzle } from 'drizzle-orm/bun-sqlite'
 import { loadMigrationSql } from '../../../../../../libs/core/src/testing/metaFixtures.ts'
+import { insertFixtureSnapshot } from '../../../../../../libs/core/src/testing/snapshotFixtures'
 import type { LocalAddressDbContext } from '../../dbCache/localDbCacheTypes.ts'
+import { LocalPipelineBucket } from '../local/localBucket'
 import type { NetStatement } from '../local/netSqlitePlanTypes.ts'
-import { captureResolvedPlaceDelivery } from './resolvedPlaceDelivery.ts'
 import { importPlaceSqlBatches } from './processLocalPlaceSqlUploadImport.ts'
-import { validateResolvedPlaces } from './resolvedPlaceValidation.ts'
 import type {
   BuildPlaceSqlInput,
   EnrichedPlace,
 } from './processLocalPlaceSqlUploadTypes.ts'
+import { captureResolvedPlaceDelivery } from './resolvedPlaceDelivery.ts'
+import { validateResolvedPlaces } from './resolvedPlaceValidation.ts'
 
 async function fixture(work: (f: Awaited<ReturnType<typeof setup>>) => Promise<void>) {
   const f = await setup()
@@ -436,12 +436,6 @@ test('publisher ID churn preserves canonical membership through full delivery', 
       { sourceRecordId: 'place', isCurrent: 0 },
       { sourceRecordId: 'publisher-next', isCurrent: 1 },
     ])
-    const resolution = f.history
-      .query<{ resolutions: string }, []>(
-        "SELECT resolutions FROM sourceResolutions WHERE snapshotId='revision-2' AND sourceRecordId='publisher-next'",
-      )
-      .get()
-    expect(JSON.parse(resolution!.resolutions).entities.place).toEqual(['place'])
   }))
 
 test('identity preparation refuses a changed publication predecessor before capture', () =>

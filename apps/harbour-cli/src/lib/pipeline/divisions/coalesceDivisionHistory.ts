@@ -1,7 +1,6 @@
 import { Database, type SQLQueryBindings } from 'bun:sqlite'
 import { resolveSnapshotReplayPlan } from '@repo/core/db/metaRegistry'
 import { resolveSnapshotVersionState } from '@repo/core/pipeline/db/snapshotReplay'
-import { resolveSnapshotSourceResolutions } from '@repo/core/pipeline/db/sourceResolutionReplay'
 import { historyDeletionSql } from '@repo/db'
 import { drizzle } from 'drizzle-orm/bun-sqlite'
 import { restoreSnapshotProjection } from '../../commands/rollback/projection'
@@ -283,86 +282,6 @@ export async function coalesceDivisionHistory(input: {
                 sourceReleaseId: receipt.publicationToken,
                 createdAt: receipt.updatedAt,
                 updatedAt: receipt.updatedAt,
-              }),
-            )
-        }
-      }
-      if (previous?.snapshotId) {
-        const prior = await resolveSnapshotSourceResolutions(
-          previousPlan,
-          namedBaselines,
-        )
-        const asserted = new Set<string>()
-        for (const [binding, candidate] of Object.entries(input.candidates)) {
-          if (!binding.startsWith('DB_HISTORY')) continue
-          for (const row of candidate.db
-            .query<
-              {
-                sourceRecordId: string
-                sourceReleaseId: string
-                sourceVersionHash: string
-                resolutions: string
-              },
-              [string]
-            >(
-              'SELECT sourceRecordId,sourceReleaseId,sourceVersionHash,resolutions FROM sourceResolutions WHERE snapshotId=?',
-            )
-            .all(receipt.snapshotId)) {
-            asserted.add(row.sourceRecordId)
-            const previous = prior.get(row.sourceRecordId)
-            if (
-              previous?.sourceVersionHash === row.sourceVersionHash &&
-              canonical(previous.resolutions) === canonical(JSON.parse(row.resolutions))
-            )
-              candidate.db
-                .query(
-                  'DELETE FROM sourceResolutions WHERE scopeId=? AND sourceReleaseId=? AND sourceRecordId=? AND sourceVersionHash=?',
-                )
-                .run(
-                  `snapshot:${receipt.snapshotId}`,
-                  row.sourceReleaseId,
-                  row.sourceRecordId,
-                  row.sourceVersionHash,
-                )
-          }
-        }
-        const sources = Object.entries(input.candidates).filter(([binding]) =>
-          binding.startsWith('DB_SOURCE'),
-        )
-        for (const [sourceRecordId, previous] of prior) {
-          if (
-            !sources.length ||
-            asserted.has(sourceRecordId) ||
-            previous.resolutions.decisions?.some(
-              decision => decision.type === 'source_omission',
-            )
-          )
-            continue
-          const present = sources.some(([, source]) =>
-            [
-              'overtureDivisions',
-              'ssDivision',
-              'hkgovPlandNewTowns',
-              'hkgovPlandPlanningCells',
-            ].some(table =>
-              source.db
-                .query(`SELECT 1 FROM ${table} WHERE sourceRecordId=? AND isCurrent=1`)
-                .get(sourceRecordId),
-            ),
-          )
-          if (present) continue
-          history
-            .query(`INSERT INTO sourceResolutions(scopeId,snapshotId,sourceReleaseId,sourceRecordId,sourceVersionHash,resolutions)
-            VALUES(?,?,?,?,?,?) ON CONFLICT(scopeId,sourceReleaseId,sourceRecordId,sourceVersionHash) DO NOTHING`)
-            .run(
-              `snapshot:${receipt.snapshotId}`,
-              receipt.snapshotId,
-              receipt.publicationToken,
-              sourceRecordId,
-              previous.sourceVersionHash,
-              JSON.stringify({
-                entities: {},
-                decisions: [{ type: 'source_omission' }],
               }),
             )
         }

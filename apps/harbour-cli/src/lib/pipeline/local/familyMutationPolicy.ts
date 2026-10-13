@@ -74,7 +74,6 @@ export function familyMutationTargets(
               ? [
                   ...current[family].filter(name => name !== 'streetsAddress'),
                   ...(family === 'statistics' ? ['divisionStatistics'] : []),
-                  'sourceResolutions',
                 ]
               : binding.startsWith('DB_SOURCE')
                 ? sources[family]
@@ -108,13 +107,9 @@ export function familyMutationTargets(
             const columns = getTableColumns(table as never)
             return {
               name,
-              ...(!['sourceResolutions'].includes(name)
-                ? {
-                    ignoredColumns: ['createdAt', 'updatedAt'].filter(
-                      column => column in columns,
-                    ),
-                  }
-                : {}),
+              ignoredColumns: ['createdAt', 'updatedAt'].filter(
+                column => column in columns,
+              ),
             }
           }),
         },

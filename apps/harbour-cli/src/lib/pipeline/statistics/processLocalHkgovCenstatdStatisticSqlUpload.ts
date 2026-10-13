@@ -1,94 +1,93 @@
-import {
-  prepareCenstatdGeometryAudit,
-  retainCenstatdGeometryAudit,
-} from './censtatdGeometryAudit'
-import { formatCenstatdGeometryReuse } from './censtatdGeometryStorage'
-import { censtatdGeometryRow } from '@repo/core/pipeline/services/sources/censtatdGeometry'
-import { statisticAuditPeriod } from './statisticAuditPeriod'
-import sourceFixture from '../../../../../../fixtures/meta/processing-rules/ingestion/censtatd-generic-source-assertion.json'
-import { registerRule, ruleDeclarationFromFixture } from '@repo/core/provenance'
-import type { DatasetProcessingStats } from '@repo/core/pipeline/processingRunStats'
-import { resolveCurrentWriteContext } from '../../dbCache/currentWriteContext.ts'
-import { calculateAndStorePublishedStatisticsStats } from '../../api/apiReleaseSetStats'
-import { nativeSourcePayloadHashInput } from '@repo/core/pipeline/services/sources/sourcePayload'
-import { retainProcessingFailure } from '../../api/processingFailureAudit'
-import { curationDocumentsFor } from '../../curationDocuments'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
-import { deliveryFileSha256 } from '../local/sqlDeliveryFiles.ts'
-import {
-  sqlDeliveryPhaseDirectory,
-  type SqlDeliveryPhase,
-} from '../local/sqlDeliveryPhase.ts'
-import { prepareCachedArtefact } from '../local/preparedArtefact.ts'
-import { hashCanonicalStatisticPreparation } from './statisticPreparation.ts'
-import { normaliseCachedStatistics } from './cachedStatisticNormalisation.ts'
-import { retainStatisticProvenance } from './statisticProvenance.ts'
-import { LocalPipelineBucket } from '../local/localBucket.ts'
-import { deliverProcessingResult } from '../../api/provenance.ts'
-import {
-  completeSqlDeliveryRelease,
-  readPendingSqlDelivery,
-} from '../local/sqlDeliveryPending.ts'
-import type { HarbourClient } from '@repo/core/pipeline/harbourClient'
 import { replaceDatasetStatsAndReturnRows } from '@repo/core/pipeline/db/stats'
-import { hashStatisticContent } from './statisticsRecordIdentity'
+import type { HarbourClient } from '@repo/core/pipeline/harbourClient'
+import { readParquetObjectsInBatches } from '@repo/core/pipeline/parquetR2'
+import type { DatasetProcessingStats } from '@repo/core/pipeline/processingRunStats'
 import {
   buildCenstatdReleaseStats,
   buildCenstatdStructuralChurnStats,
   censtatdReleaseStatsProfileFor,
 } from '@repo/core/pipeline/services/metrics/censtatdReleaseStats'
+import { censtatdGeometryRow } from '@repo/core/pipeline/services/sources/censtatdGeometry'
+import { nativeSourcePayloadHashInput } from '@repo/core/pipeline/services/sources/sourcePayload'
+import { registerRule, ruleDeclarationFromFixture } from '@repo/core/provenance'
 import { asyncBufferFromFile } from 'hyparquet/src/node.js'
-import { readParquetObjectsInBatches } from '@repo/core/pipeline/parquetR2'
-
+import sourceFixture from '../../../../../../fixtures/meta/processing-rules/ingestion/censtatd-generic-source-assertion.json'
+import { calculateAndStorePublishedStatisticsStats } from '../../api/apiReleaseSetStats'
+import { createHarbourControlClient } from '../../api/harbourControl.ts'
+import { retainProcessingFailure } from '../../api/processingFailureAudit'
+import { deliverProcessingResult } from '../../api/provenance.ts'
+import { OperationProgress } from '../../cli/operationProgress.ts'
+import type { UploadTarget } from '../../cli/options.ts'
+import { curationDocumentsFor } from '../../curationDocuments'
+import { resolveCurrentWriteContext } from '../../dbCache/currentWriteContext.ts'
 import {
-  invalidateRemoteDbCache,
   applyPublishMetadataDeltaToRemoteCache,
+  invalidateRemoteDbCache,
   refreshRemoteMetaCache,
   updateDbCacheProgress,
 } from '../../dbCache/localDbCache.ts'
-import type { UploadTarget } from '../../cli/options.ts'
-import { createHarbourControlClient } from '../../api/harbourControl.ts'
-import { createLocalControlClient } from '../local/localControlClient.ts'
-import { syncStagedReleaseIntoLocalMetaCache } from '../local/syncStagedRelease.ts'
+import { hkgovCenstatdStatisticDivisionId } from '../../sources/hkgov/censtatd/hkgovCenstatdStatistics.ts'
+import { loadDatasetFixtures } from '../../sources/sourceUpdates.ts'
 import type { PreparedUploadFile } from '../../upload/parquetRepack.ts'
-import { OperationProgress } from '../../cli/operationProgress.ts'
+import { LocalPipelineBucket } from '../local/localBucket.ts'
+import { createLocalControlClient } from '../local/localControlClient.ts'
+import { prepareCachedArtefact } from '../local/preparedArtefact.ts'
+import { deliveryFileSha256 } from '../local/sqlDeliveryFiles.ts'
 import {
-  buildStatisticSqlBatches,
-  replayStatisticSqlBatches,
-} from './statisticSqlReplay.ts'
+  completeSqlDeliveryRelease,
+  readPendingSqlDelivery,
+} from '../local/sqlDeliveryPending.ts'
+import {
+  type SqlDeliveryPhase,
+  sqlDeliveryPhaseDirectory,
+} from '../local/sqlDeliveryPhase.ts'
+import { syncStagedReleaseIntoLocalMetaCache } from '../local/syncStagedRelease.ts'
+import { normaliseCachedStatistics } from './cachedStatisticNormalisation.ts'
 import { replayCanonicalStatsSqlBatches } from './canonicalStatsSql.ts'
 import {
-  resolveCenstatdDistrictBridgeCohort,
   censtatdDistrictIdentityRule,
+  resolveCenstatdDistrictBridgeCohort,
   resolveCenstatdNewTownBridgeCohort,
   resolveHkgovCenstatdDistrictBridge,
   resolveHkgovCenstatdNewTownBridge,
 } from './censtatdDistrictBridge.ts'
-import type { normaliseHkgovCenstatdStatistics } from './normaliseHkgovCenstatdStatistics.ts'
+import {
+  prepareCenstatdGeometryAudit,
+  retainCenstatdGeometryAudit,
+} from './censtatdGeometryAudit'
+import { formatCenstatdGeometryReuse } from './censtatdGeometryStorage'
 import {
   loadCenstatdMeasureMetadata,
   resolveCenstatdFieldMetadata,
 } from './censtatdMeasureCuration.ts'
-import { hkgovCenstatdStatisticDivisionId } from '../../sources/hkgov/censtatd/hkgovCenstatdStatistics.ts'
-import { sourceStatisticAssertion } from './sourceStatisticAssertion.ts'
-import { loadDatasetFixtures } from '../../sources/sourceUpdates.ts'
 import { findPreviousComparableCenstatdReleaseStats } from './censtatdReleaseChurn.ts'
-import {
-  replayReleaseStatsMetaToRemote,
-  replayStatisticSnapshotMetaToRemote,
-} from './releaseStatsMetaReplay.ts'
-import {
-  completeStatisticCache,
-  runStatisticProgressStep,
-} from './statisticProgress.ts'
 import {
   materialiseStatisticSnapshots,
   resolveStatisticSnapshotPredecessors,
 } from './materialiseStatisticSnapshot.ts'
+import type { normaliseHkgovCenstatdStatistics } from './normaliseHkgovCenstatdStatistics.ts'
 import {
   planCanonicalStatistics,
   selectStatisticReferencePeriodsWithChanges,
 } from './planCanonicalStatistics'
+import {
+  replayReleaseStatsMetaToRemote,
+  replayStatisticSnapshotMetaToRemote,
+} from './releaseStatsMetaReplay.ts'
+import { sourceStatisticAssertion } from './sourceStatisticAssertion.ts'
+import { statisticAuditPeriod } from './statisticAuditPeriod'
+import { hashCanonicalStatisticPreparation } from './statisticPreparation.ts'
+import {
+  completeStatisticCache,
+  runStatisticProgressStep,
+} from './statisticProgress.ts'
+import { retainStatisticProvenance } from './statisticProvenance.ts'
+import {
+  buildStatisticSqlBatches,
+  replayStatisticSqlBatches,
+} from './statisticSqlReplay.ts'
+import { hashStatisticContent } from './statisticsRecordIdentity'
 
 export async function processLocalHkgovCenstatdStatisticSqlUpload(
   target: UploadTarget,
@@ -378,22 +377,7 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
     progress.message(
       `Statistics: ${canonicalPlan.changedRecords.length} changed packs, ${canonicalPlan.unchangedRecords} unchanged packs`,
     )
-    const canonicalBatches = () =>
-      canonicalPlan.buildBatches(
-        statisticSourceResolutions(
-          canonicalPlan.changedRecords,
-          new Map(
-            rows.map(row => [
-              `hkgov-censtatd/${datasetCode}/${plan.sourceVersion}/${row.sourceRecordId}`,
-              {
-                sourceRecordId: String(row.sourceRecordId),
-                versionHash: String(row.versionHash),
-              },
-            ]),
-          ),
-          resourceReleaseId,
-        ),
-      )
+    const canonicalBatches = () => canonicalPlan.buildBatches()
     await client.stageRunning(
       resourceReleaseId,
       'processDataset',
@@ -754,7 +738,6 @@ function uniqueReferencePeriods(
     ).values(),
   ]
 }
-import { statisticSourceResolutions } from './sourceResolutions'
 
 function retainCenstatdSource({
   row,

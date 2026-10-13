@@ -1,7 +1,7 @@
 import { divisionIdentifiersWithWikidata } from '@repo/core/pipeline/services/sources/divisionIdentifiers.ts'
-import geographicCodes from '../../../../../../fixtures/meta/divisionCodes/geographic.json'
 import { readSourceAttributions } from '@repo/core/pipeline/services/sources/sourceAttribution'
 import type { SourceAttribution } from '@repo/db'
+import geographicCodes from '../../../../../../fixtures/meta/divisionCodes/geographic.json'
 
 /** Group canonical upstream attribution for the internal assembly evidence workspace. */
 export function groupCuratedUpstreamAttribution(value: unknown) {
@@ -17,6 +17,7 @@ export function groupCuratedUpstreamAttribution(value: unknown) {
 const object = (value: any) => (typeof value === 'string' ? JSON.parse(value) : value)
 
 import { divisionCartography } from '@repo/db'
+
 export { divisionCartography } from '@repo/db'
 
 export function curatedNameObject(value: Record<string, any>) {
@@ -48,7 +49,6 @@ export function applyCuratedRecordContract(rows: Record<string, any>[]) {
     row.divisionCode = assignment?.divisionCode ?? row.divisionCode
     row.identifiers = identifiers
     const sources = object(row.sources) ?? {}
-    delete sources.sourceResolutions
     for (const [publisher, values] of Object.entries(sources)) {
       sources[publisher] = (values as any[]).flatMap(source => {
         const contributions = source.contributions?.filter(
@@ -88,17 +88,6 @@ export function applyCuratedRecordContract(rows: Record<string, any>[]) {
 export function applyCuratedAreaContract(rows: Record<string, any>[]) {
   for (const row of rows) {
     const sources = object(row.sources) ?? {}
-    if (sources.sourceResolutions) {
-      sources.overture = [
-        ...(sources.overture ?? []),
-        {
-          dataset: 'ds-hk-overture-division',
-          recordId: sources.sourceResolutions.entityId,
-          contributions: ['geometry'],
-        },
-      ]
-      delete sources.sourceResolutions
-    }
     if (sources.saanseoi)
       sources.saanseoi = sources.saanseoi.map((source: any) => ({
         ...source,

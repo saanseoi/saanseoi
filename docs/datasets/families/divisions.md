@@ -227,7 +227,7 @@ Canonical Division and included area/boundary resources expose `sources` only wi
 Record-content hashes exclude observation timestamps and publisher version labels,
 including nested attribution metadata. Effective dates, statistical periods and content
 dependency hashes remain significant. Containment optimisation fingerprints belong to
-snapshot-scoped source resolutions, not canonical or retained source-record content.
+retained processing archives, outside canonical and retained source-record content.
 Evidence-only updates leave Division versions and change counts unchanged. Retained
 source payloads preserve observation metadata. File checksums and processing-cache
 identities retain their complete inputs.
@@ -1076,10 +1076,8 @@ still receives its own current projection. Removed versions in arbitrary older s
 are not searched for reuse.
 
 Geometry source assertions, release assignments and processing-audit delivery have
-separate lifecycles. Native delivery retains the geometry writer's `sourceResolutions`
-rows. The remote geometry SQL exporter does not deliver that table; R2 processing-audit
-delivery does not populate it either. Remote per-record source-resolution parity remains
-an independent delivery limitation and is outside geometry history write savings.
+separate lifecycles. Canonical geometry retains upstream references in `sources`; native
+assertions and their validity periods remain in SOURCE.
 
 Delivery validates canonical and localisation counts, and each current mutation batch
 checks its sealed publication token. Completion records preparation; metadata
@@ -1387,13 +1385,9 @@ cohort constraints, provenance, coverage limitations and geocoding examples.
 
 Curated hierarchy ancestor entries include a geometry-derived `full_containment` flag
 (`true`, `false`, or `null` for unknown). The editor generates whole-area coverage
-evidence and assembly recomputes it against the final polygons. The geocoder can skip an
-ancestor point check after a child spatial match only when separately replayed child and
-ancestor geometry fingerprints match the loaded areas. The fingerprints live in
-`sourceResolutions.resolutions.divisionContainment`, keyed by division and ancestor ID;
-sparse snapshot replay selects the evidence independently of Division content versions.
-Canonical hierarchies retain `full_containment` but omit the fingerprints. Partial or
-unknown containment retains point checks and ambiguous branches. See
+evidence and assembly recomputes it against the final polygons. Geocoding checks the
+loaded polygons directly, preserving partial coverage and ambiguous branches. Canonical
+hierarchies retain `full_containment` but omit internal geometry fingerprints. See
 [full ancestor containment](../sources/saanseoi/divisionArea.md#full-ancestor-containment).
 
 The drawing fixture retains ineligible drawings as `withheld` review data with their
@@ -1614,13 +1608,11 @@ archive attributes, including locale-keyed names, curated hierarchy and provenan
 `sourceGeometry` retains the archive geometry. Parquet transport fields and geometry
 adapter aliases do not become source attributes.
 
-Unchanged assertions retain their existing version. Changed and removed assertions close
-the preceding version; changed assertions open a new one. HISTORY `sourceResolutions`
-links each retained assertion to the canonical Division or DivisionArea it produced. The
-SOURCE write must succeed before publication completes. Delivery cache inputs include
-the curated-source retention policy so an earlier SQL plan without source writes cannot
-satisfy this contract. Local SOURCE schema migration is additive; replaying existing
-releases and resetting databases are separate operations.
+Unchanged source assertions retain their existing version. Changed and removed
+assertions close the preceding validity period. Canonical `sources` identifies upstream
+records. SOURCE writes must succeed before publication completes. Delivery cache inputs
+include the curated-source retention policy. Replaying releases and resetting databases
+remain separate operations.
 
 Curated DivisionArea ingestion validates division references against SOURCE records
 whose validity interval contains the primary Division release's source version.

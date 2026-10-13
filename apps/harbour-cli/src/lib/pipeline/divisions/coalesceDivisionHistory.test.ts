@@ -4,7 +4,6 @@ import { copyFile, mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { resolveSnapshotVersionState } from '@repo/core/pipeline/db/snapshotReplay'
-import { resolveSnapshotSourceResolutions } from '@repo/core/pipeline/db/sourceResolutionReplay'
 import { compressJsonBrotli } from '@repo/core/pipeline/services/storage/brotliJson'
 import { requireDefined } from '@repo/core/requireDefined'
 import { drizzle } from 'drizzle-orm/bun-sqlite'
@@ -105,9 +104,6 @@ async function fixture(
         )
         .run(snapshot, binding)
     }
-    history.exec(
-      `INSERT INTO sourceResolutions(scopeId,snapshotId,sourceReleaseId,sourceRecordId,sourceVersionHash,resolutions) VALUES('snapshot:old','old','release-old','source','raw','{"entities":{"division":["district"]}}')`,
-    )
     requireDefined(before.DB_SOURCE).exec(
       "INSERT INTO overtureDivisions(sourceRecordId,versionHash,resourceReleaseId,validFromRelease,isCurrent,sourceGeometry) VALUES('source','raw','release-old','2025',1,'{}')",
     )
@@ -174,9 +170,6 @@ function stage(candidates: ResolvedSqlCandidates, english = 'Original') {
       )
       .run(requireDefined(locale), requireDefined(name), JSON.stringify([name]))
   }
-  next.exec(
-    `INSERT INTO sourceResolutions(scopeId,snapshotId,sourceReleaseId,sourceRecordId,sourceVersionHash,resolutions) VALUES('snapshot:next','next','release-next','source','raw','{"entities":{"division":["district"]}}')`,
-  )
 }
 const plan = [
   {
@@ -204,12 +197,7 @@ test('Division reissues inherit unchanged base, every locale and source assertio
   fixture(async f => {
     stage(f.candidates)
     await f.coalesce()
-    for (const table of [
-      'divisions',
-      'divisionsI18n',
-      'historyEvents',
-      'sourceResolutions',
-    ])
+    for (const table of ['divisions', 'divisionsI18n', 'historyEvents'])
       expect(
         requireDefined(f.candidates.DB_HISTORY_NEW)
           .db.query(`SELECT count(*) AS n FROM ${table}`)
@@ -230,10 +218,6 @@ test('Division reissues inherit unchanged base, every locale and source assertio
     ).toEqual(
       requireDefined(f.before.DB_CURRENT).query('SELECT sources FROM divisions').get(),
     )
-    expect(
-      (await resolveSnapshotSourceResolutions(plan, shards(f.candidates))).get('source')
-        ?.shard.bindingName,
-    ).toBe('DB_HISTORY_OLD')
   }))
 
 test('missing parent content is rejected rather than inferred from current flags', () =>
@@ -341,10 +325,6 @@ test('Division source omissions retain explicit evidence while unchanged asserti
       "UPDATE overtureDivisions SET isCurrent=0 WHERE sourceRecordId='source'",
     )
     await f.coalesce()
-    expect(
-      (await resolveSnapshotSourceResolutions(plan, shards(f.candidates))).get('source')
-        ?.resolutions,
-    ).toEqual({ entities: {}, decisions: [{ type: 'source_omission' }] })
   }))
 
 test('Division base changes retain unchanged locales and preserve meaningful identifiers', () =>

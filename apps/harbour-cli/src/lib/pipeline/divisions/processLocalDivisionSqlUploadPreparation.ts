@@ -1,28 +1,5 @@
-import { stringifyGeoJson } from '@repo/db/geoJsonSerialisation'
-import { createDivisionPointGuard } from '@repo/core/pipeline/services/divisions/divisionPoint'
-import { loadLandsdSourceStats } from '@repo/core/pipeline/services/sources/landsdSourceStats'
-import { buildSaanseoiDivisionSourceStats } from '@repo/core/pipeline/services/sources/saanseoiDivisionSourceStats'
-import { buildSourceChurnCounts } from '@repo/core/pipeline/services/sources/sourceChurn'
-import {
-  overtureSourcePayload,
-  saanseoiSourcePayload,
-  nativeSourcePayloadHashInput,
-} from '@repo/core/pipeline/services/sources/sourcePayload'
-import { recordContent } from '@repo/core/pipeline/services/sources/recordContent'
-import { assertPublishedSnapshotMaterialised } from '@repo/core/pipeline/services/publication/execute.ts'
 import type { DatasetProcessingMessage } from '@repo/core'
-import { landsdPlaceNameResolutions } from '@repo/core/pipeline/db/landsdPlaceNameSources'
 import type { HarbourReadableDb } from '@repo/core/db/types'
-import { createHongKongHierarchyGuard } from '@repo/core/pipeline/services/divisions/hongKongHierarchyGuard'
-import { curationDocumentsFor } from '../../curationDocuments'
-import {
-  hasLocaleRegression,
-  hasNameRegression,
-} from '@repo/core/pipeline/services/metrics/releaseStats'
-import { metaDivisionCodes } from '@repo/db'
-import type { MetaDatabase } from '@repo/db'
-import type { ReleaseProcessingAction } from '@repo/core/provenance/processingAction'
-import { createDivisionBranchCounts } from '@repo/core/pipeline/services/divisions/division'
 import type { DivisionVersionSnapshot } from '@repo/core/pipeline/db/division'
 import {
   countDivisionCurrentSnapshotI18nRows,
@@ -36,18 +13,21 @@ import {
 } from '@repo/core/pipeline/logging'
 import { createAsyncBufferFromR2 } from '@repo/core/pipeline/parquetR2'
 import {
+  assertOvertureHongKongDivisionSourceAssumptions,
   buildCanonicalDivisionApiI18n,
   buildDivisionBaseHashInput,
   buildDivisionHierarchyLookup,
-  assertOvertureHongKongDivisionSourceAssumptions,
+  buildOvertureDivisionLocaleProcessingActions,
   buildOvertureHongKongAreaHierarchyProcessingActions,
   buildOvertureHongKongDivisionClassificationProcessingActions,
-  buildOvertureDivisionLocaleProcessingActions,
-  normaliseDivisionRow,
+  createDivisionBranchCounts,
   normaliseDivisionI18nForStorage,
+  normaliseDivisionRow,
   resolveDistrictId,
 } from '@repo/core/pipeline/services/divisions/division'
 import { readDivisionRowsWithFixtures } from '@repo/core/pipeline/services/divisions/divisionFixtures'
+import { createDivisionPointGuard } from '@repo/core/pipeline/services/divisions/divisionPoint'
+import { createHongKongHierarchyGuard } from '@repo/core/pipeline/services/divisions/hongKongHierarchyGuard'
 import {
   buildChurnCounts,
   buildChurnStatsRows,
@@ -56,24 +36,41 @@ import {
   buildQualityCounts,
   buildQualityStatsRows,
   createLocaleStatsAccumulator,
+  hasLocaleRegression,
+  hasNameRegression,
   updateLocaleStatsAccumulator,
 } from '@repo/core/pipeline/services/metrics/releaseStats'
+import { assertPublishedSnapshotMaterialised } from '@repo/core/pipeline/services/publication/execute.ts'
+import { loadLandsdSourceStats } from '@repo/core/pipeline/services/sources/landsdSourceStats'
+import { recordContent } from '@repo/core/pipeline/services/sources/recordContent'
+import { buildSaanseoiDivisionSourceStats } from '@repo/core/pipeline/services/sources/saanseoiDivisionSourceStats'
+import { buildSourceChurnCounts } from '@repo/core/pipeline/services/sources/sourceChurn'
+import {
+  nativeSourcePayloadHashInput,
+  overtureSourcePayload,
+  saanseoiSourcePayload,
+} from '@repo/core/pipeline/services/sources/sourcePayload'
 import { createHash } from '@repo/core/pipeline/utils'
-import type { LocalPipelineBucket } from '../local/localBucket.ts'
+import type { ReleaseProcessingAction } from '@repo/core/provenance/processingAction'
+import type { MetaDatabase } from '@repo/db'
+import { metaDivisionCodes } from '@repo/db'
+import { stringifyGeoJson } from '@repo/db/geoJsonSerialisation'
+import { curationDocumentsFor } from '../../curationDocuments'
 import type { resolveLocalAddressDbContext } from '../../dbCache/localDbCache.ts'
-import type {
-  DivisionPreparedRecord,
-  DivisionSqlState,
-  OwnedCurrentSourceRecord,
-  OwnedDivisionVersionSnapshot,
-} from './processLocalDivisionSqlUploadTypes.ts'
+import type { LocalPipelineBucket } from '../local/localBucket.ts'
+import { DIVISION_BATCH_SIZE } from './processLocalDivisionSqlUploadConfig.ts'
 import {
   buildDivisionTranslationProcessingActions,
   divisionAuditParents,
   mergeDivisionI18nTranslations,
   resolveDivisionNameTranslations,
 } from './processLocalDivisionSqlUploadTranslations.ts'
-import { DIVISION_BATCH_SIZE } from './processLocalDivisionSqlUploadConfig.ts'
+import type {
+  DivisionPreparedRecord,
+  DivisionSqlState,
+  OwnedCurrentSourceRecord,
+  OwnedDivisionVersionSnapshot,
+} from './processLocalDivisionSqlUploadTypes.ts'
 
 export async function assertDivisionCurrentSnapshotComplete(
   currentDb: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>['currentDb'],
@@ -409,22 +406,6 @@ export async function buildDivisionSqlState(
 
     if (!isSupplemental) {
       await reportProgress(processedRows)
-    }
-  }
-
-  if (message.source === 'hkgov-landsd') {
-    const resolutions = await landsdPlaceNameResolutions(
-      sourceDatabases,
-      message.sourceVersion,
-      snapshotId,
-      records,
-      message.resourceReleaseId ?? message.datasetId,
-    )
-    for (const [index, resolution] of resolutions.entries()) {
-      const record = records[index]
-      if (!record)
-        throw new Error(`Missing LandsD source record for resolution ${index}.`)
-      record.sourceResolution = resolution
     }
   }
 

@@ -127,9 +127,7 @@ export async function resolveGeocode(
         },
       }
     const divisions = divisionRelease
-      ? await deps.loadGeocodingDivisions(args, divisionRelease, {
-          includeContainmentEvidence: true,
-        })
+      ? await deps.loadGeocodingDivisions(args, divisionRelease)
       : null
     const resolver = divisions
       ? createDivisionResolver(
@@ -140,7 +138,6 @@ export async function resolveGeocode(
               i18n: requestedNames(record.i18n, query.locales),
             })),
           divisions.areas,
-          { containmentEvidence: divisions.containmentEvidence },
         )
       : null
     const meta = {

@@ -71,8 +71,8 @@ class, Wikidata, hierarchies and cartography have no duplicate source columns; c
 history/current tables own the normalised projection.
 
 Curated additions belong to the prepared SaanSeoi source archive. Overture
-materialisation does not inject supplemental division fixtures. Source resolutions
-reference only actual retained publisher assertions, following the
+materialisation does not inject supplemental division fixtures. Canonical publisher
+attribution references upstream records, following the
 [source record storage contract](../../source-records.md).
 
 Canonical Division ingestion records its exact source-selection recipe and run under the

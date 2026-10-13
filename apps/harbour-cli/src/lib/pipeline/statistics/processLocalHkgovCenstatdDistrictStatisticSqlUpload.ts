@@ -435,19 +435,7 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
     progress.message(
       `Statistics: ${canonicalPlan.changedRecords.length} changed packs, ${canonicalPlan.unchangedRecords} unchanged packs`,
     )
-    const canonicalBatches = () =>
-      canonicalPlan.buildBatches(
-        statisticSourceResolutions(
-          canonicalPlan.changedRecords,
-          new Map(
-            sourceRows.map(row => [
-              `hkgov-censtatd/${plan.datasetCode}/${plan.sourceVersion}/${row.sourceRecordId}`,
-              { sourceRecordId: row.sourceRecordId, versionHash: row.versionHash },
-            ]),
-          ),
-          resourceReleaseId,
-        ),
-      )
+    const canonicalBatches = () => canonicalPlan.buildBatches()
     await client.stageRunning(
       resourceReleaseId,
       'processDataset',
@@ -869,5 +857,4 @@ function uniqueReferencePeriods(
   ]
 }
 
-import { statisticSourceResolutions } from './sourceResolutions'
 import { sourceStatisticAssertion } from './sourceStatisticAssertion.ts'

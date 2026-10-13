@@ -1,8 +1,8 @@
+import type { OperationExplanation } from './fieldLineageExplanation'
+import { geometryReferenceRule } from './fieldLineageGeometryReferences'
 import type { HumanOperation } from './fieldLineageHuman'
 import { humanField } from './fieldLineageHumanFields'
-import type { OperationExplanation } from './fieldLineageExplanation'
 import { nativeDivisionFieldRule } from './fieldLineageNativeDivisions'
-import { geometryReferenceRule } from './fieldLineageGeometryReferences'
 import { planningDivisionFieldRule } from './fieldLineagePlanningRules'
 
 /** Field-specific current executor contracts. Expressions use names from their implementation. */
@@ -716,7 +716,7 @@ export function currentDivisionFieldRule(
     'identifiers.wikidata.id':
       'divisionIdentifiersWithWikidata(row.identifiers, row.wikidata)?.wikidata?.id',
     sources:
-      'Native evidence is { sourceResolutions: { entityId: id } }; otherwise normaliseOvertureSources(row.sources).',
+      'LandsD attribution identifies the native geo_name_id in ds-hk-hkgov-landsd-division; otherwise normaliseOvertureSources(row.sources).',
     hierarchies:
       'normaliseDivisionHierarchies → enrich each correlated path with its recognised HK area → materialiseDivisionHierarchies; retain full correlated paths and category projections.',
     'relationships.areas':

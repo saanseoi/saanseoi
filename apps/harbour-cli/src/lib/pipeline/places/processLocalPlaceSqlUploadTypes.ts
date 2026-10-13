@@ -88,20 +88,13 @@ export type PlaceHistoryState = {
 }
 
 export type BuildPlaceSqlInput = {
-  /** Required when delivering generated SQL containing R2 evidence references. */
+  /** Retain immutable per-record processing evidence before delivering canonical SQL. */
   retainEvidence?: (documents: unknown[]) => Promise<void>
   publicationPrevious?: import('@repo/core/pipeline/services/publication/sql.ts').PublicationPreparation['previous']
   /** Physical current scopes selected by logical Address and Division snapshots. */
   referenceScopes?: ReadonlyMap<string, string>
   /** Current publisher hashes from the prepared source mirrors, indexed by ID. */
   sourceRows?: ReadonlyMap<string, { bindingName: string; versionHash: string }>
-  sourceResolutions?: ReadonlyMap<
-    string,
-    Pick<
-      import('@repo/core/pipeline/db/sourceResolutionReplay').ResolvedSnapshotSourceResolution,
-      'sourceVersionHash' | 'resolutions'
-    >
-  >
   activeHistoryBindingName: string
   activeSourceBindingName: string
   sourceBindingNames: string[]

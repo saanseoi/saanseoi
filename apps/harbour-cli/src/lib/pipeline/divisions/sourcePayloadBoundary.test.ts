@@ -60,7 +60,7 @@ test('division SQL retains publisher assertions and excludes supplemental snapsh
     const source = await buildDivisionSourceSqlFile(message, state, async () => {})
     const history = await buildDivisionHistorySqlFile(message, state, async () => {})
     db.exec(source.sql)
-    db.exec(history.sql)
+    if (history.sql.trim()) db.exec(history.sql)
     expect(
       db
         .query(
@@ -82,14 +82,6 @@ test('division SQL retains publisher assertions and excludes supplemental snapsh
         )
         .get(),
     ).toEqual({ isCurrent: 0, validToRelease: message.sourceVersion })
-    expect(
-      db.query('SELECT sourceRecordId,resolutions FROM sourceResolutions').all(),
-    ).toEqual([
-      {
-        sourceRecordId: 'publisher',
-        resolutions: '{"entities":{"division":["publisher"]}}',
-      },
-    ])
   } finally {
     db.close()
   }

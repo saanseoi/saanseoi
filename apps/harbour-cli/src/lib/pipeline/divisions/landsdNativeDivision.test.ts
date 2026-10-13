@@ -1,16 +1,16 @@
-import { releaseFixtureSchemaSql } from '../../../../../../libs/core/src/testing/releaseFixtures'
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { readFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import type { DatasetProcessingMessage } from '@repo/core'
-import { createLocalHarbourDb } from '@repo/core/testing/localDb'
-import { loadMigrationSql } from '../../../../../../libs/core/src/testing/metaFixtures'
 import {
   buildBeginPublicationSql,
   buildCompletePublicationSql,
   buildPublicationRowCountSql,
 } from '@repo/core/pipeline/services/publication/sql'
+import { createLocalHarbourDb } from '@repo/core/testing/localDb'
+import { loadMigrationSql } from '../../../../../../libs/core/src/testing/metaFixtures'
+import { releaseFixtureSchemaSql } from '../../../../../../libs/core/src/testing/releaseFixtures'
 import {
   landsdSettlementDivisionRows,
   readLandsdPlaceNameArchive,
@@ -125,9 +125,6 @@ INSERT INTO resourceReleases (id, resourceType, status, revokedAt, sourceRelease
     )
     expect(state.records).toHaveLength(1613)
     expect(state.records.every(record => record.base.class === 'settlement')).toBe(true)
-    expect(
-      state.records.every(record => record.sourceResolution?.sourceVersionHash),
-    ).toBe(true)
     expect(JSON.stringify(features.map(feature => feature.properties))).toBe(
       originalProperties,
     )
@@ -158,9 +155,6 @@ INSERT INTO resourceReleases (id, resourceType, status, revokedAt, sourceRelease
     expect(current.query('SELECT count(*) AS count FROM divisions').get()).toEqual({
       count: 1613,
     })
-    expect(
-      history.query('SELECT count(*) AS count FROM sourceResolutions').get(),
-    ).toEqual({ count: 1613 })
     expect(
       source.query('SELECT count(*) AS count FROM hkgovLandsdPlaceNames').get(),
     ).toEqual({ count: 2706 })

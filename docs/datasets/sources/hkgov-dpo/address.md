@@ -110,10 +110,9 @@ Address2D base, locale and building-number history are compared independently,
 preserving the original hash and owning shard of unchanged component rows. Address3D
 base inventory and each locale payload have independent version hashes. Locale-only
 changes leave the base inventory open, and historical locale reads follow the matching
-locale event. Source interpretations inherit along snapshot ancestry; identical
-interpretations produce no repeated `sourceResolutions` row. Source changes and explicit
-`source_omission` decisions remain auditable even when a curation retains the canonical
-address.
+locale event. SOURCE validity periods record publisher changes and omissions
+independently of canonical Address retention. Processing decisions remain in retained
+preparation audits.
 
 Complete publisher omission retires the omitted source assertion. Curations can retain
 the canonical address without erasing that source event. Preflight compares final
@@ -243,9 +242,9 @@ source record retains CSU IDs, coordinate attributes and premises components, av
 their repetition for every 3D occurrence. Original 3D geometry remains in
 `sourceGeometry`, with source identity, release tracking and compact acquisition
 references alongside it. Canonical history/current tables own normalised and corrected
-projections. Internal entity references and processing decisions belong to
-snapshot-scoped `sourceResolutions`. Existing source versions remain immutable and are
-not backfilled into this compact representation.
+projections. Canonical Address references belong to their component history; processing
+decisions belong to retained preparation and audit artefacts. Existing source versions
+remain immutable and are not backfilled into this compact representation.
 
 The sealed source ledger includes every uploaded 2D and 3D occurrence, including records
 combined or replaced by house retention. Inventories reconstructed from historical

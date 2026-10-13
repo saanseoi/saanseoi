@@ -1,11 +1,11 @@
 import { expect, test } from 'bun:test'
+import { curatedRecordSources } from '@repo/core/pipeline/services/sources/curatedRecordSources'
 import {
   applyCuratedAreaContract,
   applyCuratedRecordContract,
   curatedNameObject,
   groupCuratedUpstreamAttribution,
 } from './recordContract'
-import { curatedRecordSources } from '@repo/core/pipeline/services/sources/curatedRecordSources'
 
 test('assembly preserves flat upstream attribution through its grouped evidence workspace', () => {
   const attribution = [
@@ -31,13 +31,12 @@ test('curated records have no bounds, grouped identifiers and classified cartogr
     id: 'new',
     class: 'neighbourhood',
     geometry: { type: 'Point', coordinates: [114, 22] },
-    sources: { sourceResolutions: { entityId: 'new' } },
+    sources: {},
   }
   applyCuratedRecordContract([row])
   expect(row).not.toHaveProperty('bbox')
   expect(row).not.toHaveProperty('wikidata')
   expect(row.cartography).toEqual({ minZoom: 14, maxZoom: 18, prominence: 60 })
-  expect(row.sources.sourceResolutions).toBeUndefined()
   expect(row.sources.saanseoi[0].contributions).toContain('identity')
 })
 test('nested name arrays stay structured and null keys are omitted', () => {
@@ -56,7 +55,19 @@ test('nested name arrays stay structured and null keys are omitted', () => {
 })
 
 test('geometry references the dataset without embedding its release', () => {
-  const rows = [{ sources: { sourceResolutions: { entityId: 'area' } } }]
+  const rows = [
+    {
+      sources: {
+        overture: [
+          {
+            dataset: 'ds-hk-overture-division',
+            recordId: 'area',
+            contributions: ['geometry'],
+          },
+        ],
+      },
+    },
+  ]
   applyCuratedAreaContract(rows)
   expect((rows[0]!.sources as any).overture).toEqual([
     {
