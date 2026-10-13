@@ -1,87 +1,87 @@
-import { reconcilePlaceAddressIdentityContinuity } from './placeAddressIdentityContinuity'
-import { placeAddressReviewReference } from './placeAddressReviewReferences.ts'
-import type { PlaceIdentityDecision } from '@repo/core/pipeline/services/places/placeIdentity'
-import { reviewEvidenceId } from '../../storage/evidenceArchive.ts'
-import {
-  deferPlaceAddressReviews,
-  deferredPlaceAddressResolution,
-} from './placeAddressInvestigations'
-import { deliverResolvedAddressSqlPhase } from '../addresses/resolvedAddressSqlPhase.ts'
-import type { PlaceRecordCache } from './placeRecordCache.ts'
 import {
   mkdir,
-  readFile,
-  writeFile,
-  rename,
   open,
+  readFile,
+  rename,
   stat,
   unlink,
+  writeFile,
 } from 'node:fs/promises'
 import { dirname, resolve } from 'node:path'
 import {
   ensureDraftSnapshotForRelease,
-  resolveShardForTypeRegionYear,
+  publishSnapshot,
   recordSnapshotLookupDependency,
+  resolveShardForTypeRegionYear,
   upsertReleaseShardAssignment,
   upsertSnapshotShardAssignment,
   upsertSnapshotSource,
-  publishSnapshot,
 } from '@repo/core/db/metaRegistry'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
+import { parseWkbGeometry } from '@repo/core/pipeline/services/divisions/division'
 import {
   extractPlaceAddressTexts,
   type NormalisedPlace,
 } from '@repo/core/pipeline/services/places/place'
-import {
-  addressFingerprint,
-  compactAddressResolution,
-  createSupplementaryAddressAnalyser,
-  emptySupplementaryEntryLedger,
-  parseSupplementaryDecisionJsonLines,
-  parseSupplementaryCuration,
-  parseSupplementaryEntryLedger,
-  type AddressResolution,
-  type StagedAddressResolution,
-  type SupplementaryEntryLedger,
-} from './supplementaryPlaceAddress.ts'
-import type { PlaceAddressDefinition } from './placeAddressMatcher.ts'
-import {
-  buildSupplementaryAddressRows,
-  assertSupplementaryAddressRows,
-  ADDRESS_DIVISION_FIELDS,
-  SUPPLEMENTARY_ADDRESS_VARIANT,
-} from './supplementaryPlaceAddressRows.ts'
-import { createHash } from '@repo/core/pipeline/utils'
-import { parseWkbGeometry } from '@repo/core/pipeline/services/divisions/division'
 import { recordPlaceAddressAssembly } from '@repo/core/pipeline/services/places/placeAddressAssembly'
-import { materialiseSupplementaryAddressHistory } from './supplementaryAddressHistory.ts'
+import type { PlaceIdentityDecision } from '@repo/core/pipeline/services/places/placeIdentity'
+import { createHash } from '@repo/core/pipeline/utils'
 import {
+  buildDeterministicUuidV5,
   currentSchema,
   historySchema,
   metaSchema,
-  buildDeterministicUuidV5,
 } from '@repo/db'
-import { and, eq, ne, inArray, isNotNull, lte, sql } from 'drizzle-orm'
+import { and, eq, inArray, isNotNull, lte, ne, sql } from 'drizzle-orm'
 import type { LocalAddressDbContext } from '../../dbCache/localDbCache.ts'
+import { reviewEvidenceId } from '../../storage/evidenceArchive.ts'
+import { deliverResolvedAddressSqlPhase } from '../addresses/resolvedAddressSqlPhase.ts'
 import { executeSqlText, type SqlImportExecutionOptions } from '../local/sqlImport.ts'
+import { reconcilePlaceAddressIdentityContinuity } from './placeAddressIdentityContinuity'
+import {
+  deferPlaceAddressReviews,
+  deferredPlaceAddressResolution,
+} from './placeAddressInvestigations'
+import type { PlaceAddressDefinition } from './placeAddressMatcher.ts'
+import { placeAddressReviewReference } from './placeAddressReviewReferences.ts'
+import type { PlaceRecordCache } from './placeRecordCache.ts'
+import {
+  LOCAL_RELEASE_ROOT,
+  SUPPLEMENTARY_CURATION_DECISIONS_PATH,
+  SUPPLEMENTARY_CURATION_PATH,
+  SUPPLEMENTARY_DEFAULT_DECISIONS_PATH,
+  supplementaryEntryLedgerPath,
+} from './processLocalPlaceSqlUploadConfig.ts'
+import { insertSql, lit } from './processLocalPlaceSqlUploadImport.ts'
+import {
+  buildPlaceMetadataSql,
+  type placeTargets,
+} from './processLocalPlaceSqlUploadMetadata.ts'
+import { readStagedJsonLines } from './processLocalPlaceSqlUploadPreparation.ts'
 import type {
   PlaceHistoryRow,
   PlaceHistoryState,
   PlaceUploadPlan,
 } from './processLocalPlaceSqlUploadTypes.ts'
+import { materialiseSupplementaryAddressHistory } from './supplementaryAddressHistory.ts'
 import {
-  buildPlaceMetadataSql,
-  type placeTargets,
-} from './processLocalPlaceSqlUploadMetadata.ts'
+  type AddressResolution,
+  addressFingerprint,
+  compactAddressResolution,
+  createSupplementaryAddressAnalyser,
+  emptySupplementaryEntryLedger,
+  parseSupplementaryCuration,
+  parseSupplementaryDecisionJsonLines,
+  parseSupplementaryEntryLedger,
+  type StagedAddressResolution,
+  type SupplementaryEntryLedger,
+} from './supplementaryPlaceAddress.ts'
 import {
-  LOCAL_RELEASE_ROOT,
-  SUPPLEMENTARY_CURATION_PATH,
-  SUPPLEMENTARY_CURATION_DECISIONS_PATH,
-  SUPPLEMENTARY_DEFAULT_DECISIONS_PATH,
-  supplementaryEntryLedgerPath,
-} from './processLocalPlaceSqlUploadConfig.ts'
-import { insertSql, lit } from './processLocalPlaceSqlUploadImport.ts'
-import { readStagedJsonLines } from './processLocalPlaceSqlUploadPreparation.ts'
+  ADDRESS_DIVISION_FIELDS,
+  assertSupplementaryAddressRows,
+  buildSupplementaryAddressRows,
+  SUPPLEMENTARY_ADDRESS_VARIANT,
+} from './supplementaryPlaceAddressRows.ts'
 
 type PrepareSupplementaryAddressesInput = {
   recordCache?: PlaceRecordCache
@@ -905,13 +905,13 @@ export async function collectPublishedSupplementaryRevocations(
   const ids = new Set<string>()
   for (const target of targets) {
     const rows = await (target.db as HarbourReadableDb)
-      .select({ recordId: historySchema.snapshotVersionChanges.recordId })
-      .from(historySchema.snapshotVersionChanges)
+      .select({ recordId: historySchema.historyEvents.recordId })
+      .from(historySchema.historyEvents)
       .where(
         and(
-          eq(historySchema.snapshotVersionChanges.snapshotId, snapshotId),
-          eq(historySchema.snapshotVersionChanges.recordType, 'address2d'),
-          eq(historySchema.snapshotVersionChanges.operation, 'delete'),
+          eq(historySchema.historyEvents.snapshotId, snapshotId),
+          eq(historySchema.historyEvents.recordType, 'address2d'),
+          eq(historySchema.historyEvents.operation, 'delete'),
         ),
       )
       .all()

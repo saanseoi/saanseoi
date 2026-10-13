@@ -1,17 +1,22 @@
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
-import { mkdtemp, writeFile, rm } from 'node:fs/promises'
+import { mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import {
+  currentSchema,
+  historyEventsSqlForTables,
+  historySchema,
+  sourceSchema,
+} from '@repo/db'
 import { getTableConfig, type SQLiteTable } from 'drizzle-orm/sqlite-core'
-import { currentSchema, historySchema, sourceSchema } from '@repo/db'
-import { als3dHash } from '../../sources/hkgov/dpo/hkgovAls3d'
 import { createLocalExecBinding } from '../../dbCache/localDbCache.ts'
+import { als3dHash } from '../../sources/hkgov/dpo/hkgovAls3d'
+import type { PreparedAls3dRecord } from '../../sources/hkgov/dpo/hkgovAls3dPreparation'
 import {
   prepareNativeSqlDelivery,
   runNativeSqlDelivery,
 } from '../local/nativeSqlDelivery.ts'
-import type { PreparedAls3dRecord } from '../../sources/hkgov/dpo/hkgovAls3dPreparation'
 import {
   collectionStatements,
   importAddress3dCollections,
@@ -22,7 +27,7 @@ function createTable(db: Database, table: SQLiteTable) {
   const config = getTableConfig(table)
   const columns = config.columns.map(
     column =>
-      `"${column.name}" ${column.getSQLType()}${column.notNull ? ' NOT NULL' : ''}`,
+      `"${column.name}" ${column.getSQLType()}${column.name === 'operation' ? " DEFAULT 'upsert'" : ''}${column.notNull ? ' NOT NULL' : ''}`,
   )
   const keys = config.primaryKeys.map(
     key => `PRIMARY KEY (${key.columns.map(column => `"${column.name}"`).join(',')})`,
@@ -69,7 +74,9 @@ test('writes large bound collections, replays idempotently and journals removed 
     createTable(databases.history, historySchema.address3d)
     createTable(databases.history, historySchema.address3dI18n)
     createTable(databases.history, historySchema.sourceResolutions)
-    createTable(databases.history, historySchema.snapshotVersionChanges)
+    databases.history.exec(
+      `CREATE VIEW historyEvents AS ${historyEventsSqlForTables(new Set(['address3d', 'address3dI18n']))}`,
+    )
     createTable(databases.source, sourceSchema.sourceHkgovAlsAddresses3d)
     createTable(databases.source, sourceSchema.sourceHkgovAlsAddresses2d)
     databases.current.exec(
@@ -283,12 +290,15 @@ test('writes large bound collections, replays idempotently and journals removed 
     expect(JSON.parse(row.units)).toEqual(units)
     expect(JSON.parse(row.unresolvedSectionIds)).toEqual(['762'])
     expect(
-      databases.history.query('SELECT count(*) AS n FROM address3d').get(),
-    ).toEqual({ n: 1 })
+      databases.history.query('SELECT id,operation FROM address3d ORDER BY id').all(),
+    ).toEqual([
+      { id: 'collection', operation: 'upsert' },
+      { id: 'removed', operation: 'delete' },
+    ])
     expect(
       databases.history
         .query(
-          "SELECT operation FROM snapshotVersionChanges WHERE recordId='removed' AND recordType='address3d'",
+          "SELECT operation FROM historyEvents WHERE recordId='removed' AND recordType='address3d'",
         )
         .get(),
     ).toEqual({ operation: 'delete' })

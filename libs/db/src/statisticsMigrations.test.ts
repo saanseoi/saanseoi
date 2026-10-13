@@ -1,5 +1,5 @@
-import { expect, test } from 'bun:test'
 import { Database } from 'bun:sqlite'
+import { expect, test } from 'bun:test'
 import { resolve } from 'node:path'
 import { loadMigrationSql } from '../../core/src/testing/metaFixtures'
 
@@ -109,7 +109,11 @@ test('current and history share packed payloads and retain exact dictionary vers
         .filter(column => column.pk)
         .sort((a, b) => a.pk - b.pk)
         .map(column => column.name)
-      expect(keys).toEqual(['datasetCode', 'fieldName', 'versionHash'])
+      expect(keys).toEqual([
+        'datasetCode',
+        'fieldName',
+        db === history ? 'snapshotId' : 'versionHash',
+      ])
       expect(columns(db, 'statsFields').map(column => column.name)).toContain(
         'measureVersionHash',
       )

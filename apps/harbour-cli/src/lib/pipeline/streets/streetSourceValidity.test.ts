@@ -1,14 +1,14 @@
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { join } from 'node:path'
-import { drizzle } from 'drizzle-orm/bun-sqlite'
 import type { HarbourWritableDb } from '@repo/core/db/types'
+import { drizzle } from 'drizzle-orm/bun-sqlite'
 import { loadMigrationSql } from '../../../../../../libs/core/src/testing/metaFixtures.ts'
 import {
   closeSourceVersions,
   closeStreetOwnedVersions,
-  insertHistoryRows,
   insertHistoryI18nRows,
+  insertHistoryRows,
   insertSourceRows,
 } from './processLocalStreetSqlUploadRows.ts'
 import type { PreparedStreet } from './processLocalStreetSqlUploadTypes.ts'
@@ -171,22 +171,18 @@ test('Street rollover closes source and canonical versions in their owning year 
         )
         .get(),
     ).toEqual({ isCurrent: 0, validToRelease: '2026-01.0' })
-    expect(old.query('SELECT isCurrent FROM streets').get()).toEqual({ isCurrent: 0 })
+    expect(old.query('SELECT isCurrent FROM streets').get()).toEqual({ isCurrent: 1 })
     expect(old.query('SELECT DISTINCT isCurrent FROM streetsI18n').all()).toEqual([
-      { isCurrent: 0 },
+      { isCurrent: 1 },
     ])
     expect(
       old
-        .query(
-          "SELECT count(*) AS n FROM snapshotVersionChanges WHERE snapshotId='next'",
-        )
+        .query("SELECT count(*) AS n FROM historyEvents WHERE snapshotId='next'")
         .get(),
     ).toEqual({ n: 0 })
     expect(
       active
-        .query(
-          'SELECT snapshotId,recordType,recordId,operation FROM snapshotVersionChanges',
-        )
+        .query('SELECT snapshotId,recordType,recordId,operation FROM historyEvents')
         .all(),
     ).toEqual([
       {
@@ -199,5 +195,69 @@ test('Street rollover closes source and canonical versions in their owning year 
   } finally {
     old.close()
     active.close()
+  }
+})
+
+test('deleted Street lifecycle state survives snapshot replay for restoration', async () => {
+  const sqlite = new Database(':memory:')
+  const meta = new Database(':memory:')
+  try {
+    sqlite.exec(
+      loadMigrationSql(join(import.meta.dir, '../../../../../../libs/db/migrations'), [
+        'history',
+      ]),
+    )
+    meta.exec(`CREATE TABLE snapshots(id,parentSnapshotId); INSERT INTO snapshots VALUES('root',NULL),('deleted','root'),('inherited','deleted'),('sibling','root');
+      CREATE TABLE dataShards(id,bindingName); INSERT INTO dataShards VALUES('h','history');
+      CREATE TABLE snapshotShardAssignments(snapshotId,dataShardId); INSERT INTO snapshotShardAssignments VALUES('root','h'),('deleted','h'),('inherited','h'),('sibling','h');`)
+    const db = drizzle({ client: sqlite }) as never
+    const metaDb = drizzle({ client: meta }) as never
+    const { readStreetSnapshot } = await import('./streetHistory')
+    const original = {
+      id: 'street',
+      status: 'active' as const,
+      version: 1,
+      versionHash: 'one',
+      districtIds: [],
+      deletedAt: null,
+      gazetteDate: null,
+      sources: [],
+      i18n: street('baseline').i18n,
+    }
+    await insertHistoryRows(db, 'root', 'release', [original], 'now')
+    await insertHistoryI18nRows(db, 'root', 'release', [original], 'now')
+    const deleted = {
+      ...original,
+      status: 'deleted' as const,
+      version: 4,
+      versionHash: 'four',
+      deletedAt: '2026-01-02',
+    }
+    await insertHistoryRows(db, 'deleted', 'release', [deleted], 'later')
+    await insertHistoryI18nRows(db, 'deleted', 'release', [deleted], 'later')
+    const restoredParent = await readStreetSnapshot(metaDb, [db], 'inherited')
+    expect(restoredParent.streets).toEqual([])
+    expect(restoredParent.lifecycleStreets).toEqual(
+      [{ ...deleted, versionHash: undefined }].map(({ versionHash, ...row }) => row),
+    )
+    expect(
+      (await readStreetSnapshot(metaDb, [db], 'sibling')).lifecycleStreets,
+    ).toMatchObject([{ status: 'active', version: 1 }])
+    // A retry cannot change the retained deletion's counter or names.
+    await insertHistoryRows(
+      db,
+      'deleted',
+      'release',
+      [{ ...deleted, version: 99 }],
+      'retry',
+    )
+    expect(
+      (await readStreetSnapshot(metaDb, [db], 'inherited')).lifecycleStreets[0]
+        ?.version,
+    ).toBe(4)
+    expect(sqlite.query('SELECT count(*) AS n FROM streets').get()).toEqual({ n: 2 })
+  } finally {
+    sqlite.close()
+    meta.close()
   }
 })

@@ -1,78 +1,76 @@
-import { assertPreparedAlsDeletionReview } from '../../sources/hkgov/dpo/hkgovAlsDeletionPreflight'
-import { assertPreparedAlsReview } from '../../sources/hkgov/dpo/hkgovAlsReviewCache'
 import { mkdir, readFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
-import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
-import type { HistoryDatabase } from '@repo/db'
-import { captureResolvedAddressDelivery } from './resolvedAddressDelivery.ts'
-import {
-  prepareAddressMembershipBaseline,
-  addressMembershipMirrorFile,
-} from './addressMembershipBaseline.ts'
-import { sha256, writeDeliveryFile } from '../local/sqlDeliveryFiles.ts'
-import {
-  getReplayedAddressVersionMap,
-  prepareAddressVersionInsertContext,
-} from '@repo/core/pipeline/db/address'
 import {
   recordSnapshotAssembly,
   resolveLatestPublishedSnapshotForLineage,
   resolveSnapshotReplayPlan,
 } from '@repo/core/db/metaRegistry'
+import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
+import {
+  getReplayedAddressVersionMap,
+  prepareAddressVersionInsertContext,
+} from '@repo/core/pipeline/db/address'
 import { resolveSnapshotVersionState } from '@repo/core/pipeline/db/snapshotReplay'
-import { fileSha256, validateAddress3dPreparation } from './address3dImport'
 import { replaceDatasetStats } from '@repo/core/pipeline/db/stats'
-import type { HarbourClient } from '@repo/core/pipeline/harbourClient'
-import type { PublishDatasetResult } from '@repo/core/pipeline/harbourClient'
-import type { ReleaseProcessingAction } from '@repo/core/provenance/processingAction'
-import {
-  readAddressPreparationAudit,
-  retainAddressProvenance,
-} from './addressProvenance'
-import { deliverProducerAudit } from '../../api/producerAuditDelivery'
-import { retainProcessingFailure } from '../../api/processingFailureAudit'
-import { buildAddressSqlImportRunId } from '@repo/core/pipeline/services/addresses/sqlImport'
-import {
-  completeAddressSqlGenerationPhases,
-  publishImportedAddressSqlRelease,
-  type AddressSqlImportStageOptions,
-} from '@repo/core/pipeline/services/addresses/sqlImportStages'
-import {
-  normaliseAddressSqlChunkStage,
-  writeAddressReleaseMetaSqlFile,
-  writeAddressCurrentSqlChunkStage,
-  writeAddressHistorySqlChunkStage,
-  writeAddressSourceSqlChunkStage,
-} from '@repo/core/pipeline/services/addresses/sqlStages'
-import {
-  addAddressPipelineStats,
-  EMPTY_ADDRESS_PIPELINE_STATS,
-  type AddressPipelineMessage,
-} from '@repo/core/pipeline/services/addresses/types'
-import {
-  buildAddressReleaseStatsRows,
-  type AddressDivisionQualityCounts,
-} from '@repo/core/pipeline/services/metrics/releaseStats'
+import type {
+  HarbourClient,
+  PublishDatasetResult,
+} from '@repo/core/pipeline/harbourClient'
 import {
   buildAddressBaseHashInput,
   buildMatchKey,
   normaliseAddressI18nSnapshotRow,
 } from '@repo/core/pipeline/services/addresses/normalisation'
-import type { PreparedUploadFile } from '../../upload/parquetRepack.ts'
-import type { UploadTarget } from '../../cli/options.ts'
+import { buildAddressSqlImportRunId } from '@repo/core/pipeline/services/addresses/sqlImport'
+import {
+  type AddressSqlImportStageOptions,
+  completeAddressSqlGenerationPhases,
+  publishImportedAddressSqlRelease,
+} from '@repo/core/pipeline/services/addresses/sqlImportStages'
+import {
+  normaliseAddressSqlChunkStage,
+  writeAddressCurrentSqlChunkStage,
+  writeAddressHistorySqlChunkStage,
+  writeAddressReleaseMetaSqlFile,
+  writeAddressSourceSqlChunkStage,
+} from '@repo/core/pipeline/services/addresses/sqlStages'
+import {
+  type AddressPipelineMessage,
+  addAddressPipelineStats,
+  EMPTY_ADDRESS_PIPELINE_STATS,
+} from '@repo/core/pipeline/services/addresses/types'
+import {
+  type AddressDivisionQualityCounts,
+  buildAddressReleaseStatsRows,
+} from '@repo/core/pipeline/services/metrics/releaseStats'
+import type { ReleaseProcessingAction } from '@repo/core/provenance/processingAction'
+import type { HistoryDatabase } from '@repo/db'
+import {
+  calculateAndStoreApiReleaseSetStats,
+  resolveApiReleaseSetStatsTarget,
+} from '../../api/apiReleaseSetStats.ts'
 import { createHarbourControlClient } from '../../api/harbourControl.ts'
+import { retainProcessingFailure } from '../../api/processingFailureAudit'
+import { deliverProducerAudit } from '../../api/producerAuditDelivery'
+import { OperationProgress } from '../../cli/operationProgress.ts'
+import type { UploadTarget } from '../../cli/options.ts'
+import { resolveCurrentWriteContext } from '../../dbCache/currentWriteContext.ts'
+import { assertPreparedAlsDeletionReview } from '../../sources/hkgov/dpo/hkgovAlsDeletionPreflight'
+import { assertPreparedAlsReview } from '../../sources/hkgov/dpo/hkgovAlsReviewCache'
+import type { PreparedUploadFile } from '../../upload/parquetRepack.ts'
+import { LocalPipelineBucket } from '../local/localBucket.ts'
+import { LocalChunkBucket } from '../local/localChunkBucket.ts'
+import { createLocalControlClient } from '../local/localControlClient.ts'
+import {
+  prepareNativeSqlDelivery,
+  runNativeSqlDelivery,
+} from '../local/nativeSqlDelivery.ts'
 import {
   createLocalImportProgressClient,
   runLocalGenerationPhase,
   runLocalProgressPhase,
   writeLocalPipelineState,
 } from '../local/orchestrator.ts'
-import { createLocalControlClient } from '../local/localControlClient.ts'
-import {
-  calculateAndStoreApiReleaseSetStats,
-  resolveApiReleaseSetStatsTarget,
-} from '../../api/apiReleaseSetStats.ts'
-import { syncStagedReleaseIntoLocalMetaCache } from '../local/syncStagedRelease.ts'
 import {
   appendPhaseDetails,
   colorRed,
@@ -82,22 +80,32 @@ import {
   formatRetryLabel,
   formatRunningPhaseLabel,
 } from '../local/progressFormatting.ts'
-import { OperationProgress } from '../../cli/operationProgress.ts'
-import { LocalPipelineBucket } from '../local/localBucket.ts'
-import { LocalChunkBucket } from '../local/localChunkBucket.ts'
 import {
-  prepareReleaseSqlDelivery,
   executeReleaseSqlDelivery,
+  prepareReleaseSqlDelivery,
   readDeliveryPlan,
 } from '../local/releaseSqlDelivery.ts'
+import { sha256, writeDeliveryFile } from '../local/sqlDeliveryFiles.ts'
 import { completeSqlDeliveryRelease } from '../local/sqlDeliveryPending.ts'
-import {
-  prepareNativeSqlDelivery,
-  runNativeSqlDelivery,
-} from '../local/nativeSqlDelivery.ts'
 import { runReportedSqlImportPhase } from '../local/sqlImport.ts'
-import { resolveCurrentWriteContext } from '../../dbCache/currentWriteContext.ts'
-import type { UploadPlan, UploadResult } from './processLocalAddressSqlUploadTypes.ts'
+import { syncStagedReleaseIntoLocalMetaCache } from '../local/syncStagedRelease.ts'
+import { fileSha256, validateAddress3dPreparation } from './address3dImport'
+import {
+  addressMembershipMirrorFile,
+  prepareAddressMembershipBaseline,
+} from './addressMembershipBaseline.ts'
+import {
+  readAddressPreparationAudit,
+  retainAddressProvenance,
+} from './addressProvenance'
+import {
+  ADDRESS_CHUNK_SIZE,
+  GENERATION_CONCURRENCY,
+  LOCAL_RELEASE_ROOT,
+  LOCAL_SQL_WRITE_RETRY_LIMIT,
+  REMOTE_IMPORT_BATCH_BYTES,
+  SQL_STATEMENT_BYTE_TARGET,
+} from './processLocalAddressSqlUploadConfig.ts'
 import {
   assertRemoteAddressImportPrerequisites,
   buildChunkRanges,
@@ -112,17 +120,11 @@ import {
   resolveTargetName,
 } from './processLocalAddressSqlUploadImport.ts'
 import {
-  ADDRESS_CHUNK_SIZE,
-  GENERATION_CONCURRENCY,
-  LOCAL_RELEASE_ROOT,
-  LOCAL_SQL_WRITE_RETRY_LIMIT,
-  REMOTE_IMPORT_BATCH_BYTES,
-  SQL_STATEMENT_BYTE_TARGET,
-} from './processLocalAddressSqlUploadConfig.ts'
-import {
   buildAddressImportProgressConfig,
   updateDbCacheProgress,
 } from './processLocalAddressSqlUploadProgress.ts'
+import type { UploadPlan, UploadResult } from './processLocalAddressSqlUploadTypes.ts'
+import { captureResolvedAddressDelivery } from './resolvedAddressDelivery.ts'
 
 export async function processLocalAddressSqlUpload(
   target: UploadTarget,
@@ -406,7 +408,13 @@ export async function processLocalAddressSqlUpload(
               },
             ]),
           ),
-          ['address2d', 'address2dI18n', 'address3d', 'address3dI18n'],
+          [
+            'address2d',
+            'address2dI18n',
+            'address2dBuildingNumberLookup',
+            'address3d',
+            'address3dI18n',
+          ],
         )
       ).values(),
     ]

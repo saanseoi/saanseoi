@@ -2,11 +2,12 @@ import { resolveSnapshotReplayPlan } from '@repo/core/db/metaRegistry'
 import type { HarbourReadableDb } from '@repo/core/db/types'
 import {
   groupResolvedVersionsByShard,
-  resolveSnapshotVersionState,
+  historyVersionSelection,
   type ReplayShard,
+  resolveSnapshotVersionState,
 } from '@repo/core/pipeline/db/snapshotReplay'
 import { chunkArray } from '@repo/core/pipeline/utils'
-import { currentSchema, historySchema, metaSchema, eq, sql } from '@repo/db'
+import { currentSchema, eq, historySchema, metaSchema } from '@repo/db'
 import type { LocalAddressDbContext } from '../../dbCache/localDbCacheTypes.ts'
 
 type GeometrySnapshotRow = (
@@ -91,9 +92,7 @@ export async function readGeometrySnapshot(
       const found = await db
         .select()
         .from(table)
-        .where(
-          sql`(id,versionHash) IN (SELECT json_extract(value,'$[0]'),json_extract(value,'$[1]') FROM json_each(${JSON.stringify(chunk.map(row => [row.recordId, row.versionHash]))}))`,
-        )
+        .where(historyVersionSelection(table, chunk))
         .all()
       if (found.length !== chunk.length)
         throw new Error(

@@ -1,17 +1,18 @@
 import { index, primaryKey, sqliteTable } from 'drizzle-orm/sqlite-core'
-
-import { canonicalDivision, canonicalDivisionI18n } from '../shared'
+import { canonicalDivisionColumns, canonicalDivisionI18nColumns } from '../shared'
+import { historyEventConstraints } from './constraints'
 import { historyI18nVersioning, historyVersioning } from './shared'
 
 export const divisions = sqliteTable(
   'divisions',
   {
-    ...canonicalDivision,
+    ...canonicalDivisionColumns(false),
     ...historyVersioning,
   },
   table => [
+    ...historyEventConstraints(table, ['class', 'hierarchies']),
     primaryKey({
-      columns: [table.id, table.versionHash],
+      columns: [table.id, table.snapshotId],
     }),
     index('divisions_current_lookup_idx').on(table.id, table.isCurrent),
     index('divisions_divisionCode_idx').on(table.snapshotId, table.divisionCode),
@@ -23,12 +24,13 @@ export const divisions = sqliteTable(
 export const divisionsI18n = sqliteTable(
   'divisionsI18n',
   {
-    ...canonicalDivisionI18n,
+    ...canonicalDivisionI18nColumns(false),
     ...historyI18nVersioning,
   },
   table => [
+    ...historyEventConstraints(table, ['isLocaleInferred']),
     primaryKey({
-      columns: [table.divisionId, table.versionHash, table.locale],
+      columns: [table.divisionId, table.snapshotId, table.locale],
     }),
     index('divisionsI18n_current_lookup_idx').on(
       table.divisionId,

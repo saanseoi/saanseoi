@@ -1,16 +1,17 @@
-import { requireDefined } from '@repo/core/requireDefined'
-import { inArray, historySchema } from '@repo/db'
 import {
   resolveApiReleaseSetSnapshotsForRequest,
   resolveSnapshotReplayPlan,
 } from '@repo/core/db/metaRegistry'
 import {
-  resolveSnapshotVersionState,
   groupResolvedVersionsByShard,
+  historyVersionSelection,
+  resolveSnapshotVersionState,
 } from '@repo/core/pipeline/db/snapshotReplay.ts'
-import type { AppEnv } from '../types'
+import { requireDefined } from '@repo/core/requireDefined'
+import { historySchema } from '@repo/db'
 import { runWithD1ReadRetry } from '../lib/d1'
-import { resolveDataRegion, type ApiRegion } from '../schema/region'
+import { type ApiRegion, resolveDataRegion } from '../schema/region'
+import type { AppEnv } from '../types'
 
 export type IdentityMapping = {
   namespace: string
@@ -231,12 +232,7 @@ export async function listIdentityBridge(
                   : table.id,
             })
             .from(table)
-            .where(
-              inArray(
-                table.versionHash,
-                batch.map(row => row.versionHash),
-              ),
-            )
+            .where(historyVersionSelection(table, batch))
             .all(),
         )
         let found = 0

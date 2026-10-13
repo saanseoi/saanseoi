@@ -1,26 +1,26 @@
-import sourceFixture from '../../../../../../fixtures/meta/processing-rules/ingestion/landsd-street-source-retention.json'
-import { registerRule, ruleDeclarationFromFixture } from '@repo/core/provenance'
-import { and, eq, inArray, sql } from 'drizzle-orm'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
-import { recordSnapshotVersionChanges } from '@repo/core/pipeline/db/snapshotVersionChanges'
-import { chunkArray } from '@repo/core/pipeline/utils'
+import { recordHistoryDeletions } from '@repo/core/pipeline/db/historyDeletions'
 import { currentRowChangedSql } from '@repo/core/pipeline/services/publication/currentWrites.ts'
+import { chunkArray, createHash } from '@repo/core/pipeline/utils'
+import { registerRule, ruleDeclarationFromFixture } from '@repo/core/provenance'
 import { currentSchema, historySchema, sourceSchema, streetLocaleCodes } from '@repo/db'
+import { and, eq, inArray, sql } from 'drizzle-orm'
+import sourceFixture from '../../../../../../fixtures/meta/processing-rules/ingestion/landsd-street-source-retention.json'
 import type {
   LandsdStreetLifecycleI18n,
   LandsdStreetMaterialisedStreet,
 } from '../../sources/hkgov/landsd/street/landsdStreetLifecycle.ts'
-import type {
-  PreparedMaterialisedStreet,
-  PreparedStreet,
-  PreparedStreetChangelog,
-} from './processLocalStreetSqlUploadTypes.ts'
 import {
   isNoticeSource,
   normaliseStreetName,
   parseNullableRecord,
   requireString,
 } from './processLocalStreetSqlUploadParsing.ts'
+import type {
+  PreparedMaterialisedStreet,
+  PreparedStreet,
+  PreparedStreetChangelog,
+} from './processLocalStreetSqlUploadTypes.ts'
 
 export async function listCurrentSourceRows(db: HarbourReadableDb, ids: string[]) {
   const rows: Array<{ sourceRecordId: string; versionHash: string }> = []
@@ -188,35 +188,14 @@ export async function closeHistoryVersions(
   snapshotId: string,
   now: string,
   recordChanges = true,
+  deletedRecords: PreparedMaterialisedStreet[] = [],
 ) {
   const uniqueIds = [...new Set(ids)]
-  for (const idsChunk of chunkArray(uniqueIds, 90)) {
-    if (idsChunk.length === 0) continue
-    await Promise.all([
-      db
-        .update(historySchema.streets)
-        .set({ isCurrent: false, updatedAt: now })
-        .where(
-          and(
-            eq(historySchema.streets.isCurrent, true),
-            inArray(historySchema.streets.id, idsChunk),
-          ),
-        )
-        .run(),
-      db
-        .update(historySchema.streetsI18n)
-        .set({ isCurrent: false, updatedAt: now })
-        .where(
-          and(
-            eq(historySchema.streetsI18n.isCurrent, true),
-            inArray(historySchema.streetsI18n.streetId, idsChunk),
-          ),
-        )
-        .run(),
-    ])
+  if (recordChanges && deletedRecords.length) {
+    await insertHistoryRows(db, snapshotId, '', deletedRecords, now)
   }
   if (recordChanges)
-    await recordSnapshotVersionChanges(db, {
+    await recordHistoryDeletions(db, {
       snapshotId,
       recordType: 'street',
       operation: 'delete',
@@ -224,7 +203,7 @@ export async function closeHistoryVersions(
     })
 }
 
-/** Close superseded components in their owning shards; the new journal has one owner. */
+/** Close SOURCE validity and append canonical deletions in the selected HISTORY shard. */
 export async function closeStreetOwnedVersions(input: {
   sourceDb: HarbourWritableDb
   historyDb: HarbourWritableDb
@@ -232,6 +211,7 @@ export async function closeStreetOwnedVersions(input: {
   historyTargets: Array<{ db: HarbourWritableDb }>
   records: PreparedStreet[]
   streetIds: string[]
+  deletedRecords?: PreparedMaterialisedStreet[]
   sourceVersion: string
   snapshotId: string
   now: string
@@ -255,6 +235,7 @@ export async function closeStreetOwnedVersions(input: {
         input.snapshotId,
         input.now,
         db === input.historyDb,
+        input.deletedRecords,
       ),
     ),
   ])
@@ -494,8 +475,18 @@ export async function insertHistoryRows(
   resourceReleaseId: string,
   records: PreparedMaterialisedStreet[],
   now: string,
+  previous: PreparedMaterialisedStreet[] = [],
 ) {
-  for (const recordsChunk of chunkArray(records, 7)) {
+  const previousRows = new Map(previous.map(record => [record.id, record]))
+  const latest = [...new Map(records.map(record => [record.id, record])).values()]
+  for (const recordsChunk of chunkArray(
+    latest.filter(
+      record =>
+        previousRows.get(record.id)?.versionHash !== record.versionHash ||
+        previousRows.get(record.id)?.version !== record.version,
+    ),
+    5,
+  )) {
     await db
       .insert(historySchema.streets)
       .values(
@@ -511,32 +502,18 @@ export async function insertHistoryRows(
           createdAt: now,
           isCurrent: true,
           snapshotId,
-          sourceReleaseId: resourceReleaseId,
+          sourceReleaseId: record.status === 'deleted' ? null : resourceReleaseId,
           updatedAt: now,
-          versionHash: record.versionHash,
+          operation:
+            record.status === 'deleted' ? ('delete' as const) : ('upsert' as const),
+          versionHash: record.status === 'deleted' ? null : record.versionHash,
         })),
       )
-      .onConflictDoUpdate({
-        target: [historySchema.streets.id, historySchema.streets.versionHash],
-        set: {
-          isCurrent: true,
-          snapshotId,
-          sourceReleaseId: resourceReleaseId,
-          updatedAt: now,
-        },
+      .onConflictDoNothing({
+        target: [historySchema.streets.id, historySchema.streets.snapshotId],
       })
       .run()
   }
-  await recordSnapshotVersionChanges(db, {
-    snapshotId,
-    sourceReleaseId: resourceReleaseId,
-    recordType: 'street',
-    operation: 'upsert',
-    changes: records.map(record => ({
-      recordId: record.id,
-      versionHash: record.versionHash,
-    })),
-  })
 }
 
 export async function insertHistoryI18nRows(
@@ -545,56 +522,100 @@ export async function insertHistoryI18nRows(
   resourceReleaseId: string,
   records: PreparedMaterialisedStreet[],
   now: string,
+  previous: Array<{
+    streetId: string
+    locale: string
+    name: string
+    description: string | null
+  }> = [],
 ) {
-  const rows = records.flatMap(record =>
-    record.i18n.map(item => ({
-      base: null,
-      createdAt: now,
-      description: item.description,
-      designator: null,
-      directionalPrefix: null,
-      directionalSuffix: null,
-      isCurrent: true,
-      locale: item.locale,
-      name: item.name,
-      normalised: normaliseStreetName(item.name),
-      snapshotId,
-      sourceReleaseId: resourceReleaseId,
-      streetId: record.id,
-      updatedAt: now,
-      versionHash: record.versionHash,
-    })),
+  const rows = (
+    await Promise.all(
+      records
+        .filter(record => record.status === 'active')
+        .flatMap(record =>
+          record.i18n.map(async item => ({
+            base: null,
+            createdAt: now,
+            description: item.description,
+            designator: null,
+            directionalPrefix: null,
+            directionalSuffix: null,
+            isCurrent: true,
+            locale: item.locale,
+            name: item.name,
+            normalised: normaliseStreetName(item.name),
+            snapshotId,
+            sourceReleaseId: resourceReleaseId,
+            streetId: record.id,
+            updatedAt: now,
+            versionHash: await createHash({
+              name: item.name,
+              description: item.description,
+            }),
+          })),
+        ),
+    )
+  ).filter(
+    row =>
+      !previous.some(
+        prior =>
+          prior.streetId === row.streetId &&
+          prior.locale === row.locale &&
+          prior.name === row.name &&
+          prior.description === row.description,
+      ),
   )
+  const omitted = previous.filter(prior =>
+    records.some(
+      record =>
+        record.id === prior.streetId &&
+        (record.status === 'deleted' ||
+          !record.i18n.some(locale => locale.locale === prior.locale)),
+    ),
+  )
+  // Deletion events retain the final lifecycle names for later restoration.
+  for (const batch of chunkArray(
+    records
+      .filter(row => row.status === 'deleted')
+      .flatMap(record =>
+        record.i18n.map(item => ({
+          streetId: record.id,
+          snapshotId,
+          locale: item.locale,
+          operation: 'delete' as const,
+          name: item.name,
+          description: item.description,
+          versionHash: null,
+          sourceReleaseId: resourceReleaseId,
+          createdAt: now,
+          updatedAt: now,
+        })),
+      ),
+    5,
+  )) {
+    await db.insert(historySchema.streetsI18n).values(batch).onConflictDoNothing().run()
+  }
+  await recordHistoryDeletions(db, {
+    snapshotId,
+    sourceReleaseId: resourceReleaseId,
+    recordType: 'streetI18n',
+    operation: 'delete',
+    changes: omitted.map(row => ({ recordId: row.streetId, locale: row.locale })),
+  })
   for (const rowsChunk of chunkArray(rows, 5)) {
     await db
       .insert(historySchema.streetsI18n)
       .values(rowsChunk)
-      .onConflictDoUpdate({
+      .onConflictDoNothing({
         target: [
           historySchema.streetsI18n.streetId,
-          historySchema.streetsI18n.versionHash,
+          historySchema.streetsI18n.snapshotId,
           historySchema.streetsI18n.locale,
         ],
-        set: {
-          isCurrent: true,
-          snapshotId,
-          sourceReleaseId: resourceReleaseId,
-          updatedAt: now,
-        },
       })
       .run()
   }
-  await recordSnapshotVersionChanges(db, {
-    snapshotId,
-    sourceReleaseId: resourceReleaseId,
-    recordType: 'streetI18n',
-    operation: 'upsert',
-    changes: rows.map(row => ({
-      locale: row.locale,
-      recordId: row.streetId,
-      versionHash: row.versionHash,
-    })),
-  })
 }
 
 export async function insertHistoryStreetChangelog(
@@ -626,26 +647,15 @@ export async function insertHistoryStreetChangelog(
           versionHash: entry.versionHash,
         })),
       )
-      .onConflictDoUpdate({
+      .onConflictDoNothing({
         target: [
           historySchema.streetChangelog.streetId,
           historySchema.streetChangelog.recordKey,
-          historySchema.streetChangelog.versionHash,
+          historySchema.streetChangelog.snapshotId,
         ],
-        set: { isCurrent: true, snapshotId, updatedAt: now },
       })
       .run()
   }
-  await recordSnapshotVersionChanges(db, {
-    snapshotId,
-    sourceReleaseId: entries[0]?.sourceReleaseId ?? null,
-    recordType: 'streetChangelog',
-    operation: 'upsert',
-    changes: [...new Set(entries.map(entry => entry.versionHash))].map(versionHash => ({
-      recordId: versionHash,
-      versionHash,
-    })),
-  })
 }
 
 async function insertSourceRowsInternal(
@@ -828,4 +838,5 @@ export const landsdStreetSourceRule = registerRule(
 export function insertSourceRows(...args: Parameters<typeof insertSourceRowsInternal>) {
   return landsdStreetSourceRule.execute(args)
 }
+
 import { readSourceAttributions } from '@repo/core/pipeline/services/sources/sourceAttribution'

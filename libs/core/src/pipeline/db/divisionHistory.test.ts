@@ -7,33 +7,33 @@ import type { NewSourceResolution } from '@repo/db/historySchema'
 import { drizzle } from 'drizzle-orm/bun-sqlite'
 import type { SnapshotReplayStep } from '../../lib/db/metaRegistry'
 import { loadMigrationSql } from '../../testing/metaFixtures'
-import { createHash } from '../utils'
+import { normaliseCuratedDivision } from '../services/divisions/curatedDivision'
 import {
   buildDivisionBaseHashInput,
   normaliseDivisionI18nSnapshotRow,
 } from '../services/divisions/division'
+import { divisionSourceResolutions } from '../services/divisions/divisionContainmentEvidence'
+import { createHash } from '../utils'
 import {
+  type DivisionBaseRecord,
   deleteStaleDivisionCurrentRows,
   getDivisionVersionMapForSnapshot,
   insertDivisionVersionRows,
   replaceDivisionCurrentI18n,
   upsertDivisionCurrentStates,
-  type DivisionBaseRecord,
 } from './division'
 import {
   changedDivisionSourceResolutions,
   closeDivisionHistoryComponents,
+  type DivisionHistoryShard,
   divisionHistoryKey,
   divisionLocaleContent,
   identifyDivisionHistoryShards,
   loadDivisionHistoryBaseline,
   omittedDivisionSourceResolutions,
   planDivisionHistoryChanges,
-  type DivisionHistoryShard,
 } from './divisionHistory'
 import { recordSourceResolutions } from './sourceResolutions'
-import { divisionSourceResolutions } from '../services/divisions/divisionContainmentEvidence'
-import { normaliseCuratedDivision } from '../services/divisions/curatedDivision'
 
 const timestamp = '2025-01-01T00:00:00Z'
 const updated = '2026-01-01T00:00:00Z'
@@ -518,14 +518,14 @@ test('parent replay rejects unavailable content, ambiguous journals, and incompl
       data.parent([
         { ...firstStep, shards: [...firstStep.shards, ...sourceStep.shards] },
       ]),
-    ).rejects.toThrow('Ambiguous Division history component')
+    ).rejects.toThrow('multiple owners')
     data.client('new').exec("DELETE FROM divisions WHERE snapshotId='first'")
     data
       .client('old')
       .exec(
         'PRAGMA ignore_check_constraints=ON; UPDATE divisionsI18n SET versionHash=NULL',
       )
-    await expect(data.parent(plan)).rejects.toThrow('Missing Division history hash')
+    await expect(data.parent(plan)).rejects.toThrow('invalid content event')
   } finally {
     data.close()
   }

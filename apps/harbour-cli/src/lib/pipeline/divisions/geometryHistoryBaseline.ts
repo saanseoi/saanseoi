@@ -2,14 +2,15 @@ import { resolveSnapshotReplayPlan } from '@repo/core/db/metaRegistry'
 import type { HarbourReadableDb } from '@repo/core/db/types'
 import {
   groupResolvedVersionsByShard,
+  historyVersionSelection,
   resolveSnapshotVersionState,
 } from '@repo/core/pipeline/db/snapshotReplay'
 import { hashDivisionGeometryRow } from '@repo/core/pipeline/services/divisions/divisionGeometry'
 import { chunkArray } from '@repo/core/pipeline/utils'
-import { historySchema, sql } from '@repo/db'
+import { historySchema } from '@repo/db'
 import type { LocalAddressDbContext } from '../../dbCache/localDbCacheTypes.ts'
-import type { GeometryUploadPlan } from './processLocalDivisionGeometrySqlUploadTypes.ts'
 import { decodeStoredGeoJsonGeometry } from './processLocalDivisionGeometrySqlUploadStatistics.ts'
+import type { GeometryUploadPlan } from './processLocalDivisionGeometrySqlUploadTypes.ts'
 
 /** Only a complete, reconstructable parent can supply omitted child membership. */
 export async function validateGeometryHistoryBaseline(
@@ -64,9 +65,7 @@ export async function validateGeometryHistoryBaseline(
       const rows = await first.shard.db
         .select()
         .from(table)
-        .where(
-          sql`(${table.id},${table.versionHash}) IN (SELECT json_extract(value,'$[0]'),json_extract(value,'$[1]') FROM json_each(${JSON.stringify(batch.map(version => [version.recordId, version.versionHash]))}))`,
-        )
+        .where(historyVersionSelection(table, batch))
         .all()
       if (rows.length !== batch.length)
         throw new Error(
@@ -77,6 +76,7 @@ export async function validateGeometryHistoryBaseline(
           versionHash,
           sourceReleaseId: _release,
           isCurrent: _current,
+          operation: _operation,
           ...canonical
         } = row as unknown as
           | typeof historySchema.divisionAreas.$inferSelect
@@ -84,7 +84,7 @@ export async function validateGeometryHistoryBaseline(
         const hash = await hashDivisionGeometryRow({
           ...canonical,
           geometry: decodeStoredGeoJsonGeometry(canonical.geometry),
-        })
+        } as Parameters<typeof hashDivisionGeometryRow>[0])
         if (hash !== versionHash)
           throw new Error(`Geometry parent content hash mismatch for ${row.id}.`)
       }

@@ -1,10 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs'
 import { copyFile, mkdir, readFile, rm, stat, writeFile } from 'node:fs/promises'
 import { dirname, resolve } from 'node:path'
-import { isMinimalInitialisation } from '../cli/minimalInitialisation.ts'
-
 import { confirm, isCancel, note, outro } from '@clack/prompts'
-import { and, not } from 'drizzle-orm'
 import { chunkArray, getMaxItemsPerInClause } from '@repo/core/pipeline/utils'
 import {
   currentSchema,
@@ -15,9 +12,10 @@ import {
   or,
   sourceSchema,
 } from '@repo/db'
-
-import type { ParsedArgs, UploadTarget } from '../cli/options.ts'
+import { and, not } from 'drizzle-orm'
 import { describeTarget, formatField } from '../cli/display.ts'
+import { isMinimalInitialisation } from '../cli/minimalInitialisation.ts'
+import type { ParsedArgs, UploadTarget } from '../cli/options.ts'
 import {
   openSqliteDb,
   resolveLocalAddressDbContext,
@@ -36,8 +34,8 @@ import {
   validateResetArguments,
 } from '../pipeline/resetLifecycle.ts'
 import { deleteManagedSourceAsset } from '../sources/sourceAssets.ts'
-import { resumeAddressInitialisation } from './resumeAddressInitialisation.ts'
 import { officialAddressResetDependencyBlockers } from './addressResetDependencies.ts'
+import { resumeAddressInitialisation } from './resumeAddressInitialisation.ts'
 
 const REPO_ROOT = resolve(import.meta.dir, '../../../../..')
 const MANIFEST_ROOT = resolve(REPO_ROOT, '.local/hkgov-dpo/init-runs')
@@ -1058,7 +1056,7 @@ async function buildResetSql(
     apiSets = sqlList(owned.apiReleaseSetIds),
     assets = sqlList(owned.assetIds.map(asset => asset.id))
   const sourceSql = `DELETE FROM hkgovAlsAddresses2d WHERE resourceReleaseId IN (${ids});`
-  const historySql = `DELETE FROM address2dBuildingNumberLookup WHERE sourceReleaseId IN (${ids}) OR snapshotId IN (${snapshots});\nDELETE FROM address2dI18n WHERE sourceReleaseId IN (${ids}) OR snapshotId IN (${snapshots});\nDELETE FROM address2d WHERE sourceReleaseId IN (${ids}) OR snapshotId IN (${snapshots});\nDELETE FROM snapshotVersionChanges WHERE snapshotId IN (${snapshots});\nDELETE FROM sourceResolutions WHERE snapshotId IN (${snapshots}) OR sourceReleaseId IN (${ids});`
+  const historySql = `DELETE FROM address2dBuildingNumberLookup WHERE sourceReleaseId IN (${ids}) OR snapshotId IN (${snapshots});\nDELETE FROM address2dI18n WHERE sourceReleaseId IN (${ids}) OR snapshotId IN (${snapshots});\nDELETE FROM address2d WHERE sourceReleaseId IN (${ids}) OR snapshotId IN (${snapshots});\nDELETE FROM sourceResolutions WHERE snapshotId IN (${snapshots}) OR sourceReleaseId IN (${ids});`
   const scopeIds: string[] = []
   for (const ids of chunkArray(owned.snapshotIds, getMaxItemsPerInClause())) {
     const rows = await context.metaDb

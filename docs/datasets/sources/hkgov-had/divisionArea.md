@@ -11,11 +11,12 @@ archive; table-wide acquisition coordinates belong in the processing receipt. Th
 source tables do not need a `sourceLocator` column.
 
 Canonical Area versions are immutable. Snapshot membership follows the selected parent's
-version journal and recorded history shards; complete releases remove only members of
-that parent. Exact and simplified scopes and other providers retain their versions
-independently. Reused record/hash content preserves its original provenance, and history
-`isCurrent` does not define membership. Current projection receipts and publication
-checks remain required for each selected scope.
+inline canonical events and recorded history shards; complete releases remove only
+members of that parent. Exact and simplified scopes and other providers retain their
+versions independently. Inherited events preserve their original provenance; independent
+roots and reversions store new events, and history `isCurrent` does not define
+membership. Current projection receipts and publication checks remain required for each
+selected scope.
 
 Source validity uses the owning release's version component in `validFromRelease` and
 `validToRelease`. Dataset prefixes and resource suffixes are omitted;
@@ -39,10 +40,10 @@ SQL replay. Sealed plans retain current, history and source mutations, including
 assertions, together with checksummed churn outputs. Recovery validates normalised
 inputs and reuses the plan before publication.
 
-Remote replay selects immutable canonical content through upsert journal keys and
-records removals as delete journals. Source assertions closed by the release receive
-updates matching exact versions and closure timestamps without retransmitting older
-source geometry.
+Remote replay selects immutable canonical content through exact record and
+introducing-snapshot keys and records removals as inline deletion events. Source
+assertions closed by the release receive updates matching exact versions and closure
+timestamps without retransmitting older source geometry.
 
 Ordinary geometry metadata upserts skip updates to identical rows while retaining
 ordered changes to lifecycle, provenance and statistics fields. The
@@ -50,8 +51,8 @@ ordered changes to lifecycle, provenance and statistics fields. The
 
 Parented area revisions follow the
 [geometry membership contract](../../families/divisions.md#publication-readiness):
-validated identical parent members inherit without payload or child journal writes;
-changes, removals and reappearances remain explicit. Parentless checkpoints retain full
+validated identical parent members inherit without new component writes; changes,
+removals and reappearances remain explicit. Parentless checkpoints retain full
 membership, and independently retained cohorts each receive their own current
 projection. Source assertions and audit delivery remain separate from canonical
 membership.

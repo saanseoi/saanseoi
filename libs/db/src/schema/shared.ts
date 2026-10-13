@@ -1,9 +1,11 @@
-import { stringifyGeoJson } from '../geoJsonSerialisation'
+import type { NotNull } from 'drizzle-orm'
 import { sql } from 'drizzle-orm'
+import type { SQLiteColumnBuilder } from 'drizzle-orm/sqlite-core'
 import { customType, integer, real, text } from 'drizzle-orm/sqlite-core'
-import type { DivisionHierarchies } from '../divisionTaxonomy'
-import { addressGranularities } from '../addressGranularity'
 import type { Address3dUnit, Address3dUnitI18n } from '../address3d'
+import { addressGranularities } from '../addressGranularity'
+import type { DivisionHierarchies } from '../divisionTaxonomy'
+import { stringifyGeoJson } from '../geoJsonSerialisation'
 
 export const streetEvidenceAssetRoles = [
   'gazettePlan',
@@ -156,64 +158,93 @@ export const geoBbox = {
   bbox: jsonText('bbox'),
 }
 
-export const canonicalDivision = {
-  id: text('id').notNull(),
-  /** Curated statistical key, scoped by the selected Divisions domain. */
-  divisionCode: text('divisionCode'),
-  identifiers: jsonText('identifiers'),
-  /** Canonical hierarchy level; absent for non-hierarchical geographies. */
-  level: integer('level'),
-  category: text('category', {
-    enum: ['administrative', 'locality', 'hood', 'landform'],
-  }),
-  class: text('class').notNull(),
-  hierarchies: text('hierarchies', { mode: 'json' })
-    .$type<DivisionHierarchies>()
-    .notNull(),
-  cartography: jsonText('cartography'),
-  sources: jsonText('sources'),
-  geometry: jsonTextOrBinary('geometry'),
+export function canonicalDivisionColumns<Required extends boolean>(required: Required) {
+  return {
+    id: text('id').notNull(),
+    /** Curated statistical key, scoped by the selected Divisions domain. */
+    divisionCode: text('divisionCode'),
+    identifiers: jsonText('identifiers'),
+    /** Canonical hierarchy level; absent for non-hierarchical geographies. */
+    level: integer('level'),
+    category: text('category', {
+      enum: ['administrative', 'locality', 'hood', 'landform'],
+    }),
+    class: requiredColumn(text('class'), required),
+    hierarchies: requiredColumn(
+      text('hierarchies', { mode: 'json' }).$type<DivisionHierarchies>(),
+      required,
+    ),
+    cartography: jsonText('cartography'),
+    sources: jsonText('sources'),
+    geometry: jsonTextOrBinary('geometry'),
+  }
 }
 
-export const canonicalDivisionGeometry = {
-  id: text('id').notNull(),
-  variant: text('variant').notNull().default('overture'),
-  bbox: jsonText('bbox'),
-  geometry: jsonTextOrBinary('geometry'),
-  identifiers: jsonText('identifiers'),
-  sources: jsonText('sources'),
-  type: text('type').notNull(),
-  isLand: integer('isLand', { mode: 'boolean' }),
-  isTerritorial: integer('isTerritorial', { mode: 'boolean' }),
+export const canonicalDivision = canonicalDivisionColumns(true)
+
+export function canonicalDivisionGeometryColumns<Required extends boolean>(
+  required: Required,
+) {
+  return {
+    id: text('id').notNull(),
+    variant: requiredColumn(text('variant').default('overture'), required),
+    bbox: jsonText('bbox'),
+    geometry: jsonTextOrBinary('geometry'),
+    identifiers: jsonText('identifiers'),
+    sources: jsonText('sources'),
+    type: requiredColumn(text('type'), required),
+    isLand: integer('isLand', { mode: 'boolean' }),
+    isTerritorial: integer('isTerritorial', { mode: 'boolean' }),
+  }
 }
 
-export const canonicalDivisionI18n = {
-  divisionId: text('divisionId').notNull(),
-  locale: text('locale').notNull(),
-  name: text('name'),
-  nameVariant: jsonText('nameVariant'),
-  nameAlts: text('nameAlts'),
-  nameRules: jsonText('nameRules'),
-  nameProvenance: text('nameProvenance', {
-    enum: ['provided', 'inferred', 'ai-translated', 'human-translated'],
-  }),
-  isLocaleInferred: integer('isLocaleInferred', { mode: 'boolean' }).notNull(),
+export const canonicalDivisionGeometry = canonicalDivisionGeometryColumns(true)
+
+export function canonicalDivisionI18nColumns<Required extends boolean>(
+  required: Required,
+) {
+  return {
+    divisionId: text('divisionId').notNull(),
+    locale: text('locale').notNull(),
+    name: text('name'),
+    nameVariant: jsonText('nameVariant'),
+    nameAlts: text('nameAlts'),
+    nameRules: jsonText('nameRules'),
+    nameProvenance: text('nameProvenance', {
+      enum: ['provided', 'inferred', 'ai-translated', 'human-translated'],
+    }),
+    isLocaleInferred: requiredColumn(
+      integer('isLocaleInferred', { mode: 'boolean' }),
+      required,
+    ),
+  }
 }
+
+export const canonicalDivisionI18n = canonicalDivisionI18nColumns(true)
 
 /**
  * A district-level observation exposed by the Division Statistics API. The
  * source layer includes the publisher's complete raw source record and labels.
  */
-export const canonicalDivisionStatistic = {
-  id: text('id').notNull(),
-  divisionId: text('divisionId').notNull(),
-  districtCode: text('districtCode').notNull(),
-  referenceYear: text('referenceYear').notNull(),
-  landAreaSqKm: real('landAreaSqKm').notNull(),
-  midYearPopulation: integer('midYearPopulation').notNull(),
-  midYearPopulationDensityPerSqKm: integer('midYearPopulationDensityPerSqKm').notNull(),
-  sources: jsonText('sources').notNull(),
+export function canonicalDivisionStatisticColumns<Required extends boolean>(
+  required: Required,
+) {
+  return {
+    id: text('id').notNull(),
+    divisionId: requiredColumn(text('divisionId'), required),
+    districtCode: requiredColumn(text('districtCode'), required),
+    referenceYear: requiredColumn(text('referenceYear'), required),
+    landAreaSqKm: requiredColumn(real('landAreaSqKm'), required),
+    midYearPopulation: requiredColumn(integer('midYearPopulation'), required),
+    midYearPopulationDensityPerSqKm: requiredColumn(
+      integer('midYearPopulationDensityPerSqKm'),
+      required,
+    ),
+    sources: requiredColumn(jsonText('sources'), required),
+  }
 }
+
+export const canonicalDivisionStatistic = canonicalDivisionStatisticColumns(true)
 
 export type CanonicalStatsGeography = {
   /** Disambiguates publisher geography codes that are only unique within a parent. */
@@ -242,35 +273,51 @@ export type CanonicalStatsFieldSource = {
 }
 
 /** Canonical structured period fields shared by source and API statistic rows. */
-export const statisticsReferencePeriod = {
-  referencePeriodCode: text('referencePeriodCode').notNull(),
-  referencePeriodStart: text('referencePeriodStart'),
-  referencePeriodEnd: text('referencePeriodEnd'),
-  referencePeriodGranularity: text('referencePeriodGranularity').notNull(),
-  referencePeriodEndYear: text('referencePeriodEndYear').notNull(),
+export function statisticsReferencePeriodColumns<Required extends boolean>(
+  required: Required,
+) {
+  return {
+    referencePeriodCode: requiredColumn(text('referencePeriodCode'), required),
+    referencePeriodStart: text('referencePeriodStart'),
+    referencePeriodEnd: text('referencePeriodEnd'),
+    referencePeriodGranularity: requiredColumn(
+      text('referencePeriodGranularity'),
+      required,
+    ),
+    referencePeriodEndYear: requiredColumn(text('referencePeriodEndYear'), required),
+  }
 }
 
+export const statisticsReferencePeriod = statisticsReferencePeriodColumns(true)
+
 /** One dataset, exact period and semantic geography, shared by current and history. */
-export const canonicalStatsRecord = {
-  id: text('id').notNull(),
-  datasetCode: text('datasetCode').notNull(),
-  sourceReleaseId: text('sourceReleaseId').notNull(),
-  /** Stable constructed reference to the retained raw publisher feature. */
-  sourceFeatureRef: text('sourceFeatureRef').notNull(),
-  /** Present only after a reviewed bridge to a canonical division exists. */
-  divisionId: text('divisionId'),
-  ...statisticsReferencePeriod,
-  /** Reviewed geography identity and its explicitly selected geometry companion. */
-  geography: jsonText<CanonicalStatsGeography>('geography').notNull(),
-  /** Provenance of the last real change to each retained field. */
-  fieldSources: jsonText<Record<string, CanonicalStatsFieldSource>>('fieldSources')
-    .notNull()
-    .default({}),
-  /** Immutable shared field-definition selection. */
-  definitionSetId: text('definitionSetId').notNull(),
-  /** Publisher literals keyed by the stable reviewed field name. */
-  values: jsonText<Record<string, string>>('values').notNull(),
+export function canonicalStatsRecordColumns<Required extends boolean>(
+  required: Required,
+) {
+  return {
+    id: text('id').notNull(),
+    datasetCode: requiredColumn(text('datasetCode'), required),
+    sourceReleaseId: requiredColumn(text('sourceReleaseId'), required),
+    /** Stable constructed reference to the retained raw publisher feature. */
+    sourceFeatureRef: requiredColumn(text('sourceFeatureRef'), required),
+    /** Present only after a reviewed bridge to a canonical division exists. */
+    divisionId: text('divisionId'),
+    ...statisticsReferencePeriodColumns(required),
+    /** Reviewed geography identity and its explicitly selected geometry companion. */
+    geography: requiredColumn(jsonText<CanonicalStatsGeography>('geography'), required),
+    /** Provenance of the last real change to each retained field. */
+    fieldSources: requiredColumn(
+      jsonText<Record<string, CanonicalStatsFieldSource>>('fieldSources').default({}),
+      required,
+    ),
+    /** Immutable shared field-definition selection. */
+    definitionSetId: requiredColumn(text('definitionSetId'), required),
+    /** Publisher literals keyed by the stable reviewed field name. */
+    values: requiredColumn(jsonText<Record<string, string>>('values'), required),
+  }
 }
+
+export const canonicalStatsRecord = canonicalStatsRecordColumns(true)
 
 /**
  * The semantic interpretation of a statistic. This remains independent from
@@ -330,97 +377,145 @@ export type StatsFieldComparability = {
 }
 
 /** A reusable, dimension-free statistical concept within one dataset. */
-export const canonicalStatsMeasure = {
-  datasetCode: text('datasetCode').notNull(),
-  measureCode: text('measureCode').notNull(),
+export function canonicalStatsMeasureColumns<Required extends boolean>(
+  required: Required,
+) {
+  return {
+    datasetCode: text('datasetCode').notNull(),
+    measureCode: text('measureCode').notNull(),
+  }
 }
 
-export const canonicalStatsField = {
-  ...canonicalStatsMeasure,
-  /** Immutable measure metadata paired with this field definition. */
-  measureVersionHash: text('measureVersionHash').notNull().default(''),
-  fieldName: text('fieldName').notNull(),
-  sourceField: text('sourceField').notNull(),
-  /** Curated analytical dimensions associated with this source field. */
-  dimensions: jsonText<Record<string, string>>('dimensions').notNull(),
-  /** Source-declared caveat about comparisons between reference periods. */
-  comparability: jsonText<StatsFieldComparability>('comparability'),
-  /** Exact publisher nullability declaration, when its schema supplies one. */
-  sourceNullOption: text('sourceNullOption'),
-  /** Reviewed semantic form; distinct from numeric/categorical representation and unit. */
-  statisticKind: text('statisticKind', {
-    enum: statsStatisticKinds,
-  })
-    .notNull()
-    .default('unreviewed'),
-  /** Statistical aggregation applied before the publisher supplied this value. */
-  aggregation: text('aggregation', { enum: statsAggregations })
-    .notNull()
-    .default('unreviewed'),
-  /** Percentile rank (0-100) for percentile and median aggregations. */
-  aggregationPercentile: real('aggregationPercentile'),
-  /** Named interval over which the reported quantity is expressed, when applicable. */
-  periodicity: text('periodicity', { enum: statsPeriodicities }),
-  /** Canonical field used as the denominator, when the statistic has one. */
-  denominatorFieldName: text('denominatorFieldName'),
-  valueKind: text('valueKind').notNull(),
-  unitCode: text('unitCode').notNull(),
+export const canonicalStatsMeasure = canonicalStatsMeasureColumns(true)
+
+export function canonicalStatsFieldColumns<Required extends boolean>(
+  required: Required,
+) {
+  return {
+    ...canonicalStatsMeasure,
+    measureCode: requiredColumn(text('measureCode'), required),
+    /** Immutable measure metadata paired with this field definition. */
+    measureVersionHash: requiredColumn(
+      text('measureVersionHash').default(''),
+      required,
+    ),
+    fieldName: text('fieldName').notNull(),
+    sourceField: requiredColumn(text('sourceField'), required),
+    /** Curated analytical dimensions associated with this source field. */
+    dimensions: requiredColumn(
+      jsonText<Record<string, string>>('dimensions'),
+      required,
+    ),
+    /** Source-declared caveat about comparisons between reference periods. */
+    comparability: jsonText<StatsFieldComparability>('comparability'),
+    /** Exact publisher nullability declaration, when its schema supplies one. */
+    sourceNullOption: text('sourceNullOption'),
+    /** Reviewed semantic form; distinct from numeric/categorical representation and unit. */
+    statisticKind: requiredColumn(
+      text('statisticKind', {
+        enum: statsStatisticKinds,
+      }).default('unreviewed'),
+      required,
+    ),
+    /** Statistical aggregation applied before the publisher supplied this value. */
+    aggregation: requiredColumn(
+      text('aggregation', { enum: statsAggregations }).default('unreviewed'),
+      required,
+    ),
+    /** Percentile rank (0-100) for percentile and median aggregations. */
+    aggregationPercentile: real('aggregationPercentile'),
+    /** Named interval over which the reported quantity is expressed, when applicable. */
+    periodicity: text('periodicity', { enum: statsPeriodicities }),
+    /** Canonical field used as the denominator, when the statistic has one. */
+    denominatorFieldName: text('denominatorFieldName'),
+    valueKind: requiredColumn(text('valueKind'), required),
+    unitCode: requiredColumn(text('unitCode'), required),
+  }
 }
 
-export const canonicalStatsMeasureI18n = {
-  ...canonicalStatsMeasure,
-  locale: text('locale').notNull(),
-  name: text('name').notNull(),
-  description: text('description'),
-  /** False only when a machine translation filled a missing publisher locale. */
-  isTranslationVerified: integer('isTranslationVerified', { mode: 'boolean' })
-    .notNull()
-    .default(true),
+export const canonicalStatsField = canonicalStatsFieldColumns(true)
+
+export function canonicalStatsMeasureI18nColumns<Required extends boolean>(
+  required: Required,
+) {
+  return {
+    ...canonicalStatsMeasure,
+    locale: text('locale').notNull(),
+    name: requiredColumn(text('name'), required),
+    description: text('description'),
+    /** False only when a machine translation filled a missing publisher locale. */
+    isTranslationVerified: requiredColumn(
+      integer('isTranslationVerified', { mode: 'boolean' }).default(true),
+      required,
+    ),
+  }
 }
 
-export const canonicalStatsFieldI18n = {
-  datasetCode: text('datasetCode').notNull(),
-  fieldName: text('fieldName').notNull(),
-  locale: text('locale').notNull(),
-  name: text('name').notNull(),
-  description: text('description'),
-  /** False only when a machine translation filled a missing publisher locale. */
-  isTranslationVerified: integer('isTranslationVerified', { mode: 'boolean' })
-    .notNull()
-    .default(true),
+export const canonicalStatsMeasureI18n = canonicalStatsMeasureI18nColumns(true)
+
+export function canonicalStatsFieldI18nColumns<Required extends boolean>(
+  required: Required,
+) {
+  return {
+    datasetCode: text('datasetCode').notNull(),
+    fieldName: text('fieldName').notNull(),
+    locale: text('locale').notNull(),
+    name: requiredColumn(text('name'), required),
+    description: text('description'),
+    /** False only when a machine translation filled a missing publisher locale. */
+    isTranslationVerified: requiredColumn(
+      integer('isTranslationVerified', { mode: 'boolean' }).default(true),
+      required,
+    ),
+  }
 }
 
-export const canonicalStatsValueI18n = {
-  datasetCode: text('datasetCode').notNull(),
-  dimensionCode: text('dimensionCode').notNull(),
-  valueCode: text('valueCode').notNull(),
-  locale: text('locale').notNull(),
-  name: text('name').notNull(),
+export const canonicalStatsFieldI18n = canonicalStatsFieldI18nColumns(true)
+
+export function canonicalStatsValueI18nColumns<Required extends boolean>(
+  required: Required,
+) {
+  return {
+    datasetCode: text('datasetCode').notNull(),
+    dimensionCode: text('dimensionCode').notNull(),
+    valueCode: text('valueCode').notNull(),
+    locale: text('locale').notNull(),
+    name: requiredColumn(text('name'), required),
+  }
 }
 
-export const canonicalAddress2d = {
-  id: text('id').notNull(),
-  parentAddressId: text('parentAddressId'),
-  granularity: text('granularity', { enum: addressGranularities })
-    .notNull()
-    .default('unknown'),
-  streetId: text('streetId'),
-  hamletId: text('hamletId'),
-  microhoodId: text('microhoodId'),
-  villageId: text('villageId'),
-  neighbourhoodId: text('neighbourhoodId'),
-  ruralAreaId: text('ruralAreaId'),
-  macrohoodId: text('macrohoodId'),
-  townId: text('townId'),
-  landformId: text('landformId'),
-  districtId: text('districtId'),
-  areaId: text('areaId'),
-  countryId: text('countryId'),
-  /** External identifiers only; supplementary identity-generation keys belong to evidence. */
-  identifiers: jsonText('identifiers'),
-  sources: jsonText('sources'),
-  ...geoBbox,
+export const canonicalStatsValueI18n = canonicalStatsValueI18nColumns(true)
+
+export function canonicalAddress2dColumns<Required extends boolean>(
+  required: Required,
+) {
+  return {
+    id: text('id').notNull(),
+    parentAddressId: text('parentAddressId'),
+    granularity: requiredColumn(
+      text('granularity', { enum: addressGranularities }).default('unknown'),
+      required,
+    ),
+    streetId: text('streetId'),
+    hamletId: text('hamletId'),
+    microhoodId: text('microhoodId'),
+    villageId: text('villageId'),
+    neighbourhoodId: text('neighbourhoodId'),
+    ruralAreaId: text('ruralAreaId'),
+    macrohoodId: text('macrohoodId'),
+    townId: text('townId'),
+    landformId: text('landformId'),
+    districtId: text('districtId'),
+    areaId: text('areaId'),
+    countryId: text('countryId'),
+    /** External identifiers only; supplementary identity-generation keys belong to evidence. */
+    identifiers: jsonText('identifiers'),
+    sources: jsonText('sources'),
+    ...geoBbox,
+  }
 }
+
+export const canonicalAddress2d = canonicalAddress2dColumns(true)
 
 export const addressBlockTypes = [
   'block',
@@ -444,25 +539,31 @@ export const addressBlockTypes = [
 
 export type AddressBlockType = (typeof addressBlockTypes)[number]
 
-export const canonicalAddress2dI18n = {
-  addressId: text('addressId').notNull(),
-  locale: text('locale').notNull(),
-  formattedAddress: text('formattedAddress').notNull(),
-  buildingName: text('buildingName'),
-  buildingNumberExpression: text('buildingNumberExpression'),
-  buildingNumberFrom: text('buildingNumberFrom'),
-  buildingNumberTo: text('buildingNumberTo'),
-  buildingNumberConnector: text('buildingNumberConnector'),
-  blockExpression: text('blockExpression'),
-  blockType: text('blockType', { enum: addressBlockTypes }),
-  blockRef: text('blockRef'),
-  blockTypeBeforeNumber: integer('blockTypeBeforeNumber', { mode: 'boolean' }),
-  phaseExpression: text('phaseExpression'),
-  phaseName: text('phaseName'),
-  phaseRef: text('phaseRef'),
-  estateName: text('estateName'),
-  streetName: text('streetName'),
+export function canonicalAddress2dI18nColumns<Required extends boolean>(
+  required: Required,
+) {
+  return {
+    addressId: text('addressId').notNull(),
+    locale: text('locale').notNull(),
+    formattedAddress: requiredColumn(text('formattedAddress'), required),
+    buildingName: text('buildingName'),
+    buildingNumberExpression: text('buildingNumberExpression'),
+    buildingNumberFrom: text('buildingNumberFrom'),
+    buildingNumberTo: text('buildingNumberTo'),
+    buildingNumberConnector: text('buildingNumberConnector'),
+    blockExpression: text('blockExpression'),
+    blockType: text('blockType', { enum: addressBlockTypes }),
+    blockRef: text('blockRef'),
+    blockTypeBeforeNumber: integer('blockTypeBeforeNumber', { mode: 'boolean' }),
+    phaseExpression: text('phaseExpression'),
+    phaseName: text('phaseName'),
+    phaseRef: text('phaseRef'),
+    estateName: text('estateName'),
+    streetName: text('streetName'),
+  }
 }
+
+export const canonicalAddress2dI18n = canonicalAddress2dI18nColumns(true)
 
 export const addressReferenceLookupEvidences = [
   'source_endpoint',
@@ -476,85 +577,123 @@ export const addressReferenceLookupDerivations = [
   'latin_suffix_consecutive',
 ] as const
 
-export const canonicalAddress2dBuildingNumberLookup = {
-  addressId: text('addressId').notNull(),
-  buildingNumber: text('buildingNumber').notNull(),
-  numericStem: text('numericStem'),
-  evidence: text('evidence', { enum: addressReferenceLookupEvidences }).notNull(),
-  derivation: text('derivation', {
-    enum: addressReferenceLookupDerivations,
-  }),
+export function canonicalAddress2dBuildingNumberLookupColumns<Required extends boolean>(
+  required: Required,
+) {
+  return {
+    addressId: text('addressId').notNull(),
+    buildingNumber: text('buildingNumber').notNull(),
+    numericStem: text('numericStem'),
+    evidence: requiredColumn(
+      text('evidence', { enum: addressReferenceLookupEvidences }),
+      required,
+    ),
+    derivation: text('derivation', {
+      enum: addressReferenceLookupDerivations,
+    }),
+  }
 }
 
-export const canonicalAddress3dI18n = {
-  address3dId: text('address3dId').notNull(),
-  locale: text('locale').notNull(),
-  units: jsonText<Record<string, Address3dUnitI18n>>('units').notNull(),
+export const canonicalAddress2dBuildingNumberLookup =
+  canonicalAddress2dBuildingNumberLookupColumns(true)
+
+export function canonicalAddress3dI18nColumns<Required extends boolean>(
+  required: Required,
+) {
+  return {
+    address3dId: text('address3dId').notNull(),
+    locale: text('locale').notNull(),
+    units: requiredColumn(
+      jsonText<Record<string, Address3dUnitI18n>>('units'),
+      required,
+    ),
+  }
 }
 
-export const canonicalAddress3d = {
-  id: text('id').notNull(),
-  address2dId: text('address2dId').notNull(),
-  units: jsonText<Address3dUnit[]>('units').notNull(),
-  unitCount: integer('unitCount').notNull(),
-  contentHash: text('contentHash').notNull(),
-  /** Explicitly reviewed children whose unit membership remains unresolved. */
-  unresolvedSectionIds: jsonText<string[]>('unresolvedSectionIds').notNull(),
-  sources: jsonText('sources'),
+export const canonicalAddress3dI18n = canonicalAddress3dI18nColumns(true)
+
+export function canonicalAddress3dColumns<Required extends boolean>(
+  required: Required,
+) {
+  return {
+    id: text('id').notNull(),
+    address2dId: requiredColumn(text('address2dId'), required),
+    units: requiredColumn(jsonText<Address3dUnit[]>('units'), required),
+    unitCount: requiredColumn(integer('unitCount'), required),
+    contentHash: requiredColumn(text('contentHash'), required),
+    /** Explicitly reviewed children whose unit membership remains unresolved. */
+    unresolvedSectionIds: requiredColumn(
+      jsonText<string[]>('unresolvedSectionIds'),
+      required,
+    ),
+    sources: jsonText('sources'),
+  }
 }
 
-export const canonicalPlace = {
-  id: text('id').notNull(),
-  resourceReleaseId: text('resourceReleaseId').notNull(),
-  /** Content identity of the referenced Address, selected unit and their localisations. */
-  addressDependencyHash: text('addressDependencyHash'),
-  addressSnapshotId: text('addressSnapshotId'),
-  address2dId: text('address2dId'),
-  address3dId: text('address3dId'),
-  address3dUnitId: text('address3dUnitId'),
-  address3dMembership: text('address3dMembership', {
-    enum: ['established', 'unresolved'],
-  }),
-  lng: real('lng').notNull(),
-  lat: real('lat').notNull(),
-  bbox: jsonText('bbox'),
-  operatingStatus: text('operatingStatus'),
-  basicCategory: text('basicCategory'),
-  taxonomyPrimary: text('taxonomyPrimary'),
-  taxonomyHierarchy: jsonText('taxonomyHierarchy'),
-  taxonomyAlternates: jsonText('taxonomyAlternates'),
-  wikidataId: text('wikidataId'),
-  websites: jsonText('websites'),
-  socials: jsonText('socials'),
-  emails: jsonText('emails'),
-  phones: jsonText('phones'),
-  addresses: jsonText('addresses'),
-  confidence: real('confidence'),
-  sources: jsonText('sources'),
-  firstSeenMonth: text('firstSeenMonth').notNull(),
-  lastSeenMonth: text('lastSeenMonth').notNull(),
+export const canonicalAddress3d = canonicalAddress3dColumns(true)
+
+export function canonicalPlaceColumns<Required extends boolean>(required: Required) {
+  return {
+    id: text('id').notNull(),
+    resourceReleaseId: requiredColumn(text('resourceReleaseId'), required),
+    /** Content identity of the referenced Address, selected unit and their localisations. */
+    addressDependencyHash: text('addressDependencyHash'),
+    addressSnapshotId: text('addressSnapshotId'),
+    address2dId: text('address2dId'),
+    address3dId: text('address3dId'),
+    address3dUnitId: text('address3dUnitId'),
+    address3dMembership: text('address3dMembership', {
+      enum: ['established', 'unresolved'],
+    }),
+    lng: requiredColumn(real('lng'), required),
+    lat: requiredColumn(real('lat'), required),
+    bbox: jsonText('bbox'),
+    operatingStatus: text('operatingStatus'),
+    basicCategory: text('basicCategory'),
+    taxonomyPrimary: text('taxonomyPrimary'),
+    taxonomyHierarchy: jsonText('taxonomyHierarchy'),
+    taxonomyAlternates: jsonText('taxonomyAlternates'),
+    wikidataId: text('wikidataId'),
+    websites: jsonText('websites'),
+    socials: jsonText('socials'),
+    emails: jsonText('emails'),
+    phones: jsonText('phones'),
+    addresses: jsonText('addresses'),
+    confidence: real('confidence'),
+    sources: jsonText('sources'),
+    firstSeenMonth: requiredColumn(text('firstSeenMonth'), required),
+    lastSeenMonth: requiredColumn(text('lastSeenMonth'), required),
+  }
 }
 
-export const canonicalPlaceI18n = {
-  /** Exact dependency text and revision evidence resolved during local preparation. */
-  searchDependencyText: jsonText<{
-    addressSnapshotId: string | null
-    addressText: string
-    divisionText: string
-    streetText: string
-  }>('searchDependencyText'),
-  placeId: text('placeId').notNull(),
-  locale: text('locale').notNull(),
-  name: text('name'),
-  nameVariant: jsonText('nameVariant'),
-  nameAlts: text('nameAlts'),
-  brandName: text('brandName'),
-  brandNameVariant: jsonText('brandNameVariant'),
-  brandNameAlts: text('brandNameAlts'),
-  freeformAddress: text('freeformAddress'),
-  accessHint: text('accessHint'),
-  provenance: jsonText<PlaceI18nProvenance>('provenance'),
+export const canonicalPlace = canonicalPlaceColumns(true)
+
+export function canonicalPlaceI18nColumns<Required extends boolean>(
+  required: Required,
+) {
+  return {
+    /** Exact dependency text and revision evidence resolved during local preparation. */
+    searchDependencyText: jsonText<{
+      addressSnapshotId: string | null
+      addressText: string
+      divisionText: string
+      streetText: string
+    }>('searchDependencyText'),
+    placeId: text('placeId').notNull(),
+    locale: text('locale').notNull(),
+    name: text('name'),
+    nameVariant: jsonText('nameVariant'),
+    nameAlts: text('nameAlts'),
+    brandName: text('brandName'),
+    brandNameVariant: jsonText('brandNameVariant'),
+    brandNameAlts: text('brandNameAlts'),
+    freeformAddress: text('freeformAddress'),
+    accessHint: text('accessHint'),
+    provenance: jsonText<PlaceI18nProvenance>('provenance'),
+  }
 }
+
+export const canonicalPlaceI18n = canonicalPlaceI18nColumns(true)
 
 export type PlaceI18nProvenance = {
   isMachineTranslated: Array<'name' | 'brand' | 'freeformAddress'>
@@ -562,36 +701,56 @@ export type PlaceI18nProvenance = {
   isLocaleInferred: boolean
 }
 
-export const canonicalStreet = {
-  id: text('id').notNull(),
-  /**
-   * Monotonic materialised-state version for one persistent logical street.
-   * This is deliberately separate from `versionHash`, which identifies the
-   * immutable history row stored by the snapshot machinery.
-   */
-  version: integer('version').notNull(),
-  status: text('status', { enum: streetStatuses }).notNull(),
-  deletedAt: text('deletedAt'),
-  districtIds: jsonText<string[]>('districtIds'),
-  /** Gazette date parsed directly from the authoritative Government Notice PDF. */
-  gazetteDate: text('gazetteDate'),
-  yearBuilt: jsonText('yearBuilt'),
-  /** Government Notice references that establish the current street state. */
-  noticeRefs: jsonText<string[]>('noticeRefs'),
-  /** Government Notice PDFs and plans that establish the current street state. */
-  evidenceAssets: jsonText<StreetEvidenceAsset[]>('evidenceAssets'),
-  /** Source-record references that establish the current street state. */
-  sources: jsonText('sources'),
+export function canonicalStreetColumns<Required extends boolean>(required: Required) {
+  return {
+    id: text('id').notNull(),
+    /**
+     * Monotonic materialised-state version for one persistent logical street.
+     * This is deliberately separate from `versionHash`, which identifies the
+     * immutable history row stored by the snapshot machinery.
+     */
+    version: requiredColumn(integer('version'), required),
+    status: requiredColumn(text('status', { enum: streetStatuses }), required),
+    deletedAt: text('deletedAt'),
+    districtIds: jsonText<string[]>('districtIds'),
+    /** Gazette date parsed directly from the authoritative Government Notice PDF. */
+    gazetteDate: text('gazetteDate'),
+    yearBuilt: jsonText('yearBuilt'),
+    /** Government Notice references that establish the current street state. */
+    noticeRefs: jsonText<string[]>('noticeRefs'),
+    /** Government Notice PDFs and plans that establish the current street state. */
+    evidenceAssets: jsonText<StreetEvidenceAsset[]>('evidenceAssets'),
+    /** Source-record references that establish the current street state. */
+    sources: jsonText('sources'),
+  }
 }
 
-export const canonicalStreetI18n = {
-  streetId: text('streetId').notNull(),
-  locale: text('locale').notNull(),
-  name: text('name').notNull(),
-  base: text('base'),
-  designator: text('designator'),
-  directionalPrefix: text('directionalPrefix'),
-  directionalSuffix: text('directionalSuffix'),
-  normalised: text('normalised'),
-  description: text('description'),
+export const canonicalStreet = canonicalStreetColumns(true)
+
+export function canonicalStreetI18nColumns<Required extends boolean>(
+  required: Required,
+) {
+  return {
+    streetId: text('streetId').notNull(),
+    locale: text('locale').notNull(),
+    name: requiredColumn(text('name'), required),
+    base: text('base'),
+    designator: text('designator'),
+    directionalPrefix: text('directionalPrefix'),
+    directionalSuffix: text('directionalSuffix'),
+    normalised: text('normalised'),
+    description: text('description'),
+  }
+}
+
+export const canonicalStreetI18n = canonicalStreetI18nColumns(true)
+
+/** Payload fields are nullable in HISTORY so deletion events carry only identity. */
+function requiredColumn<T extends SQLiteColumnBuilder, Required extends boolean>(
+  column: T,
+  required: Required,
+): Required extends true ? NotNull<T> : T {
+  return (required ? column.notNull() : column) as Required extends true
+    ? NotNull<T>
+    : T
 }

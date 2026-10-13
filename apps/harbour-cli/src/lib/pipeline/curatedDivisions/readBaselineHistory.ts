@@ -47,18 +47,24 @@ export async function readBaselineHistory(
           : 'divisionAreas'
       const row = database
         .query(
-          `SELECT * FROM ${table} WHERE ${translated ? 'divisionId' : 'id'}=? AND versionHash=?${translated ? ' AND locale=?' : ''}`,
+          `SELECT * FROM ${table} WHERE ${translated ? 'divisionId' : 'id'}=? AND snapshotId=? AND operation='upsert' AND versionHash=?${translated ? ' AND locale=?' : ''}`,
         )
         .get(
           ...(translated
-            ? [version.recordId, version.versionHash, version.locale]
-            : [version.recordId, version.versionHash]),
+            ? [
+                version.recordId,
+                version.snapshotId,
+                version.versionHash,
+                version.locale,
+              ]
+            : [version.recordId, version.snapshotId, version.versionHash]),
         ) as Record<string, any> | null
       if (!row)
         throw new Error(
           `Missing retained ${version.recordType} ${version.recordId} for ${snapshotId}`,
         )
       const {
+        operation: _operation,
         snapshotId: _,
         versionHash: __,
         sourceReleaseId: ___,

@@ -1,8 +1,8 @@
 import { Database } from 'bun:sqlite'
-import { mkdirSync, writeFileSync, existsSync, appendFileSync } from 'node:fs'
+import { appendFileSync, existsSync, mkdirSync, writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { divisionIdentifiersWithWikidata } from '../libs/core/src/pipeline/services/sources/divisionIdentifiers'
 import { buildDivisionBaseHashInput } from '../libs/core/src/pipeline/services/divisions/division'
+import { divisionIdentifiersWithWikidata } from '../libs/core/src/pipeline/services/sources/divisionIdentifiers'
 import { nativeSourcePayloadHashInput } from '../libs/core/src/pipeline/services/sources/sourcePayload'
 import { decompressJsonBrotli } from '../libs/core/src/pipeline/services/storage/brotliJson'
 import { createHash } from '../libs/core/src/pipeline/utils'
@@ -156,9 +156,9 @@ export async function backfillDivisionWikidata(
           ],
         )
       if (result.changes !== 1) throw Error(`Concurrent change: ${c.table}/${c.id}`)
-      if (!c.hash || c.hash === c.oldHash) continue
+      if (!c.source || !c.hash || c.hash === c.oldHash) continue
       for (const [i, names] of tables.entries()) {
-        const table = c.source ? 'sourceResolutions' : 'snapshotVersionChanges'
+        const table = 'sourceResolutions'
         if (!names.has(table)) continue
         const hashColumn = c.source ? 'sourceVersionHash' : 'versionHash'
         const predicate = c.source

@@ -1,8 +1,8 @@
-import { snapshotFixtureFields } from '../../../../../libs/core/src/testing/snapshotFixtures'
-import { afterEach, describe, expect, test } from 'bun:test'
 import { Database } from 'bun:sqlite'
+import { afterEach, describe, expect, test } from 'bun:test'
 import { globSync, readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
+import { snapshotFixtureFields } from '../../../../../libs/core/src/testing/snapshotFixtures'
 import { createLocalExecBinding } from '../dbCache/localDbCache.ts'
 import {
   buildStatsResetSql,
@@ -86,7 +86,11 @@ function insert(
   }>
   const row = { ...values }
   for (const field of fields) {
-    if (field.notnull && field.dflt_value === null && !(field.name in row)) {
+    if (
+      (field.notnull || fields.some(column => column.name === 'operation')) &&
+      field.dflt_value === null &&
+      !(field.name in row)
+    ) {
       row[field.name] =
         field.type.toLowerCase() === 'integer' || field.type.toLowerCase() === 'real'
           ? 1
@@ -189,16 +193,9 @@ describe('all-statistics reset', () => {
       sourceRecordId: 'p',
       resourceReleaseId: 'place',
     })
-    insert(history, 'snapshotVersionChanges', {
-      snapshotId: 'divisionStatistic',
-      recordType: 'divisionStatistic',
-      recordId: 'd',
-    })
-    insert(history, 'snapshotVersionChanges', {
-      snapshotId: 'place',
-      recordType: 'place',
-      recordId: 'p',
-    })
+    history.exec(
+      "INSERT INTO places(id,snapshotId,operation) VALUES('p','place','delete')",
+    )
     insert(meta, 'assets', {
       id: 'asset',
       resourceReleaseId: 'divisionStatistic',
@@ -263,7 +260,9 @@ describe('all-statistics reset', () => {
     expect(source.query('SELECT * FROM hkgovCenstatdStatistics').all()).toHaveLength(0)
     expect(source.query('SELECT * FROM overturePlaces').all()).toHaveLength(1)
     expect(
-      history.query('SELECT snapshotId FROM snapshotVersionChanges').all(),
+      history
+        .query("SELECT snapshotId FROM historyEvents WHERE recordType='place'")
+        .all(),
     ).toEqual([{ snapshotId: 'place' }])
     expect(meta.query('PRAGMA foreign_key_check').all()).toEqual([])
     // An empty repeat is safe and keeps the retained unrelated family.

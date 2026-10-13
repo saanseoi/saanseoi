@@ -1,4 +1,3 @@
-import { and, desc, eq, sql } from 'drizzle-orm'
 import type { RegionCode } from '@repo/core'
 import type { HarbourReadableDb } from '@repo/core/db/types'
 import {
@@ -7,23 +6,19 @@ import {
 } from '@repo/core/pipeline/parquetR2'
 import { createHash } from '@repo/core/pipeline/utils'
 import { currentSchema, metaSchema, streetLocaleCodes } from '@repo/db'
-import type { LocalPipelineBucket } from '../local/localBucket.ts'
+import { and, desc, eq, sql } from 'drizzle-orm'
 import {
-  resolveLandsdStreetDistricts,
   type LandsdStreetCanonicalDistrict,
+  resolveLandsdStreetDistricts,
 } from '../../sources/hkgov/landsd/street/landsdStreetDistricts.ts'
+import { mintLandsdStreetId } from '../../sources/hkgov/landsd/street/landsdStreetIds.ts'
 import type {
   LandsdStreetChangelogEntry,
   LandsdStreetLifecycleInput,
   LandsdStreetMaterialisedStreet,
 } from '../../sources/hkgov/landsd/street/landsdStreetLifecycle.ts'
-import { mintLandsdStreetId } from '../../sources/hkgov/landsd/street/landsdStreetIds.ts'
-import type {
-  LandsdStreetUploadPlan,
-  PreparedMaterialisedStreet,
-  PreparedStreet,
-  PreparedStreetChangelog,
-} from './processLocalStreetSqlUploadTypes.ts'
+import type { LocalPipelineBucket } from '../local/localBucket.ts'
+import { REQUIRED_LOCALES } from './processLocalStreetSqlUploadConfig.ts'
 import {
   optionalString,
   parseAssetLinks,
@@ -37,9 +32,13 @@ import {
   splitNameAlternatives,
   stableAssetLinks,
   stableI18n,
-  stableLifecycleI18n,
 } from './processLocalStreetSqlUploadParsing.ts'
-import { REQUIRED_LOCALES } from './processLocalStreetSqlUploadConfig.ts'
+import type {
+  LandsdStreetUploadPlan,
+  PreparedMaterialisedStreet,
+  PreparedStreet,
+  PreparedStreetChangelog,
+} from './processLocalStreetSqlUploadTypes.ts'
 
 export async function readPreparedStreets(
   bucket: LocalPipelineBucket,
@@ -233,7 +232,6 @@ export async function addMaterialisedStreetHash(
     versionHash: await createHash({
       deletedAt: street.deletedAt,
       districtIds: [...street.districtIds].sort(),
-      i18n: street.i18n.map(stableLifecycleI18n),
       id: street.id,
       gazetteDate: street.gazetteDate,
       sources: street.sources,
@@ -249,7 +247,7 @@ export async function addStreetChangelogHash(
   return {
     ...entry,
     ...source,
-    versionHash: await createHash({ ...entry, ...source }),
+    versionHash: await createHash(entry),
   }
 }
 

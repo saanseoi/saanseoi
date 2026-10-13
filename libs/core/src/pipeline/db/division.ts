@@ -1,27 +1,26 @@
+import { currentSchema, getTableColumns, historySchema } from '@repo/db'
+import type {
+  DivisionI18nPayload,
+  DivisionRow,
+  NewDivisionI18nRow,
+  NewDivisionRow,
+} from '@repo/db/currentSchema'
+import type { CurrentDivisionVersionRow } from '@repo/db/historySchema'
 import { and, eq, inArray, sql } from 'drizzle-orm'
-import { currentRowChangedSql } from '../services/publication/currentWrites'
-
-import type { DatasetProcessingMessage } from '../../types'
 import { datasetVariantForSource, identityModeForSource } from '../../codes'
 import {
   ensureDraftSnapshotForRelease,
   recordSnapshotAssembly,
   resolveShardForTypeRegionYear,
-  upsertSnapshotSource,
   upsertReleaseShardAssignment,
   upsertSnapshotShardAssignment,
+  upsertSnapshotSource,
   waitForDatasetRecord,
 } from '../../lib/db/metaRegistry'
 import type { HarbourReadableDb, HarbourWritableDb } from '../../lib/db/types'
-import type {
-  DivisionI18nPayload,
-  DivisionRow,
-  NewDivisionRow,
-  NewDivisionI18nRow,
-} from '@repo/db/currentSchema'
-import type { CurrentDivisionVersionRow } from '@repo/db/historySchema'
-import { currentSchema, historySchema } from '@repo/db'
+import type { DatasetProcessingMessage } from '../../types'
 import type { GeoJsonGeometry } from '../geojson'
+import { currentRowChangedSql } from '../services/publication/currentWrites'
 
 import {
   chunkArray,
@@ -30,12 +29,19 @@ import {
   getMaxRowsPerInsert,
   runStatementsInGroupsWithWriteRetry,
 } from '../utils'
-import { recordSnapshotVersionChanges } from './snapshotVersionChanges'
 
-const CURRENT_DIVISION_COLUMN_COUNT = 15
-const CURRENT_DIVISION_I18N_COLUMN_COUNT = 11
-const HISTORY_DIVISION_VERSION_COLUMN_COUNT = 18
-const HISTORY_DIVISION_I18N_VERSION_COLUMN_COUNT = 14
+const CURRENT_DIVISION_COLUMN_COUNT = Object.keys(
+  getTableColumns(currentSchema.divisions),
+).length
+const CURRENT_DIVISION_I18N_COLUMN_COUNT = Object.keys(
+  getTableColumns(currentSchema.divisionsI18n),
+).length
+const HISTORY_DIVISION_VERSION_COLUMN_COUNT = Object.keys(
+  getTableColumns(historySchema.divisions),
+).length
+const HISTORY_DIVISION_I18N_VERSION_COLUMN_COUNT = Object.keys(
+  getTableColumns(historySchema.divisionsI18n),
+).length
 const HISTORY_DIVISION_VERSION_UPSERT_FIXED_VARIABLE_COUNT = 7
 
 type CurrentDivisionWriteRow = Omit<NewDivisionRow, 'snapshotId'>
@@ -93,155 +99,6 @@ function resolveParentDivisionIdFromHierarchy(hierarchy: unknown): string | null
   return ids.length === 1 ? ids[0]! : ids.length ? JSON.stringify(ids) : null
 }
 
-export async function getMergedCurrentDivisionVersionMap(
-  sources: Array<{
-    db: unknown
-    key: string
-    sortOrder: number
-  }>,
-  options: {
-    buildDivisionBaseHashInput: (base: DivisionHashInput) => DivisionHashInput
-    normaliseDivisionI18nSnapshotRow: (row: DivisionI18nPayload) => DivisionI18nPayload
-  },
-) {
-  const mergedRows = new Map<
-    string,
-    DivisionVersionSnapshot & { ownerSortOrder: number }
-  >()
-
-  for (const source of [...sources].sort(
-    (left, right) => left.sortOrder - right.sortOrder,
-  )) {
-    const rows = await getCurrentDivisionVersionMap(
-      source.db as HarbourReadableDb,
-      options,
-    )
-
-    for (const [id, row] of rows) {
-      const existing = mergedRows.get(id)
-      const ownerShardKeys = [...(existing?.ownerShardKeys ?? []), source.key]
-
-      if (!existing || source.sortOrder >= existing.ownerSortOrder) {
-        mergedRows.set(id, {
-          ...row,
-          ownerShardKeys: [...new Set(ownerShardKeys)],
-          ownerSortOrder: source.sortOrder,
-        })
-        continue
-      }
-
-      mergedRows.set(id, {
-        ...existing,
-        ownerShardKeys: [...new Set(ownerShardKeys)],
-      })
-    }
-  }
-
-  return new Map(
-    [...mergedRows.entries()].map(([id, row]) => {
-      const { ownerSortOrder: _ownerSortOrder, ...snapshot } = row
-
-      return [id, snapshot] as const
-    }),
-  )
-}
-
-/**
- * Loads the current division state for a region and derives churn snapshots for comparison.
- */
-export async function getCurrentDivisionVersionMap(
-  db: HarbourReadableDb,
-  options: {
-    buildDivisionBaseHashInput: (base: DivisionHashInput) => DivisionHashInput
-    normaliseDivisionI18nSnapshotRow: (row: DivisionI18nPayload) => DivisionI18nPayload
-  },
-) {
-  const rows = (await db
-    .select({
-      id: historySchema.divisions.id,
-      divisionCode: historySchema.divisions.divisionCode,
-      cartography: historySchema.divisions.cartography,
-      geometry: historySchema.divisions.geometry,
-      hierarchies: historySchema.divisions.hierarchies,
-      identifiers: historySchema.divisions.identifiers,
-      level: historySchema.divisions.level,
-      sources: historySchema.divisions.sources,
-      category: historySchema.divisions.category,
-      class: historySchema.divisions.class,
-      versionHash: historySchema.divisions.versionHash,
-    })
-    .from(historySchema.divisions)
-    .where(eq(historySchema.divisions.isCurrent, true))
-    .all()) as CurrentDivisionVersionRow[]
-
-  if (rows.length === 0) {
-    return new Map<string, DivisionVersionSnapshot>()
-  }
-
-  const i18nRows: DivisionI18nPayload[] = []
-  const divisionIds = rows.map(row => row.id)
-  const chunkSize = getMaxItemsPerInClause(1, 1)
-
-  for (const divisionIdChunk of chunkArray(divisionIds, chunkSize)) {
-    const chunkRows = (await db
-      .select({
-        divisionId: historySchema.divisionsI18n.divisionId,
-        isLocaleInferred: historySchema.divisionsI18n.isLocaleInferred,
-        nameProvenance: historySchema.divisionsI18n.nameProvenance,
-        locale: historySchema.divisionsI18n.locale,
-        name: historySchema.divisionsI18n.name,
-        nameAlts: historySchema.divisionsI18n.nameAlts,
-        nameRules: historySchema.divisionsI18n.nameRules,
-        nameVariant: historySchema.divisionsI18n.nameVariant,
-      })
-      .from(historySchema.divisionsI18n)
-      .where(
-        and(
-          inArray(historySchema.divisionsI18n.divisionId, divisionIdChunk),
-          eq(historySchema.divisionsI18n.isCurrent, true),
-        ),
-      )
-      .all()) as DivisionI18nPayload[]
-
-    i18nRows.push(...chunkRows)
-  }
-
-  const i18nByDivisionId = new Map<string, DivisionI18nPayload[]>()
-
-  for (const row of i18nRows) {
-    const rowsForDivision = i18nByDivisionId.get(row.divisionId) ?? []
-    rowsForDivision.push(row)
-    i18nByDivisionId.set(row.divisionId, rowsForDivision)
-  }
-
-  const snapshots = await Promise.all(
-    rows.map(async row => {
-      const localisedRows = [...(i18nByDivisionId.get(row.id) ?? [])]
-        .map(options.normaliseDivisionI18nSnapshotRow)
-        .sort((left, right) => left.locale.localeCompare(right.locale))
-
-      return [
-        row.id,
-        {
-          churnHash: await createHash({
-            base: options.buildDivisionBaseHashInput(row),
-            i18n: localisedRows,
-          }),
-          geometry: row.geometry as GeoJsonGeometry | null,
-          id: row.id,
-          localisedRows: localisedRows,
-          parentId: resolveParentDivisionIdFromHierarchy(row.hierarchies),
-          type: row.class,
-          versionHash: row.versionHash,
-        } satisfies DivisionVersionSnapshot,
-      ] as const
-    }),
-  )
-
-  return new Map(snapshots)
-}
-
-/** Loads the exact materialised parent branch from current storage. */
 export async function getDivisionVersionMapForSnapshot(
   db: HarbourReadableDb,
   snapshotId: string,
@@ -515,152 +372,6 @@ export async function getDivisionCurrentSnapshotTraceState(
 /**
  * Marks current version rows as closed at the given cohortKey.
  */
-export async function closeCurrentDivisionVersions(
-  db: HarbourReadableDb & HarbourWritableDb,
-  divisionIds: string[],
-  snapshotId: string,
-  _cohortKey: string,
-  sourceReleaseId?: string,
-) {
-  if (divisionIds.length === 0) {
-    return
-  }
-
-  const now = new Date().toISOString()
-  const chunkSize = getMaxItemsPerInClause(1, 6)
-  const statements = []
-  const currentI18nRows: Array<{ divisionId: string; locale: string }> = []
-
-  for (const divisionIdChunk of chunkArray(divisionIds, chunkSize)) {
-    currentI18nRows.push(
-      ...(await db
-        .select({
-          divisionId: historySchema.divisionsI18n.divisionId,
-          locale: historySchema.divisionsI18n.locale,
-        })
-        .from(historySchema.divisionsI18n)
-        .where(
-          and(
-            eq(historySchema.divisionsI18n.isCurrent, true),
-            inArray(historySchema.divisionsI18n.divisionId, divisionIdChunk),
-          ),
-        )
-        .all()),
-    )
-    statements.push(
-      db
-        .update(historySchema.divisions)
-        .set({
-          isCurrent: false,
-          updatedAt: now,
-        })
-        .where(
-          and(
-            eq(historySchema.divisions.isCurrent, true),
-            inArray(historySchema.divisions.id, divisionIdChunk),
-          ),
-        ),
-    )
-
-    statements.push(
-      db
-        .update(historySchema.divisionsI18n)
-        .set({
-          isCurrent: false,
-          updatedAt: now,
-        })
-        .where(
-          and(
-            eq(historySchema.divisionsI18n.isCurrent, true),
-            inArray(historySchema.divisionsI18n.divisionId, divisionIdChunk),
-          ),
-        ),
-    )
-  }
-
-  await runStatementsInGroupsWithWriteRetry(db, statements)
-  await recordSnapshotVersionChanges(db, {
-    snapshotId,
-    sourceReleaseId,
-    recordType: 'division',
-    operation: 'delete',
-    changes: divisionIds.map(recordId => ({ recordId })),
-  })
-  await recordSnapshotVersionChanges(db, {
-    snapshotId,
-    sourceReleaseId,
-    recordType: 'divisionI18n',
-    operation: 'delete',
-    changes: currentI18nRows.map(row => ({
-      recordId: row.divisionId,
-      locale: row.locale,
-    })),
-  })
-}
-
-/**
- * Closes and deletes divisions that were previously current but not present in the latest snapshot.
- */
-export async function deleteMissingCurrentDivisions(
-  historyDb: HarbourReadableDb & HarbourWritableDb,
-  snapshotId: string,
-  _cohortKey: string,
-  currentRows: Map<string, DivisionVersionSnapshot>,
-  seenIds: Set<string>,
-) {
-  const missingIds = [...currentRows.keys()].filter(id => !seenIds.has(id))
-
-  if (missingIds.length === 0) {
-    return 0
-  }
-
-  const now = new Date().toISOString()
-  const chunkSize = getMaxItemsPerInClause(1, 6)
-  const historyStatements = []
-
-  for (const missingIdChunk of chunkArray(missingIds, chunkSize)) {
-    historyStatements.push(
-      historyDb
-        .update(historySchema.divisions)
-        .set({
-          isCurrent: false,
-          updatedAt: now,
-        })
-        .where(
-          and(
-            eq(historySchema.divisions.isCurrent, true),
-            inArray(historySchema.divisions.id, missingIdChunk),
-          ),
-        ),
-    )
-
-    historyStatements.push(
-      historyDb
-        .update(historySchema.divisionsI18n)
-        .set({
-          isCurrent: false,
-          updatedAt: now,
-        })
-        .where(
-          and(
-            eq(historySchema.divisionsI18n.isCurrent, true),
-            inArray(historySchema.divisionsI18n.divisionId, missingIdChunk),
-          ),
-        ),
-    )
-  }
-
-  await runStatementsInGroupsWithWriteRetry(historyDb, historyStatements)
-  await recordSnapshotVersionChanges(historyDb, {
-    snapshotId,
-    recordType: 'division',
-    operation: 'delete',
-    changes: missingIds.map(recordId => ({ recordId })),
-  })
-
-  return missingIds.length
-}
-
 export async function deleteStaleDivisionCurrentRows(
   db: HarbourReadableDb & HarbourWritableDb,
   snapshotId: string,
@@ -902,28 +613,13 @@ export async function insertDivisionVersionRows(
     baseStatements.push(
       options?.assumeVersionRowsAbsent
         ? statement.onConflictDoNothing()
-        : statement.onConflictDoUpdate({
-            target: [historySchema.divisions.id, historySchema.divisions.versionHash],
-            set: {
-              isCurrent: true,
-              updatedAt: excluded('updatedAt'),
-            },
-            setWhere: eq(historySchema.divisions.isCurrent, false),
+        : statement.onConflictDoNothing({
+            target: [historySchema.divisions.id, historySchema.divisions.snapshotId],
           }),
     )
   }
 
   await runStatementsInGroupsWithWriteRetry(historyDb, baseStatements)
-  await recordSnapshotVersionChanges(historyDb, {
-    snapshotId: context.snapshotId,
-    sourceReleaseId: context.resourceReleaseId,
-    recordType: 'division',
-    operation: 'upsert',
-    changes: baseRows.map(row => ({
-      recordId: row.id,
-      versionHash: row.versionHash,
-    })),
-  })
 
   if (i18nRows.length > 0) {
     await insertDivisionVersionsI18nInChunks(
@@ -946,17 +642,6 @@ export async function insertDivisionVersionRows(
       })),
       options,
     )
-    await recordSnapshotVersionChanges(historyDb, {
-      snapshotId: context.snapshotId,
-      sourceReleaseId: context.resourceReleaseId,
-      recordType: 'divisionI18n',
-      operation: 'upsert',
-      changes: i18nRows.map(row => ({
-        recordId: row.divisionId,
-        locale: row.locale,
-        versionHash: row.versionHash,
-      })),
-    })
   }
 }
 
@@ -1040,17 +725,12 @@ async function insertDivisionVersionsI18nInChunks(
     statements.push(
       options?.assumeVersionRowsAbsent
         ? statement.onConflictDoNothing()
-        : statement.onConflictDoUpdate({
+        : statement.onConflictDoNothing({
             target: [
               historySchema.divisionsI18n.divisionId,
-              historySchema.divisionsI18n.versionHash,
+              historySchema.divisionsI18n.snapshotId,
               historySchema.divisionsI18n.locale,
             ],
-            set: {
-              isCurrent: true,
-              updatedAt: excluded('updatedAt'),
-            },
-            setWhere: eq(historySchema.divisionsI18n.isCurrent, false),
           }),
     )
   }

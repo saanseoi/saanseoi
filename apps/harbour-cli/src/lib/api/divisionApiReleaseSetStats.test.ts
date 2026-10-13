@@ -1,14 +1,14 @@
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
+import { historyEventsSqlForTables, historySchema, metaSchema } from '@repo/db'
 import { drizzle } from 'drizzle-orm/bun-sqlite'
 import { getTableConfig, type SQLiteTable } from 'drizzle-orm/sqlite-core'
-import { historySchema, metaSchema } from '@repo/db'
 import { isApiReleaseSetStatsReady } from './apiReleaseSetStats'
 import {
   buildDivisionStatsFromSnapshots,
+  type DivisionStatsSnapshot,
   previousDivisionStatsRelease,
   readDivisionStatsSnapshot,
-  type DivisionStatsSnapshot,
 } from './divisionApiReleaseSetStats'
 
 const division = (id: string, extra = {}) =>
@@ -157,7 +157,7 @@ function createTables(sqlite: Database, tables: SQLiteTable[]) {
   for (const table of tables) {
     const config = getTableConfig(table)
     sqlite.exec(
-      `CREATE TABLE "${config.name}" (${config.columns.map(column => `"${column.name}" ${column.getSQLType()}`).join(',')})`,
+      `CREATE TABLE "${config.name}" (${config.columns.map(column => `"${column.name}" ${column.getSQLType()}${column.name === 'operation' ? " DEFAULT 'upsert'" : ''}`).join(',')})`,
     )
   }
 }
@@ -174,11 +174,11 @@ test('replay loads inherited content across shards, respects deletes, and reject
       metaSchema.metaSnapshotShardAssignments,
     ])
     for (const db of [older, newer])
-      createTables(db, [
-        historySchema.divisions,
-        historySchema.divisionsI18n,
-        historySchema.snapshotVersionChanges,
-      ])
+      createTables(db, [historySchema.divisions, historySchema.divisionsI18n])
+    for (const db of [older, newer])
+      db.exec(
+        `CREATE VIEW historyEvents AS ${historyEventsSqlForTables(new Set(['divisions', 'divisionsI18n']))}`,
+      )
     meta.exec(`INSERT OR IGNORE INTO snapshotLineages (id,code,resourceType,regionCode,variant,identityMode,versionHash,createdAt,updatedAt) VALUES ('fixture-lineage-' || 'root','fixture-lineage-' || 'root','division','hk','default','persistent','fixture','2026-01-01T00:00:00.000Z','2026-01-01T00:00:00.000Z');
 UPDATE snapshotLineages SET resourceType='division' WHERE id='fixture-lineage-' || 'root' AND resourceType IS NULL;
 INSERT OR IGNORE INTO snapshotLineages (id,code,resourceType,regionCode,variant,identityMode,versionHash,createdAt,updatedAt) VALUES ('fixture-lineage-' || 'leaf','fixture-lineage-' || 'leaf','division','hk','default','persistent','fixture','2026-01-01T00:00:00.000Z','2026-01-01T00:00:00.000Z');
@@ -190,13 +190,10 @@ INSERT INTO snapshots (id, snapshotLineageId, parentSnapshotId) VALUES
       INSERT INTO snapshotShardAssignments (snapshotId, dataShardId) VALUES ('root', 'old'), ('leaf', 'new');`)
     older.exec(`INSERT INTO divisions (id, versionHash, class, level) VALUES ('keep', 'v1', 'district', 2), ('remove', 'v2', 'district', 2);
       INSERT INTO divisionsI18n (divisionId, locale, versionHash, name) VALUES ('keep', 'en', 'n1', 'Kept'), ('remove', 'en', 'n2', 'Removed');
-      INSERT INTO snapshotVersionChanges (snapshotId, recordType, recordId, locale, versionHash, operation, sourceReleaseId) VALUES
-      ('root', 'division', 'keep', '', 'v1', 'upsert', 'source'),
-      ('root', 'division', 'remove', '', 'v2', 'upsert', 'source'),
-      ('root', 'divisionI18n', 'keep', 'en', 'n1', 'upsert', 'source'),
-      ('root', 'divisionI18n', 'remove', 'en', 'n2', 'upsert', 'source');`)
+      UPDATE divisions SET snapshotId='root', sourceReleaseId='source';
+      UPDATE divisionsI18n SET snapshotId='root', sourceReleaseId='source' ;`)
     newer.exec(
-      `INSERT INTO snapshotVersionChanges (snapshotId, recordType, recordId, locale, operation) VALUES ('leaf', 'division', 'remove', '', 'delete');`,
+      `INSERT INTO divisions (snapshotId,id,operation) VALUES ('leaf','remove','delete');`,
     )
     const targets = [
       { bindingName: 'old', db: drizzle({ client: older }) },
@@ -209,10 +206,10 @@ INSERT INTO snapshots (id, snapshotLineageId, parentSnapshotId) VALUES
     )
     expect(rows.divisions.map(row => row.id)).toEqual(['keep'])
     expect(rows.names.map(row => row.name)).toEqual(['Kept'])
-    older.exec("DELETE FROM divisions WHERE id = 'keep'")
+    older.exec("UPDATE divisions SET versionHash=NULL WHERE id = 'keep'")
     await expect(
       readDivisionStatsSnapshot(drizzle({ client: meta }) as never, targets, 'leaf'),
-    ).rejects.toThrow('Missing 1 division versions')
+    ).rejects.toThrow('invalid content event')
   } finally {
     meta.close()
     older.close()

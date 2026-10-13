@@ -1,24 +1,26 @@
 import { createHash } from 'node:crypto'
-import { and, eq, inArray, historySchema, metaSchema } from '@repo/db'
-import type { HarbourReadableDb } from '@repo/core/db/types'
 import { resolveSnapshotReplayPlan } from '@repo/core/db/metaRegistry'
+import type { HarbourReadableDb } from '@repo/core/db/types'
 import {
-  resolveSnapshotVersionState,
   groupResolvedVersionsByShard,
+  historyVersionSelection,
+  resolveSnapshotVersionState,
 } from '@repo/core/pipeline/db/snapshotReplay'
-import { chunkArray } from '@repo/core/pipeline/utils'
+import { resolveDistrictId } from '@repo/core/pipeline/services/divisions/division'
 import {
   buildChurnCounts,
   buildDivisionApiReleaseSetStatsRows,
   createLocaleStatsAccumulator,
   type StatsLocaleGroup,
 } from '@repo/core/pipeline/services/metrics/releaseStats'
-import { resolveDistrictId } from '@repo/core/pipeline/services/divisions/division'
+import { chunkArray } from '@repo/core/pipeline/utils'
+import { and, eq, historySchema, inArray, metaSchema } from '@repo/db'
+import type { DivisionVersionI18nRow, DivisionVersionRow } from '@repo/db/historySchema'
 import { planningDivisionContentHash } from '../pipeline/divisions/planningDivisionChurn'
 
 export type DivisionHistoryTarget = { bindingName: string; db: unknown }
-type Division = typeof historySchema.divisions.$inferSelect
-type Name = typeof historySchema.divisionsI18n.$inferSelect
+type Division = DivisionVersionRow
+type Name = DivisionVersionI18nRow
 export type DivisionStatsSnapshot = { divisions: Division[]; names: Name[] }
 
 export async function listDivisionStatsReleases(db: HarbourReadableDb) {
@@ -133,17 +135,15 @@ export async function readDivisionStatsSnapshot(
           .filter(row => row.recordType === type)
           .map(row => JSON.stringify([row.recordId, row.locale, row.versionHash])),
       )
-      const hashes = [
-        ...new Set(
-          versions.filter(row => row.recordType === type).map(row => row.versionHash),
-        ),
-      ]
-      for (const batch of chunkArray(hashes, 90)) {
+      for (const batch of chunkArray(
+        versions.filter(row => row.recordType === type),
+        256,
+      )) {
         if (type === 'division') {
           const rows = (await db
             .select()
             .from(historySchema.divisions)
-            .where(inArray(historySchema.divisions.versionHash, batch))
+            .where(historyVersionSelection(historySchema.divisions, batch))
             .all()) as Division[]
           for (const row of rows)
             if (expected.delete(JSON.stringify([row.id, '', row.versionHash])))
@@ -152,7 +152,7 @@ export async function readDivisionStatsSnapshot(
           const rows = (await db
             .select()
             .from(historySchema.divisionsI18n)
-            .where(inArray(historySchema.divisionsI18n.versionHash, batch))
+            .where(historyVersionSelection(historySchema.divisionsI18n, batch))
             .all()) as Name[]
           for (const row of rows)
             if (

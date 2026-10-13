@@ -1,10 +1,10 @@
-import { matchesAddressGeographicMembership } from '../lib/geographicFilterContext'
-import type { HistoryDatabase } from '@repo/db'
-import { and, asc, eq, historySchema, sql } from '@repo/db'
-import { resolveSnapshotReplayPlan } from '@repo/core/db/metaRegistry'
 import type { RequestedApiLocaleSelection } from '@repo/core'
+import { resolveSnapshotReplayPlan } from '@repo/core/db/metaRegistry'
 import { getReplayedAddressVersionMap } from '@repo/core/pipeline/db/address.ts'
 import { buildAddressBuildingNumberLookupRows } from '@repo/core/pipeline/services/addresses/normalisation.ts'
+import type { HistoryDatabase } from '@repo/db'
+import { and, asc, eq, historySchema, sql } from '@repo/db'
+import { matchesAddressGeographicMembership } from '../lib/geographicFilterContext'
 
 import type {
   AddressLocaleValue,
@@ -175,7 +175,7 @@ export async function listReplayedAddressPage(
     for (const [binding, snapshots] of snapshotIdsByBinding) {
       const db = args.historyDbsByBinding[binding]
       if (!db) throw new Error(`Unavailable history binding ${binding}.`)
-      const journal = historySchema.snapshotVersionChanges
+      const journal = historySchema.historyEvents
       const rows = await db
         .selectDistinct({ id: journal.recordId })
         .from(journal)

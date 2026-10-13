@@ -1,10 +1,7 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { dirname, resolve } from 'node:path'
-
-import type { HistoryDatabase } from '@repo/db'
-
 import type { HarbourReadableDb } from '@repo/core/db/types'
-import { getCurrentAddressVersionMap } from '@repo/core/pipeline/db/address'
+import { getAddressVersionMapForSnapshotDbs } from '@repo/core/pipeline/db/address'
 import {
   buildAddressBaseHashInput,
   buildMatchKey,
@@ -87,11 +84,14 @@ export async function writeAddressCurrentLookupCache(
   target: 'local' | 'preview' | 'production',
   regionCode: string,
   releaseCode: string,
-  historyDb: HistoryDatabase,
+  metaDb: HarbourReadableDb,
+  historyDbs: HarbourReadableDb[],
   snapshotId: string,
 ) {
-  const snapshots = await getCurrentAddressVersionMap(
-    historyDb as unknown as HarbourReadableDb,
+  const snapshots = await getAddressVersionMapForSnapshotDbs(
+    metaDb,
+    historyDbs,
+    snapshotId,
     {
       buildAddressBaseHashInput,
       buildMatchKey,

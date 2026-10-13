@@ -1,20 +1,27 @@
-import { prepareRecordEvidence } from '@repo/core/provenance'
-import { normaliseOvertureAttribution } from '@repo/core/pipeline/services/sources/sourceAttribution'
-import { publisherPlaceId } from '@repo/core/pipeline/services/places/place'
-import { PlaceProjectionSql } from './placeProjectionSql.ts'
-import { sourceResolutionSql } from '@repo/core/pipeline/db/sourceResolutions'
-import { overtureSourcePayload } from '@repo/core/pipeline/services/sources/sourcePayload'
 import type { HarbourReadableDb } from '@repo/core/db/types'
+import { sourceResolutionSql } from '@repo/core/pipeline/db/sourceResolutions'
+import { publisherPlaceId } from '@repo/core/pipeline/services/places/place'
+import { normaliseOvertureAttribution } from '@repo/core/pipeline/services/sources/sourceAttribution'
+import { overtureSourcePayload } from '@repo/core/pipeline/services/sources/sourcePayload'
+import { prepareRecordEvidence } from '@repo/core/provenance'
+import { sourceSchema } from '@repo/db'
+import { eq } from 'drizzle-orm'
+import { latLngToCell } from 'h3-js'
+import type { LocalAddressDbContext } from '../../dbCache/localDbCache.ts'
 import {
   canonicalPlaceJson,
   placeHistoryInsertSql,
   placeLocaleHash,
   reusePlaceLocaleDependencies,
 } from './placeHistory.ts'
-import { sourceSchema } from '@repo/db'
-import { eq } from 'drizzle-orm'
-import { latLngToCell } from 'h3-js'
-import type { LocalAddressDbContext } from '../../dbCache/localDbCache.ts'
+import { PlaceProjectionSql } from './placeProjectionSql.ts'
+import {
+  MAX_SQL_BYTES,
+  PLACE_H3_LEVELS,
+  PLACE_SQL_BATCH_SIZE,
+} from './processLocalPlaceSqlUploadConfig.ts'
+import { insertSql, lit } from './processLocalPlaceSqlUploadImport.ts'
+import { readStagedJsonBatches } from './processLocalPlaceSqlUploadPreparation.ts'
 import type {
   BuildPlaceSqlInput,
   BuildPlaceSqlOptions,
@@ -22,13 +29,6 @@ import type {
   PlaceHistoryState,
   PlaceSqlProgressEvent,
 } from './processLocalPlaceSqlUploadTypes.ts'
-import { insertSql, lit } from './processLocalPlaceSqlUploadImport.ts'
-import {
-  MAX_SQL_BYTES,
-  PLACE_H3_LEVELS,
-  PLACE_SQL_BATCH_SIZE,
-} from './processLocalPlaceSqlUploadConfig.ts'
-import { readStagedJsonBatches } from './processLocalPlaceSqlUploadPreparation.ts'
 
 export async function loadCurrentPlaceSources(
   targets: LocalAddressDbContext['sourceTargets'],
@@ -96,10 +96,7 @@ export async function buildPlaceSql(
   }
 
   const retireLocale = (state: NonNullable<PlaceHistoryState['locales']>[number]) => {
-    historyStatements(state.bindingName).push(
-      `UPDATE placesI18n SET isCurrent = 0, updatedAt = ${lit(now)} WHERE placeId = ${lit(state.row.placeId)} AND locale = ${lit(state.row.locale)} AND versionHash = ${lit(state.row.versionHash)} AND isCurrent = 1;`,
-    )
-    changeInserts.add('snapshotVersionChanges', {
+    changeInserts.addDeletion({
       snapshotId: input.snapshots.snapshotId,
       recordType: 'placeI18n',
       recordId: state.row.placeId,
@@ -290,10 +287,6 @@ export async function buildPlaceSql(
         updatedAt: now,
       })
       if (previousLocale?.row.versionHash !== i18nVersionHash) {
-        if (previousLocale)
-          historyStatements(previousLocale.bindingName).push(
-            `UPDATE placesI18n SET isCurrent = 0, updatedAt = ${lit(now)} WHERE placeId = ${lit(place.id)} AND locale = ${lit(localised.locale)} AND versionHash = ${lit(previousLocale.row.versionHash)} AND isCurrent = 1;`,
-          )
         historyStatements(input.activeHistoryBindingName).push(
           placeHistoryInsertSql(
             'placesI18n',
@@ -312,17 +305,6 @@ export async function buildPlaceSql(
             now,
           ),
         )
-        changeInserts.add('snapshotVersionChanges', {
-          snapshotId: input.snapshots.snapshotId,
-          recordType: 'placeI18n',
-          recordId: place.id,
-          locale: localised.locale,
-          versionHash: i18nVersionHash,
-          operation: 'upsert',
-          sourceReleaseId: input.message.resourceReleaseId,
-          createdAt: now,
-          updatedAt: now,
-        })
       }
     }
     for (const previousLocale of previousLocales.values()) {
@@ -362,11 +344,6 @@ export async function buildPlaceSql(
     }
 
     if (previous?.row.versionHash !== row.versionHash) {
-      if (previous) {
-        historyStatements(previous.bindingName).push(
-          `UPDATE places SET isCurrent = 0, updatedAt = ${lit(now)} WHERE id = ${lit(place.id)} AND versionHash = ${lit(previous.row.versionHash)} AND isCurrent = 1;`,
-        )
-      }
       historyStatements(input.activeHistoryBindingName).push(
         placeHistoryInsertSql(
           'places',
@@ -407,17 +384,6 @@ export async function buildPlaceSql(
           now,
         ),
       )
-      changeInserts.add('snapshotVersionChanges', {
-        snapshotId: input.snapshots.snapshotId,
-        recordType: 'place',
-        recordId: place.id,
-        locale: '',
-        versionHash: row.versionHash,
-        operation: 'upsert',
-        sourceReleaseId: input.message.resourceReleaseId,
-        createdAt: now,
-        updatedAt: now,
-      })
     }
     processedPlaceRows += 1
     options.onProgress?.(processedPlaceRows)
@@ -429,11 +395,8 @@ export async function buildPlaceSql(
       const previousId =
         typeof previous.row.id === 'string' ? previous.row.id : String(previous.row.id)
       if (seen.has(previousId)) continue
-      historyStatements(previous.bindingName).push(
-        `UPDATE places SET isCurrent = 0, updatedAt = ${lit(now)} WHERE id = ${lit(previousId)} AND versionHash = ${lit(previous.row.versionHash)} AND isCurrent = 1;`,
-      )
       for (const locale of previous.locales ?? []) retireLocale(locale)
-      changeInserts.add('snapshotVersionChanges', {
+      changeInserts.addDeletion({
         snapshotId: input.snapshots.snapshotId,
         recordType: 'place',
         recordId: previous.row.id,

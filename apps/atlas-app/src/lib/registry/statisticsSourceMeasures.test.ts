@@ -52,12 +52,12 @@ test('source catalogue preserves unchanged reissue counts and frozen definitions
       INSERT INTO statsRecords (snapshotId,id,datasetCode,sourceReleaseId,sourceFeatureRef,referencePeriodCode,referencePeriodGranularity,referencePeriodEndYear,"values",geography,isCurrent,versionHash,definitionSetId,fieldSources) VALUES
       ('base','packed','dataset','old-resource','source-feature','2025','year','2025','{"population":"12","landArea":"5"}','{}',0,'v1','frozen','{}'),
       ('future','packed','dataset','future-resource','source-feature','2025','year','2025','{"population":"13"}','{}',1,'v2','future','{}');
-      INSERT INTO statsFields (datasetCode,fieldName,versionHash,sourceReleaseId,sourceField,statisticKind,aggregation,unitCode,valueKind) VALUES
-        ('dataset','population','f1','old-resource','t_pop','count','total','person','numeric'),
-        ('dataset','population','f2','future-resource','t_pop','count','total','person','numeric');
-      INSERT INTO statsFieldsI18n (datasetCode,fieldName,versionHash,sourceReleaseId,locale,name,description) VALUES
-        ('dataset','population','f1','old-resource','en','Population','Frozen meaning'),
-        ('dataset','population','f2','future-resource','en','Future population','Future meaning');`)
+      INSERT INTO statsFields (snapshotId,operation,datasetCode,fieldName,versionHash,sourceReleaseId,sourceField,statisticKind,aggregation,unitCode,valueKind) VALUES
+        ('base','upsert','dataset','population','f1','old-resource','t_pop','count','total','person','numeric'),
+        ('future','upsert','dataset','population','f2','future-resource','t_pop','count','total','person','numeric');
+      INSERT INTO statsFieldsI18n (snapshotId,operation,datasetCode,fieldName,versionHash,sourceReleaseId,locale,name,description) VALUES
+        ('base','upsert','dataset','population','f1','old-resource','en','Population','Frozen meaning'),
+        ('future','upsert','dataset','population','f2','future-resource','en','Future population','Future meaning');`)
     history.exec("UPDATE statsRecords SET operation='upsert'")
     const input = {
       metaDb: drizzle({ client: meta }) as never,

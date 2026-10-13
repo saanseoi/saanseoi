@@ -1,6 +1,6 @@
 import { Database } from 'bun:sqlite'
 import { describe, expect, test } from 'bun:test'
-
+import { normaliseOverturePlace } from '@repo/core/pipeline/services/places/place'
 import {
   buildPlaceCountryReviewProcessingActions,
   buildPlaceLocaleConflictProcessingActions,
@@ -8,7 +8,6 @@ import {
   buildPlaceSql,
   isExcludedOverturePlace,
 } from './processLocalPlaceSqlUpload.ts'
-import { normaliseOverturePlace } from '@repo/core/pipeline/services/places/place'
 
 describe('Places SQL materialisation', () => {
   test('builds field statistics against the Place denominator', () => {
@@ -187,7 +186,7 @@ describe('Places SQL materialisation', () => {
         emails TEXT, phones TEXT, addresses TEXT, confidence REAL,
         sources TEXT, firstSeenMonth TEXT, lastSeenMonth TEXT, versionHash TEXT,
         sourceReleaseId TEXT, snapshotId TEXT, isCurrent INTEGER, createdAt TEXT,
-        updatedAt TEXT, PRIMARY KEY (id, versionHash)
+        updatedAt TEXT, PRIMARY KEY (id, snapshotId)
       );
       CREATE TABLE placesI18n (
         placeId TEXT, locale TEXT, name TEXT, nameVariant TEXT, nameAlts TEXT,
@@ -196,12 +195,9 @@ describe('Places SQL materialisation', () => {
         snapshotId TEXT, isCurrent INTEGER, createdAt TEXT, updatedAt TEXT
         , freeformAddress TEXT, accessHint TEXT, provenance TEXT, searchDependencyText TEXT
       );
-      CREATE TABLE snapshotVersionChanges (
-        snapshotId TEXT, recordType TEXT, recordId TEXT, locale TEXT,
-        versionHash TEXT, operation TEXT, sourceReleaseId TEXT,
-        createdAt TEXT, updatedAt TEXT,
-        PRIMARY KEY (snapshotId, recordType, recordId, locale)
-      );
+      ALTER TABLE places ADD operation TEXT DEFAULT 'upsert';
+      ALTER TABLE placesI18n ADD operation TEXT DEFAULT 'upsert';
+      CREATE VIEW historyEvents AS SELECT snapshotId,'place' AS recordType,id AS recordId,'' AS locale,versionHash,operation,sourceReleaseId FROM places UNION ALL SELECT snapshotId,'placeI18n',placeId,locale,versionHash,operation,sourceReleaseId FROM placesI18n;
     `)
 
     const result = await buildPlaceSql({
@@ -295,7 +291,7 @@ describe('Places SQL materialisation', () => {
     for (const statements of result.historySqlByBinding.values())
       history.exec(statements.join('\n'))
     sqlite.exec(result.currentSql.join('\n'))
-    history.exec(result.changes.join('\n'))
+    expect(result.changes).toEqual([])
 
     expect(sqlite.query('SELECT COUNT(*) AS count FROM overturePlaces').get()).toEqual({
       count: 1,
@@ -328,9 +324,9 @@ describe('Places SQL materialisation', () => {
         address2dId: 'supplementary-address',
       })
     }
-    expect(
-      history.query('SELECT COUNT(*) AS count FROM snapshotVersionChanges').get(),
-    ).toEqual({ count: 2 })
+    expect(history.query('SELECT COUNT(*) AS count FROM historyEvents').get()).toEqual({
+      count: 2,
+    })
     const placeVersionHash = history
       .query("SELECT versionHash FROM places WHERE id = 'place-1'")
       .get() as { versionHash: string }
@@ -339,9 +335,7 @@ describe('Places SQL materialisation', () => {
       .get() as { versionHash: string }
     expect(
       history
-        .query(
-          "SELECT versionHash FROM snapshotVersionChanges WHERE recordType = 'placeI18n'",
-        )
+        .query("SELECT versionHash FROM historyEvents WHERE recordType = 'placeI18n'")
         .get(),
     ).toEqual(i18nVersionHash)
     expect(i18nVersionHash.versionHash).not.toBe(placeVersionHash.versionHash)

@@ -1,37 +1,37 @@
 import { Database } from 'bun:sqlite'
 import { expect, mock, test } from 'bun:test'
-import { drizzle } from 'drizzle-orm/bun-sqlite'
-import { currentSchema, historySchema } from '@repo/db'
 import type { SnapshotReplayStep } from '@repo/core/db/metaRegistry'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import {
-  resolveSnapshotVersionState,
   type ResolvedSnapshotVersion,
+  resolveSnapshotVersionState,
 } from '@repo/core/pipeline/db/snapshotReplay.ts'
 import { compressJsonBrotli } from '@repo/core/pipeline/services/storage/brotliJson.ts'
+import { currentSchema, historySchema } from '@repo/db'
+import { drizzle } from 'drizzle-orm/bun-sqlite'
 import {
+  type DivisionServiceDependencies,
   getDivisionDetail,
   listDivisions,
-  type DivisionServiceDependencies,
 } from '../services/divisions'
-import {
-  listDivisionAreasCurrentByDivisionIds,
-  listDivisionBoundariesCurrentByDivisionIds,
-  type DivisionRecord,
-} from './divisions'
 import {
   hasCurrentDivisionGeometrySnapshot,
   listReplayedDivisionAreasByDivisionIds,
   listReplayedDivisionBoundariesByDivisionIds,
 } from './divisionGeometryReplay'
+import {
+  type DivisionRecord,
+  listDivisionAreasCurrentByDivisionIds,
+  listDivisionBoundariesCurrentByDivisionIds,
+} from './divisions'
 
 function createDb(history = false) {
   const sqlite = new Database(':memory:')
   const parameterCounts: number[] = []
   for (const kind of ['divisionAreas', 'divisionBoundaries']) {
     sqlite.exec(`CREATE TABLE ${kind} (
-      snapshotId TEXT NOT NULL, id TEXT NOT NULL, variant TEXT NOT NULL,
-      bbox TEXT, geometry BLOB, identifiers TEXT, sources TEXT, type TEXT NOT NULL,
+      snapshotId TEXT NOT NULL, id TEXT NOT NULL, variant TEXT,
+      bbox TEXT, geometry BLOB, identifiers TEXT, sources TEXT, type TEXT,
       isLand INTEGER, isTerritorial INTEGER, createdAt TEXT, updatedAt TEXT,
       ${kind === 'divisionAreas' ? 'divisionId TEXT' : 'leftDivisionId TEXT, rightDivisionId TEXT'}
       ${history ? ", operation TEXT DEFAULT 'upsert', versionHash TEXT, sourceReleaseId TEXT, isCurrent INTEGER" : ''}
@@ -47,10 +47,10 @@ function createDb(history = false) {
         INSERT INTO ${family}PublicationState VALUES ('scope:${snapshotId}','${snapshotId}','current','token','2026-01-01','2026-01-01')`)
     }
   }
-  sqlite.exec(`CREATE TABLE historyEvents (
-    snapshotId TEXT, recordType TEXT, recordId TEXT, locale TEXT,
-    versionHash TEXT, operation TEXT, sourceReleaseId TEXT, createdAt TEXT, updatedAt TEXT
-  )`)
+  if (history)
+    sqlite.exec(
+      `CREATE VIEW historyEvents AS SELECT snapshotId,'divisionArea' AS recordType,id AS recordId,'' AS locale,versionHash,operation,sourceReleaseId,createdAt,updatedAt FROM divisionAreas UNION ALL SELECT snapshotId,'divisionBoundary',id,'',versionHash,operation,sourceReleaseId,createdAt,updatedAt FROM divisionBoundaries`,
+    )
   const db = drizzle({
     client: sqlite,
     logger: {
@@ -136,34 +136,17 @@ function createFixture() {
       } as never)
       .run()
   }
-  function journal(
-    owner: typeof root,
-    snapshotId: string,
-    kind: string,
-    id: string,
-    hash: string | null,
-  ) {
-    owner.db
-      .insert(historySchema.historyEvents)
-      .values({
-        snapshotId,
-        recordType: kind,
-        recordId: id,
-        locale: '',
-        versionHash: hash,
-        operation: hash ? 'upsert' : 'delete',
-        sourceReleaseId: hash ? 'source' : null,
-        createdAt: '2026-01-01',
-        updatedAt: '2026-01-01',
-      })
-      .run()
-  }
   insertHistory(root, 'divisionArea', { ...area, geometry: null }, 'old')
   insertHistory(root, 'divisionArea', unchanged, 'unchanged')
   insertHistory(root, 'divisionArea', { ...area, id: 'area-deleted' }, 'deleted')
   // Same hash on another record must not make that record a snapshot member.
   insertHistory(root, 'divisionArea', { ...area, id: 'area-unselected' }, 'unchanged')
-  insertHistory(root, 'divisionArea', { ...area, geometry: null }, 'new')
+  root.sqlite.exec(
+    "UPDATE divisionAreas SET snapshotId='sibling' WHERE id='area-unselected'",
+  )
+  leaf.sqlite.exec(
+    "INSERT INTO divisionAreas(id,snapshotId,operation) VALUES('area-deleted','area-leaf','delete')",
+  )
   insertHistory(leaf, 'divisionArea', area, 'new')
   insertHistory(
     leaf,
@@ -171,15 +154,8 @@ function createFixture() {
     { ...area, id: 'area-other-variant', variant: 'other' },
     'other',
   )
-  journal(root, 'area-root', 'divisionArea', area.id, 'old')
-  journal(root, 'area-root', 'divisionArea', unchanged.id, 'unchanged')
-  journal(root, 'area-root', 'divisionArea', 'area-deleted', 'deleted')
-  journal(leaf, 'area-leaf', 'divisionArea', area.id, 'new')
-  journal(leaf, 'area-leaf', 'divisionArea', 'area-deleted', null)
-  journal(leaf, 'area-leaf', 'divisionArea', 'area-other-variant', 'other')
   for (const row of [boundary, rightBoundary]) {
     insertHistory(root, 'divisionBoundary', row, row.id)
-    journal(root, 'boundary-root', 'divisionBoundary', row.id, row.id)
     current.db
       .insert(currentSchema.divisionBoundaries)
       .values({ ...row, snapshotId: 'scope:boundary-leaf' })
@@ -388,7 +364,7 @@ test.each([false, true])(
       code TEXT UNIQUE,
       regionCode TEXT NOT NULL DEFAULT 'hk',
       resourceType TEXT,
-      variant TEXT NOT NULL DEFAULT 'default',
+      variant TEXT DEFAULT 'default',
       identityMode TEXT NOT NULL DEFAULT 'persistent',
       primaryDatasetId TEXT,
       versionHash TEXT NOT NULL DEFAULT 'fixture',

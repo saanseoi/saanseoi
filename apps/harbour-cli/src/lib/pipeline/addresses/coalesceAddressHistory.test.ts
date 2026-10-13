@@ -6,8 +6,6 @@ import { join, resolve } from 'node:path'
 import { loadMigrationSql } from '../../../../../../libs/core/src/testing/metaFixtures.ts'
 import { coalesceAddressHistory } from './coalesceAddressHistory.ts'
 import { closeResolvedAddressHistory } from './resolvedAddressHistory.ts'
-import { resolveSnapshotVersionState } from '@repo/core/pipeline/db/snapshotReplay'
-import { drizzle } from 'drizzle-orm/bun-sqlite'
 
 const oldBinding = 'DB_HISTORY_HK_2025'
 const nextBinding = 'DB_HISTORY_HK_2026'
@@ -40,7 +38,7 @@ async function fixture(
         INSERT INTO address2d(id,versionHash,snapshotId,sourceReleaseId,granularity,isCurrent) VALUES('a','v1','one','r1','building',1);
         INSERT INTO address2dI18n(addressId,versionHash,locale,formattedAddress,sourceReleaseId,snapshotId,isCurrent) VALUES('a','v1','en','First','r1','one',1),('a','v1','zh-hant','中文','r1','one',1);
         INSERT INTO address2dBuildingNumberLookup(addressId,versionHash,snapshotId,sourceReleaseId,buildingNumber,numericStem,evidence,derivation,isCurrent) VALUES('a','v1','one','r1','1',1,'source_endpoint','single',1);
-        INSERT INTO snapshotVersionChanges(snapshotId,recordType,recordId,locale,versionHash,operation,sourceReleaseId) VALUES('one','address2d','a','','v1','upsert','r1'),('one','address2dI18n','a','en','v1','upsert','r1'),('one','address2dI18n','a','zh-hant','v1','upsert','r1');`)
+`)
       if (binding === nextBinding)
         db.exec(`
         INSERT INTO address2d(id,versionHash,snapshotId,sourceReleaseId,granularity,isCurrent) VALUES('other','other-version','other-snapshot','other-release','building',1);
@@ -71,11 +69,17 @@ async function fixture(
         { recordType: 'address2d', locale: '' },
         { recordType: 'address2dI18n', locale: 'en' },
         { recordType: 'address2dI18n', locale: 'zh-hant' },
+        { recordType: 'address2dBuildingNumberLookup', locale: '' },
       ].map(row => ({
         ...row,
-        recordId: 'a',
+        recordId:
+          row.recordType === 'address2dBuildingNumberLookup'
+            ? JSON.stringify(['a', '1'])
+            : 'a',
         versionHash: 'v1',
-        shard: { bindingName: oldBinding },
+        snapshotId: 'one',
+        sourceReleaseId: 'r1',
+        shard: { bindingName: oldBinding, db: {} as never },
       })),
     })
   } finally {
@@ -94,251 +98,85 @@ function stage(
     `INSERT INTO address2d(id,versionHash,snapshotId,sourceReleaseId,granularity,isCurrent) VALUES('a','v2','two','r2',?,1)`,
   ).run(granularity)
   db.exec(`INSERT INTO address2dI18n(addressId,versionHash,locale,formattedAddress,sourceReleaseId,snapshotId,isCurrent) VALUES('a','v2','en','Second','r2','two',1),('a','v2','zh-hant','中文','r2','two',1);
-    INSERT INTO snapshotVersionChanges(snapshotId,recordType,recordId,locale,versionHash,operation,sourceReleaseId) VALUES('two','address2d','a','','v2','upsert','r2'),('two','address2dI18n','a','en','v2','upsert','r2'),('two','address2dI18n','a','zh-hant','v2','upsert','r2');`)
+    `)
   db.query(
     `INSERT INTO address2dBuildingNumberLookup(addressId,versionHash,snapshotId,sourceReleaseId,buildingNumber,numericStem,evidence,derivation,isCurrent) VALUES('a','v2','two','r2',?,?,'source_endpoint','single',1)`,
   ).run(number, Number(number))
 }
 
-test('cross-year locale changes reuse base, other locale and lookup without touching another scope', async () => {
+test('changed locale writes one inline row and leaves parent components immutable', async () => {
   await fixture(input => {
+    const old = input.candidates[oldBinding]!.db
+    const before = old.query('SELECT * FROM address2dI18n').all()
     stage(input)
     coalesceAddressHistory(input)
-    const old = input.candidates[oldBinding]!.db
     const next = input.candidates[nextBinding]!.db
-    expect(old.query('SELECT id,versionHash,isCurrent FROM address2d').all()).toEqual([
-      { id: 'a', versionHash: 'v1', isCurrent: 1 },
-    ])
     expect(
-      old.query('SELECT locale,isCurrent FROM address2dI18n ORDER BY locale').all(),
-    ).toEqual([
-      { locale: 'en', isCurrent: 0 },
-      { locale: 'zh-hant', isCurrent: 1 },
-    ])
-    expect(next.query('SELECT id,versionHash,isCurrent FROM address2d').all()).toEqual([
-      { id: 'other', versionHash: 'other-version', isCurrent: 1 },
-    ])
-    expect(
-      next.query('SELECT locale FROM address2dI18n WHERE isCurrent=1').all(),
-    ).toEqual([{ locale: 'en' }])
-    expect(
-      next.query('SELECT recordType,locale FROM snapshotVersionChanges').all(),
+      next
+        .query("SELECT recordType,locale FROM historyEvents WHERE snapshotId='two'")
+        .all(),
     ).toEqual([{ recordType: 'address2dI18n', locale: 'en' }])
-    expect(next.query('SELECT * FROM address2dBuildingNumberLookup').all()).toEqual([])
+    expect(old.query('SELECT * FROM address2dI18n').all()).toEqual(before)
     expect(
-      old.query('SELECT isCurrent FROM address2dBuildingNumberLookup').get(),
-    ).toEqual({ isCurrent: 1 })
+      next
+        .query(
+          "SELECT count(*) AS n FROM address2dBuildingNumberLookup WHERE snapshotId='two'",
+        )
+        .get(),
+    ).toEqual({ n: 0 })
   })
 })
 
-test('a base change leaves unchanged lookup evidence open after exact history closure', async () => {
-  await fixture(input => {
-    stage(input, 'site')
-    coalesceAddressHistory(input)
-    closeResolvedAddressHistory({
-      ...input,
-      resourceReleaseId: 'r2',
-      prior: [
-        {
-          recordType: 'address2d',
-          recordId: 'a',
-          locale: '',
-          versionHash: 'v1',
-          sourceReleaseId: 'r1',
-          shard: { bindingName: oldBinding },
-        },
-      ] as Parameters<typeof closeResolvedAddressHistory>[0]['prior'],
-    })
-    expect(
-      input.candidates[oldBinding]!.db.query('SELECT isCurrent FROM address2d').get(),
-    ).toEqual({ isCurrent: 0 })
-    expect(
-      input.candidates[oldBinding]!.db.query(
-        'SELECT isCurrent FROM address2dBuildingNumberLookup',
-      ).get(),
-    ).toEqual({ isCurrent: 1 })
-  })
-})
-
-test('lookup replacement closes only omitted evidence when the base is unchanged', async () => {
+test('omitted lookup writes a tombstone on the child and preserves its parent', async () => {
   await fixture(input => {
     stage(input, 'building', '2')
     input.candidates.DB_CURRENT!.db.exec(
       "UPDATE address2dBuildingNumberLookup SET buildingNumber='2',numericStem=2 WHERE addressId='a'",
     )
     coalesceAddressHistory(input)
-    expect(
-      input.candidates[oldBinding]!.db.query('SELECT isCurrent FROM address2d').get(),
-    ).toEqual({ isCurrent: 1 })
-    expect(
-      input.candidates[oldBinding]!.db.query(
-        'SELECT isCurrent FROM address2dBuildingNumberLookup',
-      ).get(),
-    ).toEqual({ isCurrent: 0 })
+    closeResolvedAddressHistory({
+      ...input,
+      resourceReleaseId: 'r2',
+      prior: [...input.prior],
+    })
     expect(
       input.candidates[nextBinding]!.db.query(
+        "SELECT buildingNumber,operation FROM address2dBuildingNumberLookup WHERE snapshotId='two' ORDER BY buildingNumber",
+      ).all(),
+    ).toEqual([
+      { buildingNumber: '1', operation: 'delete' },
+      { buildingNumber: '2', operation: 'upsert' },
+    ])
+    expect(
+      input.candidates[oldBinding]!.db.query(
         'SELECT buildingNumber,isCurrent FROM address2dBuildingNumberLookup',
-      ).get(),
-    ).toEqual({ buildingNumber: '2', isCurrent: 1 })
+      ).all(),
+    ).toEqual([{ buildingNumber: '1', isCurrent: 1 }])
   })
 })
 
-test('reappearing content reopens its retained version without replacing historical provenance', async () => {
+test('same content on another branch receives a distinct event without changing its origin', async () => {
   await fixture(input => {
     stage(input)
     const db = input.candidates[nextBinding]!.db
+    const retained = db
+      .query("SELECT * FROM address2dI18n WHERE snapshotId='retained-snapshot'")
+      .get()
     db.exec(
-      "DELETE FROM address2dI18n WHERE versionHash='v2' AND locale='en'; UPDATE address2dI18n SET isCurrent=1,snapshotId='two',sourceReleaseId='r2',createdAt='new-created',updatedAt='new-updated' WHERE versionHash='returning'; UPDATE snapshotVersionChanges SET versionHash='returning' WHERE locale='en'",
+      "UPDATE address2dI18n SET versionHash='returning' WHERE snapshotId='two' AND locale='en'",
     )
     coalesceAddressHistory(input)
     expect(
       db
         .query(
-          "SELECT snapshotId,sourceReleaseId,isCurrent,createdAt,updatedAt FROM address2dI18n WHERE versionHash='returning'",
+          "SELECT snapshotId FROM address2dI18n WHERE versionHash='returning' ORDER BY snapshotId",
         )
-        .get(),
-    ).toEqual({
-      snapshotId: 'retained-snapshot',
-      sourceReleaseId: 'retained-release',
-      isCurrent: 1,
-      createdAt: 'retained-created',
-      updatedAt: input.now,
-    })
+        .all(),
+    ).toEqual([{ snapshotId: 'retained-snapshot' }, { snapshotId: 'two' }])
     expect(
       db
-        .query("SELECT versionHash FROM snapshotVersionChanges WHERE locale='en'")
+        .query("SELECT * FROM address2dI18n WHERE snapshotId='retained-snapshot'")
         .get(),
-    ).toEqual({ versionHash: 'returning' })
-    expect(
-      input.candidates[oldBinding]!.db.query(
-        "SELECT isCurrent FROM address2dI18n WHERE locale='en'",
-      ).get(),
-    ).toEqual({ isCurrent: 0 })
+    ).toEqual(retained)
   })
-})
-
-test('Address C repeating B after rollback to A retains exact base and locale changes', async () => {
-  await fixture(async input => {
-    for (const binding of [oldBinding, nextBinding]) {
-      const baseline = new Database(input.files[binding]!)
-      try {
-        for (const db of [baseline, input.candidates[binding]!.db]) {
-          if (binding === oldBinding)
-            db.exec(
-              'UPDATE address2d SET isCurrent=0; UPDATE address2dI18n SET isCurrent=0; UPDATE address2dBuildingNumberLookup SET isCurrent=0',
-            )
-          else
-            db.exec(`
-              INSERT INTO address2d(id,versionHash,snapshotId,sourceReleaseId,granularity,isCurrent) VALUES('a','branch-b','branch-b','release-b','site',1);
-              UPDATE address2dI18n SET isCurrent=1 WHERE versionHash='returning';
-              INSERT INTO address2dBuildingNumberLookup(addressId,versionHash,snapshotId,sourceReleaseId,buildingNumber,numericStem,evidence,derivation,isCurrent) VALUES('a','branch-b','branch-b','release-b','2',2,'source_endpoint','single',1);
-              INSERT INTO snapshotVersionChanges(snapshotId,recordType,recordId,locale,versionHash,operation,sourceReleaseId) VALUES('branch-b','address2d','a','','branch-b','upsert','release-b'),('branch-b','address2dI18n','a','en','returning','upsert','release-b');`)
-        }
-      } finally {
-        baseline.close()
-      }
-    }
-    stage(input, 'site', '2')
-    input.candidates.DB_CURRENT!.db.exec(
-      "UPDATE address2d SET granularity='site' WHERE id='a'; UPDATE address2dBuildingNumberLookup SET buildingNumber='2',numericStem=2 WHERE addressId='a'",
-    )
-    coalesceAddressHistory(input)
-    const next = input.candidates[nextBinding]!.db
-    expect(
-      next
-        .query(
-          "SELECT recordType,locale,versionHash FROM snapshotVersionChanges WHERE snapshotId='two' ORDER BY recordType,locale",
-        )
-        .all(),
-    ).toEqual([
-      { recordType: 'address2d', locale: '', versionHash: 'v2' },
-      { recordType: 'address2dI18n', locale: 'en', versionHash: 'v2' },
-    ])
-    const state = await resolveSnapshotVersionState(
-      [
-        {
-          snapshotId: 'one',
-          parentSnapshotId: null,
-          shards: [{ dataShardId: oldBinding, bindingName: oldBinding }],
-        },
-        {
-          snapshotId: 'two',
-          parentSnapshotId: 'one',
-          shards: [{ dataShardId: nextBinding, bindingName: nextBinding }],
-        },
-      ],
-      new Map(
-        [oldBinding, nextBinding].map(bindingName => [
-          bindingName,
-          {
-            bindingName,
-            db: drizzle({ client: input.candidates[bindingName]!.db }) as never,
-          },
-        ]),
-      ),
-      ['address2d', 'address2dI18n'],
-    )
-    expect(state.get('address2d\0a\0')?.versionHash).toBe('v2')
-    expect(state.get('address2dI18n\0a\0en')?.versionHash).toBe('v2')
-    expect(state.get('address2dI18n\0a\0zh-hant')?.versionHash).toBe('v1')
-    expect(
-      next
-        .query("SELECT granularity FROM address2d WHERE id='a' AND versionHash='v2'")
-        .get(),
-    ).toEqual({ granularity: 'site' })
-    expect(
-      next
-        .query(
-          "SELECT formattedAddress FROM address2dI18n WHERE addressId='a' AND versionHash='v2' AND locale='en'",
-        )
-        .get(),
-    ).toEqual({ formattedAddress: 'Second' })
-    expect(
-      next
-        .query(
-          "SELECT buildingNumber FROM address2dBuildingNumberLookup WHERE addressId='a' AND versionHash='v2'",
-        )
-        .all(),
-    ).toEqual([{ buildingNumber: '2' }])
-    expect(
-      next.query("SELECT isCurrent FROM address2d WHERE versionHash='branch-b'").get(),
-    ).toEqual({ isCurrent: 1 })
-    expect(
-      next
-        .query("SELECT isCurrent FROM address2dI18n WHERE versionHash='returning'")
-        .get(),
-    ).toEqual({ isCurrent: 1 })
-  })
-})
-
-test('Address coalescing rejects missing selected content without substituting another version', async () => {
-  await fixture(input => {
-    const baseline = new Database(input.files[oldBinding]!)
-    try {
-      baseline.exec("UPDATE address2d SET versionHash='unselected'")
-    } finally {
-      baseline.close()
-    }
-    stage(input)
-    expect(() => coalesceAddressHistory(input)).toThrow(
-      `Missing selected Address component address2d/a in ${oldBinding}`,
-    )
-  })
-})
-
-test('multiple retained building numbers can reuse the exact history lookup after its first match', async () => {
-  await fixture(input => {
-    stage(input)
-    coalesceAddressHistory(input)
-    expect(
-      input.candidates[oldBinding]!.db.query(
-        'SELECT count(*) AS n FROM address2dBuildingNumberLookup',
-      ).get(),
-    ).toEqual({ n: 2 })
-    expect(
-      input.candidates[nextBinding]!.db.query(
-        'SELECT count(*) AS n FROM address2dBuildingNumberLookup',
-      ).get(),
-    ).toEqual({ n: 0 })
-  }, true)
 })

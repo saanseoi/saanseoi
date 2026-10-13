@@ -1,9 +1,17 @@
+import type { HistoryContent } from '../../historyContent'
+import type * as current from '../current'
 import type { address2d, address2dI18n, address3d, address3dI18n } from './addresses'
 
-export type AddressVersionRow = typeof address2d.$inferSelect
+export type AddressVersionRow = HistoryContent<
+  typeof address2d.$inferSelect,
+  typeof current.address2d.$inferSelect
+>
 export type NewAddressVersionRow = typeof address2d.$inferInsert
 
-export type AddressVersionI18nRow = typeof address2dI18n.$inferSelect
+export type AddressVersionI18nRow = HistoryContent<
+  typeof address2dI18n.$inferSelect,
+  typeof current.address2dI18n.$inferSelect
+>
 export type NewAddressVersionI18nRow = typeof address2dI18n.$inferInsert
 
 export type CurrentAddressVersionRow = Pick<
@@ -32,7 +40,13 @@ export type CurrentAddressVersionRow = Pick<
   | 'versionHash'
 >
 
-export type Address3dVersionRow = typeof address3d.$inferSelect
+export type Address3dVersionRow = HistoryContent<
+  typeof address3d.$inferSelect,
+  typeof current.address3d.$inferSelect
+>
 export type NewAddress3dVersionRow = typeof address3d.$inferInsert
-export type Address3dVersionI18nRow = typeof address3dI18n.$inferSelect
+export type Address3dVersionI18nRow = HistoryContent<
+  typeof address3dI18n.$inferSelect,
+  typeof current.address3dI18n.$inferSelect
+>
 export type NewAddress3dVersionI18nRow = typeof address3dI18n.$inferInsert

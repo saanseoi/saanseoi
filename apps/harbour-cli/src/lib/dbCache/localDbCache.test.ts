@@ -1,11 +1,12 @@
+import { Database } from 'bun:sqlite'
 import { afterEach, expect, test } from 'bun:test'
 import { mkdirSync, mkdtempSync, rmSync } from 'node:fs'
 import { resolve } from 'node:path'
 
-import { Database } from 'bun:sqlite'
-
 import type { PublishDatasetResult } from '@repo/core/pipeline/harbourClient'
 import { loadMigrationSql } from '../../../../../libs/core/src/testing/metaFixtures'
+import { withDeliveryLock } from '../pipeline/local/sqlDeliveryFiles.ts'
+import { registerPendingSqlDelivery } from '../pipeline/local/sqlDeliveryPending.ts'
 import {
   applyPublishMetadataDeltaToRemoteCache,
   resolveCachePruneOperation,
@@ -17,8 +18,6 @@ import {
   countRemoteCacheWorkUnits,
   groupCacheExportTables,
 } from './localDbCacheMirror.ts'
-import { withDeliveryLock } from '../pipeline/local/sqlDeliveryFiles.ts'
-import { registerPendingSqlDelivery } from '../pipeline/local/sqlDeliveryPending.ts'
 import { invalidateRemoteDbCache } from './localDbCacheReplay.ts'
 
 test('groups regular exports while keeping binary geometry schema-only', () => {
@@ -26,11 +25,9 @@ test('groups regular exports while keeping binary geometry schema-only', () => {
     groupCacheExportTables('DB_HISTORY_HK_2025', [
       'divisions',
       'divisionAreas',
-      'snapshotVersionChanges',
       'divisionBoundaries',
     ]),
   ).toEqual([
-    { schemaOnly: false, tables: ['snapshotVersionChanges'] },
     { schemaOnly: true, tables: ['divisions', 'divisionAreas', 'divisionBoundaries'] },
   ])
   expect(groupCacheExportTables('DB_HISTORY_HK_2025', [])).toEqual([])
@@ -69,15 +66,8 @@ test('mirrors only rows retained by annual shard cache pruning', () => {
   expect(resolveCachePruneOperation('DB_HISTORY_HK_2025', 'divisionAreas')).toBeNull()
   expect(resolveCachePruneOperation('DB_HISTORY_HK_BEFORE', 'address2d')).toBeNull()
   expect(resolveCachePruneOperation('DB_HISTORY_HK_BEFORE', 'address2dI18n')).toBeNull()
-  for (const [tableName, id] of [
-    ['address2d', 'id'],
-    ['address2dI18n', 'addressId'],
-  ] as const)
-    expect(resolveCachePruneOperation('DB_HISTORY_HK_2025', tableName)).toEqual({
-      retainedRowsWhereSql: `"isCurrent" = 1 OR "${id}" LIKE 'ss-opa-%'`,
-      tableName,
-      whereSql: `"isCurrent" <> 1 AND "${id}" NOT LIKE 'ss-opa-%'`,
-    })
+  for (const tableName of ['address2d', 'address2dI18n'])
+    expect(resolveCachePruneOperation('DB_HISTORY_HK_2025', tableName)).toBeNull()
 })
 
 test('omits the derived Places full-text index from the current cache profile', () => {
@@ -139,7 +129,6 @@ test('omits the rebuilt Address full-text index from the mirror profile', () => 
     'address3d',
     'address3dI18n',
     'sourceResolutions',
-    'snapshotVersionChanges',
   ])
 })
 
@@ -160,11 +149,11 @@ test('uses the bounded family profiles for remote mirrors', () => {
     localDatabaseId: 'acceptance-local-database',
   }))
 
-  expect(countRemoteCacheWorkUnits(targets)).toBe(170)
-  expect(countRemoteCacheWorkUnits(targets, 'division')).toBe(44)
-  expect(countRemoteCacheWorkUnits(targets, 'address')).toBe(121)
-  expect(countRemoteCacheWorkUnits(targets, 'places')).toBe(76)
-  expect(countRemoteCacheWorkUnits(targets, 'statistics')).toBe(58)
+  expect(countRemoteCacheWorkUnits(targets)).toBe(167)
+  expect(countRemoteCacheWorkUnits(targets, 'division')).toBe(41)
+  expect(countRemoteCacheWorkUnits(targets, 'address')).toBe(118)
+  expect(countRemoteCacheWorkUnits(targets, 'places')).toBe(73)
+  expect(countRemoteCacheWorkUnits(targets, 'statistics')).toBe(55)
   expect(resolveCacheTablesForBinding('DB_HISTORY_HK_2026', 'street')).not.toContain(
     'sourceResolutions',
   )
@@ -177,15 +166,22 @@ test('uses the bounded family profiles for remote mirrors', () => {
     'divisionBoundaries',
     'divisionBoundaryPublicationState',
   ])
-  expect(countRemoteCacheWorkUnits(targets, 'divisionGeometry')).toBe(63)
+  expect(countRemoteCacheWorkUnits(targets, 'divisionGeometry')).toBe(60)
 })
 
-test('prunes superseded Places history and source rows from annual shards', () => {
-  expect(resolveCachePruneOperation('DB_HISTORY_HK_2025', 'places')).toEqual({
-    retainedRowsWhereSql: '"isCurrent" = 1',
-    tableName: 'places',
-    whereSql: '"isCurrent" <> 1',
-  })
+test('retains every HISTORY branch and tombstone while pruning superseded SOURCE rows', () => {
+  for (const table of [
+    'places',
+    'divisions',
+    'divisionAreas',
+    'divisionBoundaries',
+    'address2d',
+    'address2dI18n',
+    'address3d',
+    'streets',
+    'statsRecords',
+  ])
+    expect(resolveCachePruneOperation('DB_HISTORY_HK_2025', table)).toBeNull()
   expect(resolveCachePruneOperation('DB_SOURCE_HK_2025', 'overturePlaces')).toEqual({
     retainedRowsWhereSql: '"isCurrent" = 1',
     tableName: 'overturePlaces',

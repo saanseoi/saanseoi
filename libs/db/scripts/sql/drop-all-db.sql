@@ -1,3 +1,4 @@
+DROP VIEW IF EXISTS `historyEvents`;
 DROP VIEW IF EXISTS snapshotResourceReleaseDetails;
 DROP VIEW IF EXISTS resourceReleaseDetails;
 PRAGMA foreign_keys = OFF;
@@ -123,7 +124,7 @@ DROP TABLE IF EXISTS `statsFieldsI18n`;
 DROP TABLE IF EXISTS `statsFields`;
 DROP TABLE IF EXISTS `statsDefinitionSets`;
 DROP TABLE IF EXISTS `streetGeometry`;
-DROP TABLE IF EXISTS `snapshotVersionChanges`;
+
 DROP TABLE IF EXISTS `sourceResolutions`;
 DROP TABLE IF EXISTS `__new_streetChangelog`;
 DROP TABLE IF EXISTS `streetChangelog`;

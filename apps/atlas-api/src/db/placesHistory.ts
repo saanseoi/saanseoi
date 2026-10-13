@@ -1,16 +1,17 @@
-import {
-  matchesGeographicMembership,
-  geographicFilterContext,
-} from '../lib/geographicFilterContext'
-import type { HistoryDatabase } from '@repo/db'
-import { and, asc, eq, historySchema, sql } from '@repo/db'
 import type { RequestedApiLocaleSelection } from '@repo/core/apiLocales'
 import { resolveSnapshotReplayPlan } from '@repo/core/db/metaRegistry'
 import {
   groupResolvedVersionsByShard,
+  historyVersionSelection,
   resolveSnapshotVersionState,
 } from '@repo/core/pipeline/db/snapshotReplay.ts'
 import { chunkArray } from '@repo/core/pipeline/utils.ts'
+import type { HistoryDatabase } from '@repo/db'
+import { and, asc, eq, historySchema, sql } from '@repo/db'
+import {
+  geographicFilterContext,
+  matchesGeographicMembership,
+} from '../lib/geographicFilterContext'
 
 import { normalisePlaceBbox, type PlaceLocaleValue, type PlaceRecord } from './places'
 
@@ -64,6 +65,7 @@ function recordedDivisionIds(sources: unknown) {
 }
 
 type PlaceVersionRef = {
+  snapshotId: string
   recordId: string
   locale: string
   versionHash: string
@@ -86,9 +88,7 @@ async function loadPlaceRows(versions: Iterable<PlaceVersionRef>) {
           first.shard.db
             .select()
             .from(historySchema.places)
-            .where(sql`(${historySchema.places.id}, ${historySchema.places.versionHash}) in
-              (select json_extract(value, '$[0]'), json_extract(value, '$[1]')
-               from json_each(${JSON.stringify(versions.map(version => [version.recordId, version.versionHash]))}))`)
+            .where(historyVersionSelection(historySchema.places, versions))
             .all(),
         ),
       )
@@ -119,9 +119,7 @@ async function loadPlaceI18nRows(versions: Iterable<PlaceVersionRef>) {
           first.shard.db
             .select()
             .from(historySchema.placesI18n)
-            .where(sql`(${historySchema.placesI18n.placeId}, ${historySchema.placesI18n.versionHash}, ${historySchema.placesI18n.locale}) in
-              (select json_extract(value, '$[0]'), json_extract(value, '$[1]'), json_extract(value, '$[2]')
-               from json_each(${JSON.stringify(versions.map(version => [version.recordId, version.versionHash, version.locale]))}))`)
+            .where(historyVersionSelection(historySchema.placesI18n, versions))
             .all(),
         ),
       )
@@ -218,7 +216,7 @@ export async function listReplayedPlacePage(
         const db = args.historyDbsByBinding[assignment.bindingName]
         if (!db)
           throw new Error(`Unavailable history binding ${assignment.bindingName}.`)
-        const journal = historySchema.snapshotVersionChanges
+        const journal = historySchema.historyEvents
         const rows = await db
           .selectDistinct({ id: journal.recordId })
           .from(journal)

@@ -1,7 +1,8 @@
-import { and, desc, eq, historySchema, inArray, metaSchema, stats } from '@repo/db'
+import { resolveSnapshotReplayPlan } from '@repo/core/db/metaRegistry'
 import type { HarbourReadableDb } from '@repo/core/db/types'
+import { readHistoryDictionaryVersions } from '@repo/core/pipeline/db/historyDictionaries.ts'
 import { readStatisticSnapshotRecords } from '@repo/core/pipeline/services/statistics/statisticSnapshotRecords.ts'
-import { chunkArray } from '@repo/core/pipeline/utils.ts'
+import { and, desc, eq, metaSchema, stats } from '@repo/db'
 
 /** Source assertion counts remain available when a reissue reuses canonical packs. */
 export async function readStatisticsSourceMeasures(input: {
@@ -72,11 +73,14 @@ export async function readStatisticsSourceMeasures(input: {
     )
     .all()
   const selectedCohorts = new Set<string>()
+  const ancestorIds = new Set<string>()
   const references = new Map<string, { hash: string; assertedHere: boolean }>()
   for (const snapshot of snapshots) {
     const cohort = JSON.stringify([snapshot.lineage, snapshot.cohort])
     if (selectedCohorts.has(cohort)) continue
     selectedCohorts.add(cohort)
+    for (const step of await resolveSnapshotReplayPlan(input.metaDb, snapshot.id))
+      ancestorIds.add(step.snapshotId)
     const records = await readStatisticSnapshotRecords(
       input.metaDb,
       input.historyDbs,
@@ -113,51 +117,41 @@ export async function readStatisticsSourceMeasures(input: {
       valueKind: string
     }
   >()
-  const hashes = [...new Set([...references.values()].map(reference => reference.hash))]
-  for (const db of input.historyDbs) {
-    for (const batch of chunkArray(hashes, 90)) {
-      const fields = await db
-        .select({
-          definition: historySchema.statsFieldsI18n.description,
-          aggregation: historySchema.statsFields.aggregation,
-          fieldName: historySchema.statsFields.fieldName,
-          versionHash: historySchema.statsFields.versionHash,
-          name: historySchema.statsFieldsI18n.name,
-          sourceField: historySchema.statsFields.sourceField,
-          statisticKind: historySchema.statsFields.statisticKind,
-          unitCode: historySchema.statsFields.unitCode,
-          valueKind: historySchema.statsFields.valueKind,
-        })
-        .from(historySchema.statsFields)
-        .leftJoin(
-          historySchema.statsFieldsI18n,
-          and(
-            eq(
-              historySchema.statsFieldsI18n.datasetCode,
-              historySchema.statsFields.datasetCode,
-            ),
-            eq(
-              historySchema.statsFieldsI18n.fieldName,
-              historySchema.statsFields.fieldName,
-            ),
-            eq(
-              historySchema.statsFieldsI18n.versionHash,
-              historySchema.statsFields.versionHash,
-            ),
-            eq(historySchema.statsFieldsI18n.locale, 'en'),
-          ),
-        )
-        .where(
-          and(
-            eq(historySchema.statsFields.datasetCode, input.datasetCode),
-            inArray(historySchema.statsFields.versionHash, batch),
-          ),
-        )
-        .all()
-      for (const row of fields)
-        if (references.get(row.fieldName)?.hash === row.versionHash)
-          rows.set(row.fieldName, row)
-    }
+  const wanted = [...references].map(([identity, reference]) => ({
+    datasetCode: input.datasetCode,
+    identity,
+    versionHash: reference.hash,
+  }))
+  const fields = await readHistoryDictionaryVersions(
+    input.historyDbs,
+    [...ancestorIds],
+    'statsFields',
+    wanted,
+  )
+  const labels = await readHistoryDictionaryVersions(
+    input.historyDbs,
+    [...ancestorIds],
+    'statsFieldsI18n',
+    wanted,
+  )
+  for (const field of fields) {
+    const label = labels.find(
+      row =>
+        row.datasetCode === field.datasetCode &&
+        row.fieldName === field.fieldName &&
+        row.versionHash === field.versionHash &&
+        row.locale === 'en',
+    )
+    rows.set(String(field.fieldName), {
+      fieldName: String(field.fieldName),
+      aggregation: String(field.aggregation),
+      sourceField: String(field.sourceField),
+      statisticKind: String(field.statisticKind),
+      unitCode: String(field.unitCode),
+      valueKind: String(field.valueKind),
+      definition: label?.description == null ? null : String(label.description),
+      name: label?.name == null ? null : String(label.name),
+    })
   }
   for (const fieldName of references.keys())
     if (!rows.has(fieldName))

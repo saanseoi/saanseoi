@@ -1,9 +1,10 @@
-import { snapshotFixtureFields } from '../../../../../../libs/core/src/testing/snapshotFixtures'
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { resolve } from 'node:path'
+import { historyDeletionRow } from '@repo/db'
 import { createLocalHarbourDb } from '../../../../../../libs/core/src/testing/localDb.ts'
 import { loadMigrationSql } from '../../../../../../libs/core/src/testing/metaFixtures.ts'
+import { snapshotFixtureFields } from '../../../../../../libs/core/src/testing/snapshotFixtures'
 import { PlaceDependencyView } from '../../pipeline/places/placeDependencyView.ts'
 import { createPlaceSearchDependencies } from '../../pipeline/places/placeSearchDependencies.ts'
 import { restorePlaceDerivedRows } from './places.ts'
@@ -89,23 +90,21 @@ async function fixture() {
         dependencySnapshotId,
       })
   }
-  const journal = (
+  const deleteEvent = (
     db: Database,
     snapshotId: string,
     recordType: string,
     recordId: string,
-    hash: string | null,
     locale = '',
-  ) =>
-    insert(db, 'snapshotVersionChanges', {
+  ) => {
+    const { table, row } = historyDeletionRow({
       snapshotId,
       recordType,
       recordId,
       locale,
-      versionHash: hash,
-      operation: hash ? 'upsert' : 'delete',
-      sourceReleaseId: `release-${snapshotId}`,
     })
+    insert(db, table, row)
+  }
   const history = (
     db: Database,
     table: string,
@@ -132,16 +131,6 @@ async function fixture() {
       ...values,
       ...(locale ? { locale } : {}),
     })
-    const type =
-      (
-        {
-          divisions: 'division',
-          divisionsI18n: 'divisionI18n',
-          places: 'place',
-          placesI18n: 'placeI18n',
-        } as Record<string, string>
-      )[table] ?? table
-    journal(db, snapshotId, type, id, hash, locale)
   }
   const interpretation = (
     db: Database,
@@ -299,7 +288,7 @@ async function fixture() {
     base,
     snapshot,
     assembly,
-    journal,
+    deleteEvent,
     history,
     interpretation,
     hydrate,
@@ -356,8 +345,8 @@ test('Place rollback clears empty predecessor companions and resets pointers whe
   try {
     await f.restore('p3')
     f.snapshot('p4', 'place', 'p3', 'NEW')
-    f.journal(f.recent, 'p4', 'place', 'place', null)
-    f.journal(f.recent, 'p4', 'placeI18n', 'place', null, 'en')
+    f.deleteEvent(f.recent, 'p4', 'place', 'place')
+    f.deleteEvent(f.recent, 'p4', 'placeI18n', 'place', 'en')
     f.interpretation(f.recent, 'p4', {})
     f.current.exec('DELETE FROM placesI18n; DELETE FROM places;')
     expect(await f.restore('p4')).toEqual({ places: 0, divisionLinks: 0, cells: 0 })
@@ -405,8 +394,8 @@ test('Place rollback clears empty predecessor companions and resets pointers whe
 test('Place rollback validates retained locale Address text against its original Place identity', async () => {
   const f = await fixture()
   try {
-    f.journal(f.old, 'a1', 'address2d', 'building', null)
-    f.journal(f.old, 'a1', 'address2dI18n', 'building', null, 'en')
+    f.deleteEvent(f.old, 'a1', 'address2d', 'building')
+    f.deleteEvent(f.old, 'a1', 'address2dI18n', 'building', 'en')
     f.history(f.old, 'address2d', 'a1', 'replacement', 'replacement', {
       granularity: 'building',
       districtId: 'division',

@@ -1,12 +1,11 @@
-import { retainSourceProperties } from '@repo/core/pipeline/services/sources/retainedProperties'
-import {
-  upsertDivisionCurrentStates,
-  replaceDivisionCurrentI18n,
-} from '@repo/core/pipeline/db/division'
-import { and, eq, inArray } from 'drizzle-orm'
-import { nativeSourcePayloadHashInput } from '@repo/core/pipeline/services/sources/sourcePayload'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
-import { recordSnapshotVersionChanges } from '@repo/core/pipeline/db/snapshotVersionChanges'
+import {
+  replaceDivisionCurrentI18n,
+  upsertDivisionCurrentStates,
+} from '@repo/core/pipeline/db/division'
+import { recordHistoryDeletions } from '@repo/core/pipeline/db/historyDeletions'
+import { retainSourceProperties } from '@repo/core/pipeline/services/sources/retainedProperties'
+import { nativeSourcePayloadHashInput } from '@repo/core/pipeline/services/sources/sourcePayload'
 import {
   compressJsonBrotli,
   MAX_BROTLI_QUALITY,
@@ -17,6 +16,7 @@ import {
   getMaxItemsPerInClause,
 } from '@repo/core/pipeline/utils'
 import { currentSchema, historySchema, sourceSchema } from '@repo/db'
+import { and, eq, inArray } from 'drizzle-orm'
 import type {
   CompressedPlanningDivisionGeometry,
   HkgovPlandDivisionUploadPlan,
@@ -166,7 +166,7 @@ export async function insertHistoryRows(
         })),
       )
       .onConflictDoUpdate({
-        target: [historySchema.divisions.id, historySchema.divisions.versionHash],
+        target: [historySchema.divisions.id, historySchema.divisions.snapshotId],
         set: {
           isCurrent: true,
           snapshotId,
@@ -178,16 +178,6 @@ export async function insertHistoryRows(
     processedRecords += chunk.length
     reportProgress(processedRecords)
   }
-  await recordSnapshotVersionChanges(db, {
-    snapshotId,
-    sourceReleaseId: resourceReleaseId,
-    recordType: 'division',
-    operation: 'upsert',
-    changes: records.map(record => ({
-      recordId: record.base.id,
-      versionHash: record.versionHash,
-    })),
-  })
 }
 
 export async function insertHistoryI18nRows(
@@ -224,7 +214,7 @@ export async function insertHistoryI18nRows(
       .onConflictDoUpdate({
         target: [
           historySchema.divisionsI18n.divisionId,
-          historySchema.divisionsI18n.versionHash,
+          historySchema.divisionsI18n.snapshotId,
           historySchema.divisionsI18n.locale,
         ],
         set: {
@@ -238,17 +228,6 @@ export async function insertHistoryI18nRows(
     processedRows += chunk.length
     reportProgress(records.length + processedRows)
   }
-  await recordSnapshotVersionChanges(db, {
-    snapshotId,
-    sourceReleaseId: resourceReleaseId,
-    recordType: 'divisionI18n',
-    operation: 'upsert',
-    changes: rows.map(row => ({
-      recordId: row.divisionId,
-      locale: row.locale,
-      versionHash: row.versionHash,
-    })),
-  })
 }
 
 export async function insertSourceRows(
@@ -353,35 +332,7 @@ export async function closeHistoryRows(
   _cohortKey: string,
   now: string,
 ) {
-  for (const chunk of chunkArray([...new Set(ids)], getMaxItemsPerInClause(1, 6))) {
-    if (chunk.length === 0) continue
-    await Promise.all([
-      db
-        .update(historySchema.divisions)
-        .set({
-          isCurrent: false,
-          updatedAt: now,
-        })
-        .where(
-          and(
-            eq(historySchema.divisions.isCurrent, true),
-            inArray(historySchema.divisions.id, chunk),
-          ),
-        )
-        .run(),
-      db
-        .update(historySchema.divisionsI18n)
-        .set({ isCurrent: false, updatedAt: now })
-        .where(
-          and(
-            eq(historySchema.divisionsI18n.isCurrent, true),
-            inArray(historySchema.divisionsI18n.divisionId, chunk),
-          ),
-        )
-        .run(),
-    ])
-  }
-  await recordSnapshotVersionChanges(db, {
+  await recordHistoryDeletions(db, {
     snapshotId,
     recordType: 'division',
     operation: 'delete',

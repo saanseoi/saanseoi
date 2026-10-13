@@ -1,12 +1,13 @@
-import { snapshotFixtureFields } from '../../../../../../libs/core/src/testing/snapshotFixtures'
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
-import { join } from 'node:path'
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import { historyDeletionSql } from '@repo/db'
 import { createLocalHarbourDb } from '../../../../../../libs/core/src/testing/localDb.ts'
 import { loadMigrationSql } from '../../../../../../libs/core/src/testing/metaFixtures.ts'
-import { restoreSnapshotProjection, type ProjectionResourceType } from './projection.ts'
+import { snapshotFixtureFields } from '../../../../../../libs/core/src/testing/snapshotFixtures'
+import { type ProjectionResourceType, restoreSnapshotProjection } from './projection.ts'
 
 const migrations = join(import.meta.dir, '../../../../../../libs/db/migrations')
 const insert = (db: Database, table: string, row: Record<string, unknown>) => {
@@ -98,24 +99,6 @@ function historyRow(
     ...row,
   })
 }
-function journal(
-  db: Database,
-  snapshotId: string,
-  recordType: string,
-  recordId: string,
-  versionHash: string | null,
-  locale = '',
-) {
-  insert(db, 'snapshotVersionChanges', {
-    snapshotId,
-    recordType,
-    recordId,
-    versionHash,
-    locale,
-    operation: versionHash ? 'upsert' : 'delete',
-    sourceReleaseId: versionHash ? `${snapshotId}-source` : null,
-  })
-}
 const division = { id: 'd', class: 'district', hierarchies: [], versionHash: 'base' }
 
 test('restores independent inherited Division components across shards and preserves unrelated scopes', async () => {
@@ -134,16 +117,12 @@ test('restores independent inherited Division components across shards and prese
       name: '中文',
       versionHash: 'zh-a',
     })
-    journal(f.first, 'a', 'division', 'd', 'base')
-    journal(f.first, 'a', 'divisionI18n', 'd', 'en-a', 'en')
-    journal(f.first, 'a', 'divisionI18n', 'd', 'zh-a', 'zh-hant')
     historyRow(
       f.second,
       'divisionsI18n',
       { divisionId: 'd', locale: 'en', name: 'Revised English', versionHash: 'en-b' },
       'b',
     )
-    journal(f.second, 'b', 'divisionI18n', 'd', 'en-b', 'en')
     insert(f.current, 'divisions', {
       snapshotId: 'scope',
       id: 'newer',
@@ -177,7 +156,9 @@ test('restores independent inherited Division components across shards and prese
       isCurrent: 0,
     })
     expect(f.current.query('PRAGMA foreign_keys').get()).toEqual({ foreign_keys: 1 })
-    journal(f.second, 'b', 'division', 'd', null)
+    f.second.exec(
+      historyDeletionSql({ snapshotId: 'b', recordType: 'division', recordId: 'd' }),
+    )
     expect((await restoreSnapshotProjection(f.input)).counts).toEqual({
       divisions: 0,
       divisionsI18n: 0,
@@ -187,22 +168,14 @@ test('restores independent inherited Division components across shards and prese
   }
 })
 
-test('missing exact history rolls the isolated candidate back and restores foreign keys', async () => {
+test('HISTORY rejects an upsert without its content', () => {
   const f = fixture()
   try {
-    journal(f.first, 'a', 'division', 'd', 'missing')
-    insert(f.current, 'divisions', {
-      snapshotId: 'scope',
-      id: 'keep',
-      class: 'district',
-      hierarchies: [],
-    })
-    f.current.exec('PRAGMA foreign_keys=ON')
-    await expect(restoreSnapshotProjection(f.input)).rejects.toThrow(
-      'Missing exact history component',
-    )
-    expect(f.current.query('SELECT id FROM divisions').all()).toEqual([{ id: 'keep' }])
-    expect(f.current.query('PRAGMA foreign_keys').get()).toEqual({ foreign_keys: 1 })
+    expect(() =>
+      f.first.exec(
+        "INSERT INTO divisions(id,snapshotId,versionHash,operation) VALUES('d','a','missing','upsert')",
+      ),
+    ).toThrow()
   } finally {
     f.close()
   }
@@ -223,8 +196,8 @@ test('rejects incomplete shard assignments and competing journals before changin
       snapshotId: 'b',
       dataShardId: 'second',
     })
-    journal(f.first, 'b', 'division', 'd', 'one')
-    journal(f.second, 'b', 'division', 'd', 'two')
+    historyRow(f.first, 'divisions', { ...division, versionHash: 'one' }, 'b')
+    historyRow(f.second, 'divisions', { ...division, versionHash: 'two' }, 'b')
     await expect(restoreSnapshotProjection(f.input)).rejects.toThrow(
       'conflicting history shard journals',
     )
@@ -327,10 +300,6 @@ test('restores Address2D/3D, localisations and derived number ranges using exact
       { address3dId: 'flats', locale: 'en', units: {}, versionHash: 'unit-en' },
       'b',
     )
-    journal(f.first, 'a', 'address2d', 'home', 'address')
-    journal(f.first, 'a', 'address2dI18n', 'home', 'en', 'en')
-    journal(f.second, 'b', 'address3d', 'flats', 'units')
-    journal(f.second, 'b', 'address3dI18n', 'flats', 'unit-en', 'en')
     await expect(restoreSnapshotProjection(f.input)).rejects.toThrow(
       'exact division dependency division-old',
     )
@@ -491,8 +460,6 @@ test('Street reconstruction respects active membership, coupled locales and late
         name: id,
         versionHash: id,
       })
-      journal(f.first, 'a', 'street', id, id)
-      journal(f.first, 'a', 'streetI18n', id, id, 'en')
     }
     historyRow(f.first, 'streetsI18n', {
       streetId: 'active',
@@ -500,7 +467,6 @@ test('Street reconstruction respects active membership, coupled locales and late
       name: 'stale',
       versionHash: 'previous-base',
     })
-    journal(f.first, 'a', 'streetI18n', 'active', 'previous-base', 'zh-hant')
     for (const [db, snapshotId, hash] of [
       [f.first, 'a', 'event-a'],
       [f.second, 'b', 'event-b'],
@@ -517,7 +483,6 @@ test('Street reconstruction respects active membership, coupled locales and late
         },
         snapshotId,
       )
-      journal(db, snapshotId, 'streetChangelog', hash, hash)
     }
     expect((await restoreSnapshotProjection(f.input)).counts).toEqual({
       streets: 1,
@@ -560,7 +525,6 @@ for (const [resourceType, table, relation] of [
         versionHash: 'shape',
         ...relation,
       })
-      journal(f.first, 'a', resourceType, 'geometry', 'shape')
       expect((await restoreSnapshotProjection(f.input)).counts[table]).toBe(1)
       expect(f.current.query(`SELECT snapshotId,id FROM ${table}`).get()).toEqual({
         snapshotId: 'scope',

@@ -1,5 +1,7 @@
-import { stringifyGeoJson, orderGeoJsonText } from '@repo/db/geoJsonSerialisation'
-import { buildCenstatdGeometryStatements } from '../statistics/statisticSqlReplay'
+import { Database as SQLiteDatabase } from 'bun:sqlite'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
+import { currentRowChangedSqlText } from '@repo/core/pipeline/services/publication/currentWrites.ts'
 import {
   buildBeginPublicationSql,
   buildCompletePublicationSql,
@@ -7,24 +9,22 @@ import {
   buildPublicationRowCountSql,
   type PublicationPreparation,
 } from '@repo/core/pipeline/services/publication/sql.ts'
-import { currentRowChangedSqlText } from '@repo/core/pipeline/services/publication/currentWrites.ts'
-import type { writeGeometryRows } from './processLocalDivisionGeometrySqlUploadRows.ts'
-import { Database as SQLiteDatabase } from 'bun:sqlite'
-import { readFileSync } from 'node:fs'
-import { join } from 'node:path'
-import { deliverSqlPhase } from '../local/sqlDeliveryPhase.ts'
+import { orderGeoJsonText, stringifyGeoJson } from '@repo/db/geoJsonSerialisation'
 import type { UploadTarget } from '../../cli/options.ts'
 import {
   type resolveLocalAddressDbContext,
   resolveShardBindingName,
 } from '../../dbCache/localDbCache.ts'
+import { deliverSqlPhase } from '../local/sqlDeliveryPhase.ts'
 import { executeSqlText, type SqlImportExecutionOptions } from '../local/sqlImport.ts'
-import type { GeometryUploadPlan } from './processLocalDivisionGeometrySqlUploadTypes.ts'
-import { describeRemoteGeometryImport } from './processLocalDivisionGeometrySqlUploadProgress.ts'
+import { buildCenstatdGeometryStatements } from '../statistics/statisticSqlReplay'
 import {
   HARBOUR_WRANGLER_PATH,
   MAX_D1_GEOMETRY_SQL_STATEMENT_BYTES,
 } from './processLocalDivisionGeometrySqlUploadConfig.ts'
+import { describeRemoteGeometryImport } from './processLocalDivisionGeometrySqlUploadProgress.ts'
+import type { writeGeometryRows } from './processLocalDivisionGeometrySqlUploadRows.ts'
+import type { GeometryUploadPlan } from './processLocalDivisionGeometrySqlUploadTypes.ts'
 
 export async function generateGeometryReplaySql(
   target: UploadTarget,
@@ -99,14 +99,7 @@ export async function generateGeometryReplaySql(
       : iterateGeometryCacheRows(
           context.state.dbCacheDir,
           historyBindingName,
-          `SELECT content.* FROM "${historyTable}" content INNER JOIN "snapshotVersionChanges" membership ON membership."recordId" = content."id" AND membership."versionHash" = content."versionHash" WHERE membership."snapshotId" = ${geometrySqlLiteral(snapshotId)} AND membership."recordType" = ${geometrySqlLiteral(plan.resourceType)} AND membership."operation" = 'upsert'`,
-        )
-    const changeRows = skipCanonicalMaterialisation
-      ? []
-      : iterateGeometryCacheRows(
-          context.state.dbCacheDir,
-          historyBindingName,
-          `SELECT * FROM "snapshotVersionChanges" WHERE "snapshotId" = ${geometrySqlLiteral(snapshotId)}`,
+          `SELECT * FROM "${historyTable}" WHERE snapshotId = ${geometrySqlLiteral(snapshotId)}`,
         )
     const sourceRows = sourceTable
       ? iterateGeometryCacheRows(
@@ -173,15 +166,9 @@ export async function generateGeometryReplaySql(
               databaseId: context.state.bindings[historyBindingName]?.databaseId,
               name: 'history' as const,
               sql: (function* () {
-                yield geometrySqlLiteralDelete(
-                  'snapshotVersionChanges',
-                  'snapshotId',
-                  snapshotId,
-                )
                 yield* geometryIterateUpsertSql(historyTable, historyRows, {
                   immutable: true,
                 })
-                yield* geometryIterateUpsertSql('snapshotVersionChanges', changeRows)
               })(),
             },
           ]
@@ -605,8 +592,8 @@ function geometryReplayKeyColumns(row: Record<string, unknown>) {
     return ['geometryId', 'transform', 'transformHash']
   }
 
-  if (typeof row.id === 'string' && typeof row.versionHash === 'string') {
-    return ['id', 'versionHash']
+  if (typeof row.id === 'string' && typeof row.snapshotId === 'string') {
+    return ['id', 'snapshotId']
   }
 
   if (typeof row.snapshotId === 'string' && typeof row.id === 'string') {

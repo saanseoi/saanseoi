@@ -140,7 +140,7 @@ test('changed interpretation survives compaction even when publisher content is 
   }
 })
 
-test('cross-year replacement closes prior base and missing locale while keeping historical content', () => {
+test('cross-year replacement appends missing locale without changing parent content', () => {
   const old = new Database(':memory:')
   const history = new Database(':memory:')
   const current = new Database(':memory:')
@@ -150,9 +150,9 @@ test('cross-year replacement closes prior base and missing locale while keeping 
       CREATE TABLE address2dBuildingNumberLookup(addressId TEXT,versionHash TEXT,isCurrent INTEGER,updatedAt TEXT);
       INSERT INTO address2d VALUES('a','old',1,'before'); INSERT INTO address2dI18n VALUES('a','old','en',1,'before');
       INSERT INTO address2dI18n VALUES('a','old','zh-hant',1,'before'); INSERT INTO address2dBuildingNumberLookup VALUES('a','old',1,'before');`)
-    history.exec(`CREATE TABLE snapshotVersionChanges(snapshotId TEXT,recordType TEXT,recordId TEXT,locale TEXT,versionHash TEXT,operation TEXT,sourceReleaseId TEXT,createdAt TEXT,updatedAt TEXT,PRIMARY KEY(snapshotId,recordType,recordId,locale));
-      INSERT INTO snapshotVersionChanges VALUES('two','address2d','a','','new','upsert','r2','now','now');
-      INSERT INTO snapshotVersionChanges VALUES('two','address2dI18n','a','en','new','upsert','r2','now','now');`)
+    history.exec(
+      `CREATE TABLE address2dI18n(snapshotId TEXT,addressId TEXT,locale TEXT,versionHash TEXT,operation TEXT,sourceReleaseId TEXT,isCurrent INTEGER,createdAt TEXT,updatedAt TEXT,PRIMARY KEY(addressId,snapshotId,locale));`,
+    )
     current.exec(`CREATE TABLE address2d(snapshotId TEXT,id TEXT); CREATE TABLE address2dI18n(snapshotId TEXT,addressId TEXT,locale TEXT);
       INSERT INTO address2d VALUES('scope','a'); INSERT INTO address2dI18n VALUES('scope','a','en');`)
     const prior = [
@@ -181,16 +181,14 @@ test('cross-year replacement closes prior base and missing locale while keeping 
       now: 'now',
     })
     expect(old.query('SELECT versionHash,isCurrent FROM address2d').all()).toEqual([
-      { versionHash: 'old', isCurrent: 0 },
+      { versionHash: 'old', isCurrent: 1 },
     ])
     expect(old.query('SELECT isCurrent FROM address2dI18n').all()).toEqual([
-      { isCurrent: 0 },
-      { isCurrent: 0 },
+      { isCurrent: 1 },
+      { isCurrent: 1 },
     ])
     expect(
-      history
-        .query("SELECT operation FROM snapshotVersionChanges WHERE locale='zh-hant'")
-        .get(),
+      history.query("SELECT operation FROM address2dI18n WHERE locale='zh-hant'").get(),
     ).toEqual({ operation: 'delete' })
   } finally {
     old.close()

@@ -1,5 +1,5 @@
-import { describe, expect, test } from 'bun:test'
 import { Database } from 'bun:sqlite'
+import { describe, expect, test } from 'bun:test'
 import { drizzle } from 'drizzle-orm/bun-sqlite'
 
 import { getStatisticDetail, listStatistics } from './statistics'
@@ -255,7 +255,7 @@ function geometryReplayFixture() {
     )`)
     sqlite
       .query(
-        "INSERT INTO divisionAreas VALUES (?, ?, ?, ?, ?, ?, NULL, NULL, ?, 1, 0, ?, 'upsert')",
+        "INSERT INTO divisionAreas VALUES (?, ?, ?, ?, ?, ?, NULL, ?, 1, 0, ?, 'upsert')",
       )
       .run(
         sqlite === current ? `scope:${snapshotId}` : snapshotId,
@@ -268,21 +268,9 @@ function geometryReplayFixture() {
         'historical-geometry-hash',
       )
   }
-  history.exec(`CREATE TABLE snapshotVersionChanges (
-    snapshotId TEXT, recordType TEXT, recordId TEXT, locale TEXT,
-    versionHash TEXT, operation TEXT, sourceReleaseId TEXT
-  )`)
-  history
-    .query('INSERT INTO snapshotVersionChanges VALUES (?, ?, ?, ?, ?, ?, ?)')
-    .run(
-      snapshotId,
-      'divisionArea',
-      'area-historical',
-      '',
-      'historical-geometry-hash',
-      'upsert',
-      'source-2021',
-    )
+  history.exec(
+    `ALTER TABLE divisionAreas ADD sourceReleaseId TEXT DEFAULT 'source-2021'; CREATE VIEW historyEvents AS SELECT snapshotId,'divisionArea' AS recordType,id AS recordId,'' AS locale,versionHash,operation,sourceReleaseId FROM divisionAreas`,
+  )
   current.exec(
     `CREATE TABLE divisionAreaPublicationState(scopeId TEXT PRIMARY KEY,snapshotId TEXT UNIQUE,status TEXT,publicationToken TEXT,preparedAt TEXT,updatedAt TEXT)`,
   )

@@ -1,16 +1,17 @@
-import { query } from '$app/server'
-import { error } from '@sveltejs/kit'
-import { z } from 'zod'
-import { eq, historySchema, metaSchema, sql } from '@repo/db'
 import { getRegistryApi, resolveSnapshotReplayPlan } from '@repo/core/db/metaRegistry'
 import type { HarbourReadableDb } from '@repo/core/db/types'
 import {
-  resolveSnapshotVersionState,
+  historyVersionSelection,
   type ReplayShard,
+  resolveSnapshotVersionState,
 } from '@repo/core/pipeline/db/snapshotReplay.ts'
-import type { RegistryApi } from './types'
-import { getHistoryDb, getMetaDb } from './server'
+import { eq, historySchema, metaSchema } from '@repo/db'
+import { error } from '@sveltejs/kit'
+import { z } from 'zod'
+import { query } from '$app/server'
 import { compareSnapshotRecords, snapshotContent } from './apiSnapshotChanges'
+import { getHistoryDb, getMetaDb } from './server'
+import type { RegistryApi } from './types'
 
 const tables = {
   division: [historySchema.divisions, historySchema.divisionsI18n, 'divisionId'],
@@ -100,25 +101,14 @@ export const getApiSnapshotChanges = query(
               version.shard.bindingName === shard.bindingName &&
               version.recordType === `${resourceType}${translated ? 'I18n' : ''}`,
           )
-          const idColumn = translated
-            ? (table as unknown as Record<string, typeof historySchema.divisions.id>)[
-                definition[2]!
-              ]
-            : (table as typeof historySchema.divisions).id
           for (let start = 0; start < wanted.length; start += 50) {
-            const tuples = wanted
-              .slice(start, start + 50)
-              .map(version => [version.recordId, version.versionHash, version.locale])
+            const batch = wanted.slice(start, start + 50)
             const rows = await shard.db
               .select()
               .from(table)
-              .where(
-                translated
-                  ? sql`(${idColumn}, ${table.versionHash}, ${(table as typeof historySchema.divisionsI18n).locale}) in (select json_extract(value, '$[0]'), json_extract(value, '$[1]'), json_extract(value, '$[2]') from json_each(${JSON.stringify(tuples)}))`
-                  : sql`(${idColumn}, ${table.versionHash}) in (select json_extract(value, '$[0]'), json_extract(value, '$[1]') from json_each(${JSON.stringify(tuples)}))`,
-              )
+              .where(historyVersionSelection(table, batch))
               .all()
-            if (rows.length !== tuples.length)
+            if (rows.length !== batch.length)
               error(409, 'Retained snapshot content is incomplete.')
             for (const raw of rows) {
               const row = raw as Record<string, unknown>

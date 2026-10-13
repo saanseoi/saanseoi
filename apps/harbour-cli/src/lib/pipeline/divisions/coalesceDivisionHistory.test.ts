@@ -1,17 +1,17 @@
-import { insertFixtureSnapshot } from '../../../../../../libs/core/src/testing/snapshotFixtures'
 import { Database } from 'bun:sqlite'
-import { requireDefined } from '@repo/core/requireDefined'
 import { expect, test } from 'bun:test'
-import { mkdtemp, copyFile, rm } from 'node:fs/promises'
+import { copyFile, mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { drizzle } from 'drizzle-orm/bun-sqlite'
-import { loadMigrationSql } from '../../../../../../libs/core/src/testing/metaFixtures.ts'
-import { coalesceDivisionHistory } from './coalesceDivisionHistory.ts'
-import type { ResolvedSqlCandidates } from '../local/resolvedSqlPlan.ts'
 import { resolveSnapshotVersionState } from '@repo/core/pipeline/db/snapshotReplay'
 import { resolveSnapshotSourceResolutions } from '@repo/core/pipeline/db/sourceResolutionReplay'
 import { compressJsonBrotli } from '@repo/core/pipeline/services/storage/brotliJson'
+import { requireDefined } from '@repo/core/requireDefined'
+import { drizzle } from 'drizzle-orm/bun-sqlite'
+import { loadMigrationSql } from '../../../../../../libs/core/src/testing/metaFixtures.ts'
+import { insertFixtureSnapshot } from '../../../../../../libs/core/src/testing/snapshotFixtures'
+import type { ResolvedSqlCandidates } from '../local/resolvedSqlPlan.ts'
+import { coalesceDivisionHistory } from './coalesceDivisionHistory.ts'
 
 async function fixture(
   run: (f: {
@@ -105,16 +105,6 @@ async function fixture(
         )
         .run(snapshot, binding)
     }
-    for (const [recordType, locale] of [
-      ['division', ''],
-      ['divisionI18n', 'en'],
-      ['divisionI18n', 'zh-hant'],
-    ])
-      history
-        .query(
-          "INSERT INTO snapshotVersionChanges(snapshotId,recordType,recordId,locale,versionHash,operation,sourceReleaseId) VALUES('old',?,'district',?,'old-base','upsert','release-old')",
-        )
-        .run(requireDefined(recordType), requireDefined(locale))
     history.exec(
       `INSERT INTO sourceResolutions(scopeId,snapshotId,sourceReleaseId,sourceRecordId,sourceVersionHash,resolutions) VALUES('snapshot:old','old','release-old','source','raw','{"entities":{"division":["district"]}}')`,
     )
@@ -156,7 +146,6 @@ function stage(candidates: ResolvedSqlCandidates, english = 'Original') {
   const old = requireDefined(candidates.DB_HISTORY_OLD).db,
     next = requireDefined(candidates.DB_HISTORY_NEW).db,
     current = requireDefined(candidates.DB_CURRENT).db
-  old.exec('UPDATE divisions SET isCurrent=0; UPDATE divisionsI18n SET isCurrent=0')
   next
     .query(
       "INSERT INTO divisions(versionHash,sourceReleaseId,isCurrent,snapshotId,id,class,geometry,sources,hierarchies,createdAt,updatedAt) VALUES('whole-candidate','release-next',1,'next','district','district',?,?,'{}','now','now')",
@@ -185,16 +174,6 @@ function stage(candidates: ResolvedSqlCandidates, english = 'Original') {
       )
       .run(requireDefined(locale), requireDefined(name), JSON.stringify([name]))
   }
-  for (const [type, locale] of [
-    ['division', ''],
-    ['divisionI18n', 'en'],
-    ['divisionI18n', 'zh-hant'],
-  ])
-    next
-      .query(
-        "INSERT INTO snapshotVersionChanges(snapshotId,recordType,recordId,locale,versionHash,operation,sourceReleaseId) VALUES('next',?,'district',?,'whole-candidate','upsert','release-next')",
-      )
-      .run(requireDefined(type), requireDefined(locale))
   next.exec(
     `INSERT INTO sourceResolutions(scopeId,snapshotId,sourceReleaseId,sourceRecordId,sourceVersionHash,resolutions) VALUES('snapshot:next','next','release-next','source','raw','{"entities":{"division":["district"]}}')`,
   )
@@ -228,7 +207,7 @@ test('Division reissues inherit unchanged base, every locale and source assertio
     for (const table of [
       'divisions',
       'divisionsI18n',
-      'snapshotVersionChanges',
+      'historyEvents',
       'sourceResolutions',
     ])
       expect(
@@ -257,38 +236,21 @@ test('Division reissues inherit unchanged base, every locale and source assertio
     ).toBe('DB_HISTORY_OLD')
   }))
 
-test('a complete published scope without its own version journal resolves unchanged components from matching current history', () =>
+test('missing parent content is rejected rather than inferred from current flags', () =>
   fixture(async f => {
     stage(f.candidates)
-    const oldHistory = requireDefined(f.before.DB_HISTORY_OLD)
-    oldHistory.exec("DELETE FROM snapshotVersionChanges WHERE snapshotId='old'")
-    oldHistory.exec(`INSERT INTO divisions(
-      versionHash,sourceReleaseId,isCurrent,snapshotId,id,class,geometry,sources,hierarchies,createdAt,updatedAt
-    ) SELECT 'stale-base','release-stale',1,snapshotId,id,'outdated',geometry,sources,hierarchies,createdAt,updatedAt
-      FROM divisions WHERE versionHash='old-base'`)
-    requireDefined(f.candidates.DB_HISTORY_OLD).db.exec(`INSERT INTO divisions(
-      versionHash,sourceReleaseId,isCurrent,snapshotId,id,class,geometry,sources,hierarchies,createdAt,updatedAt
-    ) SELECT 'stale-base','release-stale',1,snapshotId,id,'outdated',geometry,sources,hierarchies,createdAt,updatedAt
-      FROM divisions WHERE versionHash='old-base'`)
-    await f.coalesce()
-    for (const table of ['divisions', 'divisionsI18n', 'snapshotVersionChanges'])
-      expect(
-        requireDefined(f.candidates.DB_HISTORY_NEW)
-          .db.query(`SELECT count(*) AS n FROM ${table}`)
-          .get(),
-      ).toEqual({ n: 0 })
-    expect(
-      requireDefined(f.candidates.DB_HISTORY_OLD)
-        .db.query('SELECT isCurrent FROM divisions WHERE id=?')
-        .all('district'),
-    ).toEqual([{ isCurrent: 0 }, { isCurrent: 1 }])
+    for (const db of [
+      requireDefined(f.before.DB_HISTORY_OLD),
+      requireDefined(f.candidates.DB_HISTORY_OLD).db,
+    ])
+      db.exec("DELETE FROM divisions WHERE snapshotId='old'")
+    await expect(f.coalesce()).rejects.toThrow()
   }))
 
-test('an unjournaled component absent from current history is re-established by the incoming version', () =>
+test('a changed locale writes a new event while preserving its parent', () =>
   fixture(async f => {
     stage(f.candidates)
     const oldHistory = requireDefined(f.before.DB_HISTORY_OLD)
-    oldHistory.exec("DELETE FROM snapshotVersionChanges WHERE snapshotId='old'")
     oldHistory
       .query(
         "UPDATE divisionsI18n SET name='Legacy name' WHERE divisionId='district' AND locale='en'",
@@ -303,7 +265,7 @@ test('an unjournaled component absent from current history is re-established by 
     const oldEnglish = requireDefined(f.candidates.DB_HISTORY_OLD)
       .db.query('SELECT isCurrent FROM divisionsI18n WHERE divisionId=? AND locale=?')
       .all('district', 'en')
-    expect(oldEnglish).toEqual([{ isCurrent: 0 }])
+    expect(oldEnglish).toEqual([{ isCurrent: 1 }])
     const next = requireDefined(f.candidates.DB_HISTORY_NEW).db
     expect(
       next
@@ -315,7 +277,7 @@ test('an unjournaled component absent from current history is re-established by 
     expect(
       next
         .query(
-          "SELECT operation,versionHash FROM snapshotVersionChanges WHERE snapshotId='next' AND recordType='divisionI18n' AND recordId='district' AND locale='en'",
+          "SELECT operation,versionHash FROM historyEvents WHERE snapshotId='next' AND recordType='divisionI18n' AND recordId='district' AND locale='en'",
         )
         .get(),
     ).toEqual({ operation: 'upsert', versionHash: 'whole-candidate' })
@@ -327,12 +289,12 @@ test('a Division locale edit closes only that component in its owning shard and 
     await f.coalesce()
     const next = requireDefined(f.candidates.DB_HISTORY_NEW).db,
       old = requireDefined(f.candidates.DB_HISTORY_OLD).db
-    expect(
-      next.query('SELECT recordType,locale FROM snapshotVersionChanges').all(),
-    ).toEqual([{ recordType: 'divisionI18n', locale: 'en' }])
+    expect(next.query('SELECT recordType,locale FROM historyEvents').all()).toEqual([
+      { recordType: 'divisionI18n', locale: 'en' },
+    ])
     expect(
       old.query("SELECT isCurrent FROM divisionsI18n WHERE locale='en'").get(),
-    ).toEqual({ isCurrent: 0 })
+    ).toEqual({ isCurrent: 1 })
     expect(
       old.query("SELECT isCurrent FROM divisionsI18n WHERE locale='zh-hant'").get(),
     ).toEqual({ isCurrent: 1 })
@@ -362,13 +324,13 @@ test('Division component omissions retire the exact older shard and leave anothe
     await f.coalesce()
     expect(
       old.query("SELECT isCurrent FROM divisionsI18n WHERE locale='zh-hant'").get(),
-    ).toEqual({ isCurrent: 0 })
+    ).toEqual({ isCurrent: 1 })
     expect(
       old.query("SELECT isCurrent FROM divisions WHERE id='foreign'").get(),
     ).toEqual({ isCurrent: 1 })
     expect(
       requireDefined(f.candidates.DB_HISTORY_NEW)
-        .db.query('SELECT recordType,locale,operation FROM snapshotVersionChanges')
+        .db.query('SELECT recordType,locale,operation FROM historyEvents')
         .all(),
     ).toEqual([{ recordType: 'divisionI18n', locale: 'zh-hant', operation: 'delete' }])
   }))
@@ -394,9 +356,9 @@ test('Division base changes retain unchanged locales and preserve meaningful ide
       `UPDATE divisions SET identifiers='{"statistical":"district-1"}'`,
     )
     await f.coalesce()
-    expect(
-      next.query('SELECT recordType,locale FROM snapshotVersionChanges').all(),
-    ).toEqual([{ recordType: 'division', locale: '' }])
+    expect(next.query('SELECT recordType,locale FROM historyEvents').all()).toEqual([
+      { recordType: 'division', locale: '' },
+    ])
     expect(next.query('SELECT identifiers FROM divisions').get()).toEqual({
       identifiers: '{"statistical":"district-1"}',
     })
@@ -407,7 +369,7 @@ test('Division base changes retain unchanged locales and preserve meaningful ide
       requireDefined(f.candidates.DB_HISTORY_OLD)
         .db.query('SELECT isCurrent FROM divisions')
         .get(),
-    ).toEqual({ isCurrent: 0 })
+    ).toEqual({ isCurrent: 1 })
   }))
 
 test('Division publication after rollback compares against selected A when C repeats historical B', () =>
@@ -420,8 +382,7 @@ test('Division publication after rollback compares against selected A when C rep
       db.exec(`
         INSERT INTO divisionsI18n(versionHash,sourceReleaseId,isCurrent,isLocaleInferred,snapshotId,divisionId,locale,name,nameVariant,createdAt,updatedAt)
           VALUES('branch-b','release-b',1,0,'branch-b','district','en','Revised','["Revised"]','b','b');
-        INSERT INTO snapshotVersionChanges(snapshotId,recordType,recordId,locale,versionHash,operation,sourceReleaseId)
-          VALUES('branch-b','divisionI18n','district','en','branch-b','upsert','release-b');`)
+        `)
     for (const db of [
       requireDefined(f.before.DB_HISTORY_OLD),
       requireDefined(f.candidates.DB_HISTORY_OLD).db,
@@ -439,7 +400,7 @@ INSERT INTO snapshots(id, snapshotLineageId, code, cohortKey, status, parentSnap
     expect(
       next
         .query(
-          "SELECT recordType,locale,versionHash FROM snapshotVersionChanges WHERE snapshotId='next'",
+          "SELECT recordType,locale,versionHash FROM historyEvents WHERE snapshotId='next'",
         )
         .all(),
     ).toEqual([
@@ -472,11 +433,11 @@ INSERT INTO snapshots(id, snapshotLineageId, code, cohortKey, status, parentSnap
 test('Division coalescing rejects unavailable selected content even when another history version exists', () =>
   fixture(async f => {
     requireDefined(f.before.DB_HISTORY_OLD).exec(
-      "UPDATE divisionsI18n SET versionHash='unselected' WHERE locale='en'",
+      "DELETE FROM divisionsI18n WHERE locale='en'",
     )
     stage(f.candidates, 'Revised')
     await expect(f.coalesce()).rejects.toThrow(
-      'Missing selected Division content divisionsI18n/district in DB_HISTORY_OLD',
+      'Missing exact Division parent district/en',
     )
   }))
 
@@ -489,11 +450,11 @@ test('Division coalescing permits a new locale with no predecessor', () =>
     const next = requireDefined(f.candidates.DB_HISTORY_NEW).db
     next.exec(`
       INSERT INTO divisionsI18n(snapshotId,divisionId,locale,name,isLocaleInferred,versionHash,sourceReleaseId,isCurrent) VALUES('next','district','fr','District',0,'french','release-next',1);
-      INSERT INTO snapshotVersionChanges(snapshotId,recordType,recordId,locale,versionHash,sourceReleaseId,operation) VALUES('next','divisionI18n','district','fr','french','release-next','upsert');`)
+      `)
     await f.coalesce()
-    expect(
-      next.query('SELECT locale,versionHash FROM snapshotVersionChanges').all(),
-    ).toEqual([{ locale: 'fr', versionHash: 'french' }])
+    expect(next.query('SELECT locale,versionHash FROM historyEvents').all()).toEqual([
+      { locale: 'fr', versionHash: 'french' },
+    ])
   }))
 
 test('historical Division reissue compares against its parent even after a later revision occupies current', () =>
@@ -513,9 +474,7 @@ test('historical Division reissue compares against its parent even after a later
     )
     expect(
       requireDefined(f.candidates.DB_HISTORY_NEW)
-        .db.query(
-          "SELECT * FROM snapshotVersionChanges WHERE recordType='divisionI18n'",
-        )
+        .db.query("SELECT * FROM historyEvents WHERE recordType='divisionI18n'")
         .all(),
     ).toHaveLength(0)
     expect(

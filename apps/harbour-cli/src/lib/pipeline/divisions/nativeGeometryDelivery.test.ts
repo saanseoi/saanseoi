@@ -3,20 +3,20 @@ import { expect, test } from 'bun:test'
 import { mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
-import { drizzle } from 'drizzle-orm/bun-sqlite'
-import { currentSchema, historySchema, sourceSchema } from '@repo/db'
 import { normaliseDivisionAreaGeometryRow } from '@repo/core/pipeline/services/divisions/divisionGeometry'
+import { currentSchema, historySchema, sourceSchema } from '@repo/db'
+import { drizzle } from 'drizzle-orm/bun-sqlite'
 import { loadMigrationSql } from '../../../../../../libs/core/src/testing/metaFixtures.ts'
 import { createLocalExecBinding } from '../../dbCache/localDbCache.ts'
 import type { LocalAddressDbContext } from '../../dbCache/localDbCacheTypes.ts'
-import { sqlDeliveryPhaseDirectory } from '../local/sqlDeliveryPhase.ts'
 import { completeSqlDeliveryRelease } from '../local/sqlDeliveryPending.ts'
-import { writeGeometryRows } from './processLocalDivisionGeometrySqlUploadRows.ts'
+import { sqlDeliveryPhaseDirectory } from '../local/sqlDeliveryPhase.ts'
 import {
   nativeGeometryDeliveryPhase,
   readNativeGeometryVersion,
   writeGeometryRowsDurably,
 } from './nativeGeometryDelivery.ts'
+import { writeGeometryRows } from './processLocalDivisionGeometrySqlUploadRows.ts'
 
 test('uses cohort-specific delivery phases for annual snapshots in one release', () => {
   expect(
@@ -217,7 +217,7 @@ for (const sourceKind of ['overture', 'saanseoi'] as const)
         expect(
           history
             .query(
-              "SELECT count(*) AS n FROM snapshotVersionChanges WHERE snapshotId='new' AND operation='delete' AND recordId='removed'",
+              "SELECT count(*) AS n FROM historyEvents WHERE snapshotId='new' AND operation='delete' AND recordId='removed'",
             )
             .get(),
         ).toEqual({ n: 1 })

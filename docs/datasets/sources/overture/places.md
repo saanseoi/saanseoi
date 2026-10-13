@@ -53,9 +53,9 @@ Same-release replay leaves open source assertions untouched; a year-shard rollov
 unchanged assertions in their owning shard and assigns the release every source shard
 containing a retained assertion.
 
-Canonical comparison follows the serving predecessor's exact snapshot journals and
-owning history shards, including after a published rollback. Retained publisher versions
-remain available without determining which canonical content is served or inherited.
+Canonical comparison follows the serving predecessor's exact snapshot events and owning
+history shards, including after a published rollback. Retained publisher versions remain
+available without determining which canonical content is served or inherited.
 
 Unchanged records also reuse local normalisation, Address analysis and enrichment across
 releases. The cache checks source content, official reference data, applicable curation
@@ -109,11 +109,11 @@ release counts every retained Place as added, and an empty release counts every
 predecessor record as removed. Ambiguous retained identities stop calculation.
 
 Canonical base and locale history versions inherit independently. Unchanged reissues add
-no history versions, journal entries or source resolutions. Changed interpretations and
-explicit `source_omission` entries override inherited snapshot ancestry. Snapshot
-journal assignments point to the owning history shard. A year-shard boundary does not
-create a source copy for an unchanged Place assertion; source-shard assignments retain
-the complete set of owners for each release, including older annual shards.
+no history versions, events or source resolutions. Changed interpretations and explicit
+`source_omission` entries override inherited snapshot ancestry. Snapshot journal
+assignments point to the owning history shard. A year-shard boundary does not create a
+source copy for an unchanged Place assertion; source-shard assignments retain the
+complete set of owners for each release, including older annual shards.
 
 Places and supplementary Address assembly runs preserve analysis and finalisation
 evidence, alongside exact source and lookup selections. Metadata replay includes their
@@ -527,11 +527,10 @@ supplementary Address current and historical rows, rebuilds Address search, and
 preserves the ALS snapshots used as derivation evidence.
 
 Supplementary snapshots are complete and parentless, including when there are no
-accepted rows. Full membership journals are retained deliberately to bound replay
-ancestry; each edition journals the accepted base and locale selections, together with
-explicit withdrawals. Building-number lookups are reproducible from those locales. Its
-assembly records retain a materialisation hash, combined policy/entry-ledger hash and
-policy versions.
+accepted rows. Each root stores its full base, locale and building-number components as
+inline events, together with explicit withdrawals. Parented revisions inherit unchanged
+components. Assembly records retain a materialisation hash, combined policy/entry-ledger
+hash and policy versions.
 
 Canonical base, locale and building-number lookup payloads have independent hashes.
 Address `sources` identifies the Overture publisher, registered Places dataset and every
@@ -541,11 +540,11 @@ the Place audit, and source records remain available in the Place source archive
 Historical lookup follows the matching source edition. Address history retains canonical
 components without a separate evidence payload or evidence index. Changes to supporting
 Place attribution create a canonical base version; locale-only changes replace only the
-affected locale content. Repeated components remain in their original history shard,
-including across year boundaries, and every snapshot records its selected component
-versions and their owning shards.
+affected locale content. Parented snapshots inherit repeated components from their
+original shard, including across year boundaries. Independent roots store their own
+component events.
 
-Address history and `snapshotVersionChanges` reproduce each snapshot independently. An
+Address history and inline HISTORY events reproduce each snapshot independently. An
 existing published supplementary snapshot must reproduce its recorded materialisation;
 an incompatible fixture edit requires a source-release revision. Published retries
 recover withdrawal IDs from immutable version changes and update the generated entry

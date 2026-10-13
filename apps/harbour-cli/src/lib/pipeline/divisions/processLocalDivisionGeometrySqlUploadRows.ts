@@ -1,53 +1,52 @@
+import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
+import { recordHistoryDeletions } from '@repo/core/pipeline/db/historyDeletions'
 import {
+  recordSourceResolutions,
+  resolvedEntities,
+} from '@repo/core/pipeline/db/sourceResolutions'
+import {
+  hashDivisionGeometryRow,
+  hashDivisionGeometrySourceRow,
+} from '@repo/core/pipeline/services/divisions/divisionGeometry'
+import { currentRowChangedSql } from '@repo/core/pipeline/services/publication/currentWrites.ts'
+import { getPreparedPublication } from '@repo/core/pipeline/services/publication/execute.ts'
+import {
+  buildPublicationRowCountSql,
+  type PublicationPreparation,
+} from '@repo/core/pipeline/services/publication/sql.ts'
+import {
+  censtatdDerivativeRow,
   censtatdGeometryId,
   censtatdGeometryRow,
-  censtatdDerivativeRow,
 } from '@repo/core/pipeline/services/sources/censtatdGeometry'
+import { nativeSourcePayloadHashInput } from '@repo/core/pipeline/services/sources/sourcePayload'
+import { compressJsonBrotli } from '@repo/core/pipeline/services/storage/brotliJson.ts'
+import { chunkArray, getMaxItemsPerInClause } from '@repo/core/pipeline/utils'
+import { currentSchema, historySchema, sourceSchema, toIsoTimestamp } from '@repo/db'
+import { and, eq, getTableColumns, inArray, lte, sql } from 'drizzle-orm'
+import type { AnySQLiteColumn, AnySQLiteTable } from 'drizzle-orm/sqlite-core'
+import type { resolveLocalAddressDbContext } from '../../dbCache/localDbCache.ts'
 import {
   assertPublishedSnapshotMaterialised,
   beginSnapshotPublication,
   completeSnapshotPublication,
   guardSnapshotPublicationWrites,
 } from '../local/snapshotPublication.ts'
-import { getPreparedPublication } from '@repo/core/pipeline/services/publication/execute.ts'
-import { currentRowChangedSql } from '@repo/core/pipeline/services/publication/currentWrites.ts'
+import { validateGeometryHistoryBaseline } from './geometryHistoryBaseline.ts'
+import { requireString } from './processLocalDivisionGeometrySqlUploadPreparation.ts'
 import {
-  buildPublicationRowCountSql,
-  type PublicationPreparation,
-} from '@repo/core/pipeline/services/publication/sql.ts'
-import { nativeSourcePayloadHashInput } from '@repo/core/pipeline/services/sources/sourcePayload'
-import {
-  recordSourceResolutions,
-  resolvedEntities,
-} from '@repo/core/pipeline/db/sourceResolutions'
-import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
-import { recordSnapshotVersionChanges } from '@repo/core/pipeline/db/snapshotVersionChanges'
-import {
-  hashDivisionGeometryRow,
-  hashDivisionGeometrySourceRow,
-} from '@repo/core/pipeline/services/divisions/divisionGeometry'
-import { compressJsonBrotli } from '@repo/core/pipeline/services/storage/brotliJson.ts'
-import { toIsoTimestamp } from '@repo/db'
-import { currentSchema, historySchema, sourceSchema } from '@repo/db'
-import { and, eq, inArray, lte, sql, getTableColumns } from 'drizzle-orm'
-import { chunkArray, getMaxItemsPerInClause } from '@repo/core/pipeline/utils'
-import type { AnySQLiteColumn, AnySQLiteTable } from 'drizzle-orm/sqlite-core'
-import type { resolveLocalAddressDbContext } from '../../dbCache/localDbCache.ts'
+  canonicalGeometryBrotliQuality,
+  createGeometryChurnCounts,
+  decodeStoredGeoJsonGeometry,
+  getGeometryChurnBaseline,
+  shouldCompressCanonicalGeometry,
+} from './processLocalDivisionGeometrySqlUploadStatistics.ts'
 import type {
   GeometryUploadPlan,
   GeometryWriteProgress,
   NormalisedGeometry,
 } from './processLocalDivisionGeometrySqlUploadTypes.ts'
-import {
-  canonicalGeometryBrotliQuality,
-  createGeometryChurnCounts,
-  getGeometryChurnBaseline,
-  decodeStoredGeoJsonGeometry,
-  shouldCompressCanonicalGeometry,
-} from './processLocalDivisionGeometrySqlUploadStatistics.ts'
-import { requireString } from './processLocalDivisionGeometrySqlUploadPreparation.ts'
 import { readGeometrySnapshot } from './readGeometrySnapshot.ts'
-import { validateGeometryHistoryBaseline } from './geometryHistoryBaseline.ts'
 
 export async function writeGeometryRows(
   context: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>,
@@ -236,16 +235,13 @@ export async function writeGeometryRows(
       ? []
       : [...previousById.keys()].filter(id => !historyHashes.has(id))
   if (!version.skipCanonicalMaterialisation) {
-    await recordSnapshotVersionChanges(
-      context.historyDb as unknown as HarbourWritableDb,
-      {
-        snapshotId: version.snapshotId,
-        sourceReleaseId: version.resourceReleaseId,
-        recordType: resourceType,
-        operation: 'delete',
-        changes: removedHistoryIds.map(recordId => ({ recordId })),
-      },
-    )
+    await recordHistoryDeletions(context.historyDb as unknown as HarbourWritableDb, {
+      snapshotId: version.snapshotId,
+      sourceReleaseId: version.resourceReleaseId,
+      recordType: resourceType,
+      operation: 'delete',
+      changes: removedHistoryIds.map(recordId => ({ recordId })),
+    })
   }
   // Repeated content can have disjoint validity periods (A -> B -> A).
   // Continue an open period only; never reopen a closed occurrence.
@@ -515,19 +511,6 @@ export async function writeGeometryRows(
       writtenHistoryRows += chunk.length
       onProgress?.('write history rows', writtenHistoryRows, historyRows.length)
     }
-    await recordSnapshotVersionChanges(
-      context.historyDb as unknown as HarbourWritableDb,
-      {
-        snapshotId: version.snapshotId,
-        sourceReleaseId: version.resourceReleaseId,
-        recordType: resourceType,
-        operation: 'upsert',
-        changes: historyRows.map(row => ({
-          recordId: requireString(row.id, 'history row id'),
-          versionHash: requireString(row.versionHash, 'history row versionHash'),
-        })),
-      },
-    )
   }
   if (version.source === 'hkgov-censtatd' && !isDisplayDerivative) {
     const table = sourceSchema.sourceHkgovCenstatdGeometry

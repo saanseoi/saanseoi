@@ -1,19 +1,19 @@
 import { Database, type SQLQueryBindings } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { join } from 'node:path'
-import { drizzle } from 'drizzle-orm/bun-sqlite'
-import { currentSchema, historySchema, sourceSchema } from '@repo/db'
 import { resolveSnapshotReplayPlan } from '@repo/core/db/metaRegistry'
 import {
-  resolveSnapshotVersionState,
   type ReplayShard,
+  resolveSnapshotVersionState,
 } from '@repo/core/pipeline/db/snapshotReplay'
 import {
+  type DivisionGeometryKind,
   hashDivisionGeometryRow,
   normaliseDivisionAreaGeometryRow,
   normaliseDivisionBoundaryGeometryRow,
-  type DivisionGeometryKind,
 } from '@repo/core/pipeline/services/divisions/divisionGeometry'
+import { currentSchema, historySchema, sourceSchema } from '@repo/db'
+import { drizzle } from 'drizzle-orm/bun-sqlite'
 import { loadMigrationSql } from '../../../../../../libs/core/src/testing/metaFixtures.ts'
 import { createLocalExecBinding } from '../../dbCache/localDbCache.ts'
 import type { LocalAddressDbContext } from '../../dbCache/localDbCacheTypes.ts'
@@ -136,7 +136,7 @@ function fixture(kind: DivisionGeometryKind) {
   const journal = (db: Database, snapshotId: string) =>
     db
       .query(
-        'SELECT recordId,operation FROM snapshotVersionChanges WHERE snapshotId=? ORDER BY recordId',
+        'SELECT recordId,operation FROM historyEvents WHERE snapshotId=? ORDER BY recordId',
       )
       .all(snapshotId)
   const replay = async (snapshotId: string) =>
@@ -154,9 +154,7 @@ function fixture(kind: DivisionGeometryKind) {
     current.query(`SELECT * FROM ${publicationTable} ORDER BY snapshotId`).all(),
     ...[old, next].flatMap(db => [
       db.query(`SELECT * FROM ${table} ORDER BY id,versionHash`).all(),
-      db
-        .query('SELECT * FROM snapshotVersionChanges ORDER BY snapshotId,recordId')
-        .all(),
+      db.query('SELECT * FROM historyEvents ORDER BY snapshotId,recordId').all(),
       db
         .query('SELECT * FROM sourceResolutions ORDER BY snapshotId,sourceRecordId')
         .all(),
@@ -268,9 +266,16 @@ for (const kind of ['divisionArea', 'divisionBoundary'] as const) {
         ['b', 'DB_HISTORY_2025'],
         ['c', 'DB_HISTORY_2026'],
       ])
-      expect(f.next.query(`SELECT id FROM ${f.table} ORDER BY id`).all()).toEqual([
-        { id: 'a' },
-        { id: 'c' },
+      expect(
+        f.next
+          .query(
+            `SELECT id,snapshotId,operation FROM ${f.table} ORDER BY snapshotId,id`,
+          )
+          .all(),
+      ).toEqual([
+        { id: 'a', snapshotId: 'child', operation: 'upsert' },
+        { id: 'c', snapshotId: 'child', operation: 'delete' },
+        { id: 'c', snapshotId: 'reappeared', operation: 'upsert' },
       ])
       const root = await f.replay('root')
       expect(root.map(version => version.recordId)).toEqual(['a', 'b', 'c'])
@@ -341,7 +346,6 @@ for (const kind of ['divisionArea', 'divisionBoundary'] as const) {
     'missing assignment',
     'unavailable shard',
     'missing content',
-    'incomplete journal',
     'wrong content hash',
     'wrong selected projection',
   ] as const)
@@ -358,8 +362,6 @@ for (const kind of ['divisionArea', 'divisionBoundary'] as const) {
           )
         if (problem === 'missing content')
           f.old.exec(`DELETE FROM ${f.table} WHERE id='b'`)
-        if (problem === 'incomplete journal')
-          f.old.exec("DELETE FROM snapshotVersionChanges WHERE recordId='b'")
         if (problem === 'wrong content hash')
           f.old.exec(`UPDATE ${f.table} SET type='maritime' WHERE id='b'`)
         if (problem === 'wrong selected projection')
@@ -368,7 +370,7 @@ for (const kind of ['divisionArea', 'divisionBoundary'] as const) {
         const message = {
           'missing assignment': 'no retained history assignment',
           'unavailable shard': 'requires unavailable history binding',
-          'missing content': 'Missing exact geometry parent content',
+          'missing content': 'membership does not match its selected projection',
           'incomplete journal': 'membership does not match its selected projection',
           'wrong content hash': 'content hash mismatch for b',
           'wrong selected projection':
@@ -422,9 +424,18 @@ for (const kind of ['divisionArea', 'divisionBoundary'] as const) {
           version.sourceReleaseId,
         ]),
       ).toEqual([['a', 'replacement']])
-      expect(f.next.query(`SELECT count(*) AS n FROM ${f.table}`).get()).toEqual({
-        n: 1,
-      })
+      expect(
+        f.next
+          .query(
+            `SELECT snapshotId,operation,count(*) AS n FROM ${f.table} GROUP BY snapshotId,operation ORDER BY snapshotId,operation`,
+          )
+          .all(),
+      ).toEqual([
+        { snapshotId: 'replacement', operation: 'delete', n: 1 },
+        { snapshotId: 'replacement', operation: 'upsert', n: 1 },
+        { snapshotId: 'revoked', operation: 'delete', n: 1 },
+        { snapshotId: 'revoked', operation: 'upsert', n: 1 },
+      ])
       await f.write('unchanged', 'replacement', [changed], { binding: 'next' })
       expect(f.journal(f.next, 'unchanged')).toEqual([])
     } finally {

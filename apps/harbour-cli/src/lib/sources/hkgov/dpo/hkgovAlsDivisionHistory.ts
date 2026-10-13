@@ -1,11 +1,11 @@
-import { inArray } from 'drizzle-orm'
-import { historySchema, type DivisionHierarchies, type MetaDatabase } from '@repo/db'
 import { resolveSnapshotReplayPlan } from '@repo/core/db/metaRegistry'
 import {
   groupResolvedVersionsByShard,
-  resolveSnapshotVersionState,
+  historyVersionSelection,
   type ReplayShard,
+  resolveSnapshotVersionState,
 } from '@repo/core/pipeline/db/snapshotReplay'
+import { type DivisionHierarchies, historySchema, type MetaDatabase } from '@repo/db'
 
 /** Read the immutable parent-to-target membership, independently of current cleanup. */
 export async function loadAlsDivisionHistory(
@@ -45,7 +45,12 @@ export async function loadAlsDivisionHistory(
           versionHash: historySchema.divisions.versionHash,
         })
         .from(historySchema.divisions)
-        .where(inArray(historySchema.divisions.versionHash, hashes))
+        .where(
+          historyVersionSelection(
+            historySchema.divisions,
+            batch.filter(row => row.recordType === 'division'),
+          ),
+        )
         .all()
       for (const row of rows) {
         if (expected.has(`division\0${row.id}\0\0${row.versionHash}`)) {
@@ -60,7 +65,12 @@ export async function loadAlsDivisionHistory(
           versionHash: historySchema.divisionsI18n.versionHash,
         })
         .from(historySchema.divisionsI18n)
-        .where(inArray(historySchema.divisionsI18n.versionHash, hashes))
+        .where(
+          historyVersionSelection(
+            historySchema.divisionsI18n,
+            batch.filter(row => row.recordType === 'divisionI18n'),
+          ),
+        )
         .all()
       for (const row of translations) {
         if (

@@ -1,34 +1,34 @@
 import { Database } from 'bun:sqlite'
-import { test, expect } from 'bun:test'
-import { mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises'
+import { expect, test } from 'bun:test'
+import { mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { resolve } from 'node:path'
-import { drizzle } from 'drizzle-orm/bun-sqlite'
-import { currentSchema, historySchema } from '@repo/db'
-import { createLocalHarbourDb } from '../../../../../../libs/core/src/testing/localDb'
-import {
-  loadMigrationSql,
-  seedFixtureCatalog,
-  insertFixtureRelease,
-} from '../../../../../../libs/core/src/testing/metaFixtures'
 import {
   ensureDraftSnapshotForRelease,
+  resolveSnapshotReplayPlan,
   upsertSnapshotSource,
 } from '@repo/core/db/metaRegistry'
-import { normaliseOverturePlace } from '@repo/core/pipeline/services/places/place'
-import { prepareSupplementaryAddresses } from './processLocalPlaceSqlUpload.ts'
-import policy from './testFixtures/supplementaryAddressPolicy.json'
-import { buildPlacesResetSql, collectOwnedPlaces } from '../../commands/resetPlaces.ts'
-import { completeSqlDeliveryRelease } from '../local/sqlDeliveryPending.ts'
-import { createLocalExecBinding } from '../../dbCache/localDbCache.ts'
 import { getReplayedAddressVersionMap } from '@repo/core/pipeline/db/address'
 import {
-  resolveSnapshotVersionState,
   type ReplayShard,
+  resolveSnapshotVersionState,
 } from '@repo/core/pipeline/db/snapshotReplay'
-import { resolveSnapshotReplayPlan } from '@repo/core/db/metaRegistry'
-import { addressFingerprint } from './supplementaryPlaceAddress.ts'
+import { normaliseOverturePlace } from '@repo/core/pipeline/services/places/place'
+import { currentSchema, historySchema } from '@repo/db'
+import { drizzle } from 'drizzle-orm/bun-sqlite'
+import { createLocalHarbourDb } from '../../../../../../libs/core/src/testing/localDb'
+import {
+  insertFixtureRelease,
+  loadMigrationSql,
+  seedFixtureCatalog,
+} from '../../../../../../libs/core/src/testing/metaFixtures'
+import { buildPlacesResetSql, collectOwnedPlaces } from '../../commands/resetPlaces.ts'
+import { createLocalExecBinding } from '../../dbCache/localDbCache.ts'
+import { completeSqlDeliveryRelease } from '../local/sqlDeliveryPending.ts'
+import { prepareSupplementaryAddresses } from './processLocalPlaceSqlUpload.ts'
 import { collectPublishedSupplementaryRevocations } from './processLocalPlaceSqlUploadSupplementary.ts'
+import { addressFingerprint } from './supplementaryPlaceAddress.ts'
+import policy from './testFixtures/supplementaryAddressPolicy.json'
 
 test('published supplementary retry recovers revocations from immutable history', async () => {
   const first = new Database(':memory:')
@@ -41,21 +41,11 @@ test('published supplementary retry recovers revocations from immutable history'
           ['history'],
         ).replaceAll('--> statement-breakpoint', ''),
       )
-    first.exec(`
-      INSERT INTO snapshotVersionChanges
-        (snapshotId,recordType,recordId,locale,versionHash,operation)
-      VALUES
-        ('published-snapshot','address2d','ss-opa-stale-a','',NULL,'delete'),
-        ('published-snapshot','address2d','ss-opa-current','', 'hash','upsert'),
-        ('other-snapshot','address2d','ss-opa-other','',NULL,'delete');
-    `)
-    second.exec(`
-      INSERT INTO snapshotVersionChanges
-        (snapshotId,recordType,recordId,locale,versionHash,operation)
-      VALUES
-        ('published-snapshot','address2d','ss-opa-stale-b','',NULL,'delete'),
-        ('published-snapshot','address2dI18n','ss-opa-locale','en',NULL,'delete');
-    `)
+    first.exec(`INSERT INTO address2d(snapshotId,id,operation) VALUES
+      ('published-snapshot','ss-opa-stale-a','delete'),('other-snapshot','ss-opa-other','delete');
+      INSERT INTO address2d(snapshotId,id,operation,versionHash,granularity,sourceReleaseId) VALUES('published-snapshot','ss-opa-current','upsert','hash','building','source');`)
+    second.exec(`INSERT INTO address2d(snapshotId,id,operation) VALUES('published-snapshot','ss-opa-stale-b','delete');
+      INSERT INTO address2dI18n(snapshotId,addressId,locale,operation) VALUES('published-snapshot','ss-opa-locale','en','delete');`)
     expect(
       await collectPublishedSupplementaryRevocations(
         [first, second].map((db, index) => ({
@@ -458,9 +448,9 @@ INSERT INTO snapshots(id, code, cohortKey, status, snapshotLineageId) VALUES
     ).toEqual({ status: 'published' })
     expect(
       history
-        .query('SELECT count(*) AS n FROM snapshotVersionChanges WHERE snapshotId = ?')
+        .query('SELECT count(*) AS n FROM historyEvents WHERE snapshotId = ?')
         .get(first.snapshotId),
-    ).toEqual({ n: 2 })
+    ).toEqual({ n: 3 })
     expect(current.query('SELECT count(*) AS n FROM places').get()).toEqual({ n: 0 })
     const retry = await prepareSupplementaryAddresses(input)
     expect(auditHashes).toHaveLength(2)
@@ -510,7 +500,7 @@ INSERT INTO snapshots(id, code, cohortKey, status, snapshotLineageId) VALUES
         buildMatchKey: () => null,
       })
     const firstReplay = await replay(first.snapshotId)
-    const assertComponentsRetained = () => {
+    const assertComponentsRetained = (newRoots: number) => {
       expect(history.query('SELECT * FROM address2d').all()).toEqual(originalBase)
       expect(history.query('SELECT * FROM address2dI18n').all()).toEqual(originalLocale)
       expect(
@@ -522,7 +512,7 @@ INSERT INTO snapshots(id, code, cohortKey, status, snapshotLineageId) VALUES
         'address2dBuildingNumberLookup',
       ])
         expect(historyNext.query(`SELECT count(*) AS n FROM ${table}`).get()).toEqual({
-          n: 0,
+          n: newRoots,
         })
     }
     const nextEdition = async (
@@ -581,7 +571,7 @@ INSERT INTO snapshots(id, code, cohortKey, status, snapshotLineageId) VALUES
       return result
     }
     const unchanged = await nextEdition('2026-01-21.0')
-    assertComponentsRetained()
+    assertComponentsRetained(1)
     expect(unchanged.addresses[0]?.current.id).toBe(generatedAddressId)
     expect(await replay(first.snapshotId)).toEqual(firstReplay)
     const unchangedReplay = await replay(unchanged.snapshotId)
@@ -603,8 +593,8 @@ INSERT INTO snapshots(id, code, cohortKey, status, snapshotLineageId) VALUES
       [...unchangedState.values()].map(row => [row.recordType, row.shard.bindingName]),
     ).toEqual(
       expect.arrayContaining([
-        ['address2d', 'DB_HISTORY_HK_2025'],
-        ['address2dI18n', 'DB_HISTORY_HK_2025'],
+        ['address2d', 'DB_HISTORY_HK_2026'],
+        ['address2dI18n', 'DB_HISTORY_HK_2026'],
       ]),
     )
     insertFixtureRelease(meta, {
@@ -634,7 +624,7 @@ INSERT INTO snapshots(id, code, cohortKey, status, snapshotLineageId) VALUES
       .query('UPDATE addressPublicationState SET snapshotId = ? WHERE scopeId = ?')
       .run(officialNext.id, officialScopeId)
     const sourceOnly = await nextEdition('2026-01-28.0', [place], officialNext.id)
-    assertComponentsRetained()
+    assertComponentsRetained(2)
     expect(
       (await replay(sourceOnly.snapshotId)).get(generatedAddressId)?.base.sources,
     ).toEqual(sourceOnly.addresses[0]?.current.sources)
@@ -659,7 +649,7 @@ INSERT INTO snapshots(id, code, cohortKey, status, snapshotLineageId) VALUES
             .query('SELECT count(*) AS n FROM address2d WHERE id=? AND isCurrent=1')
             .get(generatedAddressId) as { n: number }
         ).n,
-    ).toBe(1)
+    ).toBe(4)
     expect(supported.addresses).toHaveLength(1)
     expect(
       supported.addresses[0]?.current.sources.map(source => source.recordId),
@@ -682,15 +672,15 @@ INSERT INTO snapshots(id, code, cohortKey, status, snapshotLineageId) VALUES
             .query('SELECT count(*) AS n FROM address2d WHERE id=? AND isCurrent=1')
             .get(generatedAddressId) as { n: number }
         ).n,
-    ).toBe(1)
+    ).toBe(5)
     expect(history.query('SELECT * FROM address2dBuildingNumberLookup').all()).toEqual(
       originalLookup,
     )
     expect(history.query('SELECT isCurrent FROM address2dI18n').get()).toEqual({
-      isCurrent: 0,
+      isCurrent: 1,
     })
     expect(historyNext.query('SELECT count(*) AS n FROM address2dI18n').get()).toEqual({
-      n: 1,
+      n: 4,
     })
     expect(
       (await replay(localised.snapshotId)).get(generatedAddressId)?.localisedRows[0]
@@ -728,9 +718,9 @@ INSERT INTO snapshots(id, code, cohortKey, status, snapshotLineageId) VALUES
             .query('SELECT count(*) AS n FROM address2d WHERE id=? AND isCurrent=1')
             .get(generatedAddressId) as { n: number }
         ).n,
-    ).toBe(1)
+    ).toBe(6)
     expect(historyNext.query('SELECT count(*) AS n FROM address2dI18n').get()).toEqual({
-      n: 1,
+      n: 5,
     })
     expect(
       (await replay(supported.snapshotId)).get(generatedAddressId)?.base.sources,
@@ -738,8 +728,8 @@ INSERT INTO snapshots(id, code, cohortKey, status, snapshotLineageId) VALUES
     // Another lineage owns these active components. Withdrawing this scope must
     // leave their current flags and immutable payloads intact.
     historyNext.exec(`
-      INSERT INTO address2d(id,versionHash,snapshotId,sourceReleaseId,isCurrent)
-        VALUES('ss-opa-other-lineage','other-base','other-snapshot','other-release',1);
+      INSERT INTO address2d(id,versionHash,snapshotId,sourceReleaseId,isCurrent,granularity)
+        VALUES('ss-opa-other-lineage','other-base','other-snapshot','other-release',1,'building');
       INSERT INTO address2dI18n(addressId,versionHash,locale,formattedAddress,snapshotId,sourceReleaseId,isCurrent)
         VALUES('ss-opa-other-lineage','other-locale','en','Another address','other-snapshot','other-release',1);
       INSERT INTO address2dBuildingNumberLookup(addressId,versionHash,buildingNumber,numericStem,evidence,snapshotId,sourceReleaseId,isCurrent)
@@ -806,7 +796,7 @@ INSERT INTO snapshots(id, code, cohortKey, status, snapshotLineageId) VALUES
     expect(
       historyNext
         .query(
-          "SELECT recordType, recordId, operation, versionHash FROM snapshotVersionChanges WHERE snapshotId = ? AND recordType = 'address2d'",
+          "SELECT recordType, recordId, operation, versionHash FROM historyEvents WHERE snapshotId = ? AND recordType = 'address2d'",
         )
         .get(withdrawn.snapshotId),
     ).toEqual({
@@ -819,18 +809,18 @@ INSERT INTO snapshots(id, code, cohortKey, status, snapshotLineageId) VALUES
       history
         .query('SELECT isCurrent FROM address2d WHERE id = ?')
         .get(generatedAddressId),
-    ).toEqual({ isCurrent: 0 })
+    ).toEqual({ isCurrent: 1 })
     expect(await replay(withdrawn.snapshotId)).toEqual(new Map())
     expect(
       historyNext
         .query(
-          'SELECT recordType FROM snapshotVersionChanges WHERE snapshotId=? ORDER BY recordType',
+          'SELECT recordType FROM historyEvents WHERE snapshotId=? ORDER BY recordType',
         )
         .all(withdrawn.snapshotId),
-    ).toEqual([{ recordType: 'address2d' }, { recordType: 'address2dI18n' }])
+    ).toEqual([{ recordType: 'address2d' }])
     expect(await replay(first.snapshotId)).toEqual(firstReplay)
     expect(historyNext.query('SELECT isCurrent FROM address2dI18n').get()).toEqual({
-      isCurrent: 0,
+      isCurrent: 1,
     })
     expect(foreignComponents()).toEqual(foreignBeforeWithdrawal)
     await completeSqlDeliveryRelease(root, withdrawnPlaceReleaseId)
@@ -931,9 +921,9 @@ INSERT INTO snapshots(id, code, cohortKey, status, snapshotLineageId) VALUES
     expect(history.query('SELECT count(*) AS n FROM address2dI18n').get()).toEqual({
       n: 0,
     })
-    expect(
-      history.query('SELECT count(*) AS n FROM snapshotVersionChanges').get(),
-    ).toEqual({ n: 0 })
+    expect(history.query('SELECT count(*) AS n FROM historyEvents').get()).toEqual({
+      n: 0,
+    })
     expect(
       historyNext
         .query(

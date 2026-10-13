@@ -141,7 +141,7 @@ export function companionProducer(
         },
         versions: {
           stage: 'canonical',
-          collection: 'places,placesI18n,snapshotVersionChanges',
+          collection: 'places,placesI18n',
           path: '$',
           dependency: 'place-predecessor',
         },

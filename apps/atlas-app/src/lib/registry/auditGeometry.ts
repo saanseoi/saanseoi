@@ -5,8 +5,8 @@ import {
   resolveSnapshotVersionState,
 } from '@repo/core/pipeline/db/snapshotReplay.ts'
 import { decompressJsonBrotli } from '@repo/core/pipeline/services/storage/brotliJson.ts'
-import { and, currentSchema, eq, historySchema, metaSchema, ne } from '@repo/db'
 import type { CurrentDatabase, HistoryDatabase, MetaDatabase } from '@repo/db'
+import { and, currentSchema, eq, historySchema, metaSchema, ne } from '@repo/db'
 
 function decodeGeometry(value: unknown) {
   return value instanceof Uint8Array || value instanceof ArrayBuffer
@@ -92,6 +92,7 @@ export async function readAuditGeometry(input: {
           and(
             eq(table.id, version.recordId),
             eq(table.versionHash, version.versionHash),
+            eq(table.snapshotId, version.snapshotId),
             eq(table.divisionId, input.divisionId),
           ),
         )

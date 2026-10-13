@@ -1,31 +1,30 @@
-import { requireDefined } from '@repo/core/requireDefined'
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
-import { drizzle } from 'drizzle-orm/bun-sqlite'
-import { resolve } from 'node:path'
+import { mkdtemp, rm } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join, resolve } from 'node:path'
+import { normaliseAddressRowForPipeline } from '@repo/core/pipeline/services/addresses/normalisation'
+import { buildAddressCurrentSqlImportFile } from '@repo/core/pipeline/services/addresses/sqlImport'
+import { writeAddressHistorySqlChunkStage } from '@repo/core/pipeline/services/addresses/sqlStages'
+import type {
+  AddressPipelineMessage,
+  NormalisedAddressChunkArtefact,
+  ResolvedAddressChunkArtefact,
+} from '@repo/core/pipeline/services/addresses/types'
+import {
+  readJsonArtefact,
+  writeJsonArtefact,
+} from '@repo/core/pipeline/services/storage/artefacts'
+import { requireDefined } from '@repo/core/requireDefined'
 import { metaSchema } from '@repo/db'
+import { drizzle } from 'drizzle-orm/bun-sqlite'
 import {
   insertFixtureRelease,
   loadMigrationSql,
   seedFixtureCatalog,
 } from '../../../../../../libs/core/src/testing/metaFixtures'
-import { writeAddressHistorySqlChunkStage } from '@repo/core/pipeline/services/addresses/sqlStages'
-import { buildAddressCurrentSqlImportFile } from '@repo/core/pipeline/services/addresses/sqlImport'
-import {
-  readJsonArtefact,
-  writeJsonArtefact,
-} from '@repo/core/pipeline/services/storage/artefacts'
-import type {
-  NormalisedAddressChunkArtefact,
-  ResolvedAddressChunkArtefact,
-} from '@repo/core/pipeline/services/addresses/types'
 import { LocalPipelineBucket } from '../local/localBucket'
 import { LocalChunkBucket } from '../local/localChunkBucket'
-import { mkdtemp, rm } from 'node:fs/promises'
-import { tmpdir } from 'node:os'
-import { join } from 'node:path'
-import { normaliseAddressRowForPipeline } from '@repo/core/pipeline/services/addresses/normalisation'
-import type { AddressPipelineMessage } from '@repo/core/pipeline/services/addresses/types'
 
 test('chunk memory and retained JSON produce identical history and current SQL for aliases and distinct owners', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'address-chunk-parity-'))
@@ -130,7 +129,8 @@ test('chunk memory and retained JSON produce identical history and current SQL f
       'social-service',
       'reviewed-owner',
     ])
-    expect(results[0]!.resolved.addedRows).toBe(2)
+    // A root snapshot has no inherited membership, regardless of stale cache hints.
+    expect(results[0]!.resolved.addedRows).toBe(3)
   } finally {
     sqlite.close()
     await rm(directory, { recursive: true, force: true })

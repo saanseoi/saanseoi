@@ -1,14 +1,14 @@
-import { expect, test } from 'bun:test'
 import { Database } from 'bun:sqlite'
+import { expect, test } from 'bun:test'
 import { resolve } from 'node:path'
-import { loadMigrationSql } from '../../../../../libs/core/src/testing/metaFixtures'
 import { createLocalHarbourDb } from '../../../../../libs/core/src/testing/localDb'
+import { loadMigrationSql } from '../../../../../libs/core/src/testing/metaFixtures'
 import {
+  type AddressStatsRelease,
+  type AddressStatsSnapshot,
   buildAddressStatsChurn,
   previousAddressStatsRelease,
   readAddressStatsSnapshot,
-  type AddressStatsRelease,
-  type AddressStatsSnapshot,
 } from './addressApiReleaseSetStats'
 
 const snapshot = (
@@ -133,12 +133,52 @@ INSERT INTO snapshots(id, snapshotLineageId, code, cohortKey, status, parentSnap
         ('new','history','hk','2026','preview','new','new','DB_HISTORY_HK_2026','active','new');
       INSERT INTO snapshotShardAssignments(snapshotId,dataShardId)
       VALUES ('one','old'),('two','new'),('three','new');`)
-    const oldChange = earlier.prepare(`INSERT INTO snapshotVersionChanges
-      (snapshotId,recordType,recordId,locale,versionHash,operation,sourceReleaseId)
-      VALUES ('one',?,?,?,?,'upsert','release-one')`)
-    const newChange = later.prepare(`INSERT INTO snapshotVersionChanges
-      (snapshotId,recordType,recordId,locale,versionHash,operation,sourceReleaseId)
-      VALUES ('two',?,?,?,?,?,'release-two')`)
+    const eventWriter = (db: Database, snapshotId: string) => ({
+      run(
+        type: string,
+        id: string,
+        locale: string,
+        hash: string | null,
+        operation = 'upsert',
+      ) {
+        const localized = type.endsWith('I18n')
+        const key = localized
+          ? type === 'address2dI18n'
+            ? 'addressId'
+            : 'address3dId'
+          : 'id'
+        const row: Record<string, string | number | null> = {
+          [key]: id,
+          snapshotId,
+          versionHash: hash,
+          operation,
+          sourceReleaseId: `release-${snapshotId}`,
+        }
+        if (localized) row.locale = locale
+        if (operation === 'upsert') {
+          if (type === 'address3dI18n') row.units = '[]'
+          else if (localized) row.formattedAddress = 'Fixture'
+          else if (type === 'address2d') row.granularity = 'building'
+          else
+            Object.assign(row, {
+              address2dId: id,
+              units: '[]',
+              unitCount: 0,
+              contentHash: hash,
+              unresolvedSectionIds: '[]',
+            })
+        }
+        db.query(
+          `INSERT INTO "${type}"(${Object.keys(row)
+            .map(key => `"${key}"`)
+            .join(',')}) VALUES(${Object.keys(row)
+            .map(() => '?')
+            .join(',')})`,
+        ).run(...Object.values(row))
+      },
+    })
+    const oldChange = eventWriter(earlier, 'one')
+    const newChange = eventWriter(later, 'two')
     for (const type of ['address2d', 'address3d']) {
       for (const id of [
         'translated',

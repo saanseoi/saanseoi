@@ -1,6 +1,6 @@
-import { statisticDefinitionHashesSql } from '@repo/db'
 import { resolveSnapshotReplayPlan } from '@repo/core/db/metaRegistry'
 import type { HarbourReadableDb } from '@repo/core/db/types'
+import { statisticDefinitionHashesSql } from '@repo/db'
 import { withPrimarySession } from '../d1'
 import {
   listPublishedStatisticsTargets,
@@ -220,7 +220,10 @@ export async function promotePublishedStatisticsTarget(
           row.referencePeriodCode === target.referencePeriodCode,
       )
       await copyReferencedDictionaries(
-        history,
+        [
+          ...new Set(plan.flatMap(step => step.shards.map(shard => shard.bindingName))),
+        ].map(name => requireHistoryBinding(bindings, name)),
+        plan.map(step => step.snapshotId),
         current,
         target,
         rows,
@@ -257,7 +260,8 @@ export async function promotePublishedStatisticsTarget(
 }
 
 async function copyReferencedDictionaries(
-  history: StatisticsD1Database,
+  history: StatisticsD1Database[],
+  snapshotIds: string[],
   current: StatisticsD1Database,
   target: StatisticsPublicationTarget,
   records: StoredRow[],
@@ -280,6 +284,7 @@ async function copyReferencedDictionaries(
   const references = [...fields.values()]
   const fieldRows = await selectDictionaryVersions(
     history,
+    snapshotIds,
     'statsFields',
     references,
     'fieldName',
@@ -301,6 +306,7 @@ async function copyReferencedDictionaries(
   const measureReferences = [...measures.values()]
   const measureRows = await selectDictionaryVersions(
     history,
+    snapshotIds,
     'statsMeasures',
     measureReferences,
     'measureCode',
@@ -316,6 +322,7 @@ async function copyReferencedDictionaries(
       table: 'statsFieldsI18n',
       rows: await selectDictionaryVersions(
         history,
+        snapshotIds,
         'statsFieldsI18n',
         references,
         'fieldName',
@@ -326,6 +333,7 @@ async function copyReferencedDictionaries(
       table: 'statsMeasuresI18n',
       rows: await selectDictionaryVersions(
         history,
+        snapshotIds,
         'statsMeasuresI18n',
         measureReferences,
         'measureCode',
@@ -345,25 +353,44 @@ async function copyReferencedDictionaries(
 }
 
 async function selectDictionaryVersions(
-  history: StatisticsD1Database,
+  histories: StatisticsD1Database[],
+  snapshotIds: string[],
   table: string,
   references: FieldReference[] | MeasureReference[],
   identity: 'fieldName' | 'measureCode',
 ) {
   const rows: StoredRow[] = []
-  for (const page of pages<FieldReference | MeasureReference>(references)) {
-    const result = await history
-      .prepare(
-        `SELECT d.* FROM ${quote(table)} d JOIN json_each(?) selected
+  for (const history of histories)
+    for (const page of pages<FieldReference | MeasureReference>(references)) {
+      const result = await history
+        .prepare(
+          `SELECT d.* FROM ${quote(table)} d JOIN json_each(?) selected
          ON d.datasetCode = json_extract(selected.value, '$.datasetCode')
          AND d.${quote(identity)} = json_extract(selected.value, '$.${identity}')
-         AND d.versionHash = json_extract(selected.value, '$.versionHash')`,
-      )
-      .bind(JSON.stringify(page))
-      .all<StoredRow>()
-    rows.push(...result.results)
+         AND d.versionHash = json_extract(selected.value, '$.versionHash')
+         WHERE d.operation = 'upsert' AND d.snapshotId IN (SELECT value FROM json_each(?))`,
+        )
+        .bind(JSON.stringify(page), JSON.stringify(snapshotIds))
+        .all<StoredRow>()
+      rows.push(...result.results)
+    }
+  const positions = new Map(snapshotIds.map((id, index) => [id, index]))
+  const selected = new Map<string, StoredRow>()
+  for (const row of rows) {
+    const key = JSON.stringify([
+      row.datasetCode,
+      row[identity],
+      row.versionHash,
+      row.locale ?? '',
+    ])
+    const prior = selected.get(key)
+    if (
+      !prior ||
+      positions.get(String(row.snapshotId))! > positions.get(String(prior.snapshotId))!
+    )
+      selected.set(key, row)
   }
-  return rows
+  return [...selected.values()]
 }
 
 function currentRecordUpsert(

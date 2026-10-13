@@ -1,5 +1,5 @@
-import { describe, expect, test } from 'bun:test'
 import { Database } from 'bun:sqlite'
+import { describe, expect, test } from 'bun:test'
 
 import {
   buildCanonicalStatsSqlBatches,
@@ -96,7 +96,7 @@ describe('buildCanonicalStatsSqlBatches', () => {
 
     const historySql = batches.history[0]?.batches.join('\n') ?? ''
     expect(historySql).not.toContain('UPDATE "statsRecords"')
-    expect(historySql).toContain('ON CONFLICT ("id", "versionHash") DO NOTHING')
+    expect(historySql).toContain('ON CONFLICT ("id", "snapshotId") DO NOTHING')
     expect(historySql).toContain("'stats:179'")
   })
 
@@ -144,7 +144,7 @@ describe('buildCanonicalStatsSqlBatches', () => {
     expect(historySql).not.toContain('UPDATE "statsFields"')
     expect(historySql).not.toContain('DELETE FROM')
     expect(historySql).toContain(
-      'ON CONFLICT ("datasetCode", "fieldName", "versionHash") DO NOTHING',
+      'ON CONFLICT ("datasetCode", "fieldName", "snapshotId") DO NOTHING',
     )
     expect(batches.current).toEqual([])
   })
@@ -219,7 +219,7 @@ describe('buildCanonicalStatsSqlBatches', () => {
     expect(batches.history[0]?.batches.join('\n')).toContain("'stats:2024'")
     expect(batches.history[1]?.batches.join('\n')).toContain("'stats:2024-25'")
     expect(batches.history[0]?.batches.join('\n')).toContain(
-      'ON CONFLICT ("datasetCode", "fieldName", "versionHash")',
+      'ON CONFLICT ("datasetCode", "fieldName", "snapshotId")',
     )
     expect(batches.history[1]?.batches.join('\n')).toContain("'field-version'")
     expect(batches.history[0]?.batches.join('\n')).toContain('"isCurrent"')
@@ -259,6 +259,7 @@ describe('buildCanonicalStatsSqlBatches', () => {
       ...packedRecord({ id: 'stats:large-history' }),
       isCurrent: true,
       versionHash: 'history-version',
+      snapshotId: 'snapshot',
     }
     const batches = buildCanonicalStatsSqlBatches({
       current: [],
@@ -335,7 +336,7 @@ const historyRecordsTableSql = `
     geography TEXT NOT NULL, fieldSources TEXT NOT NULL,
     definitionSetId TEXT NOT NULL, "values" TEXT NOT NULL, versionHash TEXT NOT NULL,
     isCurrent INTEGER NOT NULL, createdAt TEXT NOT NULL, updatedAt TEXT NOT NULL,
-    PRIMARY KEY (id, versionHash)
+    snapshotId TEXT NOT NULL, PRIMARY KEY (id, snapshotId)
   );
 `
 

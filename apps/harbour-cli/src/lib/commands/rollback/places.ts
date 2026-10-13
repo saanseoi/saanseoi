@@ -1,19 +1,19 @@
-import { readSnapshotDependencies } from '@repo/core/pipeline/db/snapshotDependencies'
 import type { Database } from 'bun:sqlite'
-import { latLngToCell } from 'h3-js'
-import { and, eq, historySchema, metaSchema, sql } from '@repo/db'
-import type { HarbourReadableDb } from '@repo/core/db/types'
 import {
   resolveSnapshotReplayPlan,
   type SnapshotReplayStep,
 } from '@repo/core/db/metaRegistry'
+import type { HarbourReadableDb } from '@repo/core/db/types'
+import { readSnapshotDependencies } from '@repo/core/pipeline/db/snapshotDependencies'
 import {
-  resolveSnapshotVersionState,
   type ReplayShard,
+  resolveSnapshotVersionState,
 } from '@repo/core/pipeline/db/snapshotReplay'
+import { and, eq, historySchema, metaSchema, sql } from '@repo/db'
+import { latLngToCell } from 'h3-js'
 import { PlaceDependencyView } from '../../pipeline/places/placeDependencyView.ts'
-import { createPlaceSearchDependencies } from '../../pipeline/places/placeSearchDependencies.ts'
 import { canonicalPlaceJson } from '../../pipeline/places/placeHistory.ts'
+import { createPlaceSearchDependencies } from '../../pipeline/places/placeSearchDependencies.ts'
 import { readAddressDivisionSnapshotId } from '../../pipeline/places/placeSnapshotDependencies.ts'
 import { PLACE_H3_LEVELS } from '../../pipeline/places/processLocalPlaceSqlUploadConfig.ts'
 import {
@@ -210,7 +210,7 @@ async function restoreDivisionLinks(
   const definitionsBySnapshot = new Map<string, Promise<Map<string, Definition>>>()
   let links = new Map<string, Link>()
   for (const step of plan) {
-    const changes = historySchema.snapshotVersionChanges
+    const changes = historySchema.historyEvents
     const seen = new Set<string>()
     for (const binding of new Set(step.shards.map(row => row.bindingName))) {
       const shard = shards.get(binding)
@@ -467,6 +467,7 @@ async function validateLocaleDependencies(
           eq(history.placeId, locale.placeId),
           eq(history.locale, locale.locale),
           eq(history.versionHash, version.versionHash),
+          eq(history.snapshotId, version.snapshotId),
         ),
       )
       .get()
@@ -519,6 +520,7 @@ async function validateLocaleDependencies(
             and(
               eq(base.id, locale.placeId),
               eq(base.versionHash, baseVersion.versionHash),
+              eq(base.snapshotId, baseVersion.snapshotId),
             ),
           )
           .get()

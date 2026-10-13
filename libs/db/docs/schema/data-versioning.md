@@ -130,10 +130,16 @@ groups are written to `apiFieldProvenanceGroups` and their member rows to
 
 ## Historical membership
 
-Canonical history tables retain content versions keyed by entity identity and semantic
-`versionHash`. They do not use snapshot or cohort validity ranges. Exact membership is
-defined by the meta `snapshots.parentSnapshotId` graph and the history-shard
-`snapshotVersionChanges` journal. Each journal row is an upsert of an exact content hash
-or a deletion tombstone relative to the parent snapshot. Meta `snapshotShardAssignments`
-locates every snapshot delta; replay follows those recorded assignments across year
-shards rather than deriving placement from a cohort string.
+Canonical HISTORY tables store immutable inline events keyed by component identity and
+introducing `snapshotId`. Upserts contain the canonical payload and hash; deletions are
+identity-only tombstones with a null hash. Unchanged components inherit their parent
+without another row. Equal hashes on independent branches or after a reversion have
+separate introducing events.
+
+The read-only `historyEvents` view normalises events across tables without storing or
+writing membership rows. Meta `snapshotShardAssignments` locates each delta. Replay
+resolves the nearest ancestor event before filtering and pagination, retaining the
+introducing snapshot and shard for exact content reads. Ancestor rows remain immutable.
+
+Generated migrations establish the schema for fresh databases. Populated HISTORY
+requires verified reingestion; structural migration is not an event-origin conversion.

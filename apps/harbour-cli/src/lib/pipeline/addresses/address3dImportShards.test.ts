@@ -3,15 +3,20 @@ import { expect, test } from 'bun:test'
 import { mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import {
+  currentSchema,
+  historyEventsSqlForTables,
+  historySchema,
+  sourceSchema,
+} from '@repo/db'
 import { getTableConfig, type SQLiteTable } from 'drizzle-orm/sqlite-core'
-import { currentSchema, historySchema, sourceSchema } from '@repo/db'
 import { createLocalExecBinding } from '../../dbCache/localDbCache'
 import { als3dHash } from '../../sources/hkgov/dpo/hkgovAls3d'
 import type { PreparedAls3dRecord } from '../../sources/hkgov/dpo/hkgovAls3dPreparation'
 import {
+  type Address3dImportShard,
   importAddress3dCollections,
   validateAddress3dPreparation,
-  type Address3dImportShard,
 } from './address3dImport'
 
 function createTable(db: Database, table: SQLiteTable) {
@@ -20,7 +25,7 @@ function createTable(db: Database, table: SQLiteTable) {
     `CREATE TABLE "${config.name}" (${[
       ...config.columns.map(
         column =>
-          `"${column.name}" ${column.getSQLType()}${column.notNull ? ' NOT NULL' : ''}`,
+          `"${column.name}" ${column.getSQLType()}${column.name === 'operation' ? " DEFAULT 'upsert'" : ''}${column.notNull ? ' NOT NULL' : ''}`,
       ),
       ...config.primaryKeys.map(
         key =>
@@ -53,9 +58,12 @@ test('yearly shards reuse prior content, close locale-only omissions and superse
         historySchema.address3d,
         historySchema.address3dI18n,
         historySchema.sourceResolutions,
-        historySchema.snapshotVersionChanges,
       ])
         createTable(db, table)
+    for (const db of [historyOld, historyNew])
+      db.exec(
+        `CREATE VIEW historyEvents AS ${historyEventsSqlForTables(new Set(['address3d', 'address3dI18n']))}`,
+      )
     for (const db of [sourceOld, sourceNew])
       for (const table of [
         sourceSchema.sourceHkgovAlsAddresses2d,
@@ -162,7 +170,7 @@ test('yearly shards reuse prior content, close locale-only omissions and superse
           { recordType: string; recordId: string; locale: string; versionHash: string },
           [string]
         >(
-          "SELECT recordType,recordId,locale,versionHash FROM snapshotVersionChanges WHERE snapshotId = ? AND operation = 'upsert'",
+          "SELECT recordType,recordId,locale,versionHash FROM historyEvents WHERE snapshotId = ? AND operation = 'upsert'",
         )
         .all(snapshot)
         .map(row => ({ ...row, shard: { bindingName } }))
@@ -215,7 +223,7 @@ test('yearly shards reuse prior content, close locale-only omissions and superse
     expect(changes(sourceOld)).toBe(oldSourceChanges)
     expect(count(historyNew, 'address3d')).toBe(0)
     expect(count(historyNew, 'address3dI18n')).toBe(0)
-    expect(count(historyNew, 'snapshotVersionChanges')).toBe(0)
+    expect(count(historyNew, 'historyEvents')).toBe(0)
     expect(count(sourceNew, 'hkgovAlsAddresses2d')).toBe(0)
     expect(count(sourceNew, 'hkgovAlsAddresses3d')).toBe(0)
     expect(
@@ -245,7 +253,7 @@ test('yearly shards reuse prior content, close locale-only omissions and superse
         .query('SELECT locale,isCurrent FROM address3dI18n ORDER BY locale')
         .all(),
     ).toEqual([
-      { locale: 'en', isCurrent: 0 },
+      { locale: 'en', isCurrent: 1 },
       { locale: 'zh-hant', isCurrent: 1 },
     ])
     expect(historyOld.query('SELECT isCurrent FROM address3d').get()).toEqual({
@@ -256,7 +264,7 @@ test('yearly shards reuse prior content, close locale-only omissions and superse
       ...prior(historyNew, 's2-locale', 'new-history'),
     ]
     historyOld.exec(
-      "INSERT INTO address3dI18n SELECT address3dId,'fr',units,versionHash,sourceReleaseId,snapshotId,1,createdAt,updatedAt FROM address3dI18n WHERE locale='en'",
+      "INSERT INTO address3dI18n(address3dId,locale,units,versionHash,sourceReleaseId,snapshotId,isCurrent,createdAt,updatedAt) SELECT address3dId,'fr',units,versionHash,sourceReleaseId,snapshotId,1,createdAt,updatedAt FROM address3dI18n WHERE locale='en'",
     )
     await run(
       '2026-02-01.0',
@@ -274,11 +282,11 @@ test('yearly shards reuse prior content, close locale-only omissions and superse
     )
     expect(
       historyOld.query("SELECT isCurrent FROM address3dI18n WHERE locale='fr'").get(),
-    ).toEqual({ isCurrent: 0 })
+    ).toEqual({ isCurrent: 1 })
     expect(
       historyNew
         .query(
-          "SELECT operation FROM snapshotVersionChanges WHERE snapshotId='s3' AND locale='fr'",
+          "SELECT operation FROM historyEvents WHERE snapshotId='s3' AND locale='fr'",
         )
         .get(),
     ).toEqual({ operation: 'delete' })
@@ -298,20 +306,28 @@ test('yearly shards reuse prior content, close locale-only omissions and superse
       sourceNew.query('SELECT versionHash,isCurrent FROM hkgovAlsAddresses3d').get(),
     ).toEqual({ versionHash: 'raw-3d-changed', isCurrent: 1 })
     expect(historyOld.query('SELECT isCurrent FROM address3d').get()).toEqual({
-      isCurrent: 0,
+      isCurrent: 1,
     })
     expect(
-      historyOld.query('SELECT DISTINCT isCurrent FROM address3dI18n').all(),
-    ).toEqual([{ isCurrent: 0 }])
+      historyOld
+        .query("SELECT DISTINCT isCurrent FROM address3dI18n WHERE operation='upsert'")
+        .all(),
+    ).toEqual([{ isCurrent: 1 }])
     expect(count(historyNew, 'address3d')).toBe(1)
     const changedPrior = prior(historyNew, 's4', 'new-history')
     await run('2026-04-01.0', 'new', 's5', changedPrior, null)
-    expect(historyNew.query('SELECT isCurrent FROM address3d').get()).toEqual({
-      isCurrent: 0,
+    expect(
+      historyNew
+        .query("SELECT isCurrent FROM address3d WHERE operation='upsert'")
+        .get(),
+    ).toEqual({
+      isCurrent: 1,
     })
     expect(
-      historyNew.query('SELECT DISTINCT isCurrent FROM address3dI18n').all(),
-    ).toEqual([{ isCurrent: 0 }])
+      historyNew
+        .query("SELECT DISTINCT isCurrent FROM address3dI18n WHERE operation='upsert'")
+        .all(),
+    ).toEqual([{ isCurrent: 1 }])
     expect(
       sourceOld.query('SELECT isCurrent,validToRelease FROM hkgovAlsAddresses3d').get(),
     ).toEqual({ isCurrent: 0, validToRelease: '2026-03-01.0' })

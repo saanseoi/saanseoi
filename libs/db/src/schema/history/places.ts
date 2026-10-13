@@ -1,17 +1,24 @@
 import { index, primaryKey, sqliteTable } from 'drizzle-orm/sqlite-core'
-
-import { canonicalPlace, canonicalPlaceI18n } from '../shared'
+import { canonicalPlaceColumns, canonicalPlaceI18nColumns } from '../shared'
+import { historyEventConstraints } from './constraints'
 import { historyI18nVersioning, historyVersioning } from './shared'
 
 export const places = sqliteTable(
   'places',
   {
-    ...canonicalPlace,
+    ...canonicalPlaceColumns(false),
     ...historyVersioning,
   },
   table => [
+    ...historyEventConstraints(table, [
+      'resourceReleaseId',
+      'lng',
+      'lat',
+      'firstSeenMonth',
+      'lastSeenMonth',
+    ]),
     primaryKey({
-      columns: [table.id, table.versionHash],
+      columns: [table.id, table.snapshotId],
     }),
     index('places_current_lookup_idx').on(table.id, table.isCurrent),
     index('places_sourceReleaseId_idx').on(table.sourceReleaseId),
@@ -22,12 +29,13 @@ export const places = sqliteTable(
 export const placesI18n = sqliteTable(
   'placesI18n',
   {
-    ...canonicalPlaceI18n,
+    ...canonicalPlaceI18nColumns(false),
     ...historyI18nVersioning,
   },
   table => [
+    ...historyEventConstraints(table, []),
     primaryKey({
-      columns: [table.placeId, table.versionHash, table.locale],
+      columns: [table.placeId, table.snapshotId, table.locale],
     }),
     index('placesI18n_current_lookup_idx').on(
       table.placeId,

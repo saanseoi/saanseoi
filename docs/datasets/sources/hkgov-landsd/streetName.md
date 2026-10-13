@@ -135,8 +135,8 @@ Canonical Street current rows and companion tables use one stable scope per regi
 lineage. `streetPublicationState` maps it to the logical snapshot. The local compiler
 preserves unchanged rows and timestamps and transmits only final content differences.
 Source lifecycle events determine membership; absence from an incremental notice does
-not remove a Street. Source assertions and canonical versions close in their owning
-shards, with snapshot journals recorded in the incoming history shard. Current Address
+not remove a Street. SOURCE periods close in their owning shards. Canonical events
+append in the selected HISTORY shard without updating ancestor rows. Current Address
 links use physical scopes, while metadata and history retain logical snapshots and
 Gazette evidence.
 
@@ -184,3 +184,18 @@ retained baseline/notice record keys as `recordId`. Lifecycle replay indexes tho
 references to preserve canonical identities. Notice application decisions and
 source-kind distinctions remain in their source/lifecycle evidence, not attribution
 fields.
+
+### Snapshot event storage
+
+Canonical HISTORY stores a changed component once, with its introducing `snapshotId`,
+`operation`, content hash and payload in the same row. Unchanged components inherit the
+selected parent. Deletions append identity-only tombstones, and ancestor rows remain
+immutable. Reversions and independent branch changes have distinct introducing events.
+The read-only `historyEvents` view stores no additional membership rows. Snapshot reads
+resolve ancestry before filtering and use the exact introducing snapshot to fetch
+content. SOURCE release validity and interpretation evidence remain separate.
+
+Street deletion events retain the final lifecycle version, dates and names in their
+canonical tombstone rows. Snapshot membership excludes these rows; lifecycle replay
+retains them so a later restoration continues the logical version counter. Unchanged
+components inherit the exact parent, including on revisions and branches.

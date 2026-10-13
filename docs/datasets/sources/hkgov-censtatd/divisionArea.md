@@ -63,17 +63,17 @@ assignments, processing actions and statistics untouched. Changes to any replaye
 including `null` transitions, still apply in statement order. The
 [SQL delivery contract](../../sql-delivery.md) describes the oversized-row exception.
 
-Remote replay selects immutable canonical content through upsert journal keys and
-records removals as delete journals. Source closures use exact version keys. Simplified
-phases deliver immutable source-derivative rows keyed by geometry ID, transform and
-transform-context hash.
+Remote replay selects immutable canonical content through exact record and
+introducing-snapshot keys and records removals as inline deletion events. Source
+closures use exact version keys. Simplified phases deliver immutable source-derivative
+rows keyed by geometry ID, transform and transform-context hash.
 
 Parented exact and simplified snapshots follow the
 [geometry membership contract](../../families/divisions.md#publication-readiness):
-validated identical parent members inherit without payload or child journal writes,
-while companion contributions retain members outside their input. Independent census
-cohorts retain full root membership journals and their own current projections. Source
-assertions and audit delivery remain separate from canonical membership.
+validated identical parent members inherit without new component writes, while companion
+contributions retain members outside their input. Independent census cohorts retain full
+inline component events and their own current projections. Source assertions and audit
+delivery remain separate from canonical membership.
 
 ## Source releases
 

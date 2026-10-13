@@ -1,12 +1,12 @@
-import { index, primaryKey, sqliteTable, text, integer } from 'drizzle-orm/sqlite-core'
-
+import { index, integer, primaryKey, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 import {
   jsonText,
+  type StreetEvidenceAsset,
   streetChangelogKinds,
   streetNameChangeStatuses,
   streetNameChangeStreetRoles,
-  type StreetEvidenceAsset,
 } from '../shared'
+import { historyEventConstraints } from './constraints'
 import { historyVersioning } from './shared'
 
 /** Immutable versions of the current snapshot's directed name-change relation. */
@@ -14,17 +14,18 @@ export const streetNameChanges = sqliteTable(
   'streetNameChanges',
   {
     id: text('id').notNull(),
-    noticeRef: text('noticeRef').notNull(),
+    noticeRef: text('noticeRef'),
     intentionNotificationDate: text('intentionNotificationDate'),
     nameChangeDate: text('nameChangeDate'),
     isPartialNameChange: integer('isPartialNameChange', {
       mode: 'boolean',
-    }).notNull(),
-    status: text('status', { enum: streetNameChangeStatuses }).notNull(),
+    }),
+    status: text('status', { enum: streetNameChangeStatuses }),
     ...historyVersioning,
   },
   table => [
-    primaryKey({ columns: [table.id, table.versionHash] }),
+    ...historyEventConstraints(table, ['noticeRef', 'isPartialNameChange', 'status']),
+    primaryKey({ columns: [table.id, table.snapshotId] }),
     index('streetNameChanges_current_lookup_idx').on(table.id, table.isCurrent),
     index('streetNameChanges_noticeRef_idx').on(table.noticeRef),
     index('streetNameChanges_snapshotId_idx').on(table.snapshotId),
@@ -40,8 +41,9 @@ export const streetNameChangeStreets = sqliteTable(
     ...historyVersioning,
   },
   table => [
+    ...historyEventConstraints(table, []),
     primaryKey({
-      columns: [table.nameChangeId, table.versionHash, table.streetId, table.role],
+      columns: [table.nameChangeId, table.snapshotId, table.streetId, table.role],
     }),
     index('streetNameChangeStreets_streetId_idx').on(table.streetId, table.isCurrent),
     index('streetNameChangeStreets_snapshotId_idx').on(table.snapshotId),
@@ -55,8 +57,8 @@ export const streetChangelog = sqliteTable(
     streetId: text('streetId').notNull(),
     recordKey: text('recordKey').notNull(),
     /** SaanSeoi replay outcome, derived from the publisher notice kind. */
-    kind: text('kind', { enum: streetChangelogKinds }).notNull(),
-    isPartialNameChange: integer('isPartialNameChange', { mode: 'boolean' }).notNull(),
+    kind: text('kind', { enum: streetChangelogKinds }),
+    isPartialNameChange: integer('isPartialNameChange', { mode: 'boolean' }),
     gazetteDate: text('gazetteDate'),
     effectiveDate: text('effectiveDate'),
     sourceShardId: text('sourceShardId'),
@@ -65,7 +67,8 @@ export const streetChangelog = sqliteTable(
     ...historyVersioning,
   },
   table => [
-    primaryKey({ columns: [table.streetId, table.recordKey, table.versionHash] }),
+    ...historyEventConstraints(table, ['kind', 'isPartialNameChange']),
+    primaryKey({ columns: [table.streetId, table.recordKey, table.snapshotId] }),
     index('streetChangelog_street_current_idx').on(table.streetId, table.isCurrent),
     index('streetChangelog_recordKey_idx').on(table.recordKey),
     index('streetChangelog_snapshot_idx').on(table.snapshotId),

@@ -1,5 +1,5 @@
-import { recordContent } from '@repo/core/pipeline/services/sources/recordContent'
 import { createHash } from 'node:crypto'
+import { recordContent } from '@repo/core/pipeline/services/sources/recordContent'
 import { stableJsonStringify } from '@repo/core/pipeline/utils'
 
 type Row = Record<string, unknown>
@@ -12,6 +12,8 @@ const assertionColumns = new Set([
   'validFrom',
   'validTo',
   'isCurrent',
+  'operation',
+  'snapshotId',
   'sourceReleaseId',
   'sourceFeatureRef',
   'versionHash',

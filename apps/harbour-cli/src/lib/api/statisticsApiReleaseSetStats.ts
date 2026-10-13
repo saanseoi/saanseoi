@@ -1,19 +1,27 @@
-import type { RetainedStatisticRecord } from '@repo/core/pipeline/services/statistics/statisticSnapshotRecords'
-import { and, eq, inArray, historySchema, metaSchema } from '@repo/db'
-import type { HarbourReadableDb } from '@repo/core/db/types'
 import {
   listApiReleaseSetSnapshots,
   listSnapshotResourceReleases,
+  resolveSnapshotReplayPlan,
 } from '@repo/core/db/metaRegistry'
-import { chunkArray } from '@repo/core/pipeline/utils'
+import type { HarbourReadableDb } from '@repo/core/db/types'
+import { readHistoryDictionaryVersions } from '@repo/core/pipeline/db/historyDictionaries'
+import type { RetainedStatisticRecord } from '@repo/core/pipeline/services/statistics/statisticSnapshotRecords'
 import { readStatisticSnapshotRecords } from '@repo/core/pipeline/services/statistics/statisticSnapshotRecords'
+import type { currentSchema, HistoryContent } from '@repo/db'
+import { and, eq, historySchema, inArray, metaSchema } from '@repo/db'
 import type { ApiReleaseSetScopedStatsRow } from '@repo/db/metaSchema'
 import type { DivisionHistoryTarget } from './divisionApiReleaseSetStats'
 import { buildStatisticsRecordChurn } from './statisticsApiRecordChurn'
 
 type RecordRow = RetainedStatisticRecord
-type Field = typeof historySchema.statsFields.$inferSelect
-type Label = typeof historySchema.statsFieldsI18n.$inferSelect
+type Field = HistoryContent<
+  typeof historySchema.statsFields.$inferSelect,
+  typeof currentSchema.statsFields.$inferSelect
+>
+type Label = HistoryContent<
+  typeof historySchema.statsFieldsI18n.$inferSelect,
+  typeof currentSchema.statsFieldsI18n.$inferSelect
+>
 export type StatisticsStatsData = {
   records: RecordRow[]
   fields: Field[]
@@ -101,35 +109,39 @@ export async function readStatisticsStatsData(
       }),
     ),
   )
-  const hashes = [
-    ...new Set(data.records.flatMap(row => Object.values(row.fieldDefinitionHashes))),
+  const snapshotIds = [
+    ...new Set(
+      (
+        await Promise.all(
+          snapshots.map(snapshot =>
+            resolveSnapshotReplayPlan(metaDb, snapshot.snapshotId),
+          ),
+        )
+      )
+        .flat()
+        .map(step => step.snapshotId),
+    ),
   ]
+  const references = [...used].map(value => {
+    const [datasetCode, identity, versionHash] = JSON.parse(value)
+    return { datasetCode, identity, versionHash }
+  })
   const fields = new Map<string, Field>()
   const labels = new Map<string, Label>()
-  for (const db of databases) {
-    for (const batch of chunkArray(hashes, 90)) {
-      const definitions = await db
-        .select()
-        .from(historySchema.statsFields)
-        .where(inArray(historySchema.statsFields.versionHash, batch))
-        .all()
-      for (const row of definitions as Field[]) {
-        const identity = key(row.datasetCode, row.fieldName, row.versionHash)
-        if (used.has(identity)) fields.set(identity, row)
-      }
-      const localisations = await db
-        .select()
-        .from(historySchema.statsFieldsI18n)
-        .where(inArray(historySchema.statsFieldsI18n.versionHash, batch))
-        .all()
-      for (const row of localisations as Label[])
-        if (used.has(key(row.datasetCode, row.fieldName, row.versionHash)))
-          labels.set(
-            key(row.datasetCode, row.fieldName, row.versionHash, row.locale),
-            row,
-          )
-    }
-  }
+  for (const row of (await readHistoryDictionaryVersions(
+    databases,
+    snapshotIds,
+    'statsFields',
+    references,
+  )) as Field[])
+    fields.set(key(row.datasetCode, row.fieldName, row.versionHash), row)
+  for (const row of (await readHistoryDictionaryVersions(
+    databases,
+    snapshotIds,
+    'statsFieldsI18n',
+    references,
+  )) as Label[])
+    labels.set(key(row.datasetCode, row.fieldName, row.versionHash, row.locale), row)
   data.fields = [...fields.values()]
   data.labels = [...labels.values()]
   for (const identity of used)

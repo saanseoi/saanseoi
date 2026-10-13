@@ -1,5 +1,5 @@
-import { expect, test } from 'bun:test'
 import { Database } from 'bun:sqlite'
+import { expect, test } from 'bun:test'
 import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -11,7 +11,7 @@ test('ports Wikidata, repairs replay hashes and is idempotent', async () => {
   const db = new Database(path)
   try {
     db.exec(`CREATE TABLE divisions (id TEXT, identifiers TEXT, wikidata TEXT, hierarchies TEXT, class TEXT, versionHash TEXT, PRIMARY KEY(id,versionHash));
-      CREATE TABLE snapshotVersionChanges (recordType TEXT,recordId TEXT,versionHash TEXT);
+      CREATE VIEW historyEvents AS SELECT 'division' AS recordType,id AS recordId,versionHash FROM divisions;
       CREATE TABLE ssDivision (sourceRecordId TEXT, properties TEXT, versionHash TEXT);
       CREATE TABLE sourceResolutions (sourceRecordId TEXT,sourceVersionHash TEXT);`)
     db.query('INSERT INTO divisions VALUES (?,?,?,?,?,?)').run(
@@ -22,7 +22,6 @@ test('ports Wikidata, repairs replay hashes and is idempotent', async () => {
       'village',
       'old',
     )
-    db.exec("INSERT INTO snapshotVersionChanges VALUES ('division','village','old')")
     db.query('INSERT INTO ssDivision VALUES (?,?,?)').run(
       'village',
       '{"id":"village","wikidata":"Q123","identifiers":{"overture":{"divisionId":"native"}}}',
@@ -35,7 +34,7 @@ test('ports Wikidata, repairs replay hashes and is idempotent', async () => {
       (db.query('SELECT identifiers FROM divisions').get() as any).identifiers,
     ).not.toContain('wikidata')
     const result = await backfillDivisionWikidata([path], join(dir, 'apply'), true)
-    expect(result.replayReferences).toBe(1)
+    expect(result.replayReferences).toBe(0)
     expect(result.sourceReferences).toBe(1)
     const row = db.query('SELECT * FROM divisions').get() as any
     expect(JSON.parse(row.identifiers)).toEqual({
@@ -43,8 +42,7 @@ test('ports Wikidata, repairs replay hashes and is idempotent', async () => {
       wikidata: { id: 'Q123' },
     })
     expect(
-      (db.query('SELECT versionHash FROM snapshotVersionChanges').get() as any)
-        .versionHash,
+      (db.query('SELECT versionHash FROM historyEvents').get() as any).versionHash,
     ).toBe(row.versionHash)
     const source = db.query('SELECT * FROM ssDivision').get() as any
     expect(JSON.parse(source.properties)).not.toHaveProperty('wikidata')

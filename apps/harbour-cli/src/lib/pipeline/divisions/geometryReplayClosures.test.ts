@@ -5,13 +5,13 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { resolveShardBindingName } from '../../dbCache/localDbCache.ts'
 import type { LocalAddressDbContext } from '../../dbCache/localDbCacheTypes.ts'
-import { withSqlDeliveryCapture } from '../local/sqlDeliveryCapture.ts'
 import { executeNativeSqlStatements } from '../local/nativeSqlStatements.ts'
+import { withSqlDeliveryCapture } from '../local/sqlDeliveryCapture.ts'
+import { MAX_D1_GEOMETRY_SQL_STATEMENT_BYTES } from './processLocalDivisionGeometrySqlUploadConfig.ts'
 import {
   generateGeometryReplaySql,
   geometryBuildUpsertSql,
 } from './processLocalDivisionGeometrySqlUploadReplay.ts'
-import { MAX_D1_GEOMETRY_SQL_STATEMENT_BYTES } from './processLocalDivisionGeometrySqlUploadConfig.ts'
 
 for (const sourceName of [
   'overture',
@@ -52,7 +52,7 @@ for (const sourceName of [
         )
       for (const db of [local[historyBinding], remote.history])
         db?.exec(
-          "CREATE TABLE divisionAreas(snapshotId,id,versionHash,isCurrent,updatedAt,geometry,PRIMARY KEY(id,versionHash)); INSERT INTO divisionAreas VALUES('old','changed','v1',1,'old',X'00FF'),('old','removed','v1',1,'old',X'01'),('other','unrelated','v1',1,'old',X'02'); CREATE TABLE snapshotVersionChanges(snapshotId,recordType,recordId,operation,versionHash,PRIMARY KEY(snapshotId,recordType,recordId));",
+          "CREATE TABLE divisionAreas(snapshotId,id,versionHash,isCurrent,updatedAt,geometry,operation DEFAULT 'upsert',PRIMARY KEY(id,snapshotId)); INSERT INTO divisionAreas(snapshotId,id,versionHash,isCurrent,updatedAt,geometry) VALUES('old','changed','v1',1,'old',X'00FF'),('old','removed','v1',1,'old',X'01'),('other','unrelated','v1',1,'old',X'02'); CREATE VIEW historyEvents AS SELECT snapshotId,'divisionArea' AS recordType,id AS recordId,operation,versionHash FROM divisionAreas;",
         )
       for (const db of [local[sourceBinding], remote.source]) {
         db?.exec(
@@ -64,19 +64,21 @@ for (const sourceName of [
           )
       }
       local.DB_CURRENT?.exec(
-        "INSERT INTO divisionAreas VALUES('scope','changed',X'AAFF'),('scope','reused',X'03'); INSERT INTO divisionAreaPublicationState VALUES('scope','new','publishing','new-release','new','old','new');",
+        "INSERT INTO divisionAreas(snapshotId,id,geometry) VALUES('scope','changed',X'AAFF'),('scope','reused',X'03'); INSERT INTO divisionAreaPublicationState VALUES('scope','new','publishing','new-release','new','old','new');",
       )
       remote.current.exec(
-        "INSERT INTO divisionAreas VALUES('scope','changed',X'00FF'),('scope','removed',X'01'); INSERT INTO divisionAreaPublicationState VALUES('scope','old','current','old-release','old','old','old');",
+        "INSERT INTO divisionAreas(snapshotId,id,geometry) VALUES('scope','changed',X'00FF'),('scope','removed',X'01'); INSERT INTO divisionAreaPublicationState VALUES('scope','old','current','old-release','old','old','old');",
       )
       for (const db of [local.DB_CURRENT, remote.current])
-        db?.exec("INSERT INTO divisionAreas VALUES('scope','unchanged',X'04');")
+        db?.exec(
+          "INSERT INTO divisionAreas(snapshotId,id,geometry) VALUES('scope','unchanged',X'04');",
+        )
       for (const db of [local[historyBinding], remote.history])
         db?.exec(
-          "INSERT INTO divisionAreas VALUES('old','unchanged','inherited',1,'old',X'04'); INSERT INTO snapshotVersionChanges VALUES('old','divisionArea','unchanged','upsert','inherited');",
+          "INSERT INTO divisionAreas(snapshotId,id,versionHash,isCurrent,updatedAt,geometry) VALUES('old','unchanged','inherited',1,'old',X'04');",
         )
       local[historyBinding]?.exec(
-        "INSERT INTO divisionAreas VALUES('new','changed','v2',1,'new',X'AAFF'),('original','reused','same',1,'original',X'03'); INSERT INTO snapshotVersionChanges VALUES('new','divisionArea','changed','upsert','v2'),('new','divisionArea','reused','upsert','same'),('new','divisionArea','removed','delete',NULL);",
+        "INSERT INTO divisionAreas(snapshotId,id,versionHash,isCurrent,updatedAt,geometry) VALUES('new','changed','v2',1,'new',X'AAFF'),('new','reused','same',1,'new',X'03'); INSERT INTO divisionAreas(snapshotId,id,operation) VALUES('new','removed','delete');",
       )
       remote.history.exec(
         "CREATE TABLE historyMutations(operation); CREATE TRIGGER history_update AFTER UPDATE ON divisionAreas BEGIN INSERT INTO historyMutations VALUES('update'); END; CREATE TRIGGER history_delete AFTER DELETE ON divisionAreas BEGIN INSERT INTO historyMutations VALUES('delete'); END;",
@@ -169,7 +171,7 @@ for (const sourceName of [
       expect(
         remote.history
           .query(
-            "SELECT recordId,operation,versionHash FROM snapshotVersionChanges WHERE snapshotId='new' ORDER BY recordId",
+            "SELECT recordId,operation,versionHash FROM historyEvents WHERE snapshotId='new' ORDER BY recordId",
           )
           .all(),
       ).toEqual([
@@ -180,7 +182,7 @@ for (const sourceName of [
       expect(
         remote.history
           .query(
-            "SELECT snapshotId,versionHash FROM snapshotVersionChanges WHERE recordId='unchanged'",
+            "SELECT snapshotId,versionHash FROM historyEvents WHERE recordId='unchanged'",
           )
           .all(),
       ).toEqual([{ snapshotId: 'old', versionHash: 'inherited' }])
@@ -226,7 +228,7 @@ for (const sourceName of [
 test('immutable oversized geometry replay preserves existing versions and provenance on repeat', () => {
   const db = new Database(':memory:')
   db.exec(
-    "CREATE TABLE divisionAreas(snapshotId,id,versionHash,geometry,metadata,PRIMARY KEY(id,versionHash)); CREATE TABLE writes(operation); CREATE TRIGGER history_update AFTER UPDATE ON divisionAreas BEGIN INSERT INTO writes VALUES('update'); END;",
+    "CREATE TABLE divisionAreas(snapshotId,id,versionHash,geometry,metadata,PRIMARY KEY(id,snapshotId)); CREATE TABLE writes(operation); CREATE TRIGGER history_update AFTER UPDATE ON divisionAreas BEGIN INSERT INTO writes VALUES('update'); END;",
   )
   const row = {
     snapshotId: 'original',
@@ -237,7 +239,7 @@ test('immutable oversized geometry replay preserves existing versions and proven
   }
   try {
     db.query('INSERT INTO divisionAreas VALUES(?,?,?,?,?)').run(
-      'original',
+      'other-snapshot',
       'shared',
       'other',
       new Uint8Array([1]),
@@ -260,7 +262,7 @@ test('immutable oversized geometry replay preserves existing versions and proven
     db.exec('DELETE FROM writes')
     executeNativeSqlStatements(
       db,
-      geometryBuildUpsertSql('divisionAreas', [{ ...row, snapshotId: 'later' }], {
+      geometryBuildUpsertSql('divisionAreas', [row], {
         immutable: true,
       }),
     )

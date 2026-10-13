@@ -1,20 +1,3 @@
-import type { DatasetProcessingStats } from '@repo/core/pipeline/processingRunStats'
-import { resolveCurrentWriteContext } from '../../dbCache/currentWriteContext.ts'
-import { completeSqlDeliveryRelease } from '../local/sqlDeliveryPending.ts'
-import {
-  beginSnapshotPublication,
-  completeSnapshotPublication,
-  guardSnapshotPublicationWrites,
-  resolvePreparedPublicationScope,
-  getPreparedPublication,
-} from '../local/snapshotPublication.ts'
-import {
-  buildPublicationRowCountSql,
-  type PublicationPreparation,
-} from '@repo/core/pipeline/services/publication/sql.ts'
-import { deliverStreetWorkflow } from './streetDelivery.ts'
-import { retainStreetProvenance } from './streetProvenance.ts'
-import { deliveryFileSha256 } from '../local/sqlDeliveryFiles.ts'
 import {
   ensureDraftSnapshotForRelease,
   recordSnapshotAssembly,
@@ -27,25 +10,35 @@ import {
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import { replaceDatasetStats } from '@repo/core/pipeline/db/stats'
 import type { HarbourClient } from '@repo/core/pipeline/harbourClient'
+import type { DatasetProcessingStats } from '@repo/core/pipeline/processingRunStats'
+import {
+  buildPublicationRowCountSql,
+  type PublicationPreparation,
+} from '@repo/core/pipeline/services/publication/sql.ts'
 import { currentSchema, eq, toIsoTimestamp } from '@repo/db'
-import type { PreparedUploadFile } from '../../upload/parquetRepack.ts'
-import { resolvePipelineEnvironment, type UploadTarget } from '../../cli/options.ts'
 import { createHarbourControlClient } from '../../api/harbourControl.ts'
-import { syncStagedReleaseIntoLocalMetaCache } from '../local/syncStagedRelease.ts'
-import { createLocalControlClient } from '../local/localControlClient.ts'
-import { LocalPipelineBucket } from '../local/localBucket.ts'
-import { runLocalProgressPhase } from '../local/orchestrator.ts'
 import { OperationProgress } from '../../cli/operationProgress.ts'
+import { resolvePipelineEnvironment, type UploadTarget } from '../../cli/options.ts'
+import { resolveCurrentWriteContext } from '../../dbCache/currentWriteContext.ts'
 import { materialiseLandsdStreetLifecycle } from '../../sources/hkgov/landsd/street/landsdStreetLifecycle.ts'
-import type {
-  LandsdStreetUploadPlan,
-  UploadResult,
-} from './processLocalStreetSqlUploadTypes.ts'
-import { requireString } from './processLocalStreetSqlUploadParsing.ts'
+import type { PreparedUploadFile } from '../../upload/parquetRepack.ts'
+import { LocalPipelineBucket } from '../local/localBucket.ts'
+import { createLocalControlClient } from '../local/localControlClient.ts'
+import { runLocalProgressPhase } from '../local/orchestrator.ts'
+import {
+  beginSnapshotPublication,
+  completeSnapshotPublication,
+  getPreparedPublication,
+  guardSnapshotPublicationWrites,
+} from '../local/snapshotPublication.ts'
+import { deliveryFileSha256 } from '../local/sqlDeliveryFiles.ts'
+import { completeSqlDeliveryRelease } from '../local/sqlDeliveryPending.ts'
+import { syncStagedReleaseIntoLocalMetaCache } from '../local/syncStagedRelease.ts'
 import {
   LANDSD_STREET_SNAPSHOT_SOURCE_ROLE,
   LOCAL_RELEASE_ROOT,
 } from './processLocalStreetSqlUploadConfig.ts'
+import { requireString } from './processLocalStreetSqlUploadParsing.ts'
 import {
   addMaterialisedStreetHash,
   addStreetChangelogHash,
@@ -63,13 +56,19 @@ import {
   insertHistoryRows,
   insertHistoryStreetChangelog,
   insertSourceRows,
-  listCurrentMaterialisedStreets,
   listCurrentSourceRows,
   replaceCurrentStreetI18nRows,
   replaceCurrentStreetRows,
   syncCurrentStreetChangelog,
 } from './processLocalStreetSqlUploadRows.ts'
 import { buildStreetStats } from './processLocalStreetSqlUploadStatistics.ts'
+import type {
+  LandsdStreetUploadPlan,
+  UploadResult,
+} from './processLocalStreetSqlUploadTypes.ts'
+import { deliverStreetWorkflow } from './streetDelivery.ts'
+import { readStreetSnapshot } from './streetHistory'
+import { retainStreetProvenance } from './streetProvenance.ts'
 
 /**
  * Imports a generated LandsD release after its evidence is registered as a
@@ -219,15 +218,6 @@ export async function processLocalStreetSqlUpload(
           'streetPublicationState',
           scopeId,
         )
-        if (snapshot.parentSnapshotId) {
-          const parentScope = await resolvePreparedPublicationScope(
-            context.currentDb as unknown as HarbourReadableDb,
-            'streetPublicationState',
-            snapshot.parentSnapshotId,
-          )
-          if (parentScope !== scopeId)
-            throw new Error('Street publication parent belongs to a different scope.')
-        }
         const publication: PublicationPreparation = {
           table: 'streetPublicationState',
           scopeId: snapshot.snapshotLineageId,
@@ -242,24 +232,19 @@ export async function processLocalStreetSqlUpload(
           ...context,
           currentDb: guardSnapshotPublicationWrites(publicationDb, publication),
         }
-        const inheritedChangelog = await context.currentDb
-          .select({
-            recordKey: currentSchema.streetChangelog.recordKey,
-            streetId: currentSchema.streetChangelog.streetId,
-          })
-          .from(currentSchema.streetChangelog)
-          .where(eq(currentSchema.streetChangelog.snapshotId, scopeId))
-          .all()
+        const parentHistory = await readStreetSnapshot(
+          metaDb,
+          context.historyTargets.map(target => target.db as HarbourReadableDb),
+          snapshot.parentSnapshotId,
+        )
+        const inheritedChangelog = parentHistory.changelog
         const recordIds = records.map(record => record.base.id)
         const [currentSourceRows, currentStreets] = await Promise.all([
           listCurrentSourceRows(
             context.sourceDb as unknown as HarbourReadableDb,
             recordIds,
           ),
-          listCurrentMaterialisedStreets(
-            context.currentDb as unknown as HarbourReadableDb,
-            scopeId,
-          ),
+          Promise.resolve(parentHistory.lifecycleStreets),
         ])
         const sourceHashById = new Map(
           currentSourceRows.map(row => [row.sourceRecordId, row.versionHash]),
@@ -277,19 +262,37 @@ export async function processLocalStreetSqlUpload(
         )
         const lifecycle = materialiseLandsdStreetLifecycle({
           current: currentStreets,
-          events: changedSourceRecords.map(toLifecycleInput),
+          events: (previous?.snapshotId === snapshot.parentSnapshotId
+            ? changedSourceRecords
+            : resolvedRecords
+          ).map(toLifecycleInput),
         })
         validateBaselineCoverage(resolvedRecords, lifecycle.current)
         const changedMaterialisedStreets = await Promise.all(
-          lifecycle.changed.map(addMaterialisedStreetHash),
+          [...new Map(lifecycle.changed.map(row => [row.id, row])).values()].map(
+            addMaterialisedStreetHash,
+          ),
         )
-        const preparedChangelog = await Promise.all(
+        const parentStreets = await Promise.all(
+          parentHistory.streets.map(addMaterialisedStreetHash),
+        )
+        const allPreparedChangelog = await Promise.all(
           lifecycle.changelog.map(entry =>
             addStreetChangelogHash(entry, {
               sourceReleaseId: resourceReleaseId,
               sourceShardId: sourceShard.id,
             }),
           ),
+        )
+
+        const preparedChangelog = allPreparedChangelog.filter(
+          row =>
+            !inheritedChangelog.some(
+              prior =>
+                prior.streetId === row.streetId &&
+                prior.recordKey === row.recordKey &&
+                prior.versionHash === row.versionHash,
+            ),
         )
 
         await closeStreetOwnedVersions({
@@ -302,11 +305,48 @@ export async function processLocalStreetSqlUpload(
             db: HarbourWritableDb
           }>,
           records: changedSourceRecords,
-          streetIds: changedMaterialisedStreets.map(record => record.id),
+          deletedRecords: changedMaterialisedStreets.filter(
+            record => record.status === 'deleted',
+          ),
+          streetIds: changedMaterialisedStreets
+            .filter(record => record.status === 'deleted')
+            .map(record => record.id),
           sourceVersion: dataset.sourceVersion,
           snapshotId: snapshot.id,
           now,
         })
+        if (previous?.snapshotId !== snapshot.parentSnapshotId) {
+          await context.currentDb
+            .delete(currentSchema.streets)
+            .where(eq(currentSchema.streets.snapshotId, scopeId))
+            .run()
+          await context.currentDb
+            .delete(currentSchema.streetChangelog)
+            .where(eq(currentSchema.streetChangelog.snapshotId, scopeId))
+            .run()
+          const inherited = await Promise.all(
+            parentHistory.streets.map(addMaterialisedStreetHash),
+          )
+          await replaceCurrentStreetRows(
+            context.currentDb as never,
+            scopeId,
+            inherited,
+            now,
+          )
+          await replaceCurrentStreetI18nRows(
+            context.currentDb as never,
+            scopeId,
+            inherited,
+            now,
+          )
+          await syncCurrentStreetChangelog(
+            context.currentDb as never,
+            scopeId,
+            inheritedChangelog as never,
+            [],
+            now,
+          )
+        }
         await replaceCurrentStreetRows(
           context.currentDb as unknown as HarbourWritableDb,
           scopeId,
@@ -334,6 +374,7 @@ export async function processLocalStreetSqlUpload(
           resourceReleaseId,
           changedMaterialisedStreets,
           now,
+          parentStreets,
         )
         await insertHistoryI18nRows(
           context.historyDb as unknown as HarbourWritableDb,
@@ -341,6 +382,7 @@ export async function processLocalStreetSqlUpload(
           resourceReleaseId,
           changedMaterialisedStreets,
           now,
+          parentHistory.locales,
         )
         await insertHistoryStreetChangelog(
           context.historyDb as unknown as HarbourWritableDb,

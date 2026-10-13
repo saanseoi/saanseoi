@@ -3,22 +3,22 @@ import { expect, test } from 'bun:test'
 import { mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
+import type { HarbourWritableDb } from '@repo/core/db/types'
+import { loadMigrationSql } from '../../../../../../libs/core/src/testing/metaFixtures.ts'
+import { createLocalExecBinding } from '../../dbCache/localDbCache.ts'
+import type { LocalAddressDbContext } from '../../dbCache/localDbCacheTypes.ts'
 import {
   beginSnapshotPublication,
   completeSnapshotPublication,
 } from '../local/snapshotPublication.ts'
-import type { LocalAddressDbContext } from '../../dbCache/localDbCacheTypes.ts'
-import { createLocalExecBinding } from '../../dbCache/localDbCache.ts'
 import { sqlDeliveryPhaseDirectory } from '../local/sqlDeliveryPhase.ts'
 import { deliverPlandWorkflow, readPlandDeliveryCounts } from './plandDelivery.ts'
-import { loadMigrationSql } from '../../../../../../libs/core/src/testing/metaFixtures.ts'
 import {
   compressPlanningDivisionGeometry,
   insertHistoryRows,
   replaceCurrentSnapshot,
 } from './processLocalHkgovPlandDivisionSqlUploadRows.ts'
 import type { PreparedDivision } from './processLocalHkgovPlandDivisionSqlUploadTypes.ts'
-import type { HarbourWritableDb } from '@repo/core/db/types'
 
 test('Planning copies isolate failed preparation and resume partial delivery without recalculating counts', async () => {
   const root = await mkdtemp(join(tmpdir(), 'pland-delivery-'))
@@ -130,7 +130,7 @@ test('Planning copies isolate failed preparation and resume partial delivery wit
           "(SELECT count(*) FROM divisions WHERE snapshotId='snapshot')=1",
         )
         clients.DB_HISTORY.exec(
-          "CREATE TRIGGER fail BEFORE INSERT ON snapshotVersionChanges BEGIN SELECT RAISE(ABORT, 'delivery interrupted'); END",
+          "CREATE TRIGGER fail BEFORE INSERT ON divisions BEGIN SELECT RAISE(ABORT, 'delivery interrupted'); END",
         )
         expect(
           clients.DB_CURRENT.query('SELECT count(*) AS n FROM divisions').get(),
@@ -148,9 +148,7 @@ test('Planning copies isolate failed preparation and resume partial delivery wit
       }),
     ).toEqual(counts)
     expect(
-      clients.DB_HISTORY.query(
-        'SELECT count(*) AS n FROM snapshotVersionChanges',
-      ).get(),
+      clients.DB_HISTORY.query('SELECT count(*) AS n FROM historyEvents').get(),
     ).toEqual({ n: 1 })
     expect(
       clients.DB_CURRENT.query(

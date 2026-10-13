@@ -2,41 +2,38 @@ import { readFileSync } from 'node:fs'
 import type { DatasetProcessingMessage } from '@repo/core'
 import { resolveShardForTypeRegionYear } from '@repo/core/db/metaRegistry'
 import type { HarbourReadableDb } from '@repo/core/db/types'
-import type { MetaDatabase } from '@repo/db'
 import {
   buildSqlPipelineArtefactKey,
   writeTextArtefact,
 } from '@repo/core/pipeline/services/storage/artefacts'
+import type { MetaDatabase } from '@repo/db'
 import type { UploadTarget } from '../../cli/options.ts'
 import { resolvePipelineEnvironment } from '../../cli/options.ts'
+import {
+  invalidateRemoteDbCache,
+  refreshRemoteMetaCache,
+  replayRemoteCacheWithRetry,
+  type resolveLocalAddressDbContext,
+} from '../../dbCache/localDbCache.ts'
+import type { LocalPipelineBucket } from '../local/localBucket.ts'
 import {
   executeSqlText,
   importSqlArtefactKeys,
   type SqlImportExecutionOptions,
   type SqlImportTargetContext,
 } from '../local/sqlImport.ts'
-import type { LocalPipelineBucket } from '../local/localBucket.ts'
 import {
-  invalidateRemoteDbCache,
-  replayRemoteCacheWithRetry,
-  refreshRemoteMetaCache,
-  type resolveLocalAddressDbContext,
-} from '../../dbCache/localDbCache.ts'
+  HARBOUR_WORKERS_WRANGLER_PATH,
+  PRIMARY_HISTORY_OWNER_KEY,
+  PRIMARY_SOURCE_OWNER_KEY,
+} from './processLocalDivisionSqlUploadConfig.ts'
+import { buildCloseSourceVersionStatements } from './processLocalDivisionSqlUploadRows.ts'
 import type {
   DivisionSqlArtefactManifest,
   DivisionSqlImportFile,
   DivisionSqlState,
   ExtraSqlImportOperation,
 } from './processLocalDivisionSqlUploadTypes.ts'
-import {
-  HARBOUR_WORKERS_WRANGLER_PATH,
-  PRIMARY_HISTORY_OWNER_KEY,
-  PRIMARY_SOURCE_OWNER_KEY,
-} from './processLocalDivisionSqlUploadConfig.ts'
-import {
-  buildCloseHistoryVersionStatements,
-  buildCloseSourceVersionStatements,
-} from './processLocalDivisionSqlUploadRows.ts'
 
 export async function runDivisionSqlImportOperations(
   operations: ReadonlyArray<() => Promise<unknown>>,
@@ -155,46 +152,8 @@ export function buildExtraHistorySqlOperations(
   state: DivisionSqlState,
   importTargets: Awaited<ReturnType<typeof resolveDivisionImportTargets>>,
 ) {
-  const changedExistingIds = state.records
-    .filter(
-      record => !record.omitCanonical && record.currentChanged && record.currentExists,
-    )
-    .map(record => record.id)
-  const missingIds = [...state.currentRows.keys()].filter(id => !state.seenIds.has(id))
-  const changedIdsByOwner = groupIdsByOwnerShard(
-    state.currentRows,
-    changedExistingIds,
-    PRIMARY_HISTORY_OWNER_KEY,
-  )
-  const missingIdsByOwner = groupIdsByOwnerShard(
-    state.currentRows,
-    missingIds,
-    PRIMARY_HISTORY_OWNER_KEY,
-  )
-  const now = new Date().toISOString()
-  const operations: ExtraSqlImportOperation[] = []
-
-  for (const [ownerKey, target] of importTargets.historyByOwnerKey) {
-    if (ownerKey === PRIMARY_HISTORY_OWNER_KEY) {
-      continue
-    }
-
-    const statements = [
-      ...buildCloseHistoryVersionStatements(changedIdsByOwner.get(ownerKey) ?? [], now),
-      ...buildCloseHistoryVersionStatements(missingIdsByOwner.get(ownerKey) ?? [], now),
-    ]
-
-    if (statements.length === 0) {
-      continue
-    }
-
-    operations.push({
-      sql: `${statements.join('\n\n')}\n`,
-      target,
-    })
-  }
-
-  return operations
+  // All new events belong to the selected snapshot shard. Ancestors stay immutable.
+  return [] as ExtraSqlImportOperation[]
 }
 
 export function buildExtraSourceSqlOperations(

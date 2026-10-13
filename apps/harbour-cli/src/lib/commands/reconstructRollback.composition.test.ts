@@ -1,9 +1,9 @@
 import { expect, test } from 'bun:test'
-import { fixture, insert } from './reconstructRollback.fixtures.ts'
 import { buildAddressSearchSyncSql } from '@repo/core/pipeline/services/addresses/searchIndex'
 import { buildDivisionSearchSyncSql } from '@repo/core/pipeline/services/search/divisions'
 import { runNativeSqlDelivery } from '../pipeline/local/nativeSqlDelivery.ts'
 import { readDeliveryPlan } from '../pipeline/local/sqlDeliveryFiles.ts'
+import { fixture, insert } from './reconstructRollback.fixtures.ts'
 import { verifyRollbackTerminal } from './reconstructRollback.ts'
 import type { RollbackTerminal } from './rollbackDelivery.ts'
 
@@ -126,19 +126,6 @@ async function composedFixture() {
     formattedAddress: 'Old District Home',
     versionHash: 'address-en',
   })
-  for (const [recordType, locale, versionHash] of [
-    ['address2d', '', 'address-base'],
-    ['address2dI18n', 'en', 'address-en'],
-  ])
-    insert(f.history, 'snapshotVersionChanges', {
-      snapshotId: 'address-a-old',
-      recordType,
-      recordId: 'home',
-      locale,
-      versionHash,
-      operation: 'upsert',
-      sourceReleaseId: 'release-address-old',
-    })
   expect(f.current.query('PRAGMA foreign_key_check').all()).toEqual([])
   return f
 }

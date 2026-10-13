@@ -135,10 +135,10 @@ test('maps Greater Bay Area requests to Hong Kong and returns no Macao mappings'
 test('lookup reads the selected immutable version, not a later version or a deleted record', async () => {
   const sqlite = new Database(':memory:')
   try {
-    sqlite.exec(`CREATE TABLE divisions (id TEXT, versionHash TEXT, identifiers TEXT);
-      CREATE TABLE snapshotVersionChanges (snapshotId TEXT, recordType TEXT, recordId TEXT, locale TEXT, versionHash TEXT, operation TEXT, sourceReleaseId TEXT);
-      INSERT INTO divisions VALUES ('d1', 'old', '{"PLAND:TPU":"101"}'), ('d1', 'new', '{"PLAND:TPU":"999"}'), ('deleted', 'gone', '{"PLAND:TPU":"102"}');
-      INSERT INTO snapshotVersionChanges VALUES ('base', 'division', 'd1', '', 'old', 'upsert', 'source'), ('base', 'division', 'deleted', '', 'gone', 'upsert', 'source'), ('selected', 'division', 'deleted', '', NULL, 'delete', NULL);`)
+    sqlite.exec(`CREATE TABLE divisions (id TEXT, versionHash TEXT, identifiers TEXT, snapshotId TEXT, operation TEXT DEFAULT 'upsert', sourceReleaseId TEXT DEFAULT 'source');
+      CREATE VIEW historyEvents AS SELECT snapshotId,'division' AS recordType,id AS recordId,'' AS locale,versionHash,operation,sourceReleaseId FROM divisions;
+      INSERT INTO divisions(id,versionHash,identifiers,snapshotId) VALUES ('d1', 'old', '{"PLAND:TPU":"101"}','base'), ('d1', 'new', '{"PLAND:TPU":"999"}','sibling'), ('deleted', 'gone', '{"PLAND:TPU":"102"}','base');
+      INSERT INTO divisions(id,snapshotId,operation) VALUES('deleted','selected','delete');`)
     const db = createLocalHarbourDb(sqlite)
     const resolver = await import('@repo/core/pipeline/db/snapshotReplay.ts')
     const result = await listIdentityBridge(

@@ -1,7 +1,10 @@
-import { hydrateStatisticDefinitions } from '@repo/core/pipeline/services/statistics/statisticSnapshotRecords'
 import type { Database, SQLQueryBindings } from 'bun:sqlite'
+import { resolveSnapshotReplayPlan } from '@repo/core/db/metaRegistry'
 import type { HarbourReadableDb } from '@repo/core/db/types'
+import { readHistoryDictionaryVersions } from '@repo/core/pipeline/db/historyDictionaries'
+import { hydrateStatisticDefinitions } from '@repo/core/pipeline/services/statistics/statisticSnapshotRecords'
 import { stableJsonStringify } from '@repo/core/pipeline/utils'
+import type { HistoryContent } from '@repo/db'
 import {
   and,
   currentSchema,
@@ -10,15 +13,14 @@ import {
   historySchema,
   metaSchema,
   ne,
-  sql,
 } from '@repo/db'
 import { versionStatisticsDefinitions } from '../../pipeline/statistics/statisticsRecordIdentity.ts'
 import { insertProjectionRow } from './projection.ts'
 import {
-  readExactProjectionRows,
-  resolveValidatedProjectionVersions,
   type ProjectionHistoryTarget,
   type ProjectionRow,
+  readExactProjectionRows,
+  resolveValidatedProjectionVersions,
 } from './projectionReplay.ts'
 
 type DictionaryTable =
@@ -31,8 +33,14 @@ type DictionaryReference = {
   identity: string
   versionHash: string
 }
-type Field = typeof historySchema.statsFields.$inferSelect
-type Measure = typeof historySchema.statsMeasures.$inferSelect
+type Field = HistoryContent<
+  typeof historySchema.statsFields.$inferSelect,
+  typeof currentSchema.statsFields.$inferSelect
+>
+type Measure = HistoryContent<
+  typeof historySchema.statsMeasures.$inferSelect,
+  typeof currentSchema.statsMeasures.$inferSelect
+>
 type Input = {
   /** Disposable current candidate, with no open transaction. */
   current: Database
@@ -83,6 +91,11 @@ export async function restoreStatisticsProjection(input: Input) {
     ]),
   )
   const copied = new Set<string>()
+  const snapshotIds = input.snapshotId
+    ? (await resolveSnapshotReplayPlan(input.metaDb, input.snapshotId)).map(
+        step => step.snapshotId,
+      )
+    : []
   input.current.exec('BEGIN')
   try {
     input.current
@@ -126,7 +139,8 @@ export async function restoreStatisticsProjection(input: Input) {
         if (!binding) throw new Error('Missing named Statistics dictionary owner.')
         await copyReferencedDictionaries(
           input.current,
-          history,
+          input.historyTargets.map(target => target.db),
+          snapshotIds,
           binding,
           records,
           copied,
@@ -265,7 +279,8 @@ function validatePack(row: ProjectionRow) {
 
 async function copyReferencedDictionaries(
   current: Database,
-  history: HarbourReadableDb,
+  history: HarbourReadableDb[],
+  snapshotIds: string[],
   binding: string,
   records: ProjectionRow[],
   copied: Set<string>,
@@ -286,9 +301,19 @@ async function copyReferencedDictionaries(
     }
   if (!wanted.size) return
   const references = [...wanted.values()]
-  const fields = (await readDefinitions(history, 'statsFields', references)) as Field[]
+  const fields = (await readDefinitions(
+    history,
+    snapshotIds,
+    'statsFields',
+    references,
+  )) as Field[]
   requireCompleteDefinitions(fields, references, 'fieldName', 'field')
-  const fieldLocales = await readDefinitions(history, 'statsFieldsI18n', references)
+  const fieldLocales = await readDefinitions(
+    history,
+    snapshotIds,
+    'statsFieldsI18n',
+    references,
+  )
   const measureReferences = new Map<string, DictionaryReference>()
   for (const field of fields) {
     if (!field.measureCode || !field.measureVersionHash)
@@ -300,7 +325,7 @@ async function copyReferencedDictionaries(
     }
     measureReferences.set(referenceKey(reference), reference)
   }
-  const measures = (await readDefinitions(history, 'statsMeasures', [
+  const measures = (await readDefinitions(history, snapshotIds, 'statsMeasures', [
     ...measureReferences.values(),
   ])) as Measure[]
   requireCompleteDefinitions(
@@ -309,9 +334,12 @@ async function copyReferencedDictionaries(
     'measureCode',
     'measure',
   )
-  const measureLocales = await readDefinitions(history, 'statsMeasuresI18n', [
-    ...measureReferences.values(),
-  ])
+  const measureLocales = await readDefinitions(
+    history,
+    snapshotIds,
+    'statsMeasuresI18n',
+    [...measureReferences.values()],
+  )
   for (const field of fields) {
     const measure = measures.find(
       row =>
@@ -358,28 +386,12 @@ async function copyReferencedDictionaries(
 }
 
 async function readDefinitions(
-  history: HarbourReadableDb,
+  history: HarbourReadableDb[],
+  snapshotIds: string[],
   name: DictionaryTable,
   references: DictionaryReference[],
 ) {
-  const table = historySchema[name]
-  const identity = 'fieldName' in table ? table.fieldName : table.measureCode
-  const rows: ProjectionRow[] = []
-  for (let offset = 0; offset < references.length; offset += 100) {
-    // A JSON tuple set uses one SQL parameter, even for complete packed dictionaries.
-    const page = JSON.stringify(references.slice(offset, offset + 100))
-    rows.push(
-      ...(await history
-        .select()
-        .from(table)
-        .where(sql`exists (select 1 from json_each(${page}) selected
-      where ${table.datasetCode} = json_extract(selected.value, '$.datasetCode')
-      and ${identity} = json_extract(selected.value, '$.identity')
-      and ${table.versionHash} = json_extract(selected.value, '$.versionHash'))`)
-        .all()),
-    )
-  }
-  return rows
+  return readHistoryDictionaryVersions(history, snapshotIds, name, references)
 }
 
 function requireCompleteDefinitions(

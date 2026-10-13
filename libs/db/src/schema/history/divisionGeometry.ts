@@ -1,19 +1,20 @@
 import { index, primaryKey, sqliteTable, text } from 'drizzle-orm/sqlite-core'
-
-import { canonicalDivisionGeometry } from '../shared'
+import { canonicalDivisionGeometryColumns } from '../shared'
+import { historyEventConstraints } from './constraints'
 import { historyVersioning } from './shared'
 
-// Geometry content versions are immutable. Snapshot journals and current scope
+// Geometry content versions are immutable. Inline snapshot events and current scope
 // projections define membership; historyVersioning.isCurrent is not liveness.
 export const divisionAreas = sqliteTable(
   'divisionAreas',
   {
-    ...canonicalDivisionGeometry,
-    divisionId: text('divisionId').notNull(),
+    ...canonicalDivisionGeometryColumns(false),
+    divisionId: text('divisionId'),
     ...historyVersioning,
   },
   table => [
-    primaryKey({ columns: [table.id, table.versionHash] }),
+    ...historyEventConstraints(table, ['divisionId', 'variant', 'type']),
+    primaryKey({ columns: [table.id, table.snapshotId] }),
     index('divisionAreas_current_lookup_idx').on(table.id, table.isCurrent),
     index('divisionAreas_divisionId_idx').on(table.divisionId, table.isCurrent),
     index('divisionAreas_sourceReleaseId_idx').on(table.sourceReleaseId),
@@ -24,13 +25,19 @@ export const divisionAreas = sqliteTable(
 export const divisionBoundaries = sqliteTable(
   'divisionBoundaries',
   {
-    ...canonicalDivisionGeometry,
-    leftDivisionId: text('leftDivisionId').notNull(),
-    rightDivisionId: text('rightDivisionId').notNull(),
+    ...canonicalDivisionGeometryColumns(false),
+    leftDivisionId: text('leftDivisionId'),
+    rightDivisionId: text('rightDivisionId'),
     ...historyVersioning,
   },
   table => [
-    primaryKey({ columns: [table.id, table.versionHash] }),
+    ...historyEventConstraints(table, [
+      'leftDivisionId',
+      'rightDivisionId',
+      'variant',
+      'type',
+    ]),
+    primaryKey({ columns: [table.id, table.snapshotId] }),
     index('divisionBoundaries_current_lookup_idx').on(table.id, table.isCurrent),
     index('divisionBoundaries_leftDivisionId_idx').on(
       table.leftDivisionId,

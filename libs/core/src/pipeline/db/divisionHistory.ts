@@ -1,13 +1,13 @@
-import { and, eq, inArray, or, sql } from 'drizzle-orm'
 import { historySchema } from '@repo/db'
 import type { DivisionI18nPayload } from '@repo/db/currentSchema'
 import type { NewSourceResolution } from '@repo/db/historySchema'
+import { and, eq, or } from 'drizzle-orm'
 import type { SnapshotReplayStep } from '../../lib/db/metaRegistry'
 import type { HarbourReadableDb, HarbourWritableDb } from '../../lib/db/types'
 import {
   chunkArray,
-  getMaxItemsPerInClause,
   createHash,
+  getMaxItemsPerInClause,
   stableJsonStringify,
 } from '../utils'
 import type {
@@ -16,9 +16,10 @@ import type {
   insertDivisionVersionRows,
 } from './division'
 import { recordHistoryDeletions } from './historyDeletions'
+import { resolveSnapshotVersionState } from './snapshotReplay'
 import {
-  resolveSnapshotSourceResolutions,
   type ResolvedSnapshotSourceResolution,
+  resolveSnapshotSourceResolutions,
 } from './sourceResolutionReplay'
 
 export type DivisionHistoryShard = {
@@ -158,61 +159,16 @@ export async function loadDivisionHistoryBaseline(input: {
     input.shards,
   )
   const components = new Map<string, DivisionHistoryComponent>()
-  for (const step of input.plan) {
-    const seen = new Set<string>()
-    for (const binding of new Set(step.shards.map(row => row.bindingName))) {
-      const shard = input.shards.get(binding)
-      if (!shard) throw new Error(`Missing Division history binding ${binding}.`)
-      let cursor: { recordType: string; recordId: string; locale: string } | undefined
-      while (true) {
-        const table = historySchema.historyEvents
-        const rows = await shard.db
-          .select({
-            recordType: table.recordType,
-            recordId: table.recordId,
-            locale: table.locale,
-            versionHash: table.versionHash,
-            operation: table.operation,
-          })
-          .from(table)
-          .where(
-            and(
-              eq(table.snapshotId, step.snapshotId),
-              inArray(table.recordType, ['division', 'divisionI18n']),
-              cursor
-                ? sql`(${table.recordType}, ${table.recordId}, ${table.locale}) > (${cursor.recordType}, ${cursor.recordId}, ${cursor.locale})`
-                : undefined,
-            ),
-          )
-          .orderBy(table.recordType, table.recordId, table.locale)
-          .limit(512)
-          .all()
-        for (const row of rows) {
-          if (row.recordType !== 'division' && row.recordType !== 'divisionI18n')
-            continue
-          if ((row.recordType === 'division') !== (row.locale === ''))
-            throw new Error('Invalid Division component locale.')
-          const key = divisionHistoryKey(row.recordId, row.locale)
-          if (seen.has(key))
-            throw new Error(
-              `Ambiguous Division history component ${key} in ${step.snapshotId}.`,
-            )
-          seen.add(key)
-          if (row.operation === 'delete') components.delete(key)
-          else if (row.versionHash)
-            components.set(key, {
-              ...row,
-              snapshotId: step.snapshotId,
-              versionHash: row.versionHash,
-              recordType: row.recordType,
-              shard,
-            })
-          else throw new Error(`Missing Division history hash for ${key}.`)
-        }
-        cursor = rows.at(-1)
-        if (rows.length < 512) break
-      }
-    }
+  const resolved = await resolveSnapshotVersionState(input.plan, input.shards, [
+    'division',
+    'divisionI18n',
+  ])
+  for (const row of resolved.values()) {
+    components.set(divisionHistoryKey(row.recordId, row.locale), {
+      ...row,
+      recordType: row.recordType as 'division' | 'divisionI18n',
+      shard: input.shards.get(row.shard.bindingName)!,
+    })
   }
   const expected = new Set<string>()
   for (const row of input.current.values()) {

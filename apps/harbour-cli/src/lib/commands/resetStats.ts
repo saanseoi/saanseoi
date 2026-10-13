@@ -1,17 +1,17 @@
 import { resolve } from 'node:path'
 import { confirm, isCancel, note, outro } from '@clack/prompts'
-import type { ParsedArgs, UploadTarget } from '../cli/options.ts'
 import { describeTarget, formatField } from '../cli/display.ts'
+import type { ParsedArgs, UploadTarget } from '../cli/options.ts'
 import {
-  resolveLocalAddressDbContext,
   type LocalAddressDbContext,
+  resolveLocalAddressDbContext,
 } from '../dbCache/localDbCache.ts'
+import { createCloudflareD1QueryClient } from '../dbCache/remoteD1Client.ts'
 import {
   executeResetSqlArtefacts,
-  validateResetArguments,
   type ResetSqlArtefact,
+  validateResetArguments,
 } from '../pipeline/resetLifecycle.ts'
-import { createCloudflareD1QueryClient } from '../dbCache/remoteD1Client.ts'
 import { collectStatsResetDependencies } from './statsResetDependencies.ts'
 
 type ReadBinding = {
@@ -227,8 +227,6 @@ export function buildStatsResetSql(plan: StatsResetPlan) {
     ...GEOMETRY_TABLES.flatMap(table =>
       deleteIds(table, 'sourceReleaseId', releaseIds),
     ),
-    ...deleteIds('snapshotVersionChanges', 'snapshotId', snapshotIds),
-    ...deleteIds('snapshotVersionChanges', 'sourceReleaseId', releaseIds),
     ...deleteIds('sourceResolutions', 'snapshotId', snapshotIds),
     ...deleteIds('sourceResolutions', 'sourceReleaseId', releaseIds),
   ].join('\n')

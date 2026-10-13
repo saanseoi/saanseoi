@@ -269,8 +269,8 @@ Canonical history stores complete packed states only for real changes. A partial
 revision replaces supplied fields and retains omitted fields and their provenance.
 Unchanged values and definitions retain their original field source. Unchanged reissues
 add no canonical record versions or per-record snapshot membership; source evidence and
-publication metadata still identify the reissue. Sparse `statsRecord` changes in
-`snapshotVersionChanges` and snapshot parent ancestry select each frozen publication.
+publication metadata still identify the reissue. Sparse `statsRecord` changes in Inline
+HISTORY events and snapshot parent ancestry select each frozen publication.
 
 Deferred Statistics revisions inherit only from published snapshots backed by a
 completed processing audit and current resource release in the same lineage and exact

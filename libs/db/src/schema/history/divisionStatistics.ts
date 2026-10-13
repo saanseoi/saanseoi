@@ -1,6 +1,6 @@
 import { index, primaryKey, sqliteTable } from 'drizzle-orm/sqlite-core'
-
-import { canonicalDivisionStatistic } from '../shared'
+import { canonicalDivisionStatisticColumns } from '../shared'
+import { historyEventConstraints } from './constraints'
 import { historyStatisticVersioning } from './shared'
 
 /**
@@ -10,11 +10,20 @@ import { historyStatisticVersioning } from './shared'
 export const divisionStatistics = sqliteTable(
   'divisionStatistics',
   {
-    ...canonicalDivisionStatistic,
+    ...canonicalDivisionStatisticColumns(false),
     ...historyStatisticVersioning,
   },
   table => [
-    primaryKey({ columns: [table.id, table.versionHash] }),
+    ...historyEventConstraints(table, [
+      'divisionId',
+      'districtCode',
+      'referenceYear',
+      'landAreaSqKm',
+      'midYearPopulation',
+      'midYearPopulationDensityPerSqKm',
+      'sources',
+    ]),
+    primaryKey({ columns: [table.id, table.snapshotId] }),
     index('divisionStatistics_current_lookup_idx').on(table.id, table.isCurrent),
     index('divisionStatistics_sourceReleaseId_idx').on(table.sourceReleaseId),
   ],

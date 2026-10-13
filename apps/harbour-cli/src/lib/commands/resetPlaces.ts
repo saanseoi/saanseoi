@@ -1,10 +1,9 @@
 import { existsSync, readFileSync } from 'node:fs'
 import { mkdir, readFile, rm, writeFile } from 'node:fs/promises'
 import { dirname, resolve } from 'node:path'
-import { isMinimalInitialisation } from '../cli/minimalInitialisation.ts'
-
 import { confirm, isCancel, note, outro } from '@clack/prompts'
-import { like, lte, not, sql } from 'drizzle-orm'
+import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
+import { recordDatasetStage } from '@repo/core/pipeline/datasetStages'
 import {
   and,
   currentSchema,
@@ -15,12 +14,11 @@ import {
   or,
   sourceSchema,
 } from '@repo/db'
-import type { HarbourReadableDb } from '@repo/core/db/types'
-import type { HarbourWritableDb } from '@repo/core/db/types'
-import { recordDatasetStage } from '@repo/core/pipeline/datasetStages'
-
-import type { ParsedArgs, UploadTarget } from '../cli/options.ts'
+import { like, lte, not, sql } from 'drizzle-orm'
+import { createHarbourControlClient } from '../api/harbourControl.ts'
 import { describeTarget, formatField } from '../cli/display.ts'
+import { isMinimalInitialisation } from '../cli/minimalInitialisation.ts'
+import type { ParsedArgs, UploadTarget } from '../cli/options.ts'
 import {
   resolveLocalAddressDbContext,
   withLocalMetaDb,
@@ -30,16 +28,15 @@ import {
   resolveD1Targets,
   resolveSharedRemoteDbCacheDir,
 } from '../dbCache/localDbCacheTargets.ts'
+import { readPendingSqlDelivery } from '../pipeline/local/sqlDeliveryPending.ts'
+import { supplementaryEntryLedgerPath } from '../pipeline/places/processLocalPlaceSqlUploadConfig.ts'
+import { SUPPLEMENTARY_ADDRESS_VARIANT } from '../pipeline/places/supplementaryPlaceAddressRows.ts'
 import {
   executeResetSqlArtefacts,
   type ResetSqlArtefact,
   validateResetArguments,
 } from '../pipeline/resetLifecycle.ts'
 import { deleteManagedSourceAsset } from '../sources/sourceAssets.ts'
-import { supplementaryEntryLedgerPath } from '../pipeline/places/processLocalPlaceSqlUploadConfig.ts'
-import { createHarbourControlClient } from '../api/harbourControl.ts'
-import { SUPPLEMENTARY_ADDRESS_VARIANT } from '../pipeline/places/supplementaryPlaceAddressRows.ts'
-import { readPendingSqlDelivery } from '../pipeline/local/sqlDeliveryPending.ts'
 
 const REPO_ROOT = resolve(import.meta.dir, '../../../../..')
 const MANIFEST_ROOT = resolve(REPO_ROOT, '.local/overture-places/init-runs')
@@ -1036,7 +1033,6 @@ export function buildPlacesResetSql(owned: OwnedPlaces) {
     `DELETE FROM address2dBuildingNumberLookup WHERE snapshotId IN (${addressSnapshots}) OR sourceReleaseId IN (${addressReleases});`,
     `DELETE FROM address2dI18n WHERE snapshotId IN (${addressSnapshots}) OR sourceReleaseId IN (${addressReleases});`,
     `DELETE FROM address2d WHERE snapshotId IN (${addressSnapshots}) OR sourceReleaseId IN (${addressReleases});`,
-    `DELETE FROM snapshotVersionChanges WHERE snapshotId IN (${snapshots});`,
     `DELETE FROM sourceResolutions WHERE snapshotId IN (${snapshots}) OR sourceReleaseId IN (${placeReleases});`,
   ].join('\n')
   const sourceSql = `DELETE FROM overturePlaces WHERE resourceReleaseId IN (${placeReleases});`

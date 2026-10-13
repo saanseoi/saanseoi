@@ -35,12 +35,12 @@ def repair(meta_path, history_path, source_path, output, apply=False):
             cursor = meta.execute('SELECT * FROM snapshots WHERE id=?', (cursor['parentSnapshotId'],)).fetchone()
         inventory = {}
         for step in plan:
-            for row in history.execute("SELECT * FROM snapshotVersionChanges WHERE snapshotId=? AND recordType='division'", (step['id'],)):
+            for row in history.execute("SELECT * FROM historyEvents WHERE snapshotId=? AND recordType='division'", (step['id'],)):
                 journals.append(dict(row))
                 if row['operation'] == 'delete':
                     inventory.pop(row['recordId'], None)
                 else:
-                    canonical = history.execute('SELECT id,class,identifiers FROM divisions WHERE id=? AND versionHash=?', (row['recordId'], row['versionHash'])).fetchone()
+                    canonical = history.execute('SELECT id,class,identifiers FROM divisions WHERE id=? AND snapshotId=? AND versionHash=?', (row['recordId'], row['snapshotId'], row['versionHash'])).fetchone()
                     assert canonical, 'Missing replay content'
                     inventory[row['recordId']] = canonical
         indexes = {}

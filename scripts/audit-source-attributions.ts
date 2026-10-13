@@ -128,10 +128,10 @@ export function auditSourceAttributions(directory: string) {
               )
               .all()
           : []
-      const historyChanges = names.has('snapshotVersionChanges')
+      const historyChanges = names.has('historyEvents')
         ? db
             .query(
-              'SELECT snapshotId, recordType, count(*) AS changes FROM snapshotVersionChanges GROUP BY snapshotId, recordType',
+              'SELECT snapshotId, recordType, count(*) AS changes FROM historyEvents GROUP BY snapshotId, recordType',
             )
             .all()
         : []

@@ -187,10 +187,11 @@ including an empty projection. Until then current requests return
 `503 snapshot_not_ready`. Historical replay and atomic cleanup with dependency guards
 follow the [publication-state contract](../publication-state-plan.md).
 
-Source and canonical Street versions close in their owning shards, including at year
-boundaries. The incoming history shard records the snapshot journal. Each logical Street
-version retains its complete locales for historical timeline reconstruction; unchanged
-reissues do not create another logical version.
+SOURCE periods close in their owning shards, including at year boundaries. Canonical
+Street components append events in the selected HISTORY shard and inherit unchanged
+locales from their exact parent. Timeline reconstruction combines those events with the
+retained changelog, including deletion dates and inherited names. Unchanged reissues do
+not create another logical version.
 
 ### Deferred matching review
 
@@ -226,3 +227,18 @@ Publication retains the executed source-retention and lifecycle-assembly rules w
 counts from the sealed SQL delivery. It verifies delivered source hashes and baseline
 coverage before transferring a completed processing audit. Retries reuse the retained
 audit graph and SQL delivery receipts.
+
+### Snapshot event storage
+
+Canonical HISTORY stores a changed component once, with its introducing `snapshotId`,
+`operation`, content hash and payload in the same row. Unchanged components inherit the
+selected parent. Deletions append identity-only tombstones, and ancestor rows remain
+immutable. Reversions and independent branch changes have distinct introducing events.
+The read-only `historyEvents` view stores no additional membership rows. Snapshot reads
+resolve ancestry before filtering and use the exact introducing snapshot to fetch
+content. SOURCE release validity and interpretation evidence remain separate.
+
+Street deletion events retain the final lifecycle version, dates and names in their
+canonical tombstone rows. Snapshot membership excludes these rows; lifecycle replay
+retains them so a later restoration continues the logical version counter. Unchanged
+components inherit the exact parent, including on revisions and branches.

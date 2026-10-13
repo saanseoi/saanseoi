@@ -1,11 +1,11 @@
-import { releaseFixtureSchemaSql } from '../../../../../../libs/core/src/testing/releaseFixtures'
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { join } from 'node:path'
-import { drizzle } from 'drizzle-orm/bun-sqlite'
-import { currentSchema, historySchema, metaSchema } from '@repo/db'
 import { normaliseDivisionAreaGeometryRow } from '@repo/core/pipeline/services/divisions/divisionGeometry'
+import { currentSchema, historySchema, metaSchema } from '@repo/db'
+import { drizzle } from 'drizzle-orm/bun-sqlite'
 import { loadMigrationSql } from '../../../../../../libs/core/src/testing/metaFixtures'
+import { releaseFixtureSchemaSql } from '../../../../../../libs/core/src/testing/releaseFixtures'
 import { assertDivisionReferences } from './processLocalDivisionGeometrySqlUploadReferences'
 import type { GeometryUploadPlan } from './processLocalDivisionGeometrySqlUploadTypes'
 
@@ -63,14 +63,11 @@ INSERT INTO resourceReleases(id,sourceReleaseId,code,resourceType,status) VALUES
         VALUES('lineage','current-only','district','{"full":[],"administrative":[],"locality":[]}');`)
     history2025.exec(`INSERT INTO divisions(id,versionHash,snapshotId,sourceReleaseId,isCurrent,class,hierarchies)
         VALUES('hong-kong-island','v1','early','release-2025',0,'district','{"full":[],"administrative":[],"locality":[]}');
-      INSERT INTO snapshotVersionChanges(snapshotId,recordType,recordId,locale,versionHash,operation,sourceReleaseId)
-        VALUES('early','division','hong-kong-island','','v1','upsert','release-2025');`)
+      `)
     history2026.exec(`INSERT INTO divisions(id,versionHash,snapshotId,sourceReleaseId,isCurrent,class,hierarchies) VALUES
         ('kowloon','v1','complete','release-2026-01',0,'district','{"full":[],"administrative":[],"locality":[]}'),
         ('new-territories','v1','complete','release-2026-01',0,'district','{"full":[],"administrative":[],"locality":[]}');
-      INSERT INTO snapshotVersionChanges(snapshotId,recordType,recordId,locale,versionHash,operation,sourceReleaseId) VALUES
-        ('complete','division','kowloon','','v1','upsert','release-2026-01'),
-        ('complete','division','new-territories','','v1','upsert','release-2026-01');`)
+      `)
 
     const plan: GeometryUploadPlan = {
       cohortKey: '2023-H2',

@@ -1,32 +1,18 @@
 import { integer, text } from 'drizzle-orm/sqlite-core'
 import { timestamps } from '../shared'
 
-const commonVersioning = {
-  versionHash: text('versionHash').notNull(),
-  sourceReleaseId: text('sourceReleaseId').notNull(),
-  // Mutable ingestion cache metadata. Snapshot replay is driven by
-  // snapshotVersionChanges, never by these columns.
-  snapshotId: text('snapshotId').notNull(),
-  isCurrent: integer('isCurrent', { mode: 'boolean' }).notNull(),
-}
-
-export const historyI18nVersioning = {
-  ...commonVersioning,
-  ...timestamps,
-}
-
+/** A row is a change introduced by this snapshot, inherited by its descendants. */
 export const historyVersioning = {
-  ...historyI18nVersioning,
-}
-
-/**
- * Statistics are source-release observations, not assembled division
- * snapshots. They gain a snapshot-scoped current representation only when
- * the Stats API publishes a release set.
- */
-export const historyStatisticVersioning = {
-  versionHash: text('versionHash').notNull(),
-  sourceReleaseId: text('sourceReleaseId').notNull(),
-  isCurrent: integer('isCurrent', { mode: 'boolean' }).notNull(),
+  snapshotId: text('snapshotId').notNull(),
+  operation: text('operation', { enum: ['upsert', 'delete'] })
+    .notNull()
+    .default('upsert'),
+  versionHash: text('versionHash'),
+  sourceReleaseId: text('sourceReleaseId'),
+  // Operational hint only. Membership always follows snapshot ancestry.
+  isCurrent: integer('isCurrent', { mode: 'boolean' }).notNull().default(true),
   ...timestamps,
 }
+
+export const historyI18nVersioning = historyVersioning
+export const historyStatisticVersioning = historyVersioning

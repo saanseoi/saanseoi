@@ -1,10 +1,10 @@
 import {
   currentSchema,
+  getTableColumns,
+  getTableName,
   historySchema,
   metaSchema,
   sourceSchema,
-  getTableName,
-  getTableColumns,
 } from '@repo/db'
 import type { LocalAddressDbContext } from '../../dbCache/localDbCacheTypes.ts'
 import type { ResolvedSqlTarget } from './resolvedSqlPlan.ts'
@@ -74,7 +74,6 @@ export function familyMutationTargets(
               ? [
                   ...current[family].filter(name => name !== 'streetsAddress'),
                   ...(family === 'statistics' ? ['divisionStatistics'] : []),
-                  'snapshotVersionChanges',
                   'sourceResolutions',
                 ]
               : binding.startsWith('DB_SOURCE')

@@ -1,15 +1,15 @@
-import { statisticDefinitionSet } from '@repo/db'
 import { readFileSync } from 'node:fs'
-import { sourceResolutionSql } from '@repo/core/pipeline/db/sourceResolutions'
-import type { NewSourceResolution } from '@repo/db/historySchema'
 import { resolve } from 'node:path'
-import { deliverSqlPhase, type SqlDeliveryPhase } from '../local/sqlDeliveryPhase.ts'
+import { sourceResolutionSql } from '@repo/core/pipeline/db/sourceResolutions'
+import { statisticDefinitionSet } from '@repo/db'
+import type { NewSourceResolution } from '@repo/db/historySchema'
+import type { UploadTarget } from '../../cli/options.ts'
 
 import {
-  resolveShardBindingName,
   type LocalAddressDbContext,
+  resolveShardBindingName,
 } from '../../dbCache/localDbCache.ts'
-import type { UploadTarget } from '../../cli/options.ts'
+import { deliverSqlPhase, type SqlDeliveryPhase } from '../local/sqlDeliveryPhase.ts'
 import {
   executeSqlText,
   type SqlImportExecutionOptions,
@@ -32,10 +32,7 @@ export type CanonicalStatsDictionaryTable =
   | 'statsMeasuresI18n'
   | 'statsValuesI18n'
 export type CanonicalStatsRecordTable = 'statsRecords'
-type CanonicalStatsTable =
-  | CanonicalStatsRecordTable
-  | CanonicalStatsDictionaryTable
-  | 'snapshotVersionChanges'
+type CanonicalStatsTable = CanonicalStatsRecordTable | CanonicalStatsDictionaryTable
 
 type Row = Record<string, unknown>
 
@@ -56,7 +53,6 @@ export type CanonicalStatsSqlReplayProgress = {
 }
 
 export function buildCanonicalStatsSqlBatches(input: {
-  changes?: Array<{ shardYear: string; row: Row }>
   resolutions?: Array<{ shardYear: string; row: NewSourceResolution }>
   current: Array<{ rows: Row[]; table: CanonicalStatsTable }>
   history: Array<{
@@ -87,11 +83,6 @@ export function buildCanonicalStatsSqlBatches(input: {
     }
   }
   const historyYears = [...historyGroupsByYear.keys()]
-  for (const change of input.changes ?? []) {
-    const groups = historyGroupsByYear.get(change.shardYear) ?? []
-    groups.push({ rows: [change.row], table: 'snapshotVersionChanges' })
-    historyGroupsByYear.set(change.shardYear, groups)
-  }
   for (const group of input.dictionaries) {
     for (const shardYear of historyYears) {
       const groups = historyGroupsByYear.get(shardYear)
@@ -124,11 +115,7 @@ export function buildCanonicalStatsSqlBatches(input: {
               group.rows,
               [
                 ...historyIdentityColumns(group.table),
-                ...(['snapshotVersionChanges', 'statsDefinitionSets'].includes(
-                  group.table,
-                )
-                  ? []
-                  : ['versionHash']),
+                ...(group.table === 'statsDefinitionSets' ? [] : ['snapshotId']),
               ],
               true,
             ),
@@ -474,13 +461,10 @@ function upsertSuffix(
 
 function currentConflictColumns(table: CanonicalStatsTable) {
   if (table === 'statsRecords' || table === 'statsDefinitionSets') return ['id']
-  if (table === 'snapshotVersionChanges') return historyIdentityColumns(table)
   return [...dictionaryIdentityColumns(table), 'versionHash']
 }
 
 function historyIdentityColumns(table: CanonicalStatsTable) {
-  if (table === 'snapshotVersionChanges')
-    return ['snapshotId', 'recordType', 'recordId', 'locale']
   return table === 'statsRecords' ? ['id'] : dictionaryIdentityColumns(table)
 }
 

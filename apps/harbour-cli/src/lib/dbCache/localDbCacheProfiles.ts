@@ -1,6 +1,7 @@
 import { Database as SQLiteDatabase } from 'bun:sqlite'
-import type { CachePruneOperation, CacheTableProfile } from './localDbCacheTypes.ts'
+import { historyEventTables } from '@repo/db'
 import { VERSION_TABLES_WITH_CURRENT_ROWS } from './localDbCacheConfig.ts'
+import type { CachePruneOperation, CacheTableProfile } from './localDbCacheTypes.ts'
 
 export function resolveCacheTablesForBinding(
   bindingName: string,
@@ -149,7 +150,6 @@ export function resolveCacheTablesForBinding(
     if (cacheTableProfile === 'divisionStatistic') {
       return [
         'sourceResolutions',
-        'snapshotVersionChanges',
         'divisionStatistics',
         'statsDefinitionSets',
         'statsRecords',
@@ -164,7 +164,6 @@ export function resolveCacheTablesForBinding(
     if (cacheTableProfile === 'statistics') {
       return [
         'sourceResolutions',
-        'snapshotVersionChanges',
         'statsDefinitionSets',
         'statsRecords',
         'statsFields',
@@ -176,16 +175,11 @@ export function resolveCacheTablesForBinding(
     }
 
     if (cacheTableProfile === 'street') {
-      return ['snapshotVersionChanges', 'streets', 'streetsI18n']
+      return ['streets', 'streetsI18n']
     }
 
     if (cacheTableProfile === 'division') {
-      return [
-        'divisions',
-        'divisionsI18n',
-        'sourceResolutions',
-        'snapshotVersionChanges',
-      ]
+      return ['divisions', 'divisionsI18n', 'sourceResolutions']
     }
 
     if (cacheTableProfile === 'places') {
@@ -201,7 +195,6 @@ export function resolveCacheTablesForBinding(
         'address2dI18n',
         'address2dBuildingNumberLookup',
         'sourceResolutions',
-        'snapshotVersionChanges',
       ]
     }
 
@@ -216,7 +209,6 @@ export function resolveCacheTablesForBinding(
         'address3d',
         'address3dI18n',
         'sourceResolutions',
-        'snapshotVersionChanges',
       ]
     }
 
@@ -231,14 +223,8 @@ export function resolveCacheTablesForBinding(
             'divisionAreas',
             'divisionBoundaries',
             'sourceResolutions',
-            'snapshotVersionChanges',
           ]
-        : [
-            'divisionAreas',
-            'divisionBoundaries',
-            'sourceResolutions',
-            'snapshotVersionChanges',
-          ]
+        : ['divisionAreas', 'divisionBoundaries', 'sourceResolutions']
     }
 
     return [
@@ -262,7 +248,6 @@ export function resolveCacheTablesForBinding(
       'statsMeasuresI18n',
       'statsValuesI18n',
       'sourceResolutions',
-      'snapshotVersionChanges',
     ]
   }
 
@@ -395,7 +380,31 @@ export async function hasExpectedTables(
       .all() as Array<{ name: string }>
     const tableNames = new Set(rows.map(row => row.name))
 
-    return expectedTables.every(tableName => tableNames.has(tableName))
+    if (!expectedTables.every(tableName => tableNames.has(tableName))) return false
+    if (bindingName.startsWith('DB_HISTORY_')) {
+      if (
+        !sqlite
+          .query(
+            "SELECT 1 FROM sqlite_schema WHERE type='view' AND name='historyEvents'",
+          )
+          .get()
+      )
+        return false
+      const canonical = new Set<string>(
+        Object.values(historyEventTables).map(value => value.table),
+      )
+      for (const table of expectedTables.filter(name => canonical.has(name))) {
+        const columns = sqlite
+          .query<{ name: string; pk: number }, []>(`PRAGMA table_info("${table}")`)
+          .all()
+        if (
+          !columns.some(column => column.name === 'operation') ||
+          !columns.some(column => column.name === 'snapshotId' && column.pk > 0)
+        )
+          return false
+      }
+    }
+    return true
   } finally {
     sqlite.close()
   }
@@ -430,9 +439,7 @@ export function shouldMirrorTableSchemaOnly(
         /^DB_HISTORY_[A-Z]{2}_(?:\d{4}|BEFORE)$/.test(bindingName))) ||
     (cacheTableProfile === 'planningDivisionGeometry' &&
       bindingName === 'DB_HISTORY_HK_BEFORE' &&
-      (tableName === 'divisionAreas' ||
-        tableName === 'divisionBoundaries' ||
-        tableName === 'snapshotVersionChanges'))
+      (tableName === 'divisionAreas' || tableName === 'divisionBoundaries'))
   )
 }
 
@@ -450,28 +457,10 @@ export function resolveCachePruneOperation(
   bindingName: string,
   tableName: string,
 ): CachePruneOperation | null {
-  // Published Division statistics replay both the selected cohort and its
-  // predecessor. Their journals can reference superseded identity/name hashes.
+  // Every event may be selected by a retained branch, including deletion events.
+  if (bindingName.startsWith('DB_HISTORY_')) return null
   if (
-    bindingName.startsWith('DB_HISTORY_') &&
-    ['divisions', 'divisionsI18n', 'divisionAreas'].includes(tableName)
-  )
-    return null
-  // Supplementary roots and returning members select immutable components from
-  // earlier editions, including closed hashes. Keep those rows in local mirrors.
-  if (
-    /^DB_HISTORY_[A-Z]{2}_\d{4}$/.test(bindingName) &&
-    ['address2d', 'address2dI18n'].includes(tableName)
-  ) {
-    const id = tableName === 'address2d' ? 'id' : 'addressId'
-    return {
-      retainedRowsWhereSql: `"isCurrent" = 1 OR "${id}" LIKE 'ss-opa-%'`,
-      tableName,
-      whereSql: `"isCurrent" <> 1 AND "${id}" NOT LIKE 'ss-opa-%'`,
-    }
-  }
-  if (
-    !/^DB_(?:HISTORY|SOURCE)_[A-Z]{2}_\d{4}$/.test(bindingName) ||
+    !/^DB_SOURCE_[A-Z]{2}_\d{4}$/.test(bindingName) ||
     !VERSION_TABLES_WITH_CURRENT_ROWS.has(tableName)
   ) {
     return null

@@ -29,9 +29,9 @@ test('geometry dependency reads use current scope or replay old Division members
     ('revised','v1','parent','r1',0,'district','{"full":[],"administrative":[],"locality":[]}'),
     ('revised','v2','old','r2',0,'city','{"full":[],"administrative":[],"locality":[]}'),
     ('removed','v1','parent','r1',0,'district','{"full":[],"administrative":[],"locality":[]}');
-    INSERT INTO snapshotVersionChanges(snapshotId,recordType,recordId,locale,versionHash,operation,sourceReleaseId) VALUES
-    ('parent','division','inherited','','v1','upsert','r1'),('parent','division','revised','','v1','upsert','r1'),('parent','division','removed','','v1','upsert','r1'),
-    ('old','division','revised','','v2','upsert','r2'),('old','division','removed','',NULL,'delete','r2');`)
+    INSERT INTO divisions(id,snapshotId,operation) VALUES('removed','old','delete');
+    INSERT INTO divisions(id,versionHash,snapshotId,sourceReleaseId,class,hierarchies) VALUES('inherited','v1','sibling','sibling-release','district','{}');
+    INSERT INTO divisionsI18n(divisionId,locale,snapshotId,versionHash,sourceReleaseId,name,isLocaleInferred) VALUES('inherited','en','parent','name','r1','District',0),('inherited','en','sibling','name','sibling-release','District',0);`)
   const args = [
     drizzle({ client: current, schema: currentSchema }) as never,
     drizzle({ client: meta, schema: metaSchema }) as never,
@@ -55,6 +55,10 @@ test('geometry dependency reads use current scope or replay old Division members
       { id: 'inherited', class: 'district' },
       { id: 'revised', class: 'city' },
     ])
+    expect(result.i18n).toMatchObject([
+      { divisionId: 'inherited', locale: 'en', snapshotId: 'parent' },
+    ])
+    expect(result.i18n).toHaveLength(1)
     expect(current.query('SELECT total_changes() AS n').get()).toEqual(before)
     expect(current.query('SELECT snapshotId,id FROM divisions').all()).toEqual([
       { snapshotId: 'lineage', id: 'latest-only' },

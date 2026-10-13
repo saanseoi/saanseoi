@@ -1,29 +1,29 @@
-import { snapshotFixtureFields } from '../../../../../libs/core/src/testing/snapshotFixtures'
-import { statisticDefinitionSet } from '@repo/db'
 import { Database, type SQLQueryBindings } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { mkdtemp, readFile, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { createLocalHarbourDb } from '@repo/core/testing/localDb'
+import { statisticDefinitionSet } from '@repo/db'
 import { loadMigrationSql } from '../../../../../libs/core/src/testing/metaFixtures.ts'
+import { snapshotFixtureFields } from '../../../../../libs/core/src/testing/snapshotFixtures'
 import type { LocalAddressDbContext } from '../dbCache/localDbCacheTypes.ts'
-import { versionStatisticsDefinitions } from '../pipeline/statistics/statisticsRecordIdentity.ts'
 import {
   prepareNativeSqlDelivery,
   runNativeSqlDelivery,
 } from '../pipeline/local/nativeSqlDelivery.ts'
+import type { NetSqlitePlanSummary } from '../pipeline/local/netSqlitePlanTypes.ts'
 import {
   readBoundDeliveryStatements,
   readDeliveryPlan,
 } from '../pipeline/local/sqlDeliveryFiles.ts'
 import { readPendingSqlDelivery } from '../pipeline/local/sqlDeliveryPending.ts'
-import type { NetSqlitePlanSummary } from '../pipeline/local/netSqlitePlanTypes.ts'
-import { insertProjectionRow } from './rollback/projection.ts'
+import { versionStatisticsDefinitions } from '../pipeline/statistics/statisticsRecordIdentity.ts'
 import {
   prepareReconstructedRollback,
   verifyRollbackTerminal,
 } from './reconstructRollback.ts'
+import { insertProjectionRow } from './rollback/projection.ts'
 import type { RollbackTerminal } from './rollbackDelivery.ts'
 
 const datasetCode = 'ds-statistics'
@@ -109,6 +109,7 @@ const dictionaryTables = [
   'statsMeasuresI18n',
 ] as const
 const historyEnvelope = {
+  snapshotId: 'snapshot-old',
   sourceReleaseId: 'release-old',
   isCurrent: 0,
   createdAt: timestamp,
@@ -310,6 +311,22 @@ async function fixture(previous = true) {
       updatedAt: timestamp,
     })
   }
+  insert(meta, 'snapshots', {
+    id: 'snapshot-definitions',
+    code: 'snapshot-definitions',
+    resourceType: 'divisionStatistic',
+    snapshotLineageId: 'main',
+    cohortKey: period,
+    revision: 2,
+    status: 'published',
+  })
+  insert(meta, 'snapshotShardAssignments', {
+    snapshotId: 'snapshot-definitions',
+    dataShardId: 'history',
+  })
+  meta.exec(
+    "UPDATE snapshots SET parentSnapshotId='snapshot-definitions' WHERE id='snapshot-old'",
+  )
   const oldDefinitions = definitions('Original population')
   const newDefinitions = definitions('Current population')
   for (const definition of [oldDefinitions, newDefinitions])
@@ -320,7 +337,12 @@ async function fixture(previous = true) {
       definition.measuresI18n,
     ].entries())
       for (const row of rows)
-        insert(history, dictionaryTables[index] ?? '', { ...historyEnvelope, ...row })
+        insert(history, dictionaryTables[index] ?? '', {
+          ...historyEnvelope,
+          ...row,
+          snapshotId:
+            definition === oldDefinitions ? 'snapshot-old' : 'snapshot-definitions',
+        })
   for (const [index, rows] of [
     newDefinitions.fields,
     newDefinitions.fieldsI18n,
@@ -340,15 +362,6 @@ async function fixture(previous = true) {
   if (previous)
     for (const row of oldRows) {
       insert(history, 'statsRecords', row)
-      insert(history, 'snapshotVersionChanges', {
-        snapshotId: 'snapshot-old',
-        recordType: 'statsRecord',
-        recordId: row.id,
-        locale: '',
-        versionHash: row.versionHash,
-        operation: 'upsert',
-        sourceReleaseId: 'release-old',
-      })
     }
   for (const row of [
     record('revised', 'revised-new', '11', newDefinitions),

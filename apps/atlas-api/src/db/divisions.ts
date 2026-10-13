@@ -1,16 +1,16 @@
+import type { RequestedApiLocale, RequestedApiLocaleSelection } from '@repo/core'
+import { historyVersionSelection } from '@repo/core/pipeline/db/snapshotReplay.ts'
+import { decompressJsonBrotli } from '@repo/core/pipeline/services/storage/brotliJson.ts'
+import { chunkArray } from '@repo/core/pipeline/utils.ts'
+import type { CurrentDatabase, HistoryDatabase } from '@repo/db'
+import { and, asc, currentSchema, eq, historySchema, inArray, sql } from '@repo/db'
 import { geographicMembershipSql } from '../lib/geographicFilterContext'
 import {
-  PublicationReadUnavailableError,
   getPublicationReadiness,
-  publicationScopeCondition,
+  PublicationReadUnavailableError,
   publicationLogicalSnapshot,
+  publicationScopeCondition,
 } from './publicationState'
-import type { CurrentDatabase, HistoryDatabase } from '@repo/db'
-import { and, asc, eq, inArray, sql } from '@repo/db'
-import { currentSchema, historySchema } from '@repo/db'
-import type { RequestedApiLocale, RequestedApiLocaleSelection } from '@repo/core'
-import { chunkArray } from '@repo/core/pipeline/utils.ts'
-import { decompressJsonBrotli } from '@repo/core/pipeline/services/storage/brotliJson.ts'
 
 const { divisions, divisionsI18n, divisionAreas, divisionBoundaries } = currentSchema
 const { divisions: historyDivisions, divisionsI18n: historyDivisionsI18n } =
@@ -65,6 +65,7 @@ export type DivisionRecord = {
 }
 
 export type ReplayedDivisionVersion = {
+  snapshotId: string
   recordType: string
   recordId: string
   locale: string
@@ -444,16 +445,14 @@ export async function listReplayedDivisionRecords(
                   versionHash: historyDivisions.versionHash,
                 })
                 .from(historyDivisions)
-                .where(sql`(${historyDivisions.id}, ${historyDivisions.versionHash}) in
-                  (select json_extract(value, '$[0]'), json_extract(value, '$[1]')
-                   from json_each(${JSON.stringify(versions.map(version => [version.recordId, version.versionHash]))}))`)
+                .where(historyVersionSelection(historyDivisions, versions))
                 .all(),
             ),
           )
         ).flat()
         for (const row of rows) {
           if (expected.has(`${row.id}\u0000${row.versionHash}`)) {
-            rowsById.set(row.id, row)
+            rowsById.set(row.id, row as Omit<DivisionRow, 'snapshotId' | 'i18n'>)
             expected.delete(`${row.id}\u0000${row.versionHash}`)
           }
         }
@@ -488,9 +487,7 @@ export async function listReplayedDivisionRecords(
                 versionHash: historyDivisionsI18n.versionHash,
               })
               .from(historyDivisionsI18n)
-              .where(sql`(${historyDivisionsI18n.divisionId}, ${historyDivisionsI18n.versionHash}, ${historyDivisionsI18n.locale}) in
-                (select json_extract(value, '$[0]'), json_extract(value, '$[1]'), json_extract(value, '$[2]')
-                 from json_each(${JSON.stringify(versions.map(version => [version.recordId, version.versionHash, version.locale]))}))`)
+              .where(historyVersionSelection(historyDivisionsI18n, versions))
               .all(),
           ),
         )

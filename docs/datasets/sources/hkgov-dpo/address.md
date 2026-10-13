@@ -110,7 +110,7 @@ Address2D base, locale and building-number history are compared independently,
 preserving the original hash and owning shard of unchanged component rows. Address3D
 base inventory and each locale payload have independent version hashes. Locale-only
 changes leave the base inventory open, and historical locale reads follow the matching
-locale journal entry. Source interpretations inherit along snapshot ancestry; identical
+locale event. Source interpretations inherit along snapshot ancestry; identical
 interpretations produce no repeated `sourceResolutions` row. Source changes and explicit
 `source_omission` decisions remain auditable even when a curation retains the canonical
 address.
@@ -1702,3 +1702,13 @@ Address3D inventories list all contributing publisher occurrences. Content hashe
 references and component corrections belong to retained source history or the R2 audit,
 not public attribution. Reappearing source assertions retain separate validity
 intervals.
+
+### Snapshot event storage
+
+Canonical HISTORY stores a changed component once, with its introducing `snapshotId`,
+`operation`, content hash and payload in the same row. Unchanged components inherit the
+selected parent. Deletions append identity-only tombstones, and ancestor rows remain
+immutable. Reversions and independent branch changes have distinct introducing events.
+The read-only `historyEvents` view stores no additional membership rows. Snapshot reads
+resolve ancestry before filtering and use the exact introducing snapshot to fetch
+content. SOURCE release validity and interpretation evidence remain separate.

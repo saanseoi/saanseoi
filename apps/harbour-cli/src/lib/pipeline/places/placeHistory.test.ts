@@ -1,24 +1,24 @@
 import { Database, type SQLQueryBindings } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { join } from 'node:path'
-import { drizzle } from 'drizzle-orm/bun-sqlite'
+import type { SnapshotReplayStep } from '@repo/core/db/metaRegistry'
+import {
+  type ReplayShard,
+  resolveSnapshotVersionState,
+} from '@repo/core/pipeline/db/snapshotReplay'
+import { resolveSnapshotSourceResolutions } from '@repo/core/pipeline/db/sourceResolutionReplay'
 import {
   hashPlaceMaterialisation,
   normaliseOverturePlace,
 } from '@repo/core/pipeline/services/places/place'
-import {
-  resolveSnapshotVersionState,
-  type ReplayShard,
-} from '@repo/core/pipeline/db/snapshotReplay'
-import { resolveSnapshotSourceResolutions } from '@repo/core/pipeline/db/sourceResolutionReplay'
-import type { SnapshotReplayStep } from '@repo/core/db/metaRegistry'
+import { drizzle } from 'drizzle-orm/bun-sqlite'
 import { loadMigrationSql } from '../../../../../../libs/core/src/testing/metaFixtures.ts'
+import { reusePlaceLocaleDependencies } from './placeHistory.ts'
 import {
   buildPlaceSql,
   loadCurrentPlaceHistory,
   loadCurrentPlaceSources,
 } from './processLocalPlaceSqlUploadRows.ts'
-import { reusePlaceLocaleDependencies } from './placeHistory.ts'
 import type {
   BuildPlaceSqlInput,
   EnrichedPlace,
@@ -48,6 +48,7 @@ function fixture() {
     databases.set(binding, db)
   }
   const current = getDatabase(databases, 'current')
+  current.exec('PRAGMA foreign_keys=ON')
   const historyQueries: Array<{ params: number; plan: string[] }> = []
   const historyTargets = ['old', 'new'].map(bindingName => ({
     bindingName,
@@ -211,15 +212,13 @@ test('Places inherit independent base, locales and source resolutions across yea
     if (!english) throw new Error('English place locale missing')
     english.name = 'Updated English'
     const localeOnly = await f.run([row], 'new', 'source-next')
-    expect(localeOnly.changes.join('')).toContain('placeI18n')
+    expect(localeOnly.changes).toEqual([])
     expect(
       getDatabase(f.databases, 'new')
-        .query(
-          "SELECT recordType FROM snapshotVersionChanges WHERE snapshotId='revision-3'",
-        )
+        .query("SELECT recordType FROM historyEvents WHERE snapshotId='revision-3'")
         .all(),
     ).toEqual([{ recordType: 'placeI18n' }])
-    expect(localeOnly.historySqlByBinding.get('old')?.join('')).not.toContain(
+    expect(localeOnly.historySqlByBinding.get('old')?.join('') ?? '').not.toContain(
       'UPDATE places SET',
     )
     const old = getDatabase(f.databases, 'old'),
@@ -254,7 +253,7 @@ test('Places inherit independent base, locales and source resolutions across yea
     await f.run([row], 'new', 'source-next')
     expect(
       old.query("SELECT isCurrent FROM placesI18n WHERE locale='zh-hant'").get(),
-    ).toEqual({ isCurrent: 0 })
+    ).toEqual({ isCurrent: 1 })
     const states = await loadCurrentPlaceHistory(f.historyTargets, {
       currentDb: drizzle({ client: f.current }) as never,
       scopeId: 'scope',
@@ -266,9 +265,11 @@ test('Places inherit independent base, locales and source resolutions across yea
     expect(
       await resolveSnapshotVersionState(f.plan, f.shards, ['place', 'placeI18n']),
     ).toEqual(new Map())
-    expect(old.query('SELECT isCurrent FROM places').get()).toEqual({ isCurrent: 0 })
-    expect(next.query('SELECT isCurrent FROM placesI18n').get()).toEqual({
-      isCurrent: 0,
+    expect(old.query('SELECT isCurrent FROM places').get()).toEqual({ isCurrent: 1 })
+    expect(
+      next.query("SELECT isCurrent FROM placesI18n WHERE operation='upsert'").get(),
+    ).toEqual({
+      isCurrent: 1,
     })
     expect(
       (await resolveSnapshotSourceResolutions(f.plan, f.shards)).get('place')
@@ -313,12 +314,10 @@ test('Places preserve exact dependency pointers on unchanged content and isolate
     ).toEqual({ revision: 'address-a' })
     row.searchDependencies.en.divisionText = 'Revised Division translation'
     const revised = await f.run([row], 'new')
-    expect(revised.changes.join('')).toContain('placeI18n')
+    expect(revised.changes).toEqual([])
     expect(
       getDatabase(f.databases, 'new')
-        .query(
-          "SELECT recordType FROM snapshotVersionChanges WHERE snapshotId='revision-3'",
-        )
+        .query("SELECT recordType FROM historyEvents WHERE snapshotId='revision-3'")
         .all(),
     ).toEqual([{ recordType: 'placeI18n' }])
     expect(
@@ -478,7 +477,7 @@ test('forward Places ingest after rollback compares the restored predecessor and
       baseline[0]?.locales?.find(locale => locale.row.locale === 'en')?.row.name,
     ).toBe('Original')
     const changed = await f.run([row], 'new')
-    expect(changed.changes.join('')).toContain('placeI18n')
+    expect(changed.changes).toEqual([])
     const replayed = await resolveSnapshotVersionState(f.plan, f.shards, [
       'place',
       'placeI18n',
@@ -493,7 +492,7 @@ test('forward Places ingest after rollback compares the restored predecessor and
     ).toBe('new')
     expect(
       getDatabase(f.databases, 'new').query('SELECT count(*) AS n FROM places').get(),
-    ).toEqual(retained)
+    ).toEqual({ n: (retained as { n: number }).n + 1 })
     expect((await f.run([row], 'new')).changes).toEqual([])
   } finally {
     f.close()

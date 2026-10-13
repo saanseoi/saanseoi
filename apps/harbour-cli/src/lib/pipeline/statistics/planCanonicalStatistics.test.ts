@@ -1,15 +1,15 @@
-import { expect, test } from 'bun:test'
-import { requireDefined } from '@repo/core/requireDefined'
 import { Database } from 'bun:sqlite'
+import { expect, test } from 'bun:test'
 import { resolve } from 'node:path'
+import { readStatisticSnapshotRecords } from '@repo/core/pipeline/services/statistics/statisticSnapshotRecords'
+import { requireDefined } from '@repo/core/requireDefined'
 import { createLocalHarbourDb } from '@repo/core/testing/localDb'
 import { loadMigrationSql } from '../../../../../../libs/core/src/testing/metaFixtures'
-import { readStatisticSnapshotRecords } from '@repo/core/pipeline/services/statistics/statisticSnapshotRecords'
+import type { CanonicalStatsRows } from './normaliseHkgovCenstatdStatistics'
 import {
   planCanonicalStatistics,
   selectStatisticReferencePeriodsWithChanges,
 } from './planCanonicalStatistics'
-import type { CanonicalStatsRows } from './normaliseHkgovCenstatdStatistics'
 
 const NOW = '2026-09-11T12:00:00.000Z'
 type RecordInput = CanonicalStatsRows['records'][number]
@@ -128,9 +128,9 @@ test('only changed geography packs create history and snapshot changes across re
     expect(history.query('SELECT count(*) AS n FROM statsRecords').get()).toEqual({
       n: 2,
     })
-    expect(
-      history.query('SELECT count(*) AS n FROM snapshotVersionChanges').get(),
-    ).toEqual({ n: 2 })
+    expect(history.query('SELECT count(*) AS n FROM historyEvents').get()).toEqual({
+      n: 2,
+    })
     const corrected = await stage('s3', 's2', [
       record({
         sourceReleaseId: 'correction',
@@ -156,9 +156,9 @@ test('only changed geography packs create history and snapshot changes across re
     expect(revised.fieldSources.population?.sourceReleaseId).toBe('correction')
     expect(revised.fieldSources.age?.sourceReleaseId).toBe('release-1')
     expect(latest).toHaveLength(2)
-    expect(
-      history.query('SELECT count(*) AS n FROM snapshotVersionChanges').get(),
-    ).toEqual({ n: 3 })
+    expect(history.query('SELECT count(*) AS n FROM historyEvents').get()).toEqual({
+      n: 3,
+    })
     await stage('s3', 's2', [
       record({
         values: { population: '101' },

@@ -1,31 +1,27 @@
-import { and, eq, gt, inArray, or, sql } from 'drizzle-orm'
-import { sqliteTable, text } from 'drizzle-orm/sqlite-core'
-
-import type { DatasetProcessingMessage } from '../../types'
-import {
-  ensureDraftSnapshotForRelease,
-  recordSnapshotAssembly,
-  resolveSnapshotReplayPlan,
-  type SnapshotReplayStep,
-  resolveShardForTypeRegionYear,
-  upsertSnapshotSource,
-  upsertReleaseShardAssignment,
-  upsertSnapshotShardAssignment,
-  waitForDatasetRecord,
-} from '../../lib/db/metaRegistry'
-import type { HarbourReadableDb, HarbourWritableDb } from '../../lib/db/types'
-import {
-  resolveSnapshotVersionState,
-  type ReplayShard,
-  type ResolvedSnapshotVersion,
-} from './snapshotReplay'
+import { currentSchema, getTableColumns, historySchema } from '@repo/db'
 import type {
   AddressI18nPayload,
   AddressRow,
   NewAddressI18nRow,
 } from '@repo/db/currentSchema'
 import type { CurrentAddressVersionRow } from '@repo/db/historySchema'
-import { currentSchema, historySchema } from '@repo/db'
+import { and, eq, inArray, or, sql } from 'drizzle-orm'
+import { sqliteTable, text } from 'drizzle-orm/sqlite-core'
+import {
+  ensureDraftSnapshotForRelease,
+  recordSnapshotAssembly,
+  resolveShardForTypeRegionYear,
+  resolveSnapshotReplayPlan,
+  type SnapshotReplayStep,
+  upsertReleaseShardAssignment,
+  upsertSnapshotShardAssignment,
+  upsertSnapshotSource,
+  waitForDatasetRecord,
+} from '../../lib/db/metaRegistry'
+import type { HarbourReadableDb, HarbourWritableDb } from '../../lib/db/types'
+import type { DatasetProcessingMessage } from '../../types'
+import { buildAddressBuildingNumberLookupRows } from '../services/addresses/normalisation'
+import { resolveStatisticEvents } from '../services/statistics/statisticSnapshotRecords'
 
 import {
   chunkArray,
@@ -34,15 +30,30 @@ import {
   getMaxRowsPerInsert,
   runWithWriteRetry,
 } from '../utils'
-import { recordSnapshotVersionChanges } from './snapshotVersionChanges'
-import { buildAddressBuildingNumberLookupRows } from '../services/addresses/normalisation'
+import {
+  type ReplayShard,
+  type ResolvedSnapshotVersion,
+  resolveSnapshotVersionState,
+} from './snapshotReplay'
 
-const CURRENT_ADDRESS2D_COLUMN_COUNT = 23
-const CURRENT_ADDRESS2D_I18N_COLUMN_COUNT = 20
-const CURRENT_ADDRESS2D_BUILDING_LOOKUP_COLUMN_COUNT = 8
-const HISTORY_ADDRESS2D_VERSION_COLUMN_COUNT = 24
-const HISTORY_ADDRESS2D_I18N_VERSION_COLUMN_COUNT = 20
-const HISTORY_ADDRESS2D_BUILDING_LOOKUP_VERSION_COLUMN_COUNT = 11
+const CURRENT_ADDRESS2D_COLUMN_COUNT = Object.keys(
+  getTableColumns(currentSchema.address2d),
+).length
+const CURRENT_ADDRESS2D_I18N_COLUMN_COUNT = Object.keys(
+  getTableColumns(currentSchema.address2dI18n),
+).length
+const CURRENT_ADDRESS2D_BUILDING_LOOKUP_COLUMN_COUNT = Object.keys(
+  getTableColumns(currentSchema.address2dBuildingNumberLookup),
+).length
+const HISTORY_ADDRESS2D_VERSION_COLUMN_COUNT = Object.keys(
+  getTableColumns(historySchema.address2d),
+).length
+const HISTORY_ADDRESS2D_I18N_VERSION_COLUMN_COUNT = Object.keys(
+  getTableColumns(historySchema.address2dI18n),
+).length
+const HISTORY_ADDRESS2D_BUILDING_LOOKUP_VERSION_COLUMN_COUNT = Object.keys(
+  getTableColumns(historySchema.address2dBuildingNumberLookup),
+).length
 const HISTORY_ADDRESS2D_VERSION_UPSERT_FIXED_VARIABLE_COUNT = 7
 const SEEN_ADDRESS_ID_INSERT_COLUMN_COUNT = 1
 const ADDRESS_DIVISION_REFERENCE_COLUMNS = [
@@ -222,297 +233,6 @@ function normaliseAddressSqlMatchToken(value: string) {
   return value.replace(/\s+/g, '')
 }
 
-function sqlAddressMatchToken(
-  column:
-    | typeof historySchema.address2dI18n.streetName
-    | typeof historySchema.address2dI18n.buildingNumberFrom
-    | typeof historySchema.address2dI18n.buildingNumberTo,
-) {
-  return sql`replace(replace(replace(replace(upper(trim(${column})), ' ', ''), char(9), ''), char(10), ''), char(13), '')`
-}
-
-export async function getCurrentAddressVersionMap(
-  db: HarbourReadableDb,
-  options: {
-    buildAddressBaseHashInput: (base: AddressHashInput) => AddressHashInput
-    buildMatchKey: (input: {
-      buildingNumberFrom: string | null
-      buildingNumberTo: string | null
-      districtId: string | null
-      streetName: string | null
-    }) => string | null
-    normaliseAddressI18nSnapshotRow: (row: AddressI18nPayload) => AddressI18nPayload
-  },
-) {
-  const versionRows = (await db
-    .select(selectCurrentAddressVersionFields())
-    .from(historySchema.address2d)
-    .where(eq(historySchema.address2d.isCurrent, true))
-    .all()) as CurrentAddressVersionLookupRow[]
-
-  return buildCurrentAddressVersionSnapshotMap(db, versionRows, options)
-}
-
-export async function getCurrentAddressVersionLookup(
-  db: HarbourReadableDb,
-  addressIds: string[],
-  matchInputs: AddressCurrentMatchInput[],
-  options: AddressVersionLookupOptions,
-): Promise<CurrentAddressVersionLookupResult> {
-  const byIdRows: CurrentAddressVersionLookupRow[] = []
-
-  for (const idChunk of chunkArray(
-    [...new Set(addressIds)],
-    getMaxItemsPerInClause(1, 2),
-  )) {
-    if (idChunk.length === 0) {
-      continue
-    }
-
-    byIdRows.push(
-      ...((await db
-        .select(selectCurrentAddressVersionFields())
-        .from(historySchema.address2d)
-        .where(
-          and(
-            eq(historySchema.address2d.isCurrent, true),
-            inArray(historySchema.address2d.id, idChunk),
-          ),
-        )
-        .all()) as CurrentAddressVersionLookupRow[]),
-    )
-  }
-
-  const matchRows: CurrentAddressVersionLookupRow[] = []
-  const uniqueMatchInputs = new Map<
-    string,
-    {
-      districtId: string
-      streetName: string
-      buildingNumberFrom: string
-      buildingNumberTo: string | null
-    }
-  >()
-
-  for (const input of matchInputs) {
-    const districtId = input.districtId
-    const buildingNumberFrom = normaliseAddressMatchToken(input.buildingNumberFrom)
-    const buildingNumberTo = normaliseAddressMatchToken(input.buildingNumberTo)
-    const streetName = normaliseAddressMatchToken(input.streetName)
-
-    if (!districtId || !buildingNumberFrom || !streetName) {
-      continue
-    }
-
-    uniqueMatchInputs.set(
-      `${districtId}\0${buildingNumberFrom}\0${buildingNumberTo ?? ''}\0${streetName}`,
-      {
-        districtId,
-        streetName: normaliseAddressSqlMatchToken(streetName),
-        buildingNumberFrom: normaliseAddressSqlMatchToken(buildingNumberFrom),
-        buildingNumberTo: buildingNumberTo
-          ? normaliseAddressSqlMatchToken(buildingNumberTo)
-          : null,
-      },
-    )
-  }
-
-  for (const inputChunk of chunkArray([...uniqueMatchInputs.values()], 24)) {
-    if (inputChunk.length === 0) {
-      continue
-    }
-
-    const predicates = inputChunk.map(input =>
-      and(
-        eq(historySchema.address2d.districtId, input.districtId),
-        sql`${sqlAddressMatchToken(historySchema.address2dI18n.buildingNumberFrom)} = ${
-          input.buildingNumberFrom
-        }`,
-        input.buildingNumberTo
-          ? sql`${sqlAddressMatchToken(historySchema.address2dI18n.buildingNumberTo)} = ${
-              input.buildingNumberTo
-            }`
-          : sql`${historySchema.address2dI18n.buildingNumberTo} is null`,
-        sql`${sqlAddressMatchToken(historySchema.address2dI18n.streetName)} = ${
-          input.streetName
-        }`,
-      ),
-    )
-
-    matchRows.push(
-      ...((await db
-        .select(selectCurrentAddressVersionFields())
-        .from(historySchema.address2d)
-        .innerJoin(
-          historySchema.address2dI18n,
-          and(
-            eq(historySchema.address2d.id, historySchema.address2dI18n.addressId),
-            eq(historySchema.address2dI18n.isCurrent, true),
-            eq(historySchema.address2dI18n.locale, 'en'),
-          ),
-        )
-        .where(and(eq(historySchema.address2d.isCurrent, true), or(...predicates)))
-        .all()) as CurrentAddressVersionLookupRow[]),
-    )
-  }
-
-  const snapshots = await buildCurrentAddressVersionSnapshotMap(
-    db,
-    [...byIdRows, ...matchRows],
-    options,
-  )
-  const byMatchKey = new Map<string, AddressVersionSnapshot>()
-
-  for (const snapshot of snapshots.values()) {
-    if (snapshot.matchKey && !byMatchKey.has(snapshot.matchKey)) {
-      byMatchKey.set(snapshot.matchKey, snapshot)
-    }
-  }
-
-  return {
-    byId: snapshots,
-    byMatchKey,
-  }
-}
-
-/**
- * Looks up current address versions across history shards. Later sources take
- * precedence, so callers can place the target shard after its predecessors.
- */
-export async function getMergedCurrentAddressVersionLookup(
-  sources: Array<{
-    db: unknown
-    sortOrder: number
-  }>,
-  addressIds: string[],
-  matchInputs: AddressCurrentMatchInput[],
-  options: AddressVersionLookupOptions,
-): Promise<CurrentAddressVersionLookupResult> {
-  const byId = new Map<string, AddressVersionSnapshot>()
-  const byMatchKey = new Map<string, AddressVersionSnapshot>()
-
-  for (const source of [...sources].sort(
-    (left, right) => left.sortOrder - right.sortOrder,
-  )) {
-    const lookup = await getCurrentAddressVersionLookup(
-      source.db as HarbourReadableDb,
-      addressIds,
-      matchInputs,
-      options,
-    )
-
-    for (const [id, snapshot] of lookup.byId) {
-      byId.set(id, snapshot)
-    }
-
-    for (const [matchKey, snapshot] of lookup.byMatchKey) {
-      byMatchKey.set(matchKey, snapshot)
-    }
-  }
-
-  return { byId, byMatchKey }
-}
-
-export async function hasCurrentAddressVersions(db: HarbourReadableDb) {
-  const row = await db
-    .select({
-      id: historySchema.address2d.id,
-    })
-    .from(historySchema.address2d)
-    .where(eq(historySchema.address2d.isCurrent, true))
-    .limit(1)
-    .get()
-
-  return Boolean(row)
-}
-
-export async function prepareSeenAddressIdTable(db: HarbourWritableDb) {
-  await runRawSql(db, sql`DROP TABLE IF EXISTS tempSeenAddressIds`)
-  await runRawSql(db, sql`CREATE TEMP TABLE tempSeenAddressIds (id TEXT PRIMARY KEY)`)
-}
-
-export async function insertSeenAddressIds(
-  db: HarbourWritableDb,
-  addressIds: string[],
-) {
-  const uniqueIds = [...new Set(addressIds)]
-
-  if (uniqueIds.length === 0) {
-    return
-  }
-
-  for (const chunk of chunkArray(
-    uniqueIds,
-    getMaxRowsPerInsert(SEEN_ADDRESS_ID_INSERT_COLUMN_COUNT),
-  )) {
-    await runWithWriteRetry(() =>
-      db
-        .insert(tempSeenAddressIds)
-        .values(chunk.map(id => ({ id })))
-        .onConflictDoNothing()
-        .run(),
-    )
-  }
-}
-
-export async function dropSeenAddressIdTable(db: HarbourWritableDb) {
-  await runRawSql(db, sql`DROP TABLE IF EXISTS tempSeenAddressIds`)
-}
-
-async function buildCurrentAddressVersionSnapshotMap(
-  db: HarbourReadableDb,
-  versionRows: CurrentAddressVersionLookupRow[],
-  options: {
-    buildAddressBaseHashInput: (base: AddressHashInput) => AddressHashInput
-    buildMatchKey: (input: AddressCurrentMatchInput) => string | null
-    normaliseAddressI18nSnapshotRow: (row: AddressI18nPayload) => AddressI18nPayload
-  },
-) {
-  const rows = [...new Map(versionRows.map(row => [row.id, row])).values()]
-
-  if (rows.length === 0) {
-    return new Map<string, AddressVersionSnapshot>()
-  }
-
-  const i18nRows: AddressI18nPayload[] = []
-  const addressIds = rows.map(row => row.id)
-
-  for (const addressIdChunk of chunkArray(addressIds, getMaxItemsPerInClause(1, 1))) {
-    const chunkRows = (await db
-      .select({
-        addressId: historySchema.address2dI18n.addressId,
-        locale: historySchema.address2dI18n.locale,
-        formattedAddress: historySchema.address2dI18n.formattedAddress,
-        buildingName: historySchema.address2dI18n.buildingName,
-        buildingNumberExpression: historySchema.address2dI18n.buildingNumberExpression,
-        buildingNumberFrom: historySchema.address2dI18n.buildingNumberFrom,
-        buildingNumberTo: historySchema.address2dI18n.buildingNumberTo,
-        buildingNumberConnector: historySchema.address2dI18n.buildingNumberConnector,
-        blockExpression: historySchema.address2dI18n.blockExpression,
-        blockType: historySchema.address2dI18n.blockType,
-        blockRef: historySchema.address2dI18n.blockRef,
-        blockTypeBeforeNumber: historySchema.address2dI18n.blockTypeBeforeNumber,
-        phaseExpression: historySchema.address2dI18n.phaseExpression,
-        phaseName: historySchema.address2dI18n.phaseName,
-        phaseRef: historySchema.address2dI18n.phaseRef,
-        estateName: historySchema.address2dI18n.estateName,
-        streetName: historySchema.address2dI18n.streetName,
-      })
-      .from(historySchema.address2dI18n)
-      .where(
-        and(
-          inArray(historySchema.address2dI18n.addressId, addressIdChunk),
-          eq(historySchema.address2dI18n.isCurrent, true),
-        ),
-      )
-      .all()) as AddressI18nPayload[]
-
-    i18nRows.push(...chunkRows)
-  }
-
-  return buildAddressVersionSnapshotMapFromRows(rows, i18nRows, options)
-}
-
 async function buildAddressVersionSnapshotMapFromRows(
   versionRows: CurrentAddressVersionLookupRow[],
   i18nRows: AddressI18nPayload[],
@@ -565,8 +285,8 @@ async function buildAddressVersionSnapshotMapFromRows(
 
 /**
  * Reconstructs the exact address state at a historical snapshot. History
- * tables retain immutable content versions, while snapshotVersionChanges
- * records which version was live at each point in a branch.
+ * tables retain inline immutable events; the read-only historyEvents view
+ * exposes them for parent-chain membership resolution.
  */
 export async function getReplayedAddressVersionMap(
   metaDb: HarbourReadableDb,
@@ -627,7 +347,7 @@ async function loadReplayedAddressBaseRows(
     if (!db) continue
 
     const found = new Set<string>()
-    for (const batch of chunkArray(shardVersions, getMaxItemsPerInClause(2))) {
+    for (const batch of chunkArray(shardVersions, getMaxItemsPerInClause(4))) {
       const candidates = (await db
         .select(selectCurrentAddressVersionFields())
         .from(historySchema.address2d)
@@ -637,6 +357,7 @@ async function loadReplayedAddressBaseRows(
               and(
                 eq(historySchema.address2d.id, version.recordId),
                 eq(historySchema.address2d.versionHash, version.versionHash),
+                eq(historySchema.address2d.snapshotId, version.snapshotId),
               ),
             ),
           ),
@@ -676,7 +397,7 @@ async function loadReplayedAddressI18nRows(
     if (!db) continue
 
     const found = new Set<string>()
-    for (const batch of chunkArray(shardVersions, getMaxItemsPerInClause(3))) {
+    for (const batch of chunkArray(shardVersions, getMaxItemsPerInClause(4))) {
       const candidates = await db
         .select({
           addressId: historySchema.address2dI18n.addressId,
@@ -706,6 +427,7 @@ async function loadReplayedAddressI18nRows(
               and(
                 eq(historySchema.address2dI18n.addressId, version.recordId),
                 eq(historySchema.address2dI18n.versionHash, version.versionHash),
+                eq(historySchema.address2dI18n.snapshotId, version.snapshotId),
                 eq(historySchema.address2dI18n.locale, version.locale),
               ),
             ),
@@ -1004,380 +726,6 @@ export async function alignAddressCurrentDivisionSnapshot(
   )
 }
 
-export async function closeCurrentAddressVersions(
-  db: HarbourReadableDb & HarbourWritableDb,
-  addressIds: string[],
-  snapshotId: string,
-  _cohortKey: string,
-  sourceReleaseId?: string,
-) {
-  if (addressIds.length === 0) {
-    return
-  }
-
-  const now = new Date().toISOString()
-  const currentI18nRows: Array<{ addressId: string; locale: string }> = []
-
-  for (const chunk of chunkArray(addressIds, getMaxItemsPerInClause(1, 5))) {
-    currentI18nRows.push(
-      ...(await db
-        .select({
-          addressId: historySchema.address2dI18n.addressId,
-          locale: historySchema.address2dI18n.locale,
-        })
-        .from(historySchema.address2dI18n)
-        .where(
-          and(
-            eq(historySchema.address2dI18n.isCurrent, true),
-            inArray(historySchema.address2dI18n.addressId, chunk),
-          ),
-        )
-        .all()),
-    )
-    await runWithWriteRetry(() =>
-      db
-        .update(historySchema.address2d)
-        .set({
-          isCurrent: false,
-          updatedAt: now,
-        })
-        .where(
-          and(
-            eq(historySchema.address2d.isCurrent, true),
-            inArray(historySchema.address2d.id, chunk),
-          ),
-        )
-        .run(),
-    )
-    await runWithWriteRetry(() =>
-      db
-        .update(historySchema.address2dI18n)
-        .set({ isCurrent: false, updatedAt: now })
-        .where(
-          and(
-            eq(historySchema.address2dI18n.isCurrent, true),
-            inArray(historySchema.address2dI18n.addressId, chunk),
-          ),
-        )
-        .run(),
-    )
-    await runWithWriteRetry(() =>
-      db
-        .update(historySchema.address2dBuildingNumberLookup)
-        .set({ isCurrent: false, updatedAt: now })
-        .where(
-          and(
-            eq(historySchema.address2dBuildingNumberLookup.isCurrent, true),
-            inArray(historySchema.address2dBuildingNumberLookup.addressId, chunk),
-          ),
-        )
-        .run(),
-    )
-  }
-
-  await recordSnapshotVersionChanges(db, {
-    snapshotId,
-    sourceReleaseId,
-    recordType: 'address2d',
-    operation: 'delete',
-    changes: addressIds.map(recordId => ({ recordId })),
-  })
-  await recordSnapshotVersionChanges(db, {
-    snapshotId,
-    sourceReleaseId,
-    recordType: 'address2dI18n',
-    operation: 'delete',
-    changes: currentI18nRows.map(row => ({
-      recordId: row.addressId,
-      locale: row.locale,
-    })),
-  })
-}
-
-export async function deleteMissingCurrentAddresses(
-  historyDb: HarbourReadableDb & HarbourWritableDb,
-  snapshotId: string,
-  _cohortKey: string,
-  currentRows: Map<string, AddressVersionSnapshot>,
-  seenIds: Set<string>,
-) {
-  const missingIds = [...currentRows.keys()].filter(id => !seenIds.has(id))
-
-  if (missingIds.length === 0) {
-    return {
-      count: 0,
-      missingIds,
-    }
-  }
-
-  const now = new Date().toISOString()
-
-  for (const chunk of chunkArray(missingIds, getMaxItemsPerInClause(1, 5))) {
-    await runWithWriteRetry(() =>
-      historyDb
-        .update(historySchema.address2d)
-        .set({
-          isCurrent: false,
-          updatedAt: now,
-        })
-        .where(
-          and(
-            eq(historySchema.address2d.isCurrent, true),
-            inArray(historySchema.address2d.id, chunk),
-          ),
-        )
-        .run(),
-    )
-    await runWithWriteRetry(() =>
-      historyDb
-        .update(historySchema.address2dI18n)
-        .set({
-          isCurrent: false,
-          updatedAt: now,
-        })
-        .where(
-          and(
-            eq(historySchema.address2dI18n.isCurrent, true),
-            inArray(historySchema.address2dI18n.addressId, chunk),
-          ),
-        )
-        .run(),
-    )
-  }
-
-  await recordSnapshotVersionChanges(historyDb, {
-    snapshotId,
-    recordType: 'address2d',
-    operation: 'delete',
-    changes: missingIds.map(recordId => ({ recordId })),
-  })
-
-  return {
-    count: missingIds.length,
-    missingIds,
-  }
-}
-
-export async function deleteMissingCurrentAddressesBySeenIds(
-  historyDb: HarbourReadableDb & HarbourWritableDb,
-  snapshotId: string,
-  cohortKey: string,
-  seenIds: Set<string>,
-) {
-  const missingIds: string[] = []
-  let lastId = ''
-
-  while (true) {
-    const rows = (await historyDb
-      .select({
-        id: historySchema.address2d.id,
-      })
-      .from(historySchema.address2d)
-      .where(
-        and(
-          eq(historySchema.address2d.isCurrent, true),
-          gt(historySchema.address2d.id, lastId),
-        ),
-      )
-      .orderBy(historySchema.address2d.id)
-      .limit(500)
-      .all()) as Array<{ id: string }>
-
-    if (rows.length === 0) {
-      break
-    }
-
-    const pageMissingIds = rows.map(row => row.id).filter(id => !seenIds.has(id))
-
-    if (pageMissingIds.length > 0) {
-      await closeMissingCurrentAddressRows(
-        historyDb,
-        snapshotId,
-        cohortKey,
-        pageMissingIds,
-      )
-      missingIds.push(...pageMissingIds)
-    }
-
-    const lastRow = rows.at(-1)
-
-    if (!lastRow) {
-      break
-    }
-
-    lastId = lastRow.id
-  }
-
-  return {
-    count: missingIds.length,
-    missingIds,
-  }
-}
-
-export async function deleteMissingCurrentAddressesBySeenTable(
-  historyDb: HarbourReadableDb & HarbourWritableDb,
-  snapshotId: string,
-  cohortKey: string,
-) {
-  const missingIds: string[] = []
-  let lastId = ''
-
-  while (true) {
-    const rows = (await historyDb
-      .select({
-        id: historySchema.address2d.id,
-      })
-      .from(historySchema.address2d)
-      .where(
-        and(
-          eq(historySchema.address2d.isCurrent, true),
-          gt(historySchema.address2d.id, lastId),
-          sql`NOT EXISTS (
-            SELECT 1
-            FROM tempSeenAddressIds seen
-            WHERE seen.id = ${historySchema.address2d.id}
-          )`,
-        ),
-      )
-      .orderBy(historySchema.address2d.id)
-      .limit(500)
-      .all()) as Array<{ id: string }>
-
-    if (rows.length === 0) {
-      break
-    }
-
-    const pageMissingIds = rows.map(row => row.id)
-
-    await closeMissingCurrentAddressRows(
-      historyDb,
-      snapshotId,
-      cohortKey,
-      pageMissingIds,
-    )
-    missingIds.push(...pageMissingIds)
-
-    const lastRow = rows.at(-1)
-
-    if (!lastRow) {
-      break
-    }
-
-    lastId = lastRow.id
-  }
-
-  return {
-    count: missingIds.length,
-    missingIds,
-  }
-}
-
-export async function deleteMissingCurrentAddressesByCurrentMarker(
-  historyDb: HarbourReadableDb & HarbourWritableDb,
-  currentDb: HarbourReadableDb & HarbourWritableDb,
-  snapshotId: string,
-  cohortKey: string,
-  touchedAt: string,
-) {
-  const missingIds: string[] = []
-  let lastId = ''
-
-  while (true) {
-    const rows = (await currentDb
-      .select({
-        id: currentSchema.address2d.id,
-      })
-      .from(currentSchema.address2d)
-      .where(
-        and(
-          eq(currentSchema.address2d.snapshotId, snapshotId),
-          gt(currentSchema.address2d.id, lastId),
-          sql`${currentSchema.address2d.updatedAt} <> ${touchedAt}`,
-        ),
-      )
-      .orderBy(currentSchema.address2d.id)
-      .limit(500)
-      .all()) as Array<{ id: string }>
-
-    if (rows.length === 0) {
-      break
-    }
-
-    const pageMissingIds = rows.map(row => row.id)
-
-    await closeMissingCurrentAddressRows(
-      historyDb,
-      snapshotId,
-      cohortKey,
-      pageMissingIds,
-    )
-    await deleteAddressCurrentRowsByIds(currentDb, snapshotId, pageMissingIds)
-    missingIds.push(...pageMissingIds)
-
-    const lastRow = rows.at(-1)
-
-    if (!lastRow) {
-      break
-    }
-
-    lastId = lastRow.id
-  }
-
-  return {
-    count: missingIds.length,
-    missingIds,
-  }
-}
-
-async function closeMissingCurrentAddressRows(
-  historyDb: HarbourWritableDb,
-  snapshotId: string,
-  _cohortKey: string,
-  missingIds: string[],
-) {
-  const now = new Date().toISOString()
-
-  for (const chunk of chunkArray(missingIds, getMaxItemsPerInClause(1, 5))) {
-    await runWithWriteRetry(() =>
-      historyDb
-        .update(historySchema.address2d)
-        .set({
-          isCurrent: false,
-          updatedAt: now,
-        })
-        .where(
-          and(
-            eq(historySchema.address2d.isCurrent, true),
-            inArray(historySchema.address2d.id, chunk),
-          ),
-        )
-        .run(),
-    )
-    await runWithWriteRetry(() =>
-      historyDb
-        .update(historySchema.address2dI18n)
-        .set({
-          isCurrent: false,
-          updatedAt: now,
-        })
-        .where(
-          and(
-            eq(historySchema.address2dI18n.isCurrent, true),
-            inArray(historySchema.address2dI18n.addressId, chunk),
-          ),
-        )
-        .run(),
-    )
-  }
-
-  await recordSnapshotVersionChanges(historyDb, {
-    snapshotId,
-    recordType: 'address2d',
-    operation: 'delete',
-    changes: missingIds.map(recordId => ({ recordId })),
-  })
-}
-
 export async function deleteStaleAddressCurrentRows(
   db: HarbourReadableDb & HarbourWritableDb,
   snapshotId: string,
@@ -1645,11 +993,10 @@ export async function insertAddressVersionRows(
       updatedAt: string
     }
   >,
+  lookupRows: Parameters<
+    typeof insertAddressBuildingNumberLookupVersionsInChunks
+  >[1] = [],
 ) {
-  if (baseRows.length === 0) {
-    return
-  }
-
   for (const chunk of chunkArray(
     baseRows,
     getMaxRowsPerInsert(
@@ -1689,63 +1036,17 @@ export async function insertAddressVersionRows(
             updatedAt: row.updatedAt,
           })),
         )
-        .onConflictDoUpdate({
-          target: [historySchema.address2d.id, historySchema.address2d.versionHash],
-          set: {
-            isCurrent: true,
-            sourceReleaseId: context.resourceReleaseId,
-            snapshotId: context.snapshotId,
-            updatedAt: excluded('updatedAt'),
-          },
+        .onConflictDoNothing({
+          target: [historySchema.address2d.id, historySchema.address2d.snapshotId],
         })
         .run(),
     )
   }
 
-  await recordSnapshotVersionChanges(historyDb, {
-    snapshotId: context.snapshotId,
-    sourceReleaseId: context.resourceReleaseId,
-    recordType: 'address2d',
-    operation: 'upsert',
-    changes: baseRows.map(row => ({
-      recordId: row.id,
-      versionHash: row.versionHash,
-    })),
-  })
-
   if (i18nRows.length > 0) {
     await insertAddressVersionsI18nInChunks(historyDb, i18nRows)
-    const versionHashesByAddressId = new Map(
-      baseRows.map(row => [row.id, row.versionHash]),
-    )
-    const lookupRows = buildAddressBuildingNumberLookupRows(i18nRows).flatMap(row => {
-      const versionHash = versionHashesByAddressId.get(row.addressId)
-      if (!versionHash) return []
-      return [
-        {
-          ...row,
-          versionHash,
-          sourceReleaseId: context.resourceReleaseId,
-          snapshotId: context.snapshotId,
-          isCurrent: true,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        },
-      ]
-    })
-    await insertAddressBuildingNumberLookupVersionsInChunks(historyDb, lookupRows)
-    await recordSnapshotVersionChanges(historyDb, {
-      snapshotId: context.snapshotId,
-      sourceReleaseId: context.resourceReleaseId,
-      recordType: 'address2dI18n',
-      operation: 'upsert',
-      changes: i18nRows.map(row => ({
-        recordId: row.addressId,
-        locale: row.locale,
-        versionHash: row.versionHash,
-      })),
-    })
   }
+  await insertAddressBuildingNumberLookupVersionsInChunks(historyDb, lookupRows)
 }
 
 async function insertAddressBuildingNumberLookupVersionsInChunks(
@@ -1769,21 +1070,12 @@ async function insertAddressBuildingNumberLookupVersionsInChunks(
       db
         .insert(historySchema.address2dBuildingNumberLookup)
         .values(chunk)
-        .onConflictDoUpdate({
+        .onConflictDoNothing({
           target: [
             historySchema.address2dBuildingNumberLookup.addressId,
-            historySchema.address2dBuildingNumberLookup.versionHash,
+            historySchema.address2dBuildingNumberLookup.snapshotId,
             historySchema.address2dBuildingNumberLookup.buildingNumber,
           ],
-          set: {
-            isCurrent: true,
-            sourceReleaseId: excluded('sourceReleaseId'),
-            snapshotId: excluded('snapshotId'),
-            numericStem: excluded('numericStem'),
-            evidence: excluded('evidence'),
-            derivation: excluded('derivation'),
-            updatedAt: excluded('updatedAt'),
-          },
         })
         .run(),
     )
@@ -1859,35 +1151,43 @@ async function insertAddressVersionsI18nInChunks(
       db
         .insert(historySchema.address2dI18n)
         .values(chunk)
-        .onConflictDoUpdate({
+        .onConflictDoNothing({
           target: [
             historySchema.address2dI18n.addressId,
-            historySchema.address2dI18n.versionHash,
+            historySchema.address2dI18n.snapshotId,
             historySchema.address2dI18n.locale,
           ],
-          set: {
-            sourceReleaseId: excluded('sourceReleaseId'),
-            snapshotId: excluded('snapshotId'),
-            isCurrent: true,
-            formattedAddress: excluded('formattedAddress'),
-            buildingName: excluded('buildingName'),
-            buildingNumberExpression: excluded('buildingNumberExpression'),
-            buildingNumberFrom: excluded('buildingNumberFrom'),
-            buildingNumberTo: excluded('buildingNumberTo'),
-            buildingNumberConnector: excluded('buildingNumberConnector'),
-            blockExpression: excluded('blockExpression'),
-            blockType: excluded('blockType'),
-            blockRef: excluded('blockRef'),
-            blockTypeBeforeNumber: excluded('blockTypeBeforeNumber'),
-            phaseExpression: excluded('phaseExpression'),
-            phaseName: excluded('phaseName'),
-            phaseRef: excluded('phaseRef'),
-            estateName: excluded('estateName'),
-            streetName: excluded('streetName'),
-            updatedAt: excluded('updatedAt'),
-          },
         })
         .run(),
     )
   }
+}
+
+/** Compare against the explicitly selected parent across all retained owners. */
+export async function getAddressVersionMapForSnapshotDbs(
+  metaDb: HarbourReadableDb,
+  dbs: HarbourReadableDb[],
+  snapshotId: string | null,
+  options: AddressVersionLookupOptions,
+) {
+  if (!snapshotId) return new Map<string, AddressVersionSnapshot>()
+  const plan = await resolveSnapshotReplayPlan(metaDb, snapshotId)
+  const groups = await resolveStatisticEvents(
+    dbs,
+    plan.map(step => step.snapshotId),
+    ['address2d', 'address2dI18n'],
+  )
+  const versions: ResolvedSnapshotVersion[] = [...groups].flatMap(
+    ([db, events], index) =>
+      events.map(event => ({ ...event, shard: { bindingName: String(index), db } })),
+  )
+  return buildAddressVersionSnapshotMapFromRows(
+    await loadReplayedAddressBaseRows(
+      versions.filter(row => row.recordType === 'address2d'),
+    ),
+    await loadReplayedAddressI18nRows(
+      versions.filter(row => row.recordType === 'address2dI18n'),
+    ),
+    options,
+  )
 }

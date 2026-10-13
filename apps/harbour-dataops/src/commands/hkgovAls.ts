@@ -1,55 +1,53 @@
-import { alsDivisionSnapshotSelectionSql } from '../../../harbour-cli/src/lib/sources/hkgov/dpo/hkgovAlsDivisions'
-import { assertPreparedAlsReview } from '../../../harbour-cli/src/lib/sources/hkgov/dpo/hkgovAlsReviewCache'
-import { cachedAlsPreparation } from '../lib/alsPreparationCache.ts'
-import { mkdir, mkdtemp, readFile, readdir, writeFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, readdir, readFile, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
-import { selectInitialisationVersions } from '../../../harbour-cli/src/lib/cli/minimalInitialisation.ts'
 import { dirname, join, resolve } from 'node:path'
-
 import { isCancel, log, note, select } from '@clack/prompts'
-import { and, eq, inArray, sql } from 'drizzle-orm'
-
-import { inferSourceVersionFromPath } from '@repo/core/uploadLocal'
-import { currentSchema, historySchema, metaSchema, toIsoTimestamp } from '@repo/db'
-
-import { formatField } from '../../../harbour-cli/src/lib/cli/display.ts'
-import {
-  emptyHkgovAlsIdentityDecisions,
-  emptyHkgovAlsIdentityHistory,
-  mergeHkgovAlsIdentityHistory,
-  parseHkgovAlsIdentityDecisions,
-  parseHkgovAlsIdentityHistory,
-  type HkgovAlsIdentityDecisions,
-  type HkgovAlsIdentityDriftCandidate,
-  type HkgovAlsIdentityHistory,
-} from '../../../harbour-cli/src/lib/sources/hkgov/dpo/hkgovAlsDrift.ts'
-import {
-  prepareHkgovAlsAddressParquet,
-  type HkgovAlsDivisionQuality,
-} from '../../../harbour-cli/src/lib/sources/hkgov/dpo/hkgovAls.ts'
-import { resolveLocalAddressDbContext } from '../../../harbour-cli/src/lib/dbCache/localDbCache.ts'
-import { runUploadCommand } from '../../../harbour-cli/src/lib/commands/upload.ts'
-import { runReconcileDraftReleaseSetsCommand } from '../../../harbour-cli/src/lib/commands/reconcile.ts'
-import { formatInitialisationSkippedDatasets } from '../../../harbour-cli/src/lib/commands/init.ts'
 import { resolveSnapshotReplayPlan } from '@repo/core/db/metaRegistry'
 import {
   groupResolvedVersionsByShard,
-  resolveSnapshotVersionState,
+  historyVersionSelection,
   type ResolvedSnapshotVersion,
+  resolveSnapshotVersionState,
 } from '@repo/core/pipeline/db/snapshotReplay'
 import {
   hasAllOvertureHongKongAreaDivisions,
-  overtureHongKongAreas,
   overtureHongKongAreaDivisionId,
+  overtureHongKongAreas,
 } from '@repo/core/pipeline/services/divisions/overtureHongKongAreas'
+import { inferSourceVersionFromPath } from '@repo/core/uploadLocal'
+import { currentSchema, historySchema, metaSchema, toIsoTimestamp } from '@repo/db'
+import { and, eq, inArray, sql } from 'drizzle-orm'
+import { formatField } from '../../../harbour-cli/src/lib/cli/display.ts'
+import { selectInitialisationVersions } from '../../../harbour-cli/src/lib/cli/minimalInitialisation.ts'
 import type {
   ParsedArgs,
   UploadTarget,
 } from '../../../harbour-cli/src/lib/cli/options.ts'
-import { terminalSafeText } from '../lib/terminal.ts'
-import { progressPhase } from '../lib/progressPhase.ts'
-import { deliverDivisionPrerequisite } from '../lib/deliverDivisionPrerequisite.ts'
+import { formatInitialisationSkippedDatasets } from '../../../harbour-cli/src/lib/commands/init.ts'
+import { runReconcileDraftReleaseSetsCommand } from '../../../harbour-cli/src/lib/commands/reconcile.ts'
+import { runUploadCommand } from '../../../harbour-cli/src/lib/commands/upload.ts'
+import { resolveLocalAddressDbContext } from '../../../harbour-cli/src/lib/dbCache/localDbCache.ts'
 import { resolveTargetName } from '../../../harbour-cli/src/lib/pipeline/addresses/processLocalAddressSqlUploadImport.ts'
+import {
+  type HkgovAlsDivisionQuality,
+  prepareHkgovAlsAddressParquet,
+} from '../../../harbour-cli/src/lib/sources/hkgov/dpo/hkgovAls.ts'
+import { alsDivisionSnapshotSelectionSql } from '../../../harbour-cli/src/lib/sources/hkgov/dpo/hkgovAlsDivisions'
+import {
+  emptyHkgovAlsIdentityDecisions,
+  emptyHkgovAlsIdentityHistory,
+  type HkgovAlsIdentityDecisions,
+  type HkgovAlsIdentityDriftCandidate,
+  type HkgovAlsIdentityHistory,
+  mergeHkgovAlsIdentityHistory,
+  parseHkgovAlsIdentityDecisions,
+  parseHkgovAlsIdentityHistory,
+} from '../../../harbour-cli/src/lib/sources/hkgov/dpo/hkgovAlsDrift.ts'
+import { assertPreparedAlsReview } from '../../../harbour-cli/src/lib/sources/hkgov/dpo/hkgovAlsReviewCache'
+import { cachedAlsPreparation } from '../lib/alsPreparationCache.ts'
+import { deliverDivisionPrerequisite } from '../lib/deliverDivisionPrerequisite.ts'
+import { progressPhase } from '../lib/progressPhase.ts'
+import { terminalSafeText } from '../lib/terminal.ts'
 
 const HKGOV_ALS_CATALOGUE_URL = 'https://data.gov.hk/en-data/dataset/hk-dpo-als_01-als'
 const REPO_ROOT = resolve(import.meta.dir, '../../../..')
@@ -711,7 +709,7 @@ async function loadReplayedDivisionRows(versions: ResolvedSnapshotVersion[]) {
           versionHash: historySchema.divisions.versionHash,
         })
         .from(historySchema.divisions)
-        .where(inArray(historySchema.divisions.versionHash, versionHashes))
+        .where(historyVersionSelection(historySchema.divisions, versionBatch))
         .all()
 
       rows.push(
@@ -758,7 +756,7 @@ async function loadReplayedDivisionI18nRows(versions: ResolvedSnapshotVersion[])
           versionHash: historySchema.divisionsI18n.versionHash,
         })
         .from(historySchema.divisionsI18n)
-        .where(inArray(historySchema.divisionsI18n.versionHash, versionHashes))
+        .where(historyVersionSelection(historySchema.divisionsI18n, versionBatch))
         .all()
 
       rows.push(

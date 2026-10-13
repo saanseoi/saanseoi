@@ -1,9 +1,9 @@
 import { Database } from 'bun:sqlite'
-import { mkdirSync, existsSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { createHash } from '../libs/core/src/pipeline/utils'
-import { buildDivisionBaseHashInput } from '../libs/core/src/pipeline/services/divisions/division'
 import { validatePlanningHierarchy } from '../apps/harbour-cli/src/lib/pipeline/divisions/planningHierarchy'
+import { buildDivisionBaseHashInput } from '../libs/core/src/pipeline/services/divisions/division'
+import { createHash } from '../libs/core/src/pipeline/utils'
 
 type Row = Record<string, any>
 const levels = ['ppu', 'spu', 'tpu', 'subunit']
@@ -32,7 +32,7 @@ const identity = (row: Row) => {
     }),
   ])
 }
-const key = (row: Row) => JSON.stringify([row.id, row.versionHash])
+const key = (row: Row) => JSON.stringify([row.id, row.snapshotId])
 
 function checkExistingPath(existing: Row, expected: Row, id: string) {
   if (Object.keys(existing).some(k => k !== 'full') || !Array.isArray(existing.full))
@@ -107,13 +107,13 @@ export async function backfillPlanningHierarchies(options: {
       for (const ancestor of plan)
         for (const change of db
           .query(
-            "SELECT * FROM history.snapshotVersionChanges WHERE snapshotId=? AND recordType='division'",
+            "SELECT * FROM history.historyEvents WHERE snapshotId=? AND recordType='division'",
           )
           .all(ancestor.id) as Row[]) {
           if (change.operation === 'delete') inventory.delete(change.recordId)
           else {
             const row = byVersion.get(
-              JSON.stringify([change.recordId, change.versionHash]),
+              JSON.stringify([change.recordId, change.snapshotId]),
             )
             if (!row)
               throw Error(
@@ -222,15 +222,9 @@ export async function backfillPlanningHierarchies(options: {
       const hash = await createHash(
         buildDivisionBaseHashInput({ ...row, hierarchies: hierarchy } as any),
       )
-      const repairedKey = JSON.stringify([raw.id, hash])
+      const repairedKey = JSON.stringify([raw.id, raw.snapshotId])
       if (repairedVersions.has(repairedKey)) throw Error('Planned version collision')
       repairedVersions.add(repairedKey)
-      if (
-        db
-          .query('SELECT 1 FROM history.divisions WHERE id=? AND versionHash=?')
-          .get(raw.id, hash)
-      )
-        throw Error('Repaired version collision')
       changes.push({
         database: 'history',
         rowid: raw.repairRowid,
@@ -293,29 +287,17 @@ export async function backfillPlanningHierarchies(options: {
           db.exec(
             `CREATE TABLE repairBackup.${name}_divisions AS SELECT rowid AS repairRowid,* FROM ${name}.divisions WHERE 0`,
           )
-        db.exec(
-          'CREATE TABLE repairBackup.replay AS SELECT rowid AS repairRowid,* FROM history.snapshotVersionChanges WHERE 0',
-        )
-        db.exec('CREATE UNIQUE INDEX repairBackup.replay_rowid ON replay(repairRowid)')
         for (const c of changes) {
           db.query(
             `INSERT INTO repairBackup.${c.database}_divisions SELECT rowid,* FROM ${c.database}.divisions WHERE rowid=?`,
           ).run(c.rowid)
           if (c.hash) {
-            db.query(
-              "INSERT OR IGNORE INTO repairBackup.replay SELECT rowid,* FROM history.snapshotVersionChanges WHERE recordType='division' AND recordId=? AND versionHash=?",
-            ).run(c.id, c.oldHash)
             const updated = db
               .query(
                 'UPDATE history.divisions SET hierarchies=?,versionHash=? WHERE rowid=? AND hierarchies=? AND versionHash=?',
               )
               .run(c.hierarchy, c.hash, c.rowid, c.old, c.oldHash)
             if (updated.changes !== 1) throw Error('Concurrent history row change')
-            receipt.replayReferences += db
-              .query(
-                "UPDATE history.snapshotVersionChanges SET versionHash=? WHERE recordType='division' AND recordId=? AND versionHash=?",
-              )
-              .run(c.hash, c.id, c.oldHash).changes
           } else if (
             db
               .query(
@@ -347,10 +329,7 @@ export async function backfillPlanningHierarchies(options: {
           `UPDATE ${name}.divisions AS d SET ${assignments} FROM repairBackup.${name}_divisions AS b WHERE d.rowid=b.repairRowid;`,
         )
       }
-      rollback.push(
-        'UPDATE history.snapshotVersionChanges AS d SET versionHash=b.versionHash FROM repairBackup.replay AS b WHERE d.rowid=b.repairRowid;',
-        'COMMIT;',
-      )
+      rollback.push('COMMIT;')
       writeFileSync(resolve(options.output, 'rollback.sql'), rollback.join('\n'))
       receipt.applied = true
       for (const name of ['history', 'current'])

@@ -1,5 +1,5 @@
-import { expect, test } from 'bun:test'
 import { Database } from 'bun:sqlite'
+import { expect, test } from 'bun:test'
 import { resolve } from 'node:path'
 import { loadMigrationSql } from '../../../testing/metaFixtures'
 import type { DatasetProcessingMessage } from '../../../types'
@@ -152,7 +152,7 @@ test('retirement appends a base tombstone, preserves ancestors and deletes only 
     expect(
       history
         .query(
-          "SELECT recordType, locale, operation FROM snapshotVersionChanges WHERE snapshotId = 'two' ORDER BY recordType",
+          "SELECT recordType, locale, operation FROM historyEvents WHERE snapshotId = 'two' ORDER BY recordType",
         )
         .all(),
     ).toEqual([{ recordType: 'address2d', locale: '', operation: 'delete' }])
@@ -177,7 +177,7 @@ test('changed address SQL preserves ancestor translations for resolved omission 
     expect(
       history
         .query(
-          "SELECT operation FROM snapshotVersionChanges WHERE snapshotId = 'two' AND recordType = 'address2dI18n' AND locale = 'en'",
+          "SELECT operation FROM historyEvents WHERE snapshotId = 'two' AND recordType = 'address2dI18n' AND locale = 'en'",
         )
         .get(),
     ).toBeNull()

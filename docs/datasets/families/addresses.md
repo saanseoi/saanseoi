@@ -71,16 +71,16 @@ compares exact canonical IDs, parents, levels, inventory owners, sections and un
 with the reviewed membership, and rejects addresses or unit translations with no display
 content. Publication alone changes the matching prepared scope to `current`, including
 valid empty snapshots. Unchanged addresses, translations and building-number lookups
-retain their rows and timestamps. Changed content updates only its affected rows.
-Immutable version content and snapshot change journals supply historical API reads,
-including retired records and omitted translations.
+retain their rows and timestamps. Changed content updates only its affected rows. Inline
+canonical events supply historical API reads, including retired records and omitted
+translations.
 
 History components are compared independently. An Address2D component change does not
 rewrite identical base, translation or building-number content in another component.
 Unchanged components retain their original content hash and owning history shard.
 Address3D inventory and locale payloads have independent version hashes; historical
-locale reads follow their own journal entries and shards. ALS snapshot journals contain
-only actual component changes and explicit retirements.
+locale reads follow their own events and shards. ALS snapshot events contain only actual
+component changes and explicit retirements.
 
 Supplementary Overture Address snapshots hash the canonical base, each locale and each
 building-number lookup independently. The deterministic ID is generated from accepted
@@ -93,16 +93,16 @@ Curation entries and decisions are retained in the Place audit; upstream records
 retrieved through the Place source archives using the matching source edition. Places
 retain their Address links. Address history stores canonical components without a
 separate evidence payload or evidence index. Historical API replay keeps `sources` from
-the canonical Address version. Repeated components remain in their owning history shard
-across year boundaries; the snapshot records every shard needed to replay its component
-selections.
+the canonical Address version. Parented revisions inherit repeated components from their
+owning history shards, including across year boundaries. Each snapshot records every
+shard needed for replay.
 
-Supplementary snapshots are deliberately parentless to bound replay ancestry. Every
-snapshot journals its complete accepted base and locale membership, including a valid
-empty set and explicit withdrawals. Building-number lookups are reproducible from the
-selected locales. Full membership journals remain a per-edition cost even when all
-canonical content is unchanged. Published membership and retained Place audits are
-immutable; changed accepted materialisation requires a release revision.
+Supplementary snapshots are deliberately parentless to bound replay ancestry. Each root
+stores its complete accepted base, locale and building-number components as inline
+HISTORY events, including explicit withdrawals. Independent roots therefore cost full
+component writes; parented revisions inherit unchanged components. Published events and
+retained Place audits are immutable; changed accepted materialisation requires a release
+revision.
 
 ALS source interpretations in `sourceResolutions` inherit through snapshot ancestry.
 Repeated identical source hashes and resolutions need no new row. Changed resolutions,
@@ -164,9 +164,9 @@ lookups. A composed rollback restores Division and Street prerequisites before A
 and validates all current references before sealing. Retained source assertions and
 history remain available; only the serving projection and publication selection change.
 
-Forward comparison follows the selected predecessor's exact component journals and
-owning shards. Derived building-number lookup comparison follows the serving lookup
-content, so retained versions from a revoked publication do not suppress new changes.
+Forward comparison follows the selected predecessor's exact component events and owning
+shards. Derived building-number lookup comparison follows the serving lookup content, so
+retained versions from a revoked publication do not suppress new changes.
 
 Historical Address API reads replay immutable history. Preparation requires the exact
 selected dependency to have a completed local receipt; it rejects an advanced current
@@ -203,8 +203,8 @@ ALS 2D and 3D source rows use `(sourceRecordId, versionHash)` identity and retai
 reused across releases without updating its release ID, timestamps or indexes. Changed
 and removed assertions close their validity range. The complete publisher membership,
 not the last-written release ID, determines omissions. Reappearance of a closed
-assertion requires a write. Canonical component and source-resolution journals record
-only the changes needed to reconstruct each snapshot.
+assertion requires a write. Canonical inline events and scoped source-resolution
+evidence record the changes needed to reconstruct each snapshot.
 
 ALS ingestion prepares each pending release and retains its unresolved cases locally.
 Assembly and upload wait until those cases are resolved before advancing
@@ -1226,10 +1226,10 @@ Retirement dependency planning scans baseline parents before indexed deletion lo
 Surviving children and deferred descendant deletions retain their dependency ordering
 without repeating a full parent-table scan for each retirement.
 
-Historical Address replay selects each immutable version by record ID and content hash,
-plus locale for translated rows. Bounded queries use the existing composite identity
-indexes and remain within D1 parameter limits. SQL planning uses the configured
-`TMPDIR`; full local history copies require sufficient temporary disk space.
+Historical Address replay selects each event by record ID, introducing snapshot and
+content hash, plus locale for translated rows. Bounded queries use the existing
+composite identity indexes and remain within D1 parameter limits. SQL planning uses the
+configured `TMPDIR`; full local history copies require sufficient temporary disk space.
 
 Retirement preparation batches historical row updates and locale tombstones in
 transactions on isolated candidate shards. A failed preparation discards those copies
@@ -1589,3 +1589,13 @@ corrections are excluded. Component correction fixtures remain in the ALS R2 aud
 curated record without an identified upstream occurrence has an empty attribution array.
 Full API responses return these stored references without adding snapshot or release
 identifiers.
+
+### Snapshot event storage
+
+Canonical HISTORY stores a changed component once, with its introducing `snapshotId`,
+`operation`, content hash and payload in the same row. Unchanged components inherit the
+selected parent. Deletions append identity-only tombstones, and ancestor rows remain
+immutable. Reversions and independent branch changes have distinct introducing events.
+The read-only `historyEvents` view stores no additional membership rows. Snapshot reads
+resolve ancestry before filtering and use the exact introducing snapshot to fetch
+content. SOURCE release validity and interpretation evidence remain separate.

@@ -1,3 +1,4 @@
+DROP VIEW IF EXISTS `historyEvents`;
 PRAGMA foreign_keys = OFF;
 PRAGMA defer_foreign_keys = true;
 
@@ -13,7 +14,7 @@ DROP TABLE IF EXISTS `statsMeasures`;
 DROP TABLE IF EXISTS `statsFieldsI18n`;
 DROP TABLE IF EXISTS `statsFields`;
 DROP TABLE IF EXISTS `statsDefinitionSets`;
-DROP TABLE IF EXISTS `snapshotVersionChanges`;
+
 DROP TABLE IF EXISTS `sourceResolutions`;
 DROP TABLE IF EXISTS `streetChangelog`;
 DROP TABLE IF EXISTS `streetNameChangeStreets`;

@@ -91,6 +91,7 @@ test('Places delivery writes only current content changes and removals, with rec
           },
           places: [],
           historyRows: [],
+          retainEvidence: async () => {},
         }
         await prepareSqlDelivery(
           directory,

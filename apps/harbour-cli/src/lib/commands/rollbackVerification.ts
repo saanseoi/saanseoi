@@ -1,3 +1,8 @@
+import type { HarbourReadableDb } from '@repo/core/db/types'
+import {
+  currentRollbackPredicateSql,
+  type describeDraftReleasePurgePlan,
+} from '@repo/core/pipeline/rollback'
 import {
   and,
   currentSchema,
@@ -8,11 +13,6 @@ import {
   sourceSchema,
   sql,
 } from '@repo/db'
-import {
-  currentRollbackPredicateSql,
-  type describeDraftReleasePurgePlan,
-} from '@repo/core/pipeline/rollback'
-import type { HarbourReadableDb } from '@repo/core/db/types'
 import type { resolveLocalAddressDbContext } from '../dbCache/localDbCache.ts'
 import type {
   ResolvedReleaseRecord,
@@ -97,21 +97,12 @@ async function countHistoryRollbackRows(
 ) {
   let total = 0
 
-  total += await countRows(
-    db,
-    historySchema.snapshotVersionChanges,
-    eq(historySchema.snapshotVersionChanges.snapshotId, input.snapshotId),
-  )
-
   for (const tableName of input.tables.historyTables) {
     const table = resolveHistoryTable(tableName)
     const cacheRows = await countRows(
       db,
       table,
-      and(
-        eq(table.sourceReleaseId, input.release.resourceReleaseId),
-        eq(table.snapshotId, input.snapshotId),
-      ),
+      and(eq(table.snapshotId, input.snapshotId)),
     )
     total += cacheRows
   }
@@ -554,22 +545,11 @@ async function countPurgeHistoryRows(
     tables: ReturnType<typeof describeDraftReleasePurgePlan>
   },
 ) {
-  let total = await countRows(
-    db,
-    historySchema.snapshotVersionChanges,
-    eq(historySchema.snapshotVersionChanges.snapshotId, input.snapshotId),
-  )
+  let total = 0
 
   for (const tableName of input.tables.historyTables) {
     const table = resolveHistoryTable(tableName)
-    total += await countRows(
-      db,
-      table,
-      and(
-        eq(table.snapshotId, input.snapshotId),
-        eq(table.sourceReleaseId, input.resourceReleaseId),
-      ),
-    )
+    total += await countRows(db, table, and(eq(table.snapshotId, input.snapshotId)))
   }
 
   return total

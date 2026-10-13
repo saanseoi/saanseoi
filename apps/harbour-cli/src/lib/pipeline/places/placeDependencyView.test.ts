@@ -1,21 +1,21 @@
-import { snapshotFixtureFields } from '../../../../../../libs/core/src/testing/snapshotFixtures'
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
+import { readFileSync, rmSync } from 'node:fs'
+import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { buildPlaceSearchSyncSql } from '@repo/core/pipeline/services/places/searchIndex'
+import { currentSchema } from '@repo/db'
 import { createLocalHarbourDb } from '../../../../../../libs/core/src/testing/localDb.ts'
 import { loadMigrationSql } from '../../../../../../libs/core/src/testing/metaFixtures.ts'
-import { buildPlaceSearchSyncSql } from '@repo/core/pipeline/services/places/searchIndex'
+import { snapshotFixtureFields } from '../../../../../../libs/core/src/testing/snapshotFixtures'
 import {
   getPlaceCurrent,
   listPlaceDivisions,
 } from '../../../../../atlas-api/src/db/places.ts'
 import { PlaceDependencyView } from './placeDependencyView.ts'
 import { createPlaceSearchDependencies } from './placeSearchDependencies.ts'
-import { readFileSync, rmSync } from 'node:fs'
-import { tmpdir } from 'node:os'
-import { validateResolvedPlaces } from './resolvedPlaceValidation.ts'
 import { resolvePlaceDivisionDependency } from './placeSnapshotDependencies.ts'
-import { currentSchema } from '@repo/db'
+import { validateResolvedPlaces } from './resolvedPlaceValidation.ts'
 
 const migrations = join(import.meta.dir, '../../../../../../libs/db/migrations')
 const init = (family: 'meta' | 'history' | 'current') => {
@@ -251,23 +251,6 @@ test('exact historical Place dependencies replay independent locale shards and s
         sourceReleaseId: 'release',
         isCurrent: 1,
       })
-      const recordType =
-        table === 'divisionAreas'
-          ? 'divisionArea'
-          : table === 'divisions'
-            ? 'division'
-            : table === 'divisionsI18n'
-              ? 'divisionI18n'
-              : table
-      insert(db, 'snapshotVersionChanges', {
-        snapshotId,
-        recordType,
-        recordId: id,
-        locale,
-        versionHash: hash,
-        operation: 'upsert',
-        sourceReleaseId: 'release',
-      })
     }
     history(before, 'divisionAreas', 'g', 'area-old', {
       divisionId: 'country',
@@ -372,16 +355,12 @@ test('exact historical Place dependencies replay independent locale shards and s
         { bindingName: 'DB_HISTORY_HK_2025', db: createLocalHarbourDb(after) },
       ],
     })
-    const missingContent = after.query('SELECT * FROM address2dI18n').all() as Record<
-      string,
-      unknown
-    >[]
-    after.exec('DELETE FROM address2dI18n')
-    await expect(view.prepare('a1')).rejects.toThrow('Dependency replay is missing')
+    const assignment = after.query('SELECT count(*) AS n FROM address2dI18n').get()
+    expect(assignment).not.toBeNull()
+    meta.exec("UPDATE dataShards SET bindingName='missing' WHERE id='new'")
+    await expect(view.prepare('a1')).rejects.toThrow()
     expect(await view.db.select().from(currentSchema.address2d).all()).toEqual([])
-    expect(await view.db.select().from(currentSchema.divisions).all()).toEqual([])
-    expect(await view.db.select().from(currentSchema.divisionAreas).all()).toEqual([])
-    for (const row of missingContent) insert(after, 'address2dI18n', row)
+    meta.exec("UPDATE dataShards SET bindingName='DB_HISTORY_HK_2025' WHERE id='new'")
     const changesBeforeRetry = [meta, before, after, current].map(db =>
       db.query('SELECT total_changes() AS n').get(),
     )

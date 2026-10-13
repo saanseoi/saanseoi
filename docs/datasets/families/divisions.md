@@ -238,16 +238,15 @@ and landform identities. It reports missing coverage and unresolved hierarchy br
 explicitly.
 
 Published rollback reconstructs exact base, locale, area and boundary predecessors from
-retained journals and their owning history shards. It preserves unrelated domains and
+retained events and their owning history shards. It preserves unrelated domains and
 cohorts, validates dependent current families, and seals only actual serving-row
 changes. Source assertions, history and published compositions remain retained.
 Readiness and search finalisation follow the shared
 [rollback and recovery contract](../publication-state-plan.md#reset-and-reingest).
 
-Forward releases compare against the restored predecessor's exact journals and owning
-shards. Retained versions from a revoked publication remain reusable content; their
-history flags do not select the next release's baseline or suppress its required
-journal.
+Forward releases compare against the restored predecessor's exact events and owning
+shards. A reversion or independent branch writes its own event even when an older
+retained event has identical content. History flags do not select the next baseline.
 
 ## Classification and stored ancestry
 
@@ -543,7 +542,7 @@ registers the manifest only after every dependency and the final root are acknow
 Remote release-set reconciliation refreshes metadata before calculating published API
 statistics, so publication and recoverable statistics attempts use committed membership.
 History caches retain all Division identity and name versions needed by published
-snapshot journals, including superseded versions used for predecessor comparisons.
+snapshot events, including superseded versions used for predecessor comparisons.
 Geometry processing opens all configured regional history shards because its selected
 Division reference snapshot can belong to a later year than the source release. Source
 and geometry writes remain assigned to the source release's shard year. Cache rebuilds
@@ -591,8 +590,8 @@ processing actions and statistics within the statement limit without updating id
 rows. Changed lifecycle, provenance and statistics values still replay in order; see
 [SQL delivery](../sql-delivery.md) for the oversized-row exception.
 
-Remote replay selects immutable canonical versions through the snapshot's upsert journal
-keys; delete journals determine removed membership. Source closures update exact source
+Remote replay selects immutable canonical versions through the snapshot's upsert event
+keys; delete events determine removed membership. Source closures update exact source
 version keys without replacing historical geometry; C&SD source derivatives are retained
 too.
 
@@ -850,7 +849,7 @@ Lookup-only sources do not retain a geometry snapshot. Current and draft API rel
 members remain protected independently, including while a replacement is being prepared.
 Superseded rolling releases and replaced revisions are eligible for current snapshot
 cleanup. Historical geometry requests reconstruct the selected snapshot from its version
-journal and history shards after its current materialisation is removed.
+inline events and assigned history shards after its current materialisation is removed.
 
 For Overture, locale inference, API-locale fallbacks and `CN-GD` geometry exclusions
 contribute aggregate counters to registered processor declarations, without affected
@@ -1024,35 +1023,36 @@ shards; metadata and publication receipts retain their separate lifecycle operat
 The core Division processor and CLI Division/Planning delivery compare base and
 individual locale history components independently. Unchanged content retains its
 canonical version, owning history shard and original source provenance; a base-only edit
-leaves unchanged locales open, and a locale-only edit leaves the base open. Semantic
-geometry comparison decodes stored geometry before comparison. Source interpretations
-inherit through snapshot ancestry; repeated assertions produce no resolution rows, while
+inherits unchanged locales, and a locale-only edit inherits the base. Semantic geometry
+comparison decodes stored geometry before comparison. Source interpretations inherit
+through snapshot ancestry; repeated assertions produce no resolution rows, while
 explicit source omissions remain recorded. Canonical identifiers participate in both
 current and history content.
 
 The core processor accepts explicitly named `historyShards` for replay across annual
 databases. It validates the complete parent ancestry, component ownership and retained
 content against the materialised current scope before publishing. A single database
-handle is sufficient for a single-shard parent. Closures target the exact base or locale
-version in its owning shard; child deletion journals are recorded in the active shard.
-Reappearing content preserves its retained canonical provenance. Localisation identity
-includes name provenance independently of base content.
+handle is sufficient for a single-shard parent. Child deletions are recorded in the
+active shard without mutating the exact parent base or locale event. Reappearing content
+receives a new event. Localisation identity includes name provenance independently of
+base content.
 
 Area and boundary projections use separate lineage/cohort scopes and publication
 receipts. Provider variants retain their own lineages. A revision updates only changed
 geometry in its scope; a different retained cohort requires its own materialisation.
-Area and Boundary history stores immutable versions keyed by record ID and content hash.
-`snapshotVersionChanges` and the selected parent ancestry define membership within each
-lineage/cohort/variant scope. Complete uploads record removals only for members of their
-selected parent; a root snapshot starts with empty membership. A version shared by
-another provider, cohort or variant keeps its content and original provenance. The
-stored history `isCurrent` field does not define geometry membership or availability.
+Area and Boundary history stores immutable events keyed by record ID and introducing
+snapshot. Inline HISTORY events and the selected parent ancestry define membership
+within each lineage/cohort/variant scope. Complete uploads record removals only for
+members of their selected parent; a root snapshot starts with empty membership. A
+version shared by another provider, cohort or variant keeps its content and original
+provenance. The stored history `isCurrent` field does not define geometry membership or
+availability.
 
 Parent replay follows the recorded shard assignments, including earlier annual shards.
 Retained historical parents remain usable after their serving current scope advances.
-Remote replay exports content by the exact journal record/hash keys and inserts missing
-versions without rewriting existing content. Snapshot deletion journals affect
-membership only; they do not close or delete retained geometry versions.
+Remote replay exports events by their exact record and introducing snapshot keys and
+inserts missing versions without rewriting existing content. Snapshot deletion events
+affect membership only; they do not close or delete retained geometry versions.
 
 Geometry uses the same local candidate compiler for native delivery and remote replay.
 C&SD companion contributions merge within their cohort; ordinary complete geometry
@@ -1063,18 +1063,19 @@ restoring historical Division rows into serving current storage.
 Parented area and boundary snapshots replay the complete parent ancestry and validate
 its shard assignments, owning history content and selected current projection before
 inheriting membership. An identical selected version adds neither another history
-payload nor a child upsert journal, including across annual history shards. Changed and
-reappearing features receive explicit upserts; removals come from the selected parent's
-membership rather than mutable history `isCurrent` flags. Companion contributions
-preserve inherited members outside their input. Parentless checkpoints retain full
-membership journals, and each distinct retained cohort still receives its own current
-projection. Removed versions in arbitrary older shards are not searched for reuse.
+payload nor a separate membership row, including across annual history shards. Changed
+and reappearing features receive explicit upserts; removals come from the selected
+parent's membership rather than mutable history `isCurrent` flags. Companion
+contributions preserve inherited members outside their input. Parentless checkpoints
+store every selected component as an inline event, and each distinct retained cohort
+still receives its own current projection. Removed versions in arbitrary older shards
+are not searched for reuse.
 
 Geometry source assertions, release assignments and processing-audit delivery have
 separate lifecycles. Native delivery retains the geometry writer's `sourceResolutions`
 rows. The remote geometry SQL exporter does not deliver that table; R2 processing-audit
 delivery does not populate it either. Remote per-record source-resolution parity remains
-an independent delivery limitation and is outside geometry journal savings.
+an independent delivery limitation and is outside geometry history write savings.
 
 Delivery validates canonical and localisation counts, and each current mutation batch
 checks its sealed publication token. Completion records preparation; metadata
@@ -1862,12 +1863,12 @@ Overture names remain eligible for core-locale protection.
 ## Historical Division backfills
 
 A published revision displaced from current storage is reconstructed from its exact
-history journal and assigned shards. An incomplete existing receipt blocks processing.
-Historical branches use a retained snapshot scope so newer divisions referenced by
-addresses remain intact. History comparisons use the selected parent revision; current
-writes compare against the actual destination scope. Re-uploading SaanSeoi Division and
-DivisionArea resources creates a new API release-set revision, preserving published
-release-set membership.
+inline history events and assigned shards. An incomplete existing receipt blocks
+processing. Historical branches use a retained snapshot scope so newer divisions
+referenced by addresses remain intact. History comparisons use the selected parent
+revision; current writes compare against the actual destination scope. Re-uploading
+SaanSeoi Division and DivisionArea resources creates a new API release-set revision,
+preserving published release-set membership.
 
 Reviewed upstream removals retained in SaanSeoi become SaanSeoi patches for identity,
 names, classification, hierarchy and retained geometry. Protected name values are

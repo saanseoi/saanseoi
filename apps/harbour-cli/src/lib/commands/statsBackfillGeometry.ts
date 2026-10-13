@@ -1,27 +1,26 @@
-import { readDivisionSnapshot } from '../pipeline/divisions/readDivisionSnapshot.ts'
 import { Database } from 'bun:sqlite'
-
-import { and, desc, eq, historySchema, metaSchema, sql } from '@repo/db'
 import { resolvePublishedSnapshotForResourceTypeRegionCohortKey } from '@repo/core/db/metaRegistry'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import { replaceReleaseStatsCategory } from '@repo/core/pipeline/db/stats'
-import { decompressJsonBrotli } from '@repo/core/pipeline/services/storage/brotliJson'
+import type { GeoJsonGeometry } from '@repo/core/pipeline/geojson'
 import { parseWkbGeometry } from '@repo/core/pipeline/services/divisions/division'
 import {
   calculateDistrictGeometryStatistics,
   selectDistrictRelevantGeometryRecords,
 } from '@repo/core/pipeline/services/metrics/geometryStats'
 import { buildGeometryReleaseStatsRows } from '@repo/core/pipeline/services/metrics/releaseStats'
-import type { GeoJsonGeometry } from '@repo/core/pipeline/geojson'
-
+import { decompressJsonBrotli } from '@repo/core/pipeline/services/storage/brotliJson'
+import { and, desc, eq, metaSchema, sql } from '@repo/db'
+import { OperationProgress } from '../cli/operationProgress.ts'
 import type { ParsedArgs, UploadTarget } from '../cli/options.ts'
 import {
   replayRemoteCacheWithRetry,
   resolveLocalAddressDbContext,
   updateDbCacheProgress,
 } from '../dbCache/localDbCache.ts'
+import { readDivisionSnapshot } from '../pipeline/divisions/readDivisionSnapshot.ts'
+import { readGeometrySnapshot } from '../pipeline/divisions/readGeometrySnapshot.ts'
 import { executeSqlText } from '../pipeline/local/sqlImport.ts'
-import { OperationProgress } from '../cli/operationProgress.ts'
 
 type GeometryResourceType = 'divisionArea' | 'divisionBoundary'
 type BackfillRelease = {
@@ -137,10 +136,10 @@ export async function runGeometryStatsBackfillCommand(
       const districtRows = usesReviewedDistrictBridge(release)
         ? []
         : await findDivisionSnapshotRows(seedContext, release, snapshot.cohortKey)
-      const geometryRows = await findSnapshotRows(
-        [historyTarget],
-        snapshot.id,
+      const geometryRows = await readGeometrySnapshot(
+        seedContext,
         release.resourceType,
+        snapshot.id,
       )
       const typedDistrictRows = districtRows as Array<{
         hierarchies: import('@repo/db').DivisionHierarchies
@@ -469,30 +468,6 @@ async function resolveSnapshotShard(
     .get()
   if (!shard) throw new Error(`Snapshot ${snapshotId} has no assigned history shard.`)
   return shard
-}
-
-async function findSnapshotRows(
-  targets: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>['historyTargets'],
-  snapshotId: string,
-  resourceType: 'division' | GeometryResourceType,
-) {
-  const table =
-    resourceType === 'division'
-      ? historySchema.divisions
-      : resourceType === 'divisionArea'
-        ? historySchema.divisionAreas
-        : historySchema.divisionBoundaries
-  for (const target of targets) {
-    const rows = await (target.db as HarbourReadableDb)
-      .select()
-      .from(table)
-      .where(eq(table.snapshotId, snapshotId))
-      .all()
-    if (rows.length) return rows
-  }
-  throw new Error(
-    `Snapshot ${snapshotId} has no ${resourceType} rows in its assigned history shard.`,
-  )
 }
 
 function districtIdForDivision(row: {

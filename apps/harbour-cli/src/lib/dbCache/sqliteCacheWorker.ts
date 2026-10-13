@@ -1,13 +1,12 @@
+import { Database as SQLiteDatabase } from 'bun:sqlite'
 import { readFile, rm } from 'node:fs/promises'
 import { basename } from 'node:path'
-
-import { Database as SQLiteDatabase } from 'bun:sqlite'
-import { executeSqliteDump } from './sqliteDumpExecution.ts'
-
+import { historyEventsSqlForTables, historyEventTables } from '@repo/db'
 import {
   assertBinaryGeometryRow,
   type BinaryGeometryRow,
 } from './binaryGeometryMirror.ts'
+import { executeSqliteDump } from './sqliteDumpExecution.ts'
 
 type RemoteTableImport = {
   binaryRowsPath?: string
@@ -107,6 +106,7 @@ async function importDatabaseDumpsToSqlite(
     }
 
     pruneCachedRows(sqlite, pruneOperations)
+    rebuildHistoryView(sqlite)
     sqlite.exec('COMMIT;')
     sqlite.exec('PRAGMA foreign_keys = ON;')
     sqlite.exec('PRAGMA wal_checkpoint(TRUNCATE);')
@@ -165,6 +165,7 @@ async function replaceCachedTableRows(
       ),
     )
 
+    rebuildHistoryView(sqlite)
     sqlite.exec('COMMIT;')
     sqlite.exec('PRAGMA foreign_keys = ON;')
   } catch (error) {
@@ -254,3 +255,16 @@ main().catch(error => {
   console.error(error instanceof Error ? error.message : String(error))
   process.exit(1)
 })
+
+function rebuildHistoryView(db: SQLiteDatabase) {
+  const present = new Set<string>()
+  for (const { table } of Object.values(historyEventTables)) {
+    const columns = db
+      .query<{ name: string }, []>(`PRAGMA table_info("${table}")`)
+      .all()
+    if (columns.some(column => column.name === 'operation')) present.add(table)
+  }
+  if (!present.size) return
+  db.exec('DROP VIEW IF EXISTS historyEvents')
+  db.exec(`CREATE VIEW historyEvents AS ${historyEventsSqlForTables(present)}`)
+}

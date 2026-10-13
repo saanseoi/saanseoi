@@ -1,11 +1,11 @@
-import { snapshotFixtureFields } from '../../../../../../libs/core/src/testing/snapshotFixtures'
-import { statisticDefinitionSet } from '@repo/db'
 import { Database, type SQLQueryBindings } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { join } from 'node:path'
-import { drizzle } from 'drizzle-orm/bun-sqlite'
 import type { createLocalHarbourDb } from '@repo/core/testing/localDb'
+import { historyDeletionSql, statisticDefinitionSet } from '@repo/db'
+import { drizzle } from 'drizzle-orm/bun-sqlite'
 import { loadMigrationSql } from '../../../../../../libs/core/src/testing/metaFixtures.ts'
+import { snapshotFixtureFields } from '../../../../../../libs/core/src/testing/snapshotFixtures'
 import { versionStatisticsDefinitions } from '../../pipeline/statistics/statisticsRecordIdentity.ts'
 import { insertProjectionRow } from './projection.ts'
 import { restoreStatisticsProjection } from './statistics.ts'
@@ -95,6 +95,7 @@ const definitions = (name = 'Population', fieldName = 'population') =>
     ],
   })
 const metadata = {
+  snapshotId: 'a',
   sourceReleaseId: 'original-release',
   isCurrent: 0,
   createdAt: timestamp,
@@ -126,24 +127,18 @@ const pack = (
   fieldDefinitionHashes: { population: definition.fields[0]?.versionHash ?? '' },
   values: { population: '123' },
 })
-const journal = (db: Database, snapshotId: string, id: string, hash: string | null) =>
-  insert(db, 'snapshotVersionChanges', {
-    snapshotId,
-    recordType: 'statsRecord',
-    recordId: id,
-    locale: '',
-    versionHash: hash,
-    operation: hash ? 'upsert' : 'delete',
-    sourceReleaseId: hash ? 'original-release' : null,
-  })
-function addDefinitions(db: Database, definition: ReturnType<typeof definitions>) {
+function addDefinitions(
+  db: Database,
+  definition: ReturnType<typeof definitions>,
+  snapshotId = 'a',
+) {
   for (const [table, rows] of [
     ['statsFields', definition.fields],
     ['statsFieldsI18n', definition.fieldsI18n],
     ['statsMeasures', definition.measures],
     ['statsMeasuresI18n', definition.measuresI18n],
   ] as const)
-    for (const row of rows) insert(db, table, { ...metadata, ...row })
+    for (const row of rows) insert(db, table, { ...metadata, ...row, snapshotId })
 }
 function fixture() {
   const open = (kind: 'meta' | 'history' | 'current') => {
@@ -238,18 +233,22 @@ function fixture() {
   const original = definitions()
   const revised = definitions('Revised population')
   addDefinitions(first, original)
-  addDefinitions(second, revised)
+  addDefinitions(second, revised, 'b')
   insert(first, 'statsRecords', pack('inherited', 'inherited-a', original))
   insert(first, 'statsRecords', pack('revised', 'revised-a', original))
   insert(first, 'statsRecords', pack('removed', 'removed-a', original))
-  for (const id of ['inherited', 'revised', 'removed'])
-    journal(first, 'a', id, `${id}-a`)
   insert(second, 'statsRecords', {
     ...pack('revised', 'revised-b', revised),
+    snapshotId: 'b',
     values: { population: '*' },
   })
-  journal(second, 'b', 'revised', 'revised-b')
-  journal(second, 'b', 'removed', null)
+  second.exec(
+    historyDeletionSql({
+      snapshotId: 'b',
+      recordType: 'statsRecord',
+      recordId: 'removed',
+    }),
+  )
   insertProjectionRow(current, 'statsRecords', { ...pack('stale', 'stale', revised) })
   insertProjectionRow(current, 'statsRecords', {
     ...pack('other-period', 'untouched', original),
@@ -455,13 +454,15 @@ test('Statistics restoration rejects missing exact owners, incomplete assignment
       snapshotId: 'b',
       dataShardId: 'second',
     })
-    f.second.exec("DELETE FROM statsRecords WHERE id='revised'")
-    // The same tuple on a supplied but unassigned owner cannot repair missing evidence.
-    insert(f.first, 'statsRecords', pack('revised', 'revised-b', f.revised))
-    await expect(restoreStatisticsProjection(f.input)).rejects.toThrow(
-      'Missing exact history component',
-    )
-    expect(f.tableState()).toEqual(before)
+    // An event on an unassigned shard must not override the selected parent's row.
+    insert(f.first, 'statsRecords', {
+      ...pack('revised', 'unassigned', f.revised),
+      snapshotId: 'b',
+    })
+    await restoreStatisticsProjection(f.input)
+    expect(
+      f.current.query("SELECT versionHash FROM statsRecords WHERE id='revised'").get(),
+    ).toEqual({ versionHash: 'revised-b' })
   } finally {
     f.close()
   }
@@ -516,8 +517,8 @@ test('invalid pack field versions and retained provenance fail without partial r
 test('empty Statistics snapshots restore an empty period without treating unavailable ancestry as empty', async () => {
   const f = fixture()
   try {
-    f.first.exec('DELETE FROM snapshotVersionChanges')
-    f.second.exec('DELETE FROM snapshotVersionChanges')
+    f.first.exec('DELETE FROM statsRecords')
+    f.second.exec('DELETE FROM statsRecords')
     expect((await restoreStatisticsProjection(f.input)).counts.statsRecords).toBe(0)
     expect(f.current.query('SELECT count(*) AS count FROM statsRecords').get()).toEqual(
       { count: 2 },
@@ -548,7 +549,6 @@ test('large packed definition sets stay bounded and copy only the exact referenc
     })
     for (const db of [f.first, f.second])
       for (const table of [
-        'snapshotVersionChanges',
         'statsRecords',
         'statsFields',
         'statsFieldsI18n',
@@ -570,7 +570,6 @@ test('large packed definition sets stay bounded and copy only the exact referenc
         ]),
       ),
     })
-    journal(f.first, 'a', 'large', 'large-pack')
     expect((await restoreStatisticsProjection(f.input)).counts).toEqual({
       statsRecords: 1,
       statsFields: 105,

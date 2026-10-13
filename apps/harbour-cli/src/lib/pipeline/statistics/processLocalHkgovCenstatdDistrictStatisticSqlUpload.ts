@@ -1,93 +1,94 @@
-import {
-  prepareCenstatdGeometryAudit,
-  retainCenstatdGeometryAudit,
-} from './censtatdGeometryAudit'
-import { formatCenstatdGeometryReuse } from './censtatdGeometryStorage'
-import { censtatdGeometryRow } from '@repo/core/pipeline/services/sources/censtatdGeometry'
-import { statisticAuditPeriod } from './statisticAuditPeriod'
-import type { DatasetProcessingStats } from '@repo/core/pipeline/processingRunStats'
-import { resolveCurrentWriteContext } from '../../dbCache/currentWriteContext.ts'
-import { calculateAndStorePublishedStatisticsStats } from '../../api/apiReleaseSetStats'
-import { nativeSourcePayloadHashInput } from '@repo/core/pipeline/services/sources/sourcePayload'
-import { retainProcessingFailure } from '../../api/processingFailureAudit'
-import sourceAssertionFixture from '../../../../../../fixtures/meta/processing-rules/ingestion/censtatd-source-assertion.json'
-import { registerRule, ruleDeclarationFromFixture } from '@repo/core/provenance'
-import { curationDocumentsFor } from '../../curationDocuments'
+import { resolveSnapshotReplayPlan } from '@repo/core/db/metaRegistry'
+import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import { replaceDatasetStatsAndReturnRows } from '@repo/core/pipeline/db/stats'
+import type { HarbourClient } from '@repo/core/pipeline/harbourClient'
+import { readParquetObjectsInBatches } from '@repo/core/pipeline/parquetR2'
+import type { DatasetProcessingStats } from '@repo/core/pipeline/processingRunStats'
+import {
+  buildHkgovCenstatdDistrictStatisticHistoryRecord,
+  type ResolvedHkgovCenstatdDistrict,
+} from '@repo/core/pipeline/services/divisions/divisionStatistics'
 import {
   buildCenstatdReleaseStats,
   buildCenstatdStructuralChurnStats,
   censtatdReleaseStatsProfileFor,
 } from '@repo/core/pipeline/services/metrics/censtatdReleaseStats'
-import { hashCanonicalStatisticPreparation } from './statisticPreparation.ts'
-import { normaliseCachedStatistics } from './cachedStatisticNormalisation.ts'
-import { retainStatisticProvenance } from './statisticProvenance.ts'
-import { LocalPipelineBucket } from '../local/localBucket.ts'
+import { censtatdGeometryRow } from '@repo/core/pipeline/services/sources/censtatdGeometry'
+import { nativeSourcePayloadHashInput } from '@repo/core/pipeline/services/sources/sourcePayload'
+import { resolveStatisticEvents } from '@repo/core/pipeline/services/statistics/statisticSnapshotRecords'
+import { createHash, stableJsonStringify } from '@repo/core/pipeline/utils'
+import { registerRule, ruleDeclarationFromFixture } from '@repo/core/provenance'
+import { asyncBufferFromFile } from 'hyparquet/src/node.js'
+import sourceAssertionFixture from '../../../../../../fixtures/meta/processing-rules/ingestion/censtatd-source-assertion.json'
+import { calculateAndStorePublishedStatisticsStats } from '../../api/apiReleaseSetStats'
+import { createHarbourControlClient } from '../../api/harbourControl.ts'
+import { retainProcessingFailure } from '../../api/processingFailureAudit'
 import { deliverProcessingResult } from '../../api/provenance.ts'
-import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
-import { deliveryFileSha256 } from '../local/sqlDeliveryFiles.ts'
+import { OperationProgress } from '../../cli/operationProgress.ts'
+import type { UploadTarget } from '../../cli/options.ts'
+import { curationDocumentsFor } from '../../curationDocuments'
+import { resolveCurrentWriteContext } from '../../dbCache/currentWriteContext.ts'
 import {
-  sqlDeliveryPhaseDirectory,
-  type SqlDeliveryPhase,
-} from '../local/sqlDeliveryPhase.ts'
+  applyPublishMetadataDeltaToRemoteCache,
+  invalidateRemoteDbCache,
+  refreshRemoteMetaCache,
+  updateDbCacheProgress,
+} from '../../dbCache/localDbCache.ts'
+import { loadDatasetFixtures } from '../../sources/sourceUpdates.ts'
+import type { PreparedUploadFile } from '../../upload/parquetRepack.ts'
+import { LocalPipelineBucket } from '../local/localBucket.ts'
+import { createLocalControlClient } from '../local/localControlClient.ts'
 import { prepareCachedArtefact } from '../local/preparedArtefact.ts'
+import { deliveryFileSha256 } from '../local/sqlDeliveryFiles.ts'
 import {
   completeSqlDeliveryRelease,
   readPendingSqlDelivery,
 } from '../local/sqlDeliveryPending.ts'
-import type { HarbourClient } from '@repo/core/pipeline/harbourClient'
-import { readParquetObjectsInBatches } from '@repo/core/pipeline/parquetR2'
 import {
-  buildHkgovCenstatdDistrictStatisticHistoryRecord,
-  type ResolvedHkgovCenstatdDistrict,
-} from '@repo/core/pipeline/services/divisions/divisionStatistics'
-import { createHash, stableJsonStringify } from '@repo/core/pipeline/utils'
-import { asyncBufferFromFile } from 'hyparquet/src/node.js'
-
-import { createHarbourControlClient } from '../../api/harbourControl.ts'
-import {
-  invalidateRemoteDbCache,
-  applyPublishMetadataDeltaToRemoteCache,
-  refreshRemoteMetaCache,
-  updateDbCacheProgress,
-} from '../../dbCache/localDbCache.ts'
-import type { UploadTarget } from '../../cli/options.ts'
-import { createLocalControlClient } from '../local/localControlClient.ts'
+  type SqlDeliveryPhase,
+  sqlDeliveryPhaseDirectory,
+} from '../local/sqlDeliveryPhase.ts'
 import { syncStagedReleaseIntoLocalMetaCache } from '../local/syncStagedRelease.ts'
-import type { PreparedUploadFile } from '../../upload/parquetRepack.ts'
-import { OperationProgress } from '../../cli/operationProgress.ts'
-import {
-  buildStatisticSqlBatches,
-  replayStatisticSqlBatches,
-} from './statisticSqlReplay.ts'
+import { normaliseCachedStatistics } from './cachedStatisticNormalisation.ts'
 import { replayCanonicalStatsSqlBatches } from './canonicalStatsSql.ts'
 import {
-  resolveHkgovCenstatdDistrictBridge,
   censtatdDistrictIdentityRule,
+  resolveHkgovCenstatdDistrictBridge,
 } from './censtatdDistrictBridge.ts'
-import type { normaliseHkgovCenstatdStatistics } from './normaliseHkgovCenstatdStatistics.ts'
+import {
+  prepareCenstatdGeometryAudit,
+  retainCenstatdGeometryAudit,
+} from './censtatdGeometryAudit'
+import { formatCenstatdGeometryReuse } from './censtatdGeometryStorage'
 import {
   loadCenstatdMeasureMetadata,
   resolveCenstatdFieldMetadata,
 } from './censtatdMeasureCuration.ts'
 import { findPreviousComparableCenstatdReleaseStats } from './censtatdReleaseChurn.ts'
-import { loadDatasetFixtures } from '../../sources/sourceUpdates.ts'
-import {
-  replayReleaseStatsMetaToRemote,
-  replayStatisticSnapshotMetaToRemote,
-} from './releaseStatsMetaReplay.ts'
-import {
-  completeStatisticCache,
-  runStatisticProgressStep,
-} from './statisticProgress.ts'
 import {
   materialiseStatisticSnapshots,
   resolveStatisticSnapshotPredecessors,
 } from './materialiseStatisticSnapshot.ts'
+import type { normaliseHkgovCenstatdStatistics } from './normaliseHkgovCenstatdStatistics.ts'
 import {
   planCanonicalStatistics,
   selectStatisticReferencePeriodsWithChanges,
 } from './planCanonicalStatistics'
+import {
+  replayReleaseStatsMetaToRemote,
+  replayStatisticSnapshotMetaToRemote,
+} from './releaseStatsMetaReplay.ts'
+import { statisticAuditPeriod } from './statisticAuditPeriod'
+import { hashCanonicalStatisticPreparation } from './statisticPreparation.ts'
+import {
+  completeStatisticCache,
+  runStatisticProgressStep,
+} from './statisticProgress.ts'
+import { retainStatisticProvenance } from './statisticProvenance.ts'
+import {
+  buildStatisticSqlBatches,
+  replayStatisticSqlBatches,
+} from './statisticSqlReplay.ts'
 
 type Plan = {
   cohortKey: string
@@ -355,7 +356,7 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
     progress.message(formatCenstatdGeometryReuse(geometryAudit))
     const batches = () =>
       buildStatisticSqlBatches({
-        history: { rows: historyRows, table: 'divisionStatistics' },
+        history: { rows: districtHistoryEvents, table: 'divisionStatistics' },
         sourceVersion: plan.sourceVersion,
         resourceReleaseId,
         source: {
@@ -387,6 +388,41 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
       resourceReleaseId,
       target,
     })
+    const districtHistoryEvents: Record<string, unknown>[] = []
+    for (const snapshot of snapshots) {
+      const parentPlan = snapshot.parentSnapshotId
+        ? await resolveSnapshotReplayPlan(metaDb, snapshot.parentSnapshotId)
+        : []
+      const priorGroups = await resolveStatisticEvents(
+        historyDbs,
+        parentPlan.map(step => step.snapshotId),
+        ['divisionStatistic'],
+      )
+      const previous = new Map(
+        [...priorGroups.values()].flat().map(row => [row.recordId, row.versionHash]),
+      )
+      const incoming = historyRows.filter(
+        row => row.referenceYear === snapshot.cohortKey,
+      )
+      for (const row of incoming) {
+        if (previous.get(row.id) !== row.versionHash)
+          districtHistoryEvents.push({
+            ...row,
+            snapshotId: snapshot.id,
+            operation: 'upsert',
+          })
+      }
+      const present = new Set(incoming.map(row => row.id))
+      for (const id of previous.keys())
+        if (!present.has(id))
+          districtHistoryEvents.push({
+            id,
+            snapshotId: snapshot.id,
+            operation: 'delete',
+            versionHash: null,
+            sourceReleaseId: resourceReleaseId,
+          })
+    }
     if (snapshots[0])
       failureAuditScope = { stage: 'assembly', ownerId: snapshots[0].id }
     const canonicalPlan = await planCanonicalStatistics({
@@ -832,5 +868,6 @@ function uniqueReferencePeriods(
     ).values(),
   ]
 }
-import { sourceStatisticAssertion } from './sourceStatisticAssertion.ts'
+
 import { statisticSourceResolutions } from './sourceResolutions'
+import { sourceStatisticAssertion } from './sourceStatisticAssertion.ts'

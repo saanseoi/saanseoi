@@ -1,13 +1,7 @@
-import { resolveStatisticEvents } from '@repo/core/pipeline/services/statistics/statisticSnapshotRecords.ts'
-import { historyVersionSelection } from '@repo/core/pipeline/db/snapshotReplay.ts'
+import type { RequestedApiLocaleSelection } from '@repo/core'
 import type { ResolvedSnapshotVersion } from '@repo/core/pipeline/db/snapshotReplay.ts'
-import { historySchema } from '@repo/db'
-import {
-  geographicMembershipSql,
-  geographicFilterContext,
-  GeographicCrosswalkUnavailableError,
-} from '../lib/geographicFilterContext'
-import { getTableColumns, statisticDefinitionHashes } from '@repo/db'
+import { historyVersionSelection } from '@repo/core/pipeline/db/snapshotReplay.ts'
+import { resolveStatisticEvents } from '@repo/core/pipeline/services/statistics/statisticSnapshotRecords.ts'
 import type {
   CanonicalStatsGeography,
   CurrentDatabase,
@@ -17,8 +11,22 @@ import type {
   StatsPeriodicity,
   StatsStatisticKind,
 } from '@repo/db'
-import { and, asc, currentSchema, eq, inArray, sql } from '@repo/db'
-import type { RequestedApiLocaleSelection } from '@repo/core'
+import {
+  and,
+  asc,
+  currentSchema,
+  eq,
+  getTableColumns,
+  historySchema,
+  inArray,
+  sql,
+  statisticDefinitionHashes,
+} from '@repo/db'
+import {
+  GeographicCrosswalkUnavailableError,
+  geographicFilterContext,
+  geographicMembershipSql,
+} from '../lib/geographicFilterContext'
 
 const { statsRecords, statsFields, statsFieldsI18n, statsMeasures, statsMeasuresI18n } =
   currentSchema
@@ -374,6 +382,8 @@ export async function listStatisticFieldDefinitions(
   lookup: DictionaryLookup,
 ): Promise<StatisticFieldDefinition[]> {
   await prepareHistorySelection(dbs, lookup.selection)
+  if (lookup.selection.mode === 'history')
+    return (await historicalDictionaryMetadata(dbs, lookup)).fields
   const rows = (
     await Promise.all(
       dbs.flatMap(db =>
@@ -445,6 +455,8 @@ export async function listStatisticMeasureDefinitions(
   lookup: DictionaryLookup,
 ): Promise<StatisticMeasureDefinition[]> {
   await prepareHistorySelection(dbs, lookup.selection)
+  if (lookup.selection.mode === 'history')
+    return (await historicalDictionaryMetadata(dbs, lookup)).measures
   const rows = (
     await Promise.all(
       dbs.flatMap(db =>
@@ -568,4 +580,128 @@ async function prepareHistorySelection(
     'statsRecord',
   ])
   historySelections.set(selection, [...groups.values()].flat())
+}
+
+async function historicalDictionaryMetadata(
+  dbs: StatisticDatabase[],
+  lookup: DictionaryLookup,
+) {
+  const { readHistoryDictionaryVersions } = await import(
+    '@repo/core/pipeline/db/historyDictionaries.ts'
+  )
+  const records =
+    lookup.records ??
+    (
+      await Promise.all(
+        dbs.map(db =>
+          db
+            .select({
+              ...getTableColumns(statsRecords),
+              fieldDefinitionHashes: statisticDefinitionHashes.as(
+                'fieldDefinitionHashes',
+              ),
+            })
+            .from(statsRecords)
+            .where(statisticConditions(lookup.selection))
+            .all(),
+        ),
+      )
+    )
+      .flat()
+      .map(mapStatisticRecord)
+  const references = [
+    ...new Map(
+      records.flatMap(record =>
+        Object.entries(record.fieldDefinitionHashes).map(([identity, versionHash]) => {
+          const reference = { datasetCode: record.datasetCode, identity, versionHash }
+          return [JSON.stringify(reference), reference] as const
+        }),
+      ),
+    ).values(),
+  ]
+  const fields = await readHistoryDictionaryVersions(
+    dbs as never,
+    lookup.selection.snapshotIds,
+    'statsFields',
+    references,
+  )
+  const measureRefs = [
+    ...new Map(
+      fields.map(field => {
+        const ref = {
+          datasetCode: String(field.datasetCode),
+          identity: String(field.measureCode),
+          versionHash: String(field.measureVersionHash),
+        }
+        return [JSON.stringify(ref), ref] as const
+      }),
+    ).values(),
+  ]
+  const measures = await readHistoryDictionaryVersions(
+    dbs as never,
+    lookup.selection.snapshotIds,
+    'statsMeasures',
+    measureRefs,
+  )
+  if (fields.length !== references.length || measures.length !== measureRefs.length)
+    throw new Error('Missing historical Statistics definitions.')
+  const localeSelected = (locale: string) =>
+    lookup.localeSelection.mode === 'all' ||
+    (lookup.localeSelection.mode === 'requested' &&
+      lookup.localeSelection.locales.some(
+        value => value.toLowerCase() === locale.toLowerCase(),
+      ))
+  const labels =
+    lookup.localeSelection.mode === 'none'
+      ? []
+      : await readHistoryDictionaryVersions(
+          dbs as never,
+          lookup.selection.snapshotIds,
+          'statsFieldsI18n',
+          references,
+        )
+  const measureLabels =
+    lookup.localeSelection.mode === 'none'
+      ? []
+      : await readHistoryDictionaryVersions(
+          dbs as never,
+          lookup.selection.snapshotIds,
+          'statsMeasuresI18n',
+          measureRefs,
+        )
+  const localise = (
+    row: Record<string, unknown>,
+    names: Record<string, unknown>[],
+    identity: string,
+  ) =>
+    Object.fromEntries(
+      names
+        .filter(
+          name =>
+            name.datasetCode === row.datasetCode &&
+            name[identity] === row[identity] &&
+            name.versionHash === row.versionHash &&
+            localeSelected(String(name.locale)),
+        )
+        .map(name => [
+          String(name.locale).toLowerCase(),
+          {
+            name: name.name,
+            description: name.description,
+            isTranslationVerified: name.isTranslationVerified,
+          },
+        ]),
+    )
+  return {
+    fields: fields.map(row => ({
+      ...row,
+      i18n: localise(row, labels, 'fieldName'),
+    })) as StatisticFieldDefinition[],
+    measures: measures.map(row => ({
+      datasetCode: row.datasetCode,
+      measureCode: row.measureCode,
+      versionHash: row.versionHash,
+      i18n: localise(row, measureLabels, 'measureCode'),
+    })) as StatisticMeasureDefinition[],
+  }
 }

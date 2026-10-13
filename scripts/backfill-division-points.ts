@@ -1,18 +1,18 @@
-import { missingDivisionAreaResolver } from './division-point-area-evidence'
 import { Database } from 'bun:sqlite'
-import { mkdirSync, writeFileSync, existsSync } from 'node:fs'
-import { resolve, basename } from 'node:path'
-import {
-  canonicalDivisionPoint,
-  createDivisionPointGuard,
-} from '../libs/core/src/pipeline/services/divisions/divisionPoint'
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
+import { basename, resolve } from 'node:path'
 import {
   calculateGeoJsonBbox,
   type GeoJsonGeometry,
 } from '../libs/core/src/pipeline/geojson'
-import { decompressJsonBrotli } from '../libs/core/src/pipeline/services/storage/brotliJson'
 import { buildDivisionBaseHashInput } from '../libs/core/src/pipeline/services/divisions/division'
+import {
+  canonicalDivisionPoint,
+  createDivisionPointGuard,
+} from '../libs/core/src/pipeline/services/divisions/divisionPoint'
+import { decompressJsonBrotli } from '../libs/core/src/pipeline/services/storage/brotliJson'
 import { createHash } from '../libs/core/src/pipeline/utils'
+import { missingDivisionAreaResolver } from './division-point-area-evidence'
 
 function decode(value: unknown): any {
   if (value instanceof Uint8Array) return decompressJsonBrotli(value)
@@ -96,13 +96,15 @@ export async function backfillDivisionPoints(
         let geometry = decode(row.geometry) as GeoJsonGeometry | null
         if (!geometry && areaResolver) {
           const snapshots =
-            row.versionHash && tables[index]!.has('snapshotVersionChanges')
+            row.versionHash && tables[index]!.has('historyEvents')
               ? (
                   db
                     .query(
-                      `SELECT DISTINCT snapshotId FROM db${index}.snapshotVersionChanges WHERE recordType='division' AND recordId=? AND versionHash=?`,
+                      `SELECT DISTINCT snapshotId FROM db${index}.historyEvents WHERE recordType='division' AND recordId=? AND snapshotId=? AND versionHash=?`,
                     )
-                    .all(row.id, row.versionHash) as { snapshotId: string }[]
+                    .all(row.id, row.snapshotId, row.versionHash) as {
+                    snapshotId: string
+                  }[]
                 ).map(value => value.snapshotId)
               : [
                   tables[index]!.has('divisionPublicationState')
@@ -152,22 +154,7 @@ export async function backfillDivisionPoints(
     }
     report.changed = changes.length
     report.guards = guard.snapshot()
-    // Detect collisions between planned versions before touching any database.
-    const keepers = new Map<string, number>()
-    for (const change of [...changes].sort(
-      (a, b) => (b.isCurrent ?? 0) - (a.isCurrent ?? 0),
-    )) {
-      if (!change.hash) continue
-      const key = JSON.stringify([change.database, change.id, change.hash])
-      const existing = db
-        .query(
-          `SELECT rowid FROM db${change.database}.divisions WHERE id=? AND versionHash=?`,
-        )
-        .get(change.id, change.hash) as { rowid: number } | null
-      const keeper = existing?.rowid ?? keepers.get(key)
-      if (keeper !== undefined && keeper !== change.rowid) change.mergeInto = keeper
-      else keepers.set(key, change.rowid)
-    }
+    // Equal content hashes may belong to independent snapshot events.
     writeFileSync(
       resolve(output, 'plan.json'),
       JSON.stringify(
@@ -192,19 +179,11 @@ export async function backfillDivisionPoints(
         db.exec(
           `CREATE TABLE repairBackup.db${index}_divisions AS SELECT rowid AS repairRowid,* FROM db${index}.divisions WHERE 0`,
         )
-        if (tables[index]!.has('snapshotVersionChanges'))
-          db.exec(
-            `CREATE TABLE repairBackup.db${index}_replay AS SELECT rowid AS repairRowid,* FROM db${index}.snapshotVersionChanges WHERE 0`,
-          )
       }
       for (let index = 0; index < paths.length; index++) {
         db.exec(
           `CREATE UNIQUE INDEX repairBackup.db${index}_divisions_rowid ON db${index}_divisions(repairRowid)`,
         )
-        if (tables[index]!.has('snapshotVersionChanges'))
-          db.exec(
-            `CREATE UNIQUE INDEX repairBackup.db${index}_replay_rowid ON db${index}_replay(repairRowid)`,
-          )
       }
       for (const change of changes)
         if (change.mergeInto !== undefined) {
@@ -216,13 +195,6 @@ export async function backfillDivisionPoints(
         db.query(
           `INSERT OR IGNORE INTO repairBackup.db${change.database}_divisions SELECT rowid,* FROM db${change.database}.divisions WHERE rowid=?`,
         ).run(change.rowid)
-        if (change.hash)
-          for (let index = 0; index < paths.length; index++) {
-            if (!tables[index]!.has('snapshotVersionChanges')) continue
-            db.query(
-              `INSERT OR IGNORE INTO repairBackup.db${index}_replay SELECT rowid,* FROM db${index}.snapshotVersionChanges WHERE recordType='division' AND recordId=? AND versionHash=?`,
-            ).run(change.id, change.oldHash!)
-          }
       }
       for (const change of changes) {
         const {
@@ -262,15 +234,6 @@ export async function backfillDivisionPoints(
                 .run(geometry, bbox, rowid, oldGeometry, oldBbox)
           if (result.changes !== 1) throw Error(`Concurrent change detected for ${id}`)
         }
-        if (hash)
-          for (let index = 0; index < paths.length; index++) {
-            if (!tables[index]!.has('snapshotVersionChanges')) continue
-            report.replayReferences += db
-              .query(
-                `UPDATE db${index}.snapshotVersionChanges SET versionHash=? WHERE recordType='division' AND recordId=? AND versionHash=?`,
-              )
-              .run(hash, id, oldHash!).changes
-          }
       }
       db.exec('COMMIT')
       report.applied = true
@@ -287,10 +250,7 @@ export async function backfillDivisionPoints(
       'BEGIN IMMEDIATE;',
     ]
     for (let index = 0; index < paths.length; index++) {
-      for (const [table, suffix] of [
-        ['divisions', 'divisions'],
-        ['snapshotVersionChanges', 'replay'],
-      ]) {
+      for (const [table, suffix] of [['divisions', 'divisions']]) {
         if (!tables[index]!.has(table!)) continue
         const columns = (
           db.query(`PRAGMA db${index}.table_info(${table})`).all() as { name: string }[]

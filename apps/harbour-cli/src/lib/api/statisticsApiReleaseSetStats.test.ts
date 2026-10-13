@@ -1,14 +1,15 @@
-import { releaseFixtureSchemaSql } from '../../../../../libs/core/src/testing/releaseFixtures'
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
+import { historyEventsSqlForTables, historySchema, metaSchema } from '@repo/db'
 import { drizzle } from 'drizzle-orm/bun-sqlite'
 import { getTableConfig, type SQLiteTable } from 'drizzle-orm/sqlite-core'
-import { historySchema, metaSchema } from '@repo/db'
+import { releaseFixtureSchemaSql } from '../../../../../libs/core/src/testing/releaseFixtures'
 import {
   buildStatisticsStatsRows,
   readStatisticsStatsData,
   type StatisticsStatsData,
 } from './statisticsApiReleaseSetStats'
+
 const record = (id: string, values: Record<string, string>, datasetCode = 'a') =>
   ({
     id,
@@ -117,7 +118,7 @@ function createTables(sqlite: Database, tables: SQLiteTable[]) {
   for (const table of tables) {
     const c = getTableConfig(table)
     sqlite.exec(
-      `CREATE TABLE "${c.name}" (${c.columns.map(column => `"${column.name}" ${column.getSQLType()}`).join(',')})`,
+      `CREATE TABLE "${c.name}" (${c.columns.map(column => `"${column.name}" ${column.getSQLType()}${column.name === 'operation' ? " DEFAULT 'upsert'" : ''}`).join(',')})`,
     )
   }
 }
@@ -143,8 +144,10 @@ test('frozen history follows sparse ancestry for no-op reissues and exact defini
       historySchema.statsDefinitionSets,
       historySchema.statsFields,
       historySchema.statsFieldsI18n,
-      historySchema.snapshotVersionChanges,
     ])
+    history.exec(
+      `CREATE VIEW historyEvents AS ${historyEventsSqlForTables(new Set(['statsRecords', 'statsFields', 'statsFieldsI18n']))}`,
+    )
     meta.exec(`INSERT INTO apiReleaseSetSnapshots (apiReleaseSetId,snapshotId,role) VALUES ('api','reissue','primary');
       INSERT OR IGNORE INTO snapshotLineages (id,code,resourceType,regionCode,variant,identityMode,versionHash,createdAt,updatedAt) VALUES ('fixture-lineage-' || 'base','fixture-lineage-' || 'base','divisionStatistic','hk','default','persistent','fixture','2026-01-01T00:00:00.000Z','2026-01-01T00:00:00.000Z');
 UPDATE snapshotLineages SET resourceType='divisionStatistic' WHERE id='fixture-lineage-' || 'base' AND resourceType IS NULL;
@@ -162,16 +165,15 @@ INSERT INTO snapshots (id, snapshotLineageId, parentSnapshotId) VALUES
       ('yes','a','later-source','2025','{"population":"2"}','{"kind":"district","code":"one"}',1,'v2','definitions-f2','{}'),
       ('wrong-period','a','old-source','2024','{}','{}',1,'v3','definitions-empty','{}'),
       ('unselected','a','new-source','2025','{}','{}',1,'v4','definitions-empty','{}');
-      INSERT INTO snapshotVersionChanges (snapshotId,recordType,recordId,versionHash,operation) VALUES
-        ('base','statsRecord','yes','v1','upsert'),('base','statsRecord','wrong-period','v3','upsert');
+
       INSERT INTO statsFields (datasetCode,fieldName,sourceReleaseId,isCurrent,versionHash) VALUES
         ('a','population','old-source',0,'f1'),('a','population','later-source',1,'f2');
       INSERT INTO statsFieldsI18n (datasetCode,fieldName,sourceReleaseId,isCurrent,versionHash,locale,name) VALUES
         ('a','population','old-source',0,'f1','en','Frozen definition'),('a','population','later-source',1,'f2','en','Latest definition');`)
-    const targets = [
-      { bindingName: 'history', db: drizzle({ client: history }) },
-      { bindingName: 'copy', db: drizzle({ client: history }) },
-    ]
+    history.exec(
+      "UPDATE statsRecords SET snapshotId=CASE WHEN versionHash IN ('v1','v3') THEN 'base' ELSE 'other' END; UPDATE statsFields SET snapshotId=CASE WHEN versionHash='f1' THEN 'base' ELSE 'other' END; UPDATE statsFieldsI18n SET snapshotId=CASE WHEN versionHash='f1' THEN 'base' ELSE 'other' END;",
+    )
+    const targets = [{ bindingName: 'history', db: drizzle({ client: history }) }]
     const data = await readStatisticsStatsData(
       drizzle({ client: meta }) as never,
       targets,
@@ -189,14 +191,14 @@ INSERT INTO snapshots (id, snapshotLineageId, parentSnapshotId) VALUES
       }),
     ).rejects.toThrow('No retained')
     history.exec(
-      `INSERT INTO snapshotVersionChanges (snapshotId,recordType,recordId,versionHash,operation) VALUES ('base','statsRecord','yes','conflict','upsert')`,
+      `INSERT INTO statsRecords(snapshotId,id,versionHash,sourceReleaseId,operation) VALUES ('base','yes','conflict','source','upsert')`,
     )
     await expect(
       readStatisticsStatsData(drizzle({ client: meta }) as never, targets, {
         id: 'api',
         cohortKey: '2025',
       }),
-    ).rejects.toThrow('Conflicting')
+    ).rejects.toThrow('Ambiguous')
   } finally {
     meta.close()
     history.close()

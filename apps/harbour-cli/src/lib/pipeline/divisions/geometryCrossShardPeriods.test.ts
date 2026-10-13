@@ -3,9 +3,9 @@ import { expect, test } from 'bun:test'
 import { mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { drizzle } from 'drizzle-orm/bun-sqlite'
-import { currentSchema, historySchema, sourceSchema } from '@repo/db'
 import { normaliseDivisionAreaGeometryRow } from '@repo/core/pipeline/services/divisions/divisionGeometry'
+import { currentSchema, historySchema, sourceSchema } from '@repo/db'
+import { drizzle } from 'drizzle-orm/bun-sqlite'
 import { loadMigrationSql } from '../../../../../../libs/core/src/testing/metaFixtures.ts'
 import { createLocalExecBinding } from '../../dbCache/localDbCache.ts'
 import type { LocalAddressDbContext } from '../../dbCache/localDbCacheTypes.ts'
@@ -14,6 +14,7 @@ import { writeGeometryRowsDurably } from './nativeGeometryDelivery.ts'
 
 test('year rollover closes changed and removed source periods and retains unchanged periods in their owner shard', async () => {
   const root = await mkdtemp(join(tmpdir(), 'geometry-period-shards-'))
+  const releasePrefix = `geometry-period-test-${crypto.randomUUID()}`
   const files = Object.fromEntries(
     ['DB_CURRENT', 'DB_HISTORY', 'DB_SOURCE_2025', 'DB_SOURCE_2026', 'DB_META'].map(
       name => [name, join(root, `${name}.sqlite`)],
@@ -84,8 +85,8 @@ test('year rollover closes changed and removed source periods and retains unchan
     const version = (date: string) => ({
       source: 'overture' as const,
       variant: 'overture',
-      resourceReleaseId: `test-${date}`,
-      releaseCode: `test-${date}`,
+      resourceReleaseId: `${releasePrefix}-${date}`,
+      releaseCode: `${releasePrefix}-${date}`,
       sourceVersion: date,
       snapshotId: `snapshot-${date}`,
       snapshotLineageId: 'lineage',
@@ -98,7 +99,7 @@ test('year rollover closes changed and removed source periods and retains unchan
       [row('same'), row('changed'), row('removed')],
       version('2025-12'),
     )
-    await completeSqlDeliveryRelease(root, 'test-2025-12')
+    await completeSqlDeliveryRelease(root, `${releasePrefix}-2025-12`)
     const next = [row('same'), row('changed', 116), row('added')]
     await writeGeometryRowsDurably(context(1), 'divisionArea', next, version('2026-01'))
     const periods = () =>

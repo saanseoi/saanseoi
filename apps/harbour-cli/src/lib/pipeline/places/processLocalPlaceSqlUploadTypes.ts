@@ -1,10 +1,11 @@
 import type { DatasetProcessingMessage } from '@repo/core'
-import type { ReleaseProcessingAction } from '@repo/core/provenance/processingAction'
 import type {
-  PlaceLocalisationStatistics,
   NormalisedPlace,
+  PlaceLocalisationStatistics,
 } from '@repo/core/pipeline/services/places/place'
-import type { currentSchema, historySchema } from '@repo/db'
+import type { ReleaseProcessingAction } from '@repo/core/provenance/processingAction'
+import type { currentSchema } from '@repo/db'
+import type { PlaceVersionI18nRow, PlaceVersionRow } from '@repo/db/historySchema'
 
 export type PlaceUploadPlan = {
   datasetCode: string
@@ -36,7 +37,7 @@ export type EnrichedPlace = {
   addressDependencyHash?: string | null
   searchDependencies?: Record<
     string,
-    NonNullable<typeof historySchema.placesI18n.$inferSelect.searchDependencyText>
+    NonNullable<PlaceVersionI18nRow['searchDependencyText']>
   >
   address2dId: string | null
   address3dId: string | null
@@ -61,7 +62,7 @@ export type EnrichedPlace = {
 
 /** Only retain history fields needed for replay and address continuity. */
 export type PlaceHistoryRow = Pick<
-  typeof historySchema.places.$inferSelect,
+  PlaceVersionRow,
   | 'id'
   | 'address2dId'
   | 'addressSnapshotId'
@@ -72,11 +73,11 @@ export type PlaceHistoryRow = Pick<
   | 'resourceReleaseId'
   | 'versionHash'
 > &
-  Partial<typeof historySchema.places.$inferSelect>
+  Partial<PlaceVersionRow>
 
 export type PlaceLocaleHistoryState = {
   bindingName: string
-  row: typeof historySchema.placesI18n.$inferSelect
+  row: PlaceVersionI18nRow
 }
 
 export type PlaceHistoryState = {

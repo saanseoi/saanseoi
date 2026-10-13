@@ -1,12 +1,14 @@
-import {
-  readStatisticSnapshotRecords,
-  STATISTIC_RECORD_TYPE,
-  type RetainedStatisticRecord,
-} from '@repo/core/pipeline/services/statistics/statisticSnapshotRecords'
+import { resolveSnapshotReplayPlan } from '@repo/core/db/metaRegistry'
 import type { HarbourReadableDb } from '@repo/core/db/types'
-import { and, eq, historySchema } from '@repo/db'
-import type { CanonicalStatsRows } from './normaliseHkgovCenstatdStatistics'
+import {
+  type RetainedStatisticRecord,
+  readStatisticSnapshotRecords,
+  resolveStatisticEvents,
+  STATISTIC_RECORD_TYPE,
+} from '@repo/core/pipeline/services/statistics/statisticSnapshotRecords'
+import { and, eq, historyEventTables, historySchema } from '@repo/db'
 import { buildCanonicalStatsSqlBatches } from './canonicalStatsSql'
+import type { CanonicalStatsRows } from './normaliseHkgovCenstatdStatistics'
 import { hashStatisticContent } from './statisticsRecordIdentity'
 
 type InputRecord = CanonicalStatsRows['records'][number]
@@ -35,7 +37,7 @@ export function mergeStatisticRecord(
   previous: RetainedStatisticRecord | undefined,
   incoming: InputRecord,
   now: string,
-): RetainedStatisticRecord | null {
+): Omit<RetainedStatisticRecord, 'snapshotId' | 'operation'> | null {
   const values = { ...previous?.values, ...incoming.values }
   const fieldDefinitionHashes = {
     ...previous?.fieldDefinitionHashes,
@@ -134,7 +136,7 @@ export async function planCanonicalStatistics(args: {
       if (incoming.referencePeriodCode !== snapshot.cohortKey) continue
       const row = mergeStatisticRecord(previous.get(incoming.id), incoming, now)
       if (!row) continue
-      changed.push(row)
+      changed.push({ ...row, snapshotId: snapshot.id, operation: 'upsert' })
       changes.push({
         shardYear: row.referencePeriodEndYear,
         row: {
@@ -160,11 +162,11 @@ export async function planCanonicalStatistics(args: {
     for (const db of args.historyDbs) {
       const staged = await db
         .select()
-        .from(historySchema.snapshotVersionChanges)
+        .from(historySchema.historyEvents)
         .where(
           and(
-            eq(historySchema.snapshotVersionChanges.snapshotId, snapshot.id),
-            eq(historySchema.snapshotVersionChanges.recordType, STATISTIC_RECORD_TYPE),
+            eq(historySchema.historyEvents.snapshotId, snapshot.id),
+            eq(historySchema.historyEvents.recordType, STATISTIC_RECORD_TYPE),
           ),
         )
         .all()
@@ -210,6 +212,61 @@ export async function planCanonicalStatistics(args: {
       rows: args.canonical.valuesI18n.map(versionDictionary),
     },
   ]
+  const dictionaryHistory: Array<{
+    table: (typeof dictionaries)[number]['table']
+    rows: Record<string, unknown>[]
+    shardYear: string
+  }> = []
+  for (const snapshot of args.snapshots) {
+    const parent = snapshot.parentSnapshotId
+      ? await resolveSnapshotReplayPlan(args.metaDb, snapshot.parentSnapshotId)
+      : []
+    const types = Object.entries(historyEventTables).filter(([, definition]) =>
+      dictionaries.some(group => group.table === definition.table),
+    )
+    const previous = await resolveStatisticEvents(
+      args.historyDbs,
+      parent.map(step => step.snapshotId),
+      types.map(([type]) => type),
+    )
+    const hashes = new Map(
+      [...previous.values()]
+        .flat()
+        .map(row => [
+          JSON.stringify([row.recordType, row.recordId, row.locale]),
+          row.versionHash,
+        ]),
+    )
+    const years = new Set(
+      changed
+        .filter(row => row.snapshotId === snapshot.id)
+        .map(row => row.referencePeriodEndYear),
+    )
+    for (const group of dictionaries) {
+      const [recordType, definition] = types.find(
+        ([, definition]) => definition.table === group.table,
+      )!
+      const rows = group.rows
+        .filter(row => {
+          const data = row as Record<string, unknown>
+          const id = JSON.stringify(definition.keys.map(key => data[key]))
+          return (
+            hashes.get(
+              JSON.stringify([
+                recordType,
+                id,
+                'locale' in definition ? data[definition.locale] : '',
+              ]),
+            ) !== data.versionHash
+          )
+        })
+        .map(row => ({ ...row, snapshotId: snapshot.id, operation: 'upsert' }))
+      // Definition content is written once; immutable record maps reference its hash.
+      const shardYear = [...years].sort()[0]
+      if (shardYear && rows.length)
+        dictionaryHistory.push({ table: group.table, rows, shardYear })
+    }
+  }
   return {
     changedRecords: changed,
     unchangedRecords: args.canonical.records.length - changed.length,
@@ -220,9 +277,8 @@ export async function planCanonicalStatistics(args: {
     ) =>
       buildCanonicalStatsSqlBatches({
         current: [],
-        history: [{ rows: changed, table: 'statsRecords' }],
-        changes,
-        dictionaries,
+        history: [{ rows: changed, table: 'statsRecords' }, ...dictionaryHistory],
+        dictionaries: [],
         resolutions,
       }),
   }

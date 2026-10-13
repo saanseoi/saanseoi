@@ -1,6 +1,7 @@
 import type { Database } from 'bun:sqlite'
 import type { SnapshotReplayStep } from '@repo/core/db/metaRegistry'
 import type { ResolvedSnapshotVersion } from '@repo/core/pipeline/db/snapshotReplay'
+import { historyDeletionSql } from '@repo/db'
 import type { AlsMembership } from '../../sources/hkgov/dpo/hkgovAlsMembership.ts'
 
 type Candidates = Record<string, { db: Database }>
@@ -17,68 +18,44 @@ export function closeResolvedAddressHistory(input: {
 }) {
   const history = input.candidates[input.historyBinding]!.db
   const current = input.candidates.DB_CURRENT!.db
-  const changes = new Map(
-    history
-      .query<
-        {
-          recordType: string
-          recordId: string
-          locale: string
-          versionHash: string | null
-        },
-        [string]
-      >(
-        "SELECT recordType,recordId,locale,versionHash FROM snapshotVersionChanges WHERE snapshotId=? AND recordType IN ('address2d','address2dI18n')",
-      )
-      .all(input.snapshotId)
-      .map(row => [
-        `${row.recordType}\0${row.recordId}\0${row.locale}`,
-        row.versionHash,
-      ]),
-  )
   for (const prior of input.prior) {
-    if (!['address2d', 'address2dI18n'].includes(prior.recordType)) continue
-    const key = `${prior.recordType}\0${prior.recordId}\0${prior.locale}`
+    if (
+      !['address2d', 'address2dI18n', 'address2dBuildingNumberLookup'].includes(
+        prior.recordType,
+      )
+    )
+      continue
     const present =
       prior.recordType === 'address2d'
         ? current
             .query('SELECT 1 FROM address2d WHERE snapshotId=? AND id=?')
             .get(input.scopeId, prior.recordId)
-        : current
-            .query(
-              'SELECT 1 FROM address2dI18n WHERE snapshotId=? AND addressId=? AND locale=?',
-            )
-            .get(input.scopeId, prior.recordId, prior.locale)
-    if (!present) {
-      history
-        .query(`INSERT INTO snapshotVersionChanges(snapshotId,recordType,recordId,locale,versionHash,operation,sourceReleaseId,createdAt,updatedAt)
-        VALUES(?,?,?,?,NULL,'delete',?,?,?) ON CONFLICT(snapshotId,recordType,recordId,locale) DO NOTHING`)
-        .run(
-          input.snapshotId,
-          prior.recordType,
-          prior.recordId,
-          prior.locale,
-          input.resourceReleaseId,
-          input.now,
-          input.now,
-        )
-      changes.set(key, null)
-    }
-    if (!changes.has(key) || changes.get(key) === prior.versionHash) continue
-    const db = input.candidates[prior.shard.bindingName]?.db
-    if (!db)
-      throw new Error(`Missing prior Address history shard ${prior.shard.bindingName}.`)
-    if (prior.recordType === 'address2d') {
-      db.query(
-        'UPDATE address2d SET isCurrent=0,updatedAt=? WHERE id=? AND versionHash=? AND isCurrent=1',
-      ).run(input.now, prior.recordId, prior.versionHash)
-      // Lookup components close independently in coalesceAddressHistory; a base
-      // change can leave the exact building-number evidence unchanged.
-    } else {
-      db.query(
-        'UPDATE address2dI18n SET isCurrent=0,updatedAt=? WHERE addressId=? AND versionHash=? AND locale=? AND isCurrent=1',
-      ).run(input.now, prior.recordId, prior.versionHash, prior.locale)
-    }
+        : prior.recordType === 'address2dBuildingNumberLookup'
+          ? (() => {
+              const [addressId, buildingNumber] = JSON.parse(prior.recordId)
+              return current
+                .query(
+                  'SELECT 1 FROM address2dBuildingNumberLookup WHERE snapshotId=? AND addressId=? AND buildingNumber=?',
+                )
+                .get(input.scopeId, addressId, buildingNumber)
+            })()
+          : current
+              .query(
+                'SELECT 1 FROM address2dI18n WHERE snapshotId=? AND addressId=? AND locale=?',
+              )
+              .get(input.scopeId, prior.recordId, prior.locale)
+    if (!present)
+      history.exec(
+        historyDeletionSql({
+          snapshotId: input.snapshotId,
+          recordType: prior.recordType,
+          recordId: prior.recordId,
+          locale: prior.locale,
+          sourceReleaseId: input.resourceReleaseId,
+          createdAt: input.now,
+          updatedAt: input.now,
+        }),
+      )
   }
 }
 

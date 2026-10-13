@@ -3,35 +3,35 @@ import { expect, test } from 'bun:test'
 import { mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
-import { drizzle } from 'drizzle-orm/bun-sqlite'
-import { getTableConfig } from 'drizzle-orm/sqlite-core'
-import {
-  currentSchema,
-  historySchema,
-  metaSchema,
-  sourceSchema,
-  type MetaDatabase,
-} from '@repo/db'
-import { loadMigrationSql } from '../../../../../../libs/core/src/testing/metaFixtures.ts'
-import type {
-  AddressPipelineMessage,
-  ResolvedAddressChunkArtefact,
-} from '@repo/core/pipeline/services/addresses/types'
+import { resolveSnapshotVersionState } from '@repo/core/pipeline/db/snapshotReplay'
 import {
   buildAddressCurrentSqlImportFile,
   buildAddressHistoryApplySqlImportFile,
   buildAddressHistorySqlImportFile,
 } from '@repo/core/pipeline/services/addresses/sqlImport'
-import type { LocalAddressDbContext } from '../../dbCache/localDbCacheTypes.ts'
+import type {
+  AddressPipelineMessage,
+  ResolvedAddressChunkArtefact,
+} from '@repo/core/pipeline/services/addresses/types'
+import {
+  currentSchema,
+  historySchema,
+  type MetaDatabase,
+  metaSchema,
+  sourceSchema,
+} from '@repo/db'
+import { drizzle } from 'drizzle-orm/bun-sqlite'
+import { getTableConfig } from 'drizzle-orm/sqlite-core'
+import { loadMigrationSql } from '../../../../../../libs/core/src/testing/metaFixtures.ts'
 import { createLocalExecBinding } from '../../dbCache/localDbCache.ts'
+import type { LocalAddressDbContext } from '../../dbCache/localDbCacheTypes.ts'
+import type { AlsMembership } from '../../sources/hkgov/dpo/hkgovAlsMembership.ts'
 import { LocalPipelineBucket } from '../local/localBucket.ts'
 import { fileSha256 } from './address3dImport.ts'
 import {
   captureResolvedAddressDelivery,
   validateResolvedAddressProjection,
 } from './resolvedAddressDelivery.ts'
-import type { AlsMembership } from '../../sources/hkgov/dpo/hkgovAlsMembership.ts'
-import { resolveSnapshotVersionState } from '@repo/core/pipeline/db/snapshotReplay'
 
 test('combined Address planning seals only final changes and rejects incomplete projections before emission', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'resolved-address-test-'))
@@ -296,7 +296,13 @@ test('combined Address planning seals only final changes and rejects incomplete 
               { bindingName: 'DB_HISTORY_HK_2026', db: context.historyDb as never },
             ],
           ]),
-          ['address2d', 'address2dI18n', 'address3d', 'address3dI18n'],
+          [
+            'address2d',
+            'address2dI18n',
+            'address2dBuildingNumberLookup',
+            'address3d',
+            'address3dI18n',
+          ],
         )
       ).values(),
     ]
@@ -384,7 +390,7 @@ test('combined Address planning seals only final changes and rejects incomplete 
     ).toBe(1)
     expect(
       changed.mutationSummary.tables.DB_HISTORY_HK_2026?.address2dI18n?.updated,
-    ).toBe(1)
+    ).toBe(0)
     expect(
       changed.mutationSummary.tables.DB_HISTORY_HK_2026?.address2dBuildingNumberLookup
         ?.inserted,

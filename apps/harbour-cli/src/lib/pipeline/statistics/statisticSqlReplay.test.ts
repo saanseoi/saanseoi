@@ -1,10 +1,10 @@
-import { describe, expect, test } from 'bun:test'
 import { Database } from 'bun:sqlite'
+import { describe, expect, test } from 'bun:test'
 import { captureSqlDeliveryBatches } from '../local/sqlDeliveryBatchCapture.ts'
 
 import {
-  buildStatisticSqlBatches,
   buildCenstatdGeometryStatements,
+  buildStatisticSqlBatches,
   replayStatisticSqlBatches,
 } from './statisticSqlReplay.ts'
 
@@ -39,6 +39,7 @@ function sourceRow(sourceRecordId: string) {
 
 function historyRow(id: string) {
   return {
+    snapshotId: 'snapshot',
     createdAt: '2026-08-16T00:00:00.000Z',
     districtCode: '1',
     divisionId: 'district-1',
@@ -163,7 +164,7 @@ describe('buildStatisticSqlBatches', () => {
     expect(sourceSql).toContain(
       'ON CONFLICT ("datasetCode", "resourceReleaseId", "sourceRecordId", "versionHash") DO UPDATE SET',
     )
-    expect(historySql).toContain('ON CONFLICT ("id", "versionHash") DO UPDATE SET')
+    expect(historySql).toContain('ON CONFLICT ("id", "snapshotId") DO NOTHING')
     expect(sourceSql.indexOf("'district-1'")).toBeLessThan(
       sourceSql.indexOf("'district-2'"),
     )
@@ -206,7 +207,7 @@ describe('buildStatisticSqlBatches', () => {
         landAreaSqKm REAL, midYearPopulation INTEGER,
         midYearPopulationDensityPerSqKm INTEGER, referenceYear TEXT,
         sourceReleaseId TEXT, sources TEXT, updatedAt TEXT, versionHash TEXT,
-        PRIMARY KEY (id, versionHash)
+        snapshotId TEXT, PRIMARY KEY (id, snapshotId)
       );
     `)
 

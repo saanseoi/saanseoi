@@ -278,10 +278,10 @@ without rewriting either canonical row or adding a snapshot-membership row for i
 Source assertions and publication metadata retain the new release's evidence.
 
 History stores immutable complete versions only for changed packs, sharded by the
-reference period's end year. `snapshotVersionChanges` records sparse `statsRecord`
-upserts along the snapshot parent chain; a snapshot with no changed packs inherits its
-parent's complete state. Publication promotes changed selected packs into current.
-Deferred or incomplete ingestion does not replace published current data.
+reference period's end year. Inline HISTORY events record sparse `statsRecord` upserts
+along the snapshot parent chain; a snapshot with no changed packs inherits its parent's
+complete state. Publication promotes changed selected packs into current. Deferred or
+incomplete ingestion does not replace published current data.
 
 `statsPublicationState` holds one readiness checkpoint per dataset and exact reference
 period. Its selected `snapshotId` and `publishing`/`current` status gate API reads while

@@ -1,11 +1,18 @@
-import type { HarbourReadableDb } from '@repo/core/db/types'
 import { resolveSnapshotReplayPlan } from '@repo/core/db/metaRegistry'
+import type { HarbourReadableDb } from '@repo/core/db/types'
 import {
-  resolveSnapshotVersionState,
+  historyVersionSelection,
   type ReplayShard,
   type ResolvedSnapshotVersion,
+  resolveSnapshotVersionState,
 } from '@repo/core/pipeline/db/snapshotReplay'
-import { eq, getTableColumns, historySchema, metaSchema, sql } from '@repo/db'
+import {
+  eq,
+  getTableColumns,
+  historyEventTables,
+  historySchema,
+  metaSchema,
+} from '@repo/db'
 import type { SQLiteTable } from 'drizzle-orm/sqlite-core'
 
 export type ProjectionComponent = {
@@ -52,8 +59,8 @@ export async function resolveValidatedProjectionVersions(input: {
         )
       const rows = await shard.db
         .select()
-        .from(historySchema.snapshotVersionChanges)
-        .where(eq(historySchema.snapshotVersionChanges.snapshotId, step.snapshotId))
+        .from(historySchema.historyEvents)
+        .where(eq(historySchema.historyEvents.snapshotId, step.snapshotId))
         .all()
       for (const row of rows) {
         if (!input.recordTypes.includes(String(row.recordType))) continue
@@ -108,10 +115,6 @@ export async function* readExactProjectionRows(
   const grouped = new Map<string, ResolvedSnapshotVersion[]>()
   for (const version of versions) {
     if (version.recordType !== component.recordType) continue
-    if (component.hashIdentity && version.recordId !== version.versionHash)
-      throw new Error(
-        `Invalid ${component.recordType} journal identity ${version.recordId}.`,
-      )
     const group = grouped.get(version.shard.bindingName) ?? []
     group.push(version)
     grouped.set(version.shard.bindingName, group)
@@ -132,15 +135,21 @@ export async function* readExactProjectionRows(
       const rows = await first.shard.db
         .select()
         .from(table)
-        .where(
-          sql`${hash} in (select value from json_each(${JSON.stringify(batch.map(version => version.versionHash))}))`,
-        )
+        .where(historyVersionSelection(table, batch))
         .all()
       const found = new Set<string>()
       const selected: ProjectionRow[] = []
       for (const row of rows) {
         const identity = key(
-          component.hashIdentity ? row.versionHash : row[component.id],
+          (() => {
+            const definition =
+              historyEventTables[
+                component.recordType as keyof typeof historyEventTables
+              ]
+            return definition.keys.length === 1
+              ? row[definition.keys[0]!]
+              : JSON.stringify(definition.keys.map(key => row[key]))
+          })(),
           component.localised ? row.locale : '',
           row.versionHash,
         )

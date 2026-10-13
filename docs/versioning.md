@@ -108,7 +108,7 @@ answers a different question:
 | Dataset release         | Which publisher delivery did we ingest?                                 |
 | Source row version      | Did the source record's content change?                                 |
 | Snapshot                | Which assembled resource state applies to this lineage/cohort/revision? |
-| Snapshot change journal | Which content versions differ from this snapshot's exact parent?        |
+| Canonical inline events | Which content versions differ from this snapshot's exact parent?        |
 | Schema version          | What data fields and types exist?                                       |
 | Ruleset version         | How were source values selected, normalised, and merged?                |
 | API composition         | Which domains, variants, roles, and cohort rules are supported?         |
@@ -223,7 +223,7 @@ flowchart LR
   Source[Raw source or resource fixture] --> Release
   Bridge[Identifier bridge fixture<br/>release + cohort scoped] --> Snapshot
   SupportingRelease[Supporting dataset release] --> Snapshot
-  Snapshot --> Journal[Parent-relative change journal]
+  Snapshot --> Journal[Parent-relative canonical events]
   Parent[Exact parent snapshot] --> Snapshot
 
   classDef fixture fill:#e8f1ff,stroke:#4a78a8,color:#142b44
@@ -357,7 +357,7 @@ flowchart TD
   EffectiveSet --> Snapshots
   DefaultSet --> Snapshots
   Snapshots --> Pinned[Apply pinned schema, ruleset,<br/>field provenance, handler]
-  Pinned --> Content[Read or reconstruct snapshots<br/>from parent graph + journal]
+  Pinned --> Content[Read or reconstruct snapshots<br/>from parent graph + events]
   Content --> Response[Replayable response]
 
   classDef request fill:#fff5db,stroke:#9c6b18,color:#493000
@@ -651,57 +651,39 @@ This is a directed acyclic graph, not a validity range. A late 2006 backfill can
 from the state before 2006 without pretending that it precedes already published 2022 or
 2025 snapshots. Those later snapshots change only if they are explicitly rebuilt.
 
-### Canonical content versions and snapshot change journal
+### Canonical history events
 
-Canonical history remains split into two compact layers. Existing version tables such as
-`divisions`, `divisionsI18n`, `address2d`, and `divisionAreas` are retained as the
-deduplicated **content store**. Their logical version key is the entity key plus
-semantic `versionHash`; unchanged content is stored once and can be referenced by many
-snapshots.
+Each canonical HISTORY row is an immutable event introducing a component at a snapshot.
+Its primary key is the component identity plus `snapshotId`, including the locale or
+composite identity where applicable. `operation` is `upsert` or `delete`. An upsert
+stores its canonical payload, semantic `versionHash` and `sourceReleaseId`; a deletion
+requires only its identity and snapshot, with a null hash. Unchanged components inherit
+from the selected parent and require no new HISTORY row. Reversions and independent
+branch changes store their own event, even when the content hash matches an older row.
 
-Those tables no longer contain `validFromSnapshotId`, `validToSnapshotId`,
-`validFromCohortKey`, or `validToCohortKey`. A pair of range endpoints assumes one total
-ordering and cannot say whether a same-cohort revision, late backfill, or later branch
-contains a row. `snapshotId` and `isCurrent` remain only as mutable ingestion/cache
-metadata. They MUST NOT be used as replay authority.
+`historyEvents` is a read-only SQL view over these inline events. It stores no rows and
+receives no inserts, updates or deletes. There is no second membership write for an
+upsert. `sourceResolutions` retains scoped interpretation evidence, while
+`statsDefinitionSets` retains content-addressed field-reference maps; neither is a
+second canonical membership journal. SOURCE release validity remains independent.
 
-Snapshot membership is recorded in `snapshotVersionChanges`:
+To reconstruct a snapshot, follow its `parentSnapshotId` chain and recorded
+`snapshotShardAssignments`. Resolve the nearest event for each component identity, then
+filter or paginate the resulting membership. Content reads use the introducing snapshot,
+identity, locale and hash together. A content hash alone does not identify an event.
+Missing assigned bindings and competing event owners are errors.
 
-| Column            | Meaning                                                      |
-| ----------------- | ------------------------------------------------------------ |
-| `snapshotId`      | Snapshot whose parent-relative change is recorded            |
-| `recordType`      | Content table kind, for example `division` or `divisionI18n` |
-| `recordId`        | Stable entity identifier                                     |
-| `locale`          | Locale for translated rows; empty string for non-i18n rows   |
-| `operation`       | `upsert` or `delete`                                         |
-| `versionHash`     | Exact content version for an upsert; null for a tombstone    |
-| `sourceReleaseId` | Release responsible for the change                           |
+A base deletion clears inherited dependent components. Restoration does not resurrect
+old translations; restored components require explicit events. Omitting a locale from a
+live base writes a locale tombstone. Writers compare against the selected parent and
+never close or update ancestor rows. The retained `isCurrent` column is an operational
+hint only and never defines snapshot membership.
 
-Its primary key is `(snapshotId, recordType, recordId, locale)`. A retry replaces the
-same draft change; publication makes the snapshot and its journal immutable.
-
-To reconstruct a snapshot, walk `parentSnapshotId` from the requested snapshot to the
-lineage root, then apply each snapshot's changes root-to-leaf. An upsert selects the
-matching content-version row; a delete removes the key. Implementations may resolve the
-same result more efficiently by walking leaf-to-root and taking the first change for
-each key. Because the parent graph is stored in meta while content and changes may be
-year-sharded, the resolver MUST follow recorded shard assignments rather than assuming
-the parent lives in the same database.
-
-`snapshotShardAssignments` records those locations explicitly. Ingestion writes the
-history assignment with the draft snapshot; legacy assignments are backfilled from
-source-release placement. The shared resolver validates the parent graph, applies each
-assigned journal delta root-to-leaf, and retains the owning shard for every live content
-hash. A missing binding is an error, never permission to use globally current rows.
-
-Deleting a base record also removes its dependent i18n records from the reconstructed
-state. When a base record remains but a locale disappears, the writer records an
-explicit locale tombstone.
-
-Before producing a child delta, an ingestion writer MUST compare against the exact
-materialised parent snapshot, not whichever rows happen to have `isCurrent=1`. This is
-what makes out-of-order backfills and revisions safe. `isCurrent` may be refreshed after
-publication for operational convenience without changing replay.
+Fresh databases use the generated HISTORY schema. Populated databases require
+reingestion with their snapshot ancestry and shard assignments preserved and verified.
+The generated structural migration alone cannot recover event origins from mutable
+content-store metadata. Do not apply it to populated HISTORY shards as a data
+conversion.
 
 ### Schema version
 
@@ -1003,7 +985,7 @@ For an ordinary upload, Harbour performs the following logical steps:
 2. Register the immutable dataset release and its source version/schema.
 3. Ingest source rows, retaining new content rows only where `versionHash` changed.
 4. Resolve or create the dataset's snapshot lineage.
-5. Resolve the snapshot's exact parent, materialise that state, and journal only the
+5. Resolve the snapshot's exact parent, materialise that state, and append only the
    parent-relative upserts and tombstones needed for the draft snapshot.
 6. Select exact, at-or-before, fallback, or other supporting snapshots according to the
    current composition.
@@ -1072,7 +1054,7 @@ The server resolves a request in this order:
 6. Select the immutable snapshot members and requested variants from that release.
 7. Apply the pinned schema, domain ruleset, field provenance, and API handler.
 8. Read a materialised current snapshot or reconstruct the selected snapshot from its
-   parent graph, change journal, and deduplicated content versions.
+   parent graph and inline canonical events.
 
 Request-time reconstruction is read-only. It MUST NOT populate `CURRENT`. `CURRENT` is
 the publication-managed hot store for current API defaults, not a historical response
@@ -1304,7 +1286,8 @@ Use the following decision sequence:
 
 1. **Did a publisher delivery change?** Create a source release.
 2. **Did the input shape change?** Change `sourceSchemaVersion`.
-3. **Did semantic row content change?** Store a new content-hash history row.
+3. **Did semantic row content change?** Store an event containing the changed content
+   and its introducing snapshot.
 4. **Did one lineage/cohort assemble differently?** Create the next snapshot revision.
 5. **Did canonical/public fields or types change?** Bump the schema version.
 6. **Did normalisation, selection, merge, or derivation change?** Bump the domain
@@ -1329,7 +1312,7 @@ We retain:
 - raw source releases in object storage according to retention policy
 - immutable source-release metadata
 - change-only source and canonical entity versions keyed by `versionHash`
-- parent links and compact `snapshotVersionChanges` deltas/tombstones
+- parent links and inline canonical HISTORY events/tombstones
 - compact snapshot source manifests
 - compact domain-release snapshot manifests
 - compact catalogue membership manifests
@@ -1443,7 +1426,7 @@ Before publishing a stable API version:
 
 This document defines the target stable-version policy. The v0 platform has the control
 plane foundations—domain-scoped release sets, snapshot lineages and parent links,
-catalogue revisions, a snapshot change journal, and a version-specific route boundary—
+catalogue revisions, a snapshot event storage, and a version-specific route boundary—
 but v0 deliberately offers no external durability guarantee. The cross-shard resolver
 and recorded snapshot placement now exist, and division ingestion materialises its exact
 parent. Remaining resource writers and Atlas readers must adopt that shared resolver
@@ -1451,11 +1434,10 @@ before v0 can make a family-wide replay promise.
 
 The former `divisionAreas` migration exception is closed. The oversized rows were an
 ingestion bug: they attached PRC land and maritime geometry to an identity-only parent
-fixture. Cleanup removes those canonical, source, current, and journal records before
-the last physical validity columns are removed. Geometry normalisation now rejects all
-areas attached to a referent-only division before decoding or writing geometry.
-Boundaries may still reference that division because a border does not materialise the
-referent's area.
+fixture. Cleanup removes those canonical history, source, and current records before the
+last physical validity columns are removed. Geometry normalisation now rejects all areas
+attached to a referent-only division before decoding or writing geometry. Boundaries may
+still reference that division because a border does not materialise the referent's area.
 
 One known transitional restriction is that the current Harbour uploader requires a new
 source version to sort after the latest registered version for the same feed. That check

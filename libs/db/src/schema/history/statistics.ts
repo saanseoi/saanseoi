@@ -1,22 +1,33 @@
-import { jsonText } from '../shared'
-import { text, index, primaryKey, sqliteTable } from 'drizzle-orm/sqlite-core'
-
+import { index, primaryKey, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 import {
-  canonicalStatsField,
-  canonicalStatsFieldI18n,
-  canonicalStatsMeasure,
-  canonicalStatsMeasureI18n,
-  canonicalStatsRecord,
-  canonicalStatsValueI18n,
+  canonicalStatsFieldColumns,
+  canonicalStatsFieldI18nColumns,
+  canonicalStatsMeasureColumns,
+  canonicalStatsMeasureI18nColumns,
+  canonicalStatsRecordColumns,
+  canonicalStatsValueI18nColumns,
+  jsonText,
 } from '../shared'
+import { historyEventConstraints } from './constraints'
 import { historyStatisticVersioning } from './shared'
 
 /** Immutable canonical observations, including superseded publisher revisions. */
 export const statsRecords = sqliteTable(
   'statsRecords',
-  { ...canonicalStatsRecord, ...historyStatisticVersioning },
+  { ...canonicalStatsRecordColumns(false), ...historyStatisticVersioning },
   table => [
-    primaryKey({ columns: [table.id, table.versionHash] }),
+    ...historyEventConstraints(table, [
+      'datasetCode',
+      'sourceFeatureRef',
+      'referencePeriodCode',
+      'referencePeriodGranularity',
+      'referencePeriodEndYear',
+      'geography',
+      'fieldSources',
+      'definitionSetId',
+      'values',
+    ]),
+    primaryKey({ columns: [table.id, table.snapshotId] }),
     index('statsRecords_current_lookup_idx').on(table.id, table.isCurrent),
     index('statsRecords_source_release_idx').on(table.sourceReleaseId),
   ],
@@ -24,10 +35,20 @@ export const statsRecords = sqliteTable(
 
 export const statsFields = sqliteTable(
   'statsFields',
-  { ...canonicalStatsField, ...historyStatisticVersioning },
+  { ...canonicalStatsFieldColumns(false), ...historyStatisticVersioning },
   table => [
+    ...historyEventConstraints(table, [
+      'measureCode',
+      'measureVersionHash',
+      'sourceField',
+      'dimensions',
+      'statisticKind',
+      'aggregation',
+      'valueKind',
+      'unitCode',
+    ]),
     primaryKey({
-      columns: [table.datasetCode, table.fieldName, table.versionHash],
+      columns: [table.datasetCode, table.fieldName, table.snapshotId],
     }),
     index('statsFields_current_lookup_idx').on(
       table.datasetCode,
@@ -39,10 +60,11 @@ export const statsFields = sqliteTable(
 
 export const statsMeasures = sqliteTable(
   'statsMeasures',
-  { ...canonicalStatsMeasure, ...historyStatisticVersioning },
+  { ...canonicalStatsMeasureColumns(false), ...historyStatisticVersioning },
   table => [
+    ...historyEventConstraints(table, []),
     primaryKey({
-      columns: [table.datasetCode, table.measureCode, table.versionHash],
+      columns: [table.datasetCode, table.measureCode, table.snapshotId],
     }),
     index('statsMeasures_current_lookup_idx').on(
       table.datasetCode,
@@ -54,35 +76,38 @@ export const statsMeasures = sqliteTable(
 
 export const statsMeasuresI18n = sqliteTable(
   'statsMeasuresI18n',
-  { ...canonicalStatsMeasureI18n, ...historyStatisticVersioning },
+  { ...canonicalStatsMeasureI18nColumns(false), ...historyStatisticVersioning },
   table => [
+    ...historyEventConstraints(table, ['name', 'isTranslationVerified']),
     primaryKey({
-      columns: [table.datasetCode, table.measureCode, table.locale, table.versionHash],
+      columns: [table.datasetCode, table.measureCode, table.locale, table.snapshotId],
     }),
   ],
 )
 
 export const statsFieldsI18n = sqliteTable(
   'statsFieldsI18n',
-  { ...canonicalStatsFieldI18n, ...historyStatisticVersioning },
+  { ...canonicalStatsFieldI18nColumns(false), ...historyStatisticVersioning },
   table => [
+    ...historyEventConstraints(table, ['name', 'isTranslationVerified']),
     primaryKey({
-      columns: [table.datasetCode, table.fieldName, table.locale, table.versionHash],
+      columns: [table.datasetCode, table.fieldName, table.locale, table.snapshotId],
     }),
   ],
 )
 
 export const statsValuesI18n = sqliteTable(
   'statsValuesI18n',
-  { ...canonicalStatsValueI18n, ...historyStatisticVersioning },
+  { ...canonicalStatsValueI18nColumns(false), ...historyStatisticVersioning },
   table => [
+    ...historyEventConstraints(table, ['name']),
     primaryKey({
       columns: [
         table.datasetCode,
         table.dimensionCode,
         table.valueCode,
         table.locale,
-        table.versionHash,
+        table.snapshotId,
       ],
     }),
   ],

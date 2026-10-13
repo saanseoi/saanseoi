@@ -76,24 +76,6 @@ export function reconcileAddressIdCopy(db: Database, mapping: AddressIdMapping) 
           .run(kind, kind)
         if (result.changes) counts[`${table}.${field}`] = result.changes
       }
-      if (table === 'snapshotVersionChanges') {
-        for (const kind of ['address2d', 'address3d'] as const) {
-          const result = db
-            .query(
-              `UPDATE snapshotVersionChanges SET recordId=(SELECT newId FROM addressIdMapping WHERE kind=? AND oldId=recordId) WHERE recordType IN (SELECT value FROM json_each(?)) AND recordId IN (SELECT oldId FROM addressIdMapping WHERE kind=?)`,
-            )
-            .run(
-              kind,
-              JSON.stringify(
-                kind === 'address2d'
-                  ? ['address2d', 'address2dI18n', 'address2dBuildingNumberLookup']
-                  : ['address3d', 'address3dI18n'],
-              ),
-              kind,
-            )
-          counts[`snapshotVersionChanges.${kind}`] = result.changes
-        }
-      }
       if (table === 'sourceResolutions') {
         const rows = db
           .query<{ rowid: number; resolutions: string }, []>(

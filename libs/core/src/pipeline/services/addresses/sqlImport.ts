@@ -1,17 +1,16 @@
-import { stringifyGeoJson } from '@repo/db/geoJsonSerialisation'
-import { sourceLocatorFromReferences } from '../sources/sourcePayload'
-import { readAlsPublisherSource } from '../sources/alsSourcePayload'
-import { sourceResolutionSql } from '../../db/sourceResolutions'
-import type { DatasetProcessingMessage } from '../../../types'
 import { buildDeterministicUuidV5 } from '@repo/db'
-
+import { stringifyGeoJson } from '@repo/db/geoJsonSerialisation'
+import type { DatasetProcessingMessage } from '../../../types'
+import { buildAlignAddressCurrentDivisionSnapshotSql } from '../../db/address'
+import { buildSourceReleaseId } from '../../db/source'
+import { sourceResolutionSql } from '../../db/sourceResolutions'
+import { readAlsPublisherSource } from '../sources/alsSourcePayload'
+import { sourceLocatorFromReferences } from '../sources/sourcePayload'
+import { buildAddressBuildingNumberLookupRows } from './normalisation'
 import type {
   NormalisedAddressChunkArtefact,
   ResolvedAddressChunkArtefact,
 } from './types'
-import { buildAlignAddressCurrentDivisionSnapshotSql } from '../../db/address'
-import { buildSourceReleaseId } from '../../db/source'
-import { buildAddressBuildingNumberLookupRows } from './normalisation'
 
 export type AddressSqlImportTarget =
   | 'source'
@@ -613,29 +612,13 @@ export function buildAddressRetirementSqlImportFiles(
   const ids = [...new Set(options.addressIds)].sort()
   for (let offset = 0; offset < ids.length; offset += 100) {
     const membership = `SELECT value FROM json_each(${sqlLiteral(JSON.stringify(ids.slice(offset, offset + 100)))})`
-    // Locale tombstones are needed when an address later returns with fewer translations.
-    historyStatements.push(`INSERT INTO snapshotVersionChanges (
-  snapshotId, recordType, recordId, locale, versionHash, operation, sourceReleaseId, createdAt, updatedAt
+    historyStatements.push(`INSERT INTO address2d (
+  snapshotId, id, versionHash, operation, sourceReleaseId, createdAt, updatedAt
 )
-SELECT ${snapshot}, 'address2dI18n', addressId, locale, NULL, 'delete', ${release}, ${now}, ${now}
-FROM address2dI18n WHERE isCurrent = 1 AND addressId IN (${membership})
-ON CONFLICT(snapshotId, recordType, recordId, locale) DO UPDATE SET
-  versionHash = NULL, operation = 'delete', sourceReleaseId = excluded.sourceReleaseId, updatedAt = excluded.updatedAt;`)
-    historyStatements.push(`INSERT INTO snapshotVersionChanges (
-  snapshotId, recordType, recordId, locale, versionHash, operation, sourceReleaseId, createdAt, updatedAt
-)
-SELECT ${snapshot}, 'address2d', value, '', NULL, 'delete', ${release}, ${now}, ${now}
+SELECT ${snapshot}, value, NULL, 'delete', ${release}, ${now}, ${now}
 FROM json_each(${sqlLiteral(JSON.stringify(ids.slice(offset, offset + 100)))}) WHERE 1
-ON CONFLICT(snapshotId, recordType, recordId, locale) DO UPDATE SET
+ON CONFLICT(id, snapshotId) DO UPDATE SET
   versionHash = NULL, operation = 'delete', sourceReleaseId = excluded.sourceReleaseId, updatedAt = excluded.updatedAt;`)
-    for (const [table, key] of [
-      ['address2d', 'id'],
-      ['address2dI18n', 'addressId'],
-      ['address2dBuildingNumberLookup', 'addressId'],
-    ]) {
-      historyStatements.push(`UPDATE ${table} SET isCurrent = 0, updatedAt = ${now}
-WHERE isCurrent = 1 AND ${key} IN (${membership});`)
-    }
     currentStatements.push(
       `DELETE FROM address2d WHERE snapshotId = ${scope} AND id IN (${membership});`,
     )
@@ -903,56 +886,6 @@ function buildAddressHistoryApplySql(
   const now = sqlLiteral(message.processingRunStartedAt ?? new Date().toISOString())
 
   return `
-INSERT INTO snapshotVersionChanges (
-  snapshotId, recordType, recordId, locale, versionHash, operation,
-  sourceReleaseId, createdAt, updatedAt
-)
-SELECT ${snapshot}, 'address2dI18n', old.addressId, old.locale, NULL, 'delete', ${resourceReleaseId}, ${now}, ${now}
-FROM address2dI18n old
-WHERE old.isCurrent = 1
-  AND EXISTS (SELECT 1 FROM ${RESOLVED_ROWS_TABLE} r WHERE r.runId = ${run} AND r.changed = 1 AND r.addressId = old.addressId)
-  AND NOT EXISTS (SELECT 1 FROM ${RESOLVED_I18N_TABLE} i WHERE i.runId = ${run} AND i.addressId = old.addressId AND i.locale = old.locale)
-ON CONFLICT(snapshotId, recordType, recordId, locale) DO UPDATE SET
-  versionHash = NULL, operation = 'delete', sourceReleaseId = excluded.sourceReleaseId, updatedAt = excluded.updatedAt;
-WITH changedExisting AS (
-  SELECT DISTINCT r.changedExistingId AS addressId
-  FROM ${RESOLVED_ROWS_TABLE} r
-  WHERE r.runId = ${run}
-    AND r.changed = 1
-    AND r.changedExistingId IS NOT NULL
-)
-UPDATE address2d
-SET isCurrent = 0,
-  updatedAt = ${now}
-FROM changedExisting
-WHERE address2d.isCurrent = 1
-  AND address2d.id = changedExisting.addressId;
-WITH changedExisting AS (
-  SELECT DISTINCT r.changedExistingId AS addressId
-  FROM ${RESOLVED_ROWS_TABLE} r
-  WHERE r.runId = ${run}
-    AND r.changed = 1
-    AND r.changedExistingId IS NOT NULL
-)
-UPDATE address2dI18n
-SET isCurrent = 0,
-  updatedAt = ${now}
-FROM changedExisting
-WHERE address2dI18n.isCurrent = 1
-  AND address2dI18n.addressId = changedExisting.addressId;
-WITH changedExisting AS (
-  SELECT DISTINCT r.changedExistingId AS addressId
-  FROM ${RESOLVED_ROWS_TABLE} r
-  WHERE r.runId = ${run}
-    AND r.changed = 1
-    AND r.changedExistingId IS NOT NULL
-)
-UPDATE address2dBuildingNumberLookup
-SET isCurrent = 0,
-  updatedAt = ${now}
-FROM changedExisting
-WHERE address2dBuildingNumberLookup.isCurrent = 1
-  AND address2dBuildingNumberLookup.addressId = changedExisting.addressId;
 INSERT INTO address2d (
   id, versionHash, sourceReleaseId, snapshotId, isCurrent, streetId,
   hamletId, microhoodId, villageId, neighbourhoodId, ruralAreaId, macrohoodId, townId,
@@ -966,7 +899,7 @@ SELECT
 FROM ${RESOLVED_ROWS_TABLE} r
 WHERE r.runId = ${run}
   AND r.changed = 1
-ON CONFLICT(id, versionHash) DO UPDATE SET
+ON CONFLICT(id, snapshotId) DO UPDATE SET
   isCurrent = 1,
   sourceReleaseId = excluded.sourceReleaseId,
   snapshotId = excluded.snapshotId,
@@ -992,7 +925,7 @@ INNER JOIN ${RESOLVED_I18N_TABLE} i
   AND i.addressId = r.addressId
 WHERE r.runId = ${run}
   AND r.changed = 1
-ON CONFLICT(addressId, versionHash, locale) DO UPDATE SET
+ON CONFLICT(addressId, snapshotId, locale) DO UPDATE SET
   sourceReleaseId = excluded.sourceReleaseId,
   snapshotId = excluded.snapshotId,
   isCurrent = 1,
@@ -1034,7 +967,7 @@ WHERE lookup.runId = ${run}
     SELECT 1 FROM ${RESOLVED_ROWS_TABLE} r
     WHERE r.runId = ${run} AND r.addressId = lookup.addressId AND r.changed = 1
   )
-ON CONFLICT(addressId, versionHash, buildingNumber) DO UPDATE SET
+ON CONFLICT(addressId, snapshotId, buildingNumber) DO UPDATE SET
   isCurrent = 1,
   sourceReleaseId = excluded.sourceReleaseId,
   snapshotId = excluded.snapshotId,
@@ -1042,38 +975,8 @@ ON CONFLICT(addressId, versionHash, buildingNumber) DO UPDATE SET
   evidence = excluded.evidence,
   derivation = excluded.derivation,
   updatedAt = excluded.updatedAt;
-INSERT INTO snapshotVersionChanges (
-  snapshotId, recordType, recordId, locale, versionHash, operation,
-  sourceReleaseId, createdAt, updatedAt
-)
-SELECT
-  ${snapshot}, 'address2d', r.addressId, '', r.versionHash, 'upsert',
-  ${resourceReleaseId}, ${now}, ${now}
-FROM ${RESOLVED_ROWS_TABLE} r
-WHERE r.runId = ${run}
-  AND r.changed = 1
-ON CONFLICT(snapshotId, recordType, recordId, locale) DO UPDATE SET
-  versionHash = excluded.versionHash,
-  operation = 'upsert',
-  sourceReleaseId = excluded.sourceReleaseId,
-  updatedAt = excluded.updatedAt;
-INSERT INTO snapshotVersionChanges (
-  snapshotId, recordType, recordId, locale, versionHash, operation,
-  sourceReleaseId, createdAt, updatedAt
-)
-SELECT
-  ${snapshot}, 'address2dI18n', i.addressId, i.locale, i.versionHash, 'upsert',
-  ${resourceReleaseId}, ${now}, ${now}
-FROM ${RESOLVED_ROWS_TABLE} r
-INNER JOIN ${RESOLVED_I18N_TABLE} i
-  ON i.runId = r.runId AND i.addressId = r.addressId
-WHERE r.runId = ${run}
-  AND r.changed = 1
-ON CONFLICT(snapshotId, recordType, recordId, locale) DO UPDATE SET
-  versionHash = excluded.versionHash,
-  operation = 'upsert',
-  sourceReleaseId = excluded.sourceReleaseId,
-  updatedAt = excluded.updatedAt;`.trim()
+
+`.trim()
 }
 
 function buildAddressCurrentApplySql(runId: string) {

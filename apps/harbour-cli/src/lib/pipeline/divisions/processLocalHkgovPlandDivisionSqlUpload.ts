@@ -1,34 +1,3 @@
-import { recordPlanningSourceResolutions } from './planningSourceResolutions'
-import { createDivisionPointGuard } from '@repo/core/pipeline/services/divisions/divisionPoint'
-import type { DatasetProcessingStats } from '@repo/core/pipeline/processingRunStats'
-import { resolveRemoteCacheDir } from '../../dbCache/localDbCacheTargets.ts'
-import { resolveCurrentWriteContext } from '../../dbCache/currentWriteContext.ts'
-import {
-  beginSnapshotPublication,
-  completeSnapshotPublication,
-  guardSnapshotPublicationWrites,
-} from '../local/snapshotPublication.ts'
-import { getPreparedPublication } from '@repo/core/pipeline/services/publication/execute.ts'
-import { reusePlanningCanonicalProvenance } from './planningCanonicalReuse.ts'
-import {
-  buildPublicationRowCountSql,
-  type PublicationPreparation,
-} from '@repo/core/pipeline/services/publication/sql.ts'
-import { retainProcessingFailure } from '../../api/processingFailureAudit'
-import {
-  calculateAndStoreApiReleaseSetStats,
-  isApiReleaseSetStatsReady,
-  resolveApiReleaseSetStatsTarget,
-} from '../../api/apiReleaseSetStats'
-import {
-  planningDivisionChurn,
-  planningDivisionContentHash,
-} from './planningDivisionChurn'
-import { eq } from 'drizzle-orm'
-import { deliverPlandWorkflow, type PlandDeliveryCounts } from './plandDelivery.ts'
-import { deliveryFileSha256 } from '../local/sqlDeliveryFiles.ts'
-import { completeSqlDeliveryRelease } from '../local/sqlDeliveryPending.ts'
-import { refreshRemoteMetaCache } from '../../dbCache/localDbCache.ts'
 import {
   ensureDraftSnapshotForRelease,
   recordSnapshotAssembly,
@@ -39,24 +8,67 @@ import {
   waitForDatasetRecord,
 } from '@repo/core/db/metaRegistry'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
-import { retainDivisionProvenance } from './divisionProvenance'
-import { deliverProcessingResult } from '../../api/provenance'
 import { replaceDatasetStats } from '@repo/core/pipeline/db/stats'
 import type { HarbourClient } from '@repo/core/pipeline/harbourClient'
+import type { DatasetProcessingStats } from '@repo/core/pipeline/processingRunStats'
+import { createDivisionPointGuard } from '@repo/core/pipeline/services/divisions/divisionPoint'
+import { getPreparedPublication } from '@repo/core/pipeline/services/publication/execute.ts'
+import {
+  buildPublicationRowCountSql,
+  type PublicationPreparation,
+} from '@repo/core/pipeline/services/publication/sql.ts'
 import { createHash } from '@repo/core/pipeline/utils'
 import { sourceSchema, toIsoTimestamp } from '@repo/db'
-import type { PreparedUploadFile } from '../../upload/parquetRepack.ts'
-import { resolvePipelineEnvironment, type UploadTarget } from '../../cli/options.ts'
+import { eq } from 'drizzle-orm'
+import {
+  calculateAndStoreApiReleaseSetStats,
+  isApiReleaseSetStatsReady,
+  resolveApiReleaseSetStatsTarget,
+} from '../../api/apiReleaseSetStats'
 import { createHarbourControlClient } from '../../api/harbourControl.ts'
-import { syncStagedReleaseIntoLocalMetaCache } from '../local/syncStagedRelease.ts'
-import { createLocalControlClient } from '../local/localControlClient.ts'
+import { retainProcessingFailure } from '../../api/processingFailureAudit'
+import { deliverProcessingResult } from '../../api/provenance'
 import { OperationProgress } from '../../cli/operationProgress.ts'
+import { resolvePipelineEnvironment, type UploadTarget } from '../../cli/options.ts'
+import { resolveCurrentWriteContext } from '../../dbCache/currentWriteContext.ts'
+import { refreshRemoteMetaCache } from '../../dbCache/localDbCache.ts'
+import { resolveRemoteCacheDir } from '../../dbCache/localDbCacheTargets.ts'
+import type { PreparedUploadFile } from '../../upload/parquetRepack.ts'
 import { LocalPipelineBucket } from '../local/localBucket.ts'
-import type {
-  CompressedPlanningDivisionGeometry,
-  HkgovPlandDivisionUploadPlan,
-  UploadResult,
-} from './processLocalHkgovPlandDivisionSqlUploadTypes.ts'
+import { createLocalControlClient } from '../local/localControlClient.ts'
+import { openNormalisedArtefactCache } from '../local/normalisedArtefactCache.ts'
+import {
+  beginSnapshotPublication,
+  completeSnapshotPublication,
+  guardSnapshotPublicationWrites,
+} from '../local/snapshotPublication.ts'
+import { deliveryFileSha256 } from '../local/sqlDeliveryFiles.ts'
+import { completeSqlDeliveryRelease } from '../local/sqlDeliveryPending.ts'
+import { syncStagedReleaseIntoLocalMetaCache } from '../local/syncStagedRelease.ts'
+import { retainDivisionProvenance } from './divisionProvenance'
+import { deliverPlandWorkflow, type PlandDeliveryCounts } from './plandDelivery.ts'
+import { reusePlanningCanonicalProvenance } from './planningCanonicalReuse.ts'
+import {
+  planningDivisionChurn,
+  planningDivisionContentHash,
+} from './planningDivisionChurn'
+import { recordPlanningSourceResolutions } from './planningSourceResolutions'
+import {
+  LOCAL_RELEASE_ROOT,
+  PLANNING_DIVISION_SNAPSHOT_SOURCE_ROLE,
+} from './processLocalHkgovPlandDivisionSqlUploadConfig.ts'
+import {
+  resolvePlandImportOptions,
+  runPlandProgressPhase,
+} from './processLocalHkgovPlandDivisionSqlUploadImport.ts'
+import {
+  listCurrentHistoryRows,
+  loadPlandNewTownDivisionCodes,
+  planningDivisionRule,
+  readPreparedDivisions,
+  validatePreparedDivisions,
+  wasPlanningGeometryRepaired,
+} from './processLocalHkgovPlandDivisionSqlUploadPreparation.ts'
 import {
   closeHistoryRows,
   closeNativeSourceRows,
@@ -70,23 +82,11 @@ import {
   requireString,
   statRow,
 } from './processLocalHkgovPlandDivisionSqlUploadRows.ts'
-import { openNormalisedArtefactCache } from '../local/normalisedArtefactCache.ts'
-import {
-  LOCAL_RELEASE_ROOT,
-  PLANNING_DIVISION_SNAPSHOT_SOURCE_ROLE,
-} from './processLocalHkgovPlandDivisionSqlUploadConfig.ts'
-import {
-  resolvePlandImportOptions,
-  runPlandProgressPhase,
-} from './processLocalHkgovPlandDivisionSqlUploadImport.ts'
-import {
-  listCurrentHistoryRows,
-  loadPlandNewTownDivisionCodes,
-  readPreparedDivisions,
-  validatePreparedDivisions,
-  planningDivisionRule,
-  wasPlanningGeometryRepaired,
-} from './processLocalHkgovPlandDivisionSqlUploadPreparation.ts'
+import type {
+  CompressedPlanningDivisionGeometry,
+  HkgovPlandDivisionUploadPlan,
+  UploadResult,
+} from './processLocalHkgovPlandDivisionSqlUploadTypes.ts'
 
 export async function processLocalHkgovPlandDivisionSqlUpload(
   target: UploadTarget,
@@ -316,7 +316,9 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
                 .where(eq(nativeSourceTable.isCurrent, true))
                 .all()
               const currentHistoryRows = await listCurrentHistoryRows(
-                context.historyDb as unknown as HarbourReadableDb,
+                metaDb,
+                context.historyTargets.map(target => target.db as HarbourReadableDb),
+                snapshot.parentSnapshotId,
                 previewPlan.source,
               )
               await reusePlanningCanonicalProvenance(records, currentHistoryRows)
@@ -379,7 +381,7 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
             async () => {
               await closeHistoryRows(
                 context.historyDb as unknown as HarbourWritableDb,
-                [...changedHistoryIds, ...missingHistoryIds],
+                missingHistoryIds,
                 snapshot.id,
                 previewPlan.cohortKey,
                 now,
@@ -750,8 +752,6 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
   }
 }
 
-export type { HkgovPlandDivisionUploadPlan } from './processLocalHkgovPlandDivisionSqlUploadTypes.ts'
-
 export { resolvePlandDivisionCode } from './processLocalHkgovPlandDivisionSqlUploadPreparation.ts'
-
 export { splitPlandSqlText } from './processLocalHkgovPlandDivisionSqlUploadSql.ts'
+export type { HkgovPlandDivisionUploadPlan } from './processLocalHkgovPlandDivisionSqlUploadTypes.ts'

@@ -52,20 +52,17 @@ test('retirements batch historical writes and preserve locale tombstones across 
         context: { historyBinding: { bindingName: 'DB_HISTORY_HK_2026' } } as never,
       },
     )
-    expect(old.query('SELECT isCurrent FROM address2d').get()).toEqual({ isCurrent: 0 })
+    expect(old.query('SELECT isCurrent FROM address2d').get()).toEqual({ isCurrent: 1 })
     expect(old.query('SELECT isCurrent FROM address2dI18n').get()).toEqual({
-      isCurrent: 0,
+      isCurrent: 1,
     })
     expect(
       history
         .query(
-          'SELECT recordType,locale,operation FROM snapshotVersionChanges ORDER BY recordType',
+          'SELECT recordType,locale,operation FROM historyEvents ORDER BY recordType',
         )
         .all(),
-    ).toEqual([
-      { recordType: 'address2d', locale: '', operation: 'delete' },
-      { recordType: 'address2dI18n', locale: 'zh-Hant', operation: 'delete' },
-    ])
+    ).toEqual([{ recordType: 'address2d', locale: '', operation: 'delete' }])
   } finally {
     for (const db of [current, old, history]) db.close()
   }

@@ -1,10 +1,11 @@
-import { currentSchema, historySchema, sourceSchema } from '@repo/db'
-import type { HarbourReadableDb } from '@repo/core/db/types'
 import { resolveSnapshotReplayPlan } from '@repo/core/db/metaRegistry'
+import type { HarbourReadableDb } from '@repo/core/db/types'
+import { currentSchema, historySchema, sourceSchema } from '@repo/db'
 import type { LocalAddressDbContext } from '../../dbCache/localDbCacheTypes.ts'
-import { captureResolvedSqlPlan } from '../local/resolvedSqlPlan.ts'
 import type { NetTablePolicy } from '../local/netSqlitePlan.ts'
+import { captureResolvedSqlPlan } from '../local/resolvedSqlPlan.ts'
 import type { SqlDeliveryTarget } from '../local/sqlDeliveryTypes.ts'
+import { loadPreviousPlaceSourceResolutions } from './placeHistory.ts'
 import { importPlaceSqlBatches } from './processLocalPlaceSqlUploadImport.ts'
 import {
   loadCurrentPlaceHistory,
@@ -15,14 +16,13 @@ import type {
   PlaceSqlProgressEvent,
 } from './processLocalPlaceSqlUploadTypes.ts'
 import { validateResolvedPlaces } from './resolvedPlaceValidation.ts'
-import { loadPreviousPlaceSourceResolutions } from './placeHistory.ts'
 
 export function placeMutationTables(binding: string): NetTablePolicy[] {
   const names =
     binding === 'DB_CURRENT'
       ? ['places', 'placesI18n', 'placesCells', 'placesDivision']
       : binding.startsWith('DB_HISTORY_')
-        ? ['places', 'placesI18n', 'snapshotVersionChanges', 'sourceResolutions']
+        ? ['places', 'placesI18n', 'sourceResolutions']
         : binding.startsWith('DB_SOURCE_')
           ? ['overturePlaces']
           : []

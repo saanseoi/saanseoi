@@ -1,12 +1,13 @@
 import { resolveSnapshotReplayPlan } from '@repo/core/db/metaRegistry'
 import type { HarbourReadableDb } from '@repo/core/db/types'
 import {
-  resolveSnapshotVersionState,
   groupResolvedVersionsByShard,
+  historyVersionSelection,
   type ReplayShard,
+  resolveSnapshotVersionState,
 } from '@repo/core/pipeline/db/snapshotReplay'
 import { chunkArray } from '@repo/core/pipeline/utils'
-import { currentSchema, historySchema, eq, and, sql } from '@repo/db'
+import { and, currentSchema, eq, historySchema, sql } from '@repo/db'
 
 /** Geometry preparation can inspect an old revision without restoring it into current. */
 export async function readDivisionSnapshot(
@@ -63,9 +64,7 @@ export async function readDivisionSnapshot(
       const rows = await db
         .select()
         .from(historySchema.divisions)
-        .where(
-          sql`(id,versionHash) IN (SELECT json_extract(value,'$[0]'),json_extract(value,'$[1]') FROM json_each(${JSON.stringify(chunk.map(row => [row.recordId, row.versionHash]))}))`,
-        )
+        .where(historyVersionSelection(historySchema.divisions, chunk))
         .all()
       divisions.push(...(rows as unknown as typeof divisions))
     }
@@ -76,9 +75,7 @@ export async function readDivisionSnapshot(
       const rows = await db
         .select()
         .from(historySchema.divisionsI18n)
-        .where(
-          sql`(divisionId,versionHash,locale) IN (SELECT json_extract(value,'$[0]'),json_extract(value,'$[1]'),json_extract(value,'$[2]') FROM json_each(${JSON.stringify(chunk.map(row => [row.recordId, row.versionHash, row.locale]))}))`,
-        )
+        .where(historyVersionSelection(historySchema.divisionsI18n, chunk))
         .all()
       i18n.push(...(rows as unknown as typeof i18n))
     }

@@ -1,9 +1,9 @@
-import type { HarbourReadableDb } from '@repo/core/db/types'
 import { resolveSnapshotReplayPlan } from '@repo/core/db/metaRegistry'
+import type { HarbourReadableDb } from '@repo/core/db/types'
 import { resolveSnapshotSourceResolutions } from '@repo/core/pipeline/db/sourceResolutionReplay'
 import { createHash } from '@repo/core/pipeline/utils'
 import type { LocalAddressDbContext } from '../../dbCache/localDbCache.ts'
-import { insertSql, lit } from './processLocalPlaceSqlUploadImport.ts'
+import { insertSql } from './processLocalPlaceSqlUploadImport.ts'
 import type { EnrichedPlace } from './processLocalPlaceSqlUploadTypes.ts'
 
 export async function loadPreviousPlaceSourceResolutions(
@@ -40,10 +40,7 @@ export function placeHistoryInsertSql(
   now: string,
 ) {
   const insert = insertSql(table, values)
-  return (
-    insert.slice(0, insert.indexOf(' ON CONFLICT')) +
-    ` ON CONFLICT DO UPDATE SET isCurrent = 1, updatedAt = ${lit(now)} WHERE ${table}.isCurrent <> 1;`
-  )
+  return insert.slice(0, insert.indexOf(' ON CONFLICT')) + ` ON CONFLICT DO NOTHING;`
 }
 
 export function placeLocaleHash(

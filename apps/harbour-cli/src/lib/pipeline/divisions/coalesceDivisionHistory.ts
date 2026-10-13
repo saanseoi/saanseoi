@@ -1,14 +1,16 @@
-import { restoreSnapshotProjection } from '../../commands/rollback/projection'
 import { Database, type SQLQueryBindings } from 'bun:sqlite'
-import { drizzle } from 'drizzle-orm/bun-sqlite'
 import { resolveSnapshotReplayPlan } from '@repo/core/db/metaRegistry'
-import { resolveSnapshotSourceResolutions } from '@repo/core/pipeline/db/sourceResolutionReplay'
 import { resolveSnapshotVersionState } from '@repo/core/pipeline/db/snapshotReplay'
-import { decodeStoredGeoJsonGeometry } from './processLocalDivisionGeometrySqlUploadStatistics.ts'
+import { resolveSnapshotSourceResolutions } from '@repo/core/pipeline/db/sourceResolutionReplay'
+import { historyDeletionSql } from '@repo/db'
+import { drizzle } from 'drizzle-orm/bun-sqlite'
+import { restoreSnapshotProjection } from '../../commands/rollback/projection'
 import type { ResolvedSqlCandidates } from '../local/resolvedSqlPlan.ts'
+import { decodeStoredGeoJsonGeometry } from './processLocalDivisionGeometrySqlUploadStatistics.ts'
 
 type Row = Record<string, SQLQueryBindings>
 const metadata = new Set([
+  'operation',
   'versionHash',
   'sourceReleaseId',
   'snapshotId',
@@ -31,14 +33,14 @@ const policies = [
     recordType: 'division',
     id: 'id',
     identity: ['id'],
-    primary: ['id', 'versionHash'],
+    primary: ['id', 'snapshotId'],
   },
   {
     table: 'divisionsI18n',
     recordType: 'divisionI18n',
     id: 'divisionId',
     identity: ['divisionId', 'locale'],
-    primary: ['divisionId', 'versionHash', 'locale'],
+    primary: ['divisionId', 'snapshotId', 'locale'],
   },
 ] as const
 const quote = (value: string) => `"${value.replaceAll('"', '""')}"`
@@ -205,229 +207,87 @@ export async function coalesceDivisionHistory(input: {
         namedBaselines,
         policies.map(policy => policy.recordType),
       )
-      const owned = (id: SQLQueryBindings) =>
-        Boolean(
-          baseline
-            .query('SELECT 1 FROM divisions WHERE snapshotId=? AND id=?')
-            .get(receipt.scopeId, id) ||
-            current
-              .query('SELECT 1 FROM divisions WHERE snapshotId=? AND id=?')
-              .get(receipt.scopeId, id),
-        )
       for (const policy of policies) {
-        const previousComponent = (identity: Row) => {
-          const scoped = lookup(
-            selectedBaseline,
-            policy.table,
-            ['snapshotId', ...policy.identity],
-            {
-              snapshotId: receipt.scopeId,
-              ...identity,
-            },
-          )[0]
-          if (!scoped) return undefined
-          const version = previousVersions.get(
-            `${policy.recordType}\0${identity[policy.id]}\0${policy.table === 'divisionsI18n' ? identity.locale : ''}`,
-          )
-          if (version) {
-            const binding = version.shard.bindingName
-            const db = baselines.get(binding)
-            const row =
-              db &&
-              lookup(db, policy.table, policy.primary, {
-                ...identity,
-                versionHash: version.versionHash,
-              })[0]
-            if (!row)
-              throw new Error(
-                `Missing selected Division content ${policy.table}/${identity[policy.id]} in ${binding}.`,
-              )
-            return { binding, row }
-          }
-
-          // Some completed local snapshots contain the complete current scope but
-          // no version journal of their own. Recover the selected component only
-          // from a unique current history row whose content exactly matches that
-          // scope; anything less would make coalescing guess at history ownership.
-          const currentVersions = [...baselines]
-            .filter(([binding]) => binding.startsWith('DB_HISTORY'))
-            .flatMap(([binding, db]) =>
-              db
-                .query<Row, SQLQueryBindings[]>(
-                  `SELECT * FROM ${quote(policy.table)} WHERE ${policy.identity.map(column => `${quote(column)} IS ?`).join(' AND ')} AND isCurrent=1`,
-                )
-                .all(...policy.identity.map(column => identity[column] ?? null))
-                .map(row => ({ binding, row })),
-            )
-          const matchingVersions = currentVersions.filter(
-            ({ row }) => semantic(row) === semantic(scoped),
-          )
-          if (matchingVersions.length > 1)
+        const priorRows = new Map<string, Row>()
+        for (const version of previousVersions.values()) {
+          if (version.recordType !== policy.recordType) continue
+          const db = baselines.get(version.shard.bindingName)
+          if (!db)
             throw new Error(
-              `Ambiguous current Division history for ${policy.table}/${identity[policy.id]}.`,
+              `Missing Division parent binding ${version.shard.bindingName}.`,
             )
-          const recovered = matchingVersions[0]
-          for (const stale of currentVersions) {
-            if (stale === recovered) continue
-            const owner = input.candidates[stale.binding]
-            if (!owner)
-              throw new Error(`Missing Division history owner ${stale.binding}.`)
-            owner.db
-              .query(
-                `UPDATE ${quote(policy.table)} SET isCurrent=0,updatedAt=? WHERE ${policy.primary.map(column => `${quote(column)} IS ?`).join(' AND ')}`,
-              )
-              .run(
-                receipt.updatedAt,
-                ...policy.primary.map(column => stale.row[column] ?? null),
+          const row = lookup(db, policy.table, policy.primary, {
+            [policy.id]: version.recordId,
+            locale: version.locale,
+            snapshotId: version.snapshotId,
+          })[0]
+          if (
+            !row ||
+            row.operation !== 'upsert' ||
+            row.versionHash !== version.versionHash
+          )
+            throw new Error(
+              `Missing exact Division parent ${version.recordId}/${version.locale}.`,
+            )
+          priorRows.set(canonical(policy.identity.map(key => row[key])), row)
+        }
+        if (parentSnapshotId && parentSnapshotId === previous?.snapshotId) {
+          for (const row of selectedBaseline
+            .query<Row, [string]>(
+              `SELECT * FROM ${quote(policy.table)} WHERE snapshotId=?`,
+            )
+            .all(receipt.scopeId)) {
+            if (!priorRows.has(canonical(policy.identity.map(key => row[key]))))
+              throw new Error(
+                `Missing exact Division parent ${row[policy.id]}/${row.locale ?? ''}.`,
               )
           }
-          // No history version represents this component in the published scope.
-          // Let the incoming snapshot's upsert establish its first selectable version.
-          if (!recovered) return undefined
-          return recovered
         }
         for (const [binding, candidate] of Object.entries(input.candidates)) {
           if (!binding.startsWith('DB_HISTORY')) continue
-          const baselineDb = baselines.get(binding)
-          if (!baselineDb)
-            throw new Error(`Missing Division history baseline ${binding}.`)
-          const journal = candidate.db
-            .query<Row, [string, string]>(
-              "SELECT * FROM snapshotVersionChanges WHERE snapshotId=? AND recordType=? AND operation='upsert'",
+          for (const row of candidate.db
+            .query<Row, [string]>(
+              `SELECT * FROM ${quote(policy.table)} WHERE snapshotId=? AND operation='upsert'`,
             )
-            .all(receipt.snapshotId, policy.recordType)
-          for (const change of journal) {
-            if (!owned(change.recordId ?? null))
-              throw new Error('Division journal contains an unowned component.')
-            const identity: Row = {
-              [policy.id]: change.recordId ?? null,
-              locale: change.locale ?? '',
-              versionHash: change.versionHash ?? null,
-            }
-            const row = lookup(candidate.db, policy.table, policy.primary, identity)[0]
-            if (!row)
-              throw new Error(
-                'Division journal references unavailable component content.',
-              )
-            const prior = previousComponent(identity)
-            const original = lookup(
-              baselineDb,
-              policy.table,
-              policy.primary,
-              identity,
-            )[0]
-            if (prior && semantic(prior.row) === semantic(row)) {
-              if (original)
-                replace(candidate.db, policy.table, policy.primary, original)
-              else
-                candidate.db
-                  .query(
-                    `DELETE FROM ${quote(policy.table)} WHERE ${policy.primary.map(column => `${quote(column)} IS ?`).join(' AND ')}`,
-                  )
-                  .run(...policy.primary.map(column => row[column] ?? null))
-              const owner = input.candidates[prior.binding]
-              if (!owner)
-                throw new Error(`Missing Division history owner ${prior.binding}.`)
-              replace(owner.db, policy.table, policy.primary, prior.row)
-              candidate.db
-                .query(
-                  'DELETE FROM snapshotVersionChanges WHERE snapshotId=? AND recordType=? AND recordId=? AND locale=?',
-                )
-                .run(
-                  receipt.snapshotId,
-                  policy.recordType,
-                  change.recordId ?? null,
-                  change.locale ?? '',
-                )
+            .all(receipt.snapshotId)) {
+            const prior = priorRows.get(canonical(policy.identity.map(key => row[key])))
+            if (prior && semantic(prior) === semantic(row)) {
               if (policy.table === 'divisions')
                 current
-                  .query('UPDATE divisions SET sources=? WHERE snapshotId=? AND id=?')
-                  .run(
-                    prior.row.sources ?? null,
-                    receipt.scopeId,
-                    change.recordId ?? null,
-                  )
-            } else {
-              if (original) {
-                if (semantic(original) !== semantic(row))
-                  throw new Error(
-                    `Division component content hash collision: ${policy.table} ${String(change.recordId)} (${String(change.locale ?? '')}); differing fields: ${Object.keys(
-                      JSON.parse(semantic(original)),
-                    )
-                      .filter(
-                        key =>
-                          canonical(JSON.parse(semantic(original))[key]) !==
-                          canonical(JSON.parse(semantic(row))[key]),
-                      )
-                      .join(', ')}.`,
-                  )
-                replace(candidate.db, policy.table, policy.primary, {
-                  ...original,
-                  isCurrent: 1,
-                  updatedAt: receipt.updatedAt,
-                })
-              }
-              if (prior)
-                input.candidates[prior.binding]?.db
                   .query(
-                    `UPDATE ${quote(policy.table)} SET isCurrent=0,updatedAt=? WHERE ${policy.primary.map(column => `${quote(column)} IS ?`).join(' AND ')} AND isCurrent=1`,
+                    'UPDATE divisions SET sources=? WHERE snapshotId=? AND id=? AND sources IS NOT ?',
                   )
                   .run(
-                    receipt.updatedAt,
-                    ...policy.primary.map(column => prior.row[column] ?? null),
+                    prior.sources ?? null,
+                    receipt.scopeId,
+                    row.id ?? null,
+                    prior.sources ?? null,
                   )
+              candidate.db
+                .query(
+                  `DELETE FROM ${quote(policy.table)} WHERE ${policy.primary.map(key => `${quote(key)} IS ?`).join(' AND ')}`,
+                )
+                .run(...policy.primary.map(key => row[key] ?? null))
             }
           }
         }
-        for (const identity of selectedBaseline
-          .query<Row, [string]>(
-            `SELECT ${policy.identity.map(quote).join(',')} FROM ${quote(policy.table)} WHERE snapshotId=?`,
-          )
-          .iterate(receipt.scopeId)) {
+        for (const row of priorRows.values()) {
           const present = current
             .query(
-              `SELECT 1 FROM ${quote(policy.table)} WHERE snapshotId=? AND ${policy.identity.map(column => `${quote(column)} IS ?`).join(' AND ')}`,
+              `SELECT 1 FROM ${quote(policy.table)} WHERE snapshotId=? AND ${policy.identity.map(key => `${quote(key)} IS ?`).join(' AND ')}`,
             )
-            .get(
-              receipt.scopeId,
-              ...policy.identity.map(column => identity[column] ?? null),
-            )
-          if (present) continue
-          const prior = previousComponent(identity)
-          if (!prior) {
-            history
-              .query(`INSERT INTO snapshotVersionChanges(snapshotId,recordType,recordId,locale,versionHash,operation,sourceReleaseId,createdAt,updatedAt)
-              VALUES(?,?,?,?,NULL,'delete',?,?,?) ON CONFLICT(snapshotId,recordType,recordId,locale) DO NOTHING`)
-              .run(
-                receipt.snapshotId,
-                policy.recordType,
-                identity[policy.id] ?? null,
-                policy.table === 'divisionsI18n' ? (identity.locale ?? '') : '',
-                receipt.publicationToken,
-                receipt.updatedAt,
-                receipt.updatedAt,
-              )
-            continue
-          }
-          input.candidates[prior.binding]?.db
-            .query(
-              `UPDATE ${quote(policy.table)} SET isCurrent=0,updatedAt=? WHERE ${policy.primary.map(column => `${quote(column)} IS ?`).join(' AND ')} AND isCurrent=1`,
-            )
-            .run(
-              receipt.updatedAt,
-              ...policy.primary.map(column => prior.row[column] ?? null),
-            )
-          history
-            .query(`INSERT INTO snapshotVersionChanges(snapshotId,recordType,recordId,locale,versionHash,operation,sourceReleaseId,createdAt,updatedAt)
-            VALUES(?,?,?,?,NULL,'delete',?,?,?) ON CONFLICT(snapshotId,recordType,recordId,locale) DO NOTHING`)
-            .run(
-              receipt.snapshotId,
-              policy.recordType,
-              identity[policy.id] ?? null,
-              policy.table === 'divisionsI18n' ? (identity.locale ?? '') : '',
-              receipt.publicationToken,
-              receipt.updatedAt,
-              receipt.updatedAt,
+            .get(receipt.scopeId, ...policy.identity.map(key => row[key] ?? null))
+          if (!present)
+            history.exec(
+              historyDeletionSql({
+                snapshotId: receipt.snapshotId,
+                recordType: policy.recordType,
+                recordId: String(row[policy.id]),
+                locale: policy.table === 'divisionsI18n' ? String(row.locale) : '',
+                sourceReleaseId: receipt.publicationToken,
+                createdAt: receipt.updatedAt,
+                updatedAt: receipt.updatedAt,
+              }),
             )
         }
       }

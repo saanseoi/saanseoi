@@ -1,19 +1,22 @@
+import { resolveSnapshotReplayPlan } from '@repo/core/db/metaRegistry'
+import {
+  groupResolvedVersionsByShard,
+  historyVersionSelection,
+  resolveSnapshotVersionState,
+} from '@repo/core/pipeline/db/snapshotReplay.ts'
 import {
   and,
-  eq,
-  inArray,
-  sql,
-  currentSchema,
-  historySchema,
   type CurrentDatabase,
+  currentSchema,
+  eq,
   type HistoryDatabase,
+  historySchema,
+  sql,
 } from '@repo/db'
 import {
-  resolveAddress3dCoverage,
   type Address3dCollectionMetadata,
+  resolveAddress3dCoverage,
 } from '@repo/db/address3d'
-import { resolveSnapshotReplayPlan } from '@repo/core/db/metaRegistry'
-import { resolveSnapshotVersionState } from '@repo/core/pipeline/db/snapshotReplay.ts'
 import type { AddressRecord } from './addresses'
 
 export async function attachAddress3dCoverage(args: {
@@ -64,18 +67,12 @@ export async function attachAddress3dCoverage(args: {
         ['address3d'],
         [...collectionIds],
       )
-      const byShard = new Map<string, Array<{ id: string; hash: string }>>()
-      for (const row of state.values())
-        byShard.set(row.shard.bindingName, [
-          ...(byShard.get(row.shard.bindingName) ?? []),
-          { id: row.recordId, hash: row.versionHash },
-        ])
-      for (const [bindingName, versions] of byShard) {
+      for (const [bindingName, versions] of groupResolvedVersionsByShard(
+        state.values(),
+      )) {
         const db = args.historyDbsByBinding[bindingName]
         if (!db) throw new Error(`Missing Address3D history shard ${bindingName}`)
-        for (let i = 0; i < versions.length; i += 90) {
-          const batch = versions.slice(i, i + 90)
-          const selected = new Set(batch.map(row => `${row.id}:${row.hash}`))
+        for (let i = 0; i < versions.length; i += 256) {
           const rows = await db
             .select({
               id: historySchema.address3d.id,
@@ -85,15 +82,21 @@ export async function attachAddress3dCoverage(args: {
             })
             .from(historySchema.address3d)
             .where(
-              inArray(
-                historySchema.address3d.versionHash,
-                batch.map(row => row.hash),
+              historyVersionSelection(
+                historySchema.address3d,
+                versions.slice(i, i + 256),
               ),
             )
             .all()
-          collections.push(
-            ...rows.filter(row => selected.has(`${row.id}:${row.versionHash}`)),
-          )
+          for (const row of rows) {
+            if (!row.address2dId || !row.versionHash || !row.unresolvedSectionIds)
+              throw new Error('Invalid Address3D content event')
+            collections.push({
+              id: row.id,
+              address2dId: row.address2dId,
+              unresolvedSectionIds: row.unresolvedSectionIds,
+            })
+          }
         }
       }
     } else {
@@ -181,6 +184,7 @@ export async function getAddress3dCollection(args: {
       and(
         eq(historySchema.address3d.id, args.collectionId),
         eq(historySchema.address3d.versionHash, version.versionHash),
+        eq(historySchema.address3d.snapshotId, version.snapshotId),
       ),
     )
     .get()
@@ -203,6 +207,7 @@ export async function getAddress3dCollection(args: {
         and(
           eq(historySchema.address3dI18n.address3dId, args.collectionId),
           eq(historySchema.address3dI18n.versionHash, localisedVersion.versionHash),
+          eq(historySchema.address3dI18n.snapshotId, localisedVersion.snapshotId),
           eq(historySchema.address3dI18n.locale, localisedVersion.locale),
         ),
       )
@@ -213,5 +218,8 @@ export async function getAddress3dCollection(args: {
       )
     i18n.push(localised)
   }
-  return { collection, i18n }
+  return {
+    collection: collection as import('@repo/db/historySchema').Address3dVersionRow,
+    i18n: i18n as import('@repo/db/historySchema').Address3dVersionI18nRow[],
+  }
 }

@@ -1,20 +1,19 @@
-import { canonicalIdentifiers } from '../sources/canonicalIdentifiers'
-import { recordContent } from '../sources/recordContent'
-import { readAlsPublisherSource } from '../sources/alsSourcePayload'
-import { addressSourceReferences } from './sourceReferences'
-import { publisherSourceHashInput } from '../sources/sourcePayload'
 import type { AddressI18nPayload, AddressRow } from '@repo/db/currentSchema'
 import ruleFixture from '../../../../../../fixtures/meta/processing-rules/assembly/address-normalisation.json'
 import {
+  ProcessingGuardError,
   registerRule,
   ruleDeclarationFromFixture,
-  ProcessingGuardError,
 } from '../../../provenance'
-
 import { asNonEmptyString, asString } from '../../utils'
-import type { NormalisedAddressRecord } from './types'
+import { readAlsPublisherSource } from '../sources/alsSourcePayload'
+import { canonicalIdentifiers } from '../sources/canonicalIdentifiers'
+import { recordContent } from '../sources/recordContent'
+import { publisherSourceHashInput } from '../sources/sourcePayload'
 import { correctHkgovAddressComponents } from './componentCorrections'
 import { establishAddressGranularity } from './granularity'
+import { addressSourceReferences } from './sourceReferences'
+import type { NormalisedAddressRecord } from './types'
 
 export const addressNormalisationRule = registerRule(
   ruleDeclarationFromFixture(ruleFixture),
@@ -306,28 +305,29 @@ export function normaliseAddressI18nSnapshotRow(row: AddressI18nPayload) {
 }
 
 export function buildAddressI18nHashInput(
-  row: AddressI18nPayload & {
-    snapshotId?: string
-  },
+  row: Pick<AddressI18nPayload, 'addressId' | 'locale' | 'formattedAddress'> &
+    Partial<AddressI18nPayload> & {
+      snapshotId?: string
+    },
 ) {
   return {
     addressId: row.addressId,
     locale: row.locale,
     formattedAddress: row.formattedAddress,
-    buildingName: row.buildingName,
-    buildingNumberExpression: row.buildingNumberExpression,
-    buildingNumberFrom: row.buildingNumberFrom,
-    buildingNumberTo: row.buildingNumberTo,
-    buildingNumberConnector: row.buildingNumberConnector,
-    blockExpression: row.blockExpression,
-    blockType: row.blockType,
-    blockRef: row.blockRef,
-    blockTypeBeforeNumber: row.blockTypeBeforeNumber,
-    phaseExpression: row.phaseExpression,
-    phaseName: row.phaseName,
-    phaseRef: row.phaseRef,
-    estateName: row.estateName,
-    streetName: row.streetName,
+    buildingName: row.buildingName ?? null,
+    buildingNumberExpression: row.buildingNumberExpression ?? null,
+    buildingNumberFrom: row.buildingNumberFrom ?? null,
+    buildingNumberTo: row.buildingNumberTo ?? null,
+    buildingNumberConnector: row.buildingNumberConnector ?? null,
+    blockExpression: row.blockExpression ?? null,
+    blockType: row.blockType ?? null,
+    blockRef: row.blockRef ?? null,
+    blockTypeBeforeNumber: row.blockTypeBeforeNumber ?? null,
+    phaseExpression: row.phaseExpression ?? null,
+    phaseName: row.phaseName ?? null,
+    phaseRef: row.phaseRef ?? null,
+    estateName: row.estateName ?? null,
+    streetName: row.streetName ?? null,
   } satisfies AddressI18nPayload
 }
 

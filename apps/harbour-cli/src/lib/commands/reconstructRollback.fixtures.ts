@@ -1,11 +1,11 @@
-import { snapshotFixtureFields } from '../../../../../libs/core/src/testing/snapshotFixtures'
 import { Database } from 'bun:sqlite'
 import { mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { buildDivisionSearchSyncSql } from '@repo/core/pipeline/services/search/divisions'
 import { createLocalHarbourDb } from '../../../../../libs/core/src/testing/localDb.ts'
 import { loadMigrationSql } from '../../../../../libs/core/src/testing/metaFixtures.ts'
-import { buildDivisionSearchSyncSql } from '@repo/core/pipeline/services/search/divisions'
+import { snapshotFixtureFields } from '../../../../../libs/core/src/testing/snapshotFixtures'
 import type { LocalAddressDbContext } from '../dbCache/localDbCacheTypes.ts'
 import { prepareNativeSqlDelivery } from '../pipeline/local/nativeSqlDelivery.ts'
 import { prepareReconstructedRollback } from './reconstructRollback.ts'
@@ -258,20 +258,6 @@ export async function fixture(previous = true) {
       isLocaleInferred: 0,
       versionHash: 'old-zh',
     })
-    for (const [recordType, locale, versionHash] of [
-      ['division', '', 'base'],
-      ['divisionI18n', 'en', 'old-en'],
-      ['divisionI18n', 'zh-hant', 'old-zh'],
-    ])
-      insert(history, 'snapshotVersionChanges', {
-        snapshotId: 'snapshot-old',
-        recordType,
-        recordId: 'district',
-        locale,
-        versionHash,
-        operation: 'upsert',
-        sourceReleaseId: 'release-old',
-      })
   }
   const context = {
     state: {

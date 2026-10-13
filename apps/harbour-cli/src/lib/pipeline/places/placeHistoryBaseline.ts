@@ -1,11 +1,12 @@
-import { currentSchema, historySchema, eq, and, or } from '@repo/db'
-import { getMaxItemsPerInClause } from '@repo/core/pipeline/utils'
-import type { HarbourReadableDb } from '@repo/core/db/types'
 import type { SnapshotReplayStep } from '@repo/core/db/metaRegistry'
+import type { HarbourReadableDb } from '@repo/core/db/types'
 import {
-  resolveSnapshotVersionState,
   groupResolvedVersionsByShard,
+  resolveSnapshotVersionState,
 } from '@repo/core/pipeline/db/snapshotReplay'
+import { getMaxItemsPerInClause } from '@repo/core/pipeline/utils'
+import { and, currentSchema, eq, historySchema, or } from '@repo/db'
+import type { PlaceVersionI18nRow, PlaceVersionRow } from '@repo/db/historySchema'
 import type { LocalAddressDbContext } from '../../dbCache/localDbCache.ts'
 import type { PlaceHistoryState } from './processLocalPlaceSqlUploadTypes.ts'
 
@@ -48,7 +49,7 @@ export async function loadCurrentPlaceHistory(
         version => version.recordType === (localised ? 'placeI18n' : 'place'),
       )
       const table = localised ? historySchema.placesI18n : historySchema.places
-      const batchSize = getMaxItemsPerInClause(localised ? 3 : 2)
+      const batchSize = getMaxItemsPerInClause(localised ? 4 : 3)
       for (let start = 0; start < expected.length; start += batchSize) {
         const batch = expected.slice(start, start + batchSize)
         const identities = new Set(
@@ -67,11 +68,13 @@ export async function loadCurrentPlaceHistory(
                   ? and(
                       eq(historySchema.placesI18n.placeId, version.recordId),
                       eq(historySchema.placesI18n.versionHash, version.versionHash),
+                      eq(historySchema.placesI18n.snapshotId, version.snapshotId),
                       eq(historySchema.placesI18n.locale, version.locale),
                     )
                   : and(
                       eq(historySchema.places.id, version.recordId),
                       eq(historySchema.places.versionHash, version.versionHash),
+                      eq(historySchema.places.snapshotId, version.snapshotId),
                     ),
               ),
             ),
@@ -90,12 +93,12 @@ export async function loadCurrentPlaceHistory(
           if (localised)
             localeRows.push({
               bindingName,
-              row: row as typeof historySchema.placesI18n.$inferSelect,
+              row: row as PlaceVersionI18nRow,
             })
           else
             states.set(String(row.id), {
               bindingName,
-              row: row as typeof historySchema.places.$inferSelect,
+              row: row as PlaceVersionRow,
               locales: [],
             })
         }
@@ -124,6 +127,26 @@ export async function loadCurrentPlaceHistory(
   )
   if (ownedIds.size !== states.size || [...states.keys()].some(id => !ownedIds.has(id)))
     throw new Error('Place predecessor membership does not match its serving scope.')
+  const servingLocales = await ownership.currentDb
+    .select({
+      placeId: currentSchema.placesI18n.placeId,
+      locale: currentSchema.placesI18n.locale,
+    })
+    .from(currentSchema.placesI18n)
+    .where(eq(currentSchema.placesI18n.snapshotId, ownership.scopeId))
+    .all()
+  const localeKeys = new Set(
+    localeRows.map(item => JSON.stringify([item.row.placeId, item.row.locale])),
+  )
+  if (
+    localeKeys.size !== servingLocales.length ||
+    servingLocales.some(
+      row => !localeKeys.has(JSON.stringify([row.placeId, row.locale])),
+    )
+  )
+    throw new Error(
+      'Missing exact Place predecessor content: locale membership differs from its serving scope.',
+    )
   const links = await ownership.currentDb
     .select()
     .from(currentSchema.placesDivision)

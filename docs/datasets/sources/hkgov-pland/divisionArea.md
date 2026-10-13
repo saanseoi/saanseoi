@@ -103,11 +103,11 @@ Local geometry materialisation uses WAL-safe SQLite planning copies to retain ex
 mutations and churn outputs. Native receipts protect interrupted replay; the existing
 geometry writer supplies the SQL and runs only when preparing a new plan.
 
-Planning Area history retains immutable record/hash versions. Snapshot journals define
+Planning Area history retains immutable record/snapshot events. Snapshot events define
 membership from the selected parent's replay state, including its recorded annual
 shards; a root cohort starts with empty membership. Exact and simplified variants and
 other providers retain their versions independently. Remote replay inserts content by
-exact journal keys without closing or rewriting existing geometry or its provenance. The
+exact event keys without closing or rewriting existing geometry or its provenance. The
 stored history `isCurrent` field does not define Area membership. Current projection
 receipts and publication checks apply independently to every selected scope.
 
@@ -546,3 +546,13 @@ interpretations.
 Canonical Planning Division and Area attribution lists `hkgov-pland`, the registered
 Planning dataset code and every contributing native cell or New Town record ID. It
 excludes assembly pointers and publication identifiers.
+
+### Snapshot event storage
+
+Canonical HISTORY stores a changed component once, with its introducing `snapshotId`,
+`operation`, content hash and payload in the same row. Unchanged components inherit the
+selected parent. Deletions append identity-only tombstones, and ancestor rows remain
+immutable. Reversions and independent branch changes have distinct introducing events.
+The read-only `historyEvents` view stores no additional membership rows. Snapshot reads
+resolve ancestry before filtering and use the exact introducing snapshot to fetch
+content. SOURCE release validity and interpretation evidence remain separate.

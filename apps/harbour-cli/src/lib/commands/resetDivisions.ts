@@ -1,22 +1,22 @@
 import { dirname, resolve } from 'node:path'
+import { confirm, isCancel, note, outro } from '@clack/prompts'
+import { describeTarget, formatField } from '../cli/display.ts'
+import type { ParsedArgs, UploadTarget } from '../cli/options.ts'
+import {
+  type LocalAddressDbContext,
+  resolveLocalAddressDbContext,
+} from '../dbCache/localDbCache.ts'
 import {
   mapLocalTargetPaths,
   resolveD1Targets,
 } from '../dbCache/localDbCacheTargets.ts'
+import { createCloudflareD1QueryClient } from '../dbCache/remoteD1Client.ts'
 import { readPendingSqlDelivery } from '../pipeline/local/sqlDeliveryPending.ts'
-import { confirm, isCancel, note, outro } from '@clack/prompts'
-import type { ParsedArgs, UploadTarget } from '../cli/options.ts'
-import { describeTarget, formatField } from '../cli/display.ts'
-import {
-  resolveLocalAddressDbContext,
-  type LocalAddressDbContext,
-} from '../dbCache/localDbCache.ts'
 import {
   executeResetSqlArtefacts,
-  validateResetArguments,
   type ResetSqlArtefact,
+  validateResetArguments,
 } from '../pipeline/resetLifecycle.ts'
-import { createCloudflareD1QueryClient } from '../dbCache/remoteD1Client.ts'
 
 type ReadBinding = {
   prepare(sql: string): { all(): Promise<{ results: Record<string, unknown>[] }> }
@@ -209,8 +209,6 @@ export function buildDivisionResetSql(plan: DivisionResetPlan) {
   ].join('\n')
   const historySql = [
     ...CANONICAL_TABLES.map(table => `DELETE FROM ${table};`),
-    ...deleteIds('snapshotVersionChanges', 'snapshotId', snapshotIds),
-    ...deleteIds('snapshotVersionChanges', 'sourceReleaseId', releaseIds),
     ...deleteIds('sourceResolutions', 'snapshotId', snapshotIds),
     ...deleteIds('sourceResolutions', 'sourceReleaseId', releaseIds),
   ].join('\n')

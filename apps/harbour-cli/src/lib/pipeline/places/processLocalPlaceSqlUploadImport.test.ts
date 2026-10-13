@@ -66,6 +66,8 @@ test('remote Places combines small chunks and preserves database and statement o
       sourceSqlByBinding: new Map([['source', statements]]),
       historySqlByBinding: new Map([['history', ['SELECT 2;']]]),
       currentSql: ['SELECT 3;'],
+      evidenceDocuments: [],
+      publicationCounts: { localisedRows: 0, divisionLinks: 0, cells: 0 },
       changes: ['SELECT 4;'],
     } as Parameters<typeof importPlaceSqlChunks>[1],
     {

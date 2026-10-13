@@ -1,23 +1,25 @@
+import type { DatasetProcessingMessage } from '@repo/core'
 import { divisionLocaleContent } from '@repo/core/pipeline/db/divisionHistory'
+import { buildSourceReleaseId } from '@repo/core/pipeline/db/source'
 import { sourceResolutionSql } from '@repo/core/pipeline/db/sourceResolutions'
+import { divisionSourceResolutions } from '@repo/core/pipeline/services/divisions/divisionContainmentEvidence'
 import {
   overtureSourcePayload,
   saanseoiSourcePayload,
 } from '@repo/core/pipeline/services/sources/sourcePayload'
-import { divisionSourceResolutions } from '@repo/core/pipeline/services/divisions/divisionContainmentEvidence'
-import type { DatasetProcessingMessage } from '@repo/core'
-import { splitLargeInsertLiterals } from '../local/largeSqlLiterals.ts'
-import { buildSourceReleaseId } from '@repo/core/pipeline/db/source'
 import {
-  createHash,
   chunkArray,
+  createHash,
   getMaxItemsPerInClause,
   stableJsonStringify,
 } from '@repo/core/pipeline/utils'
-import type {
-  DivisionSqlState,
-  SqlValue,
-} from './processLocalDivisionSqlUploadTypes.ts'
+import { historyDeletionSql } from '@repo/db'
+import { splitLargeInsertLiterals } from '../local/largeSqlLiterals.ts'
+import {
+  PRIMARY_HISTORY_OWNER_KEY,
+  PRIMARY_SOURCE_OWNER_KEY,
+  SQL_STATEMENT_BYTE_TARGET,
+} from './processLocalDivisionSqlUploadConfig.ts'
 import {
   buildDivisionSqlRunId,
   buildSqlImportFile,
@@ -27,11 +29,10 @@ import {
   jsonText,
   processDivisionRecordBatches,
 } from './processLocalDivisionSqlUploadPreparation.ts'
-import {
-  PRIMARY_HISTORY_OWNER_KEY,
-  PRIMARY_SOURCE_OWNER_KEY,
-  SQL_STATEMENT_BYTE_TARGET,
-} from './processLocalDivisionSqlUploadConfig.ts'
+import type {
+  DivisionSqlState,
+  SqlValue,
+} from './processLocalDivisionSqlUploadTypes.ts'
 
 export async function buildDivisionSourceSqlFile(
   message: DatasetProcessingMessage,
@@ -230,8 +231,6 @@ export async function buildDivisionHistorySqlFile(
   const now = new Date().toISOString()
   const statements = [
     ...resolutionStatements,
-    ...buildCloseHistoryVersionStatements(changedExistingIdsInPrimary, now),
-    ...buildCloseHistoryVersionStatements(missingIdsInPrimary, now),
     ...buildInsertStatements(
       'divisions',
       [
@@ -255,7 +254,7 @@ export async function buildDivisionHistorySqlFile(
       baseRows,
       {
         suffix: `
-ON CONFLICT(id, versionHash) DO UPDATE SET
+ON CONFLICT(id, snapshotId) DO UPDATE SET
   isCurrent = 1,
   sourceReleaseId = excluded.sourceReleaseId,
   snapshotId = excluded.snapshotId,
@@ -283,7 +282,7 @@ ON CONFLICT(id, versionHash) DO UPDATE SET
       i18nRows,
       {
         suffix: `
-ON CONFLICT(divisionId, versionHash, locale) DO UPDATE SET
+ON CONFLICT(divisionId, snapshotId, locale) DO UPDATE SET
   sourceReleaseId = excluded.sourceReleaseId,
   snapshotId = excluded.snapshotId,
   isCurrent = 1,
@@ -296,62 +295,15 @@ ON CONFLICT(divisionId, versionHash, locale) DO UPDATE SET
   updatedAt = excluded.updatedAt`.trim(),
       },
     ),
-    ...buildInsertStatements(
-      'snapshotVersionChanges',
-      [
-        'snapshotId',
-        'recordType',
-        'recordId',
-        'locale',
-        'versionHash',
-        'operation',
-        'sourceReleaseId',
-        'createdAt',
-        'updatedAt',
-      ],
-      [
-        ...baseRows.map(row => ({
-          snapshotId: state.snapshotId,
-          recordType: 'division',
-          recordId: row.id,
-          locale: '',
-          versionHash: row.versionHash,
-          operation: 'upsert',
-          sourceReleaseId: message.resourceReleaseId ?? message.datasetId,
-          createdAt: now,
-          updatedAt: now,
-        })),
-        ...i18nRows.map(row => ({
-          snapshotId: state.snapshotId,
-          recordType: 'divisionI18n',
-          recordId: row.divisionId,
-          locale: row.locale,
-          versionHash: row.versionHash,
-          operation: 'upsert',
-          sourceReleaseId: message.resourceReleaseId ?? message.datasetId,
-          createdAt: now,
-          updatedAt: now,
-        })),
-        ...missingIds.map(recordId => ({
-          snapshotId: state.snapshotId,
-          recordType: 'division',
-          recordId,
-          locale: '',
-          versionHash: null,
-          operation: 'delete',
-          sourceReleaseId: message.resourceReleaseId ?? message.datasetId,
-          createdAt: now,
-          updatedAt: now,
-        })),
-      ],
-      {
-        suffix: `
-ON CONFLICT(snapshotId, recordType, recordId, locale) DO UPDATE SET
-  versionHash = excluded.versionHash,
-  operation = excluded.operation,
-  sourceReleaseId = excluded.sourceReleaseId,
-  updatedAt = excluded.updatedAt`.trim(),
-      },
+    ...missingIds.map(recordId =>
+      historyDeletionSql({
+        snapshotId: state.snapshotId,
+        recordType: 'division',
+        recordId,
+        sourceReleaseId: message.resourceReleaseId ?? message.datasetId,
+        createdAt: now,
+        updatedAt: now,
+      }),
     ),
   ]
 
@@ -530,31 +482,6 @@ UPDATE ${table}
 SET isCurrent = 0, validToRelease = ${sqlLiteral(validToRelease)}, updatedAt = ${sqlLiteral(now)}
 WHERE isCurrent = 1
   AND sourceRecordId IN (${values});`.trim(),
-    ]
-  })
-}
-
-export function buildCloseHistoryVersionStatements(divisionIds: string[], now: string) {
-  return chunkArray(divisionIds, getMaxItemsPerInClause(1, 6)).flatMap(chunk => {
-    if (chunk.length === 0) {
-      return []
-    }
-
-    const values = chunk.map(sqlLiteral).join(', ')
-
-    return [
-      `
-UPDATE divisions
-SET isCurrent = 0,
-  updatedAt = ${sqlLiteral(now)}
-WHERE isCurrent = 1
-  AND id IN (${values});`.trim(),
-      `
-UPDATE divisionsI18n
-SET isCurrent = 0,
-  updatedAt = ${sqlLiteral(now)}
-WHERE isCurrent = 1
-  AND divisionId IN (${values});`.trim(),
     ]
   })
 }

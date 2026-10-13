@@ -1,10 +1,10 @@
-import { metaSnapshotResourceReleaseDetails } from '@repo/db/metaSchema'
+import { resolveSnapshotReplayPlan } from '@repo/core/db/metaRegistry'
 import {
-  matchesGeographicMembership,
-  geographicFilterContext,
-} from '../lib/geographicFilterContext'
-import { getPublicationReadiness, guardPublicationRead } from '../db/publicationState'
-import { resolveDataRegion, type ApiRegion } from '../schema/region'
+  groupResolvedVersionsByShard,
+  historyVersionSelection,
+  resolveSnapshotVersionState,
+} from '@repo/core/pipeline/db/snapshotReplay.ts'
+import { chunkArray } from '@repo/core/pipeline/utils.ts'
 import type {
   CurrentDatabase,
   HistoryDatabase,
@@ -14,29 +14,32 @@ import type {
 } from '@repo/db'
 import {
   and,
+  currentSchema,
   desc,
   eq,
+  type HistoryContent,
   historySchema,
-  inArray,
   isStreetChangelogKind,
   metaDatasets,
-  metaSnapshotResourceReleases,
   metaSnapshotLineages,
   metaSnapshots,
   streetEvidenceAssetRoles,
   streetLocaleCodes,
 } from '@repo/db'
-import { resolveSnapshotReplayPlan } from '@repo/core/db/metaRegistry'
-import { groupResolvedVersionsByShard } from '@repo/core/pipeline/db/snapshotReplay.ts'
-import { chunkArray, getMaxItemsPerInClause } from '@repo/core/pipeline/utils.ts'
-
+import { metaSnapshotResourceReleaseDetails } from '@repo/db/metaSchema'
+import { getPublicationReadiness, guardPublicationRead } from '../db/publicationState'
 import { getStreetCurrentById } from '../db/streets'
+import {
+  geographicFilterContext,
+  matchesGeographicMembership,
+} from '../lib/geographicFilterContext'
 import type {
   StreetAsset,
   StreetChangelogEntry,
   StreetLocale,
   StreetResource,
 } from '../schema'
+import { type ApiRegion, resolveDataRegion } from '../schema/region'
 
 type StoredStreetLocale = StreetLocale & {
   locale: string
@@ -52,14 +55,8 @@ type StreetState = Omit<
   i18n: StoredStreetLocale[]
 }
 
-type StreetReplayRef = {
-  recordType: string
-  recordId: string
-  locale: string
-  versionHash: string
-  sourceReleaseId: string
-  shard: { bindingName: string; db: HistoryDatabase }
-}
+type StreetReplayRef =
+  import('@repo/core/pipeline/db/snapshotReplay.ts').ResolvedSnapshotVersion
 
 export async function getHongKongStreetDetail(input: {
   currentDb: CurrentDatabase
@@ -258,48 +255,94 @@ async function getPublishedStreetSnapshot(metaDb: MetaDatabase, region?: ApiRegi
     .get()
 }
 
-async function getStreetHistory(
+export async function getStreetHistory(
   historyDbsByBinding: Record<string, HistoryDatabase>,
   id: string,
   metaDb: MetaDatabase,
   snapshotId: string,
 ) {
-  const refs = await loadSnapshotStreetVersionRefs(
-    historyDbsByBinding,
-    metaDb,
-    snapshotId,
-    ['street', 'streetI18n', 'streetChangelog'],
-  )
-  const [streets, i18n, changelog] = await Promise.all([
-    loadStreetRows(refs.filter(ref => ref.recordType === 'street')),
-    loadStreetI18nRows(refs.filter(ref => ref.recordType === 'streetI18n')),
-    loadStreetChangelogRows(refs.filter(ref => ref.recordType === 'streetChangelog')),
-  ])
-  const changelogForStreet = changelog.filter(row => row.streetId === id)
+  const plan = await resolveSnapshotReplayPlan(metaDb as never, snapshotId)
   const byVersion = new Map<number, StreetState>()
-  for (const street of streets.filter(
-    row => row.id === id && matchesGeographicMembership(stringArray(row.districtIds)),
-  )) {
-    // Version numbers are logical identities. Duplicate rows across a shard
-    // retry are equivalent and should not make history traversal ambiguous.
-    if (!byVersion.has(street.version)) {
+  for (const step of plan) {
+    const refs = await loadSnapshotStreetVersionRefs(
+      historyDbsByBinding,
+      metaDb,
+      step.snapshotId,
+      ['street', 'streetI18n', 'streetChangelog'],
+    )
+    const [streets, i18n, changelog] = await Promise.all([
+      loadStreetRows(
+        refs.filter(ref => ref.recordType === 'street' && ref.recordId === id),
+      ),
+      loadStreetI18nRows(
+        refs.filter(ref => ref.recordType === 'streetI18n' && ref.recordId === id),
+      ),
+      loadStreetChangelogRows(refs.filter(ref => ref.recordType === 'streetChangelog')),
+    ])
+    const changes = changelog.filter(row => row.streetId === id)
+    if (!streets.length) {
+      for (const assignment of step.shards) {
+        const db = historyDbsByBinding[assignment.bindingName]
+        if (!db) continue
+        const deletion = await db
+          .select()
+          .from(historySchema.streets)
+          .where(
+            and(
+              eq(historySchema.streets.id, id),
+              eq(historySchema.streets.snapshotId, step.snapshotId),
+              eq(historySchema.streets.operation, 'delete'),
+            ),
+          )
+          .get()
+        if (!deletion) continue
+        if (deletion.version === null)
+          throw new Error(`Street deletion ${id} lacks its lifecycle version.`)
+        const names = await db
+          .select()
+          .from(historySchema.streetsI18n)
+          .where(
+            and(
+              eq(historySchema.streetsI18n.streetId, id),
+              eq(historySchema.streetsI18n.snapshotId, step.snapshotId),
+              eq(historySchema.streetsI18n.operation, 'delete'),
+            ),
+          )
+          .all()
+        byVersion.set(deletion.version, {
+          id,
+          status: 'deleted',
+          version: deletion.version,
+          deletedAt: deletion.deletedAt,
+          gazetteDate: deletion.gazetteDate,
+          districtIds: deletion.districtIds,
+          i18n: names
+            .filter(name => name.name !== null)
+            .map(name => ({
+              locale: name.locale,
+              name: name.name!,
+              description: name.description,
+            })),
+          changelog: changes.map(publicChangelogEntry),
+        })
+      }
+    }
+    for (const street of streets) {
+      if (!matchesGeographicMembership(stringArray(street.districtIds))) continue
       byVersion.set(street.version, {
-        changelog: changelogForStreet.map(publicChangelogEntry),
+        changelog: changelog
+          .filter(row => row.streetId === id)
+          .map(publicChangelogEntry),
         deletedAt: street.deletedAt,
         districtIds: street.districtIds,
         id: street.id,
-        i18n: i18n
-          .filter(
-            item =>
-              item.streetId === street.id && item.versionHash === street.versionHash,
-          )
-          .map(item => ({
-            description: item.description,
-            locale: item.locale,
-            name: item.name,
-          })),
+        i18n: i18n.map(item => ({
+          description: item.description,
+          locale: item.locale,
+          name: item.name,
+        })),
         gazetteDate: street.gazetteDate,
-        status: street.status === 'deleted' ? 'deleted' : 'active',
+        status: 'active',
         version: street.version,
       })
     }
@@ -320,79 +363,27 @@ async function loadSnapshotStreetVersionRefs(
     ]),
   )
   const plan = await resolveSnapshotReplayPlan(metaDb as never, snapshotId)
-  const refs: StreetReplayRef[] = []
-  for (const step of plan) {
-    for (const assignment of step.shards) {
-      const shard = shards.get(assignment.bindingName)
-      if (!shard) {
-        throw new Error(
-          `Snapshot ${step.snapshotId} requires unavailable history binding ${assignment.bindingName}.`,
-        )
-      }
-      const rows = await shard.db
-        .select({
-          recordType: historySchema.snapshotVersionChanges.recordType,
-          recordId: historySchema.snapshotVersionChanges.recordId,
-          locale: historySchema.snapshotVersionChanges.locale,
-          versionHash: historySchema.snapshotVersionChanges.versionHash,
-          operation: historySchema.snapshotVersionChanges.operation,
-          sourceReleaseId: historySchema.snapshotVersionChanges.sourceReleaseId,
-        })
-        .from(historySchema.snapshotVersionChanges)
-        .where(
-          and(
-            eq(historySchema.snapshotVersionChanges.snapshotId, step.snapshotId),
-            inArray(historySchema.snapshotVersionChanges.recordType, recordTypes),
-          ),
-        )
-        .all()
-      refs.push(
-        ...rows.flatMap(row =>
-          row.operation === 'upsert' && row.versionHash && row.sourceReleaseId
-            ? [
-                {
-                  recordType: row.recordType,
-                  recordId: row.recordId,
-                  locale: row.locale,
-                  versionHash: row.versionHash,
-                  sourceReleaseId: row.sourceReleaseId,
-                  shard,
-                },
-              ]
-            : [],
-        ),
-      )
-    }
-  }
   return [
-    ...new Map(
-      refs.map(ref => [
-        `${ref.recordType}\u0000${ref.recordId}\u0000${ref.locale}\u0000${ref.versionHash}`,
-        ref,
-      ]),
-    ).values(),
-  ]
+    ...(await resolveSnapshotVersionState(plan, shards as never, recordTypes)).values(),
+  ] as StreetReplayRef[]
 }
 
 async function loadStreetRows(refs: StreetReplayRef[]) {
-  const rows: Array<typeof historySchema.streets.$inferSelect> = []
+  type Content = HistoryContent<
+    typeof historySchema.streets.$inferSelect,
+    typeof currentSchema.streets.$inferSelect
+  >
+  const rows: Content[] = []
   for (const shardRefs of groupResolvedVersionsByShard(refs as never).values()) {
     const first = shardRefs[0]
     if (!first) continue
-    const expected = new Set(
-      shardRefs.map(ref => `${ref.recordId}\u0000${ref.versionHash}`),
-    )
-    for (const versionHashes of chunkArray(
-      [...new Set(shardRefs.map(ref => ref.versionHash))],
-      getMaxItemsPerInClause(),
-    )) {
-      const found = (await first.shard.db
-        .select()
-        .from(historySchema.streets)
-        .where(inArray(historySchema.streets.versionHash, versionHashes))
-        .all()) as Array<typeof historySchema.streets.$inferSelect>
+    for (const batch of chunkArray(shardRefs, 256)) {
       rows.push(
-        ...found.filter(row => expected.has(`${row.id}\u0000${row.versionHash}`)),
+        ...((await first.shard.db
+          .select()
+          .from(historySchema.streets)
+          .where(historyVersionSelection(historySchema.streets, batch))
+          .all()) as Content[]),
       )
     }
   }
@@ -400,28 +391,21 @@ async function loadStreetRows(refs: StreetReplayRef[]) {
 }
 
 async function loadStreetI18nRows(refs: StreetReplayRef[]) {
-  const rows: Array<typeof historySchema.streetsI18n.$inferSelect> = []
+  type Content = HistoryContent<
+    typeof historySchema.streetsI18n.$inferSelect,
+    typeof currentSchema.streetsI18n.$inferSelect
+  >
+  const rows: Content[] = []
   for (const shardRefs of groupResolvedVersionsByShard(refs as never).values()) {
     const first = shardRefs[0]
     if (!first) continue
-    const expected = new Set(
-      shardRefs.map(
-        ref => `${ref.recordId}\u0000${ref.locale}\u0000${ref.versionHash}`,
-      ),
-    )
-    for (const versionHashes of chunkArray(
-      [...new Set(shardRefs.map(ref => ref.versionHash))],
-      getMaxItemsPerInClause(),
-    )) {
-      const found = (await first.shard.db
-        .select()
-        .from(historySchema.streetsI18n)
-        .where(inArray(historySchema.streetsI18n.versionHash, versionHashes))
-        .all()) as Array<typeof historySchema.streetsI18n.$inferSelect>
+    for (const batch of chunkArray(shardRefs, 256)) {
       rows.push(
-        ...found.filter(row =>
-          expected.has(`${row.streetId}\u0000${row.locale}\u0000${row.versionHash}`),
-        ),
+        ...((await first.shard.db
+          .select()
+          .from(historySchema.streetsI18n)
+          .where(historyVersionSelection(historySchema.streetsI18n, batch))
+          .all()) as Content[]),
       )
     }
   }
@@ -429,21 +413,22 @@ async function loadStreetI18nRows(refs: StreetReplayRef[]) {
 }
 
 async function loadStreetChangelogRows(refs: StreetReplayRef[]) {
-  const rows: Array<typeof historySchema.streetChangelog.$inferSelect> = []
+  type Content = HistoryContent<
+    typeof historySchema.streetChangelog.$inferSelect,
+    typeof currentSchema.streetChangelog.$inferSelect
+  >
+  const rows: Content[] = []
   for (const shardRefs of groupResolvedVersionsByShard(refs as never).values()) {
     const first = shardRefs[0]
     if (!first) continue
-    const expected = new Set(shardRefs.map(ref => ref.versionHash))
-    for (const versionHashes of chunkArray(
-      [...new Set(shardRefs.map(ref => ref.versionHash))],
-      getMaxItemsPerInClause(),
-    )) {
-      const found = (await first.shard.db
-        .select()
-        .from(historySchema.streetChangelog)
-        .where(inArray(historySchema.streetChangelog.versionHash, versionHashes))
-        .all()) as Array<typeof historySchema.streetChangelog.$inferSelect>
-      rows.push(...found.filter(row => expected.has(row.versionHash)))
+    for (const batch of chunkArray(shardRefs, 256)) {
+      rows.push(
+        ...((await first.shard.db
+          .select()
+          .from(historySchema.streetChangelog)
+          .where(historyVersionSelection(historySchema.streetChangelog, batch))
+          .all()) as Content[]),
+      )
     }
   }
   return rows

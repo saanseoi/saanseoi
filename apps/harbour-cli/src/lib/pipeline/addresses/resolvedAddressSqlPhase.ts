@@ -1,30 +1,30 @@
-import type { AddressPublicationReceipt } from '@repo/core/pipeline/db/addressPublication'
 import type { Database } from 'bun:sqlite'
+import type { AddressPublicationReceipt } from '@repo/core/pipeline/db/addressPublication'
 import {
   prepareNativeSqlDelivery,
   runNativeSqlDelivery,
 } from '../local/nativeSqlDelivery.ts'
-import {
-  prepareReleaseSqlDelivery,
-  executeReleaseSqlDelivery,
-} from '../local/releaseSqlDelivery.ts'
-import { captureNetSqlitePlan } from '../local/netSqlitePlan.ts'
 import { executeNativeSqlStatements } from '../local/nativeSqlStatements.ts'
+import { captureNetSqlitePlan } from '../local/netSqlitePlan.ts'
+import {
+  executeReleaseSqlDelivery,
+  prepareReleaseSqlDelivery,
+} from '../local/releaseSqlDelivery.ts'
 import { withSqlDeliveryCapture } from '../local/sqlDeliveryCapture.ts'
 import {
-  sqlDeliveryPhaseDirectory,
   type SqlDeliveryPhase,
+  sqlDeliveryPhaseDirectory,
 } from '../local/sqlDeliveryPhase.ts'
-import {
-  addressMutationTables,
-  buildDeliveredAddressValidationSql,
-  validateResolvedAddressProjection,
-} from './resolvedAddressDelivery.ts'
 import { addressPublicationDelivery } from './addressPublicationDelivery.ts'
 import {
   resolveCloudflareAccountId,
   resolveCloudflareD1ApiToken,
 } from './processLocalAddressSqlUploadImport.ts'
+import {
+  addressMutationTables,
+  buildDeliveredAddressValidationSql,
+  validateResolvedAddressProjection,
+} from './resolvedAddressDelivery.ts'
 
 /** Resolve supplementary Address SQL on copies; deliver only guarded final differences. */
 export async function deliverResolvedAddressSqlPhase(
@@ -83,7 +83,7 @@ export async function deliverResolvedAddressSqlPhase(
         targets: Object.fromEntries(
           Object.entries(files).flatMap(([binding, path]) => {
             const tables = addressMutationTables(binding)
-            return tables.length
+            return tables.length || binding === 'DB_META'
               ? [
                   [
                     binding,

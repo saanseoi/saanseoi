@@ -1,17 +1,19 @@
-import { createMemoryProvenanceStore } from '../../../../../libs/core/src/testing/provenanceStore'
 import {
-  readFieldLineage,
   type FieldLineageReference,
+  readFieldLineage,
 } from '../../../../../libs/core/src/provenance/fieldLineageStorage'
+import { createMemoryProvenanceStore } from '../../../../../libs/core/src/testing/provenanceStore'
 export const { store: lineageStore } = createMemoryProvenanceStore()
-import { resolveSnapshotProcessingRules } from '../../../../../libs/core/src/provenance/processingPolicyCatalogue'
-import { computeVersionHash } from '@repo/db'
-import { datasetVariantForSource } from '@repo/core/codes'
-import { initialDatasets } from '@repo/db/registry'
+
+import { Database } from 'bun:sqlite'
 import { mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
-import { Database } from 'bun:sqlite'
+import type { ResourceType } from '@repo/core'
+import { datasetVariantForSource } from '@repo/core/codes'
+import { computeVersionHash } from '@repo/db'
+import { initialDatasets } from '@repo/db/registry'
+import { resolveSnapshotProcessingRules } from '../../../../../libs/core/src/provenance/processingPolicyCatalogue'
 import {
   insertFixtureRelease,
   loadMigrationSql,
@@ -114,9 +116,32 @@ export function seedSnapshot(
 ) {
   const publishedAt = status === 'published' ? timestamp : 'null'
   seedCompletedAudits(sqlite)
+  const dataset = sqlite
+    .query<
+      {
+        code: string
+        regionCode: string
+        publisherCode: string
+        sourceVariant: string
+      },
+      [string]
+    >(
+      `SELECT d.code, d.regionCode, p.code AS publisherCode, d.sourceVariant
+       FROM datasets d JOIN publishers p ON p.id = d.publisherId WHERE d.id = ?`,
+    )
+    .get(datasetId)
+  if (!dataset) throw new Error(`Missing fixture dataset: ${datasetId}`)
+  const variant = datasetVariantForSource(
+    resourceType as ResourceType,
+    dataset.publisherCode,
+    {
+      datasetCode: dataset.code,
+      sourceVariant: dataset.sourceVariant,
+    },
+  )
 
   sqlite.exec(`
-    INSERT OR IGNORE INTO snapshotLineages (id,code,resourceType,regionCode,variant,identityMode,versionHash,createdAt,updatedAt) VALUES ('fixture-lineage-' || '${snapshotId}','fixture-lineage-' || '${snapshotId}','${resourceType}','hk','default','persistent','fixture','2026-01-01T00:00:00.000Z','2026-01-01T00:00:00.000Z');
+    INSERT OR IGNORE INTO snapshotLineages (id,code,resourceType,regionCode,variant,identityMode,versionHash,createdAt,updatedAt) VALUES ('fixture-lineage-' || '${snapshotId}','fixture-lineage-' || '${snapshotId}','${resourceType}','hk','${variant}','persistent','fixture','2026-01-01T00:00:00.000Z','2026-01-01T00:00:00.000Z');
 UPDATE snapshotLineages SET resourceType='${resourceType}' WHERE id='fixture-lineage-' || '${snapshotId}' AND resourceType IS NULL;
 INSERT INTO snapshots (id, snapshotLineageId, code, cohortKey, status, publishedAt, validFrom, validTo, createdAt, updatedAt) VALUES
 ('${snapshotId}', 'fixture-lineage-' || '${snapshotId}', '${code}', '${cohortKey}', '${status}', ${publishedAt}, ${publishedAt}, null, ${timestamp}, ${timestamp});
@@ -132,13 +157,6 @@ INSERT INTO snapshots (id, snapshotLineageId, code, cohortKey, status, published
   `)
 
   if (resourceType === 'address' || resourceType === 'place') {
-    const dataset = sqlite
-      .query(`SELECT d.code, d.regionCode, p.code AS publisherCode
-      FROM datasets d JOIN publishers p ON p.id = d.publisherId WHERE d.id = ?`)
-      .get(datasetId) as { code: string; regionCode: string; publisherCode: string }
-    const variant = datasetVariantForSource(resourceType, dataset.publisherCode, {
-      datasetCode: dataset.code,
-    })
     const lineageId = `fixture-lineage-${datasetId}-${resourceType}-${variant}`
     sqlite
       .query(`INSERT OR IGNORE INTO snapshotLineages (

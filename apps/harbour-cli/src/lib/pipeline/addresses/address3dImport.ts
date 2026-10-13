@@ -1,25 +1,30 @@
-import { stringifyGeoJson } from '@repo/db/geoJsonSerialisation'
-import { recordContent } from '@repo/core/pipeline/services/sources/recordContent'
-import { sourceLocatorFromReferences } from '@repo/core/pipeline/services/sources/sourcePayload'
 import { createHash } from 'node:crypto'
 import { createReadStream } from 'node:fs'
 import { createInterface } from 'node:readline'
 import type { DatasetProcessingMessage } from '@repo/core'
-import type { MetaDatabase } from '@repo/db'
 import {
-  resolveImportTarget,
-  type AddressSqlImportStageOptions,
-} from '@repo/core/pipeline/services/addresses/sqlImportStages'
-import type { PreparedAls3dRecord } from '../../sources/hkgov/dpo/hkgovAls3dPreparation'
-import {
-  sourceResolutionSql,
   resolvedEntities,
+  sourceResolutionSql,
 } from '@repo/core/pipeline/db/sourceResolutions'
-import { als3dHash, assertAddress3dRowBudget } from '../../sources/hkgov/dpo/hkgovAls3d'
-import { validateAddress3dOwners } from './address3dOwners'
+import {
+  type AddressSqlImportStageOptions,
+  resolveImportTarget,
+} from '@repo/core/pipeline/services/addresses/sqlImportStages'
+import { recordContent } from '@repo/core/pipeline/services/sources/recordContent'
+import { sourceLocatorFromReferences } from '@repo/core/pipeline/services/sources/sourcePayload'
 import type { ReleaseProcessingAction } from '@repo/core/provenance/processingAction'
+import type { MetaDatabase } from '@repo/db'
+import { historyDeletionSql } from '@repo/db'
+import { stringifyGeoJson } from '@repo/db/geoJsonSerialisation'
+import { als3dHash, assertAddress3dRowBudget } from '../../sources/hkgov/dpo/hkgovAls3d'
+import type { PreparedAls3dRecord } from '../../sources/hkgov/dpo/hkgovAls3dPreparation'
+import { validateAddress3dOwners } from './address3dOwners'
 
-type Statement = { sql: string; params: unknown[] }
+type Statement = {
+  sql: string
+  params: unknown[]
+  event?: { recordType: string; recordId: string; locale: string; versionHash: string }
+}
 type Target = 'current' | 'history' | 'source'
 type Collection = Extract<PreparedAls3dRecord, { kind: 'collection' }>
 export type Address3dImportShard = {
@@ -256,7 +261,21 @@ export async function createAddress3dExecutor(
   }
 }
 
-const insert = (table: string, row: Record<string, unknown>, conflict: string) => ({
+const insert = (
+  table: string,
+  row: Record<string, unknown>,
+  conflict: string,
+): Statement => ({
+  ...(row.versionHash && (table === 'address3d' || table === 'address3dI18n')
+    ? {
+        event: {
+          recordType: table,
+          recordId: String(row.id ?? row.address3dId),
+          locale: String(row.locale ?? ''),
+          versionHash: String(row.versionHash),
+        },
+      }
+    : {}),
   sql: `INSERT INTO "${table}" (${Object.keys(row)
     .map(key => `"${key}"`)
     .join(',')}) VALUES (${Object.keys(row)
@@ -320,20 +339,7 @@ export function collectionStatements(
     ),
   ]
   const historyStatements = [
-    insert(
-      'address3d',
-      history,
-      'ON CONFLICT(id,versionHash) DO UPDATE SET isCurrent=1,updatedAt=excluded.updatedAt WHERE address3d.isCurrent <> 1',
-    ),
-    journalStatement(
-      snapshotId,
-      resourceReleaseId,
-      'address3d',
-      base.id,
-      '',
-      versionHash,
-      now,
-    ),
+    insert('address3d', history, 'ON CONFLICT(id,snapshotId) DO NOTHING'),
   ]
   for (const [locale, units] of Object.entries(locales)) {
     const localeVersionHash = als3dHash({ address3dId: base.id, locale, units })
@@ -361,16 +367,7 @@ export function collectionStatements(
           sourceReleaseId: resourceReleaseId,
           isCurrent: 1,
         },
-        'ON CONFLICT(address3dId,versionHash,locale) DO UPDATE SET isCurrent=1,updatedAt=excluded.updatedAt WHERE address3dI18n.isCurrent <> 1',
-      ),
-      journalStatement(
-        snapshotId,
-        resourceReleaseId,
-        'address3dI18n',
-        base.id,
-        locale,
-        localeVersionHash,
-        now,
+        'ON CONFLICT(address3dId,snapshotId,locale) DO NOTHING',
       ),
     )
   }
@@ -378,30 +375,27 @@ export function collectionStatements(
   return { currentStatements, historyStatements }
 }
 
-function journalStatement(
+function deletionStatement(
   snapshotId: string,
   sourceReleaseId: string,
   recordType: string,
   recordId: string,
   locale: string,
-  versionHash: string | null,
+  versionHash: null,
   now: string,
 ) {
-  return insert(
-    'snapshotVersionChanges',
-    {
+  return {
+    sql: historyDeletionSql({
       snapshotId,
       sourceReleaseId,
       recordType,
       recordId,
       locale,
-      versionHash,
-      operation: versionHash ? 'upsert' : 'delete',
       createdAt: now,
       updatedAt: now,
-    },
-    'ON CONFLICT(snapshotId,recordType,recordId,locale) DO UPDATE SET versionHash=excluded.versionHash,operation=excluded.operation,sourceReleaseId=excluded.sourceReleaseId,updatedAt=excluded.updatedAt WHERE snapshotVersionChanges.versionHash IS NOT excluded.versionHash OR snapshotVersionChanges.operation IS NOT excluded.operation OR snapshotVersionChanges.sourceReleaseId IS NOT excluded.sourceReleaseId',
-  )
+    }),
+    params: [],
+  }
 }
 
 export async function importAddress3dCollections(args: {
@@ -446,22 +440,6 @@ export async function importAddress3dCollections(args: {
     return shard.execute
   }
   for (const prior of args.priorMembership) historyExecutor(prior)
-  const closeHistory = async (prior: PriorMembership) => {
-    if (prior.recordType !== 'address3d' && prior.recordType !== 'address3dI18n')
-      throw new Error(`Unexpected Address3D prior record type ${prior.recordType}.`)
-    const localised = prior.recordType === 'address3dI18n'
-    await historyExecutor(prior)([
-      {
-        sql: `UPDATE ${prior.recordType} SET isCurrent = 0, updatedAt = ? WHERE ${localised ? 'address3dId' : 'id'} = ?${localised ? ' AND locale = ?' : ''}${prior.versionHash ? ' AND versionHash = ?' : ''} AND isCurrent = 1`,
-        params: [
-          now,
-          prior.recordId,
-          ...(localised ? [prior.locale] : []),
-          ...(prior.versionHash ? [prior.versionHash] : []),
-        ],
-      },
-    ])
-  }
   const sourceVersions = new Map<string, string>()
   await validateAddress3dOwners(
     args.currentSnapshotId ?? args.snapshotId,
@@ -676,25 +654,14 @@ export async function importAddress3dCollections(args: {
         now,
         args.currentSnapshotId ?? args.snapshotId,
       )
-      // Reuse exact versions across shard years, including their unchanged journal
-      // membership. The local planner composes the final current collection once.
       const pendingHistory: Statement[] = []
-      for (let index = 0; index < historyStatements.length; index += 2) {
-        const statement = historyStatements[index]
-        const journal = historyStatements[index + 1]
-        if (!journal) throw new Error('Address3D history pair is incomplete.')
-        const [, , recordType, recordId, locale, versionHash] = journal.params
-        const key = membershipKey({
-          recordType: String(recordType),
-          recordId: String(recordId),
-          locale: String(locale),
-        })
+      for (const statement of historyStatements) {
+        const event = statement.event
+        if (!event) throw new Error('Address3D content event is missing its identity.')
+        const key = membershipKey(event)
         seenMembership.add(key)
-        const prior = priorByKey.get(key)
-        if (prior?.versionHash === versionHash) continue
-        if (prior) await closeHistory(prior)
-        if (!statement) throw new Error('Address3D history row is missing.')
-        pendingHistory.push(statement, journal)
+        if (priorByKey.get(key)?.versionHash === event.versionHash) continue
+        pendingHistory.push(statement)
       }
       if (pendingHistory.length) await args.execute('history', pendingHistory)
       await args.execute('current', currentStatements)
@@ -718,9 +685,8 @@ export async function importAddress3dCollections(args: {
   }
   for (const prior of args.priorMembership) {
     if (seenMembership.has(membershipKey(prior))) continue
-    await closeHistory(prior)
     await args.execute('history', [
-      journalStatement(
+      deletionStatement(
         args.snapshotId,
         args.resourceReleaseId,
         prior.recordType,

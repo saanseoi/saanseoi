@@ -1,4 +1,4 @@
-import { stringifyGeoJson, orderGeoJsonText } from '@repo/db/geoJsonSerialisation'
+import { currentRowChangedSqlText } from '@repo/core/pipeline/services/publication/currentWrites.ts'
 import {
   buildBeginPublicationSql,
   buildCompletePublicationSql,
@@ -6,23 +6,23 @@ import {
   buildPublicationRowCountSql,
   type PublicationPreparation,
 } from '@repo/core/pipeline/services/publication/sql.ts'
-import { currentRowChangedSqlText } from '@repo/core/pipeline/services/publication/currentWrites.ts'
-import { eq, inArray, getTableColumns } from 'drizzle-orm'
-import { chunkArray, getMaxItemsPerInClause } from '@repo/core/pipeline/utils'
-import { currentSchema, historySchema, sourceSchema } from '@repo/db'
 import {
   buildSqlPipelineArtefactKey,
   writeTextArtefact,
 } from '@repo/core/pipeline/services/storage/artefacts'
-import type { SqlImportTargetContext } from '../local/sqlImport.ts'
-import type { LocalPipelineBucket } from '../local/localBucket.ts'
+import { chunkArray, getMaxItemsPerInClause } from '@repo/core/pipeline/utils'
+import { currentSchema, historySchema, sourceSchema } from '@repo/db'
+import { orderGeoJsonText, stringifyGeoJson } from '@repo/db/geoJsonSerialisation'
+import { eq, getTableColumns, inArray } from 'drizzle-orm'
 import type { LocalAddressDbContext } from '../../dbCache/localDbCache.ts'
+import type { LocalPipelineBucket } from '../local/localBucket.ts'
+import type { SqlImportTargetContext } from '../local/sqlImport.ts'
 import { geometryBuildUpsertSql } from './processLocalDivisionGeometrySqlUpload.ts'
+import { buildPlandMetaSql } from './processLocalHkgovPlandDivisionSqlUploadMetadata.ts'
 import type {
   HkgovPlandDivisionUploadPlan,
   PreparedDivision,
 } from './processLocalHkgovPlandDivisionSqlUploadTypes.ts'
-import { buildPlandMetaSql } from './processLocalHkgovPlandDivisionSqlUploadMetadata.ts'
 
 export type PlandSqlArtefactManifest = {
   currentKey: string
@@ -211,33 +211,16 @@ async function buildPlandHistorySql(
   context: LocalAddressDbContext,
   state: PlandSqlState,
 ) {
-  const affectedIds = [
-    ...new Set([...state.changedHistoryIds, ...state.missingHistoryIds]),
-  ]
-  const affectedIdChunks = chunkArray(affectedIds, getMaxItemsPerInClause(1, 1))
-  const [divisionRows, i18nRows, changeRows] = await Promise.all([
-    Promise.all(
-      affectedIdChunks.map(chunk =>
-        context.historyDb
-          .select()
-          .from(historySchema.divisions)
-          .where(inArray(historySchema.divisions.id, chunk))
-          .all(),
-      ),
-    ).then(rows => rows.flat()),
-    Promise.all(
-      affectedIdChunks.map(chunk =>
-        context.historyDb
-          .select()
-          .from(historySchema.divisionsI18n)
-          .where(inArray(historySchema.divisionsI18n.divisionId, chunk))
-          .all(),
-      ),
-    ).then(rows => rows.flat()),
+  const [divisionRows, i18nRows] = await Promise.all([
     context.historyDb
       .select()
-      .from(historySchema.snapshotVersionChanges)
-      .where(eq(historySchema.snapshotVersionChanges.snapshotId, state.snapshotId))
+      .from(historySchema.divisions)
+      .where(eq(historySchema.divisions.snapshotId, state.snapshotId))
+      .all(),
+    context.historyDb
+      .select()
+      .from(historySchema.divisionsI18n)
+      .where(eq(historySchema.divisionsI18n.snapshotId, state.snapshotId))
       .all(),
   ])
   const i18nColumns = [
@@ -249,44 +232,24 @@ async function buildPlandHistorySql(
     'nameRules',
     'isLocaleInferred',
     'versionHash',
+    'operation',
     'sourceReleaseId',
     'snapshotId',
     'isCurrent',
     'createdAt',
     'updatedAt',
   ]
-  const changeColumns = [
-    'snapshotId',
-    'recordType',
-    'recordId',
-    'locale',
-    'versionHash',
-    'operation',
-    'sourceReleaseId',
-    'createdAt',
-    'updatedAt',
-  ]
   const i18nInsert = prepareRowsForSql(i18nRows, i18nColumns, [
     'divisionId',
-    'versionHash',
+    'snapshotId',
     'locale',
   ])
   const statements = [
-    ...buildCloseHistoryStatements(affectedIds),
     geometryBuildUpsertSql('divisions', divisionRows as Array<Record<string, unknown>>),
     ...buildInsertStatements('divisionsI18n', i18nColumns, i18nInsert.rows, {
-      suffix: buildUpdateSuffix(i18nColumns, ['divisionId', 'versionHash', 'locale']),
+      suffix: buildUpdateSuffix(i18nColumns, ['divisionId', 'snapshotId', 'locale']),
     }),
     ...buildLargeTextUpdates('divisionsI18n', i18nInsert.largeTextUpdates),
-    `DELETE FROM snapshotVersionChanges WHERE snapshotId = ${sqlLiteral(state.snapshotId)};`,
-    ...buildInsertStatements('snapshotVersionChanges', changeColumns, changeRows, {
-      suffix: buildUpdateSuffix(changeColumns, [
-        'snapshotId',
-        'recordType',
-        'recordId',
-        'locale',
-      ]),
-    }),
   ]
 
   return sqlFile(statements)
@@ -403,13 +366,6 @@ UPDATE ${tableName}
 SET isCurrent = 0, validToRelease = ${sqlLiteral(sourceVersion)}, updatedAt = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
 WHERE isCurrent = 1 AND sourceRecordId IN (${idsSql});`.trim(),
   )
-}
-
-function buildCloseHistoryStatements(ids: string[]) {
-  return buildIdChunks(ids).flatMap(idsSql => [
-    `UPDATE divisions SET isCurrent = 0, updatedAt = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') WHERE isCurrent = 1 AND id IN (${idsSql});`,
-    `UPDATE divisionsI18n SET isCurrent = 0, updatedAt = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') WHERE isCurrent = 1 AND divisionId IN (${idsSql});`,
-  ])
 }
 
 function buildIdChunks(ids: string[]) {

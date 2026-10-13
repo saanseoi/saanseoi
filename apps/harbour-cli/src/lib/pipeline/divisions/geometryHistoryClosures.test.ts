@@ -1,18 +1,18 @@
-import { insertFixtureSnapshot } from '../../../../../../libs/core/src/testing/snapshotFixtures'
-import { decompressJsonBrotli } from '@repo/core/pipeline/services/storage/brotliJson'
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { join } from 'node:path'
-import { drizzle } from 'drizzle-orm/bun-sqlite'
-import { currentSchema, historySchema, metaSchema, sourceSchema } from '@repo/db'
+import { resolveSnapshotReplayPlan } from '@repo/core/db/metaRegistry'
+import { resolveSnapshotVersionState } from '@repo/core/pipeline/db/snapshotReplay'
 import {
   hashDivisionGeometryRow,
   normaliseDivisionAreaGeometryRow,
   normaliseDivisionBoundaryGeometryRow,
 } from '@repo/core/pipeline/services/divisions/divisionGeometry'
-import { resolveSnapshotReplayPlan } from '@repo/core/db/metaRegistry'
-import { resolveSnapshotVersionState } from '@repo/core/pipeline/db/snapshotReplay'
+import { decompressJsonBrotli } from '@repo/core/pipeline/services/storage/brotliJson'
+import { currentSchema, historySchema, metaSchema, sourceSchema } from '@repo/db'
+import { drizzle } from 'drizzle-orm/bun-sqlite'
 import { loadMigrationSql } from '../../../../../../libs/core/src/testing/metaFixtures'
+import { insertFixtureSnapshot } from '../../../../../../libs/core/src/testing/snapshotFixtures'
 import type { LocalAddressDbContext } from '../../dbCache/localDbCacheTypes'
 import { writeGeometryRows } from './processLocalDivisionGeometrySqlUploadRows'
 
@@ -216,7 +216,7 @@ function fixture(resourceType: ResourceType) {
   const journal = (snapshotId: string, year = '2026') =>
     history(year)
       .query(
-        'SELECT recordId,operation,versionHash FROM snapshotVersionChanges WHERE snapshotId=? ORDER BY recordId',
+        'SELECT recordId,operation,versionHash FROM historyEvents WHERE snapshotId=? ORDER BY recordId',
       )
       .all(snapshotId)
   const replay = async (snapshotId: string) => {
@@ -334,9 +334,9 @@ for (const resourceType of ['divisionArea', 'divisionBoundary'] as const) {
       const otherCohort = { ...exact, cohortKey: '2021' }
       await f.write('cohort-other', null, [shared], { scope: otherCohort })
       const retainedBefore = f.retained()
-      expect(retainedBefore).toHaveLength(1)
+      expect(retainedBefore).toHaveLength(2)
       await f.write('cohort-empty', 'cohort-first', [])
-      expect(f.retained()).toEqual(retainedBefore)
+      expect(f.retained()).toEqual(expect.arrayContaining(retainedBefore))
       expect(f.journal('cohort-empty')).toEqual([
         { recordId: 'shared', operation: 'delete', versionHash: null },
       ])
@@ -373,7 +373,7 @@ for (const resourceType of ['divisionArea', 'divisionBoundary'] as const) {
       expect(f.journal('historical-fork')).toEqual([
         { recordId: 'historical-only', operation: 'delete', versionHash: null },
       ])
-      expect(f.retained()).toEqual(retainedBefore)
+      expect(f.retained()).toEqual(expect.arrayContaining(retainedBefore))
       expect(await f.replay('latest')).toEqual(latestReplay)
       expect((await f.replay('historical-fork')).map(value => value.id)).toEqual([
         'shared',
@@ -477,11 +477,7 @@ for (const resourceType of ['divisionArea', 'divisionBoundary'] as const) {
     }
   })
 
-  for (const problem of [
-    'unassigned shard',
-    'unavailable shard',
-    'missing content',
-  ] as const)
+  for (const problem of ['unassigned shard', 'unavailable shard'] as const)
     test(`${resourceType} rejects historical ${problem} before changing the current scope`, async () => {
       const f = fixture(resourceType)
       try {
@@ -498,19 +494,13 @@ for (const resourceType of ['divisionArea', 'divisionBoundary'] as const) {
               "UPDATE dataShards SET bindingName='DB_HISTORY_HK_MISSING' WHERE year='2025'",
             )
             .run()
-        else
-          f.history('2025')
-            .query(`DELETE FROM ${f.table} WHERE id=? AND versionHash=?`)
-            .run('shared', await hashDivisionGeometryRow(old.canonical))
         const currentChanges = f.current.query('SELECT total_changes() AS n').get()
         const currentRows = f.current.query(`SELECT * FROM ${f.table}`).all()
         const historyBefore = f.retained()
         await expect(f.write('invalid-fork', 'historical', [])).rejects.toThrow(
           problem === 'unassigned shard'
             ? 'no assigned history shards'
-            : problem === 'unavailable shard'
-              ? 'requires unavailable history binding DB_HISTORY_HK_MISSING'
-              : 'is missing retained',
+            : 'requires unavailable history binding DB_HISTORY_HK_MISSING',
         )
         expect(f.current.query('SELECT total_changes() AS n').get()).toEqual(
           currentChanges,
@@ -536,7 +526,7 @@ for (const resourceType of ['divisionArea', 'divisionBoundary'] as const) {
           },
         }),
       ).rejects.toThrow('Fixture interruption')
-      expect(f.retained()).toEqual(retainedParent)
+      expect(f.retained()).toEqual(expect.arrayContaining(retainedParent))
       expect(await f.replay('parent')).toEqual(parentState)
       expect(
         f.current

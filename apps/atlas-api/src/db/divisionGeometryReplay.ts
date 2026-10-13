@@ -1,10 +1,13 @@
-import { getPublicationReadiness } from './publicationState'
 import type { ResolvedSnapshotVersion } from '@repo/core/pipeline/db/snapshotReplay.ts'
-import { groupResolvedVersionsByShard } from '@repo/core/pipeline/db/snapshotReplay.ts'
+import {
+  groupResolvedVersionsByShard,
+  historyVersionSelection,
+} from '@repo/core/pipeline/db/snapshotReplay.ts'
 import { decompressJsonBrotli } from '@repo/core/pipeline/services/storage/brotliJson.ts'
-import { and, eq, historySchema, or, sql } from '@repo/db'
 import type { CurrentDatabase } from '@repo/db'
+import { and, eq, historySchema, sql } from '@repo/db'
 import type { DivisionAreaRecord, DivisionBoundaryRecord } from './divisions'
+import { getPublicationReadiness } from './publicationState'
 
 type GeometryKind = 'divisionArea' | 'divisionBoundary'
 type GeometryLookup = { divisionIds: string[]; variant?: string }
@@ -72,16 +75,7 @@ async function listReplayedGeometry(
                 .from(table)
                 .where(
                   and(
-                    // The journal chooses both the content hash and its owner.
-                    // Mutable history snapshotId/isCurrent fields are not membership.
-                    or(
-                      ...batch.map(version =>
-                        and(
-                          eq(table.id, version.recordId),
-                          eq(table.versionHash, version.versionHash),
-                        ),
-                      ),
-                    ),
+                    historyVersionSelection(table, batch),
                     divisionCondition,
                     lookup.variant ? eq(table.variant, lookup.variant) : undefined,
                   ),

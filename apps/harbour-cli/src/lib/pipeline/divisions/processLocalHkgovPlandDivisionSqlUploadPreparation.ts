@@ -1,65 +1,80 @@
-import { composeSourceRecordId } from '@repo/core/sourceRecordIdentity'
-import { datasetSourceRecordIdentity } from '@repo/core/pipeline/services/sources/datasetSourceRecordIdentity'
-import {
-  canonicalDivisionPoint,
-  createDivisionPointGuard,
-} from '@repo/core/pipeline/services/divisions/divisionPoint'
-import { recordContent } from '@repo/core/pipeline/services/sources/recordContent'
-import { canonicalIdentifiers } from '@repo/core/pipeline/services/sources/canonicalIdentifiers'
-import { emptyDivisionHierarchies } from '@repo/db'
-import { materialiseDivisionHierarchies } from '@repo/core/pipeline/services/divisions/divisionHierarchies'
-import ruleFixture from '../../../../../../fixtures/meta/processing-rules/assembly/planning-division-normalisation.json'
-import { ruleDeclarationFromFixture } from '@repo/core/provenance'
-import { eq } from 'drizzle-orm'
-import { registerRule, guardSession } from '@repo/core/provenance'
+import { resolveSnapshotReplayPlan } from '@repo/core/db/metaRegistry'
 import type { HarbourReadableDb } from '@repo/core/db/types'
+import { historyVersionSelection } from '@repo/core/pipeline/db/snapshotReplay'
 import {
   createAsyncBufferFromR2,
   readParquetObjectsInBatches,
 } from '@repo/core/pipeline/parquetR2'
 import { parseWkbGeometry } from '@repo/core/pipeline/services/divisions/division'
+import { materialiseDivisionHierarchies } from '@repo/core/pipeline/services/divisions/divisionHierarchies'
+import {
+  canonicalDivisionPoint,
+  createDivisionPointGuard,
+} from '@repo/core/pipeline/services/divisions/divisionPoint'
+import { canonicalIdentifiers } from '@repo/core/pipeline/services/sources/canonicalIdentifiers'
+import { datasetSourceRecordIdentity } from '@repo/core/pipeline/services/sources/datasetSourceRecordIdentity'
+import { recordContent } from '@repo/core/pipeline/services/sources/recordContent'
+import { resolveStatisticEvents } from '@repo/core/pipeline/services/statistics/statisticSnapshotRecords'
 import { createHash } from '@repo/core/pipeline/utils'
-import { historySchema, metaSchema } from '@repo/db'
+import {
+  guardSession,
+  registerRule,
+  ruleDeclarationFromFixture,
+} from '@repo/core/provenance'
+import { composeSourceRecordId } from '@repo/core/sourceRecordIdentity'
+import { emptyDivisionHierarchies, historySchema, metaSchema } from '@repo/db'
+import type { DivisionVersionRow } from '@repo/db/historySchema'
+import { eq } from 'drizzle-orm'
+import ruleFixture from '../../../../../../fixtures/meta/processing-rules/assembly/planning-division-normalisation.json'
+import { resolveSourceReleaseNameTranslationsBatch } from '../../i18n/sourceReleaseTranslations.ts'
 import type { LocalPipelineBucket } from '../local/localBucket.ts'
 import { validatePlanningHierarchy } from './planningHierarchy'
-import { resolveSourceReleaseNameTranslationsBatch } from '../../i18n/sourceReleaseTranslations.ts'
-import type {
-  HkgovPlandDivisionUploadPlan,
-  PreparedDivision,
-} from './processLocalHkgovPlandDivisionSqlUploadTypes.ts'
 import {
   asRecord,
   levelNumber,
   requireString,
   requireValue,
 } from './processLocalHkgovPlandDivisionSqlUploadRows.ts'
+import type {
+  HkgovPlandDivisionUploadPlan,
+  PreparedDivision,
+} from './processLocalHkgovPlandDivisionSqlUploadTypes.ts'
 
 export async function listCurrentHistoryRows(
-  db: HarbourReadableDb,
+  metaDb: HarbourReadableDb,
+  historyDbs: HarbourReadableDb[],
+  parentSnapshotId: string | null,
   source: HkgovPlandDivisionUploadPlan['source'],
 ) {
-  const rows = await db
-    .select({
-      id: historySchema.divisions.id,
-      geometry: historySchema.divisions.geometry,
-      divisionCode: historySchema.divisions.divisionCode,
-      identifiers: historySchema.divisions.identifiers,
-      level: historySchema.divisions.level,
-      category: historySchema.divisions.category,
-      class: historySchema.divisions.class,
-      hierarchies: historySchema.divisions.hierarchies,
-      cartography: historySchema.divisions.cartography,
-      sources: historySchema.divisions.sources,
-      versionHash: historySchema.divisions.versionHash,
-    })
-    .from(historySchema.divisions)
-    .where(eq(historySchema.divisions.isCurrent, true))
-    .all()
-  return rows.filter(row => {
-    return source === 'hkgov-pland-new-town'
+  if (!parentSnapshotId) return []
+  const plan = await resolveSnapshotReplayPlan(metaDb, parentSnapshotId)
+  const groups = await resolveStatisticEvents(
+    historyDbs,
+    plan.map(step => step.snapshotId),
+    ['division'],
+  )
+  const rows: DivisionVersionRow[] = []
+  for (const [db, versions] of groups) {
+    for (let offset = 0; offset < versions.length; offset += 256) {
+      rows.push(
+        ...((await db
+          .select()
+          .from(historySchema.divisions)
+          .where(
+            historyVersionSelection(
+              historySchema.divisions,
+              versions.slice(offset, offset + 256),
+            ),
+          )
+          .all()) as DivisionVersionRow[]),
+      )
+    }
+  }
+  return rows.filter(row =>
+    source === 'hkgov-pland-new-town'
       ? row.class === 'planning-newtown'
-      : row.class.startsWith('planning-') && row.class !== 'planning-newtown'
-  })
+      : row.class.startsWith('planning-') && row.class !== 'planning-newtown',
+  )
 }
 
 export async function loadPlandNewTownDivisionCodes(metaDb: HarbourReadableDb) {

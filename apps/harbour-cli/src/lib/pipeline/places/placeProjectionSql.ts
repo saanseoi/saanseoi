@@ -1,5 +1,6 @@
-import { insertSqlParts } from './processLocalPlaceSqlUploadImport.ts'
+import { type HistoryDeletion, historyDeletionRow } from '@repo/db'
 import { MAX_SQL_BYTES } from './processLocalPlaceSqlUploadConfig.ts'
+import { insertSqlParts } from './processLocalPlaceSqlUploadImport.ts'
 
 /** Only independent snapshot projection inserts may be regrouped. */
 export class PlaceProjectionSql {
@@ -17,6 +18,11 @@ export class PlaceProjectionSql {
       statements: string[]
     }
   >()
+
+  addDeletion(input: HistoryDeletion & { operation: 'delete'; versionHash: null }) {
+    const { table, row } = historyDeletionRow(input)
+    this.add(table, row)
+  }
 
   add(table: string, values: Record<string, unknown>) {
     const [prefix, row, suffix] = insertSqlParts(

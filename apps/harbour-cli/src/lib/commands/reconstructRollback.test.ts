@@ -1,18 +1,17 @@
 import { expect, test } from 'bun:test'
-import { readFile, readdir } from 'node:fs/promises'
+import { readdir, readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { runNativeSqlDelivery } from '../pipeline/local/nativeSqlDelivery.ts'
+import type { NetSqlitePlanSummary } from '../pipeline/local/netSqlitePlanTypes.ts'
 import {
-  readDeliveryPlan,
   readBoundDeliveryStatements,
+  readDeliveryPlan,
   readDeliveryProgress,
 } from '../pipeline/local/sqlDeliveryFiles.ts'
 import { readPendingSqlDelivery } from '../pipeline/local/sqlDeliveryPending.ts'
+import { fixture } from './reconstructRollback.fixtures.ts'
 import { verifyRollbackTerminal } from './reconstructRollback.ts'
 import type { RollbackTerminal } from './rollbackDelivery.ts'
-import type { NetSqlitePlanSummary } from '../pipeline/local/netSqlitePlanTypes.ts'
-
-import { fixture } from './reconstructRollback.fixtures.ts'
 
 test('reconstructed rollback writes only the changed locale and updates FTS while preserving unrelated scopes and rowids', async () => {
   const f = await fixture()
@@ -119,11 +118,11 @@ test('initial publication rollback removes only its own serving projection and s
   }
 })
 
-test('missing exact historical content produces no delivery payload or ownership marker', async () => {
+test('unavailable historical ownership produces no delivery payload or ownership marker', async () => {
   const f = await fixture()
   try {
-    f.history.exec("DELETE FROM divisionsI18n WHERE locale='en'")
-    await expect(f.prepare()).rejects.toThrow('Missing exact history component')
+    f.meta.exec("DELETE FROM snapshotShardAssignments WHERE snapshotId='snapshot-old'")
+    await expect(f.prepare()).rejects.toThrow('history shard assignments')
     expect(await readDeliveryPlan(f.directory)).toBeNull()
     expect(
       (await readdir(f.directory)).filter(name => /^\d+\.(json|sql)$/.test(name)),

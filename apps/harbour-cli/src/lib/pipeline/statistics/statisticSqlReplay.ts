@@ -1,13 +1,12 @@
-import { missingSourceMembershipPredicates } from '../local/sourceMembershipSql.ts'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { deliverSqlPhase, type SqlDeliveryPhase } from '../local/sqlDeliveryPhase.ts'
-
-import {
-  resolveShardBindingName,
-  type LocalAddressDbContext,
-} from '../../dbCache/localDbCache.ts'
 import type { UploadTarget } from '../../cli/options.ts'
+import {
+  type LocalAddressDbContext,
+  resolveShardBindingName,
+} from '../../dbCache/localDbCache.ts'
+import { missingSourceMembershipPredicates } from '../local/sourceMembershipSql.ts'
+import { deliverSqlPhase, type SqlDeliveryPhase } from '../local/sqlDeliveryPhase.ts'
 import {
   executeSqlText,
   type SqlImportExecutionOptions,
@@ -90,17 +89,8 @@ export function buildStatisticSqlBatches(
   ]
 
   const historyRows = sortRows(input.history?.rows ?? [], 'id')
-  const historyIds = historyRows.map(row => requiredString(valueFor(row, 'id'), 'id'))
   const historyStatements = input.history
-    ? [
-        ...buildCloseHistoryStatements(historyIds, historyRows),
-        ...buildUpsertStatements(
-          input.history.table,
-          historyRows,
-          ['id', 'versionHash'],
-          ['isCurrent', 'sourceReleaseId', 'updatedAt'],
-        ),
-      ]
+    ? buildUpsertStatements(input.history.table, historyRows, ['id', 'snapshotId'], [])
     : []
 
   return {
@@ -286,17 +276,6 @@ function buildCloseSourceStatements(
   ]
 }
 
-function buildCloseHistoryStatements(ids: string[], rows: StatisticRow[]) {
-  if (ids.length === 0) return []
-  const [firstRow] = rows
-  if (!firstRow) return []
-  const updatedAt = requiredString(valueFor(firstRow, 'updatedAt'), 'updatedAt')
-  return rows.map(
-    row =>
-      `UPDATE "divisionStatistics" SET "isCurrent" = 0, "updatedAt" = ${sqlValue(updatedAt)} WHERE "isCurrent" = 1 AND "id" = ${sqlValue(valueFor(row, 'id'))} AND "versionHash" <> ${sqlValue(valueFor(row, 'versionHash'))};`,
-  )
-}
-
 function buildUpsertStatements(
   table: string,
   rows: StatisticRow[],
@@ -327,6 +306,10 @@ function buildUpsertStatement(
   conflictColumns: string[],
   updateColumns: string[],
 ) {
+  if (!updateColumns.length) {
+    for (const key of conflictColumns) requiredString(values[key], key)
+    return `INSERT INTO ${sqlIdentifier(table)} (${columns.map(sqlIdentifier).join(', ')}) VALUES (${columns.map(column => sqlValue(values[column])).join(', ')}) ON CONFLICT (${conflictColumns.map(sqlIdentifier).join(', ')}) DO NOTHING;`
+  }
   return [
     `INSERT INTO ${sqlIdentifier(table)} (${columns.map(sqlIdentifier).join(', ')})`,
     `VALUES (${columns.map(column => sqlValue(values[column])).join(', ')})`,

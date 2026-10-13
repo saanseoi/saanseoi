@@ -1,32 +1,32 @@
 import type { Database } from 'bun:sqlite'
-import type { MetaDatabase } from '@repo/db'
 import type { DatasetProcessingMessage } from '@repo/core'
 import type { SnapshotReplayStep } from '@repo/core/db/metaRegistry'
-import type { ResolvedSnapshotVersion } from '@repo/core/pipeline/db/snapshotReplay'
-import type { AlsMembership } from '../../sources/hkgov/dpo/hkgovAlsMembership.ts'
-import {
-  closeResolvedAddressHistory,
-  coalesceAddressSourceResolutions,
-} from './resolvedAddressHistory.ts'
-import {
-  importAddressSqlArtefacts,
-  type AddressSqlImportStageOptions,
-} from '@repo/core/pipeline/services/addresses/sqlImportStages'
 import type { AddressPublicationReceipt } from '@repo/core/pipeline/db/addressPublication'
+import type { ResolvedSnapshotVersion } from '@repo/core/pipeline/db/snapshotReplay'
+import { buildAddressBuildingNumberLookupRows } from '@repo/core/pipeline/services/addresses/normalisation'
 import { buildAddressRetirementSqlImportFiles } from '@repo/core/pipeline/services/addresses/sqlImport'
-import type { LocalAddressDbContext } from '../../dbCache/localDbCacheTypes.ts'
+import {
+  type AddressSqlImportStageOptions,
+  importAddressSqlArtefacts,
+} from '@repo/core/pipeline/services/addresses/sqlImportStages'
+import type { MetaDatabase } from '@repo/db'
 import { createLocalExecBinding } from '../../dbCache/localDbCache.ts'
-import { captureNetSqlitePlan, type NetTablePolicy } from '../local/netSqlitePlan.ts'
-import { executeNativeSqlStatements } from '../local/nativeSqlStatements.ts'
+import type { LocalAddressDbContext } from '../../dbCache/localDbCacheTypes.ts'
+import type { AlsMembership } from '../../sources/hkgov/dpo/hkgovAlsMembership.ts'
 import type { LocalPipelineBucket } from '../local/localBucket.ts'
+import { executeNativeSqlStatements } from '../local/nativeSqlStatements.ts'
+import { captureNetSqlitePlan, type NetTablePolicy } from '../local/netSqlitePlan.ts'
 import {
   createAddress3dExecutor,
   importAddress3dCollections,
 } from './address3dImport.ts'
+import { assertAddressProjectionMembership } from './addressProjectionMembership.ts'
 import { addressPublicationDelivery } from './addressPublicationDelivery.ts'
 import { coalesceAddressHistory } from './coalesceAddressHistory.ts'
-import { assertAddressProjectionMembership } from './addressProjectionMembership.ts'
-import { buildAddressBuildingNumberLookupRows } from '@repo/core/pipeline/services/addresses/normalisation'
+import {
+  closeResolvedAddressHistory,
+  coalesceAddressSourceResolutions,
+} from './resolvedAddressHistory.ts'
 
 const addressTables = [
   'address2d',
@@ -42,7 +42,7 @@ export function addressMutationTables(binding: string): NetTablePolicy[] {
     binding === 'DB_CURRENT'
       ? addressTables
       : binding.startsWith('DB_HISTORY_')
-        ? [...addressTables, 'snapshotVersionChanges', 'sourceResolutions']
+        ? [...addressTables, 'sourceResolutions']
         : binding.startsWith('DB_SOURCE_')
           ? ['hkgovAlsAddresses2d', 'hkgovAlsAddresses3d']
           : []
@@ -343,38 +343,8 @@ export function applyResolvedAddressRetirements(
   const historyName = input.context.historyBinding?.bindingName
   const history = historyName ? candidates[historyName]?.db : undefined
   if (!history) throw new Error('Address retirement requires a selected history shard.')
-  // Journal all locales found on the selected predecessor across retained shards.
-  const now = input.message.processingRunStartedAt ?? new Date().toISOString()
-  const resourceReleaseId = input.message.resourceReleaseId ?? input.message.datasetId
-  // Candidate copies are discarded on failure; batch the retirement writes on
-  // each shard instead of synchronising every individual historical row.
-  history.transaction(() => {
-    for (const [name, { db }] of Object.entries(candidates)) {
-      if (!name.startsWith('DB_HISTORY_') || name === historyName) continue
-      db.transaction(() => {
-        for (const id of input.retiredAddressIds) {
-          const locales = db
-            .query<{ locale: string }, [string]>(
-              'SELECT DISTINCT locale FROM address2dI18n WHERE addressId=? AND isCurrent=1',
-            )
-            .all(id)
-          for (const { locale } of locales)
-            history
-              .query(`INSERT INTO snapshotVersionChanges(snapshotId,recordType,recordId,locale,versionHash,operation,sourceReleaseId,createdAt,updatedAt)
-          VALUES(?,'address2dI18n',?,?,NULL,'delete',?,?,?) ON CONFLICT(snapshotId,recordType,recordId,locale) DO NOTHING`)
-              .run(input.snapshotId, id, locale, resourceReleaseId, now, now)
-          for (const [table, key] of [
-            ['address2d', 'id'],
-            ['address2dI18n', 'addressId'],
-            ['address2dBuildingNumberLookup', 'addressId'],
-          ])
-            db.query(
-              `UPDATE ${table} SET isCurrent=0,updatedAt=? WHERE ${key}=? AND isCurrent=1`,
-            ).run(now, id)
-        }
-      })()
-    }
-  })()
+  // Omitted components are appended from the exact parent membership by
+  // closeResolvedAddressHistory; retirement never modifies retained ancestors.
   for (const file of files) {
     const db = file.target === 'current' ? candidates.DB_CURRENT!.db : history
     db.transaction(() => executeNativeSqlStatements(db, file.sql))()

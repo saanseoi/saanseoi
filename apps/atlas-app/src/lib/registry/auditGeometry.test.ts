@@ -1,7 +1,12 @@
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { compressJsonBrotli } from '@repo/core/pipeline/services/storage/brotliJson.ts'
-import { currentSchema, historySchema, metaSchema } from '@repo/db'
+import {
+  currentSchema,
+  historyEventsSqlForTables,
+  historySchema,
+  metaSchema,
+} from '@repo/db'
 import { drizzle } from 'drizzle-orm/bun-sqlite'
 import { getTableConfig, type SQLiteTable } from 'drizzle-orm/sqlite-core'
 import { readAuditGeometry } from './auditGeometry'
@@ -34,7 +39,7 @@ test('audit replays cleaned geometry by its exact content version and owning sha
     }
     for (const db of [before, after])
       db.exec(
-        `CREATE TABLE historyEvents (snapshotId TEXT, recordType TEXT, recordId TEXT, locale TEXT, versionHash TEXT, operation TEXT, sourceReleaseId TEXT, createdAt TEXT, updatedAt TEXT)`,
+        `CREATE VIEW historyEvents AS ${historyEventsSqlForTables(new Set(['divisionAreas']))}`,
       )
     meta.exec(`
       INSERT INTO snapshotLineages (id,code,resourceType,regionCode,variant,identityMode)
@@ -49,11 +54,6 @@ test('audit replays cleaned geometry by its exact content version and owning sha
         ('before','DB_HISTORY_BEFORE'),('after','DB_HISTORY_AFTER');
       INSERT INTO snapshotShardAssignments (snapshotId,dataShardId) VALUES
         ('base','before'),('old','after'),('new','after');
-    `)
-    before.exec(`
-      INSERT INTO historyEvents
-        (snapshotId,recordType,recordId,locale,versionHash,operation,sourceReleaseId)
-      VALUES ('base','divisionArea','area','','v1','upsert','base-release');
     `)
     const geometry = {
       type: 'Polygon',
@@ -74,20 +74,27 @@ test('audit replays cleaned geometry by its exact content version and owning sha
     // A later import reuses this content and changes its cache ownership fields.
     before
       .query(
-        'INSERT INTO divisionAreas (id,versionHash,snapshotId,sourceReleaseId,divisionId,geometry) VALUES (?,?,?,?,?,?)',
+        "INSERT INTO divisionAreas (id,versionHash,snapshotId,sourceReleaseId,divisionId,geometry,operation) VALUES (?,?,?,?,?,?,'upsert')",
       )
-      .run('area', 'v1', 'new', 'new-release', 'division', compressJsonBrotli(geometry))
+      .run(
+        'area',
+        'v1',
+        'base',
+        'base-release',
+        'division',
+        compressJsonBrotli(geometry),
+      )
     const wrongGeometry = JSON.stringify({ type: 'Polygon', coordinates: [] })
     before
       .query(
-        'INSERT INTO divisionAreas (id,versionHash,snapshotId,sourceReleaseId,divisionId,geometry) VALUES (?,?,?,?,?,?)',
+        "INSERT INTO divisionAreas (id,versionHash,snapshotId,sourceReleaseId,divisionId,geometry,operation) VALUES (?,?,?,?,?,?,'upsert')",
       )
-      .run('area', 'v2', 'old', 'old-release', 'division', wrongGeometry)
+      .run('area', 'v2', 'sibling', 'sibling-release', 'division', wrongGeometry)
     after
       .query(
-        'INSERT INTO divisionAreas (id,versionHash,snapshotId,sourceReleaseId,divisionId,geometry) VALUES (?,?,?,?,?,?)',
+        "INSERT INTO divisionAreas (id,versionHash,snapshotId,sourceReleaseId,divisionId,geometry,operation) VALUES (?,?,?,?,?,?,'upsert')",
       )
-      .run('area', 'v1', 'old', 'old-release', 'division', wrongGeometry)
+      .run('area', 'v1', 'sibling', 'sibling-release', 'division', wrongGeometry)
     const input = {
       resourceReleaseId: 'old-release',
       divisionId: 'division',
@@ -104,9 +111,7 @@ test('audit replays cleaned geometry by its exact content version and owning sha
 
     // Deletion in the selected branch must suppress the ancestor's geometry.
     after.exec(`
-      INSERT INTO historyEvents
-        (snapshotId,recordType,recordId,locale,operation)
-      VALUES ('old','divisionArea','area','','delete');
+      INSERT INTO divisionAreas(id,snapshotId,operation) VALUES('area','old','delete');
     `)
     expect(await readAuditGeometry(input)).toBeNull()
     expect(

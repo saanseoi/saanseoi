@@ -1,7 +1,7 @@
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
-import { drizzle } from 'drizzle-orm/bun-sqlite'
 import { historySchema, metaSchema } from '@repo/db'
+import { drizzle } from 'drizzle-orm/bun-sqlite'
 import { loadAlsDivisionHistory } from './hkgovAlsDivisionHistory'
 
 test('ALS lookup replays inherited names across shards and excludes deleted divisions without current rows', async () => {
@@ -19,31 +19,27 @@ test('ALS lookup replays inherited names across shards and excludes deleted divi
     `)
     for (const db of [parent, child])
       db.exec(`
-      CREATE TABLE snapshotVersionChanges (snapshotId TEXT, recordType TEXT, recordId TEXT,
-        locale TEXT, versionHash TEXT, operation TEXT, sourceReleaseId TEXT);
-      CREATE TABLE divisions (id TEXT, level INTEGER, category TEXT, class TEXT, hierarchies TEXT, versionHash TEXT);
-      CREATE TABLE divisionsI18n (divisionId TEXT, locale TEXT, name TEXT, versionHash TEXT);
+      CREATE TABLE divisions (id TEXT, level INTEGER, category TEXT, class TEXT, hierarchies TEXT, versionHash TEXT, snapshotId TEXT DEFAULT 'parent', operation TEXT DEFAULT 'upsert', sourceReleaseId TEXT DEFAULT 'release');
+      CREATE TABLE divisionsI18n (divisionId TEXT, locale TEXT, name TEXT, versionHash TEXT, snapshotId TEXT DEFAULT 'parent', operation TEXT DEFAULT 'upsert', sourceReleaseId TEXT DEFAULT 'release');
+      CREATE VIEW historyEvents AS SELECT snapshotId,'division' AS recordType,id AS recordId,'' AS locale,versionHash,operation,sourceReleaseId FROM divisions UNION ALL SELECT snapshotId,'divisionI18n',divisionId,locale,versionHash,operation,sourceReleaseId FROM divisionsI18n;
     `)
-    const add = parent.prepare(
-      'INSERT INTO snapshotVersionChanges VALUES (?, ?, ?, ?, ?, ?, ?)',
-    )
     // More than one query batch, including content shared by different record IDs.
     for (let i = 0; i < 90; i++) {
       const id = `area-${i}`
-      add.run('parent', 'division', id, '', 'shape', 'upsert', 'release')
-      add.run('parent', 'divisionI18n', id, 'en', `name-${i}`, 'upsert', 'release')
       parent
-        .prepare('INSERT INTO divisions VALUES (?, 1, ?, ?, ?, ?)')
+        .prepare(
+          'INSERT INTO divisions(id,level,category,class,hierarchies,versionHash) VALUES (?, 1, ?, ?, ?, ?)',
+        )
         .run(id, 'area', 'area', '{}', 'shape')
       parent
-        .prepare('INSERT INTO divisionsI18n VALUES (?, ?, ?, ?)')
+        .prepare(
+          'INSERT INTO divisionsI18n(divisionId,locale,name,versionHash) VALUES (?, ?, ?, ?)',
+        )
         .run(id, 'en', id, `name-${i}`)
     }
     child.exec(`
-      INSERT INTO snapshotVersionChanges VALUES
-        ('child', 'division', 'area-0', '', NULL, 'delete', NULL),
-        ('child', 'divisionI18n', 'area-1', 'en', 'renamed', 'upsert', 'release');
-      INSERT INTO divisionsI18n VALUES ('area-1', 'en', 'Renamed area', 'renamed');
+      INSERT INTO divisions(id,snapshotId,operation) VALUES('area-0','child','delete');
+      INSERT INTO divisionsI18n(divisionId,locale,name,versionHash,snapshotId) VALUES ('area-1', 'en', 'Renamed area', 'renamed','child');
     `)
     const shards = new Map([
       [

@@ -143,12 +143,12 @@ inputs and references.
 
 Each snapshot asserts complete Place membership. The local compiler validates the
 candidate and emits only final current, source and history differences. Base and each
-locale history inherit independently; unchanged reissues create no component versions,
-journal entries or source-resolution rows. Sparse source resolutions inherit along
-snapshot ancestry, while changed interpretations and explicit source omissions remain
-recorded. Superseded components close in their owning history shard. Snapshot journal
-assignments identify history shards. The CLI reports reused and computed record counts
-for each cache stage.
+locale history inherit independently; unchanged parented reissues create no component or
+source-resolution rows. Sparse source resolutions inherit along snapshot ancestry, while
+changed interpretations and explicit source omissions remain recorded. Changed
+components append events without updating their ancestors. Snapshot events assignments
+identify history shards. The CLI reports reused and computed record counts for each
+cache stage.
 
 `bun run scripts/benchmark-place-incremental.ts` compares direct, cold-cache and warm
 record-cache preparation for 1,000 synthetic Places and official definitions. It checks
@@ -420,9 +420,9 @@ updates readiness with the incremental search index; published source/history ev
 remains retained.
 
 Subsequent ingestion loads the restored serving predecessor's exact base and locale
-journals from their owning shards. Retained `isCurrent` flags do not select the
-comparison baseline. Reasserting content from a revoked publication can reuse that
-immutable content while recording the new accepted snapshot's actual change.
+events from their owning shards. Retained `isCurrent` flags do not select the comparison
+baseline. Reasserting content from a revoked publication can reuse that immutable
+content while recording the new accepted snapshot's actual change.
 
 ## ZH-HANT
 
@@ -688,3 +688,13 @@ sources omit `upstreamOf`. For example, OpenStreetMap attribution carried by Ove
 uses `publisherCode: "openstreetmap"` and `upstreamOf: "overture"`. The relationship
 identifies the direct publisher, not a dataset or record ID. Prepared archives retain
 this member order.
+
+### Snapshot event storage
+
+Canonical HISTORY stores a changed component once, with its introducing `snapshotId`,
+`operation`, content hash and payload in the same row. Unchanged components inherit the
+selected parent. Deletions append identity-only tombstones, and ancestor rows remain
+immutable. Reversions and independent branch changes have distinct introducing events.
+The read-only `historyEvents` view stores no additional membership rows. Snapshot reads
+resolve ancestry before filtering and use the exact introducing snapshot to fetch
+content. SOURCE release validity and interpretation evidence remain separate.

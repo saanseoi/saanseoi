@@ -1,19 +1,17 @@
-import { readAlsPublisherSource } from '../sources/alsSourcePayload'
-import { recordSourceResolutions, resolvedEntities } from '../../db/sourceResolutions'
-import type { DatasetProcessingMessage } from '../../../types'
-import type { HarbourReadableDb, HarbourWritableDb } from '../../../lib/db/types'
-import { resolveLatestPublishedSnapshotForLineage } from '../../../lib/db/metaRegistry'
 import type { HistoryDatabase, MetaDatabase } from '@repo/db'
-
+import type { HarbourReadableDb, HarbourWritableDb } from '../../../lib/db/types'
+import type { DatasetProcessingMessage } from '../../../types'
 import {
-  closeCurrentAddressVersions,
-  getMergedCurrentAddressVersionLookup,
+  getAddressVersionMapForSnapshotDbs,
   insertAddressVersionRows,
   prepareAddressVersionInsertContext,
 } from '../../db/address'
+import { recordHistoryDeletions } from '../../db/historyDeletions'
+import { recordSourceResolutions, resolvedEntities } from '../../db/sourceResolutions'
 import { createHash } from '../../utils'
-import { resolveDataShardEnvironment } from '../runtime'
 import type { HarbourWorkerBucket } from '../divisions/division'
+import { resolveDataShardEnvironment } from '../runtime'
+import { readAlsPublisherSource } from '../sources/alsSourcePayload'
 import {
   buildPipelineArtefactKey,
   type PipelineArtefactBucket,
@@ -22,6 +20,7 @@ import {
 } from '../storage/artefacts'
 import {
   buildAddressBaseHashInput,
+  buildAddressBuildingNumberLookupRows,
   buildAddressI18nHashInput,
   buildMatchKey,
   dedupeAddressI18nRows,
@@ -44,26 +43,28 @@ export async function writeAddressHistoryChunkStage(
     changedExistingIds,
     changedI18nVersionRows,
     changedVersionRows,
+    changedLookupRows,
+    deletions,
     artefact,
     versionInsertContext,
   } = await buildResolvedAddressChunkArtefact(metaDb, historyDb, bucket, message)
   const historyRepoDb = historyDb as unknown as HarbourReadableDb & HarbourWritableDb
 
-  if (changedExistingIds.size > 0) {
-    await closeCurrentAddressVersions(
-      historyRepoDb,
-      [...changedExistingIds],
-      versionInsertContext.snapshotId,
-      message.cohortKey,
-      versionInsertContext.resourceReleaseId,
-    )
-  }
   await insertAddressVersionRows(
     historyRepoDb,
     versionInsertContext,
     changedVersionRows,
     changedI18nVersionRows,
+    changedLookupRows,
   )
+  for (const [recordType, changes] of deletions)
+    await recordHistoryDeletions(historyRepoDb, {
+      snapshotId: versionInsertContext.snapshotId,
+      sourceReleaseId: versionInsertContext.resourceReleaseId,
+      recordType,
+      operation: 'delete',
+      changes,
+    })
   await recordSourceResolutions(
     historyRepoDb,
     artefact.rows.flatMap(row => (row.sourceResolution ? [row.sourceResolution] : [])),
@@ -114,54 +115,29 @@ export async function buildResolvedAddressChunkArtefact(
     message,
     resolveDataShardEnvironment(process.env.DATA_SHARD_ENV),
   )
-  const activeSnapshot = await resolveLatestPublishedSnapshotForLineage(
-    metaRepoDb,
-    versionInsertContext.snapshotLineageId,
-  )
-  if (
-    versionInsertContext.parentSnapshotId &&
-    activeSnapshot?.id !== versionInsertContext.parentSnapshotId &&
-    pipelineMessage.addressCurrentLookupCache?.snapshotId !==
-      versionInsertContext.parentSnapshotId
-  ) {
-    throw new Error(
-      `Address snapshot ${versionInsertContext.snapshotId} branches from ${versionInsertContext.parentSnapshotId}; it requires an immutable replay lookup for that parent instead of active snapshot ${activeSnapshot?.id ?? 'none'}.`,
-    )
-  }
   const normalisedRows = dedupeNormalisedAddressRows(artefact.rows)
-  const currentAddressLookup = pipelineMessage.addressCurrentLookupCache
-    ? buildCurrentAddressLookupFromCache(pipelineMessage.addressCurrentLookupCache)
-    : await getMergedCurrentAddressVersionLookup(
-        [
-          ...(options.previousHistoryDbs ?? []).map((db, index) => ({
-            db,
-            sortOrder: index,
-          })),
-          {
-            db: historyRepoDb,
-            sortOrder: options.previousHistoryDbs?.length ?? 0,
-          },
-        ],
-        normalisedRows.map(row => row.canonicalId),
-        normalisedRows.map(row => {
-          const englishI18n = row.i18n.find(localised => localised.locale === 'en')
-
-          return {
-            districtId: row.base.districtId,
-            buildingNumberFrom: englishI18n?.buildingNumberFrom ?? null,
-            buildingNumberTo: englishI18n?.buildingNumberTo ?? null,
-            streetName: englishI18n?.streetName ?? null,
-          }
-        }),
-        {
-          buildAddressBaseHashInput,
-          buildMatchKey,
-          normaliseAddressI18nSnapshotRow,
-        },
-      )
+  const prior = await getAddressVersionMapForSnapshotDbs(
+    metaRepoDb,
+    [
+      ...new Set([historyRepoDb, ...(options.previousHistoryDbs ?? [])]),
+    ] as HarbourReadableDb[],
+    versionInsertContext.parentSnapshotId,
+    { buildAddressBaseHashInput, buildMatchKey, normaliseAddressI18nSnapshotRow },
+  )
+  const currentAddressLookup = {
+    byId: prior,
+    byMatchKey: new Map(
+      [...prior.values()].filter(row => row.matchKey).map(row => [row.matchKey!, row]),
+    ),
+  }
   const changedExistingIds = new Set<string>()
   const changedVersionRows: Parameters<typeof insertAddressVersionRows>[2] = []
   const changedI18nVersionRows: Parameters<typeof insertAddressVersionRows>[3] = []
+  const changedLookupRows: NonNullable<Parameters<typeof insertAddressVersionRows>[4]> =
+    []
+  const deletions = new Map<string, Array<{ recordId: string; locale?: string }>>()
+  const omit = (type: string, recordId: string, locale?: string) =>
+    deletions.set(type, [...(deletions.get(type) ?? []), { recordId, locale }])
   const resolvedRowsByAddressId = new Map<
     string,
     ResolvedAddressChunkArtefact['rows'][number]
@@ -235,7 +211,7 @@ export async function buildResolvedAddressChunkArtefact(
       coverageComponents: row.coverageComponents,
       i18n,
       sourceId: row.sourceId,
-      versionHash,
+      versionHash: await createHash(buildAddressBaseHashInput(base)),
     })
   }
 
@@ -262,12 +238,51 @@ export async function buildResolvedAddressChunkArtefact(
     }
 
     insertedVersions += 1
-    changedVersionRows.push({
-      ...row.base,
-      versionHash: row.versionHash,
-    })
+    const previous = prior.get(row.addressId)
+    const baseHash = await createHash(buildAddressBaseHashInput(row.base))
+    if (previous?.versionHash !== baseHash)
+      changedVersionRows.push({ ...row.base, versionHash: baseHash })
+    const changedLocales = []
+    for (const localised of row.i18n) {
+      const hash = await createHash(buildAddressI18nHashInput(localised))
+      const before = previous?.localisedRows.find(
+        value => value.locale === localised.locale,
+      )
+      if (!before || (await createHash(buildAddressI18nHashInput(before))) !== hash)
+        changedLocales.push({ ...localised, componentHash: hash })
+    }
+    for (const before of previous?.localisedRows ?? [])
+      if (!row.i18n.some(value => value.locale === before.locale))
+        omit('address2dI18n', row.addressId, before.locale)
+    const oldLookups = new Map(
+      buildAddressBuildingNumberLookupRows(previous?.localisedRows ?? []).map(value => [
+        value.buildingNumber,
+        value,
+      ]),
+    )
+    const nextLookups = buildAddressBuildingNumberLookupRows(row.i18n)
+    for (const lookup of nextLookups) {
+      const hash = await createHash(lookup)
+      const before = oldLookups.get(lookup.buildingNumber)
+      if (!before || (await createHash(before)) !== hash)
+        changedLookupRows.push({
+          ...lookup,
+          versionHash: hash,
+          snapshotId: versionInsertContext.snapshotId,
+          sourceReleaseId: versionInsertContext.resourceReleaseId,
+          isCurrent: true,
+          createdAt: row.base.createdAt!,
+          updatedAt: row.base.updatedAt!,
+        })
+    }
+    for (const before of oldLookups.values())
+      if (!nextLookups.some(value => value.buildingNumber === before.buildingNumber))
+        omit(
+          'address2dBuildingNumberLookup',
+          JSON.stringify([row.addressId, before.buildingNumber]),
+        )
     changedI18nVersionRows.push(
-      ...row.i18n.map(localised => ({
+      ...changedLocales.map(localised => ({
         addressId: localised.addressId,
         locale: localised.locale,
         formattedAddress: localised.formattedAddress,
@@ -288,7 +303,7 @@ export async function buildResolvedAddressChunkArtefact(
         sourceReleaseId: versionInsertContext.resourceReleaseId,
         snapshotId: localised.snapshotId ?? row.base.snapshotId,
         isCurrent: true,
-        versionHash: row.versionHash,
+        versionHash: localised.componentHash,
         createdAt: localised.createdAt ?? row.base.createdAt,
         updatedAt: localised.updatedAt ?? row.base.updatedAt,
       })),
@@ -296,6 +311,8 @@ export async function buildResolvedAddressChunkArtefact(
   }
 
   return {
+    changedLookupRows,
+    deletions,
     changedExistingIds,
     changedI18nVersionRows,
     changedVersionRows,
