@@ -38,7 +38,9 @@ function d1(sqlite: Database): D1Database {
     },
   } as unknown as D1Database
 }
-async function fixture() {
+async function fixture(
+  environment: typeof metaSchema.metaDataShards.$inferInsert.environment,
+) {
   const databases = ['meta', 'current', 'history'].map(family => {
     const db = new Database(':memory:')
     db.exec(
@@ -59,7 +61,7 @@ async function fixture() {
       shardType: 'history',
       regionCode: 'hk',
       year: '2025',
-      environment: 'local',
+      environment,
       databaseName: 'history',
       databaseId: 'history',
       bindingName: 'DB_HISTORY_HK_2025',
@@ -250,6 +252,7 @@ async function fixture() {
       .run()
   }
   const env = {
+    ENVIRONMENT: environment,
     DB_META: d1(meta),
     DB_CURRENT: d1(current),
     DB_HISTORY_HK_BEFORE: d1(history),
@@ -290,135 +293,139 @@ async function fixture() {
   }
 }
 
-test('HTTP auth, validation, OpenAPI and exact old pins outside the latest catalogue', async () => {
-  const f = await fixture()
-  try {
-    const unauthorised = await f.request('/divisions/v1/geocode?lat=22&lng=114', true)
-    expect(unauthorised.status).toBe(401)
-    expect(unauthorised.headers.get('content-type')).toContain(
-      'application/vnd.api+json',
-    )
-    expect(await unauthorised.json()).toMatchObject({
-      jsonapi: { version: '1.1' },
-      errors: [{ status: '401' }],
-    })
+test.each(['preview', 'production'] as const)(
+  'HTTP auth, validation, OpenAPI and exact old pins outside the latest catalogue (%s)',
+  async environment => {
+    const f = await fixture(environment)
+    try {
+      const unauthorised = await f.request('/divisions/v1/geocode?lat=22&lng=114', true)
+      expect(unauthorised.status).toBe(401)
+      expect(unauthorised.headers.get('content-type')).toContain(
+        'application/vnd.api+json',
+      )
+      expect(await unauthorised.json()).toMatchObject({
+        jsonapi: { version: '1.1' },
+        errors: [{ status: '401' }],
+      })
 
-    expect(
-      (await f.request('/divisions/v1/changes?fromReleaseSet=example', true)).status,
-    ).toBe(401)
-    expect(
-      (await f.request('/divisions/v1/changes/definitions/example', true)).status,
-    ).toBe(401)
-    for (const oldPath of [
-      '/api/v1/divisions/geocode',
-      '/api/v1/addresses/geocode',
-      '/api/v1/divisions/changes',
-    ])
-      expect((await f.request(oldPath)).status).toBe(404)
-    const invalid = await f.request('/addresses/v1/geocode?lat=22')
-    expect(invalid.status).toBe(422)
-    expect(await invalid.json()).toMatchObject({
-      errors: [{ status: '422', source: { parameter: 'lat' } }],
-    })
-    expect(
-      (await f.request('/divisions/v1/geocode?lat=22&lng=114&profile=unknown')).status,
-    ).toBe(422)
-    const old = await f.request(
-      '/addresses/v1/geocode?address=Old&releaseSet=addresses-2025-01-01.0&include=divisions',
-    )
-    expect(old.status, await old.clone().text()).toBe(200)
-    expect(old.headers.get('content-type')).toContain('application/vnd.api+json')
-    expect(await old.json()).toMatchObject({
-      included: expect.arrayContaining([
-        expect.objectContaining({
-          type: 'addresses',
-          attributes: expect.objectContaining({
-            i18n: expect.objectContaining({
-              en: expect.objectContaining({ formattedAddress: 'Old Harbour' }),
+      expect(
+        (await f.request('/divisions/v1/changes?fromReleaseSet=example', true)).status,
+      ).toBe(401)
+      expect(
+        (await f.request('/divisions/v1/changes/definitions/example', true)).status,
+      ).toBe(401)
+      for (const oldPath of [
+        '/api/v1/divisions/geocode',
+        '/api/v1/addresses/geocode',
+        '/api/v1/divisions/changes',
+      ])
+        expect((await f.request(oldPath)).status).toBe(404)
+      const invalid = await f.request('/addresses/v1/geocode?lat=22')
+      expect(invalid.status).toBe(422)
+      expect(await invalid.json()).toMatchObject({
+        errors: [{ status: '422', source: { parameter: 'lat' } }],
+      })
+      expect(
+        (await f.request('/divisions/v1/geocode?lat=22&lng=114&profile=unknown'))
+          .status,
+      ).toBe(422)
+      const old = await f.request(
+        '/addresses/v1/geocode?address=Old&releaseSet=addresses-2025-01-01.0&include=divisions',
+      )
+      expect(old.status, await old.clone().text()).toBe(200)
+      expect(old.headers.get('content-type')).toContain('application/vnd.api+json')
+      expect(await old.json()).toMatchObject({
+        included: expect.arrayContaining([
+          expect.objectContaining({
+            type: 'addresses',
+            attributes: expect.objectContaining({
+              i18n: expect.objectContaining({
+                en: expect.objectContaining({ formattedAddress: 'Old Harbour' }),
+              }),
             }),
           }),
-        }),
-      ]),
-      meta: {
-        release: { apiReleaseSet: 'addresses-2025-01-01.0' },
-        divisionRelease: { apiReleaseSet: 'divisions-2025-01-01.0' },
-      },
-    })
-    const latest = await f.request('/addresses/v1/geocode?lat=22&lng=114')
-    expect(latest.status).toBe(200)
-    expect(await latest.json()).toMatchObject({
-      data: [
-        {
-          type: 'geocoding-results',
-          attributes: { match: { type: 'exact_location', distanceMetres: 0 } },
+        ]),
+        meta: {
+          release: { apiReleaseSet: 'addresses-2025-01-01.0' },
+          divisionRelease: { apiReleaseSet: 'divisions-2025-01-01.0' },
         },
-      ],
-      meta: { release: { apiReleaseSet: 'addresses-2026-08-19.0' } },
-    })
-    const divisions = await f.request(
-      '/divisions/v1/geocode?placename=Old&releaseSet=divisions-2025-01-01.0',
-    )
-    expect(divisions.status).toBe(200)
-    expect(await divisions.json()).toMatchObject({
-      included: expect.arrayContaining([
-        expect.objectContaining({
-          attributes: expect.objectContaining({
-            i18n: { en: { name: 'Old Village' } },
-          }),
-        }),
-      ]),
-    })
-    const docs = await f.request('/openapi/addresses/v1')
-    expect(Object.keys(((await docs.json()) as { paths: object }).paths)).toEqual([
-      '/addresses/v1/geocode',
-    ])
-    for (const family of ['addresses', 'divisions']) {
-      for (const version of ['v0.1', 'v1']) {
-        const response = await f.request(`/openapi/${family}/${version}`)
-        const document = (await response.json()) as {
-          paths: Record<string, { get?: { tags?: string[] } }>
-          tags: { name: string }[]
-        }
-        expect(document.paths[`/${family}/v1/geocode`]?.get?.tags).toEqual([
-          'Geocoding',
-        ])
-        const serialised = JSON.stringify(document)
-        expect(serialised).toContain('"reverse-geocoding"')
-        expect(serialised).toContain('"forward-geocoding"')
-        expect(document.tags.some(tag => tag.name === 'Geocoding')).toBe(true)
-        expect(
-          document.paths[
-            `/${family === 'addresses' ? 'divisions' : 'addresses'}/v1/geocode`
-          ],
-        ).toBeUndefined()
-      }
-    }
-    f.retireOldAddress()
-    const historical = await f.request(
-      '/addresses/v1/geocode?address=Historic&releaseSet=addresses-2025-01-01.0&include=divisions',
-    )
-    expect(historical.status).toBe(200)
-    expect(await historical.json()).toMatchObject({
-      included: expect.arrayContaining([
-        expect.objectContaining({
-          id: 'historic-address',
-          attributes: expect.objectContaining({
-            i18n: expect.objectContaining({
-              en: expect.objectContaining({ formattedAddress: 'Historic Harbour' }),
+      })
+      const latest = await f.request('/addresses/v1/geocode?lat=22&lng=114')
+      expect(latest.status).toBe(200)
+      expect(await latest.json()).toMatchObject({
+        data: [
+          {
+            type: 'geocoding-results',
+            attributes: { match: { type: 'exact_location', distanceMetres: 0 } },
+          },
+        ],
+        meta: { release: { apiReleaseSet: 'addresses-2026-08-19.0' } },
+      })
+      const divisions = await f.request(
+        '/divisions/v1/geocode?placename=Old&releaseSet=divisions-2025-01-01.0',
+      )
+      expect(divisions.status).toBe(200)
+      expect(await divisions.json()).toMatchObject({
+        included: expect.arrayContaining([
+          expect.objectContaining({
+            attributes: expect.objectContaining({
+              i18n: { en: { name: 'Old Village' } },
             }),
           }),
-        }),
-      ]),
-    })
-    f.removeHistory()
-    expect(
-      (
-        await f.request(
-          '/addresses/v1/geocode?lat=22&lng=114&releaseSet=addresses-2025-01-01.0',
-        )
-      ).status,
-    ).toBe(503)
-  } finally {
-    f.close()
-  }
-})
+        ]),
+      })
+      const docs = await f.request('/openapi/addresses/v1')
+      expect(Object.keys(((await docs.json()) as { paths: object }).paths)).toEqual([
+        '/addresses/v1/geocode',
+      ])
+      for (const family of ['addresses', 'divisions']) {
+        for (const version of ['v0.1', 'v1']) {
+          const response = await f.request(`/openapi/${family}/${version}`)
+          const document = (await response.json()) as {
+            paths: Record<string, { get?: { tags?: string[] } }>
+            tags: { name: string }[]
+          }
+          expect(document.paths[`/${family}/v1/geocode`]?.get?.tags).toEqual([
+            'Geocoding',
+          ])
+          const serialised = JSON.stringify(document)
+          expect(serialised).toContain('"reverse-geocoding"')
+          expect(serialised).toContain('"forward-geocoding"')
+          expect(document.tags.some(tag => tag.name === 'Geocoding')).toBe(true)
+          expect(
+            document.paths[
+              `/${family === 'addresses' ? 'divisions' : 'addresses'}/v1/geocode`
+            ],
+          ).toBeUndefined()
+        }
+      }
+      f.retireOldAddress()
+      const historical = await f.request(
+        '/addresses/v1/geocode?address=Historic&releaseSet=addresses-2025-01-01.0&include=divisions',
+      )
+      expect(historical.status).toBe(200)
+      expect(await historical.json()).toMatchObject({
+        included: expect.arrayContaining([
+          expect.objectContaining({
+            id: 'historic-address',
+            attributes: expect.objectContaining({
+              i18n: expect.objectContaining({
+                en: expect.objectContaining({ formattedAddress: 'Historic Harbour' }),
+              }),
+            }),
+          }),
+        ]),
+      })
+      f.removeHistory()
+      expect(
+        (
+          await f.request(
+            '/addresses/v1/geocode?lat=22&lng=114&releaseSet=addresses-2025-01-01.0',
+          )
+        ).status,
+      ).toBe(503)
+    } finally {
+      f.close()
+    }
+  },
+)
