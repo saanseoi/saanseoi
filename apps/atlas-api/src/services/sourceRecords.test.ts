@@ -1047,7 +1047,7 @@ test('SaanSeoi Areas schema describes every retained field and preserves flag ty
     ['isLand', 'true'],
     ['isTerritorial', 'integer'],
     ['isTerritorial', 'false'],
-    ['sources', 'object'],
+    ['sources', 'array'],
     ['type', 'text'],
     ['variant', 'text'],
   ]
@@ -1073,7 +1073,10 @@ test('SaanSeoi Areas schema describes every retained field and preserves flag ty
   })
   expect(schema).not.toBeNull()
   for (const [name] of fields) {
-    expect(schema?.properties[name!]).toHaveProperty('description', expect.any(String))
+    expect(schema?.properties[name!], name).toHaveProperty(
+      'description',
+      expect.any(String),
+    )
     expect(schema?.required).toContain(name!)
   }
   for (const name of ['isLand', 'isTerritorial']) {
@@ -1107,15 +1110,14 @@ test('SaanSeoi source samples, downloads and schema omit internal containment ev
     id: 'child',
     hierarchies: { full: [[ancestor]] },
     names,
-    sources: {
-      overture: [
-        {
-          record_id: 'native',
-          update_time: 'date',
-          nested_data: { provider_flag: true },
-        },
-      ],
-    },
+    sources: [
+      {
+        publisher_code: 'overture',
+        dataset: 'divisions',
+        record_id: 'native',
+        update_time: 'date',
+      },
+    ],
     cartography: { min_zoom: 8, max_zoom: 24 },
   }
   const row = {
@@ -1139,7 +1141,7 @@ test('SaanSeoi source samples, downloads and schema omit internal containment ev
                     { name: 'divisionCode', type: 'text', occurrences: 1, total: 1 },
                     { name: 'bbox', type: 'array', occurrences: 1, total: 1 },
                     { name: 'cartography', type: 'object', occurrences: 1, total: 1 },
-                    { name: 'sources', type: 'object', occurrences: 1, total: 1 },
+                    { name: 'sources', type: 'array', occurrences: 1, total: 1 },
                     { name: 'memberships', type: 'array', occurrences: 1, total: 1 },
                   ]
                 : [row],
@@ -1171,11 +1173,14 @@ test('SaanSeoi source samples, downloads and schema omit internal containment ev
         ],
       ],
     })
-    expect(result?.records[0]?.properties?.sources).toEqual({
-      overture: [
-        { recordId: 'native', updateTime: 'date', nestedData: { providerFlag: true } },
-      ],
-    })
+    expect(result?.records[0]?.properties?.sources).toEqual([
+      {
+        publisherCode: 'overture',
+        dataset: 'divisions',
+        recordId: 'native',
+        updateTime: 'date',
+      },
+    ])
     expect(result?.records[0]?.properties?.cartography).toEqual({
       minZoom: 8,
       maxZoom: 24,
@@ -1215,11 +1220,9 @@ test('SaanSeoi source samples, downloads and schema omit internal containment ev
     'properties.minZoom.description',
   )
   expect(schema?.properties.sources).toHaveProperty(
-    'additionalProperties.items.properties.recordId.description',
+    'items.properties.recordId.description',
   )
-  expect(schema?.properties.sources).not.toHaveProperty(
-    'additionalProperties.items.properties.release',
-  )
+  expect(schema?.properties.sources).not.toHaveProperty('items.properties.release')
   expect(schema?.properties.memberships).not.toHaveProperty('items.properties.release')
   expect(schema?.properties.memberships).toHaveProperty(
     'items.properties.collection.description',

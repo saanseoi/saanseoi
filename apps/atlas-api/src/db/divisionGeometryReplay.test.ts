@@ -129,7 +129,7 @@ function createFixture() {
       )
       .values({
         ...row,
-        snapshotId: 'mutable-unrelated-snapshot',
+        snapshotId: `${kind === 'divisionArea' ? 'area' : 'boundary'}-${owner === root ? 'root' : 'leaf'}`,
         versionHash: hash,
         sourceReleaseId: 'source',
         isCurrent: false,

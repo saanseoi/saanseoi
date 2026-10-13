@@ -47,36 +47,33 @@ function fixture() {
         id TEXT, datasetCode TEXT, referencePeriodCode TEXT, versionHash TEXT,
         "values" TEXT, definitionSetId TEXT, sourceReleaseId TEXT,
         createdAt TEXT, updatedAt TEXT ${historical ? ", isCurrent INTEGER, snapshotId TEXT, operation TEXT DEFAULT 'upsert'" : ''},
-        PRIMARY KEY (id ${historical ? ', versionHash' : ''})
+        PRIMARY KEY (id ${historical ? ', snapshotId' : ''})
       );
       CREATE TABLE statsFields (
         datasetCode TEXT, fieldName TEXT, versionHash TEXT, measureCode TEXT,
         measureVersionHash TEXT, createdAt TEXT, updatedAt TEXT,
-        PRIMARY KEY (datasetCode, fieldName, versionHash)
+        ${historical ? "operation TEXT DEFAULT 'upsert', snapshotId TEXT NOT NULL," : ''}
+        PRIMARY KEY (datasetCode, fieldName, ${historical ? 'snapshotId' : 'versionHash'})
       );
       CREATE TABLE statsMeasures (
         datasetCode TEXT, measureCode TEXT, versionHash TEXT, createdAt TEXT, updatedAt TEXT,
-        PRIMARY KEY (datasetCode, measureCode, versionHash)
+        ${historical ? "operation TEXT DEFAULT 'upsert', snapshotId TEXT NOT NULL," : ''}
+        PRIMARY KEY (datasetCode, measureCode, ${historical ? 'snapshotId' : 'versionHash'})
       );
       CREATE TABLE statsFieldsI18n (
         datasetCode TEXT, fieldName TEXT, versionHash TEXT, locale TEXT, name TEXT,
-        PRIMARY KEY (datasetCode, fieldName, versionHash, locale)
+        ${historical ? "operation TEXT DEFAULT 'upsert', snapshotId TEXT NOT NULL," : ''}
+        PRIMARY KEY (datasetCode, fieldName, locale, ${historical ? 'snapshotId' : 'versionHash'})
       );
       CREATE TABLE statsMeasuresI18n (
         datasetCode TEXT, measureCode TEXT, versionHash TEXT, locale TEXT, name TEXT,
-        PRIMARY KEY (datasetCode, measureCode, versionHash, locale)
+        ${historical ? "operation TEXT DEFAULT 'upsert', snapshotId TEXT NOT NULL," : ''}
+        PRIMARY KEY (datasetCode, measureCode, locale, ${historical ? 'snapshotId' : 'versionHash'})
       );
     `)
   }
-  history.exec(`
-    CREATE TABLE historyEvents (
-      snapshotId TEXT, recordType TEXT, recordId TEXT, versionHash TEXT, operation TEXT
-    );
-    INSERT INTO statsFields VALUES ('${datasetCode}', 'population', 'field-1', 'population', 'measure-1', 'now', 'now');
-    INSERT INTO statsMeasures VALUES ('${datasetCode}', 'population', 'measure-1', 'now', 'now');
-    INSERT INTO statsFieldsI18n VALUES ('${datasetCode}', 'population', 'field-1', 'en', 'Population');
-    INSERT INTO statsMeasuresI18n VALUES ('${datasetCode}', 'population', 'measure-1', 'en', 'Population');
-  `)
+  history.exec(`CREATE VIEW historyEvents AS
+    SELECT snapshotId, 'statsRecord' AS recordType, id AS recordId, versionHash, operation FROM statsRecords;`)
   current.exec(`
     CREATE TABLE statsPublicationState (
       datasetCode TEXT, referencePeriodCode TEXT, snapshotId TEXT, status TEXT,
@@ -110,6 +107,28 @@ function fixture() {
       )
       .run(id, parent)
     meta.query('INSERT INTO snapshotShardAssignments VALUES (?, ?)').run(id, 'history')
+    if (parent === null) {
+      history
+        .query(
+          "INSERT INTO statsFields VALUES (?, 'population', 'field-1', 'population', 'measure-1', 'now', 'now', 'upsert', ?)",
+        )
+        .run(datasetCode, id)
+      history
+        .query(
+          "INSERT INTO statsMeasures VALUES (?, 'population', 'measure-1', 'now', 'now', 'upsert', ?)",
+        )
+        .run(datasetCode, id)
+      history
+        .query(
+          "INSERT INTO statsFieldsI18n VALUES (?, 'population', 'field-1', 'en', 'Population', 'upsert', ?)",
+        )
+        .run(datasetCode, id)
+      history
+        .query(
+          "INSERT INTO statsMeasuresI18n VALUES (?, 'population', 'measure-1', 'en', 'Population', 'upsert', ?)",
+        )
+        .run(datasetCode, id)
+    }
   }
   function record(
     snapshotId: string,
@@ -135,9 +154,6 @@ function fixture() {
         1,
         snapshotId,
       )
-    history
-      .query('INSERT INTO historyEvents VALUES (?, ?, ?, ?, ?)')
-      .run(snapshotId, 'statsRecord', id, hash, 'upsert')
   }
   return {
     current,
@@ -275,9 +291,10 @@ describe('packed statistic publication', () => {
   test('missing history versions block readiness instead of advertising incomplete current data', async () => {
     const f = fixture()
     f.snapshot('missing', null)
-    f.history.exec(
-      "INSERT INTO historyEvents VALUES ('missing', 'statsRecord', 'north', 'absent', 'upsert')",
-    )
+    // Inject a corrupt event projection to exercise the missing-content guard.
+    f.history.exec(`DROP VIEW historyEvents;
+      CREATE VIEW historyEvents AS SELECT 'missing' AS snapshotId, 'statsRecord' AS recordType,
+        'north' AS recordId, 'absent' AS versionHash, 'upsert' AS operation;`)
     await expect(f.promote('missing')).rejects.toThrow(
       'Missing retained statistic versions',
     )

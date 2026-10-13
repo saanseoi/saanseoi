@@ -251,14 +251,14 @@ function geometryReplayFixture() {
     sqlite.exec(`CREATE TABLE divisionAreas (
       snapshotId TEXT, id TEXT, variant TEXT, divisionId TEXT, bbox TEXT,
       geometry TEXT, identifiers TEXT, sources TEXT, type TEXT,
-      isLand INTEGER, isTerritorial INTEGER, versionHash TEXT
+      isLand INTEGER, isTerritorial INTEGER, versionHash TEXT, operation TEXT
     )`)
     sqlite
       .query(
-        'INSERT INTO divisionAreas VALUES (?, ?, ?, ?, ?, ?, NULL, NULL, ?, 1, 0, ?)',
+        "INSERT INTO divisionAreas VALUES (?, ?, ?, ?, ?, ?, NULL, NULL, ?, 1, 0, ?, 'upsert')",
       )
       .run(
-        sqlite === current ? `scope:${snapshotId}` : 'mutable-later-snapshot',
+        sqlite === current ? `scope:${snapshotId}` : snapshotId,
         'area-historical',
         'hkgov-censtatd',
         statistic.divisionId,

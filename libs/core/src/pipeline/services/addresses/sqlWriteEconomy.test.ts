@@ -109,7 +109,7 @@ test('current writes retain a stable key and leave unchanged content and compone
   }
 })
 
-test('retirement closes versions, journals translations and deletes only the selected current scope', () => {
+test('retirement appends a base tombstone, preserves ancestors and deletes only the selected current scope', () => {
   const current = database('current')
   const history = database('history')
   try {
@@ -142,8 +142,12 @@ test('retirement closes versions, journals translations and deletes only the sel
       'address2dBuildingNumberLookup',
     ]) {
       expect(
-        history.query(`SELECT count(*) AS n FROM ${table} WHERE isCurrent = 1`).get(),
-      ).toEqual({ n: 0 })
+        history
+          .query(
+            `SELECT count(*) AS n FROM ${table} WHERE snapshotId = 'one' AND operation = 'upsert'`,
+          )
+          .get(),
+      ).toEqual({ n: 1 })
     }
     expect(
       history
@@ -151,17 +155,14 @@ test('retirement closes versions, journals translations and deletes only the sel
           "SELECT recordType, locale, operation FROM snapshotVersionChanges WHERE snapshotId = 'two' ORDER BY recordType",
         )
         .all(),
-    ).toEqual([
-      { recordType: 'address2d', locale: '', operation: 'delete' },
-      { recordType: 'address2dI18n', locale: 'en', operation: 'delete' },
-    ])
+    ).toEqual([{ recordType: 'address2d', locale: '', operation: 'delete' }])
   } finally {
     current.close()
     history.close()
   }
 })
 
-test('a changed address journals translations omitted from its replacement', () => {
+test('changed address SQL preserves ancestor translations for resolved omission processing', () => {
   const history = database('history')
   try {
     for (const snapshotId of ['one', 'two']) {
@@ -179,7 +180,12 @@ test('a changed address journals translations omitted from its replacement', () 
           "SELECT operation FROM snapshotVersionChanges WHERE snapshotId = 'two' AND recordType = 'address2dI18n' AND locale = 'en'",
         )
         .get(),
-    ).toEqual({ operation: 'delete' })
+    ).toBeNull()
+    expect(
+      history
+        .query("SELECT formattedAddress FROM address2dI18n WHERE snapshotId = 'one'")
+        .get(),
+    ).toEqual({ formattedAddress: 'Harbour Road' })
   } finally {
     history.close()
   }

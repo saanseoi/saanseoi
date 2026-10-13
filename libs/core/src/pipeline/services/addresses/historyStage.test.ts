@@ -3,18 +3,20 @@ import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { drizzle } from 'drizzle-orm/bun-sqlite'
 import { resolve } from 'node:path'
-import { metaSchema } from '@repo/db'
+import { historySchema, metaSchema } from '@repo/db'
 import {
   insertFixtureRelease,
   loadMigrationSql,
   seedFixtureCatalog,
 } from '../../../testing/metaFixtures'
+import { prepareAddressVersionInsertContext } from '../../db/address'
 import { buildResolvedAddressChunkArtefact } from './historyStage'
 import { normaliseAddressRowForPipeline } from './normalisation'
 import type { AddressPipelineMessage } from './types'
 
 test('ALS history preserves distinct source owners at one street address and exact reviewed aliases', async () => {
   const sqlite = new Database(':memory:')
+  const history = new Database(':memory:')
   try {
     sqlite.exec(
       loadMigrationSql(resolve(import.meta.dir, '../../../../../db/migrations'), [
@@ -72,6 +74,49 @@ test('ALS history preserves distinct source owners at one street address and exa
         ]),
       },
     } as AddressPipelineMessage
+    const metaDb = drizzle({ client: sqlite, schema: metaSchema })
+    const context = await prepareAddressVersionInsertContext(
+      metaDb as never,
+      message,
+      'preview',
+    )
+    sqlite
+      .query(`INSERT INTO snapshots(id, snapshotLineageId, code, cohortKey, status)
+      SELECT 'parent', snapshotLineageId, 'parent', '2024-06-30.0', 'published' FROM snapshots WHERE id = ?`)
+      .run(context.snapshotId)
+    sqlite
+      .query('UPDATE snapshots SET parentSnapshotId = ? WHERE id = ?')
+      .run('parent', context.snapshotId)
+    history.exec(
+      loadMigrationSql(resolve(import.meta.dir, '../../../../../db/migrations'), [
+        'history',
+      ]),
+    )
+    const historyDb = drizzle({ client: history, schema: historySchema })
+    for (const id of ['reviewed-owner', 'unrelated-owner']) {
+      historyDb
+        .insert(historySchema.address2d)
+        .values({
+          ...rows[0]!.base,
+          id,
+          snapshotId: 'parent',
+          versionHash: 'old',
+          sourceReleaseId: 'previous',
+        } as never)
+        .run()
+      for (const localised of rows[0]!.i18n) {
+        historyDb
+          .insert(historySchema.address2dI18n)
+          .values({
+            ...localised,
+            addressId: id,
+            snapshotId: 'parent',
+            versionHash: 'old',
+            sourceReleaseId: 'previous',
+          } as never)
+          .run()
+      }
+    }
     const payload = new TextEncoder().encode(
       JSON.stringify({
         kind: 'address.normalised.v1',
@@ -84,8 +129,8 @@ test('ALS history preserves distinct source owners at one street address and exa
       }),
     )
     const result = await buildResolvedAddressChunkArtefact(
-      drizzle({ client: sqlite, schema: metaSchema }) as never,
-      {} as never,
+      metaDb as never,
+      historyDb as never,
       { get: async () => ({ arrayBuffer: async () => payload.buffer }) } as never,
       message,
     )
@@ -108,5 +153,6 @@ test('ALS history preserves distinct source owners at one street address and exa
     }
   } finally {
     sqlite.close()
+    history.close()
   }
 })

@@ -25,10 +25,10 @@ describe('draft release purge SQL', () => {
     )
     expect(sql.current).not.toContain('SET isCurrent')
     expect(sql.history).toContain(
-      "DELETE FROM divisions WHERE snapshotId = 'snapshot-draft' AND sourceReleaseId = 'release-draft';",
+      "DELETE FROM divisions WHERE snapshotId = 'snapshot-draft';",
     )
     expect(sql.history).toContain(
-      "DELETE FROM divisionsI18n WHERE snapshotId = 'snapshot-draft' AND sourceReleaseId = 'release-draft';",
+      "DELETE FROM divisionsI18n WHERE snapshotId = 'snapshot-draft';",
     )
     expect(sql.history).not.toContain('SET isCurrent')
     expect(sql.meta).toContain(
@@ -72,7 +72,7 @@ describe('draft release purge SQL', () => {
       "DELETE FROM placeSearchScopes WHERE snapshotId = 'places-snapshot-new';",
     )
     expect(sql.history).toContain(
-      "DELETE FROM places WHERE snapshotId = 'places-snapshot-new' AND sourceReleaseId = 'places-release-new';",
+      "DELETE FROM places WHERE snapshotId = 'places-snapshot-new';",
     )
     expect(sql.source).toContain(
       "DELETE FROM overturePlaces WHERE resourceReleaseId = 'places-release-new';",

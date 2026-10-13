@@ -16,7 +16,7 @@ export const SourceAttributionSchema = z
         'Direct publisher through which this source was inherited; omitted for direct sources.',
       ),
     dataset: z.string().min(1),
-    recordId: z.string().optional(),
+    recordId: z.string().optional().describe('Upstream record identifier.'),
     updateTime: z.string().optional(),
     version: z.string().optional().describe('Publisher-supplied record version.'),
     confidence: z.number().min(0).max(1).optional(),
@@ -27,5 +27,10 @@ export const SourceAttributionSchema = z
       'An upstream publisher and dataset reference. The optional property is an upstream RFC 6901 JSON Pointer; absent, null or empty applies to the whole record. More specific attribution takes precedence.',
   })
 
-export const SourcesSchema = z.array(SourceAttributionSchema).openapi('Sources')
+export const SourcesSchema = z
+  .array(SourceAttributionSchema)
+  .openapi('Sources')
+  .describe(
+    'Upstream publisher and dataset references for this record and its properties.',
+  )
 export type SourcesPayload = z.infer<typeof SourcesSchema>
