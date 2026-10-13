@@ -414,11 +414,12 @@ The statistical `division` output is therefore limited to the reviewed 2021 HMA 
 (`hkgov-censtatd-hma`). Permanent Living Quarters is optional source-specific Geographic
 geometry selected at the latest compatible cohort and linked to the Overture identity
 snapshot. HMA is its domain's primary canonical division input, paired with the required
-native `hkgov-censtatd-hma` geometry. It is non-hierarchical: C&SD does not assign it a
-Division level, so the generated Division record has no `level` value and an empty
-hierarchy. HMA Division identifiers retain only `hkgovCenstatd.code`. The
-`housing-market-area` classification is carried by `class` and the prepared
-`canonical_type`, independently of the source identifier.
+native `hkgov-censtatd-hma` geometry. C&SD does not supply a Division level or
+district-parent field. The generated Division record has no `level` value and an empty
+hierarchy; spatially inferred ancestry is a separate assembly concern documented in the
+[HMA hierarchy investigation](hma-hierarchy-investigation.md). HMA Division identifiers
+retain only `hkgovCenstatd.code`. The `housing-market-area` classification is carried by
+`class` and the prepared `canonical_type`, independently of the source identifier.
 
 The Statistics launch-bootstrap mode passes `--defer-stats-release-set`, so it uses the
 Statistics-only branch unless the operator also passes `--include-geography`. This keeps

@@ -681,6 +681,10 @@ The 2021 HMA statistics output instead supplies the separate HMA domain's primar
 canonical division snapshot (`hkgov-censtatd:2021`), paired with its native
 `hkgov-censtatd-hma` geometry. Although the HMA source dataset also publishes
 statistics, its statistics and its division geography have distinct snapshot lineages.
+The source supplies no district-parent field. The
+[HMA hierarchy investigation](../sources/hkgov-censtatd/hma-hierarchy-investigation.md)
+records measured district overlaps and the audit requirements for inferred HKSAR → Area
+→ District ancestry, including multiple branches and uncovered geometry.
 
 Planning Department Planning Units and New Towns are independent API domains, not
 optional members of the Geographic release. Each Planning Department source dataset
