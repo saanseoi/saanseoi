@@ -28,10 +28,17 @@ type Props = {
   title: string
   region?: string
   details: Detail[]
+  detailColumns?: string
   description?: Snippet
 }
 
-let { title, region, details, description }: Props = $props()
+let {
+  title,
+  region,
+  details,
+  detailColumns = 'md:grid-cols-3',
+  description,
+}: Props = $props()
 let allDetailsOpen = $state(false)
 </script>
 
@@ -52,7 +59,7 @@ let allDetailsOpen = $state(false)
     {@render description()}
   {/if}
   <dl
-    class={`mt-7 grid grid-cols-1 gap-x-8 gap-y-5 font-body text-label-md md:grid-cols-3`}
+    class={`mt-7 grid grid-cols-1 gap-x-8 gap-y-5 font-body text-label-md ${detailColumns}`}
   >
     {#each details as detail}
       {#if detail.disclosure?.length}

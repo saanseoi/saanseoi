@@ -125,7 +125,6 @@ let details = $derived.by((): Detail[] => {
         },
       ],
       isMonospace: true,
-      noWrap: true,
       label: m.source_release(),
       value: version.code,
     },
@@ -214,7 +213,12 @@ const displayDate = (value?: string | null) =>
 {/snippet}
 
 {#snippet main()}
-  <ReleaseHeader.Main title={name} {details} description={descriptionContent} />
+  <ReleaseHeader.Main
+    title={name}
+    {details}
+    detailColumns="md:grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)_auto]"
+    description={descriptionContent}
+  />
 {/snippet}
 
 {#snippet card()}
