@@ -43,3 +43,47 @@ for (const family of ['meta', 'all']) {
     })
   }
 }
+
+test('local auth seed restores linked identities after a Meta reset without credentials', () => {
+  const sqlite = new Database(':memory:')
+  const seed = readFileSync(
+    resolve(import.meta.dir, '../../../fixtures/local/auth.sql'),
+    'utf8',
+  )
+  const drop = readFileSync(
+    resolve(import.meta.dir, '../scripts/sql/drop-meta-db.sql'),
+    'utf8',
+  )
+  try {
+    for (let reset = 0; reset < 2; reset++) {
+      for (const migration of migrations) sqlite.exec(migration.sql)
+      sqlite.exec(seed)
+      sqlite.exec(seed)
+      expect(sqlite.query('SELECT email, role FROM user').all()).toEqual([
+        { email: 'm@type.hk', role: 'user' },
+      ])
+      expect(
+        sqlite
+          .query(
+            'SELECT provider_id, email FROM account JOIN user ON user.id = account.user_id ORDER BY provider_id',
+          )
+          .all(),
+      ).toEqual([
+        { provider_id: 'github', email: 'm@type.hk' },
+        { provider_id: 'google', email: 'm@type.hk' },
+      ])
+      expect(
+        sqlite
+          .query(
+            'SELECT id FROM account WHERE access_token IS NOT NULL OR refresh_token IS NOT NULL OR id_token IS NOT NULL OR password IS NOT NULL',
+          )
+          .all(),
+      ).toEqual([])
+      expect(sqlite.query('SELECT id FROM session').all()).toEqual([])
+      expect(sqlite.query('PRAGMA foreign_key_check').all()).toEqual([])
+      sqlite.exec(drop)
+    }
+  } finally {
+    sqlite.close()
+  }
+})

@@ -103,6 +103,7 @@ test('full reset holds the delivery lock and clears ownership after all database
       'drop-local-db.sh',
       'migrate-local-db.sh',
       'syncMetaRegistry.ts',
+      'seed-local-auth.sh',
       'vacuum-local-db.sh',
     ])
     for (const path of [...f.files, f.marker]) {
@@ -119,7 +120,7 @@ test('full reset holds the delivery lock and clears ownership after all database
   }
 })
 
-for (const failureStep of [1, 2, 3, 4, 5]) {
+for (const failureStep of [1, 2, 3, 4, 5, 6]) {
   test(`failed reset step ${failureStep} retains ownership and artefacts`, async () => {
     const f = await fixture()
     let steps = 0
@@ -181,6 +182,24 @@ test('family reset retains pending ownership and local artefacts', async () => {
     await rm(f.root, { recursive: true, force: true })
   }
 })
+
+for (const family of ['meta', 'current', 'history', 'source']) {
+  test(`${family} reset seeds accounts only when Meta is reset`, async () => {
+    const f = await fixture()
+    const steps: string[] = []
+    try {
+      await resetLocalDb(family, {
+        repoRoot: f.root,
+        executeStep: async step => {
+          steps.push(basename(step.command[1] ?? ''))
+        },
+      })
+      expect(steps.includes('seed-local-auth.sh')).toBe(family === 'meta')
+    } finally {
+      await rm(f.root, { recursive: true, force: true })
+    }
+  })
+}
 
 test('failed artefact cleanup retains the pending ownership marker', async () => {
   const f = await fixture()

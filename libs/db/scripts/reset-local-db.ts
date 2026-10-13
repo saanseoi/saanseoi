@@ -57,6 +57,11 @@ export async function resetLocalDb(
         success: 'Synchronised local metadata registry.',
         command: ['bun', resolve(scriptDir, 'syncMetaRegistry.ts'), 'local'],
       })
+      await executeStep({
+        pending: 'Seeding local user accounts',
+        success: 'Seeded local user accounts.',
+        command: ['bash', resolve(scriptDir, 'seed-local-auth.sh')],
+      })
     }
 
     await executeStep({
