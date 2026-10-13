@@ -1,4 +1,4 @@
-/** Publisher field meanings; the retained schema supplies types and nullability. */
+/** Publisher field meanings keyed by retained property names; the schema supplies types and nullability. */
 const planningUnitFields: Record<string, string> = {
   ppu: 'Primary planning unit code. Identifies the primary planning unit containing this source cell.',
   spu: 'Secondary planning unit code. Identifies the secondary planning unit within the primary planning unit containing this source cell.',
@@ -6,13 +6,6 @@ const planningUnitFields: Record<string, string> = {
   subunit:
     'Subunit code. Identifies the subunit within the tertiary planning unit containing this source cell.',
   sbVc: 'Subunit or village cluster code within the tertiary planning unit containing this source cell.',
-  PPU: 'Primary planning unit code. Identifies the primary planning unit containing this source cell.',
-  SPU: 'Secondary planning unit code. Identifies the secondary planning unit within the primary planning unit containing this source cell.',
-  TPU: 'Tertiary planning unit code. Identifies the tertiary planning unit within the secondary planning unit containing this source cell.',
-  Subunit:
-    'Subunit code. Identifies the subunit within the tertiary planning unit containing this source cell.',
-  SB_VC:
-    'Subunit or village cluster code within the tertiary planning unit containing this source cell.',
 }
 
 // Meanings are scoped to the publisher dataset: identical field names in other
@@ -24,66 +17,66 @@ const datasetFields: Record<string, Record<string, string>> = {
   // https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a
   'hkgov-censtatd-division-statistic-housing-market-areas-building-groups': {
     bg: 'Publisher building group code.',
-    bg_chi: 'Building group name in Traditional Chinese.',
-    bg_eng: 'Building group name in English.',
-    bg_ind:
+    bgZhHant: 'Building group name in Traditional Chinese.',
+    bgEn: 'Building group name in English.',
+    bgInd:
       'Building group indicator: B represents building groups; O represents records of other buildings in the area.',
     hma: 'Publisher housing market area code.',
-    hma_chi: 'Housing market area name in Traditional Chinese.',
-    hma_eng: 'Housing market area name in English.',
+    hmaZhHant: 'Housing market area name in Traditional Chinese.',
+    hmaEn: 'Housing market area name in English.',
   },
   // C&SD simplified data specification, DC_21C_SDU:
   // https://static.csdi.gov.hk/csdi-webpage/view/common/687dacd3427eeddea2d6f8ebfa47a599e47a86e87421205ffddf42d677f38e54
   'hkgov-censtatd-division-statistic-subdivided-units-district': {
-    OBJECTID: 'Publisher feature object identifier.',
-    SHAPE_Area: 'Area calculated in the publisher’s source coordinate system.',
-    SHAPE_Length:
+    objectId: 'Publisher feature object identifier.',
+    shapeArea: 'Area calculated in the publisher’s source coordinate system.',
+    shapeLength:
       'Boundary length calculated in the publisher’s source coordinate system.',
     dc: 'Publisher District Council district code.',
-    dc_chi: 'District Council district name in Traditional Chinese.',
-    dc_class: 'Publisher classification of the District Council district.',
-    dc_eng: 'District Council district name in English.',
-    sdu_dh: 'Number of domestic households living in subdivided units.',
-    sdu_n: 'Number of occupied subdivided units.',
-    sdu_oq: 'Number of occupied quarters with subdivided units.',
-    sdu_pop: 'Number of persons living in subdivided units.',
+    dcZhHant: 'District Council district name in Traditional Chinese.',
+    dcClass: 'Publisher classification of the District Council district.',
+    dcEn: 'District Council district name in English.',
+    sduDh: 'Number of domestic households living in subdivided units.',
+    sduN: 'Number of occupied subdivided units.',
+    sduOq: 'Number of occupied quarters with subdivided units.',
+    sduPop: 'Number of persons living in subdivided units.',
   },
   'hkgov-censtatd-division-statistic-permanent-living-quarters': {
-    AREA_CHI: 'Geographic area name in Traditional Chinese.',
-    AREA_ENG:
+    areaZhHant: 'Geographic area name in Traditional Chinese.',
+    areaEn:
       'Geographic area name in English: Hong Kong Island, Kowloon or New Territories.',
-    PERIOD:
+    period:
       'Publisher reference period for the living-quarters figures, retained as text.',
-    QTR_ALL:
+    qtrAll:
       'Total permanent living quarters across public rental housing, subsidised sale flats and private housing in the area.',
-    QTR_PRH: 'Permanent living quarters in public rental housing in the area.',
-    QTR_PRH_HA:
+    qtrPrh: 'Permanent living quarters in public rental housing in the area.',
+    qtrPrhHa:
       'Public rental housing quarters provided by the Hong Kong Housing Authority.',
-    QTR_PRH_HS:
+    qtrPrhHs:
       'Public rental housing quarters provided by the Hong Kong Housing Society.',
-    QTR_SSF:
+    qtrSsf:
       'Permanent living quarters classified as subsidised sale flats in the area.',
-    QTR_SSF_HA: 'Subsidised sale flats provided by the Hong Kong Housing Authority.',
-    QTR_SSF_HS: 'Subsidised sale flats provided by the Hong Kong Housing Society.',
-    QTR_SSF_URA: 'Subsidised sale flats provided by the Urban Renewal Authority.',
-    QTR_PH: 'Permanent living quarters classified as private housing in the area.',
-    QTR_PH_PRF: 'Private housing quarters classified as private residential flats.',
-    QTR_PH_VBM:
+    qtrSsfHa: 'Subsidised sale flats provided by the Hong Kong Housing Authority.',
+    qtrSsfHs: 'Subsidised sale flats provided by the Hong Kong Housing Society.',
+    qtrSsfUra: 'Subsidised sale flats provided by the Urban Renewal Authority.',
+    qtrPh: 'Permanent living quarters classified as private housing in the area.',
+    qtrPhPrf: 'Private housing quarters classified as private residential flats.',
+    qtrPhVbm:
       'Private housing quarters classified as villas, bungalows or modern village houses.',
-    QTR_PH_SSTV:
+    qtrPhSstv:
       'Private housing quarters classified as simple stone structures or traditional village houses.',
-    QTR_PH_SQ: 'Private housing quarters classified as staff quarters.',
-    QTR_PH_NDQ: 'Private housing quarters classified as non-domestic quarters.',
+    qtrPhSq: 'Private housing quarters classified as staff quarters.',
+    qtrPhNdq: 'Private housing quarters classified as non-domestic quarters.',
   },
   'hkgov-pland-division-new-town': {
-    NewTown_en: 'Publisher New Town name in English.',
-    NewTown_Tc: 'Publisher New Town name in Traditional Chinese.',
-    NewTown_Sc: 'Publisher New Town name in Simplified Chinese.',
+    newTownEn: 'Publisher New Town name in English.',
+    newTownZhHant: 'Publisher New Town name in Traditional Chinese.',
+    newTownZhHans: 'Publisher New Town name in Simplified Chinese.',
   },
   'hkgov-landsd-road-centreline': {
-    STREETCODE:
+    streetcode:
       'Publisher street code for the road segment. Text codes retain leading zeroes.',
-    OBJECTID: 'Publisher road segment object identifier.',
+    objectId: 'Publisher road segment object identifier.',
   },
   'hkgov-landsd-street': {
     nameEn: 'Street name in English retained from the publisher document.',
@@ -103,42 +96,42 @@ const datasetFields: Record<string, Record<string, string>> = {
     evidenceAssets: 'Source document assets supporting the extracted record.',
   },
   'hkgov-had-division-area-district': {
-    AREA_CODE: 'Publisher district area code, used to resolve the associated district.',
-    AREA_ID: 'Publisher identifier for the district area.',
-    AREA_TYPE: 'Publisher classification of the administrative area.',
-    CSDI_ADMIN_AREA_ID: 'CSDI administrative area identifier.',
-    OBJECTID: 'Publisher feature object identifier.',
-    NAME_TC: 'District name in Traditional Chinese.',
-    NAME_EN: 'District name in English.',
-    DATA_OWNER: 'Organisation responsible for the publisher record.',
-    BEGIN_LIFESPAN: 'Start of the publisher record’s validity period.',
-    END_LIFESPAN:
+    areaCode: 'Publisher district area code, used to resolve the associated district.',
+    areaId: 'Publisher identifier for the district area.',
+    areaType: 'Publisher classification of the administrative area.',
+    csdiAdminAreaId: 'CSDI administrative area identifier.',
+    objectId: 'Publisher feature object identifier.',
+    nameZhHant: 'District name in Traditional Chinese.',
+    nameEn: 'District name in English.',
+    dataOwner: 'Organisation responsible for the publisher record.',
+    beginLifespan: 'Start of the publisher record’s validity period.',
+    endLifespan:
       'End of the publisher record’s validity period; an open value indicates no specified end.',
-    SHAPE_Length:
+    shapeLength:
       'Boundary length calculated in the publisher’s source coordinate system.',
-    SHAPE_Area: 'Area calculated in the publisher’s source coordinate system.',
+    shapeArea: 'Area calculated in the publisher’s source coordinate system.',
   },
   'hkgov-landsd-division': {
-    GEO_NAME_ID: 'Publisher geographic name identifier.',
-    PLACE_CLASS:
+    geoNameId: 'Publisher geographic name identifier.',
+    placeClass:
       'Broad publisher feature class: Settlement, Hydrographic or Topographic.',
-    PLACE_TYPE: 'Publisher classification of the named geographic feature.',
-    DISTRICT: 'Publisher district attribution for the named geographic feature.',
+    placeType: 'Publisher classification of the named geographic feature.',
+    district: 'Publisher district attribution for the named geographic feature.',
   },
   'hkgov-hyd-street': {
-    SNP_ID: 'Publisher street name plate identifier.',
-    ROAD_NAME: 'Street name displayed on the name plate.',
-    LVL: 'Publisher level classification for the street name plate.',
+    snpId: 'Publisher street name plate identifier.',
+    roadName: 'Street name displayed on the name plate.',
+    lvl: 'Publisher level classification for the street name plate.',
   },
   'hkgov-hyd-sensitive-street': {
-    LVL: 'Publisher level classification for the street.',
-    SECT_BTWN: 'Publisher description of the limits of the street section.',
-    ST_ENGNM: 'Street name in English.',
+    lvl: 'Publisher level classification for the street.',
+    sectBtwn: 'Publisher description of the limits of the street section.',
+    stEngnm: 'Street name in English.',
   },
   'hkgov-hyd-strategic-street': {
-    LVL: 'Publisher level classification for the street.',
-    SECT_BTWN: 'Publisher description of the limits of the street section.',
-    ST_ENGNM: 'Street name in English.',
+    lvl: 'Publisher level classification for the street.',
+    sectBtwn: 'Publisher description of the limits of the street section.',
+    stEngnm: 'Street name in English.',
   },
 }
 

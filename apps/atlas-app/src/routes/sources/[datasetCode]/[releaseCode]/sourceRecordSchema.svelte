@@ -4,6 +4,7 @@ import { landsdPlaceNameSourceFields } from '@repo/core/landsdPlaceNameSourceSch
 import {
   resolveOvertureSourceRecordFieldDefinition,
   resolveSourceRecordSchema,
+  retainedPropertyName,
   retainedSourceSchema,
   sourceRecordRawPropertyFields,
   type SourceRecordSchema,
@@ -181,7 +182,7 @@ let recordSchema = $derived.by((): OpenApiSchema | null => {
           description: m.source_record_schema_retained_description(),
           properties: Object.fromEntries(
             measures.map(measure => [
-              measure.sourceField,
+              retainedPropertyName(measure.sourceField),
               {
                 nullable: true,
                 type: measure.valueKind === 'numeric' ? 'number' : 'string',
@@ -193,7 +194,7 @@ let recordSchema = $derived.by((): OpenApiSchema | null => {
 
   if (!sourceSchema && properties.properties) {
     const measuresByField = new Map(
-      measures.map(measure => [measure.sourceField, measure]),
+      measures.map(measure => [retainedPropertyName(measure.sourceField), measure]),
     )
     properties.properties = Object.fromEntries(
       Object.entries(properties.properties).map(([field, schema]) => {

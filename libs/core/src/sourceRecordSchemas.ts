@@ -1,6 +1,9 @@
 import type { ResourceType } from './types'
 
-export { retainedSourceSchema } from './pipeline/services/sources/retainedProperties'
+export {
+  retainedPropertyName,
+  retainedSourceSchema,
+} from './pipeline/services/sources/retainedProperties'
 
 export type { ResourceType } from './types'
 
