@@ -207,13 +207,17 @@ for (const sourceName of ['overture', 'hkgov-censtatd'] as const)
         await derive(200)
         expect(
           source
-            .query('SELECT count(*) AS n FROM hkgovCenstatdDivisionAreaDerivatives')
+            .query(
+              'SELECT count(*) AS n FROM hkgovCenstatdStatisticsGeometryDerivatives',
+            )
             .get(),
         ).toEqual({ n: 1 })
         await derive(200, '2')
         expect(
           source
-            .query('SELECT count(*) AS n FROM hkgovCenstatdDivisionAreaDerivatives')
+            .query(
+              'SELECT count(*) AS n FROM hkgovCenstatdStatisticsGeometryDerivatives',
+            )
             .get(),
         ).toEqual({ n: 2 })
       }

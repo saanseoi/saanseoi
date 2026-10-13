@@ -39,8 +39,8 @@ export const sourceHkgovCenstatdStatistics = sqliteTable(
 )
 
 /** Immutable transforms identified by geometry and the complete transform context. */
-export const sourceHkgovCenstatdDivisionAreaDerivatives = sqliteTable(
-  'hkgovCenstatdDivisionAreaDerivatives',
+export const sourceHkgovCenstatdStatisticsGeometryDerivatives = sqliteTable(
+  'hkgovCenstatdStatisticsGeometryDerivatives',
   {
     geometryId: text('geometryId')
       .notNull()

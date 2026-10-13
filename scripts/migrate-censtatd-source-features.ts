@@ -18,7 +18,7 @@ import {
 
 const retired = ['hkgovCenstatdStatistics']
 const featureTable = 'hkgovCenstatdStatistics'
-const derivativeTable = 'hkgovCenstatdDivisionAreaDerivatives'
+const derivativeTable = 'hkgovCenstatdStatisticsGeometryDerivatives'
 const membershipTable = 'hkgovCenstatdStatisticsReleaseMemberships'
 type Row = Record<string, string | number | null | Uint8Array>
 const args = Bun.argv.slice(2)

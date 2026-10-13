@@ -283,7 +283,7 @@ export function resolveCacheTablesForBinding(
         'hkgovTdPedestrianStreets',
         'hkgovCenstatdStatisticsGeometry',
         'hkgovCenstatdStatistics',
-        'hkgovCenstatdDivisionAreaDerivatives',
+        'hkgovCenstatdStatisticsGeometryDerivatives',
         'hkgovLandsdPlaceNames',
         'hkgovLandsdRoadCentrelines',
       ]
@@ -316,7 +316,7 @@ export function resolveCacheTablesForBinding(
         'hkgovHadDivisionAreas',
         'hkgovCenstatdStatisticsGeometry',
         'hkgovCenstatdStatistics',
-        'hkgovCenstatdDivisionAreaDerivatives',
+        'hkgovCenstatdStatisticsGeometryDerivatives',
       ]
     }
 
@@ -334,7 +334,7 @@ export function resolveCacheTablesForBinding(
       'hkgovHadDivisionAreas',
       'hkgovCenstatdStatisticsGeometry',
       'hkgovCenstatdStatistics',
-      'hkgovCenstatdDivisionAreaDerivatives',
+      'hkgovCenstatdStatisticsGeometryDerivatives',
       'hkgovPlandPlanningCells',
       'hkgovPlandNewTowns',
       'hkgovAlsAddresses2d',

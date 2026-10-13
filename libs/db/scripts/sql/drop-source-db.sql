@@ -35,7 +35,7 @@ DROP TABLE IF EXISTS `hkgovHadDivisionAreas`;
 DROP TABLE IF EXISTS `__new_hkgovCenstatdStatistics`;
 DROP TABLE IF EXISTS `hkgovCenstatdStatistics`;
 DROP TABLE IF EXISTS `hkgovCenstatdStatisticsGeometry`;
-DROP TABLE IF EXISTS `hkgovCenstatdDivisionAreaDerivatives`;
+DROP TABLE IF EXISTS `hkgovCenstatdStatisticsGeometryDerivatives`;
 DROP TABLE IF EXISTS `hkgovCenstatdDivisionAreaI18n`;
 DROP TABLE IF EXISTS `hkgovLandsdStreetNoticeApplications`;
 DROP TABLE IF EXISTS `hkgovLandsdStreetNotices`;

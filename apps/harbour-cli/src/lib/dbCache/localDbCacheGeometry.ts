@@ -28,7 +28,7 @@ export function resolveBinaryGeometryColumn(tableName: string) {
     case 'divisions':
     case 'divisionAreas':
     case 'divisionBoundaries':
-    case 'hkgovCenstatdDivisionAreaDerivatives':
+    case 'hkgovCenstatdStatisticsGeometryDerivatives':
       return 'geometry'
     case 'hkgovCenstatdStatisticsGeometry':
       return 'sourceGeometry'

@@ -218,7 +218,7 @@ export function buildDivisionResetSql(plan: DivisionResetPlan) {
     ...SOURCE_TABLES.flatMap(table =>
       deleteIds(table, 'resourceReleaseId', releaseIds),
     ),
-    'DELETE FROM hkgovCenstatdDivisionAreaDerivatives WHERE NOT EXISTS (SELECT 1 FROM hkgovCenstatdStatistics s WHERE s.geometryId = hkgovCenstatdDivisionAreaDerivatives.geometryId);',
+    'DELETE FROM hkgovCenstatdStatisticsGeometryDerivatives WHERE NOT EXISTS (SELECT 1 FROM hkgovCenstatdStatistics s WHERE s.geometryId = hkgovCenstatdStatisticsGeometryDerivatives.geometryId);',
     'DELETE FROM hkgovCenstatdStatisticsGeometry WHERE NOT EXISTS (SELECT 1 FROM hkgovCenstatdStatistics s WHERE s.geometryId = hkgovCenstatdStatisticsGeometry.id);',
   ].join('\n')
   const metaSql = [

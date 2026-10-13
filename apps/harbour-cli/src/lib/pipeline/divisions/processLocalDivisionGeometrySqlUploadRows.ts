@@ -679,7 +679,7 @@ async function writeCenstatdSourceDerivatives(
   }
 
   const geometries = sourceSchema.sourceHkgovCenstatdStatisticsGeometry
-  const derivatives = sourceSchema.sourceHkgovCenstatdDivisionAreaDerivatives
+  const derivatives = sourceSchema.sourceHkgovCenstatdStatisticsGeometryDerivatives
   const coverageGeometryIds = rows.map(row =>
     censtatdGeometryId(row.source.sourceGeometry),
   )

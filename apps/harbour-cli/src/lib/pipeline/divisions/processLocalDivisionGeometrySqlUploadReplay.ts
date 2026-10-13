@@ -231,11 +231,11 @@ export async function generateGeometryReplaySql(
           }
           if (plan.source === 'hkgov-censtatd' && plan.transform === 'simplified') {
             yield* geometryIterateUpsertSql(
-              'hkgovCenstatdDivisionAreaDerivatives',
+              'hkgovCenstatdStatisticsGeometryDerivatives',
               iterateGeometryCacheRows(
                 context.state.dbCacheDir,
                 sourceBindingName,
-                `SELECT d.* FROM hkgovCenstatdDivisionAreaDerivatives d WHERE EXISTS (SELECT 1 FROM hkgovCenstatdStatistics s WHERE s.geometryId = d.geometryId AND s.resourceReleaseId = ${geometrySqlLiteral(resourceReleaseId)})`,
+                `SELECT d.* FROM hkgovCenstatdStatisticsGeometryDerivatives d WHERE EXISTS (SELECT 1 FROM hkgovCenstatdStatistics s WHERE s.geometryId = d.geometryId AND s.resourceReleaseId = ${geometrySqlLiteral(resourceReleaseId)})`,
               ),
               { immutable: true },
             )

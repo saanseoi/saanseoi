@@ -67,7 +67,7 @@ for (const [family, schema] of Object.entries({ meta, current, history, source }
           if (
             ![
               'hkgovCenstatdStatisticsGeometry',
-              'hkgovCenstatdDivisionAreaDerivatives',
+              'hkgovCenstatdStatisticsGeometryDerivatives',
             ].includes(getTableName(table))
           )
             expect(actual.slice(-2).map(column => column.name)).toEqual([

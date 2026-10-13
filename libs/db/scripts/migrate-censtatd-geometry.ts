@@ -37,7 +37,7 @@ export function convertCenstatdGeometry(db: Database) {
     .query('SELECT * FROM hkgovCenstatdStatisticsReleaseMemberships')
     .all() as Row[]
   const derivatives = db
-    .query('SELECT * FROM hkgovCenstatdDivisionAreaDerivatives')
+    .query('SELECT * FROM hkgovCenstatdStatisticsGeometryDerivatives')
     .all() as Row[]
   const assertions = new Map(statistics.map(row => [key(row), row]))
   const releases = new Map<string, Set<string>>()
@@ -102,12 +102,14 @@ export function convertCenstatdGeometry(db: Database) {
     convertedDerivatives.set(identity, next)
   }
   db.exec(
-    'DELETE FROM hkgovCenstatdDivisionAreaDerivatives; DELETE FROM hkgovCenstatdStatisticsReleaseMemberships; DELETE FROM hkgovCenstatdStatistics;',
+    'DELETE FROM hkgovCenstatdStatisticsGeometryDerivatives; DELETE FROM hkgovCenstatdStatisticsReleaseMemberships; DELETE FROM hkgovCenstatdStatistics;',
   )
   db.exec(migrationSql)
   insert(db, 'hkgovCenstatdStatisticsGeometry', [...geometries.values()])
   insert(db, 'hkgovCenstatdStatistics', convertedStatistics)
-  insert(db, 'hkgovCenstatdDivisionAreaDerivatives', [...convertedDerivatives.values()])
+  insert(db, 'hkgovCenstatdStatisticsGeometryDerivatives', [
+    ...convertedDerivatives.values(),
+  ])
   // Verify every release still reconstructs the exact retained evidence.
   const actual = db
     .query(

@@ -51,7 +51,7 @@ const sources = {
     'hkgovHadDivisionAreas',
     'hkgovCenstatdStatisticsGeometry',
     'hkgovCenstatdStatistics',
-    'hkgovCenstatdDivisionAreaDerivatives',
+    'hkgovCenstatdStatisticsGeometryDerivatives',
   ],
   statistics: ['hkgovCenstatdStatisticsGeometry', 'hkgovCenstatdStatistics'],
 }

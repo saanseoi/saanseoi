@@ -41,7 +41,7 @@ function insert(
 
   if (
     table === 'hkgovCenstatdStatistics' ||
-    table === 'hkgovCenstatdDivisionAreaDerivatives'
+    table === 'hkgovCenstatdStatisticsGeometryDerivatives'
   ) {
     const geometryId =
       values.geometryId ??
@@ -50,7 +50,7 @@ function insert(
       'INSERT INTO hkgovCenstatdStatisticsGeometry(id,sourceGeometry) VALUES (?, ?) ON CONFLICT DO NOTHING',
     ).run(geometryId, '{}')
     values = { ...values, geometryId }
-    if (table === 'hkgovCenstatdDivisionAreaDerivatives')
+    if (table === 'hkgovCenstatdStatisticsGeometryDerivatives')
       values = {
         geometryId,
         transform: 'simplified',
@@ -345,7 +345,7 @@ describe('all-statistics reset', () => {
     }
     for (const table of [
       'hkgovCenstatdStatistics',
-      'hkgovCenstatdDivisionAreaDerivatives',
+      'hkgovCenstatdStatisticsGeometryDerivatives',
     ]) {
       insert(source, table, {
         sourceRecordId: 'geometry',
@@ -382,7 +382,7 @@ describe('all-statistics reset', () => {
     }
     expect(source.query('SELECT * FROM hkgovCenstatdStatistics').all()).toHaveLength(0)
     expect(
-      source.query('SELECT * FROM hkgovCenstatdDivisionAreaDerivatives').all(),
+      source.query('SELECT * FROM hkgovCenstatdStatisticsGeometryDerivatives').all(),
     ).toHaveLength(0)
   })
 
