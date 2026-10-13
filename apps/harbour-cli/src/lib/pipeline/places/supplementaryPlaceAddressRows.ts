@@ -147,12 +147,12 @@ export async function assertSupplementaryAddressRows(
   const rows = await db
     .select()
     .from(currentSchema.address2d)
-    .where(eq(currentSchema.address2d.snapshotId, snapshotId))
+    .where(eq(currentSchema.address2d.scopeId, snapshotId))
     .all()
   const localisations = await db
     .select()
     .from(currentSchema.address2dI18n)
-    .where(eq(currentSchema.address2dI18n.snapshotId, snapshotId))
+    .where(eq(currentSchema.address2dI18n.scopeId, snapshotId))
     .all()
   if (
     rows.length !== expected.length ||

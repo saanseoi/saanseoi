@@ -535,7 +535,7 @@ async function materialiseDivisionSnapshotForAddressRelease(
       context.currentDb
         .select({ id: currentSchema.divisions.id })
         .from(currentSchema.divisions)
-        .where(eq(currentSchema.divisions.snapshotId, snapshot.id))
+        .where(eq(currentSchema.divisions.scopeId, snapshot.id))
         .all(),
       context.currentDb
         .select({
@@ -543,7 +543,7 @@ async function materialiseDivisionSnapshotForAddressRelease(
           locale: currentSchema.divisionsI18n.locale,
         })
         .from(currentSchema.divisionsI18n)
-        .where(eq(currentSchema.divisionsI18n.snapshotId, snapshot.id))
+        .where(eq(currentSchema.divisionsI18n.scopeId, snapshot.id))
         .all(),
     ])
     const historyShards = new Map(

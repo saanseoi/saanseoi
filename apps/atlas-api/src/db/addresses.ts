@@ -145,7 +145,7 @@ type AddressRow = {
 
 function buildAddressI18nCondition(localeSelection: RequestedApiLocaleSelection) {
   return and(
-    eq(address2dI18n.snapshotId, address2d.snapshotId),
+    eq(address2dI18n.scopeId, address2d.scopeId),
     eq(address2dI18n.addressId, address2d.id),
     localeSelection.mode === 'requested' && localeSelection.locales.length > 0
       ? sql`${address2dI18n.locale} in (select value from json_each(${JSON.stringify(localeSelection.locales)}))`
@@ -331,21 +331,21 @@ function buildAddressConditions(
           address2d.villageId,
           address2d.hamletId,
         ].map(
-          role => sql`select ${address2d.snapshotId}, ${address2d.id} from ${address2d}
+          role => sql`select ${address2d.scopeId}, ${address2d.id} from ${address2d}
             where ${role} = ${lookup.divisionId}
-              and ${address2d.snapshotId} in (select scopeId from selectedAddressScopes)`,
+              and ${address2d.scopeId} in (select scopeId from selectedAddressScopes)`,
         ),
         sql` union `,
       )
     : undefined
   return [
-    sql`${address2d.snapshotId} in (${selectedScopes})`,
+    sql`${address2d.scopeId} in (${selectedScopes})`,
     addressGeographicCondition(),
     lookup.countryId ? eq(address2d.countryId, lookup.countryId) : undefined,
     // Each branch seeks a covering role index. UNION removes repeated role matches
     // while retaining the same address ID in distinct physical scopes.
     divisionMatches
-      ? sql`(${address2d.snapshotId}, ${address2d.id}) in (
+      ? sql`(${address2d.scopeId}, ${address2d.id}) in (
           with selectedAddressScopes as (${selectedScopes}) ${divisionMatches}
         )`
       : undefined,
@@ -391,7 +391,7 @@ export async function getAddressRecordCurrent(
     .innerJoin(
       addressPublicationState,
       and(
-        eq(addressPublicationState.scopeId, address2d.snapshotId),
+        eq(addressPublicationState.scopeId, address2d.scopeId),
         eq(addressPublicationState.status, 'current'),
       ),
     )
@@ -446,7 +446,7 @@ export async function listAddressRecordsCurrent(
     .innerJoin(
       addressPublicationState,
       and(
-        eq(addressPublicationState.scopeId, address2d.snapshotId),
+        eq(addressPublicationState.scopeId, address2d.scopeId),
         eq(addressPublicationState.status, 'current'),
       ),
     )
@@ -456,7 +456,7 @@ export async function listAddressRecordsCurrent(
         lookup.after === undefined ? undefined : sql`${address2d.id} > ${lookup.after}`,
       ),
     )
-    .orderBy(asc(address2d.id), asc(address2d.snapshotId))
+    .orderBy(asc(address2d.id), asc(address2d.scopeId))
     .limit(lookup.limit ?? 25)
     .offset(lookup.offset ?? 0)
     .all()
@@ -505,7 +505,7 @@ export async function listAddressRecordsCurrentByIds(
     .innerJoin(
       addressPublicationState,
       and(
-        eq(addressPublicationState.scopeId, address2d.snapshotId),
+        eq(addressPublicationState.scopeId, address2d.scopeId),
         eq(addressPublicationState.status, 'current'),
       ),
     )
@@ -551,7 +551,7 @@ export async function searchAddressIdsCurrent(
         .innerJoin(
           address2d,
           and(
-            eq(address2d.snapshotId, address2dBuildingNumberLookup.snapshotId),
+            eq(address2d.scopeId, address2dBuildingNumberLookup.scopeId),
             eq(address2d.id, address2dBuildingNumberLookup.addressId),
           ),
         )
@@ -568,7 +568,7 @@ export async function searchAddressIdsCurrent(
         .innerJoin(
           address2d,
           and(
-            eq(address2d.snapshotId, address2dBuildingNumberLookup.snapshotId),
+            eq(address2d.scopeId, address2dBuildingNumberLookup.scopeId),
             eq(address2d.id, address2dBuildingNumberLookup.addressId),
           ),
         )
@@ -607,7 +607,7 @@ export async function searchAddressIdsCurrent(
         .innerJoin(
           address2d,
           and(
-            sql`${address2d.snapshotId} = (select ${addressPublicationState.scopeId} from ${addressPublicationState} where ${addressPublicationState.status} = 'current' and ${addressPublicationState.snapshotId} = ${addressSearchScopes.snapshotId})`,
+            sql`${address2d.scopeId} = (select ${addressPublicationState.scopeId} from ${addressPublicationState} where ${addressPublicationState.status} = 'current' and ${addressPublicationState.snapshotId} = ${addressSearchScopes.snapshotId})`,
             eq(address2d.id, addressesFts.addressId),
           ),
         )
@@ -626,7 +626,7 @@ export async function searchAddressIdsCurrent(
         .innerJoin(
           address2d,
           and(
-            sql`${address2d.snapshotId} = (select ${addressPublicationState.scopeId} from ${addressPublicationState} where ${addressPublicationState.status} = 'current' and ${addressPublicationState.snapshotId} = ${addressSearchScopes.snapshotId})`,
+            sql`${address2d.scopeId} = (select ${addressPublicationState.scopeId} from ${addressPublicationState} where ${addressPublicationState.status} = 'current' and ${addressPublicationState.snapshotId} = ${addressSearchScopes.snapshotId})`,
             eq(address2d.id, addressesFts.addressId),
           ),
         )
@@ -708,7 +708,7 @@ export async function countAddressRecordsCurrent(
     .innerJoin(
       addressPublicationState,
       and(
-        eq(addressPublicationState.scopeId, address2d.snapshotId),
+        eq(addressPublicationState.scopeId, address2d.scopeId),
         eq(addressPublicationState.status, 'current'),
       ),
     )

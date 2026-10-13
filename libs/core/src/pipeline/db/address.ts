@@ -973,7 +973,7 @@ export async function insertAddressVersionRows(
   historyDb: HarbourReadableDb & HarbourWritableDb,
   context: AddressVersionInsertContext,
   baseRows: Array<
-    AddressBaseRecord & {
+    Omit<AddressBaseRecord, 'scopeId'> & {
       versionHash: string
     }
   >,

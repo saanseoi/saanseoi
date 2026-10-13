@@ -318,11 +318,11 @@ export async function processLocalStreetSqlUpload(
         if (previous?.snapshotId !== snapshot.parentSnapshotId) {
           await context.currentDb
             .delete(currentSchema.streets)
-            .where(eq(currentSchema.streets.snapshotId, scopeId))
+            .where(eq(currentSchema.streets.scopeId, scopeId))
             .run()
           await context.currentDb
             .delete(currentSchema.streetChangelog)
-            .where(eq(currentSchema.streetChangelog.snapshotId, scopeId))
+            .where(eq(currentSchema.streetChangelog.scopeId, scopeId))
             .run()
           const inherited = await Promise.all(
             parentHistory.streets.map(addMaterialisedStreetHash),

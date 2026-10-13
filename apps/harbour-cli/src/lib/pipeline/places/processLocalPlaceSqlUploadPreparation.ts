@@ -361,7 +361,7 @@ export async function stageEnrichedPlaces(
     })
     .from(currentSchema.address2d)
     .where(
-      sql`${currentSchema.address2d.snapshotId} = (select ${currentSchema.addressPublicationState.scopeId} from ${currentSchema.addressPublicationState} where ${currentSchema.addressPublicationState.preparedAt} is not null and ${currentSchema.addressPublicationState.snapshotId} = ${snapshots.addressSnapshotId})`,
+      sql`${currentSchema.address2d.scopeId} = (select ${currentSchema.addressPublicationState.scopeId} from ${currentSchema.addressPublicationState} where ${currentSchema.addressPublicationState.preparedAt} is not null and ${currentSchema.addressPublicationState.snapshotId} = ${snapshots.addressSnapshotId})`,
     )
     .all()
   const divisions = await currentDb
@@ -372,7 +372,7 @@ export async function stageEnrichedPlaces(
     })
     .from(currentSchema.divisions)
     .where(
-      sql`${currentSchema.divisions.snapshotId} = (select ${currentSchema.divisionPublicationState.scopeId} from ${currentSchema.divisionPublicationState} where ${currentSchema.divisionPublicationState.snapshotId} = ${snapshots.divisionSnapshotId} and ${currentSchema.divisionPublicationState.preparedAt} is not null)`,
+      sql`${currentSchema.divisions.scopeId} = (select ${currentSchema.divisionPublicationState.scopeId} from ${currentSchema.divisionPublicationState} where ${currentSchema.divisionPublicationState.snapshotId} = ${snapshots.divisionSnapshotId} and ${currentSchema.divisionPublicationState.preparedAt} is not null)`,
     )
     .all()
   const divisionIds = new Set(divisions.map(row => row.id))
@@ -401,7 +401,7 @@ export async function stageEnrichedPlaces(
       geometry: currentSchema.divisionAreas.geometry,
     })
     .from(currentSchema.divisionAreas)
-    .where(eq(currentSchema.divisionAreas.snapshotId, geometryReceipt.scopeId))
+    .where(eq(currentSchema.divisionAreas.scopeId, geometryReceipt.scopeId))
     .all()
   const membership = createDivisionMembership(divisions, areas)
   const addressById = new Map(addresses.map(row => [row.id, row]))

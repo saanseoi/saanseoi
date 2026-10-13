@@ -276,7 +276,7 @@ async function loadRoadCentrelineCanonical(
       .from(currentSchema.streets)
       .where(
         and(
-          eq(currentSchema.streets.snapshotId, streetSnapshot.id),
+          eq(currentSchema.streets.scopeId, streetSnapshot.id),
           eq(currentSchema.streets.status, 'active'),
         ),
       )
@@ -288,7 +288,7 @@ async function loadRoadCentrelineCanonical(
         streetId: currentSchema.streetsI18n.streetId,
       })
       .from(currentSchema.streetsI18n)
-      .where(eq(currentSchema.streetsI18n.snapshotId, streetSnapshot.id))
+      .where(eq(currentSchema.streetsI18n.scopeId, streetSnapshot.id))
       .all()
     const i18nByStreet = new Map<string, Map<string, string>>()
     for (const row of streetI18n) {
@@ -320,7 +320,7 @@ async function loadRoadCentrelineCanonical(
       .from(currentSchema.divisionAreas)
       .where(
         and(
-          eq(currentSchema.divisionAreas.snapshotId, divisionSnapshot.id),
+          eq(currentSchema.divisionAreas.scopeId, divisionSnapshot.id),
           eq(currentSchema.divisionAreas.variant, 'hkgov-had'),
         ),
       )

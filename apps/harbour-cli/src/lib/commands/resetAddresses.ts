@@ -860,7 +860,7 @@ async function assertResetStillSafe(
     )
   const addressScopeIds = new Set(snapshots.map(row => row.scopeId))
   const currentScopes = await context.currentDb
-    .selectDistinct({ snapshotId: currentSchema.address2d.snapshotId })
+    .selectDistinct({ snapshotId: currentSchema.address2d.scopeId })
     .from(currentSchema.address2d)
     .all()
   const unexpectedCurrent = currentScopes.some(
@@ -1129,7 +1129,7 @@ async function readCurrentDivisionScopeIds(
   context: Pick<LocalAddressDbContext, 'currentDb'>,
 ) {
   const rows = await context.currentDb
-    .selectDistinct({ snapshotId: currentSchema.divisions.snapshotId })
+    .selectDistinct({ snapshotId: currentSchema.divisions.scopeId })
     .from(currentSchema.divisions)
     .all()
   return [...new Set(rows.map(row => row.snapshotId))].sort()

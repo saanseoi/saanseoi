@@ -25,7 +25,7 @@ export type UploadPlan = {
 }
 
 export type DivisionPreparedRecord = {
-  base: Omit<NewDivisionRow, 'snapshotId'>
+  base: Omit<NewDivisionRow, 'scopeId'>
   baseChanged: boolean
   canonicalI18n: DivisionI18nPayload[]
   currentChanged: boolean

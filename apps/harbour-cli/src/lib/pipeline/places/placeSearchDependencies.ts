@@ -64,7 +64,7 @@ export function createPlaceSearchDependencies(
         .from(currentSchema.address2d)
         .where(
           and(
-            eq(currentSchema.address2d.snapshotId, scope.id),
+            eq(currentSchema.address2d.scopeId, scope.id),
             eq(currentSchema.address2d.id, addressId),
           ),
         )
@@ -74,7 +74,7 @@ export function createPlaceSearchDependencies(
         .from(currentSchema.address2dI18n)
         .where(
           and(
-            eq(currentSchema.address2dI18n.snapshotId, scope.id),
+            eq(currentSchema.address2dI18n.scopeId, scope.id),
             eq(currentSchema.address2dI18n.addressId, addressId),
           ),
         )
@@ -85,7 +85,7 @@ export function createPlaceSearchDependencies(
             .from(currentSchema.address3d)
             .where(
               and(
-                eq(currentSchema.address3d.snapshotId, scope.id),
+                eq(currentSchema.address3d.scopeId, scope.id),
                 eq(currentSchema.address3d.id, collectionId),
               ),
             )
@@ -97,7 +97,7 @@ export function createPlaceSearchDependencies(
             .from(currentSchema.address3dI18n)
             .where(
               and(
-                eq(currentSchema.address3dI18n.snapshotId, scope.id),
+                eq(currentSchema.address3dI18n.scopeId, scope.id),
                 eq(currentSchema.address3dI18n.address3dId, collectionId),
               ),
             )
@@ -222,7 +222,7 @@ export function createPlaceSearchDependencies(
             .from(currentSchema.divisions)
             .where(
               and(
-                eq(currentSchema.divisions.snapshotId, scope.id),
+                eq(currentSchema.divisions.scopeId, scope.id),
                 eq(currentSchema.divisions.id, divisionId),
               ),
             )
@@ -235,7 +235,7 @@ export function createPlaceSearchDependencies(
             .from(currentSchema.divisionsI18n)
             .where(
               and(
-                eq(currentSchema.divisionsI18n.snapshotId, scope.id),
+                eq(currentSchema.divisionsI18n.scopeId, scope.id),
                 eq(currentSchema.divisionsI18n.divisionId, divisionId),
               ),
             )

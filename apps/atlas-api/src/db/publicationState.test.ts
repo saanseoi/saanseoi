@@ -106,12 +106,12 @@ for (const family of families) {
             id: currentSchema.places.id,
             snapshotId: publicationLogicalSnapshot(
               family,
-              currentSchema.places.snapshotId,
+              currentSchema.places.scopeId,
             ),
           })
           .from(currentSchema.places)
           .where(
-            publicationScopeCondition(family, currentSchema.places.snapshotId, [
+            publicationScopeCondition(family, currentSchema.places.scopeId, [
               snapshotId,
             ]),
           )
@@ -130,7 +130,7 @@ for (const family of families) {
         .where(
           publicationScopeCondition(
             family,
-            currentSchema.places.snapshotId,
+            currentSchema.places.scopeId,
             Array.from({ length: 200 }, (_, i) => `revision-${i}`),
           ),
         )

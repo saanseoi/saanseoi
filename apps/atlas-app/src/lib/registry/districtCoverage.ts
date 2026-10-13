@@ -54,9 +54,9 @@ export async function readDistrictCoverageAreas(
       variant: divisionAreas.variant,
     })
     .from(divisionAreas)
-    .innerJoin(publication, eq(divisionAreas.snapshotId, publication.scopeId))
+    .innerJoin(publication, eq(divisionAreas.scopeId, publication.scopeId))
     .innerJoin(divisions, eq(divisionAreas.divisionId, divisions.id))
-    .innerJoin(districts, eq(divisions.snapshotId, districts.scopeId))
+    .innerJoin(districts, eq(divisions.scopeId, districts.scopeId))
     .where(
       and(
         eq(publication.snapshotId, snapshot.id),

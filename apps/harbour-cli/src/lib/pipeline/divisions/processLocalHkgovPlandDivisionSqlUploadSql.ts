@@ -262,12 +262,12 @@ export async function buildPlandCurrentSql(
     context.currentDb
       .select()
       .from(currentSchema.divisions)
-      .where(eq(currentSchema.divisions.snapshotId, state.publication.scopeId))
+      .where(eq(currentSchema.divisions.scopeId, state.publication.scopeId))
       .all(),
     context.currentDb
       .select()
       .from(currentSchema.divisionsI18n)
-      .where(eq(currentSchema.divisionsI18n.snapshotId, state.publication.scopeId))
+      .where(eq(currentSchema.divisionsI18n.scopeId, state.publication.scopeId))
       .all(),
   ])
   const i18nColumns = [

@@ -299,7 +299,7 @@ async function prepareSupplementaryAddressesLocked(
     })
     .from(currentSchema.address2d)
     .where(
-      sql`${currentSchema.address2d.snapshotId} = (select ${currentSchema.addressPublicationState.scopeId} from ${currentSchema.addressPublicationState} where ${currentSchema.addressPublicationState.preparedAt} is not null and ${currentSchema.addressPublicationState.snapshotId} = ${input.snapshots.addressSnapshotId})`,
+      sql`${currentSchema.address2d.scopeId} = (select ${currentSchema.addressPublicationState.scopeId} from ${currentSchema.addressPublicationState} where ${currentSchema.addressPublicationState.preparedAt} is not null and ${currentSchema.addressPublicationState.snapshotId} = ${input.snapshots.addressSnapshotId})`,
     )
     .all()) as unknown as Pick<
     typeof currentSchema.address2d.$inferSelect,
@@ -336,7 +336,7 @@ async function prepareSupplementaryAddressesLocked(
     .from(currentSchema.address2dI18n)
     .where(
       and(
-        sql`${currentSchema.address2dI18n.snapshotId} = (select ${currentSchema.addressPublicationState.scopeId} from ${currentSchema.addressPublicationState} where ${currentSchema.addressPublicationState.preparedAt} is not null and ${currentSchema.addressPublicationState.snapshotId} = ${input.snapshots.addressSnapshotId})`,
+        sql`${currentSchema.address2dI18n.scopeId} = (select ${currentSchema.addressPublicationState.scopeId} from ${currentSchema.addressPublicationState} where ${currentSchema.addressPublicationState.preparedAt} is not null and ${currentSchema.addressPublicationState.snapshotId} = ${input.snapshots.addressSnapshotId})`,
         inArray(currentSchema.address2dI18n.locale, ['en', 'zh-hant']),
       ),
     )
@@ -656,7 +656,7 @@ async function prepareSupplementaryAddressesLocked(
       .from(currentSchema.divisions)
       .where(
         and(
-          eq(currentSchema.divisions.snapshotId, servingDivision.scopeId),
+          eq(currentSchema.divisions.scopeId, servingDivision.scopeId),
           sql`${currentSchema.divisions.id} in (select value from json_each(${JSON.stringify(selectedIds)}))`,
         ),
       )
@@ -674,7 +674,7 @@ async function prepareSupplementaryAddressesLocked(
       await currentDb
         .select({ id: currentSchema.address2d.id })
         .from(currentSchema.address2d)
-        .where(eq(currentSchema.address2d.snapshotId, currentScopeId))
+        .where(eq(currentSchema.address2d.scopeId, currentScopeId))
         .all()
     ).map(row => row.id),
   )

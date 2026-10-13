@@ -87,7 +87,7 @@ export async function restorePlaceDivisionLinks(
               .from(currentSchema.address2d)
               .where(
                 and(
-                  eq(currentSchema.address2d.snapshotId, base.addressSnapshotId),
+                  eq(currentSchema.address2d.scopeId, base.addressSnapshotId),
                   eq(currentSchema.address2d.id, base.address2dId),
                 ),
               )
@@ -145,17 +145,17 @@ async function loadIndex(
   const divisions = await view.db
     .select(getTableColumns(currentSchema.divisions))
     .from(currentSchema.divisions)
-    .where(eq(currentSchema.divisions.snapshotId, divisionSnapshotId))
+    .where(eq(currentSchema.divisions.scopeId, divisionSnapshotId))
     .all()
   const areas = await view.db
     .select(getTableColumns(currentSchema.divisionAreas))
     .from(currentSchema.divisionAreas)
-    .where(eq(currentSchema.divisionAreas.snapshotId, areaSnapshotId))
+    .where(eq(currentSchema.divisionAreas.scopeId, areaSnapshotId))
     .all()
   const locales = await view.db
     .select(getTableColumns(currentSchema.divisionsI18n))
     .from(currentSchema.divisionsI18n)
-    .where(eq(currentSchema.divisionsI18n.snapshotId, divisionSnapshotId))
+    .where(eq(currentSchema.divisionsI18n.scopeId, divisionSnapshotId))
     .all()
   const definitions = new Map<string, PlaceDivisionLink['definition']>(
     divisions.map(row => [row.id, { level: row.level, locales: [] }]),

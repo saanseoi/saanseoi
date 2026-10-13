@@ -36,7 +36,7 @@ export async function replaceCurrentSnapshot(
   const currentRows = await db
     .select({ id: currentSchema.divisions.id })
     .from(currentSchema.divisions)
-    .where(eq(currentSchema.divisions.snapshotId, snapshotId))
+    .where(eq(currentSchema.divisions.scopeId, snapshotId))
     .all()
   const providerIds = currentRows.map(row => row.id).filter(id => !incomingIds.has(id))
   for (const chunk of chunkArray(providerIds, getMaxItemsPerInClause(1, 1))) {
@@ -45,7 +45,7 @@ export async function replaceCurrentSnapshot(
       .delete(currentSchema.divisions)
       .where(
         and(
-          eq(currentSchema.divisions.snapshotId, snapshotId),
+          eq(currentSchema.divisions.scopeId, snapshotId),
           inArray(currentSchema.divisions.id, chunk),
         ),
       )
@@ -123,7 +123,7 @@ export async function replaceCurrentI18n(
   const currentRows = await db
     .select({ id: currentSchema.divisionsI18n.divisionId })
     .from(currentSchema.divisionsI18n)
-    .where(eq(currentSchema.divisionsI18n.snapshotId, snapshotId))
+    .where(eq(currentSchema.divisionsI18n.scopeId, snapshotId))
     .all()
   const ids = [
     ...new Set([

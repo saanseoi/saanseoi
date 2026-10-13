@@ -110,7 +110,7 @@ export async function attachAddress3dCoverage(args: {
           .from(currentSchema.address3d)
           .where(
             and(
-              sql`${currentSchema.address3d.snapshotId} = (select ${currentSchema.addressPublicationState.scopeId} from ${currentSchema.addressPublicationState} where ${currentSchema.addressPublicationState.status} = 'current' and ${currentSchema.addressPublicationState.snapshotId} = ${snapshotId})`,
+              sql`${currentSchema.address3d.scopeId} = (select ${currentSchema.addressPublicationState.scopeId} from ${currentSchema.addressPublicationState} where ${currentSchema.addressPublicationState.status} = 'current' and ${currentSchema.addressPublicationState.snapshotId} = ${snapshotId})`,
               sql`${currentSchema.address3d.address2dId} in (select value from json_each(${JSON.stringify(ownerIds)}))`,
             ),
           )
@@ -138,7 +138,7 @@ export async function getAddress3dCollection(args: {
       .from(currentSchema.address3d)
       .where(
         and(
-          sql`${currentSchema.address3d.snapshotId} = (select ${currentSchema.addressPublicationState.scopeId} from ${currentSchema.addressPublicationState} where ${currentSchema.addressPublicationState.status} = 'current' and ${currentSchema.addressPublicationState.snapshotId} = ${args.snapshotId})`,
+          sql`${currentSchema.address3d.scopeId} = (select ${currentSchema.addressPublicationState.scopeId} from ${currentSchema.addressPublicationState} where ${currentSchema.addressPublicationState.status} = 'current' and ${currentSchema.addressPublicationState.snapshotId} = ${args.snapshotId})`,
           eq(currentSchema.address3d.id, args.collectionId),
         ),
       )
@@ -149,7 +149,7 @@ export async function getAddress3dCollection(args: {
       .from(currentSchema.address3dI18n)
       .where(
         and(
-          sql`${currentSchema.address3dI18n.snapshotId} = (select ${currentSchema.addressPublicationState.scopeId} from ${currentSchema.addressPublicationState} where ${currentSchema.addressPublicationState.status} = 'current' and ${currentSchema.addressPublicationState.snapshotId} = ${args.snapshotId})`,
+          sql`${currentSchema.address3dI18n.scopeId} = (select ${currentSchema.addressPublicationState.scopeId} from ${currentSchema.addressPublicationState} where ${currentSchema.addressPublicationState.status} = 'current' and ${currentSchema.addressPublicationState.snapshotId} = ${args.snapshotId})`,
           eq(currentSchema.address3dI18n.address3dId, args.collectionId),
         ),
       )

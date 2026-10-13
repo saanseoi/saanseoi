@@ -152,7 +152,7 @@ export async function loadCollection(
     .from(currentSchema.address3d)
     .where(
       and(
-        sql`${currentSchema.address3d.snapshotId} = (select ${currentSchema.addressPublicationState.scopeId} from ${currentSchema.addressPublicationState} where ${currentSchema.addressPublicationState.preparedAt} is not null and ${currentSchema.addressPublicationState.snapshotId} = ${snapshotId})`,
+        sql`${currentSchema.address3d.scopeId} = (select ${currentSchema.addressPublicationState.scopeId} from ${currentSchema.addressPublicationState} where ${currentSchema.addressPublicationState.preparedAt} is not null and ${currentSchema.addressPublicationState.snapshotId} = ${snapshotId})`,
         eq(currentSchema.address3d.address2dId, ownerId),
       ),
     )

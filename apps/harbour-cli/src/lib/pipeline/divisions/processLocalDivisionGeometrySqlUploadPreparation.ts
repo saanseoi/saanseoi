@@ -230,12 +230,12 @@ export async function findIdenticalCenstatdGeometrySnapshot(
         ? await currentDb
             .select()
             .from(currentSchema.divisionAreas)
-            .where(eq(currentSchema.divisionAreas.snapshotId, scopeId))
+            .where(eq(currentSchema.divisionAreas.scopeId, scopeId))
             .all()
         : await currentDb
             .select()
             .from(currentSchema.divisionBoundaries)
-            .where(eq(currentSchema.divisionBoundaries.snapshotId, scopeId))
+            .where(eq(currentSchema.divisionBoundaries.scopeId, scopeId))
             .all()
     const actual = await Promise.all(
       materialisedRows.map(async row => ({

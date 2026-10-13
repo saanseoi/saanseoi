@@ -371,14 +371,14 @@ export async function loadCanonicalDistricts(
     .innerJoin(
       currentSchema.divisionsI18n,
       and(
-        eq(currentSchema.divisions.snapshotId, currentSchema.divisionsI18n.snapshotId),
+        eq(currentSchema.divisions.scopeId, currentSchema.divisionsI18n.scopeId),
         eq(currentSchema.divisions.id, currentSchema.divisionsI18n.divisionId),
       ),
     )
     .innerJoin(
       currentSchema.divisionPublicationState,
       eq(
-        currentSchema.divisions.snapshotId,
+        currentSchema.divisions.scopeId,
         currentSchema.divisionPublicationState.scopeId,
       ),
     )

@@ -146,7 +146,7 @@ export async function getPlaceCurrent(db: CurrentDatabase, lookup: PlaceLookup) 
     .from(places)
     .where(
       and(
-        publicationScopeCondition('place', places.snapshotId, [lookup.snapshotId]),
+        publicationScopeCondition('place', places.scopeId, [lookup.snapshotId]),
         eq(places.id, lookup.placeId),
         placeGeographicCondition(),
       ),
@@ -159,7 +159,7 @@ export async function getPlaceCurrent(db: CurrentDatabase, lookup: PlaceLookup) 
 
 export async function listPlaceI18n(db: CurrentDatabase, lookup: I18nLookup) {
   const conditions = [
-    publicationScopeCondition('place', placesI18n.snapshotId, [lookup.snapshotId]),
+    publicationScopeCondition('place', placesI18n.scopeId, [lookup.snapshotId]),
     eq(placesI18n.placeId, lookup.placeId),
     lookup.locale ? eq(placesI18n.locale, lookup.locale) : undefined,
   ].filter(condition => condition !== undefined)
@@ -228,11 +228,11 @@ export async function listPlacesByH3Cell(db: CurrentDatabase, lookup: H3Lookup) 
     .from(placesCells)
     .innerJoin(
       places,
-      and(eq(places.snapshotId, placesCells.snapshotId), eq(places.id, placesCells.id)),
+      and(eq(places.scopeId, placesCells.scopeId), eq(places.id, placesCells.id)),
     )
     .where(
       and(
-        publicationScopeCondition('place', placesCells.snapshotId, [lookup.snapshotId]),
+        publicationScopeCondition('place', placesCells.scopeId, [lookup.snapshotId]),
         eq(placesCells.h3Level, lookup.h3Level),
         eq(placesCells.h3Cell, lookup.h3Cell),
         placeGeographicCondition(),
@@ -269,7 +269,7 @@ export async function searchPlacesFts(db: CurrentDatabase, lookup: FtsLookup) {
         places,
         and(
           eq(
-            publicationLogicalSnapshot('place', places.snapshotId),
+            publicationLogicalSnapshot('place', places.scopeId),
             placeSearchScopes.snapshotId,
           ),
           eq(places.id, placesFts.placeId),
@@ -307,7 +307,7 @@ export async function searchPlacesFts(db: CurrentDatabase, lookup: FtsLookup) {
 
 function buildPlaceI18nCondition(localeSelection: RequestedApiLocaleSelection) {
   return and(
-    eq(placesI18n.snapshotId, places.snapshotId),
+    eq(placesI18n.scopeId, places.scopeId),
     eq(placesI18n.placeId, places.id),
     localeSelection.mode === 'requested' && localeSelection.locales.length > 0
       ? sql`${placesI18n.locale} in (
@@ -419,7 +419,7 @@ function parseDivisionIds(value: string) {
 }
 
 function placeGeographicCondition() {
-  const membership = sql`${placesDivision.placeSnapshotId} = ${places.snapshotId} and ${placesDivision.placeId} = ${places.id}`
+  const membership = sql`${placesDivision.placeSnapshotId} = ${places.scopeId} and ${placesDivision.placeId} = ${places.id}`
   const all = sql`(select json_group_array(${placesDivision.divisionId}) from ${placesDivision} where ${membership})`
   return geographicMembershipSql(all, undefined, targetClass =>
     targetClass === 'district'
@@ -440,7 +440,7 @@ function buildPlaceConditions(
   >,
 ) {
   return [
-    publicationScopeCondition('place', places.snapshotId, [lookup.snapshotId]),
+    publicationScopeCondition('place', places.scopeId, [lookup.snapshotId]),
     placeGeographicCondition(),
     lookup.basicCategory ? eq(places.basicCategory, lookup.basicCategory) : undefined,
     lookup.taxonomyPrimary
@@ -450,7 +450,7 @@ function buildPlaceConditions(
       ? eq(places.operatingStatus, lookup.operatingStatus)
       : undefined,
     lookup.divisionId
-      ? sql`(${places.snapshotId}, ${places.id}) in (
+      ? sql`(${places.scopeId}, ${places.id}) in (
           select ${placesDivision.placeSnapshotId}, ${placesDivision.placeId}
           from ${placesDivision}
           where ${publicationScopeCondition('place', placesDivision.placeSnapshotId, [lookup.snapshotId])}
@@ -479,12 +479,12 @@ export async function listPlaceRecordsCurrent(
   const divisionIds = sql<string>`coalesce((
     select json_group_array(${placesDivision.divisionId})
     from ${placesDivision}
-    where ${placesDivision.placeSnapshotId} = ${places.snapshotId}
+    where ${placesDivision.placeSnapshotId} = ${places.scopeId}
       and ${placesDivision.placeId} = ${places.id}
   ), '[]')`
   const rows = await db
     .select({
-      snapshotId: publicationLogicalSnapshot('place', places.snapshotId),
+      snapshotId: publicationLogicalSnapshot('place', places.scopeId),
       id: places.id,
       resourceReleaseId: places.resourceReleaseId,
       addressSnapshotId: places.addressSnapshotId,

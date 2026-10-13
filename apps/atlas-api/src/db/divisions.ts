@@ -179,7 +179,7 @@ export async function listDivisionAreasCurrentByDivisionIds(
           .from(divisionAreas)
           .where(
             and(
-              publicationScopeCondition('divisionArea', divisionAreas.snapshotId, [
+              publicationScopeCondition('divisionArea', divisionAreas.scopeId, [
                 lookup.snapshotId,
               ]),
               inArray(divisionAreas.divisionId, divisionIds),
@@ -225,7 +225,7 @@ export async function listDivisionBoundariesCurrentByDivisionIds(
               and(
                 publicationScopeCondition(
                   'divisionBoundary',
-                  divisionBoundaries.snapshotId,
+                  divisionBoundaries.scopeId,
                   [lookup.snapshotId],
                 ),
                 inArray(divisionBoundaries.leftDivisionId, divisionIds),
@@ -242,7 +242,7 @@ export async function listDivisionBoundariesCurrentByDivisionIds(
               and(
                 publicationScopeCondition(
                   'divisionBoundary',
-                  divisionBoundaries.snapshotId,
+                  divisionBoundaries.scopeId,
                   [lookup.snapshotId],
                 ),
                 inArray(divisionBoundaries.rightDivisionId, divisionIds),
@@ -266,7 +266,7 @@ export async function listDivisionBoundariesCurrentByDivisionIds(
 
 function buildDivisionI18nCondition(localeSelection: DivisionLocaleSelection) {
   return and(
-    eq(divisionsI18n.snapshotId, divisions.snapshotId),
+    eq(divisionsI18n.scopeId, divisions.scopeId),
     eq(divisionsI18n.divisionId, divisions.id),
     divisionI18nLocaleUsesBoundValue(localeSelection)
       ? sql`${divisionsI18n.locale} in (select value from json_each(${JSON.stringify(localeSelection.locales)}))`
@@ -412,7 +412,7 @@ export async function listReplayedDivisionRecords(
       })
   }
 
-  const rowsById = new Map<string, Omit<DivisionRow, 'snapshotId' | 'i18n'>>()
+  const rowsById = new Map<string, Omit<DivisionRow, 'scopeId' | 'i18n'>>()
   await Promise.all(
     [...divisionVersionsByShard.values()].map(
       async ({ db, versions: shardVersions }) => {
@@ -448,7 +448,7 @@ export async function listReplayedDivisionRecords(
         ).flat()
         for (const row of rows) {
           if (expected.has(`${row.id}\u0000${row.versionHash}`)) {
-            rowsById.set(row.id, row as Omit<DivisionRow, 'snapshotId' | 'i18n'>)
+            rowsById.set(row.id, row as Omit<DivisionRow, 'scopeId' | 'i18n'>)
             expected.delete(`${row.id}\u0000${row.versionHash}`)
           }
         }
@@ -529,11 +529,11 @@ function buildDivisionConditions(
   return [
     publicationScopeCondition(
       'division',
-      divisions.snapshotId,
+      divisions.scopeId,
       lookup.snapshotIds ?? [lookup.snapshotId],
     ),
     geographicMembershipSql(sql`json_array(${divisions.id})`, {
-      snapshotId: publicationLogicalSnapshot('division', divisions.snapshotId),
+      snapshotId: publicationLogicalSnapshot('division', divisions.scopeId),
     }),
     lookup.level !== undefined ? eq(divisions.level, lookup.level) : undefined,
     lookup.class ? eq(divisions.class, lookup.class) : undefined,
@@ -572,7 +572,7 @@ export async function listDivisionRecordsCurrent(
   const i18n = buildDivisionI18nJsonSelection(lookup.localeSelection)
   const pagedDivisions = db
     .select({
-      snapshotId: divisions.snapshotId,
+      snapshotId: divisions.scopeId,
       id: divisions.id,
       divisionCode: divisions.divisionCode,
     })
@@ -585,7 +585,7 @@ export async function listDivisionRecordsCurrent(
 
   const rows = await db
     .select({
-      snapshotId: publicationLogicalSnapshot('division', divisions.snapshotId),
+      snapshotId: publicationLogicalSnapshot('division', divisions.scopeId),
       id: divisions.id,
       divisionCode: divisions.divisionCode,
       level: divisions.level,
@@ -604,7 +604,7 @@ export async function listDivisionRecordsCurrent(
     .innerJoin(
       divisions,
       and(
-        eq(divisions.snapshotId, pagedDivisions.snapshotId),
+        eq(divisions.scopeId, pagedDivisions.snapshotId),
         eq(divisions.id, pagedDivisions.id),
       ),
     )
@@ -649,7 +649,7 @@ export async function listDivisionRecordsCurrentByIds(
       chunks.map(divisionIds =>
         db
           .select({
-            snapshotId: publicationLogicalSnapshot('division', divisions.snapshotId),
+            snapshotId: publicationLogicalSnapshot('division', divisions.scopeId),
             id: divisions.id,
             divisionCode: divisions.divisionCode,
             level: divisions.level,
@@ -669,7 +669,7 @@ export async function listDivisionRecordsCurrentByIds(
             and(
               publicationScopeCondition(
                 'division',
-                divisions.snapshotId,
+                divisions.scopeId,
                 lookup.snapshotIds ?? [lookup.snapshotId],
               ),
               inArray(divisions.id, divisionIds),

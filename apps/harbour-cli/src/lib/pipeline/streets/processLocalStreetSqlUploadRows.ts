@@ -82,7 +82,7 @@ export async function listCurrentMaterialisedStreets(
     .from(currentSchema.streets)
     .where(
       and(
-        eq(currentSchema.streets.snapshotId, snapshotId),
+        eq(currentSchema.streets.scopeId, snapshotId),
         eq(currentSchema.streets.status, 'active'),
       ),
     )
@@ -96,7 +96,7 @@ export async function listCurrentMaterialisedStreets(
       streetId: currentSchema.streetsI18n.streetId,
     })
     .from(currentSchema.streetsI18n)
-    .where(eq(currentSchema.streetsI18n.snapshotId, snapshotId))
+    .where(eq(currentSchema.streetsI18n.scopeId, snapshotId))
     .all()
   const i18nByStreet = new Map<string, LandsdStreetLifecycleI18n[]>()
   for (const row of i18nRows) {
@@ -256,7 +256,7 @@ export async function replaceCurrentStreetRows(
       .delete(currentSchema.streets)
       .where(
         and(
-          eq(currentSchema.streets.snapshotId, snapshotId),
+          eq(currentSchema.streets.scopeId, snapshotId),
           inArray(currentSchema.streets.id, idsChunk),
         ),
       )
@@ -286,7 +286,7 @@ export async function replaceCurrentStreetRows(
         })),
       )
       .onConflictDoUpdate({
-        target: [currentSchema.streets.snapshotId, currentSchema.streets.id],
+        target: [currentSchema.streets.scopeId, currentSchema.streets.id],
         set: {
           deletedAt: sql`excluded.deletedAt`,
           districtIds: sql`excluded.districtIds`,
@@ -333,7 +333,7 @@ export async function replaceCurrentStreetI18nRows(
         .delete(currentSchema.streetsI18n)
         .where(
           and(
-            eq(currentSchema.streetsI18n.snapshotId, snapshotId),
+            eq(currentSchema.streetsI18n.scopeId, snapshotId),
             eq(currentSchema.streetsI18n.locale, locale),
             inArray(currentSchema.streetsI18n.streetId, idsChunk),
           ),
@@ -365,7 +365,7 @@ export async function replaceCurrentStreetI18nRows(
       .values(rowsChunk)
       .onConflictDoUpdate({
         target: [
-          currentSchema.streetsI18n.snapshotId,
+          currentSchema.streetsI18n.scopeId,
           currentSchema.streetsI18n.streetId,
           currentSchema.streetsI18n.locale,
         ],
@@ -408,7 +408,7 @@ export async function syncCurrentStreetChangelog(
       .delete(currentSchema.streetChangelog)
       .where(
         and(
-          eq(currentSchema.streetChangelog.snapshotId, snapshotId),
+          eq(currentSchema.streetChangelog.scopeId, snapshotId),
           inArray(currentSchema.streetChangelog.streetId, idsChunk),
         ),
       )
@@ -439,7 +439,7 @@ export async function syncCurrentStreetChangelog(
       )
       .onConflictDoUpdate({
         target: [
-          currentSchema.streetChangelog.snapshotId,
+          currentSchema.streetChangelog.scopeId,
           currentSchema.streetChangelog.recordKey,
           currentSchema.streetChangelog.streetId,
         ],

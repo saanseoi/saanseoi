@@ -46,7 +46,7 @@ export async function getStreetCurrentById(
     .from(streets)
     .where(
       and(
-        publicationScopeCondition('street', streets.snapshotId, [input.snapshotId]),
+        publicationScopeCondition('street', streets.scopeId, [input.snapshotId]),
         eq(streets.id, input.id),
         eq(streets.status, 'active'),
         geographicMembershipSql(sql`${streets.districtIds}`),
@@ -65,9 +65,7 @@ export async function getStreetCurrentById(
       .from(streetsI18n)
       .where(
         and(
-          publicationScopeCondition('street', streetsI18n.snapshotId, [
-            input.snapshotId,
-          ]),
+          publicationScopeCondition('street', streetsI18n.scopeId, [input.snapshotId]),
           eq(streetsI18n.streetId, input.id),
         ),
       )
@@ -87,7 +85,7 @@ export async function getStreetCurrentById(
       .from(streetChangelog)
       .where(
         and(
-          publicationScopeCondition('street', streetChangelog.snapshotId, [
+          publicationScopeCondition('street', streetChangelog.scopeId, [
             input.snapshotId,
           ]),
           eq(streetChangelog.streetId, input.id),

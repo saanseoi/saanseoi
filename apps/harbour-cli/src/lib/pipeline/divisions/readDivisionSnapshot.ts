@@ -32,12 +32,12 @@ export async function readDivisionSnapshot(
       currentDb
         .select()
         .from(currentSchema.divisions)
-        .where(eq(currentSchema.divisions.snapshotId, receipt.scopeId))
+        .where(eq(currentSchema.divisions.scopeId, receipt.scopeId))
         .all(),
       currentDb
         .select()
         .from(currentSchema.divisionsI18n)
-        .where(eq(currentSchema.divisionsI18n.snapshotId, receipt.scopeId))
+        .where(eq(currentSchema.divisionsI18n.scopeId, receipt.scopeId))
         .all(),
     ])
     return {

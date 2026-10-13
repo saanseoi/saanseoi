@@ -144,12 +144,12 @@ export async function getGeometryChurnBaseline(
       ? await currentDb
           .select()
           .from(currentSchema.divisionAreas)
-          .where(eq(currentSchema.divisionAreas.snapshotId, parentSnapshotId))
+          .where(eq(currentSchema.divisionAreas.scopeId, parentSnapshotId))
           .all()
       : await currentDb
           .select()
           .from(currentSchema.divisionBoundaries)
-          .where(eq(currentSchema.divisionBoundaries.snapshotId, parentSnapshotId))
+          .where(eq(currentSchema.divisionBoundaries.scopeId, parentSnapshotId))
           .all()
 
   return new Map(

@@ -50,7 +50,7 @@ export async function retainStreetProvenance(input: {
     input.currentDb
       .select({ recordKey: currentSchema.streetChangelog.recordKey })
       .from(currentSchema.streetChangelog)
-      .where(eq(currentSchema.streetChangelog.snapshotId, input.scopeId))
+      .where(eq(currentSchema.streetChangelog.scopeId, input.scopeId))
       .all(),
   ])
   assertStreetSourceHashes(input.records, sources)

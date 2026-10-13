@@ -282,35 +282,25 @@ export async function buildAddressApiReleaseSetStatsForSnapshot(
     unmatchedAreaCount,
     unmatchedDistrictCount,
   ] = await Promise.all([
-    countRows(
-      db,
-      currentSchema.address2d,
-      currentSchema.address2d.snapshotId,
-      snapshotId,
-    ),
+    countRows(db, currentSchema.address2d, currentSchema.address2d.scopeId, snapshotId),
     countRows(
       db,
       currentSchema.address2dI18n,
-      currentSchema.address2dI18n.snapshotId,
+      currentSchema.address2dI18n.scopeId,
       snapshotId,
     ),
-    countRows(
-      db,
-      currentSchema.address3d,
-      currentSchema.address3d.snapshotId,
-      snapshotId,
-    ),
+    countRows(db, currentSchema.address3d, currentSchema.address3d.scopeId, snapshotId),
     countRows(
       db,
       currentSchema.address3dI18n,
-      currentSchema.address3dI18n.snapshotId,
+      currentSchema.address3dI18n.scopeId,
       snapshotId,
     ),
     countWhere(
       db,
       currentSchema.address2d,
       and(
-        eq(currentSchema.address2d.snapshotId, snapshotId),
+        eq(currentSchema.address2d.scopeId, snapshotId),
         sql`${currentSchema.address2d.streetId} IS NOT NULL`,
       ),
     ),
@@ -318,7 +308,7 @@ export async function buildAddressApiReleaseSetStatsForSnapshot(
       db,
       currentSchema.address2d,
       and(
-        eq(currentSchema.address2d.snapshotId, snapshotId),
+        eq(currentSchema.address2d.scopeId, snapshotId),
         sql`${currentSchema.address2d.districtId} IS NOT NULL`,
       ),
     ),
@@ -326,7 +316,7 @@ export async function buildAddressApiReleaseSetStatsForSnapshot(
       db,
       currentSchema.address2d,
       and(
-        eq(currentSchema.address2d.snapshotId, snapshotId),
+        eq(currentSchema.address2d.scopeId, snapshotId),
         sql`${currentSchema.address2d.areaId} IS NOT NULL`,
       ),
     ),
@@ -334,7 +324,7 @@ export async function buildAddressApiReleaseSetStatsForSnapshot(
     countGrouped(
       db,
       currentSchema.address2d,
-      currentSchema.address2d.snapshotId,
+      currentSchema.address2d.scopeId,
       snapshotId,
       currentSchema.address2d.districtId,
     ),
@@ -342,7 +332,7 @@ export async function buildAddressApiReleaseSetStatsForSnapshot(
       db,
       currentSchema.address2d,
       and(
-        eq(currentSchema.address2d.snapshotId, snapshotId),
+        eq(currentSchema.address2d.scopeId, snapshotId),
         sql`${currentSchema.address2d.areaId} IS NULL`,
       ),
     ),
@@ -350,7 +340,7 @@ export async function buildAddressApiReleaseSetStatsForSnapshot(
       db,
       currentSchema.address2d,
       and(
-        eq(currentSchema.address2d.snapshotId, snapshotId),
+        eq(currentSchema.address2d.scopeId, snapshotId),
         sql`${currentSchema.address2d.districtId} IS NULL`,
       ),
     ),
@@ -361,7 +351,7 @@ export async function buildAddressApiReleaseSetStatsForSnapshot(
       count: sql<number>`COALESCE(SUM(${currentSchema.address3d.unitCount}), 0)`,
     })
     .from(currentSchema.address3d)
-    .where(eq(currentSchema.address3d.snapshotId, snapshotId))
+    .where(eq(currentSchema.address3d.scopeId, snapshotId))
     .get()
 
   return buildAddressApiReleaseSetStatsRows({
@@ -406,7 +396,7 @@ async function buildAddressComponentCounts(db: HarbourReadableDb, snapshotId: st
       ),
     })
     .from(currentSchema.address2dI18n)
-    .where(eq(currentSchema.address2dI18n.snapshotId, snapshotId))
+    .where(eq(currentSchema.address2dI18n.scopeId, snapshotId))
     .get()
 
   return Object.fromEntries(
@@ -431,18 +421,18 @@ async function buildPlaceStatsRows(
       db
         .select({ id: currentSchema.places.id })
         .from(currentSchema.places)
-        .where(eq(currentSchema.places.snapshotId, snapshotId))
+        .where(eq(currentSchema.places.scopeId, snapshotId))
         .all(),
       db
         .select()
         .from(currentSchema.placesI18n)
-        .where(eq(currentSchema.placesI18n.snapshotId, snapshotId))
+        .where(eq(currentSchema.placesI18n.scopeId, snapshotId))
         .all(),
       countWhere(
         db,
         currentSchema.places,
         and(
-          eq(currentSchema.places.snapshotId, snapshotId),
+          eq(currentSchema.places.scopeId, snapshotId),
           sql`${currentSchema.places.address2dId} IS NOT NULL OR ${currentSchema.places.address3dId} IS NOT NULL`,
         ),
       ),
@@ -455,7 +445,7 @@ async function buildPlaceStatsRows(
       countGrouped(
         db,
         currentSchema.placesI18n,
-        currentSchema.placesI18n.snapshotId,
+        currentSchema.placesI18n.scopeId,
         snapshotId,
         currentSchema.placesI18n.locale,
       ),
@@ -694,7 +684,7 @@ async function buildAddressLocaleStats(
       dimensionValue: currentSchema.address2dI18n.locale,
     })
     .from(currentSchema.address2dI18n)
-    .where(eq(currentSchema.address2dI18n.snapshotId, snapshotId))
+    .where(eq(currentSchema.address2dI18n.scopeId, snapshotId))
     .groupBy(currentSchema.address2dI18n.locale)
     .all()
 

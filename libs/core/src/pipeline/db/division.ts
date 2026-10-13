@@ -540,7 +540,7 @@ export async function replaceDivisionCurrentI18n(
       db,
       rows.map(row => ({
         ...row,
-        snapshotId,
+        scopeId: snapshotId,
       })),
       options,
     )

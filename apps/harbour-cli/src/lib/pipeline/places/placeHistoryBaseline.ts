@@ -121,7 +121,7 @@ export async function loadCurrentPlaceHistory(
       await ownership.currentDb
         .select({ id: currentSchema.places.id })
         .from(currentSchema.places)
-        .where(eq(currentSchema.places.snapshotId, ownership.scopeId))
+        .where(eq(currentSchema.places.scopeId, ownership.scopeId))
         .all()
     ).map(row => row.id),
   )
@@ -133,7 +133,7 @@ export async function loadCurrentPlaceHistory(
       locale: currentSchema.placesI18n.locale,
     })
     .from(currentSchema.placesI18n)
-    .where(eq(currentSchema.placesI18n.snapshotId, ownership.scopeId))
+    .where(eq(currentSchema.placesI18n.scopeId, ownership.scopeId))
     .all()
   const localeKeys = new Set(
     localeRows.map(item => JSON.stringify([item.row.placeId, item.row.locale])),
