@@ -131,7 +131,6 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
         },
       )
       await recordSnapshotAssembly(db, {
-        anchorCohortKey: cohort,
         anchorReleaseId: member.id,
         resourceType: member.type,
         snapshotId: snapshot.id,

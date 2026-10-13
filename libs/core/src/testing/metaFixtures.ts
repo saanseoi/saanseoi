@@ -710,7 +710,6 @@ id TEXT PRIMARY KEY NOT NULL,
       snapshotId TEXT NOT NULL,
       snapshotRecipeId TEXT NOT NULL,
       anchorReleaseId TEXT,
-      anchorCohortKey TEXT,
       status TEXT NOT NULL,
       createdAt INTEGER NOT NULL,
       updatedAt INTEGER NOT NULL

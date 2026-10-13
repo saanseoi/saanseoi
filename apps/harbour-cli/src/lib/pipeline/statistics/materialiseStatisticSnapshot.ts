@@ -116,7 +116,6 @@ export async function materialiseStatisticSnapshots(args: {
       snapshotId: snapshot.id,
       resourceType: 'divisionStatistic',
       anchorReleaseId: dataset.resourceReleaseId,
-      anchorCohortKey: referencePeriod.code,
     })
 
     const historyShard = await resolveShardForTypeRegionYear(

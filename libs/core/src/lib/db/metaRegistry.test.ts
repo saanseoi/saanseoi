@@ -699,7 +699,6 @@ function createSnapshotAssemblyDb() {
       snapshotId TEXT NOT NULL,
       snapshotRecipeId TEXT NOT NULL,
       anchorReleaseId TEXT,
-      anchorCohortKey TEXT NOT NULL,
       status TEXT NOT NULL,
       createdAt TEXT NOT NULL,
       updatedAt TEXT NOT NULL
@@ -2400,13 +2399,11 @@ describe('recordSnapshotAssembly', () => {
     const second = createSnapshotAssemblyDb()
 
     await recordSnapshotAssembly(first.db as never, {
-      anchorCohortKey: '2025-09-24.0',
       anchorReleaseId: 'release-division',
       resourceType: 'division',
       snapshotId: 'snapshot-division',
     })
     await recordSnapshotAssembly(second.db as never, {
-      anchorCohortKey: '2025-09-24.0',
       anchorReleaseId: 'release-division',
       resourceType: 'division',
       snapshotId: 'snapshot-division',

@@ -398,7 +398,6 @@ export async function prepareDivisionVersionInsertContext(
     snapshotId: snapshot.id,
     resourceType: message.resourceType,
     anchorReleaseId: dataset.resourceReleaseId,
-    anchorCohortKey: dataset.cohortKey,
   })
   await upsertReleaseShardAssignment(metaDb, dataset.resourceReleaseId, historyShard.id)
   await upsertReleaseShardAssignment(metaDb, dataset.resourceReleaseId, sourceShard.id)

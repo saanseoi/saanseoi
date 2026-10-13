@@ -31,7 +31,6 @@ export async function recordEffectiveSnapshotAssembly(
   args: {
     snapshotId: string
     resourceType: ResourceType
-    anchorCohortKey: string
     anchorReleaseId?: string | null
     dependencies?: Record<string, string>
     processingRules?: ProcessingRules
@@ -182,7 +181,6 @@ export async function recordEffectiveSnapshotAssembly(
       primary?.sourceReleaseId ??
       args.anchorReleaseId ??
       null,
-    anchorCohortKey: snapshot.cohortKey ?? args.anchorCohortKey,
     status: sources.length ? 'selected' : 'planning',
     updatedAt: now,
   }

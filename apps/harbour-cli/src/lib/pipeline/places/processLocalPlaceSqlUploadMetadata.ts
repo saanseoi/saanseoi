@@ -49,7 +49,6 @@ export async function upsertPlaceMetadata(
     snapshotId: snapshots.snapshotId,
     resourceType: 'place',
     anchorReleaseId: resourceReleaseId,
-    anchorCohortKey: plan.cohortKey,
     dependencies: {
       address: snapshots.addressSnapshotId,
       division: snapshots.divisionSnapshotId,

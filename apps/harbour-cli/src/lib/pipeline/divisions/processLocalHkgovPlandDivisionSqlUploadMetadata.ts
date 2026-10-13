@@ -125,7 +125,6 @@ export async function buildPlandMetaSql(
     'snapshotId',
     'snapshotRecipeId',
     'anchorReleaseId',
-    'anchorCohortKey',
     'status',
     'createdAt',
     'updatedAt',

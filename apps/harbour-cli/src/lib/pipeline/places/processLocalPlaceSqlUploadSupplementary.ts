@@ -766,7 +766,6 @@ async function prepareSupplementaryAddressesLocked(
       snapshotId: snapshot.id,
       resourceType: 'address',
       anchorReleaseId: input.resourceReleaseId,
-      anchorCohortKey: input.plan.cohortKey,
       dependencies: { address: input.snapshots.addressSnapshotId },
     })
     const environment = input.targets.environment

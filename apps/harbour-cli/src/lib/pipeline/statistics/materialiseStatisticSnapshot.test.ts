@@ -100,10 +100,10 @@ test.each(['2026-Q2', '2023-H2'])(
     expect(
       sqlite
         .query(
-          'SELECT anchorCohortKey FROM snapshotAssemblies ORDER BY anchorCohortKey',
+          'SELECT s.cohortKey FROM snapshotAssemblies a JOIN snapshots s ON s.id = a.snapshotId ORDER BY s.cohortKey',
         )
         .all(),
-    ).toEqual([{ anchorCohortKey: '2016' }, { anchorCohortKey: '2024/25' }])
+    ).toEqual([{ cohortKey: '2016' }, { cohortKey: '2024/25' }])
     expect(
       (
         sqlite

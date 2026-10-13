@@ -486,7 +486,6 @@ export async function processLocalAddressSqlUpload(
         resourceType: 'address',
         anchorReleaseId:
           versionInsertContext.releaseRole === 'primary' ? resourceReleaseId : null,
-        anchorCohortKey: previewPlan.cohortKey,
       },
     )
     const finalMessageWithMeta = retainedDelivery

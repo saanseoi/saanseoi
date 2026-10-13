@@ -3669,7 +3669,6 @@ export async function ensureDraftSnapshotForRelease(
 export async function recordSnapshotAssembly(
   db: HarbourReadableDb & HarbourWritableDb,
   args: {
-    anchorCohortKey: string
     anchorReleaseId?: string | null
     resourceType: ResourceType
     dependencies?: Record<string, string>
@@ -6128,7 +6127,6 @@ export async function recordSnapshotLookupDependency(
   await recordEffectiveSnapshotAssembly(db, {
     snapshotId: args.snapshotId,
     resourceType: snapshot.resourceType,
-    anchorCohortKey: snapshot.cohortKey,
     anchorReleaseId: args.anchorReleaseId,
     dependencies: { [lookupSource.resourceType]: args.lookupSnapshotId },
   })

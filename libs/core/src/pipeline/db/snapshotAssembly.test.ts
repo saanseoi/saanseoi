@@ -40,7 +40,6 @@ function fixture() {
 const args = {
   snapshotId: 'snapshot',
   resourceType: 'address' as const,
-  anchorCohortKey: '2026',
   anchorReleaseId: 'release-primary',
 }
 async function source(

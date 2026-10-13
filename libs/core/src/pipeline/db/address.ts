@@ -821,7 +821,6 @@ export async function prepareAddressVersionInsertContext(
       snapshotId: snapshot.id,
       resourceType: 'address',
       anchorReleaseId: releaseRole === 'primary' ? dataset.resourceReleaseId : null,
-      anchorCohortKey: dataset.cohortKey,
     })
   await upsertReleaseShardAssignment(metaDb, dataset.resourceReleaseId, historyShard.id)
   await upsertReleaseShardAssignment(metaDb, dataset.resourceReleaseId, sourceShard.id)

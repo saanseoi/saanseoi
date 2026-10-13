@@ -197,7 +197,6 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
           snapshotId: snapshot.id,
           resourceType: 'division',
           anchorReleaseId: dataset.resourceReleaseId,
-          anchorCohortKey: dataset.cohortKey,
         })
         const [historyShard, sourceShard] = await Promise.all([
           resolveShardForTypeRegionYear(

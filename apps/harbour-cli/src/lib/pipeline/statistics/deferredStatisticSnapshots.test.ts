@@ -80,7 +80,6 @@ function fixture() {
       snapshotId: result.id,
       resourceType: 'divisionStatistic',
       anchorReleaseId: resourceReleaseId,
-      anchorCohortKey: period,
     })
     meta
       .query(`INSERT INTO processingAudits(resourceReleaseId,stage,ownerId,manifestHash,byteLength,applicationCount,attemptStatus)

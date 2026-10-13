@@ -9,7 +9,6 @@ export async function recordPlaceAddressAssembly(
     snapshotId: string
     resourceType: 'place' | 'address'
     anchorReleaseId: string
-    anchorCohortKey: string
     dependencies?: Record<string, string>
   },
 ) {

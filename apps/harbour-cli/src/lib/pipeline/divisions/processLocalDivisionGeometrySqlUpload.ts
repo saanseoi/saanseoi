@@ -641,7 +641,6 @@ export async function processLocalDivisionGeometrySqlUpload(
       snapshotId: snapshot.id,
       resourceType: previewPlan.resourceType,
       anchorReleaseId: dataset.resourceReleaseId,
-      anchorCohortKey: dataset.cohortKey,
     })
     if (divisionLookup) {
       await recordSnapshotLookupDependency(metaDb, {

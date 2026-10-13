@@ -408,7 +408,6 @@ export const metaSnapshotAssemblies = sqliteTable(
     snapshotId: snapshotIdColumn('cascade'),
     snapshotRecipeId: snapshotRecipeIdColumn('restrict'),
     anchorReleaseId: text('anchorReleaseId'),
-    anchorCohortKey: text('anchorCohortKey'),
     status: text('status').notNull(),
     ...timestamps,
   },
