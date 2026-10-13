@@ -119,17 +119,25 @@ export async function resolveSnapshotVersionState(
       }
     }
     // Clear inherited components before applying this snapshot's explicit events.
+    const deletedParentsByChildType = new Map<string, Set<string>>()
     for (const { row } of stepEvents) {
       if (row.operation !== 'delete') continue
-      const children = dependentHistoryEvents[row.recordType]
-      if (children)
-        for (const [key, value] of state) {
-          if (
-            children.includes(value.recordType) &&
-            historyParentIdentity(value.recordType, value.recordId) === row.recordId
-          )
-            state.delete(key)
-        }
+      for (const childType of dependentHistoryEvents[row.recordType] ?? []) {
+        const deletedParents =
+          deletedParentsByChildType.get(childType) ?? new Set<string>()
+        deletedParents.add(row.recordId)
+        deletedParentsByChildType.set(childType, deletedParents)
+      }
+    }
+    // A large withdrawal must scan live components once, not once per parent.
+    if (deletedParentsByChildType.size > 0) {
+      for (const [key, value] of state) {
+        const deletedParents = deletedParentsByChildType.get(value.recordType)
+        if (
+          deletedParents?.has(historyParentIdentity(value.recordType, value.recordId))
+        )
+          state.delete(key)
+      }
     }
     for (const { row, shard } of stepEvents) {
       const key = replayKey(row.recordType, row.recordId, row.locale)

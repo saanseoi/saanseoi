@@ -141,3 +141,63 @@ test('parent-ID selection includes composite components and honours parent delet
     sqlite.close()
   }
 })
+
+test('bulk parent withdrawals clear locales and composite children without reviving them on restoration', async () => {
+  const sqlite = new Database(':memory:')
+  try {
+    sqlite.exec(
+      loadMigrationSql(resolve(import.meta.dir, '../../../../db/migrations'), [
+        'history',
+      ]),
+    )
+    const parent = sqlite.query(
+      "INSERT INTO address2d(id,snapshotId,versionHash,sourceReleaseId,granularity) VALUES(?,'root','base','release','building')",
+    )
+    const locale = sqlite.query(
+      "INSERT INTO address2dI18n(addressId,locale,snapshotId,versionHash,sourceReleaseId,formattedAddress) VALUES(?,'en','root','locale','release','12 Example Road')",
+    )
+    const lookup = sqlite.query(
+      "INSERT INTO address2dBuildingNumberLookup(addressId,buildingNumber,snapshotId,versionHash,sourceReleaseId,evidence) VALUES(?,'12','root','lookup','release','source_endpoint')",
+    )
+    const deletion = sqlite.query(
+      "INSERT INTO address2d(id,snapshotId,operation) VALUES(?,'deleted','delete')",
+    )
+    sqlite.transaction(() => {
+      for (let index = 0; index < 2000; index++) {
+        const id = `address-${index}`
+        parent.run(id)
+        locale.run(id)
+        lookup.run(id)
+        if (index < 1000) deletion.run(id)
+      }
+      sqlite.exec(
+        "INSERT INTO address2d(id,snapshotId,versionHash,sourceReleaseId,granularity) VALUES('address-0','restored','base','release','building'); INSERT INTO address2dI18n(addressId,locale,snapshotId,versionHash,sourceReleaseId,formattedAddress) VALUES('address-0','zh-hant','restored','fresh','release','新地址')",
+      )
+    })()
+    const db = drizzle({ client: sqlite, schema: historySchema })
+    const state = await resolveSnapshotVersionState(
+      ['root', 'deleted', 'restored'].map((snapshotId, index, ids) => ({
+        snapshotId,
+        parentSnapshotId: index ? ids[index - 1]! : null,
+        shards: [{ dataShardId: 'h', bindingName: 'h' }],
+      })),
+      new Map([['h', { bindingName: 'h', db: db as never }]]),
+      ['address2d', 'address2dI18n', 'address2dBuildingNumberLookup'],
+    )
+    expect(state.size).toBe(3002)
+    expect(state.has('address2d\u0000address-0\u0000')).toBe(true)
+    expect(state.get('address2dI18n\u0000address-0\u0000zh-hant')?.versionHash).toBe(
+      'fresh',
+    )
+    expect(state.has('address2dI18n\u0000address-0\u0000en')).toBe(false)
+    expect(
+      state.has('address2dBuildingNumberLookup\u0000["address-0","12"]\u0000'),
+    ).toBe(false)
+    expect(state.has('address2dI18n\u0000address-1999\u0000en')).toBe(true)
+    expect(
+      state.has('address2dBuildingNumberLookup\u0000["address-1999","12"]\u0000'),
+    ).toBe(true)
+  } finally {
+    sqlite.close()
+  }
+})

@@ -52,6 +52,10 @@ retained preparation and replay memory. Each process completes publication and s
 identity history before the coordinator advances. A failed release stops the sequence;
 completed releases remain available for continuation.
 
+Snapshot replay groups parent withdrawals by dependent record type and clears inherited
+locales and lookup rows in one pass per snapshot. Explicit events are then applied, so
+restoring a parent does not revive its withdrawn components.
+
 ALS prepared uploads retain publisher provenance in the nullable UTF-8 `publisherSource`
 envelope. Schema validation permits adding this envelope only when every other field
 retains its name, type and nullability. Native null and JSON null both denote an absent

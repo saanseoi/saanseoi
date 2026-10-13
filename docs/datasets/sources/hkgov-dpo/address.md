@@ -58,6 +58,10 @@ preparation and snapshot-replay heaps are released between cohorts. Child failur
 the sequence and preserve completed-release checkpoints. Review gates, target selection
 and final reconciliation apply across the complete sequence.
 
+Large ALS withdrawal batches clear inherited locales and building-number lookup rows
+with one state scan per snapshot. Replayed parent restoration requires explicit child
+events; deleted components do not return implicitly.
+
 ALS upload sequences defer Address search finalisation until all selected source
 releases succeed. Without `--defer-api-release-set`, `hkgov-dpo:ingest` reconciles once
 at the end, including when completed releases are skipped on retry. With that option,
