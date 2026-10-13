@@ -780,7 +780,7 @@ describe('normaliseDivisionRow i18n', () => {
         level: 5,
         sources: [
           {
-            publisherCode: 'hkgov-landsd',
+            publisher: 'hkgov-landsd',
             dataset: 'ds-hk-hkgov-landsd-division',
             recordId: 'LANDSD:PLACE_NAME:101',
           },
@@ -948,7 +948,7 @@ describe('normaliseDivisionRow hierarchy', () => {
 
     expect(normalised.base.sources).toEqual([
       {
-        publisherCode: 'overture',
+        publisher: 'overture',
         property: '/properties/id',
         dataset: 'overture',
         recordId: 'division-with-feature-version',

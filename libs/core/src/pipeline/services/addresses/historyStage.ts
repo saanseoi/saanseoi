@@ -240,8 +240,7 @@ export async function buildResolvedAddressChunkArtefact(
           snapshotId: versionInsertContext.snapshotId,
           sourceReleaseId: versionInsertContext.resourceReleaseId,
           isCurrent: true,
-          createdAt: row.base.createdAt!,
-          updatedAt: row.base.updatedAt!,
+          createdAt: row.base.updatedAt ?? row.base.createdAt!,
         })
     }
     for (const before of oldLookups.values())
@@ -273,8 +272,11 @@ export async function buildResolvedAddressChunkArtefact(
         snapshotId: localised.snapshotId ?? row.base.snapshotId,
         isCurrent: true,
         versionHash: localised.componentHash,
-        createdAt: localised.createdAt ?? row.base.createdAt,
-        updatedAt: localised.updatedAt ?? row.base.updatedAt,
+        createdAt:
+          localised.updatedAt ??
+          row.base.updatedAt ??
+          localised.createdAt ??
+          row.base.createdAt,
       })),
     )
   }

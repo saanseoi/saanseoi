@@ -233,7 +233,6 @@ function normalisePreparedHkgovAddressRow(
       countryId: asNonEmptyString(row.countryId),
       geometry: parseOptionalJson(row.geometry),
       identifiers: canonicalIdentifiers(row.identifiers),
-      bbox: null,
       sources: addressSourceReferences(row, canonicalId),
     } satisfies Omit<AddressRow, 'id' | 'snapshotId' | 'createdAt' | 'updatedAt'>,
     coverageComponents: [...coverageComponents],
@@ -266,7 +265,6 @@ export function buildAddressBaseHashInput(
     countryId: base.countryId,
     geometry: base.geometry,
     identifiers: base.identifiers,
-    bbox: base.bbox,
     sources: recordContent(excludeReleaseProvenance(base.sources)),
   } satisfies Omit<
     AddressRow,

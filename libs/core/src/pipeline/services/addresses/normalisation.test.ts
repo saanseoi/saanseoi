@@ -13,7 +13,6 @@ import {
 const buildBase = (sources: unknown) =>
   ({
     areaId: null,
-    bbox: null,
     countryId: null,
     districtId: null,
     geometry: null,

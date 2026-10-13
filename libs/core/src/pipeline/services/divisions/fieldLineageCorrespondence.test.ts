@@ -101,7 +101,7 @@ test('government geometry references follow native identity inputs independently
       inputs: ['newtown_id'],
       sources: [
         {
-          publisherCode: 'hkgov-pland',
+          publisher: 'hkgov-pland',
           dataset: 'ds-hk-hkgov-pland-division-new-town',
           recordId: 'town',
         },
@@ -116,7 +116,7 @@ test('government geometry references follow native identity inputs independently
       },
       inputs: ['source_cell_ids'],
       sources: ['cell-a', 'cell-b'].map(recordId => ({
-        publisherCode: 'hkgov-pland',
+        publisher: 'hkgov-pland',
         dataset: 'ds-hk-hkgov-pland-division-pu',
         recordId,
       })),
@@ -132,7 +132,7 @@ test('government geometry references follow native identity inputs independently
       inputs: ['sources', 'id', 'source'],
       sources: [
         {
-          publisherCode: 'hkgov-censtatd',
+          publisher: 'hkgov-censtatd',
           dataset: 'ds-hk-hkgov-censtatd-division-area-district',
           recordId: 'native',
         },

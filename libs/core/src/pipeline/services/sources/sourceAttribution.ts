@@ -23,14 +23,14 @@ export function readSourceAttributions(value: unknown): SourceAttribution[] {
       throw new Error('Invalid source attribution item.')
     if (Object.keys(item).some(key => !fields.has(key)))
       throw new Error('Source attribution contains processing metadata.')
-    for (const field of ['publisherCode', 'dataset'])
+    for (const field of ['publisher', 'dataset'])
       if (typeof item[field] !== 'string' || !item[field].trim())
         throw new Error(`Source attribution requires ${field}.`)
     if (
       item.upstreamOf !== undefined &&
       (typeof item.upstreamOf !== 'string' ||
         !item.upstreamOf.trim() ||
-        item.upstreamOf === item.publisherCode)
+        item.upstreamOf === item.publisher)
     )
       throw new Error('Source upstreamOf must name a different direct publisher.')
     for (const field of ['recordId', 'updateTime', 'version', 'license'])
@@ -65,7 +65,7 @@ export function normaliseOvertureAttribution(value: unknown): SourceAttribution[
     if (!mapping)
       throw new Error(`Unregistered upstream attribution dataset: ${source.dataset}`)
     const result: SourceAttribution = {
-      publisherCode: mapping.publisherCode,
+      publisher: mapping.publisherCode,
       ...(mapping.publisherCode !== 'overture' ? { upstreamOf: 'overture' } : {}),
       dataset: mapping.dataset,
     }

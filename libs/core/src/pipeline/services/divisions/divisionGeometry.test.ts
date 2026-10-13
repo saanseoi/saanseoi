@@ -60,7 +60,7 @@ describe('division geometry normalisation', () => {
     )
     expect(row?.canonical.sources).toEqual(
       cells.map(recordId => ({
-        publisherCode: 'hkgov-pland',
+        publisher: 'hkgov-pland',
         dataset: 'ds-hk-hkgov-pland-division-pu',
         recordId,
       })),
@@ -440,7 +440,7 @@ describe('division geometry normalisation', () => {
     expect(normalised.canonical).not.toHaveProperty('identifiers')
     expect(normalised.canonical.sources).toEqual([
       {
-        publisherCode: 'hkgov-censtatd',
+        publisher: 'hkgov-censtatd',
         dataset:
           'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district',
         recordId: 'CENSTATD:A',

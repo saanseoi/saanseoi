@@ -1299,7 +1299,7 @@ function normaliseDivisionRowInternal(
       sources: landsdPlaceName
         ? [
             {
-              publisherCode: 'hkgov-landsd',
+              publisher: 'hkgov-landsd',
               dataset: 'ds-hk-hkgov-landsd-division',
               recordId: requirePublisherPlaceNameId(row),
             },
@@ -1556,7 +1556,7 @@ function normaliseHkgovCenstatdStatisticDivisionRow(
           (reference as Record<string, unknown>)?.sourceRecordId,
         )
         if (!recordId) throw new Error('C&SD source reference requires sourceRecordId.')
-        return { publisherCode: 'hkgov-censtatd', dataset: datasetCode, recordId }
+        return { publisher: 'hkgov-censtatd', dataset: datasetCode, recordId }
       }),
       class: type,
       category: geographicDivisionClassification(type)?.category ?? null,

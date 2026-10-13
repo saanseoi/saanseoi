@@ -78,7 +78,7 @@ test('corrects bilingual Address2D components without changing identity, street 
   expect(result.coverageComponents).not.toContain('building_name')
   expect(result.base.sources).toEqual([
     {
-      publisherCode: 'hkgov-dpo',
+      publisher: 'hkgov-dpo',
       dataset: 'ds-hk-hkgov-dpo-address',
       recordId: 'source-theme-village',
     },
@@ -104,7 +104,7 @@ test('keeps correction provenance out of canonical source references', () => {
       .base.sources,
   ).toEqual([
     {
-      publisherCode: 'hkgov-dpo',
+      publisher: 'hkgov-dpo',
       dataset: 'ds-hk-hkgov-dpo-address',
       recordId: 'source-theme-village',
     },

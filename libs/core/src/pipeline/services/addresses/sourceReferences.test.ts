@@ -21,7 +21,7 @@ test('canonical references preserve exact assertions without copying processing 
   const references = addressSourceReferences(row, 'ss-complex')
   expect(references).toEqual([
     {
-      publisherCode: 'hkgov-dpo',
+      publisher: 'hkgov-dpo',
       dataset: 'ds-hk-hkgov-dpo-address',
       recordId: 'publisher-occurrence',
     },

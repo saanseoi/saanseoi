@@ -76,7 +76,6 @@ const NORMALIZED_ROW_COLUMNS = [
   'areaId',
   'countryId',
   'geometry',
-  'bbox',
   'identifiers',
   'sources',
   'properties',
@@ -131,7 +130,6 @@ const RESOLVED_ROW_COLUMNS = [
   'areaId',
   'countryId',
   'geometry',
-  'bbox',
   'identifiers',
   'sources',
   'createdAt',
@@ -233,7 +231,6 @@ export function buildAddressSourceSqlImportFiles(
         areaId: row.base.areaId,
         countryId: row.base.countryId,
         geometry: jsonText(row.base.geometry),
-        bbox: jsonText(row.base.bbox),
         identifiers: jsonText(row.base.identifiers),
         sources: jsonText(row.base.sources),
         parentAddressId: row.base.parentAddressId,
@@ -407,7 +404,6 @@ export function buildAddressHistorySqlImportFile(
         areaId: row.base.areaId,
         countryId: row.base.countryId,
         geometry: jsonText(row.base.geometry),
-        bbox: jsonText(row.base.bbox),
         identifiers: jsonText(row.base.identifiers),
         sources: jsonText(row.base.sources),
         parentAddressId: row.base.parentAddressId,
@@ -501,7 +497,6 @@ export function buildAddressCurrentSqlImportFile(
         areaId: row.base.areaId,
         countryId: row.base.countryId,
         geometry: jsonText(row.base.geometry),
-        bbox: jsonText(row.base.bbox),
         identifiers: jsonText(row.base.identifiers),
         sources: jsonText(row.base.sources),
         parentAddressId: row.base.parentAddressId,
@@ -609,12 +604,11 @@ export function buildAddressRetirementSqlImportFiles(
   for (let offset = 0; offset < ids.length; offset += 100) {
     const membership = `SELECT value FROM json_each(${sqlLiteral(JSON.stringify(ids.slice(offset, offset + 100)))})`
     historyStatements.push(`INSERT INTO address2d (
-  snapshotId, id, versionHash, operation, sourceReleaseId, createdAt, updatedAt
+  snapshotId, id, versionHash, operation, sourceReleaseId, createdAt
 )
-SELECT ${snapshot}, value, NULL, 'delete', ${release}, ${now}, ${now}
+SELECT ${snapshot}, value, NULL, 'delete', ${release}, ${now}
 FROM json_each(${sqlLiteral(JSON.stringify(ids.slice(offset, offset + 100)))}) WHERE 1
-ON CONFLICT(id, snapshotId) DO UPDATE SET
-  versionHash = NULL, operation = 'delete', sourceReleaseId = excluded.sourceReleaseId, updatedAt = excluded.updatedAt;`)
+ON CONFLICT(id, snapshotId) DO NOTHING;`)
     currentStatements.push(
       `DELETE FROM address2d WHERE snapshotId = ${scope} AND id IN (${membership});`,
     )
@@ -677,7 +671,6 @@ CREATE TABLE IF NOT EXISTS ${NORMALIZED_ROWS_TABLE} (
   areaId TEXT,
   countryId TEXT,
   geometry TEXT,
-  bbox TEXT,
   identifiers TEXT,
   sources TEXT,
   parentAddressId TEXT,
@@ -743,7 +736,6 @@ CREATE TABLE IF NOT EXISTS ${RESOLVED_ROWS_TABLE} (
   areaId TEXT,
   countryId TEXT,
   geometry TEXT,
-  bbox TEXT,
   identifiers TEXT,
   sources TEXT,
   parentAddressId TEXT,
@@ -885,28 +877,24 @@ function buildAddressHistoryApplySql(
 INSERT INTO address2d (
   id, versionHash, sourceReleaseId, snapshotId, isCurrent, streetId,
   hamletId, microhoodId, villageId, neighbourhoodId, ruralAreaId, macrohoodId, townId,
-  districtId, landformId, areaId, countryId, geometry, bbox, identifiers, sources, parentAddressId, granularity, createdAt, updatedAt
+  districtId, landformId, areaId, countryId, geometry, identifiers, sources, parentAddressId, granularity, createdAt
 )
 SELECT
   r.addressId, r.versionHash, ${resourceReleaseId}, r.snapshotId,
   1, r.streetId, r.hamletId, r.microhoodId, r.villageId,
   r.neighbourhoodId, r.ruralAreaId, r.macrohoodId, r.townId, r.districtId, r.landformId, r.areaId, r.countryId,
-  r.geometry, r.bbox, r.identifiers, r.sources, r.parentAddressId, r.granularity, r.createdAt, r.updatedAt
+  r.geometry, r.identifiers, r.sources, r.parentAddressId, r.granularity, r.updatedAt
 FROM ${RESOLVED_ROWS_TABLE} r
 WHERE r.runId = ${run}
   AND r.changed = 1
-ON CONFLICT(id, snapshotId) DO UPDATE SET
-  isCurrent = 1,
-  sourceReleaseId = excluded.sourceReleaseId,
-  snapshotId = excluded.snapshotId,
-  updatedAt = excluded.updatedAt;
+ON CONFLICT(id, snapshotId) DO NOTHING;
 INSERT INTO address2dI18n (
   addressId, versionHash, sourceReleaseId, snapshotId,
   isCurrent, locale, formattedAddress, buildingName,
   buildingNumberExpression, buildingNumberFrom, buildingNumberTo, buildingNumberConnector,
   blockExpression, blockType, blockRef, blockTypeBeforeNumber,
   phaseExpression, phaseName, phaseRef, estateName,
-  streetName, createdAt, updatedAt
+  streetName, createdAt
 )
 SELECT
   i.addressId, i.versionHash, ${resourceReleaseId}, i.snapshotId, 1,
@@ -914,36 +902,17 @@ SELECT
   i.buildingNumberFrom, i.buildingNumberTo, i.buildingNumberConnector,
   i.blockExpression, i.blockType, i.blockRef, i.blockTypeBeforeNumber,
   i.phaseExpression, i.phaseName, i.phaseRef, i.estateName, i.streetName,
-  i.createdAt, i.updatedAt
+  i.updatedAt
 FROM ${RESOLVED_ROWS_TABLE} r
 INNER JOIN ${RESOLVED_I18N_TABLE} i
   ON i.runId = r.runId
   AND i.addressId = r.addressId
 WHERE r.runId = ${run}
   AND r.changed = 1
-ON CONFLICT(addressId, snapshotId, locale) DO UPDATE SET
-  sourceReleaseId = excluded.sourceReleaseId,
-  snapshotId = excluded.snapshotId,
-  isCurrent = 1,
-  formattedAddress = excluded.formattedAddress,
-  buildingName = excluded.buildingName,
-  buildingNumberExpression = excluded.buildingNumberExpression,
-  buildingNumberFrom = excluded.buildingNumberFrom,
-  buildingNumberTo = excluded.buildingNumberTo,
-  buildingNumberConnector = excluded.buildingNumberConnector,
-  blockExpression = excluded.blockExpression,
-  blockType = excluded.blockType,
-  blockRef = excluded.blockRef,
-  blockTypeBeforeNumber = excluded.blockTypeBeforeNumber,
-  phaseExpression = excluded.phaseExpression,
-  phaseName = excluded.phaseName,
-  phaseRef = excluded.phaseRef,
-  estateName = excluded.estateName,
-  streetName = excluded.streetName,
-  updatedAt = excluded.updatedAt;
+ON CONFLICT(addressId, snapshotId, locale) DO NOTHING;
 INSERT INTO address2dBuildingNumberLookup (
   addressId, versionHash, sourceReleaseId, snapshotId, isCurrent,
-  buildingNumber, numericStem, evidence, derivation, createdAt, updatedAt
+  buildingNumber, numericStem, evidence, derivation, createdAt
 )
 SELECT
   lookup.addressId,
@@ -955,7 +924,6 @@ SELECT
   lookup.numericStem,
   lookup.evidence,
   lookup.derivation,
-  lookup.createdAt,
   lookup.updatedAt
 FROM ${RESOLVED_BUILDING_LOOKUPS_TABLE} lookup
 WHERE lookup.runId = ${run}
@@ -963,14 +931,7 @@ WHERE lookup.runId = ${run}
     SELECT 1 FROM ${RESOLVED_ROWS_TABLE} r
     WHERE r.runId = ${run} AND r.addressId = lookup.addressId AND r.changed = 1
   )
-ON CONFLICT(addressId, snapshotId, buildingNumber) DO UPDATE SET
-  isCurrent = 1,
-  sourceReleaseId = excluded.sourceReleaseId,
-  snapshotId = excluded.snapshotId,
-  numericStem = excluded.numericStem,
-  evidence = excluded.evidence,
-  derivation = excluded.derivation,
-  updatedAt = excluded.updatedAt;
+ON CONFLICT(addressId, snapshotId, buildingNumber) DO NOTHING;
 
 `.trim()
 }
@@ -980,12 +941,12 @@ function buildAddressCurrentApplySql(runId: string) {
 
   return `
 INSERT INTO address2d (
-  snapshotId, id, geometry, bbox, divisionSnapshotId, countryId, landformId, areaId,
+  snapshotId, id, geometry, divisionSnapshotId, countryId, landformId, areaId,
   districtId, townId, ruralAreaId, macrohoodId, villageId, neighbourhoodId, hamletId,
   microhoodId, streetSnapshotId, streetId, identifiers, sources, parentAddressId, granularity, createdAt, updatedAt
 )
 SELECT
-  r.snapshotId, r.addressId, r.geometry, r.bbox, r.divisionSnapshotId, r.countryId,
+  r.snapshotId, r.addressId, r.geometry, r.divisionSnapshotId, r.countryId,
   r.landformId, r.areaId, r.districtId, r.townId, r.ruralAreaId, r.macrohoodId, r.villageId, r.neighbourhoodId,
   r.hamletId, r.microhoodId, r.streetSnapshotId, r.streetId, r.identifiers,
   r.sources, r.parentAddressId, r.granularity, r.createdAt, r.updatedAt
@@ -1009,7 +970,6 @@ ON CONFLICT(snapshotId, id) DO UPDATE SET
   countryId = excluded.countryId,
   geometry = excluded.geometry,
   identifiers = excluded.identifiers,
-  bbox = excluded.bbox,
   sources = excluded.sources,
   parentAddressId = excluded.parentAddressId,
   granularity = excluded.granularity,
@@ -1030,7 +990,6 @@ WHERE address2d.divisionSnapshotId IS NOT excluded.divisionSnapshotId
   OR address2d.countryId IS NOT excluded.countryId
   OR address2d.geometry IS NOT excluded.geometry
   OR address2d.identifiers IS NOT excluded.identifiers
-  OR address2d.bbox IS NOT excluded.bbox
   OR address2d.sources IS NOT excluded.sources
   OR address2d.parentAddressId IS NOT excluded.parentAddressId
   OR address2d.granularity IS NOT excluded.granularity;

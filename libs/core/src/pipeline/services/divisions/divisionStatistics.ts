@@ -101,7 +101,7 @@ export function buildHkgovCenstatdDistrictStatisticHistoryRecord(
     referenceYear: source.referenceYear,
     sources: [
       {
-        publisherCode: densityDataset.publisherCode,
+        publisher: densityDataset.publisherCode,
         dataset: densityDataset.code,
         recordId: source.id,
       },

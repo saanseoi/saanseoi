@@ -8,13 +8,15 @@ test('canonical attribution rejects legacy metadata, missing identity and malfor
   for (const value of [
     { hkgovAls: [] },
     [{}],
-    [{ publisherCode: ' ', dataset: 'd' }],
-    [{ publisherCode: 'p', dataset: 'd', versionHash: 'internal' }],
-    [{ publisherCode: 'p', dataset: 'd', property: '/bad~2' }],
+    [{ publisherCode: 'p', dataset: 'd' }],
+    [{ publisher: 'p', publisherCode: 'p', dataset: 'd' }],
+    [{ publisher: ' ', dataset: 'd' }],
+    [{ publisher: 'p', dataset: 'd', versionHash: 'internal' }],
+    [{ publisher: 'p', dataset: 'd', property: '/bad~2' }],
   ])
     expect(() => readSourceAttributions(value)).toThrow()
   const sources = [
-    { publisherCode: 'p', dataset: 'd', property: null, recordId: 'x', version: '3' },
+    { publisher: 'p', dataset: 'd', property: null, recordId: 'x', version: '3' },
   ]
   expect(readSourceAttributions(sources)).toEqual(sources)
 })
@@ -36,7 +38,7 @@ test('preserves native attribution and excludes processing metadata', () => {
     ]),
   ).toEqual([
     {
-      publisherCode: 'meta',
+      publisher: 'meta',
       upstreamOf: 'overture',
       dataset: 'meta',
       recordId: '123',
@@ -55,13 +57,13 @@ test('preserves root and null pointers without manufacturing optional values', (
     ]),
   ).toEqual([
     {
-      publisherCode: 'microsoft',
+      publisher: 'microsoft',
       upstreamOf: 'overture',
       dataset: 'microsoft',
       property: null,
     },
-    { publisherCode: 'overture', dataset: 'overture', property: '' },
-    { publisherCode: 'pinmeto', upstreamOf: 'overture', dataset: 'pinmeto' },
+    { publisher: 'overture', dataset: 'overture', property: '' },
+    { publisher: 'pinmeto', upstreamOf: 'overture', dataset: 'pinmeto' },
   ])
 })
 test('rejects unidentified datasets and invalid pointers', () => {
@@ -81,7 +83,7 @@ test('retained camelCase references preserve identity without guessing unknown p
     ]),
   ).toEqual([
     {
-      publisherCode: 'esri',
+      publisher: 'esri',
       upstreamOf: 'overture',
       dataset: 'esri-community-maps',
       recordId: '123',
@@ -114,7 +116,7 @@ test('attributes Maps Entity Variant Names to Overture under the explicit policy
     ]),
   ).toEqual([
     {
-      publisherCode: 'overture',
+      publisher: 'overture',
       dataset: 'overture',
       property: '/properties/names/primary',
       recordId: 'R913110',
@@ -138,7 +140,7 @@ test('preprocessing orders attribution like the type and distinguishes inherited
   expect(source?.upstreamOf).toBe('overture')
   expect(Object.keys(source!)).toEqual([
     'property',
-    'publisherCode',
+    'publisher',
     'upstreamOf',
     'dataset',
     'recordId',
@@ -151,10 +153,10 @@ test('preprocessing orders attribution like the type and distinguishes inherited
     {
       recordId: 'division',
       dataset: 'ds-hk-overture-division',
-      publisherCode: 'overture',
+      publisher: 'overture',
     },
   ])
-  expect(Object.keys(direct!)).toEqual(['publisherCode', 'dataset', 'recordId'])
+  expect(Object.keys(direct!)).toEqual(['publisher', 'dataset', 'recordId'])
   expect(direct).not.toHaveProperty('upstreamOf')
   for (const upstreamOf of ['', null, 4, 'openstreetmap'])
     expect(() => readSourceAttributions([{ ...source, upstreamOf }])).toThrow(

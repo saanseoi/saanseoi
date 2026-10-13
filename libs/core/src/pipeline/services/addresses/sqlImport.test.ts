@@ -589,7 +589,6 @@ describe('address SQL string literals', () => {
             countryId: null,
             geometry: null,
             identifiers: null,
-            bbox: null,
             sources: null,
           },
           canonicalId: 'address-1',

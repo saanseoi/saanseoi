@@ -32,15 +32,13 @@ test('retains only concrete references and deduplicates roles for the same input
       },
       'area',
     ),
-  ).toEqual([
-    { publisherCode: 'protomaps', dataset: ref.dataset, recordId: ref.recordId },
-  ])
+  ).toEqual([{ publisher: 'protomaps', dataset: ref.dataset, recordId: ref.recordId }])
 })
 
 test('authored curation retains publisher attribution without processing metadata', () => {
   const expected = [
     {
-      publisherCode: 'saanseoi',
+      publisher: 'saanseoi',
       dataset: 'ds-hk-saanseoi-division',
       recordId: 'division',
     },

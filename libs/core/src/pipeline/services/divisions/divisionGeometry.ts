@@ -338,7 +338,7 @@ function geometrySourceReferences(
   if (source === 'hkgov-had')
     return [
       {
-        publisherCode: 'hkgov-had',
+        publisher: 'hkgov-had',
         dataset: 'ds-hk-hkgov-had-division-area-district',
         recordId: hadPublisherId(row),
       },
@@ -349,7 +349,7 @@ function geometrySourceReferences(
       throw new Error('Planning New Town geometry requires its native record ID.')
     return [
       {
-        publisherCode: 'hkgov-pland',
+        publisher: 'hkgov-pland',
         dataset: 'ds-hk-hkgov-pland-division-new-town',
         recordId,
       },
@@ -367,7 +367,7 @@ function geometrySourceReferences(
     )
       throw new Error('Planning geometry requires its contributing native cell IDs.')
     return cells.map(recordId => ({
-      publisherCode: 'hkgov-pland',
+      publisher: 'hkgov-pland',
       dataset: 'ds-hk-hkgov-pland-division-pu',
       recordId,
     }))
@@ -378,7 +378,7 @@ function geometrySourceReferences(
       .filter((value): value is string => typeof value === 'string' && !!value)
     if (!datasetCode) throw new Error('C&SD attribution requires its dataset code.')
     return (ids.length ? ids : [censtatdPublisherId(row)]).map(recordId => ({
-      publisherCode: 'hkgov-censtatd',
+      publisher: 'hkgov-censtatd',
       dataset: datasetCode,
       recordId,
     }))

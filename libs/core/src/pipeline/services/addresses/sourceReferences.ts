@@ -10,7 +10,7 @@ export function addressSourceReferences(
   return publisher
     ? [
         {
-          publisherCode: 'hkgov-dpo',
+          publisher: 'hkgov-dpo',
           dataset: 'ds-hk-hkgov-dpo-address',
           recordId: publisher.sourceRecordId,
         },

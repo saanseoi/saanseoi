@@ -17,8 +17,8 @@ export function curatedRecordSources(
         throw Error('Invalid source reference')
       // Canonical publisher attribution can be carried through the grouped
       // assembly workspace alongside internal curation evidence.
-      if (reference.publisherCode !== undefined) {
-        if (reference.publisherCode !== provider)
+      if (reference.publisher !== undefined) {
+        if (reference.publisher !== provider)
           throw Error(`Source attribution publisher mismatch: ${provider}`)
         const [attribution] = readSourceAttributions([reference])
         result.set(JSON.stringify(attribution), attribution!)
@@ -49,7 +49,7 @@ export function curatedRecordSources(
           `Source reference requires dataset and recordId: ${ownerId}/${provider}/${JSON.stringify(reference)}`,
         )
       const next: SourceAttribution = {
-        publisherCode: provider,
+        publisher: provider,
         dataset: reference.dataset,
         recordId,
       }
