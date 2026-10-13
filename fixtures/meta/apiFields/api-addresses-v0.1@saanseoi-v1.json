@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:5488b3de8b71df4ad4c853b87765eeab8d784e0ddc2e5faed4568a3172dedcc9",
+  "versionHash": "sha256:97e2aad0e3ef36f834591818e10ebcf2abe65768a0ce7570bf9794a1458179d3",
   "apiVersion": "api-addresses-v0.1",
   "domainCode": "saanseoi",
   "mappingVersion": 1,
@@ -1672,20 +1672,6 @@
       ],
       "processingRuleIds": [
         "prepare-als-addresses"
-      ]
-    },
-    {
-      "apiField": "attributes.bbox",
-      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
-      "resolverCode": "constant_value",
-      "contributionType": "resolver-input",
-      "priority": 0,
-      "confidence": 1,
-      "inputs": [
-        {
-          "origin": "constant",
-          "value": null
-        }
       ]
     },
     {
