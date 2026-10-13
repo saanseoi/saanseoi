@@ -11,7 +11,7 @@ import {
 
 const rows = sqliteTable('divisions', {
   id: text('id').primaryKey(),
-  snapshotId: text('snapshotId'),
+  scopeId: text('scopeId'),
 })
 const receipt = {
   table: 'divisionPublicationState' as const,
@@ -32,11 +32,11 @@ test('fluent and awaited Drizzle mutations enforce the preparation owner', async
   const { client, db } = database()
   await beginSnapshotPublication(db, receipt)
   const guarded = guardSnapshotPublicationWrites(db, receipt)
-  await guarded.insert(rows).values({ id: 'first', snapshotId: 'snapshot' }).run()
-  await guarded.insert(rows).values({ id: 'second', snapshotId: 'snapshot' })
+  await guarded.insert(rows).values({ id: 'first', scopeId: 'snapshot' }).run()
+  await guarded.insert(rows).values({ id: 'second', scopeId: 'snapshot' })
   await completeSnapshotPublication(db, receipt, '(SELECT count(*) FROM divisions) = 2')
   expect(() =>
-    guarded.update(rows).set({ snapshotId: 'wrong' }).where(sql`id = 'first'`).run(),
+    guarded.update(rows).set({ scopeId: 'wrong' }).where(sql`id = 'first'`).run(),
   ).toThrow()
   await expect(
     Promise.resolve(guarded.delete(rows).where(sql`id = 'second'`)),

@@ -129,7 +129,7 @@ const rollbackPlans: Partial<Record<ResourceType, RollbackResourcePlan>> = {
   place: {
     currentTables: [
       { table: 'placesCells' },
-      { table: 'placesDivision', snapshotColumn: 'placeSnapshotId' },
+      { table: 'placesDivision', snapshotColumn: 'placeScopeId' },
       { table: 'placesI18n' },
       { table: 'placeSearchScopes' },
       { table: 'places' },

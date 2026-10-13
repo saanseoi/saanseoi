@@ -407,6 +407,7 @@ export function buildDivisionGeometryHashInput(
     sources: recordContent(row.sources ?? null),
     createdAt: undefined,
     snapshotId: undefined,
+    scopeId: undefined,
     updatedAt: undefined,
   }
 }

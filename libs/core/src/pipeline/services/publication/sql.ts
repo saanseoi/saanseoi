@@ -75,7 +75,7 @@ export function buildPublicationRowCountSql(
   table: string,
   snapshotId: string,
   count: number,
-  column = 'snapshotId',
+  column = 'scopeId',
 ) {
   if (!/^[A-Za-z][A-Za-z0-9]*$/.test(table) || !/^[A-Za-z][A-Za-z0-9]*$/.test(column))
     throw new Error('Invalid publication count table or column.')
