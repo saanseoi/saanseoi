@@ -69,10 +69,7 @@ let missingSources = $derived(
     </p>
   </aside>
 {:else}
-  <section
-    class="space-y-3 text-xs [overflow-wrap:anywhere]"
-    aria-label="Source releases"
-  >
+  <section class="space-y-3 text-xs wrap-anywhere" aria-label="Source releases">
     <div class="rounded-lg border border-foreground/15 bg-foreground/5 p-3">
       {#snippet sourceTitle()}
         {#each labelParts as part, index}

@@ -194,7 +194,10 @@ use the process-scoped `SAANSEOI_INIT_DEFER_DIVISIONS_CATALOG` marker, which for
 `deferApiCatalogRevision` to Harbour without deferring release-set or source
 publication. Receipt promotion, search finalisation and reconciled snapshot cleanup wait
 for catalogue publication, so an intermediate catalogue cannot select superseded current
-rows. Standalone government initialisers publish their catalogues normally.
+rows. Standalone government initialisers publish their catalogues normally. Final
+reconciliation includes all published deferred cohorts in a new catalogue checkpoint,
+including when no draft release sets remain. Existing checkpoints and published
+release-set membership remain immutable.
 
 Curated assembly groups canonical upstream attribution by publisher only within its
 evidence workspace. Archive preparation restores the flat attribution array and

@@ -21,11 +21,7 @@ import {
   validateFieldLineageBinding,
 } from '@repo/db'
 import { recordProcessingRun } from './processingRuns'
-import {
-  pinApiFieldRules,
-  resolvePublisherFieldPaths,
-  type ApiFieldInput,
-} from '@repo/db/apiFieldInputs'
+import { pinApiFieldRules, type ApiFieldInput } from '@repo/db/apiFieldInputs'
 import { sourceReleasePublicationCondition } from './sourceReleasePublication'
 export { resolveAcceptedStatisticSnapshotParent } from './statisticSnapshotParent'
 import {
@@ -62,7 +58,6 @@ import {
   buildDatasetCode,
   datasetVariantForSource,
   publisherCodeForSource,
-  resourceTypeCodeSlug,
 } from '../../codes'
 
 import type {
@@ -94,7 +89,6 @@ const {
   metaApiVersionReleaseSets,
   metaApiReleaseSetSnapshots,
   metaApiVersions,
-  processingRuns,
   metaDatasetTransforms,
   metaDatasets,
   metaLicenses,
@@ -4529,74 +4523,29 @@ async function prepareApiCatalogRevision(
     releaseSetRevision: number
   },
 ) {
-  const previousCatalog = await db
-    .select({ id: metaApiCatalogRevisions.id })
-    .from(metaApiCatalogRevisions)
+  // A catalogue checkpoint includes releases published while catalogue emission
+  // was deferred, even when an earlier checkpoint already exists.
+  const previousMembers = await db
+    .select({
+      apiVersionReleaseSetId: metaApiVersionReleaseSets.id,
+      cohortKey: metaApiReleaseSets.cohortKey,
+      domainCode: metaApiReleaseSets.domainCode,
+      effectiveFrom: metaApiReleaseSets.effectiveFrom,
+      revision: metaApiReleaseSets.revision,
+    })
+    .from(metaApiReleaseSets)
+    .innerJoin(
+      metaApiVersionReleaseSets,
+      eq(metaApiVersionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
+    )
     .where(
       and(
-        eq(metaApiCatalogRevisions.apiVersionId, args.apiVersionId),
-        eq(metaApiCatalogRevisions.regionCode, args.regionCode),
-        eq(metaApiCatalogRevisions.status, 'current'),
+        eq(metaApiVersionReleaseSets.apiVersionId, args.apiVersionId),
+        eq(metaApiReleaseSets.regionCode, args.regionCode),
+        ne(metaApiVersionReleaseSets.status, 'draft'),
       ),
     )
-    .orderBy(
-      desc(metaApiCatalogRevisions.publishedAt),
-      desc(metaApiCatalogRevisions.revision),
-    )
-    .limit(1)
-    .get()
-
-  const previousMembers = previousCatalog
-    ? await db
-        .select({
-          apiVersionReleaseSetId:
-            metaApiCatalogRevisionReleaseSets.apiVersionReleaseSetId,
-          cohortKey: metaApiCatalogRevisionReleaseSets.cohortKey,
-          domainCode: metaApiCatalogRevisionReleaseSets.domainCode,
-          effectiveFrom: metaApiReleaseSets.effectiveFrom,
-          isDefault: metaApiCatalogRevisionReleaseSets.isDefault,
-          revision: metaApiReleaseSets.revision,
-        })
-        .from(metaApiCatalogRevisionReleaseSets)
-        .innerJoin(
-          metaApiVersionReleaseSets,
-          eq(
-            metaApiCatalogRevisionReleaseSets.apiVersionReleaseSetId,
-            metaApiVersionReleaseSets.id,
-          ),
-        )
-        .innerJoin(
-          metaApiReleaseSets,
-          eq(metaApiVersionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
-        )
-        .where(
-          eq(
-            metaApiCatalogRevisionReleaseSets.apiCatalogRevisionId,
-            previousCatalog.id,
-          ),
-        )
-        .all()
-    : await db
-        .select({
-          apiVersionReleaseSetId: metaApiVersionReleaseSets.id,
-          cohortKey: metaApiReleaseSets.cohortKey,
-          domainCode: metaApiReleaseSets.domainCode,
-          effectiveFrom: metaApiReleaseSets.effectiveFrom,
-          revision: metaApiReleaseSets.revision,
-        })
-        .from(metaApiReleaseSets)
-        .innerJoin(
-          metaApiVersionReleaseSets,
-          eq(metaApiVersionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
-        )
-        .where(
-          and(
-            eq(metaApiVersionReleaseSets.apiVersionId, args.apiVersionId),
-            eq(metaApiReleaseSets.regionCode, args.regionCode),
-            ne(metaApiVersionReleaseSets.status, 'draft'),
-          ),
-        )
-        .all()
+    .all()
 
   const membersByDomainCohort = new Map<string, CatalogReleaseSetMember>()
   for (const member of previousMembers) {
@@ -4682,6 +4631,132 @@ async function prepareApiCatalogRevision(
       publishedAt: args.publishedAt,
       regionCode: args.regionCode,
     }),
+  }
+}
+
+/** Publish deferred catalogue members without mutating immutable release sets. */
+export async function reconcilePublishedApiCatalogs(
+  db: HarbourReadableDb & HarbourWritableDb,
+  options: { apiFamily?: ApiFamilyType; regionCode?: RegionCode } = {},
+) {
+  const active = await db
+    .select({
+      apiFamily: metaApiVersions.familyType,
+      apiVersion: metaApiVersions.code,
+      apiVersionId: metaApiVersions.id,
+      apiVersionNumber: metaApiVersions.version,
+      apiVersionReleaseSetId: metaApiVersionReleaseSets.id,
+      cohortKey: metaApiReleaseSets.cohortKey,
+      domainCode: metaApiReleaseSets.domainCode,
+      regionCode: metaApiReleaseSets.regionCode,
+      releaseSetRevision: metaApiReleaseSets.revision,
+      defaultDomainCode: metaApiComposition.defaultDomainCode,
+    })
+    .from(metaApiVersionReleaseSets)
+    .innerJoin(
+      metaApiVersions,
+      eq(metaApiVersions.id, metaApiVersionReleaseSets.apiVersionId),
+    )
+    .innerJoin(
+      metaApiReleaseSets,
+      eq(metaApiReleaseSets.id, metaApiVersionReleaseSets.apiReleaseSetId),
+    )
+    .innerJoin(
+      metaApiComposition,
+      eq(metaApiComposition.id, metaApiVersionReleaseSets.apiCompositionId),
+    )
+    .where(
+      and(
+        eq(metaApiVersionReleaseSets.status, 'current'),
+        options.apiFamily
+          ? eq(metaApiVersions.familyType, options.apiFamily)
+          : undefined,
+        options.regionCode
+          ? eq(metaApiReleaseSets.regionCode, options.regionCode)
+          : undefined,
+      ),
+    )
+    .all()
+  const scopes = new Set<string>()
+  for (const row of active) {
+    if (!row.cohortKey) continue
+    const key = `${row.apiVersionId}:${row.regionCode}`
+    if (scopes.has(key)) continue
+    scopes.add(key)
+    const publishedAt = new Date().toISOString()
+    const revision = await prepareApiCatalogRevision(db, {
+      ...row,
+      cohortKey: row.cohortKey,
+      publishedAt,
+    })
+    const current = await db
+      .select({ id: metaApiCatalogRevisions.id })
+      .from(metaApiCatalogRevisions)
+      .where(
+        and(
+          eq(metaApiCatalogRevisions.apiVersionId, row.apiVersionId),
+          eq(metaApiCatalogRevisions.regionCode, row.regionCode),
+          eq(metaApiCatalogRevisions.status, 'current'),
+        ),
+      )
+      .get()
+    const existing = current
+      ? await db
+          .select({
+            id: metaApiCatalogRevisionReleaseSets.apiVersionReleaseSetId,
+            isDefault: metaApiCatalogRevisionReleaseSets.isDefault,
+          })
+          .from(metaApiCatalogRevisionReleaseSets)
+          .where(eq(metaApiCatalogRevisionReleaseSets.apiCatalogRevisionId, current.id))
+          .all()
+      : []
+    if (
+      existing.length === revision.members.length &&
+      revision.members.every(member =>
+        existing.some(
+          value =>
+            value.id === member.apiVersionReleaseSetId &&
+            Boolean(value.isDefault) === member.isDefault,
+        ),
+      )
+    )
+      continue
+    await runAtomicWriteStatements(db as AtomicWritableDb, tx => [
+      tx
+        .update(metaApiCatalogRevisions)
+        .set({ status: 'archived', updatedAt: publishedAt })
+        .where(
+          and(
+            eq(metaApiCatalogRevisions.apiVersionId, row.apiVersionId),
+            eq(metaApiCatalogRevisions.regionCode, row.regionCode),
+            eq(metaApiCatalogRevisions.status, 'current'),
+          ),
+        ),
+      tx.insert(metaApiCatalogRevisions).values({
+        id: revision.id,
+        apiVersionId: row.apiVersionId,
+        code: revision.code,
+        regionCode: row.regionCode,
+        publicationDate: revision.publicationDate,
+        revision: revision.revision,
+        defaultDomainCode: row.defaultDomainCode,
+        status: 'current',
+        publishedAt,
+        versionHash: revision.versionHash,
+        createdAt: publishedAt,
+        updatedAt: publishedAt,
+      }),
+      ...revision.members.map(member =>
+        tx.insert(metaApiCatalogRevisionReleaseSets).values({
+          apiCatalogRevisionId: revision.id,
+          apiVersionReleaseSetId: member.apiVersionReleaseSetId,
+          domainCode: member.domainCode,
+          cohortKey: member.cohortKey,
+          isDefault: member.isDefault,
+          createdAt: publishedAt,
+        }),
+      ),
+    ])
   }
 }
 
@@ -4962,10 +5037,6 @@ export async function publishReleaseArtefacts(
         0 ||
       (releaseSetCohortKey === latestPublishedReleaseSet.cohortKey &&
         releaseSet.revision > latestPublishedReleaseSet.revision)
-    const activeReleaseSetId = shouldActivateReleaseSet
-      ? args.releaseSetId
-      : latestPublishedReleaseSet.id
-
     const apiCatalogRevision =
       publishApiCatalogRevision && releaseSetRegionCode && releaseSetCohortKey
         ? await prepareApiCatalogRevision(db, {

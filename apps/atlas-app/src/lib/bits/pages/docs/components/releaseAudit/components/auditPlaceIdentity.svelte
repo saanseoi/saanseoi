@@ -90,7 +90,7 @@ const label = (key: string) =>
           Conflicts: {list(prior.conflicts).length ? display(prior.conflicts) : 'None'}.
         </p>
         <table
-          class="w-full table-fixed text-left [&_td]:break-words [&_td]:align-top [&_td]:p-2 [&_th]:p-2"
+          class="w-full table-fixed text-left [&_td]:wrap-break-word [&_td]:align-top [&_td]:p-2 [&_th]:p-2"
         >
           <thead>
             <tr>

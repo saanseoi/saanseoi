@@ -39,7 +39,7 @@ let pin = $derived(binding?.scopes.find(scope => scope.scopeId === selectedScope
 </script>
 <article
   id={`provenance-node-${node.id}`}
-  class="min-w-0 rounded-lg border border-foreground/15 [overflow-wrap:anywhere]"
+  class="min-w-0 rounded-lg border border-foreground/15 wrap-anywhere"
 >
   <Collapsible.Root bind:open>
     <Collapsible.Trigger

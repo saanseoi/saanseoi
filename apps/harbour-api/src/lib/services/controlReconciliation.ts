@@ -12,6 +12,7 @@ import {
   listApiReleaseSetSnapshots,
   resolveLatestReleaseSetForTypeDomainCohort,
   resolveAcceptedStatisticSnapshotParent,
+  reconcilePublishedApiCatalogs,
 } from '@repo/core/db/metaRegistry'
 import { datasetVariantForSource } from '@repo/core'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
@@ -149,6 +150,9 @@ export async function handleReconcileDraftReleaseSets(
         pendingReleaseSetCodes.push(releaseSet.code)
       }
     }
+
+    if (!request.deferApiCatalogRevision)
+      await reconcilePublishedApiCatalogs(db, request)
 
     return {
       inspected: draftReleaseSets.length,

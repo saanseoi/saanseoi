@@ -52,15 +52,16 @@ const operations = {
   {:else if item.kind === 'operation'}
     <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
       <span class="text-sm font-medium">{operations[item.operation]}</span>
-      <span aria-label="from" class="text-foreground/40">←</span>
+      <span class="sr-only">from</span>
+      <span aria-hidden="true" class="text-foreground/40">←</span>
       {@render expression(item.input)}
     </div>
   {:else if item.kind === 'read'}
-    <code class="text-xs text-foreground/75 [overflow-wrap:anywhere]">{item.path}</code>
+    <code class="text-xs text-foreground/75 wrap-anywhere">{item.path}</code>
   {:else}
     <span class="text-sm"
       >{item.value === null ? 'Return null' : String(item.value)}</span
     >
   {/if}
 {/snippet}
-<div class="min-w-0 [overflow-wrap:anywhere]">{@render expression(value)}</div>
+<div class="min-w-0 wrap-anywhere">{@render expression(value)}</div>
