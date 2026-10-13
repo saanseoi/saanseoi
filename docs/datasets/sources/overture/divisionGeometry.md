@@ -26,6 +26,9 @@ metadata. File checksums and processing-cache identities retain their complete i
 Unchanged open source versions remain untouched across releases. Complete publisher
 membership closes omissions independently of the assertion release ID. Snapshot
 materialisation and release-specific provenance remain separate from source validity.
+The durable write plan includes every configured source shard: changed and omitted
+records close in their owning shard, and unchanged periods remain there without a
+duplicate assertion in the new year's shard. New assertions use the selected shard.
 `validFromRelease` and `validToRelease` store only the release's `sourceVersion`, such
 as `2025-09-24.0`, for Division, Division Area and Division Boundary source records.
 Dataset-prefixed release codes belong to release metadata.

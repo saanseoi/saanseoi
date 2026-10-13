@@ -16,6 +16,7 @@ export function startR2Process(
     workerPath?: string
     startupTimeoutMs?: number
     requestTimeoutMs?: number
+    concurrency?: 1 | 2 | 3 | 4
     persistPath?: string
     onProgress?: (message: string) => void
   } = {},
@@ -125,7 +126,10 @@ export function startR2Process(
         new Error(`R2 ${item.operation} failed for ${item.key}: ${reply.message}`),
       )
   })
-  const queues: Promise<unknown>[] = Array.from({ length: 4 }, () => Promise.resolve())
+  const queues: Promise<unknown>[] = Array.from(
+    { length: options.concurrency ?? 4 },
+    () => Promise.resolve(),
+  )
   let nextQueue = 0
   return {
     ready,

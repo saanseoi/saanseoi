@@ -70,6 +70,7 @@ import {
 import { retainDivisionProvenance } from './divisionProvenance'
 import {
   applyDivisionClassificationPatch,
+  applyMissingPublisherIslandClassification,
   divisionClassificationFixture,
 } from './divisionClassificationPatch'
 import type { ApiLocale } from '../../../lib/apiLocales'
@@ -1263,7 +1264,7 @@ function normaliseDivisionRowInternal(
   const otClass = asNonEmptyString(row.class)
   const overtureHongKongDivisionClassificationCorrection = options.editorial
     ? applyDivisionClassificationPatch(row, options.source)
-    : null
+    : applyMissingPublisherIslandClassification(row, options.source)
   const curatedClassification =
     options.editorial &&
     (!options.source || options.source.source === 'overture') &&
@@ -2160,6 +2161,10 @@ export async function buildDivisionHierarchyLookup(
       const otSubtype = asNonEmptyString(row.subtype)
       const otClass = asNonEmptyString(row.class)
       const parentDivisionId = asNonEmptyString(row.parent_division_id)
+      const classificationCorrection = applyMissingPublisherIslandClassification(
+        row,
+        source,
+      )
       const canonicalI18n = buildCanonicalDivisionApiI18n(
         normaliseDivisionI18n(id, row.names),
       )
@@ -2177,18 +2182,22 @@ export async function buildDivisionHierarchyLookup(
         i18n,
         displayEquivalentDivisionId:
           asNonEmptyString(row.displayEquivalentDivisionId) ?? undefined,
-        level: resolveDivisionLevel({
-          row,
-          otClass,
-          otSubtype,
-          parentDivisionId,
-        }),
-        class: resolveDivisionClass({
-          row,
-          otClass,
-          otSubtype,
-          parentDivisionId,
-        }),
+        level: classificationCorrection
+          ? classificationCorrection.level
+          : resolveDivisionLevel({
+              row,
+              otClass,
+              otSubtype,
+              parentDivisionId,
+            }),
+        class:
+          classificationCorrection?.class ??
+          resolveDivisionClass({
+            row,
+            otClass,
+            otSubtype,
+            parentDivisionId,
+          }),
       })
     }
   }

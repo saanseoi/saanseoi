@@ -4,7 +4,12 @@ Overture retains its publisher inventory and geometry independently of SaanSeoi
 editorial decisions. Canonical normalisation maps publisher level, class and category
 into the shared Division schema, normalises locale tags and splits recognisable
 bilingual names. It does not apply SaanSeoi identity-specific names, classifications,
-translations, exclusions, hierarchy corrections or constructed area geometry.
+translations, exclusions, hierarchy corrections or constructed area geometry, except
+that a missing publisher class may use an identity-matched, reviewed `major_island`
+decision. This supplies `category: landform` and `level: null` in both the canonical row
+and ancestor lookup, records the classification correction in processing provenance, and
+preserves the unmodified publisher assertion. A populated publisher class is never
+overridden by this exception; other unmapped classifications remain errors.
 
 SaanSeoi preparation owns editorial patches and curated source selection. It writes
 final names, taxonomy, hierarchy and geometry into the published SaanSeoi archive;
@@ -19,12 +24,13 @@ editing taxonomy policy.
 The retained declaration includes the executor's ordered condition trees and stable
 branch IDs. Level-token branches distinguish subtype, class and administrative-level
 matches. Locality mappings are counted separately for level and class. Class is never
-inferred from level. Unmapped publisher classifications block canonical ingestion with
-the record identity and publisher hints in the error. SaanSeoi preparation requires an
-explicit classification for these records before producing its curated archive. Bulk
-matched counts count only selected branches, and changed counts compare canonical
-results with raw source `level` and `class` values. Unselected branches retain zeroes.
-Missing historical conditions or counts remain **not recorded**.
+inferred from level. Apart from the reviewed missing-island-class exception above,
+unmapped publisher classifications block canonical ingestion with the record identity
+and publisher hints in the error. SaanSeoi preparation requires an explicit
+classification for these records before producing its curated archive. Bulk matched
+counts count only selected branches, and changed counts compare canonical results with
+raw source `level` and `class` values. Unselected branches retain zeroes. Missing
+historical conditions or counts remain **not recorded**.
 
 Local division ingestion reports provenance retention and delivery after SQL generation.
 Shared audit fixtures use a bounded cache of verified JSON objects during verification;

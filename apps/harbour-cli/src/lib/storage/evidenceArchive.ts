@@ -247,6 +247,10 @@ export async function openEvidenceStore(
   )
   const client = startR2Process(configPath, {
     persistPath: options.persistPath,
+    // Evidence uses whole-object PUTs without byte-progress notifications. Give
+    // large objects the full uplink and a bounded ten-minute operation deadline.
+    concurrency: 1,
+    requestTimeoutMs: 10 * 60_000,
     onProgress: message => process.stdout.write(`${message}\n`),
   })
   try {

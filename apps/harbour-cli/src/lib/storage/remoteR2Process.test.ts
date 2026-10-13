@@ -146,6 +146,36 @@ test('worker death rejects in-flight requests without waiting for deadline', asy
   }
 })
 
+test('IPC can serialise uploads without charging queued work against its deadline', async () => {
+  const f = await fixture(`
+    let active = false;
+    receive(r => {
+      if (active) throw new Error('Uploads overlap');
+      active = true;
+      setTimeout(() => {
+        active = false;
+        send({type:'done',id:r.id});
+      }, 100);
+    });
+    send({type:'ready'});
+  `)
+  const client = startR2Process('unused', {
+    workerPath: f.workerPath,
+    concurrency: 1,
+    requestTimeoutMs: 500,
+  })
+  try {
+    await Promise.all(
+      Array.from({ length: 8 }, (_, i) =>
+        client.retain(`key-${i}`, '/unused', { contentType: 'application/json' }),
+      ),
+    )
+  } finally {
+    await client.dispose()
+    await f.close()
+  }
+})
+
 test('IPC overlaps four requests and keeps subsequent work bounded', async () => {
   const f = await fixture(`
     let active = 0;

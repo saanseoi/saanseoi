@@ -14,6 +14,9 @@ classification.
 
 Source ledgers retain separate occurrences of recurring content under the
 [shared source validity contract](source-evidence.md#recurring-source-validity-periods).
+Overture geometry validity spans source shards. Durable ingestion closes changed and
+omitted assertions in their owning shard and retains unchanged open periods there; year
+rollover does not duplicate them into the new source shard.
 
 Division Wikidata links use `identifiers.wikidata.id`, for example
 `{ "wikidata": { "id": "Q123" } }`. Canonical Division rows, prepared SaanSeoi records
@@ -124,6 +127,12 @@ editorial decisions. Canonical normalisation maps publisher level, class and cat
 into the shared Division schema, normalises locale tags and splits recognisable
 bilingual names. It does not apply SaanSeoi identity-specific names, classifications,
 translations, exclusions, hierarchy corrections or constructed area geometry.
+
+A missing Overture publisher class may use an identity-matched, reviewed `major_island`
+decision. Canonical rows and ancestor lookup use `category: landform` and `level: null`;
+processing provenance records the correction and source storage retains the original
+publisher assertion. This exception does not override a populated publisher class or
+classify an unreviewed identity.
 
 SaanSeoi preparation owns editorial patches and curated source selection. It writes
 final names, taxonomy, hierarchy and geometry into the published SaanSeoi archive;

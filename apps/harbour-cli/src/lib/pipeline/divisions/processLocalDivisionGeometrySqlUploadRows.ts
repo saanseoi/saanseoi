@@ -254,22 +254,40 @@ export async function writeGeometryRows(
     !['hkgov-censtatd', 'hkgov-pland-pu', 'hkgov-pland-new-town'].includes(
       version.source,
     )
-  const openSourcePeriods = periodSource
-    ? await context.sourceDb
-        .select({
-          sourceRecordId: sourceTable.sourceRecordId,
-          versionHash: sourceTable.versionHash,
-          validFromRelease: sourceTable.validFromRelease,
-        })
-        .from(sourceTable)
-        .where(
-          and(
-            eq(sourceTable.isCurrent, true),
-            geometrySourceScope(sourceTable, version),
-          ),
-        )
-        .all()
+  const sourceDatabases = [
+    context.sourceDb,
+    ...(periodSource ? (context.sourceTargets ?? []) : [])
+      .filter(target => target.db !== context.sourceDb)
+      .map(target => target.db as typeof context.sourceDb),
+  ]
+  const periodsByDatabase = periodSource
+    ? await Promise.all(
+        sourceDatabases.map(async db => ({
+          db,
+          rows: await db
+            .select({
+              sourceRecordId: sourceTable.sourceRecordId,
+              versionHash: sourceTable.versionHash,
+              validFromRelease: sourceTable.validFromRelease,
+            })
+            .from(sourceTable)
+            .where(
+              and(
+                eq(sourceTable.isCurrent, true),
+                geometrySourceScope(sourceTable, version),
+              ),
+            )
+            .all(),
+        })),
+      )
     : []
+  const openSourcePeriods = periodsByDatabase.flatMap(periods => periods.rows)
+  const inheritedSourcePeriods = new Set(
+    periodsByDatabase
+      .filter(periods => periods.db !== context.sourceDb)
+      .flatMap(periods => periods.rows)
+      .map(row => `${row.sourceRecordId}:${row.versionHash}`),
+  )
   const sourcePeriodStarts = new Map(
     openSourcePeriods.map(row => [
       `${row.sourceRecordId}:${row.versionHash}`,
@@ -282,15 +300,16 @@ export async function writeGeometryRows(
     version.source !== 'hkgov-pland-pu' &&
     version.source !== 'hkgov-pland-new-town'
   ) {
-    await closeChangedRows(
-      context.sourceDb,
-      sourceTable,
-      sourceTable.sourceRecordId,
-      sourceHashes,
-      { isCurrent: false, validToRelease: version.sourceVersion },
-      geometrySourceScope(sourceTable, version),
-      version.source === 'hkgov-censtatd',
-    )
+    for (const sourceDb of sourceDatabases)
+      await closeChangedRows(
+        sourceDb,
+        sourceTable,
+        sourceTable.sourceRecordId,
+        sourceHashes,
+        { isCurrent: false, validToRelease: version.sourceVersion },
+        geometrySourceScope(sourceTable, version),
+        version.source === 'hkgov-censtatd',
+      )
   }
   onProgress?.('build write batches')
   const inheritedCurrentRows =
@@ -402,42 +421,52 @@ export async function writeGeometryRows(
     version.source === 'hkgov-pland-new-town'
       ? []
       : await Promise.all(
-          publisherRows.map(async row => {
-            const { sourceGeometry, ...sourceWithProvenance } = row.source
-            const sourceAssertion = sourceWithProvenance
-            return {
-              ...sourceAssertion,
-              ...(version.source === 'hkgov-had'
-                ? {
-                    sourceGeometry,
-                  }
-                : version.source === 'hkgov-censtatd'
-                  ? {
-                      datasetCode: requireString(
-                        version.datasetCode,
-                        'C&SD datasetCode',
-                      ),
-                      sourceLocator: row.source.sourceLocator ?? null,
-                      geometryId: censtatdGeometryId(sourceGeometry),
-                    }
-                  : {
-                      sourceGeometry:
-                        version.source === 'overture'
-                          ? compressJsonBrotli(sourceGeometry)
-                          : sourceGeometry,
-                    }),
-              versionHash: requireGeometryHash(sourceHashes, row.source.sourceRecordId),
-              resourceReleaseId: version.resourceReleaseId,
-              validFromRelease:
-                sourcePeriodStarts.get(
+          publisherRows
+            .filter(
+              row =>
+                !inheritedSourcePeriods.has(
                   `${row.source.sourceRecordId}:${requireGeometryHash(sourceHashes, row.source.sourceRecordId)}`,
-                ) ?? version.sourceVersion,
-              validToRelease: null,
-              isCurrent: true,
-              createdAt: now,
-              updatedAt: now,
-            }
-          }),
+                ),
+            )
+            .map(async row => {
+              const { sourceGeometry, ...sourceWithProvenance } = row.source
+              const sourceAssertion = sourceWithProvenance
+              return {
+                ...sourceAssertion,
+                ...(version.source === 'hkgov-had'
+                  ? {
+                      sourceGeometry,
+                    }
+                  : version.source === 'hkgov-censtatd'
+                    ? {
+                        datasetCode: requireString(
+                          version.datasetCode,
+                          'C&SD datasetCode',
+                        ),
+                        sourceLocator: row.source.sourceLocator ?? null,
+                        geometryId: censtatdGeometryId(sourceGeometry),
+                      }
+                    : {
+                        sourceGeometry:
+                          version.source === 'overture'
+                            ? compressJsonBrotli(sourceGeometry)
+                            : sourceGeometry,
+                      }),
+                versionHash: requireGeometryHash(
+                  sourceHashes,
+                  row.source.sourceRecordId,
+                ),
+                resourceReleaseId: version.resourceReleaseId,
+                validFromRelease:
+                  sourcePeriodStarts.get(
+                    `${row.source.sourceRecordId}:${requireGeometryHash(sourceHashes, row.source.sourceRecordId)}`,
+                  ) ?? version.sourceVersion,
+                validToRelease: null,
+                isCurrent: true,
+                createdAt: now,
+                updatedAt: now,
+              }
+            }),
         )
 
   let writtenCurrentRows = 0

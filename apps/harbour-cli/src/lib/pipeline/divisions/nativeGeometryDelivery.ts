@@ -99,6 +99,9 @@ export async function writeGeometryRowsDurably(
       ['DB_CURRENT', currentSchema],
       [history, historySchema],
       [source, sourceSchema],
+      ...(context.sourceTargets ?? [])
+        .filter(target => target.bindingName !== source)
+        .map(target => [target.bindingName, sourceSchema]),
     ].map(([binding, schema]) => {
       const name = binding as string
       const path = files[name]
@@ -123,6 +126,7 @@ export async function writeGeometryRowsDurably(
   const normalisedSha256 = hash.digest('hex')
   // A new snapshot revision needs a new plan even when its geometry is unchanged.
   const deliveryHash = createHash('sha256')
+    .update('cross-shard-open-periods-v1\n')
     .update(normalisedSha256)
     .update(JSON.stringify(retainedVersion))
     .digest('hex')
@@ -144,6 +148,7 @@ export async function writeGeometryRowsDurably(
       version: retainedVersion,
       normalisedSha256,
       historyMembershipPolicy: 'immutable-geometry-v1',
+      sourcePeriodPolicy: 'cross-shard-open-periods-v1',
     },
   }
   const directory = sqlDeliveryPhaseDirectory(input)
@@ -177,6 +182,10 @@ export async function writeGeometryRowsDurably(
                 .drizzle as unknown as typeof context.historyDb,
               sourceDb: databases[source]!
                 .drizzle as unknown as typeof context.sourceDb,
+              sourceTargets: (context.sourceTargets ?? []).map(target => ({
+                ...target,
+                db: databases[target.bindingName]!.drizzle,
+              })),
             },
             type,
             rows,

@@ -8,6 +8,7 @@ import {
   hash,
 } from '../../../../../libs/core/src/testing/sourceAssetStore'
 import { retryRemoteR2 } from './remoteR2Retry'
+import { retainObjectInBucket, type RemoteR2Bucket } from './remoteR2Object'
 import { retainSourceFileInBucket } from './remoteR2SourceFile'
 
 test('source retention resumes verified chunks after the reported R2 PUT failure', async () => {
@@ -43,6 +44,38 @@ test('source retention resumes verified chunks after the reported R2 PUT failure
   } finally {
     await rm(directory, { recursive: true, force: true })
   }
+})
+
+test('lost upload response retries by verifying the committed object without another PUT', async () => {
+  const bytes = new Uint8Array([1, 2, 3])
+  let committed = false
+  let puts = 0
+  const waits: number[] = []
+  const bucket: RemoteR2Bucket = {
+    async head() {
+      return committed ? { size: bytes.byteLength } : null
+    },
+    async get() {
+      return committed ? { arrayBuffer: async () => bytes.buffer } : null
+    },
+    async put() {
+      puts++
+      committed = true
+      throw new Error('Network connection lost.')
+    },
+  }
+  await retryRemoteR2(
+    () =>
+      retainObjectInBucket(bucket, 'evidence/key', bytes, {
+        contentType: 'application/json',
+      }),
+    () => {},
+    async delay => {
+      waits.push(delay)
+    },
+  )
+  expect(puts).toBe(1)
+  expect(waits).toEqual([1000])
 })
 
 test('persistent transport failure stops after four attempts with the original error', async () => {

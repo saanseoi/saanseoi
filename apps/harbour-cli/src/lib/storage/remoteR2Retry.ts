@@ -11,7 +11,7 @@ export async function retryRemoteR2<T>(
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)
       const transient =
-        /\bUnspecified error \(0\)|\b(?:HTTP|status(?:Code)?)\s*[:=]?\s*(?:429|500|502|503|504)\b|\b(?:ECONNRESET|ETIMEDOUT|EPIPE)\b|\b(?:network error|fetch failed|timed? out|temporarily unavailable)\b/i.test(
+        /\bUnspecified error \(0\)|\b(?:HTTP|status(?:Code)?)\s*[:=]?\s*(?:429|500|502|503|504)\b|\b(?:ECONNRESET|ETIMEDOUT|EPIPE)\b|\b(?:network error|network connection lost|fetch failed|timed? out|temporarily unavailable)\b/i.test(
           message,
         )
       if (!transient || attempt >= 4) throw error

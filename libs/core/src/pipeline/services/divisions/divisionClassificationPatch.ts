@@ -115,3 +115,20 @@ export function applyDivisionClassificationPatch(
 ) {
   return divisionClassificationRule.execute({ row, source })
 }
+
+/** Fill an absent publisher class only from a reviewed major-island decision. */
+export function applyMissingPublisherIslandClassification(
+  row: Record<string, unknown>,
+  source?: ClassificationSource,
+) {
+  if (
+    (row.class != null && row.class !== '') ||
+    (source && source.source !== 'overture') ||
+    (row.source && row.source !== 'overture')
+  )
+    return null
+  const entry = divisionClassificationFixture.entries.find(e => e.divisionId === row.id)
+  if (entry?.replacement.class !== 'major_island') return null
+  const correction = applyDivisionClassificationPatch(row, source)!
+  return { class: correction.class, level: correction.level }
+}

@@ -27,7 +27,7 @@ for (const klass of [null, 'unknown']) {
   })
 }
 
-test('Lantau uses its explicit curated class despite absent publisher class', () => {
+test('Lantau fills an absent publisher class from its reviewed island decision', async () => {
   const row = {
     id: '3707878f-080b-42cf-aecf-89fef56a066a',
     subtype: 'locality',
@@ -43,7 +43,33 @@ test('Lantau uses its explicit curated class despite absent publisher class', ()
   expect(
     Object.keys(branchCounts).filter(id => id.startsWith('class.fallback')),
   ).toEqual([])
-  expect(() => normaliseDivisionRow(row)).toThrow(row.id)
+  const original = structuredClone(row)
+  const normalised = normaliseDivisionRow(row)
+  expect(normalised.base).toMatchObject({
+    class: 'major_island',
+    category: 'landform',
+    level: null,
+  })
+  expect(normalised.overtureHongKongDivisionClassificationCorrection).toEqual({
+    class: 'major_island',
+    level: null,
+  })
+  const lookup = await buildDivisionHierarchyLookup(
+    { rows: [row] },
+    { source: 'overture', sourceVersion: '2025-11-19.0' },
+  )
+  expect(lookup.get(row.id)).toMatchObject({ class: 'major_island', level: null })
+  expect(row).toEqual(original)
+  expect(normaliseDivisionRow({ ...row, class: 'village' }).base).toMatchObject({
+    class: 'village',
+    level: 5,
+  })
+  expect(() => normaliseDivisionRow({ ...row, class: 'unknown' })).toThrow(row.id)
+  expect(() =>
+    normaliseDivisionRow(row, {
+      source: { source: 'other-publisher', sourceVersion: '2025-11-19.0' },
+    }),
+  ).toThrow(row.id)
 })
 
 test('hierarchy lookup rejects the same unmapped publisher classification', async () => {
