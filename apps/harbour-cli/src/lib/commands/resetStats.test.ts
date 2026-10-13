@@ -273,7 +273,7 @@ describe('all-statistics reset', () => {
     ])
   })
 
-  test('blocks other snapshot sources and API anchor dependencies', async () => {
+  test('blocks other snapshot sources and API membership dependencies', async () => {
     const { meta, context } = setup()
     insert(meta, 'snapshotResourceReleases', {
       snapshotId: 'place',
@@ -281,7 +281,7 @@ describe('all-statistics reset', () => {
       resourceReleaseId: 'divisionStatistic',
     })
     meta.exec(
-      "UPDATE apiReleaseSetSnapshots SET anchorSnapshotId = 'divisionStatistic' WHERE apiReleaseSetId = 'places'",
+      "INSERT INTO apiReleaseSetSnapshots (apiReleaseSetId, snapshotId, role, isRequired, cohortMatchingMode) VALUES ('places', 'divisionStatistic', 'lookup', 1, 'exact_ref')",
     )
     expect(await statsResetBlockers(context)).toEqual([
       'Other snapshot families use statistics releases',

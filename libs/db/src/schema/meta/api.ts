@@ -451,9 +451,6 @@ export const metaApiCompositionMembers = sqliteTable(
     role: text('role').notNull(),
     isRequired: integer('isRequired', { mode: 'boolean' }).notNull(),
     cohortMatchingMode: text('cohortMatchingMode').notNull(),
-    anchorResourceType: text('anchorResourceType', {
-      enum: datasetTypes,
-    }),
     maxLagDays: integer('maxLagDays'),
     priority: integer('priority').notNull().default(0),
   },
@@ -478,9 +475,6 @@ export const metaApiReleaseSetSnapshots = sqliteTable(
     role: text('role').notNull(),
     isRequired: integer('isRequired', { mode: 'boolean' }).notNull(),
     cohortMatchingMode: text('cohortMatchingMode').notNull(),
-    anchorSnapshotId: text('anchorSnapshotId').references(() => metaSnapshots.id, {
-      onDelete: 'restrict',
-    }),
     createdAt: timestamps.createdAt,
   },
   table => [

@@ -44,10 +44,7 @@ export async function officialAddressResetDependencyBlockers(
       .where(
         and(
           outside(selection.apiReleaseSetId, owned.apiReleaseSetIds),
-          or(
-            member(selection.snapshotId, owned.snapshotIds),
-            member(selection.anchorSnapshotId, owned.snapshotIds),
-          ),
+          member(selection.snapshotId, owned.snapshotIds),
         ),
       )
       .limit(1)

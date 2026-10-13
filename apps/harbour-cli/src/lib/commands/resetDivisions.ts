@@ -125,7 +125,7 @@ export async function divisionResetBlockers(context: ResetReadContext) {
   await check(
     context.metaBinding,
     'Other API families use division snapshots',
-    `SELECT 1 FROM apiReleaseSetSnapshots WHERE apiReleaseSetId NOT IN (${SETS}) AND (snapshotId IN (${SNAPSHOTS}) OR anchorSnapshotId IN (${SNAPSHOTS})) LIMIT 1`,
+    `SELECT 1 FROM apiReleaseSetSnapshots WHERE apiReleaseSetId NOT IN (${SETS}) AND snapshotId IN (${SNAPSHOTS}) LIMIT 1`,
   )
   await check(
     context.metaBinding,

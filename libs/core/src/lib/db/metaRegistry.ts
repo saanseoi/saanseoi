@@ -390,7 +390,6 @@ export async function listRegistryReleases(
           role: metaApiReleaseSetSnapshots.role,
           isRequired: metaApiReleaseSetSnapshots.isRequired,
           cohortMatchingMode: metaApiReleaseSetSnapshots.cohortMatchingMode,
-          anchorSnapshotId: metaApiReleaseSetSnapshots.anchorSnapshotId,
           createdAt: metaApiReleaseSetSnapshots.createdAt,
           snapshot: {
             id: metaSnapshots.id,
@@ -2806,7 +2805,6 @@ export async function listApiCompositionMembers(
       role: metaApiCompositionMembers.role,
       isRequired: metaApiCompositionMembers.isRequired,
       cohortMatchingMode: metaApiCompositionMembers.cohortMatchingMode,
-      anchorResourceType: metaApiCompositionMembers.anchorResourceType,
       maxLagDays: metaApiCompositionMembers.maxLagDays,
       priority: metaApiCompositionMembers.priority,
     })
@@ -4798,7 +4796,6 @@ export async function publishReleaseArtefacts(
         role: metaApiReleaseSetSnapshots.role,
         isRequired: metaApiReleaseSetSnapshots.isRequired,
         cohortMatchingMode: metaApiReleaseSetSnapshots.cohortMatchingMode,
-        anchorSnapshotId: metaApiReleaseSetSnapshots.anchorSnapshotId,
       })
       .from(metaApiReleaseSetSnapshots)
       .innerJoin(
@@ -4832,7 +4829,6 @@ export async function publishReleaseArtefacts(
     const releaseSetSnapshots = new Map<
       string,
       {
-        anchorSnapshotId: string | null
         isRequired: boolean
         role: string
         snapshotId: string
@@ -4848,7 +4844,6 @@ export async function publishReleaseArtefacts(
           role: snapshot.role,
           isRequired: Boolean(snapshot.isRequired),
           cohortMatchingMode: snapshot.cohortMatchingMode,
-          anchorSnapshotId: snapshot.anchorSnapshotId ?? null,
           snapshotId: snapshot.snapshotId,
           variant: snapshot.variant,
         },
@@ -4873,7 +4868,6 @@ export async function publishReleaseArtefacts(
             (snapshot.resourceType === args.resourceType ? 'supplementary' : 'lookup'),
           isRequired: member?.isRequired ?? true,
           cohortMatchingMode: member?.cohortMatchingMode ?? 'carry_forward_optional',
-          anchorSnapshotId: null,
           snapshotId: snapshot.snapshotId,
           variant: snapshot.variant ?? 'default',
         },
@@ -4886,36 +4880,10 @@ export async function publishReleaseArtefacts(
         role: datasetMember?.role ?? 'primary',
         isRequired: datasetMember?.isRequired ?? true,
         cohortMatchingMode: datasetMember?.cohortMatchingMode ?? 'exact_ref',
-        anchorSnapshotId: null,
         snapshotId: args.snapshotId,
         variant: datasetVariant,
       },
     )
-
-    for (const member of compositionMembers) {
-      if (member.domainCode !== releaseSet.domainCode || !member.anchorResourceType) {
-        continue
-      }
-
-      const memberSnapshot = releaseSetSnapshots.get(
-        buildReleaseSetSnapshotMemberKey(member.resourceType, member.variant),
-      )
-      const anchorMember = compositionMembers.find(
-        candidate =>
-          candidate.domainCode === releaseSet.domainCode &&
-          candidate.resourceType === member.anchorResourceType,
-      )
-
-      if (!memberSnapshot || !anchorMember) continue
-
-      memberSnapshot.anchorSnapshotId =
-        releaseSetSnapshots.get(
-          buildReleaseSetSnapshotMemberKey(
-            anchorMember.resourceType,
-            anchorMember.variant,
-          ),
-        )?.snapshotId ?? null
-    }
 
     const publishedAt = toIsoTimestamp(args.publishedAt)
     const deferApiReleaseSet = args.deferApiReleaseSet === true
@@ -5625,7 +5593,6 @@ export async function publishReleaseArtefacts(
               role: snapshotMetadata.role,
               isRequired: snapshotMetadata.isRequired,
               cohortMatchingMode: snapshotMetadata.cohortMatchingMode,
-              anchorSnapshotId: snapshotMetadata.anchorSnapshotId,
               createdAt: publishedAt,
             })
             .onConflictDoUpdate({
@@ -5638,7 +5605,6 @@ export async function publishReleaseArtefacts(
                 role: snapshotMetadata.role,
                 isRequired: snapshotMetadata.isRequired,
                 cohortMatchingMode: snapshotMetadata.cohortMatchingMode,
-                anchorSnapshotId: snapshotMetadata.anchorSnapshotId,
               },
             }),
         )
@@ -6101,7 +6067,6 @@ export async function upsertApiReleaseSetSnapshot(
   releaseSetId: string,
   snapshotId: string,
   options: {
-    anchorSnapshotId?: string | null
     isRequired?: boolean
     role?: string
     cohortMatchingMode?: string
@@ -6117,7 +6082,6 @@ export async function upsertApiReleaseSetSnapshot(
       role: options.role ?? 'lookup',
       isRequired: options.isRequired ?? true,
       cohortMatchingMode: options.cohortMatchingMode ?? 'carry_forward_optional',
-      anchorSnapshotId: options.anchorSnapshotId ?? null,
       createdAt: toIsoTimestamp(),
     })
     .onConflictDoUpdate({
@@ -6131,7 +6095,6 @@ export async function upsertApiReleaseSetSnapshot(
         role: options.role ?? 'lookup',
         isRequired: options.isRequired ?? true,
         cohortMatchingMode: options.cohortMatchingMode ?? 'carry_forward_optional',
-        anchorSnapshotId: options.anchorSnapshotId ?? null,
       },
     })
     .run()

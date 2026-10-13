@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:61cd0eaeab0e7a9fce18e932e388406c782816f4d07cb612434591da40852e83",
+  "versionHash": "sha256:040b676f287ff9bef326dd0b511b83dabcfd672cbf6131207d3460d1e05677a0",
   "apiVersion": "api-places-v0.1",
   "code": "comp-places-v1",
   "version": 1,
@@ -51,7 +51,6 @@
           "role": "lookup",
           "isRequired": true,
           "cohortMatchingMode": "latest_at_or_before_or_earliest_after_cohort",
-          "anchorResourceType": "place",
           "priority": 10
         },
         {
@@ -60,7 +59,6 @@
           "role": "lookup",
           "isRequired": true,
           "cohortMatchingMode": "exact_ref",
-          "anchorResourceType": "place",
           "priority": 15
         },
         {
@@ -69,7 +67,6 @@
           "role": "lookup",
           "isRequired": true,
           "cohortMatchingMode": "latest_at_or_before_or_earliest_after_cohort",
-          "anchorResourceType": "address",
           "priority": 20
         }
       ]

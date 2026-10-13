@@ -536,19 +536,17 @@ id TEXT PRIMARY KEY NOT NULL,
           role TEXT NOT NULL DEFAULT 'supporting',
           isRequired INTEGER NOT NULL DEFAULT 1,
           selectionMode TEXT NOT NULL DEFAULT 'carry_forward_optional',
-          anchorSnapshotId TEXT,
           createdAt INTEGER NOT NULL DEFAULT ${FIXTURE_TIMESTAMP_MS},
           PRIMARY KEY (apiReleaseSetId, snapshotId),
           FOREIGN KEY (apiReleaseSetId) REFERENCES apiReleaseSets(id) ON DELETE CASCADE,
-          FOREIGN KEY (snapshotId) REFERENCES snapshots(id) ON DELETE RESTRICT,
-          FOREIGN KEY (anchorSnapshotId) REFERENCES snapshots(id) ON DELETE RESTRICT
+          FOREIGN KEY (snapshotId) REFERENCES snapshots(id) ON DELETE RESTRICT
         );
       `,
       `
         INSERT OR IGNORE INTO apiReleaseSetSnapshots (
-          apiReleaseSetId, snapshotId, role, isRequired, selectionMode, anchorSnapshotId, createdAt
+          apiReleaseSetId, snapshotId, role, isRequired, selectionMode, createdAt
         )
-        SELECT apiReleaseSetId, snapshotId, 'supporting', 1, 'carry_forward_optional', null, ${FIXTURE_TIMESTAMP_MS}
+        SELECT apiReleaseSetId, snapshotId, 'supporting', 1, 'carry_forward_optional', ${FIXTURE_TIMESTAMP_MS}
         FROM __LEGACY_TABLE__;
       `,
     )
@@ -563,19 +561,17 @@ id TEXT PRIMARY KEY NOT NULL,
           role TEXT NOT NULL DEFAULT 'supporting',
           isRequired INTEGER NOT NULL DEFAULT 1,
           selectionMode TEXT NOT NULL DEFAULT 'carry_forward_optional',
-          anchorSnapshotId TEXT,
           createdAt INTEGER NOT NULL DEFAULT ${FIXTURE_TIMESTAMP_MS},
           PRIMARY KEY (apiReleaseSetId, snapshotId),
           FOREIGN KEY (apiReleaseSetId) REFERENCES apiReleaseSets(id) ON DELETE CASCADE,
-          FOREIGN KEY (snapshotId) REFERENCES snapshots(id) ON DELETE RESTRICT,
-          FOREIGN KEY (anchorSnapshotId) REFERENCES snapshots(id) ON DELETE RESTRICT
+          FOREIGN KEY (snapshotId) REFERENCES snapshots(id) ON DELETE RESTRICT
         );
       `,
       `
         INSERT OR IGNORE INTO apiReleaseSetSnapshots (
-          apiReleaseSetId, snapshotId, role, isRequired, selectionMode, anchorSnapshotId, createdAt
+          apiReleaseSetId, snapshotId, role, isRequired, selectionMode, createdAt
         )
-        SELECT apiReleaseSetId, snapshotId, 'supporting', 1, 'carry_forward_optional', null, ${FIXTURE_TIMESTAMP_MS}
+        SELECT apiReleaseSetId, snapshotId, 'supporting', 1, 'carry_forward_optional', ${FIXTURE_TIMESTAMP_MS}
         FROM __LEGACY_TABLE__;
       `,
     )
@@ -607,12 +603,6 @@ id TEXT PRIMARY KEY NOT NULL,
     addColumnIfMissing(
       db,
       'apiReleaseSetSnapshots',
-      'anchorSnapshotId',
-      'anchorSnapshotId TEXT',
-    )
-    addColumnIfMissing(
-      db,
-      'apiReleaseSetSnapshots',
       'createdAt',
       `createdAt INTEGER NOT NULL DEFAULT ${FIXTURE_TIMESTAMP_MS}`,
     )
@@ -633,7 +623,6 @@ id TEXT PRIMARY KEY NOT NULL,
           role TEXT NOT NULL,
           isRequired INTEGER NOT NULL,
           selectionMode TEXT NOT NULL,
-          anchorResourceType TEXT,
           maxLagDays INTEGER,
           priority INTEGER NOT NULL DEFAULT 0,
           PRIMARY KEY (apiCompositionId, resourceType, variant)
@@ -641,9 +630,9 @@ id TEXT PRIMARY KEY NOT NULL,
       `,
       `
         INSERT INTO apiCompositionMembers (
-          apiCompositionId, resourceType, variant, role, isRequired, selectionMode, anchorResourceType, maxLagDays, priority
+          apiCompositionId, resourceType, variant, role, isRequired, selectionMode, maxLagDays, priority
         )
-          SELECT apiCompositionId, resourceType, 'default', role, isRequired, selectionMode, anchorResourceType, maxLagDays, priority
+          SELECT apiCompositionId, resourceType, 'default', role, isRequired, selectionMode, maxLagDays, priority
         FROM __LEGACY_TABLE__;
       `,
     )
@@ -750,7 +739,6 @@ id TEXT PRIMARY KEY NOT NULL,
       role TEXT NOT NULL,
       isRequired INTEGER NOT NULL,
       cohortMatchingMode TEXT NOT NULL,
-      anchorResourceType TEXT,
       maxLagDays INTEGER,
       priority INTEGER NOT NULL DEFAULT 0,
       PRIMARY KEY (apiCompositionId, domainCode, resourceType, variant)
@@ -1029,24 +1017,23 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
     ON CONFLICT(id) DO NOTHING;
 
     INSERT INTO apiCompositionMembers (
-      apiCompositionId, domainCode, resourceType, variant, role, isRequired, cohortMatchingMode, anchorResourceType, maxLagDays, priority
+      apiCompositionId, domainCode, resourceType, variant, role, isRequired, cohortMatchingMode, maxLagDays, priority
     ) VALUES
-      ('api-composition-addresses-v1', 'saanseoi', 'address', 'hkgov-dpo', 'primary', 1, 'exact_ref', null, null, 0),
-      ('api-composition-addresses-v1', 'saanseoi', 'address', 'overture-places', 'supplementary', 1, 'latest_at_or_before_or_earliest_after_cohort', 'address', null, 5),
-      ('api-composition-addresses-v1', 'saanseoi', 'division', 'overture', 'lookup', 1, 'latest_at_or_before_or_earliest_after_cohort', 'address', null, 10),
-      ('api-composition-divisions-v1', 'geographic', 'division', 'overture', 'primary', 1, 'exact_ref', null, null, 0),
-      ('api-composition-divisions-v1', 'geographic', 'divisionArea', 'overture', 'geometry', 1, 'exact_ref', null, null, 10),
-      ('api-composition-divisions-v1', 'geographic', 'divisionBoundary', 'overture', 'geometry', 1, 'exact_ref', null, null, 20),
-      ('api-composition-divisions-v1', 'hkgov-landsd', 'division', 'hkgov-landsd', 'primary', 1, 'exact_ref', null, null, 0),
-      ('api-composition-places-v1', 'overture', 'place', 'overture', 'primary', 1, 'exact_ref', null, null, 0),
-      ('api-composition-places-v1', 'overture', 'address', 'hkgov-dpo', 'lookup', 1, 'latest_at_or_before_or_earliest_after_cohort', 'place', null, 10),
-      ('api-composition-places-v1', 'overture', 'address', 'overture-places', 'lookup', 1, 'exact_ref', 'place', null, 15),
-      ('api-composition-places-v1', 'overture', 'division', 'overture', 'lookup', 1, 'latest_at_or_before_or_earliest_after_cohort', 'address', null, 20)
+      ('api-composition-addresses-v1', 'saanseoi', 'address', 'hkgov-dpo', 'primary', 1, 'exact_ref', null, 0),
+      ('api-composition-addresses-v1', 'saanseoi', 'address', 'overture-places', 'supplementary', 1, 'latest_at_or_before_or_earliest_after_cohort', null, 5),
+      ('api-composition-addresses-v1', 'saanseoi', 'division', 'overture', 'lookup', 1, 'latest_at_or_before_or_earliest_after_cohort', null, 10),
+      ('api-composition-divisions-v1', 'geographic', 'division', 'overture', 'primary', 1, 'exact_ref', null, 0),
+      ('api-composition-divisions-v1', 'geographic', 'divisionArea', 'overture', 'geometry', 1, 'exact_ref', null, 10),
+      ('api-composition-divisions-v1', 'geographic', 'divisionBoundary', 'overture', 'geometry', 1, 'exact_ref', null, 20),
+      ('api-composition-divisions-v1', 'hkgov-landsd', 'division', 'hkgov-landsd', 'primary', 1, 'exact_ref', null, 0),
+      ('api-composition-places-v1', 'overture', 'place', 'overture', 'primary', 1, 'exact_ref', null, 0),
+      ('api-composition-places-v1', 'overture', 'address', 'hkgov-dpo', 'lookup', 1, 'latest_at_or_before_or_earliest_after_cohort', null, 10),
+      ('api-composition-places-v1', 'overture', 'address', 'overture-places', 'lookup', 1, 'exact_ref', null, 15),
+      ('api-composition-places-v1', 'overture', 'division', 'overture', 'lookup', 1, 'latest_at_or_before_or_earliest_after_cohort', null, 20)
     ON CONFLICT(apiCompositionId, domainCode, resourceType, variant) DO UPDATE SET
       role = excluded.role,
       isRequired = excluded.isRequired,
       cohortMatchingMode = excluded.cohortMatchingMode,
-      anchorResourceType = excluded.anchorResourceType,
       maxLagDays = excluded.maxLagDays,
       priority = excluded.priority;
 

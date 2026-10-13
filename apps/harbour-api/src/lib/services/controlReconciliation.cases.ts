@@ -81,14 +81,14 @@ test('reconciles a draft division release set once its required C&SD areas are a
 
     INSERT INTO apiCompositionMembers (
       apiCompositionId, i18n, domainCode, resourceType, variant, role, isRequired,
-      cohortMatchingMode, anchorResourceType, maxLagDays, priority
+      cohortMatchingMode, maxLagDays, priority
     ) VALUES
-      ('api-composition-divisions-v1', '{"en":{"name":"Geographic","description":"Explore the geographical and administrative divisions used to describe Hong Kong, including districts, planning units, new towns, boundaries, and areas."}}', 'geographic', 'division', 'overture', 'primary', 1, 'exact_ref', null, null, 0),
-      ('api-composition-divisions-v1', '{}', 'geographic', 'divisionArea', 'overture', 'geometry', 1, 'exact_ref', null, null, 10),
-      ('api-composition-divisions-v1', '{}', 'geographic', 'divisionArea', 'hkgov-had', 'geometry', 1, 'latest_at_or_before_cohort_per_dataset', null, null, 11),
-      ('api-composition-divisions-v1', '{}', 'geographic', 'divisionArea', 'hkgov-censtatd:2016', 'geometry', 1, 'latest_at_or_before_cohort_per_dataset', null, null, 12),
-      ('api-composition-divisions-v1', '{}', 'geographic', 'divisionArea', 'hkgov-censtatd:2021', 'geometry', 1, 'latest_at_or_before_cohort_per_dataset', null, null, 13),
-      ('api-composition-divisions-v1', '{}', 'geographic', 'divisionBoundary', 'overture', 'geometry', 1, 'exact_ref', null, null, 20);
+      ('api-composition-divisions-v1', '{"en":{"name":"Geographic","description":"Explore the geographical and administrative divisions used to describe Hong Kong, including districts, planning units, new towns, boundaries, and areas."}}', 'geographic', 'division', 'overture', 'primary', 1, 'exact_ref', null, 0),
+      ('api-composition-divisions-v1', '{}', 'geographic', 'divisionArea', 'overture', 'geometry', 1, 'exact_ref', null, 10),
+      ('api-composition-divisions-v1', '{}', 'geographic', 'divisionArea', 'hkgov-had', 'geometry', 1, 'latest_at_or_before_cohort_per_dataset', null, 11),
+      ('api-composition-divisions-v1', '{}', 'geographic', 'divisionArea', 'hkgov-censtatd:2016', 'geometry', 1, 'latest_at_or_before_cohort_per_dataset', null, 12),
+      ('api-composition-divisions-v1', '{}', 'geographic', 'divisionArea', 'hkgov-censtatd:2021', 'geometry', 1, 'latest_at_or_before_cohort_per_dataset', null, 13),
+      ('api-composition-divisions-v1', '{}', 'geographic', 'divisionBoundary', 'overture', 'geometry', 1, 'exact_ref', null, 20);
 
     INSERT INTO apiReleaseSets (
       id, code, regionCode, domainCode, cohortKey, revision, schemaVersion,
@@ -256,16 +256,14 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
   const members = sqlite
     .query(
       `
-        SELECT s.code, arss.variant, anchor.code AS anchorCode
+        SELECT s.code, arss.variant
         FROM apiReleaseSetSnapshots arss
         INNER JOIN snapshots s ON s.id = arss.snapshotId
-        LEFT JOIN snapshots anchor ON anchor.id = arss.anchorSnapshotId
         WHERE arss.apiReleaseSetId = ?
         ORDER BY arss.variant, s.code
       `,
     )
     .all(releaseSetId) as Array<{
-    anchorCode: string | null
     code: string
     variant: string
   }>
@@ -558,22 +556,18 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
   ])
   expect(members).toEqual([
     {
-      anchorCode: null,
       code: 'ss-hk-division-area-2022',
       variant: 'hkgov-had',
     },
     {
-      anchorCode: null,
       code: 'ss-hk-division-2025-09-24.0',
       variant: 'overture',
     },
     {
-      anchorCode: null,
       code: 'ss-hk-division-area-2025-09-24.0',
       variant: 'overture',
     },
     {
-      anchorCode: null,
       code: 'ss-hk-division-boundary-2025-09-24.0',
       variant: 'overture',
     },

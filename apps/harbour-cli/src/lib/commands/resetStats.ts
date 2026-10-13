@@ -122,7 +122,7 @@ export async function statsResetBlockers(context: ResetReadContext) {
   await check(
     context.metaBinding,
     'Other API families use statistics snapshots',
-    `SELECT 1 FROM apiReleaseSetSnapshots WHERE apiReleaseSetId NOT IN (${setSelection}) AND (snapshotId IN (${snapshotSelection}) OR anchorSnapshotId IN (${snapshotSelection})) LIMIT 1`,
+    `SELECT 1 FROM apiReleaseSetSnapshots WHERE apiReleaseSetId NOT IN (${setSelection}) AND snapshotId IN (${snapshotSelection}) LIMIT 1`,
   )
   await check(
     context.metaBinding,

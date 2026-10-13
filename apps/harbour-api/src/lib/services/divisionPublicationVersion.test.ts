@@ -22,7 +22,7 @@ function publicationDb() {
     CREATE TABLE apiReleaseSets(id TEXT PRIMARY KEY,cohortKey TEXT,code TEXT,regionCode TEXT,createdAt TEXT);
     CREATE TABLE apiVersionReleaseSets(apiReleaseSetId TEXT,apiVersionId TEXT,status TEXT);
     CREATE TABLE apiComposition(id TEXT PRIMARY KEY,apiVersionId TEXT,code TEXT,version INTEGER,primaryResourceType TEXT,defaultDomainCode TEXT,status TEXT,createdAt TEXT);
-    CREATE TABLE apiCompositionMembers(apiCompositionId TEXT,resourceType TEXT,domainCode TEXT,variant TEXT,role TEXT,isRequired INTEGER,cohortMatchingMode TEXT,anchorResourceType TEXT,maxLagDays INTEGER,priority INTEGER);
+    CREATE TABLE apiCompositionMembers(apiCompositionId TEXT,resourceType TEXT,domainCode TEXT,variant TEXT,role TEXT,isRequired INTEGER,cohortMatchingMode TEXT,maxLagDays INTEGER,priority INTEGER);
   `)
   for (const [id, fixture] of [
     ['v01', v01],
@@ -43,7 +43,7 @@ function publicationDb() {
     for (const domain of fixture.domains)
       for (const member of domain.members)
         sqlite
-          .query('INSERT INTO apiCompositionMembers VALUES(?,?,?,?,?,?,?,?,?,?)')
+          .query('INSERT INTO apiCompositionMembers VALUES(?,?,?,?,?,?,?,?,?)')
           .run(
             fixture.code,
             member.resourceType,
@@ -52,7 +52,6 @@ function publicationDb() {
             member.role,
             Number(member.isRequired),
             member.cohortMatchingMode,
-            null,
             null,
             member.priority,
           )

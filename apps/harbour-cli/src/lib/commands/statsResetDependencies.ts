@@ -101,11 +101,7 @@ export async function collectStatsResetDependencies(
   )
   const affectedSetIds = new Set(
     members
-      .filter(
-        row =>
-          selected.has(String(row.snapshotId)) ||
-          selected.has(String(row.anchorSnapshotId)),
-      )
+      .filter(row => selected.has(String(row.snapshotId)))
       .map(row => String(row.apiReleaseSetId)),
   )
   const allSets = await resetRows(
@@ -160,8 +156,7 @@ export async function collectStatsResetDependencies(
       members: members.filter(
         row =>
           setIds.has(String(row.apiReleaseSetId)) ||
-          selected.has(String(row.snapshotId)) ||
-          selected.has(String(row.anchorSnapshotId)),
+          selected.has(String(row.snapshotId)),
       ),
       catalogMembers: catalogMembers.filter(row =>
         affectedCatalogIds.has(String(row.apiCatalogRevisionId)),

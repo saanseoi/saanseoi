@@ -173,7 +173,6 @@ id TEXT PRIMARY KEY,
       role TEXT NOT NULL,
       isRequired INTEGER NOT NULL,
       cohortMatchingMode TEXT,
-      anchorSnapshotId TEXT,
       createdAt TEXT NOT NULL
     );
 
@@ -604,7 +603,6 @@ function createDraftReleaseSetDb() {
       role TEXT NOT NULL,
       isRequired INTEGER NOT NULL,
       cohortMatchingMode TEXT NOT NULL,
-      anchorResourceType TEXT,
       maxLagDays INTEGER,
       priority INTEGER NOT NULL DEFAULT 0,
       PRIMARY KEY (apiCompositionId, domainCode, resourceType, variant)
@@ -1049,7 +1047,6 @@ function createPublishReleaseArtefactsDb() {
       role TEXT NOT NULL,
       isRequired INTEGER NOT NULL,
       cohortMatchingMode TEXT NOT NULL,
-      anchorResourceType TEXT,
       maxLagDays INTEGER,
       priority INTEGER NOT NULL DEFAULT 0,
       PRIMARY KEY (apiCompositionId, domainCode, resourceType, variant)
@@ -1165,7 +1162,6 @@ id TEXT PRIMARY KEY,
       role TEXT NOT NULL,
       isRequired INTEGER NOT NULL,
       cohortMatchingMode TEXT NOT NULL,
-      anchorSnapshotId TEXT,
       createdAt INTEGER NOT NULL,
       PRIMARY KEY (apiReleaseSetId, snapshotId, variant)
     );
@@ -3595,11 +3591,11 @@ describe('publishReleaseArtefacts', () => {
 
       INSERT INTO apiReleaseSetSnapshots (
         apiReleaseSetId, snapshotId, variant, role, isRequired,
-        cohortMatchingMode, anchorSnapshotId, createdAt
+        cohortMatchingMode, createdAt
       ) VALUES
-        ('release-set-addresses', 'snapshot-address', 'hkgov-dpo', 'primary', 1, 'exact_ref', null, 1760000000000),
-        ('release-set-addresses', 'snapshot-place-address', 'overture-places', 'supplementary', 1, 'exact_ref', 'snapshot-address', 1760000000000),
-        ('release-set-addresses', 'snapshot-division', 'overture', 'lookup', 1, 'exact_ref', null, 1760000000000);
+        ('release-set-addresses', 'snapshot-address', 'hkgov-dpo', 'primary', 1, 'exact_ref', 1760000000000),
+        ('release-set-addresses', 'snapshot-place-address', 'overture-places', 'supplementary', 1, 'exact_ref', 1760000000000),
+        ('release-set-addresses', 'snapshot-division', 'overture', 'lookup', 1, 'exact_ref', 1760000000000);
     `)
 
     for (const [datasetCode, resourceReleaseId] of [
@@ -3754,7 +3750,7 @@ describe('publishReleaseArtefacts', () => {
         ('snapshot-new', 'dataset-overture-division', 'release-1');
 
       INSERT INTO apiReleaseSetSnapshots (
-        apiReleaseSetId, snapshotId, variant, role, isRequired, cohortMatchingMode, anchorSnapshotId, createdAt
+        apiReleaseSetId, snapshotId, variant, role, isRequired, cohortMatchingMode, createdAt
       ) VALUES (
         'release-set-1',
         'snapshot-curated',
@@ -3762,7 +3758,6 @@ describe('publishReleaseArtefacts', () => {
         'supporting',
         1,
         'carry_forward_optional',
-        null,
         1760000000000
       );
     `)
@@ -4086,7 +4081,7 @@ describe('publishReleaseArtefacts', () => {
         ('snapshot-censtatd', 'dataset-overture-division', 'release-overture-2026', 'lookup');
 
       INSERT INTO apiReleaseSetSnapshots (
-        apiReleaseSetId, snapshotId, variant, role, isRequired, cohortMatchingMode, anchorSnapshotId, createdAt
+        apiReleaseSetId, snapshotId, variant, role, isRequired, cohortMatchingMode, createdAt
       ) VALUES (
         'release-set-1',
         'snapshot-overture',
@@ -4094,7 +4089,6 @@ describe('publishReleaseArtefacts', () => {
         'primary',
         1,
         'exact_ref',
-        null,
         1760000000000
       );
     `)

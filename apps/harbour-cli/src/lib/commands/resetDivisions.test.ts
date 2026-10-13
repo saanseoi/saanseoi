@@ -292,7 +292,7 @@ describe('all-divisions reset', () => {
     ).toEqual([{ resourceReleaseId: 'statistics' }])
   })
 
-  test('blocks other snapshot sources and API anchor dependencies', async () => {
+  test('blocks other snapshot sources and API membership dependencies', async () => {
     const { meta, context } = setup()
     insert(meta, 'snapshotResourceReleases', {
       snapshotId: 'place',
@@ -300,7 +300,7 @@ describe('all-divisions reset', () => {
       resourceReleaseId: 'division',
     })
     meta.exec(
-      "UPDATE apiReleaseSetSnapshots SET anchorSnapshotId = 'divisionArea' WHERE apiReleaseSetId = 'places'",
+      "INSERT INTO apiReleaseSetSnapshots (apiReleaseSetId, snapshotId, role, isRequired, cohortMatchingMode) VALUES ('places', 'divisionArea', 'lookup', 1, 'exact_ref')",
     )
     expect(await divisionResetBlockers(context)).toEqual([
       'Other snapshot families use division releases',

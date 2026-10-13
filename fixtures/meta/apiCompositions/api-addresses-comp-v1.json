@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:f4d69ab562bce3c165b148ccf6c5b66bd8937cfc956d740ec76581020f6afcb4",
+  "versionHash": "sha256:ad0adc2d130cd28e48f3735bdf91859af03bddf98d2b6874f781464b159f90fe",
   "apiVersion": "api-addresses-v0.1",
   "code": "comp-addresses-v1",
   "version": 1,
@@ -47,7 +47,6 @@
           "role": "supplementary",
           "isRequired": true,
           "cohortMatchingMode": "latest_at_or_before_or_earliest_after_cohort",
-          "anchorResourceType": "address",
           "priority": 5
         },
         {
@@ -56,7 +55,6 @@
           "role": "lookup",
           "isRequired": true,
           "cohortMatchingMode": "latest_at_or_before_or_earliest_after_cohort",
-          "anchorResourceType": "address",
           "priority": 10
         }
       ]
