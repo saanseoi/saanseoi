@@ -135,7 +135,7 @@ export async function getOverturePlacesInitialisationStatus(target: UploadTarget
         .where(
           and(
             eq(metaSchema.metaDatasets.code, DATASET_CODE),
-            eq(metaSchema.metaSnapshots.resourceType, 'place'),
+            eq(metaSchema.metaSnapshotLineages.resourceType, 'place'),
             eq(metaSchema.metaSnapshots.status, 'published'),
             eq(metaSchema.metaSnapshotLineages.resourceType, 'place'),
             eq(metaSchema.metaSnapshotLineages.variant, 'overture'),
@@ -539,7 +539,7 @@ export async function collectOwnedPlaces(db: HarbourReadableDb): Promise<OwnedPl
     .map(row => row.id)
   const snapshotRows = await db
     .select({
-      resourceType: metaSchema.metaSnapshots.resourceType,
+      resourceType: metaSchema.metaSnapshotLineages.resourceType,
       snapshotId: metaSchema.metaSnapshots.id,
       variant: metaSchema.metaSnapshotLineages.variant,
     })
@@ -560,12 +560,12 @@ export async function collectOwnedPlaces(db: HarbourReadableDb): Promise<OwnedPl
         eq(metaSchema.metaDatasets.code, DATASET_CODE),
         or(
           and(
-            eq(metaSchema.metaSnapshots.resourceType, 'place'),
+            eq(metaSchema.metaSnapshotLineages.resourceType, 'place'),
             eq(metaSchema.metaSnapshotLineages.resourceType, 'place'),
             eq(metaSchema.metaSnapshotLineages.variant, 'overture'),
           ),
           and(
-            eq(metaSchema.metaSnapshots.resourceType, 'address'),
+            eq(metaSchema.metaSnapshotLineages.resourceType, 'address'),
             eq(metaSchema.metaSnapshotLineages.resourceType, 'address'),
             eq(metaSchema.metaSnapshotLineages.variant, SUPPLEMENTARY_ADDRESS_VARIANT),
           ),
@@ -695,7 +695,14 @@ async function assertCleanPlacesBaseline(
     context.metaDb
       .select({ id: metaSchema.metaSnapshots.id })
       .from(metaSchema.metaSnapshots)
-      .where(eq(metaSchema.metaSnapshots.resourceType, 'place'))
+      .innerJoin(
+        metaSchema.metaSnapshotLineages,
+        eq(
+          metaSchema.metaSnapshots.snapshotLineageId,
+          metaSchema.metaSnapshotLineages.id,
+        ),
+      )
+      .where(eq(metaSchema.metaSnapshotLineages.resourceType, 'place'))
       .limit(1)
       .get(),
     context.currentDb
@@ -776,11 +783,11 @@ async function assertPlacesResetStillSafe(
         eq(metaSchema.metaDatasets.code, DATASET_CODE),
         or(
           and(
-            eq(metaSchema.metaSnapshots.resourceType, 'place'),
+            eq(metaSchema.metaSnapshotLineages.resourceType, 'place'),
             eq(metaSchema.metaSnapshotLineages.variant, 'overture'),
           ),
           and(
-            eq(metaSchema.metaSnapshots.resourceType, 'address'),
+            eq(metaSchema.metaSnapshotLineages.resourceType, 'address'),
             eq(metaSchema.metaSnapshotLineages.variant, SUPPLEMENTARY_ADDRESS_VARIANT),
           ),
         ),

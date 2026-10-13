@@ -14,10 +14,12 @@ test('missing points use only pinned current area companions and reject conflict
   let resolver: ReturnType<typeof missingDivisionAreaResolver> | undefined
   try {
     meta.exec(`CREATE TABLE apiReleaseSetSnapshots(apiReleaseSetId TEXT,snapshotId TEXT,variant TEXT,role TEXT);
-      CREATE TABLE snapshots(id TEXT,resourceType TEXT);
+      CREATE TABLE snapshots(id TEXT,snapshotLineageId TEXT NOT NULL);
+      CREATE TABLE snapshotLineages(id TEXT PRIMARY KEY,resourceType TEXT);
+      INSERT INTO snapshotLineages VALUES ('areas','divisionArea');
       INSERT INTO apiReleaseSetSnapshots VALUES ('release','identity','native','primary'),
         ('release','selected','native','geometry'),('release','other','unrelated','geometry');
-      INSERT INTO snapshots VALUES ('selected','divisionArea'),('other','divisionArea');`)
+      INSERT INTO snapshots VALUES ('selected','areas'),('other','areas');`)
     current.exec(`CREATE TABLE divisionAreas(snapshotId TEXT,divisionId TEXT,geometry TEXT);
       CREATE TABLE divisionAreaPublicationState(scopeId TEXT,snapshotId TEXT,status TEXT);
       INSERT INTO divisionAreaPublicationState VALUES ('selected-scope','selected','current'),

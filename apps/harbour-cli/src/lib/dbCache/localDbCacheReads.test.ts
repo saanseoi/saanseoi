@@ -21,14 +21,35 @@ test('completed geometry contributors can precede shared composition publication
        INSERT INTO divisionAreaPublicationState VALUES ('snapshot','["lineage","2026"]','publishing','complete','delivery');`,
     )
     meta.exec(`
-      CREATE TABLE snapshots(id TEXT, snapshotLineageId TEXT, resourceType TEXT, status TEXT, revision INTEGER, cohortKey TEXT);
+      CREATE TABLE snapshots(
+      id TEXT,
+      snapshotLineageId TEXT NOT NULL,
+      status TEXT,
+      revision INTEGER,
+      cohortKey TEXT
+    );
       CREATE TABLE snapshotResourceReleases(snapshotId TEXT, datasetId TEXT, resourceReleaseId TEXT, selectionMode TEXT, selectedByRule TEXT, anchorReleaseId TEXT);
-      CREATE TABLE snapshotLineages(id TEXT, resourceType TEXT, primaryDatasetId TEXT);
+      CREATE TABLE snapshotLineages (
+      id TEXT PRIMARY KEY,
+      code TEXT UNIQUE,
+      regionCode TEXT NOT NULL DEFAULT 'hk',
+      resourceType TEXT,
+      variant TEXT NOT NULL DEFAULT 'default',
+      identityMode TEXT NOT NULL DEFAULT 'persistent',
+      primaryDatasetId TEXT,
+      versionHash TEXT NOT NULL DEFAULT 'fixture',
+      createdAt TEXT NOT NULL DEFAULT '2026-01-01T00:00:00.000Z',
+      updatedAt TEXT NOT NULL DEFAULT '2026-01-01T00:00:00.000Z'
+    );
       CREATE TABLE releaseShardAssignments(resourceReleaseId TEXT);
       CREATE TABLE snapshotShardAssignments(snapshotId TEXT);
-      INSERT INTO snapshots VALUES ('snapshot','lineage','divisionArea','draft',0,'2026');
+      INSERT INTO snapshotLineages (id,resourceType,primaryDatasetId) VALUES ('lineage','divisionArea','primary');
+INSERT OR IGNORE INTO snapshotLineages (id,code,resourceType,regionCode,variant,identityMode,versionHash,createdAt,updatedAt) VALUES ('lineage','lineage','divisionArea','hk','default','persistent','fixture','2026-01-01T00:00:00.000Z','2026-01-01T00:00:00.000Z');
+UPDATE snapshotLineages SET resourceType='divisionArea' WHERE id='lineage' AND resourceType IS NULL;
+INSERT INTO snapshots (id, snapshotLineageId, status, revision, cohortKey) VALUES
+('snapshot', 'lineage', 'draft', 0, '2026');
       INSERT INTO snapshotResourceReleases VALUES ('snapshot','contributor','release','contributed_geometry','assembly:division-geometry:source-release:v1','release');
-      INSERT INTO snapshotLineages VALUES ('lineage','divisionArea','primary');
+
       INSERT INTO releaseShardAssignments VALUES ('release'),('release'),('release');
       INSERT INTO snapshotShardAssignments VALUES ('snapshot');
     `)
@@ -70,7 +91,10 @@ test('completed geometry contributors can precede shared composition publication
     // A new revision inherits the contributor and replaces the one current
     // receipt for this lineage/cohort; the old release remains complete.
     meta.exec(`
-      INSERT INTO snapshots VALUES ('replacement','lineage','divisionArea','published',1,'2026');
+      INSERT OR IGNORE INTO snapshotLineages (id,code,resourceType,regionCode,variant,identityMode,versionHash,createdAt,updatedAt) VALUES ('lineage','lineage','divisionArea','hk','default','persistent','fixture','2026-01-01T00:00:00.000Z','2026-01-01T00:00:00.000Z');
+UPDATE snapshotLineages SET resourceType='divisionArea' WHERE id='lineage' AND resourceType IS NULL;
+INSERT INTO snapshots (id, snapshotLineageId, status, revision, cohortKey) VALUES
+('replacement', 'lineage', 'published', 1, '2026');
       INSERT INTO snapshotResourceReleases VALUES ('replacement','contributor','release','carried_forward_companion','provenance:censtatd-geometry:carried-forward-contributors:v1',NULL);
       INSERT INTO snapshotShardAssignments VALUES ('replacement');
     `)
@@ -97,16 +121,37 @@ test('initialisation skips published divisions only after their exact delivery i
   try {
     meta.exec(`
       CREATE TABLE resourceReleases(id TEXT, code TEXT, datasetId TEXT, resourceType TEXT, status TEXT);
-      CREATE TABLE snapshots(id TEXT, snapshotLineageId TEXT, resourceType TEXT, status TEXT, revision INTEGER, cohortKey TEXT);
+      CREATE TABLE snapshots(
+      id TEXT,
+      snapshotLineageId TEXT NOT NULL,
+      status TEXT,
+      revision INTEGER,
+      cohortKey TEXT
+    );
       CREATE TABLE snapshotResourceReleases(snapshotId TEXT, datasetId TEXT, resourceReleaseId TEXT, selectionMode TEXT, selectedByRule TEXT, anchorReleaseId TEXT);
-      CREATE TABLE snapshotLineages(id TEXT, resourceType TEXT, primaryDatasetId TEXT);
+      CREATE TABLE snapshotLineages (
+      id TEXT PRIMARY KEY,
+      code TEXT UNIQUE,
+      regionCode TEXT NOT NULL DEFAULT 'hk',
+      resourceType TEXT,
+      variant TEXT NOT NULL DEFAULT 'default',
+      identityMode TEXT NOT NULL DEFAULT 'persistent',
+      primaryDatasetId TEXT,
+      versionHash TEXT NOT NULL DEFAULT 'fixture',
+      createdAt TEXT NOT NULL DEFAULT '2026-01-01T00:00:00.000Z',
+      updatedAt TEXT NOT NULL DEFAULT '2026-01-01T00:00:00.000Z'
+    );
       CREATE TABLE releaseShardAssignments(resourceReleaseId TEXT);
       CREATE TABLE snapshotShardAssignments(snapshotId TEXT);
       INSERT INTO resourceReleases VALUES ('release','landsd','dataset','division','current');
       INSERT INTO resourceReleases VALUES ('older','landsd-older','dataset','division','archived');
-      INSERT INTO snapshots VALUES ('snapshot','lineage','division','published',0,'2026');
+      INSERT INTO snapshotLineages (id,resourceType,primaryDatasetId) VALUES ('lineage','division','dataset');
+INSERT OR IGNORE INTO snapshotLineages (id,code,resourceType,regionCode,variant,identityMode,versionHash,createdAt,updatedAt) VALUES ('lineage','lineage','division','hk','default','persistent','fixture','2026-01-01T00:00:00.000Z','2026-01-01T00:00:00.000Z');
+UPDATE snapshotLineages SET resourceType='division' WHERE id='lineage' AND resourceType IS NULL;
+INSERT INTO snapshots (id, snapshotLineageId, status, revision, cohortKey) VALUES
+('snapshot', 'lineage', 'published', 0, '2026');
       INSERT INTO snapshotResourceReleases VALUES ('snapshot','dataset','release',NULL,NULL,NULL);
-      INSERT INTO snapshotLineages VALUES ('lineage','division','dataset');
+
       INSERT INTO releaseShardAssignments VALUES ('release'),('release'),('release');
       INSERT INTO snapshotShardAssignments VALUES ('snapshot');
     `)
@@ -210,17 +255,41 @@ test('curated division delivery proves completion of its retained native baselin
   try {
     meta.exec(`
       CREATE TABLE resourceReleases(id TEXT, code TEXT, datasetId TEXT, resourceType TEXT, status TEXT);
-      CREATE TABLE snapshots(id TEXT, snapshotLineageId TEXT, resourceType TEXT, status TEXT, revision INTEGER, cohortKey TEXT);
+      CREATE TABLE snapshots(
+      id TEXT,
+      snapshotLineageId TEXT NOT NULL,
+      status TEXT,
+      revision INTEGER,
+      cohortKey TEXT
+    );
       CREATE TABLE snapshotResourceReleases(snapshotId TEXT, datasetId TEXT, resourceReleaseId TEXT, selectionMode TEXT, selectedByRule TEXT, anchorReleaseId TEXT);
-      CREATE TABLE snapshotLineages(id TEXT, resourceType TEXT, primaryDatasetId TEXT);
+      CREATE TABLE snapshotLineages (
+      id TEXT PRIMARY KEY,
+      code TEXT UNIQUE,
+      regionCode TEXT NOT NULL DEFAULT 'hk',
+      resourceType TEXT,
+      variant TEXT NOT NULL DEFAULT 'default',
+      identityMode TEXT NOT NULL DEFAULT 'persistent',
+      primaryDatasetId TEXT,
+      versionHash TEXT NOT NULL DEFAULT 'fixture',
+      createdAt TEXT NOT NULL DEFAULT '2026-01-01T00:00:00.000Z',
+      updatedAt TEXT NOT NULL DEFAULT '2026-01-01T00:00:00.000Z'
+    );
       CREATE TABLE releaseShardAssignments(resourceReleaseId TEXT);
       CREATE TABLE snapshotShardAssignments(snapshotId TEXT);
       INSERT INTO resourceReleases VALUES ('release','native','dataset','division','current');
-      INSERT INTO snapshots VALUES ('native','native-lineage','division','published',1,'2026-08');
-      INSERT INTO snapshots VALUES ('curated','curated-lineage','division','published',0,'2026-09');
+      INSERT INTO snapshotLineages (id,resourceType,primaryDatasetId) VALUES ('native-lineage','division','dataset'),('curated-lineage','division','curated-dataset');
+INSERT OR IGNORE INTO snapshotLineages (id,code,resourceType,regionCode,variant,identityMode,versionHash,createdAt,updatedAt) VALUES ('native-lineage','native-lineage','division','hk','default','persistent','fixture','2026-01-01T00:00:00.000Z','2026-01-01T00:00:00.000Z');
+UPDATE snapshotLineages SET resourceType='division' WHERE id='native-lineage' AND resourceType IS NULL;
+INSERT INTO snapshots (id, snapshotLineageId, status, revision, cohortKey) VALUES
+('native', 'native-lineage', 'published', 1, '2026-08');
+      INSERT OR IGNORE INTO snapshotLineages (id,code,resourceType,regionCode,variant,identityMode,versionHash,createdAt,updatedAt) VALUES ('curated-lineage','curated-lineage','division','hk','default','persistent','fixture','2026-01-01T00:00:00.000Z','2026-01-01T00:00:00.000Z');
+UPDATE snapshotLineages SET resourceType='division' WHERE id='curated-lineage' AND resourceType IS NULL;
+INSERT INTO snapshots (id, snapshotLineageId, status, revision, cohortKey) VALUES
+('curated', 'curated-lineage', 'published', 0, '2026-09');
       INSERT INTO snapshotResourceReleases VALUES ('native','dataset','release','exact_ref','assembly:division:source-release:v1','release');
       INSERT INTO snapshotResourceReleases VALUES ('curated','dataset','release','exact_ref','saanseoi-curated-division-assembly-v1','curated-release');
-      INSERT INTO snapshotLineages VALUES ('native-lineage','division','dataset'),('curated-lineage','division','curated-dataset');
+
       INSERT INTO releaseShardAssignments VALUES ('release'),('release'),('release');
       INSERT INTO snapshotShardAssignments VALUES ('native'),('curated');
     `)

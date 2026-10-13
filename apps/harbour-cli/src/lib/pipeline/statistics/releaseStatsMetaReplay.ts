@@ -272,7 +272,6 @@ export function buildStatisticSnapshotMetaSqlBatches(metadata: StatisticSnapshot
         'id',
         'snapshotLineageId',
         'parentSnapshotId',
-        'resourceType',
         'code',
         'cohortKey',
         'revision',

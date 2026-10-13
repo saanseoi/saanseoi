@@ -78,7 +78,7 @@ export async function backfillPlanningHierarchies(options: {
   try {
     const snapshots = meta
       .query(
-        "SELECT * FROM snapshots WHERE code LIKE 'ss-hk-division-hkgov-pland-pu-%' AND resourceType='division' ORDER BY cohortKey",
+        "SELECT s.* FROM snapshots s JOIN snapshotLineages sl ON sl.id=s.snapshotLineageId WHERE s.code LIKE 'ss-hk-division-hkgov-pland-pu-%' AND sl.resourceType='division' ORDER BY s.cohortKey",
       )
       .all() as Row[]
     if (!snapshots.length) throw Error('No Planning snapshots')

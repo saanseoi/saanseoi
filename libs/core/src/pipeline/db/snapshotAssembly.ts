@@ -16,6 +16,7 @@ import { currentRowChangedSqlText } from '../services/publication/currentWrites'
 
 const namespace = '747dc748-4086-5dc5-a0de-7d1fefcd0c51'
 const {
+  metaSnapshotLineages,
   metaSnapshots,
   metaSnapshotResourceReleases,
   metaSnapshotRecipes,
@@ -40,10 +41,14 @@ export async function recordEffectiveSnapshotAssembly(
   const snapshot = await db
     .select({
       status: metaSnapshots.status,
-      resourceType: metaSnapshots.resourceType,
+      resourceType: metaSnapshotLineages.resourceType,
       cohortKey: metaSnapshots.cohortKey,
     })
     .from(metaSnapshots)
+    .innerJoin(
+      metaSnapshotLineages,
+      eq(metaSnapshots.snapshotLineageId, metaSnapshotLineages.id),
+    )
     .where(eq(metaSnapshots.id, args.snapshotId))
     .get()
   if (!snapshot || snapshot.resourceType !== args.resourceType)

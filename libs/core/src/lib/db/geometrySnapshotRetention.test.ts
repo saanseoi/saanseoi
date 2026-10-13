@@ -21,11 +21,27 @@ function fixture() {
     CREATE TABLE resourceReleases (
       id TEXT PRIMARY KEY, datasetId TEXT, resourceType TEXT, status TEXT
     );
-    CREATE TABLE snapshotLineages (id TEXT PRIMARY KEY, variant TEXT);
+    CREATE TABLE snapshotLineages (
+      id TEXT PRIMARY KEY,
+      code TEXT UNIQUE,
+      regionCode TEXT NOT NULL DEFAULT 'hk',
+      resourceType TEXT,
+      variant TEXT NOT NULL DEFAULT 'default',
+      identityMode TEXT NOT NULL DEFAULT 'persistent',
+      primaryDatasetId TEXT,
+      versionHash TEXT NOT NULL DEFAULT 'fixture',
+      createdAt TEXT NOT NULL DEFAULT '2026-01-01T00:00:00.000Z',
+      updatedAt TEXT NOT NULL DEFAULT '2026-01-01T00:00:00.000Z'
+    );
     CREATE TABLE snapshots (
-      id TEXT PRIMARY KEY, snapshotLineageId TEXT, resourceType TEXT,
-      cohortKey TEXT, geometryStatus TEXT, revision INTEGER,
-      status TEXT, publishedAt TEXT, createdAt TEXT
+      id TEXT PRIMARY KEY,
+      snapshotLineageId TEXT NOT NULL,
+      cohortKey TEXT,
+      geometryStatus TEXT,
+      revision INTEGER,
+      status TEXT,
+      publishedAt TEXT,
+      createdAt TEXT
     );
     CREATE TABLE snapshotResourceReleases (
       snapshotId TEXT, datasetId TEXT, resourceReleaseId TEXT, role TEXT
@@ -71,23 +87,27 @@ function fixture() {
       role?: string
     } = {},
   ) => {
-    if (variant)
-      sqlite
-        .query('INSERT OR IGNORE INTO snapshotLineages VALUES (?, ?)')
-        .run(variant, variant)
+    const resource = sqlite
+      .query('SELECT resourceType FROM resourceReleases WHERE id = ?')
+      .get(release) as { resourceType: string }
+    const lineageId = `${variant ?? 'default'}:${resource.resourceType}`
     sqlite
-      .query(`INSERT INTO snapshots
-        SELECT ?, ?, resourceType, ?, ?, ?, ?, ?, ? FROM resourceReleases WHERE id = ?`)
+      .query(
+        'INSERT OR IGNORE INTO snapshotLineages (id, resourceType, variant) VALUES (?, ?, ?)',
+      )
+      .run(lineageId, resource.resourceType, variant ?? 'default')
+    sqlite
+      .query(`INSERT INTO snapshots (id,snapshotLineageId,cohortKey,geometryStatus,revision,status,publishedAt,createdAt)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`)
       .run(
         id,
-        variant,
+        lineageId,
         cohort,
         options.geometryStatus ?? 'authoritative',
         options.revision ?? 0,
         options.status ?? 'published',
         options.publishedAt ?? '2026-09-01',
         options.createdAt ?? '2026-09-01',
-        release,
       )
     addSource(id, release, options.role)
   }
@@ -183,13 +203,13 @@ describe('geometry snapshot retention', () => {
     ])
   })
 
-  test('non-archived release sets independently protect old snapshots and missing lineages do not exempt obsolete geometry', async () => {
+  test('non-archived release sets independently protect old snapshots and lineage membership does not exempt obsolete geometry', async () => {
     const { db, sqlite, addDataset, addRelease, addSnapshot } = fixture()
     addDataset('overture', 'hk', 'overture')
     addRelease('old', 'overture', 'archived')
     addRelease('current', 'overture')
-    addSnapshot('unlinked-old', 'old', '2026-07', null)
-    addSnapshot('unlinked-revision', 'current', '2026-08', null)
+    addSnapshot('unlinked-old', 'old', '2026-07', 'overture')
+    addSnapshot('unlinked-revision', 'current', '2026-08', 'overture')
     addSnapshot('current', 'current', '2026-08', 'overture', {
       publishedAt: '2026-09-02',
     })

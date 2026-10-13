@@ -1,4 +1,4 @@
-import { eq, metaSnapshots } from '@repo/db'
+import { eq, metaSnapshotLineages, metaSnapshots } from '@repo/db'
 import type { HarbourReadableDb } from '../../lib/db/types'
 import { resolvePublicationSelections } from './publicationSelections'
 import { publicationScopeId, retainedDivisionScopeId } from './publication/scope'
@@ -63,8 +63,12 @@ export async function finalisePublishedResources(
     }
     for (const id of options.snapshotIds ?? []) {
       const snapshot = await meta
-        .select({ family: metaSnapshots.resourceType })
+        .select({ family: metaSnapshotLineages.resourceType })
         .from(metaSnapshots)
+        .innerJoin(
+          metaSnapshotLineages,
+          eq(metaSnapshots.snapshotLineageId, metaSnapshotLineages.id),
+        )
         .where(eq(metaSnapshots.id, id))
         .get()
       if (
@@ -89,11 +93,15 @@ export async function finalisePublishedResources(
       const snapshot = await meta
         .select({
           status: metaSnapshots.status,
-          resourceType: metaSnapshots.resourceType,
+          resourceType: metaSnapshotLineages.resourceType,
           lineage: metaSnapshots.snapshotLineageId,
           cohort: metaSnapshots.cohortKey,
         })
         .from(metaSnapshots)
+        .innerJoin(
+          metaSnapshotLineages,
+          eq(metaSnapshots.snapshotLineageId, metaSnapshotLineages.id),
+        )
         .where(eq(metaSnapshots.id, receipt.snapshotId))
         .get()
       if (snapshot?.status !== 'published') continue

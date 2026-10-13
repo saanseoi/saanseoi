@@ -365,6 +365,13 @@ async function resolveAddressSnapshotId(
     .select({ id: metaSchema.metaSnapshots.id })
     .from(metaSchema.metaSnapshots)
     .innerJoin(
+      metaSchema.metaSnapshotLineages,
+      eq(
+        metaSchema.metaSnapshots.snapshotLineageId,
+        metaSchema.metaSnapshotLineages.id,
+      ),
+    )
+    .innerJoin(
       metaSchema.metaSnapshotResourceReleases,
       eq(
         metaSchema.metaSnapshotResourceReleases.snapshotId,
@@ -378,7 +385,7 @@ async function resolveAddressSnapshotId(
           resourceReleaseId,
         ),
         eq(metaSchema.metaSnapshotResourceReleases.role, 'primary'),
-        eq(metaSchema.metaSnapshots.resourceType, 'address'),
+        eq(metaSchema.metaSnapshotLineages.resourceType, 'address'),
       ),
     )
     .limit(1)
@@ -413,7 +420,7 @@ export async function buildAddressMetaSqlFile(
       id: metaSnapshots.id,
       snapshotLineageId: metaSnapshots.snapshotLineageId,
       parentSnapshotId: metaSnapshots.parentSnapshotId,
-      resourceType: metaSnapshots.resourceType,
+      resourceType: metaSnapshotLineages.resourceType,
       code: metaSnapshots.code,
       cohortKey: metaSnapshots.cohortKey,
       geometryStatus: metaSnapshots.geometryStatus,
@@ -426,6 +433,10 @@ export async function buildAddressMetaSqlFile(
       updatedAt: metaSnapshots.updatedAt,
     })
     .from(metaSnapshots)
+    .innerJoin(
+      metaSnapshotLineages,
+      eq(metaSnapshots.snapshotLineageId, metaSnapshotLineages.id),
+    )
     .where(eq(metaSnapshots.id, snapshotIdValue))
     .limit(1)
     .get()
@@ -557,7 +568,6 @@ export async function buildAddressMetaSqlFile(
         'id',
         'snapshotLineageId',
         'parentSnapshotId',
-        'resourceType',
         'code',
         'cohortKey',
         'geometryStatus',
@@ -573,7 +583,6 @@ export async function buildAddressMetaSqlFile(
       `ON CONFLICT(id) DO UPDATE SET
   snapshotLineageId = excluded.snapshotLineageId,
   parentSnapshotId = excluded.parentSnapshotId,
-  resourceType = excluded.resourceType,
   code = excluded.code,
   cohortKey = excluded.cohortKey,
   geometryStatus = excluded.geometryStatus,

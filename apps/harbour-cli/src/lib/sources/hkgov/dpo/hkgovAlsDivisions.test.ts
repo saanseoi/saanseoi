@@ -8,10 +8,35 @@ test('ALS current Division lookup resolves a prepared scope and retains its late
   const current = new Database(':memory:')
   const meta = new Database(':memory:')
   try {
-    meta.exec(`CREATE TABLE snapshots(id TEXT,snapshotLineageId TEXT,resourceType TEXT,status TEXT,cohortKey TEXT,revision INTEGER);
-      CREATE TABLE snapshotLineages(id TEXT,variant TEXT,regionCode TEXT);
-      INSERT INTO snapshotLineages VALUES ('division-scope','overture','hk'),('area-scope','overture','hk');
-      INSERT INTO snapshots VALUES ('revision-1','division-scope','division','published','2026-09',1),('revision-2','division-scope','division','published','2026-09',2),('area','area-scope','divisionArea','published','2026-09',1);`)
+    meta.exec(`CREATE TABLE snapshots(
+      id TEXT,
+      snapshotLineageId TEXT NOT NULL,
+      status TEXT,
+      cohortKey TEXT,
+      revision INTEGER
+    );
+      CREATE TABLE snapshotLineages (
+      id TEXT PRIMARY KEY,
+      code TEXT UNIQUE,
+      regionCode TEXT NOT NULL DEFAULT 'hk',
+      resourceType TEXT,
+      variant TEXT NOT NULL DEFAULT 'default',
+      identityMode TEXT NOT NULL DEFAULT 'persistent',
+      primaryDatasetId TEXT,
+      versionHash TEXT NOT NULL DEFAULT 'fixture',
+      createdAt TEXT NOT NULL DEFAULT '2026-01-01T00:00:00.000Z',
+      updatedAt TEXT NOT NULL DEFAULT '2026-01-01T00:00:00.000Z'
+    );
+
+      INSERT INTO snapshotLineages (id,variant,regionCode) VALUES ('division-scope','overture','hk'),('area-scope','overture','hk');
+INSERT OR IGNORE INTO snapshotLineages (id,code,resourceType,regionCode,variant,identityMode,versionHash,createdAt,updatedAt) VALUES ('division-scope','division-scope','division','hk','default','persistent','fixture','2026-01-01T00:00:00.000Z','2026-01-01T00:00:00.000Z');
+UPDATE snapshotLineages SET resourceType='division' WHERE id='division-scope' AND resourceType IS NULL;
+INSERT OR IGNORE INTO snapshotLineages (id,code,resourceType,regionCode,variant,identityMode,versionHash,createdAt,updatedAt) VALUES ('area-scope','area-scope','divisionArea','hk','default','persistent','fixture','2026-01-01T00:00:00.000Z','2026-01-01T00:00:00.000Z');
+UPDATE snapshotLineages SET resourceType='divisionArea' WHERE id='area-scope' AND resourceType IS NULL;
+INSERT INTO snapshots (id, snapshotLineageId, status, cohortKey, revision) VALUES
+('revision-1', 'division-scope', 'published', '2026-09', 1),
+('revision-2', 'division-scope', 'published', '2026-09', 2),
+('area', 'area-scope', 'published', '2026-09', 1);`)
     current.exec(`CREATE TABLE divisionAreas(snapshotId TEXT, divisionId TEXT, geometry TEXT);
       CREATE TABLE divisionAreaPublicationState(scopeId TEXT,snapshotId TEXT,preparedAt TEXT,publicationToken TEXT);
       INSERT INTO divisionAreaPublicationState VALUES ('area-scope','area','ready','release');
@@ -35,8 +60,15 @@ test('ALS current Division lookup resolves a prepared scope and retains its late
     await expect(loadDivisionLookupMaps(options)).rejects.toThrow(
       'No published division snapshot',
     )
-    meta.exec(`INSERT INTO snapshotLineages VALUES ('curated','saanseoi','hk'),('curated-area','saanseoi','hk');
-      INSERT INTO snapshots VALUES ('reviewed','curated','division','published','2026-09-01.0',1),('curated-area','curated-area','divisionArea','published','2026-09-01.0',1);`)
+    meta.exec(`
+      INSERT INTO snapshotLineages (id,variant,regionCode) VALUES ('curated','saanseoi','hk'),('curated-area','saanseoi','hk');
+INSERT OR IGNORE INTO snapshotLineages (id,code,resourceType,regionCode,variant,identityMode,versionHash,createdAt,updatedAt) VALUES ('curated','curated','division','hk','default','persistent','fixture','2026-01-01T00:00:00.000Z','2026-01-01T00:00:00.000Z');
+UPDATE snapshotLineages SET resourceType='division' WHERE id='curated' AND resourceType IS NULL;
+INSERT OR IGNORE INTO snapshotLineages (id,code,resourceType,regionCode,variant,identityMode,versionHash,createdAt,updatedAt) VALUES ('curated-area','curated-area','divisionArea','hk','default','persistent','fixture','2026-01-01T00:00:00.000Z','2026-01-01T00:00:00.000Z');
+UPDATE snapshotLineages SET resourceType='divisionArea' WHERE id='curated-area' AND resourceType IS NULL;
+INSERT INTO snapshots (id, snapshotLineageId, status, cohortKey, revision) VALUES
+('reviewed', 'curated', 'published', '2026-09-01.0', 1),
+('curated-area', 'curated-area', 'published', '2026-09-01.0', 1);`)
     current.exec(`INSERT INTO divisionPublicationState VALUES ('curated','reviewed','ready','curated');
       INSERT INTO divisionAreaPublicationState VALUES ('curated-area','curated-area','ready','curated');
       INSERT INTO divisions VALUES ('curated','town',3,'locality','town','{"full":[]}');

@@ -71,6 +71,7 @@ test('empty Address SQL metadata delivery retains lineage and exact Division loo
       VALUES ('dataset-address', 'ds-hk-hkgov-dpo-address', 'publisher', 'static', 'monthly', 'addresses', 'hk', 'address'),
         ('dataset-division', 'ds-hk-overture-division', 'publisher', 'static', 'monthly', 'divisions', 'hk', 'division'),
         ('dataset-area', 'ds-hk-overture-division-area', 'publisher', 'static', 'monthly', 'divisions', 'hk', 'area');
+
       INSERT INTO snapshotLineages (
         id, code, regionCode, resourceType, variant, identityMode,
         primaryDatasetId, versionHash, createdAt, updatedAt
@@ -78,13 +79,10 @@ test('empty Address SQL metadata delivery retains lineage and exact Division loo
         'address-lineage', 'sl-hk-hkgov-dpo-address', 'hk', 'address', 'hkgov-dpo',
         'persistent', 'dataset-address', 'lineage-hash', '2026-09-07T00:00:00.000Z', '2026-09-07T00:00:00.000Z'
       );
-      INSERT INTO snapshots (
-        id, snapshotLineageId, parentSnapshotId, resourceType, code, cohortKey,
-        geometryStatus, revision, status, publishedAt, validFrom, validTo, createdAt, updatedAt
-      ) VALUES (
-        'address-snapshot', 'address-lineage', NULL, 'address', 'ss-hk-address-hkgov-dpo-2026-08-19.0', '2026-08-19.0',
-        'authoritative', 0, 'draft', NULL, NULL, NULL, '2026-09-07T00:00:00.000Z', '2026-09-07T00:00:00.000Z'
-      );
+INSERT OR IGNORE INTO snapshotLineages (id,code,resourceType,regionCode,variant,identityMode,versionHash,createdAt,updatedAt) VALUES ('address-lineage','address-lineage','address','hk','default','persistent','fixture','2026-01-01T00:00:00.000Z','2026-01-01T00:00:00.000Z');
+UPDATE snapshotLineages SET resourceType='address' WHERE id='address-lineage' AND resourceType IS NULL;
+INSERT INTO snapshots (id, snapshotLineageId, parentSnapshotId, code, cohortKey, geometryStatus, revision, status, publishedAt, validFrom, validTo, createdAt, updatedAt) VALUES
+('address-snapshot', 'address-lineage', NULL, 'ss-hk-address-hkgov-dpo-2026-08-19.0', '2026-08-19.0', 'authoritative', 0, 'draft', NULL, NULL, NULL, '2026-09-07T00:00:00.000Z', '2026-09-07T00:00:00.000Z');
       INSERT INTO snapshotResourceReleases (
         snapshotId, datasetId, resourceReleaseId, role, selectedByRule, selectionMode,
         anchorReleaseId, sourceCohortKey, createdAt
@@ -109,8 +107,13 @@ test('empty Address SQL metadata delivery retains lineage and exact Division loo
       VALUES ('release-address', 'history-shard');
       INSERT INTO snapshotShardAssignments (snapshotId, dataShardId)
       VALUES ('address-snapshot', 'history-shard');
-      INSERT INTO snapshots(id,code,resourceType,cohortKey,status)
-      VALUES ('division-snapshot','division-snapshot','division','2025','published'),('area-snapshot','area-snapshot','divisionArea','2025','published');
+      INSERT OR IGNORE INTO snapshotLineages (id,code,resourceType,regionCode,variant,identityMode,versionHash,createdAt,updatedAt) VALUES ('fixture-lineage-' || 'division-snapshot','fixture-lineage-' || 'division-snapshot','division','hk','default','persistent','fixture','2026-01-01T00:00:00.000Z','2026-01-01T00:00:00.000Z');
+UPDATE snapshotLineages SET resourceType='division' WHERE id='fixture-lineage-' || 'division-snapshot' AND resourceType IS NULL;
+INSERT OR IGNORE INTO snapshotLineages (id,code,resourceType,regionCode,variant,identityMode,versionHash,createdAt,updatedAt) VALUES ('fixture-lineage-' || 'area-snapshot','fixture-lineage-' || 'area-snapshot','divisionArea','hk','default','persistent','fixture','2026-01-01T00:00:00.000Z','2026-01-01T00:00:00.000Z');
+UPDATE snapshotLineages SET resourceType='divisionArea' WHERE id='fixture-lineage-' || 'area-snapshot' AND resourceType IS NULL;
+INSERT INTO snapshots(id, snapshotLineageId, code, cohortKey, status) VALUES
+('division-snapshot', 'fixture-lineage-' || 'division-snapshot', 'division-snapshot', '2025', 'published'),
+('area-snapshot', 'fixture-lineage-' || 'area-snapshot', 'area-snapshot', '2025', 'published');
       INSERT INTO snapshotResourceReleases(snapshotId,datasetId,resourceReleaseId,role,selectedByRule,selectionMode)
       VALUES ('division-snapshot','dataset-division','release-division','primary','division-test','exact_ref'),('area-snapshot','dataset-area','release-area','primary','area-test','exact_ref');
     `)

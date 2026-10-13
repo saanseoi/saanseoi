@@ -1,3 +1,4 @@
+import { snapshotFixtureFields } from '../../../../../../libs/core/src/testing/snapshotFixtures'
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { join } from 'node:path'
@@ -9,6 +10,8 @@ import { restoreSnapshotProjection, type ProjectionResourceType } from './projec
 
 const migrations = join(import.meta.dir, '../../../../../../libs/db/migrations')
 const insert = (db: Database, table: string, row: Record<string, unknown>) => {
+  if (table === 'snapshots') row = snapshotFixtureFields(db, row) as typeof row
+
   db.query(
     `INSERT INTO ${table} (${Object.keys(row).join(',')}) VALUES (${Object.keys(row)
       .map(() => '?')

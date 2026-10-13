@@ -1,3 +1,4 @@
+import { snapshotFixtureFields } from '../../../../../libs/core/src/testing/snapshotFixtures'
 import { Database } from 'bun:sqlite'
 import { mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
@@ -11,6 +12,8 @@ import { prepareReconstructedRollback } from './reconstructRollback.ts'
 
 const migrations = join(import.meta.dir, '../../../../../libs/db/migrations')
 export const insert = (db: Database, table: string, row: Record<string, unknown>) => {
+  if (table === 'snapshots') row = snapshotFixtureFields(db, row) as typeof row
+
   db.query(
     `INSERT INTO ${table} (${Object.keys(row).join(',')}) VALUES (${Object.keys(row)
       .map(() => '?')

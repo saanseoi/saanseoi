@@ -57,7 +57,7 @@ function resetReadContext(
 
 const TYPES = "('division', 'divisionArea', 'divisionBoundary')"
 const RELEASES = `SELECT id FROM resourceReleases WHERE resourceType IN ${TYPES}`
-const SNAPSHOTS = `SELECT id FROM snapshots WHERE resourceType IN ${TYPES}`
+const SNAPSHOTS = `SELECT id FROM snapshots WHERE snapshotLineageId IN (SELECT id FROM snapshotLineages WHERE resourceType IN ${TYPES})`
 const VERSIONS = "SELECT id FROM apiVersions WHERE familyType = 'divisions'"
 const SETS = `SELECT apiReleaseSetId FROM apiVersionReleaseSets WHERE apiVersionId IN (${VERSIONS})`
 const CANONICAL_TABLES = [
@@ -93,7 +93,7 @@ export async function collectDivisionResetPlan(context: ResetReadContext) {
   )
   const snapshots = await rows(
     context.metaBinding,
-    `SELECT * FROM snapshots WHERE resourceType IN ${TYPES} ORDER BY id`,
+    `SELECT s.*, sl.resourceType FROM snapshots s JOIN snapshotLineages sl ON sl.id=s.snapshotLineageId WHERE sl.resourceType IN ${TYPES} ORDER BY s.id`,
   )
   const releaseSets = await rows(
     context.metaBinding,
@@ -135,7 +135,7 @@ export async function divisionResetBlockers(context: ResetReadContext) {
   await check(
     context.metaBinding,
     'Other snapshots retain division parents or assembly anchors',
-    `SELECT 1 FROM snapshots WHERE resourceType NOT IN ${TYPES} AND parentSnapshotId IN (${SNAPSHOTS}) UNION ALL SELECT 1 FROM snapshotAssemblies WHERE snapshotId NOT IN (${SNAPSHOTS}) AND anchorReleaseId IN (${RELEASES}) LIMIT 1`,
+    `SELECT 1 FROM snapshots WHERE snapshotLineageId IN (SELECT id FROM snapshotLineages WHERE resourceType NOT IN ${TYPES}) AND parentSnapshotId IN (${SNAPSHOTS}) UNION ALL SELECT 1 FROM snapshotAssemblies WHERE snapshotId NOT IN (${SNAPSHOTS}) AND anchorReleaseId IN (${RELEASES}) LIMIT 1`,
   )
   await check(
     context.metaBinding,

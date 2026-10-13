@@ -435,7 +435,7 @@ async function resolveExactSnapshot(
     .where(
       and(
         eq(metaSchema.metaSnapshotResourceReleases.resourceReleaseId, release.id),
-        eq(metaSchema.metaSnapshots.resourceType, release.resourceType),
+        eq(metaSchema.metaSnapshotLineages.resourceType, release.resourceType),
         eq(metaSchema.metaSnapshots.status, 'published'),
         // Exact canonical variants are the only source of release facts.
         sql`${metaSchema.metaSnapshotLineages.variant} NOT LIKE '%simplified%'`,

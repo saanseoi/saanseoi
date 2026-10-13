@@ -147,8 +147,8 @@ describe('Statistics API responses through the Worker route', () => {
       const newerAt = '2026-08-21T00:00:00.000Z'
       run(
         fixture.meta,
-        `INSERT INTO snapshots (id, resourceType, code, cohortKey, revision, status, publishedAt, validFrom, parentSnapshotId, createdAt, updatedAt)
-        SELECT 'snapshot-statistics-revised', resourceType, code || '-r1', cohortKey, 1, status, ?, ?, id, ?, ? FROM snapshots WHERE id = 'snapshot-statistics'`,
+        `INSERT INTO snapshots (id, snapshotLineageId, code, cohortKey, revision, status, publishedAt, validFrom, parentSnapshotId, createdAt, updatedAt)
+        SELECT 'snapshot-statistics-revised', snapshotLineageId, code || '-r1', cohortKey, 1, status, ?, ?, id, ?, ? FROM snapshots WHERE id = 'snapshot-statistics'`,
         [newerAt, newerAt, newerAt, newerAt],
       )
       run(

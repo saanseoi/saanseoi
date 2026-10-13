@@ -1,3 +1,4 @@
+import { insertFixtureSnapshot } from '../../../../../../libs/core/src/testing/snapshotFixtures'
 import { describe, expect, test } from 'bun:test'
 import { Database, type SQLQueryBindings } from 'bun:sqlite'
 import { resolve } from 'node:path'
@@ -101,24 +102,18 @@ function seedMeta(sqlite: Database) {
     [ADDRESS_SNAPSHOT, 'address', 'ss-hk-address-hkgov-dpo-2026-08-19.0'],
   ]
   for (const [id, resourceType, code] of snapshots) {
-    run(
-      sqlite,
-      `INSERT INTO snapshots
-        (id, resourceType, code, cohortKey, revision, status, publishedAt, validFrom, createdAt, updatedAt)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
-        id,
-        resourceType,
-        code,
-        '2026-08-19.0',
-        0,
-        'published',
-        PUBLISHED_AT,
-        PUBLISHED_AT,
-        PUBLISHED_AT,
-        PUBLISHED_AT,
-      ],
-    )
+    insertFixtureSnapshot(sqlite, {
+      id: id,
+      resourceType: resourceType,
+      code: code,
+      cohortKey: '2026-08-19.0',
+      revision: 0,
+      status: 'published',
+      publishedAt: PUBLISHED_AT,
+      validFrom: PUBLISHED_AT,
+      createdAt: PUBLISHED_AT,
+      updatedAt: PUBLISHED_AT,
+    })
   }
   run(
     sqlite,

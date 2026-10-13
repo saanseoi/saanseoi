@@ -301,7 +301,6 @@ function rebuildHistoryVersionTableIfNeeded(db: Database, tableName: string) {
 }
 
 function ensureFixtureCompatibleMetaSchema(db: Database) {
-  let snapshotsRebuilt = false
   let apiReleaseSetsRebuilt = false
 
   addColumnIfMissing(
@@ -345,78 +344,6 @@ function ensureFixtureCompatibleMetaSchema(db: Database) {
       occurredAt TEXT NOT NULL
     )
   `)
-  if (hasColumn(db, 'snapshots', 'family')) {
-    const snapshotResourceTypeExpression = hasColumn(db, 'snapshots', 'resourceType')
-      ? 'COALESCE(resourceType, family)'
-      : 'family'
-
-    rebuildTable(
-      db,
-      'snapshots',
-      `
-        CREATE TABLE snapshots (
-          id TEXT PRIMARY KEY NOT NULL,
-          resourceType TEXT NOT NULL,
-          code TEXT NOT NULL,
-          status TEXT NOT NULL,
-          publishedAt INTEGER,
-          validFrom INTEGER,
-          validTo INTEGER,
-          createdAt INTEGER NOT NULL,
-          updatedAt INTEGER NOT NULL
-        );
-      `,
-      `
-        INSERT INTO snapshots (
-          id, resourceType, code, status, publishedAt, validFrom, validTo, createdAt, updatedAt
-        )
-        SELECT
-          id,
-          ${snapshotResourceTypeExpression} AS resourceType,
-          code,
-          status,
-          publishedAt,
-          validFrom,
-          validTo,
-          createdAt,
-          updatedAt
-        FROM __LEGACY_TABLE__;
-      `,
-    )
-    snapshotsRebuilt = true
-  }
-
-  if (snapshotsRebuilt) {
-    rebuildTable(
-      db,
-      'snapshotResourceReleases',
-      `
-        CREATE TABLE snapshotResourceReleases (
-          snapshotId TEXT NOT NULL,
-          datasetId TEXT NOT NULL,
-          resourceReleaseId TEXT NOT NULL,
-          role TEXT NOT NULL,
-          selectedByRule TEXT,
-          selectionMode TEXT,
-          anchorReleaseId TEXT,
-          sourceCohortKey TEXT,
-          createdAt INTEGER NOT NULL,
-          PRIMARY KEY (snapshotId, resourceReleaseId),
-          FOREIGN KEY (snapshotId) REFERENCES snapshots(id) ON DELETE CASCADE,
-          FOREIGN KEY (datasetId) REFERENCES datasets(id) ON DELETE RESTRICT,
-          FOREIGN KEY (sourceReleaseId, datasetId) REFERENCES resourceReleases(id, datasetId) ON DELETE RESTRICT
-        );
-      `,
-      `
-        INSERT INTO snapshotResourceReleases (
-          snapshotId, datasetId, resourceReleaseId, role, selectedByRule, selectionMode, anchorReleaseId, sourceCohortKey, createdAt
-        )
-        SELECT snapshotId, datasetId, sourceReleaseId, role, null, null, null, null, createdAt
-        FROM __LEGACY_TABLE__;
-      `,
-    )
-  }
-
   addColumnIfMissing(db, 'snapshots', 'cohortKey', "cohortKey TEXT NOT NULL DEFAULT ''")
   addColumnIfMissing(db, 'snapshots', 'parentSnapshotId', 'parentSnapshotId TEXT')
 
@@ -541,7 +468,7 @@ id TEXT PRIMARY KEY NOT NULL,
         FROM __LEGACY_TABLE__;
       `,
     )
-  } else if (apiReleaseSetsRebuilt || snapshotsRebuilt) {
+  } else if (apiReleaseSetsRebuilt) {
     rebuildTable(
       db,
       'apiReleaseSetSnapshots',

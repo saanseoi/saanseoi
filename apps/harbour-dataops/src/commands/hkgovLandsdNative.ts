@@ -368,7 +368,7 @@ async function latestPublishedSnapshot(
     )
     .where(
       and(
-        eq(metaSchema.metaSnapshots.resourceType, resourceType),
+        eq(metaSchema.metaSnapshotLineages.resourceType, resourceType),
         eq(metaSchema.metaSnapshots.status, 'published'),
         eq(metaSchema.metaSnapshotLineages.regionCode, 'hk'),
         variant ? eq(metaSchema.metaSnapshotLineages.variant, variant) : undefined,

@@ -1,3 +1,4 @@
+import { snapshotFixtureFields } from '../../../../../../libs/core/src/testing/snapshotFixtures'
 import { statisticDefinitionSet } from '@repo/db'
 import { Database, type SQLQueryBindings } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
@@ -13,6 +14,8 @@ const datasetCode = 'ds-statistics'
 const period = '2021-Q1'
 const timestamp = '2021-01-01T00:00:00Z'
 const insert = (db: Database, table: string, row: Record<string, unknown>) => {
+  if (table === 'snapshots') row = snapshotFixtureFields(db, row) as typeof row
+
   if (table === 'statsRecords' && row.fieldDefinitionHashes) {
     const set = statisticDefinitionSet(
       row.fieldDefinitionHashes as Record<string, string>,

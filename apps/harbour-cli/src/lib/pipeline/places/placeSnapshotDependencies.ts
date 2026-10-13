@@ -43,10 +43,17 @@ export async function resolvePlaceDivisionDependency(
   const division = await metaDb
     .select({ id: metaSchema.metaSnapshots.id })
     .from(metaSchema.metaSnapshots)
+    .innerJoin(
+      metaSchema.metaSnapshotLineages,
+      eq(
+        metaSchema.metaSnapshots.snapshotLineageId,
+        metaSchema.metaSnapshotLineages.id,
+      ),
+    )
     .where(
       and(
         eq(metaSchema.metaSnapshots.id, divisionSnapshotId),
-        eq(metaSchema.metaSnapshots.resourceType, 'division'),
+        eq(metaSchema.metaSnapshotLineages.resourceType, 'division'),
         eq(metaSchema.metaSnapshots.status, 'published'),
       ),
     )

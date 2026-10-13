@@ -28,8 +28,14 @@ Places. See the
 
 Tables:
 
+- `snapshotLineages`
 - `snapshots`
 - `snapshotResourceReleases`
+
+Every snapshot belongs to a `snapshotLineageId`. The lineage owns `resourceType`,
+region, variant and identity mode; snapshot queries derive the resource type through
+that relationship. Snapshot codes are globally unique, and each lineage has at most one
+snapshot per cohort and revision.
 
 This answers:
 

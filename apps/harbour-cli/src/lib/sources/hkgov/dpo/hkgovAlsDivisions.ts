@@ -31,7 +31,7 @@ type LookupOptions = {
 export function alsDivisionSnapshotSelectionSql(cohortKey: string) {
   return `
     SELECT s.id,s.cohortKey,l.variant FROM snapshots s JOIN snapshotLineages l ON l.id=s.snapshotLineageId
-    WHERE s.resourceType='division' AND s.status='published' AND l.regionCode='hk'
+    WHERE l.resourceType='division' AND s.status='published' AND l.regionCode='hk'
       AND (l.variant='saanseoi' OR (l.variant='overture' AND s.cohortKey=${sqlLiteral(cohortKey)}))
     ORDER BY CASE WHEN l.variant='saanseoi' THEN 0 ELSE 1 END,s.cohortKey DESC,s.revision DESC LIMIT 1`
 }
@@ -120,7 +120,7 @@ export async function loadDivisionLookupMaps(
     'meta',
     `
     SELECT s.id FROM snapshots s JOIN snapshotLineages l ON l.id=s.snapshotLineageId
-    WHERE s.resourceType='divisionArea' AND s.status='published' AND l.regionCode='hk'
+    WHERE l.resourceType='divisionArea' AND s.status='published' AND l.regionCode='hk'
       AND l.variant=${sqlLiteral(snapshot.variant)} AND s.cohortKey=${sqlLiteral(snapshot.cohortKey)}
     ORDER BY s.revision DESC LIMIT 1`,
   )

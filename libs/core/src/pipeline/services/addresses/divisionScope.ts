@@ -11,10 +11,17 @@ export async function resolveAddressDivisionScope(
   const selected = await metaDb
     .select({
       scopeId: metaSchema.metaSnapshots.snapshotLineageId,
-      resourceType: metaSchema.metaSnapshots.resourceType,
+      resourceType: metaSchema.metaSnapshotLineages.resourceType,
       status: metaSchema.metaSnapshots.status,
     })
     .from(metaSchema.metaSnapshots)
+    .innerJoin(
+      metaSchema.metaSnapshotLineages,
+      eq(
+        metaSchema.metaSnapshots.snapshotLineageId,
+        metaSchema.metaSnapshotLineages.id,
+      ),
+    )
     .where(eq(metaSchema.metaSnapshots.id, snapshotId))
     .get()
   if (selected?.resourceType !== 'division' || selected.status !== 'published')

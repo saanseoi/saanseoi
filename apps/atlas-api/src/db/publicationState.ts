@@ -2,6 +2,7 @@ import { publicationScopeId } from '@repo/core/pipeline/services/publication/sco
 import {
   and,
   currentSchema,
+  metaSnapshotLineages,
   metaSnapshots,
   ne,
   eq,
@@ -101,10 +102,14 @@ export async function hasSupersedingPublication(
       cohort: metaSnapshots.cohortKey,
     })
     .from(metaSnapshots)
+    .innerJoin(
+      metaSnapshotLineages,
+      eq(metaSnapshots.snapshotLineageId, metaSnapshotLineages.id),
+    )
     .where(
       and(
         eq(metaSnapshots.id, snapshotId),
-        eq(metaSnapshots.resourceType, family),
+        eq(metaSnapshotLineages.resourceType, family),
         eq(metaSnapshots.status, 'published'),
       ),
     )

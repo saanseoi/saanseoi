@@ -164,10 +164,17 @@ export async function restoreStatisticsProjection(input: Input) {
 async function selectedVersions(input: Input, snapshotId: string) {
   const snapshot = await input.metaDb
     .select({
-      resourceType: metaSchema.metaSnapshots.resourceType,
+      resourceType: metaSchema.metaSnapshotLineages.resourceType,
       cohortKey: metaSchema.metaSnapshots.cohortKey,
     })
     .from(metaSchema.metaSnapshots)
+    .innerJoin(
+      metaSchema.metaSnapshotLineages,
+      eq(
+        metaSchema.metaSnapshots.snapshotLineageId,
+        metaSchema.metaSnapshotLineages.id,
+      ),
+    )
     .where(eq(metaSchema.metaSnapshots.id, snapshotId))
     .get()
   if (

@@ -13,6 +13,7 @@ const {
   metaPublishers,
   metaResourceReleases,
   metaSnapshotResourceReleases,
+  metaSnapshotLineages,
   metaSnapshots,
 } = metaSchema
 
@@ -46,11 +47,15 @@ export async function assertCuratedReleaseInputs(
         eq(metaSnapshots.id, metaSnapshotResourceReleases.snapshotId),
       )
       .innerJoin(
+        metaSnapshotLineages,
+        eq(metaSnapshots.snapshotLineageId, metaSnapshotLineages.id),
+      )
+      .innerJoin(
         metaResourceReleases,
         and(
           eq(metaResourceReleases.id, metaSnapshotResourceReleases.resourceReleaseId),
           eq(metaResourceReleases.datasetId, metaSnapshotResourceReleases.datasetId),
-          eq(metaResourceReleases.resourceType, metaSnapshots.resourceType),
+          eq(metaResourceReleases.resourceType, metaSnapshotLineages.resourceType),
         ),
       )
       .innerJoin(
@@ -62,7 +67,7 @@ export async function assertCuratedReleaseInputs(
         and(
           eq(metaSnapshotResourceReleases.snapshotId, snapshot.snapshotId),
           eq(metaSnapshotResourceReleases.role, 'primary'),
-          eq(metaSnapshots.resourceType, snapshot.resourceType),
+          eq(metaSnapshotLineages.resourceType, snapshot.resourceType),
           eq(metaSnapshots.status, 'published'),
           eq(metaPublishers.code, 'overture'),
         ),

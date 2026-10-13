@@ -6,6 +6,7 @@ import {
   metaDatasets,
   metaResourceReleaseDetails,
   metaSnapshotResourceReleases,
+  metaSnapshotLineages,
   metaSnapshots,
 } from '@repo/db'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
@@ -73,6 +74,10 @@ export async function retainCuratedSourceReleases(
         .select({ id: metaSnapshots.id })
         .from(metaSnapshots)
         .innerJoin(
+          metaSnapshotLineages,
+          eq(metaSnapshots.snapshotLineageId, metaSnapshotLineages.id),
+        )
+        .innerJoin(
           metaSnapshotResourceReleases,
           eq(metaSnapshotResourceReleases.snapshotId, metaSnapshots.id),
         )
@@ -83,7 +88,7 @@ export async function retainCuratedSourceReleases(
             eq(metaSnapshotResourceReleases.role, 'primary'),
             eq(metaSnapshots.status, 'published'),
             eq(
-              metaSnapshots.resourceType,
+              metaSnapshotLineages.resourceType,
               source.resourceType as 'division' | 'divisionArea' | 'divisionBoundary',
             ),
           ),

@@ -339,7 +339,7 @@ export async function loadCanonicalDistricts(
     )
     .where(
       and(
-        eq(metaSchema.metaSnapshots.resourceType, 'division'),
+        eq(metaSchema.metaSnapshotLineages.resourceType, 'division'),
         eq(metaSchema.metaSnapshots.status, 'published'),
         eq(metaSchema.metaSnapshotLineages.regionCode, regionCode),
         eq(metaSchema.metaSnapshotLineages.variant, 'overture'),

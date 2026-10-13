@@ -506,7 +506,7 @@ async function listApiReleaseSetSources(dbBinding: D1Database) {
           p.code AS publisherCode,
           p.id AS publisherId,
           sr.code AS releaseCode,
-          s.resourceType,
+          sl.resourceType,
           CASE
             WHEN arss.role = 'primary' AND ss.role = 'primary' THEN 'primary'
             ELSE 'supporting'
@@ -517,13 +517,14 @@ async function listApiReleaseSetSources(dbBinding: D1Database) {
           arss.variant
         FROM apiReleaseSetSnapshots arss
         INNER JOIN snapshots s ON s.id = arss.snapshotId
+        INNER JOIN snapshotLineages sl ON sl.id = s.snapshotLineageId
         INNER JOIN snapshotResourceReleases ss ON ss.snapshotId = arss.snapshotId
         INNER JOIN resourceReleases r ON r.id = ss.resourceReleaseId
         INNER JOIN sourceReleases sr ON sr.id = r.sourceReleaseId
         INNER JOIN datasets d ON d.id = ss.datasetId
         INNER JOIN publishers p ON p.id = d.publisherId
         WHERE ss.role <> 'lookup'
-        ORDER BY arss.apiReleaseSetId, role, s.resourceType, r.code
+        ORDER BY arss.apiReleaseSetId, role, sl.resourceType, r.code
         `,
       )
       .all<ApiReleaseSetSourceQueryRow>(),

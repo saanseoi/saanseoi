@@ -448,7 +448,7 @@ export async function handleBootstrapStatsReleaseSets(
           and(
             eq(metaSnapshotResourceReleases.resourceReleaseId, sourceRelease.id),
             eq(metaSnapshotResourceReleases.role, 'primary'),
-            eq(metaSchema.metaSnapshots.resourceType, 'divisionStatistic'),
+            eq(metaSchema.metaSnapshotLineages.resourceType, 'divisionStatistic'),
             eq(metaSchema.metaSnapshots.status, 'published'),
             eq(metaSchema.metaSnapshotLineages.variant, variant),
           ),

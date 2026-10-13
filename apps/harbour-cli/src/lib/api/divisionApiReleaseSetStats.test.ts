@@ -169,6 +169,7 @@ test('replay loads inherited content across shards, respects deletes, and reject
   try {
     createTables(meta, [
       metaSchema.metaSnapshots,
+      metaSchema.metaSnapshotLineages,
       metaSchema.metaDataShards,
       metaSchema.metaSnapshotShardAssignments,
     ])
@@ -178,7 +179,13 @@ test('replay loads inherited content across shards, respects deletes, and reject
         historySchema.divisionsI18n,
         historySchema.snapshotVersionChanges,
       ])
-    meta.exec(`INSERT INTO snapshots (id, parentSnapshotId) VALUES ('root', NULL), ('leaf', 'root');
+    meta.exec(`INSERT OR IGNORE INTO snapshotLineages (id,code,resourceType,regionCode,variant,identityMode,versionHash,createdAt,updatedAt) VALUES ('fixture-lineage-' || 'root','fixture-lineage-' || 'root','division','hk','default','persistent','fixture','2026-01-01T00:00:00.000Z','2026-01-01T00:00:00.000Z');
+UPDATE snapshotLineages SET resourceType='division' WHERE id='fixture-lineage-' || 'root' AND resourceType IS NULL;
+INSERT OR IGNORE INTO snapshotLineages (id,code,resourceType,regionCode,variant,identityMode,versionHash,createdAt,updatedAt) VALUES ('fixture-lineage-' || 'leaf','fixture-lineage-' || 'leaf','division','hk','default','persistent','fixture','2026-01-01T00:00:00.000Z','2026-01-01T00:00:00.000Z');
+UPDATE snapshotLineages SET resourceType='division' WHERE id='fixture-lineage-' || 'leaf' AND resourceType IS NULL;
+INSERT INTO snapshots (id, snapshotLineageId, parentSnapshotId) VALUES
+('root', 'fixture-lineage-' || 'root', NULL),
+('leaf', 'fixture-lineage-' || 'leaf', 'root');
       INSERT INTO dataShards (id, bindingName) VALUES ('old', 'old'), ('new', 'new');
       INSERT INTO snapshotShardAssignments (snapshotId, dataShardId) VALUES ('root', 'old'), ('leaf', 'new');`)
     older.exec(`INSERT INTO divisions (id, versionHash, class, level) VALUES ('keep', 'v1', 'district', 2), ('remove', 'v2', 'district', 2);

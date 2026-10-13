@@ -35,8 +35,18 @@ export async function readDivisionBaseline(
     )
   }
   const snapshot = await context.metaDb
-    .select()
+    .select({
+      status: metaSchema.metaSnapshots.status,
+      resourceType: metaSchema.metaSnapshotLineages.resourceType,
+    })
     .from(metaSchema.metaSnapshots)
+    .innerJoin(
+      metaSchema.metaSnapshotLineages,
+      eq(
+        metaSchema.metaSnapshots.snapshotLineageId,
+        metaSchema.metaSnapshotLineages.id,
+      ),
+    )
     .where(eq(metaSchema.metaSnapshots.id, snapshotId))
     .get()
   if (snapshot?.status !== 'published' || snapshot.resourceType !== 'division')

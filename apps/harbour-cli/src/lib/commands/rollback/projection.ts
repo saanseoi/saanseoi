@@ -266,8 +266,15 @@ export function assertProjectionForeignKeys(current: Database) {
  */
 export async function restoreSnapshotProjection(input: RestoreSnapshotProjectionInput) {
   const snapshot = await input.metaDb
-    .select({ resourceType: metaSchema.metaSnapshots.resourceType })
+    .select({ resourceType: metaSchema.metaSnapshotLineages.resourceType })
     .from(metaSchema.metaSnapshots)
+    .innerJoin(
+      metaSchema.metaSnapshotLineages,
+      eq(
+        metaSchema.metaSnapshots.snapshotLineageId,
+        metaSchema.metaSnapshotLineages.id,
+      ),
+    )
     .where(eq(metaSchema.metaSnapshots.id, input.snapshotId))
     .get()
   if (snapshot?.resourceType !== input.resourceType)

@@ -1,3 +1,4 @@
+import { snapshotFixtureFields } from '../../testing/snapshotFixtures'
 import { Database, type SQLQueryBindings } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { resolve } from 'node:path'
@@ -19,6 +20,9 @@ test('v0.2 curated catalogues retain older geometry pins and require complete de
   sqlite.exec('PRAGMA foreign_keys = OFF')
   current.exec(loadMigrationSql(migrations, ['current']))
   const insert = (table: string, values: Record<string, SQLQueryBindings>) => {
+    if (table === 'snapshots')
+      values = snapshotFixtureFields(sqlite, values) as typeof values
+
     sqlite
       .query(
         `INSERT INTO ${table} (${Object.keys(values).join(',')}) VALUES (${Object.keys(

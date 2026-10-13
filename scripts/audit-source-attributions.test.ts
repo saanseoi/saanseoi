@@ -58,10 +58,10 @@ test('logical snapshot coverage includes unmaterialised snapshots and resolves p
   const directory = mkdtempSync(join(tmpdir(), 'source-coverage-'))
   try {
     const db = new Database(join(directory, 'fixture.sqlite'))
-    db.exec(`CREATE TABLE snapshots(id TEXT,code TEXT,status TEXT,resourceType TEXT,cohortKey TEXT,snapshotLineageId TEXT,parentSnapshotId TEXT);
-      CREATE TABLE snapshotLineages(id TEXT,primaryDatasetId TEXT);
-      INSERT INTO snapshotLineages VALUES('scope','dataset');
-      INSERT INTO snapshots VALUES('published','release','published','place','2026','scope',NULL),('empty','future','draft','place','2027','scope','published');
+    db.exec(`CREATE TABLE snapshots(id TEXT,code TEXT,status TEXT,cohortKey TEXT,snapshotLineageId TEXT,parentSnapshotId TEXT);
+      CREATE TABLE snapshotLineages(id TEXT,primaryDatasetId TEXT,resourceType TEXT);
+      INSERT INTO snapshotLineages VALUES('scope','dataset','place');
+      INSERT INTO snapshots VALUES('published','release','published','2026','scope',NULL),('empty','future','draft','2027','scope','published');
       CREATE TABLE placePublicationState(scopeId TEXT,snapshotId TEXT,status TEXT);
       INSERT INTO placePublicationState VALUES('scope','published','current');
       CREATE TABLE places(snapshotId TEXT,sources TEXT);

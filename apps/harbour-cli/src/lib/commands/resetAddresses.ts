@@ -131,9 +131,16 @@ export async function getOfficialAddressInitialisationStatus(target: UploadTarge
         context.metaDb
           .select({ id: metaSchema.metaSnapshots.id })
           .from(metaSchema.metaSnapshots)
+          .innerJoin(
+            metaSchema.metaSnapshotLineages,
+            eq(
+              metaSchema.metaSnapshots.snapshotLineageId,
+              metaSchema.metaSnapshotLineages.id,
+            ),
+          )
           .where(
             and(
-              eq(metaSchema.metaSnapshots.resourceType, 'address'),
+              eq(metaSchema.metaSnapshotLineages.resourceType, 'address'),
               eq(metaSchema.metaSnapshots.status, 'published'),
             ),
           )
@@ -445,7 +452,14 @@ async function assertCleanAddressBaseline(
     context.metaDb
       .select({ id: metaSchema.metaSnapshots.id })
       .from(metaSchema.metaSnapshots)
-      .where(eq(metaSchema.metaSnapshots.resourceType, 'address'))
+      .innerJoin(
+        metaSchema.metaSnapshotLineages,
+        eq(
+          metaSchema.metaSnapshots.snapshotLineageId,
+          metaSchema.metaSnapshotLineages.id,
+        ),
+      )
+      .where(eq(metaSchema.metaSnapshotLineages.resourceType, 'address'))
       .limit(1)
       .get(),
   ])
@@ -512,7 +526,14 @@ async function adoptFailedAddressResetState(
   const snapshots = await context.metaDb
     .select({ status: metaSchema.metaSnapshots.status })
     .from(metaSchema.metaSnapshots)
-    .where(eq(metaSchema.metaSnapshots.resourceType, 'address'))
+    .innerJoin(
+      metaSchema.metaSnapshotLineages,
+      eq(
+        metaSchema.metaSnapshots.snapshotLineageId,
+        metaSchema.metaSnapshotLineages.id,
+      ),
+    )
+    .where(eq(metaSchema.metaSnapshotLineages.resourceType, 'address'))
     .all()
   const apiReleaseSet = await context.metaDb
     .select({ id: metaSchema.metaApiReleaseSetSnapshots.apiReleaseSetId })
@@ -521,7 +542,14 @@ async function adoptFailedAddressResetState(
       metaSchema.metaSnapshots,
       eq(metaSchema.metaApiReleaseSetSnapshots.snapshotId, metaSchema.metaSnapshots.id),
     )
-    .where(eq(metaSchema.metaSnapshots.resourceType, 'address'))
+    .innerJoin(
+      metaSchema.metaSnapshotLineages,
+      eq(
+        metaSchema.metaSnapshots.snapshotLineageId,
+        metaSchema.metaSnapshotLineages.id,
+      ),
+    )
+    .where(eq(metaSchema.metaSnapshotLineages.resourceType, 'address'))
     .limit(1)
     .get()
   if (
@@ -811,7 +839,14 @@ async function assertResetStillSafe(
       scopeId: metaSchema.metaSnapshots.snapshotLineageId,
     })
     .from(metaSchema.metaSnapshots)
-    .where(eq(metaSchema.metaSnapshots.resourceType, 'address'))
+    .innerJoin(
+      metaSchema.metaSnapshotLineages,
+      eq(
+        metaSchema.metaSnapshots.snapshotLineageId,
+        metaSchema.metaSnapshotLineages.id,
+      ),
+    )
+    .where(eq(metaSchema.metaSnapshotLineages.resourceType, 'address'))
     .all()
   if (
     !sameSet(

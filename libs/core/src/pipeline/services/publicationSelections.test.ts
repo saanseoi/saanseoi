@@ -1,3 +1,4 @@
+import { insertFixtureSnapshot } from '../../testing/snapshotFixtures'
 import { Database, type SQLQueryBindings } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { createLocalHarbourDb } from '../../testing/localDb'
@@ -15,9 +16,29 @@ function fixture() {
     CREATE TABLE publishers(id TEXT PRIMARY KEY,code TEXT);
     CREATE TABLE datasets(id TEXT PRIMARY KEY,publisherId TEXT,code TEXT,regionCode TEXT,sourceVariant TEXT);
     CREATE TABLE resourceReleases(id TEXT PRIMARY KEY,datasetId TEXT,resourceType TEXT,status TEXT);
-    CREATE TABLE snapshotLineages(id TEXT PRIMARY KEY,variant TEXT);
-    CREATE TABLE snapshots(id TEXT PRIMARY KEY,snapshotLineageId TEXT,parentSnapshotId TEXT,resourceType TEXT,
-      cohortKey TEXT,geometryStatus TEXT,revision INTEGER,status TEXT,publishedAt TEXT,createdAt TEXT);
+    CREATE TABLE snapshotLineages (
+      id TEXT PRIMARY KEY,
+      code TEXT UNIQUE,
+      regionCode TEXT NOT NULL DEFAULT 'hk',
+      resourceType TEXT,
+      variant TEXT NOT NULL DEFAULT 'default',
+      identityMode TEXT NOT NULL DEFAULT 'persistent',
+      primaryDatasetId TEXT,
+      versionHash TEXT NOT NULL DEFAULT 'fixture',
+      createdAt TEXT NOT NULL DEFAULT '2026-01-01T00:00:00.000Z',
+      updatedAt TEXT NOT NULL DEFAULT '2026-01-01T00:00:00.000Z'
+    );
+    CREATE TABLE snapshots(
+      id TEXT PRIMARY KEY,
+      snapshotLineageId TEXT NOT NULL,
+      parentSnapshotId TEXT,
+      cohortKey TEXT,
+      geometryStatus TEXT,
+      revision INTEGER,
+      status TEXT,
+      publishedAt TEXT,
+      createdAt TEXT
+    );
     CREATE TABLE snapshotResourceReleases(snapshotId TEXT,datasetId TEXT,resourceReleaseId TEXT,role TEXT);
     CREATE TABLE apiVersions(id TEXT PRIMARY KEY,code TEXT);
     CREATE TABLE apiCatalogRevisions(id TEXT PRIMARY KEY,apiVersionId TEXT,code TEXT,regionCode TEXT,status TEXT,publishedAt TEXT,revision INTEGER);
@@ -29,7 +50,7 @@ function fixture() {
     CREATE TABLE divisionBoundaryPublicationState(snapshotId TEXT UNIQUE NOT NULL,scopeId TEXT PRIMARY KEY,status TEXT,publicationToken TEXT,preparedAt TEXT,updatedAt TEXT);
     INSERT INTO publishers VALUES ('publisher','overture');
     INSERT INTO datasets VALUES ('geometry','publisher','ds-hk-overture-division-area','hk','overture');
-    INSERT INTO snapshotLineages VALUES ('overture','overture');
+    INSERT INTO snapshotLineages (id,resourceType,variant) VALUES ('divisionArea','divisionArea','overture'), ('divisionBoundary','divisionBoundary','overture');
   `)
   const meta = createLocalHarbourDb(sqlite)
   function geometry(
@@ -47,18 +68,18 @@ function fixture() {
     sqlite
       .query('INSERT INTO resourceReleases VALUES (?, ?, ?, ?)')
       .run(id, 'geometry', type, options.sourceStatus ?? 'current')
-    sqlite
-      .query(
-        "INSERT INTO snapshots VALUES (?,'overture',?,?,?,'authoritative',0,'published',?,?)",
-      )
-      .run(
-        id,
-        options.parent ?? null,
-        type,
-        options.cohort ?? '2026-08',
-        options.publishedAt ?? '2026-09-01',
-        options.publishedAt ?? '2026-09-01',
-      )
+    insertFixtureSnapshot(sqlite, {
+      id: id,
+      snapshotLineageId: type,
+      parentSnapshotId: options.parent ?? null,
+      resourceType: type,
+      cohortKey: options.cohort ?? '2026-08',
+      geometryStatus: 'authoritative',
+      revision: 0,
+      status: 'published',
+      publishedAt: options.publishedAt ?? '2026-09-01',
+      createdAt: options.publishedAt ?? '2026-09-01',
+    })
     sqlite
       .query("INSERT INTO snapshotResourceReleases VALUES (?,'geometry',?,'primary')")
       .run(id, id)
@@ -67,7 +88,7 @@ function fixture() {
         .query(
           `INSERT INTO ${type}PublicationState VALUES (?,?,'publishing',?,'complete','2026-09-01')`,
         )
-        .run(id, publicationScopeId(type, 'overture', options.cohort ?? '2026-08'), id)
+        .run(id, publicationScopeId(type, type, options.cohort ?? '2026-08'), id)
   }
   function catalogue(
     id: string,

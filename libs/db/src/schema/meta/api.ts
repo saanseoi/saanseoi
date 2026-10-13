@@ -141,12 +141,10 @@ export const metaSnapshots = sqliteTable(
   'snapshots',
   {
     id: primaryUuid('id'),
-    snapshotLineageId: text('snapshotLineageId').references(
-      () => metaSnapshotLineages.id,
-      { onDelete: 'restrict' },
-    ),
+    snapshotLineageId: text('snapshotLineageId')
+      .notNull()
+      .references(() => metaSnapshotLineages.id, { onDelete: 'restrict' }),
     parentSnapshotId: text('parentSnapshotId'),
-    resourceType: text('resourceType', { enum: datasetTypes }).notNull(),
     code: text('code').notNull(),
     cohortKey: text('cohortKey').notNull(),
     geometryStatus: text('geometryStatus', {
@@ -160,15 +158,8 @@ export const metaSnapshots = sqliteTable(
     ...timestamps,
   },
   table => [
-    uniqueIndex('snapshots_resourceType_code_unique_idx').on(
-      table.resourceType,
-      table.code,
-    ),
-    uniqueIndex('snapshots_id_resourceType_unique_idx').on(
-      table.id,
-      table.resourceType,
-    ),
-    index('snapshots_resourceType_status_idx').on(table.resourceType, table.status),
+    uniqueIndex('snapshots_code_unique_idx').on(table.code),
+    index('snapshots_status_idx').on(table.status),
     uniqueIndex('snapshots_lineage_cohort_revision_unique_idx').on(
       table.snapshotLineageId,
       table.cohortKey,

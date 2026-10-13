@@ -48,7 +48,7 @@ type Member = {
 const getSnapshotMembers = (db: Database, id: string) =>
   db
     .query<RollbackSnapshot, [string]>(
-      `SELECT DISTINCT s.id,s.resourceType,s.snapshotLineageId,s.parentSnapshotId,s.cohortKey FROM snapshots s JOIN apiReleaseSetSnapshots m ON m.snapshotId=s.id WHERE m.apiReleaseSetId=? ORDER BY s.id`,
+      `SELECT DISTINCT s.id,sl.resourceType,s.snapshotLineageId,s.parentSnapshotId,s.cohortKey FROM snapshots s JOIN snapshotLineages sl ON sl.id = s.snapshotLineageId JOIN apiReleaseSetSnapshots m ON m.snapshotId=s.id WHERE m.apiReleaseSetId=? ORDER BY s.id`,
     )
     .all(id)
 

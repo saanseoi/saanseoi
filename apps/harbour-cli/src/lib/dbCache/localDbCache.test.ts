@@ -206,7 +206,10 @@ test('publication metadata respects pending ownership and the shared writer lock
   const sqlite = new Database(resolve(cacheDir, 'DB_META.sqlite'))
   sqlite.exec(migrationSql.replaceAll('--> statement-breakpoint', ''))
   sqlite.exec(
-    "INSERT INTO snapshots(id,code,resourceType,cohortKey,status) VALUES('snapshot','snapshot','place','2025','draft')",
+    `INSERT OR IGNORE INTO snapshotLineages (id,code,resourceType,regionCode,variant,identityMode,versionHash,createdAt,updatedAt) VALUES ('fixture-lineage-' || 'snapshot','fixture-lineage-' || 'snapshot','place','hk','default','persistent','fixture','2026-01-01T00:00:00.000Z','2026-01-01T00:00:00.000Z');
+UPDATE snapshotLineages SET resourceType='place' WHERE id='fixture-lineage-' || 'snapshot' AND resourceType IS NULL;
+INSERT INTO snapshots(id, snapshotLineageId, code, cohortKey, status) VALUES
+('snapshot', 'fixture-lineage-' || 'snapshot', 'snapshot', '2025', 'draft')`,
   )
   sqlite.close()
   const publishResult: PublishDatasetResult = {
@@ -424,8 +427,10 @@ test('marks a deferred source snapshot published in the local metadata cache', a
   const sqlite = new Database(resolve(cacheDir, 'DB_META.sqlite'))
   sqlite.exec(migrationSql.replaceAll('--> statement-breakpoint', ''))
   sqlite.exec(`
-    INSERT INTO snapshots (id, resourceType, code, cohortKey, status, createdAt, updatedAt)
-    VALUES ('snapshot-draft', 'division', 'ss-hk-division-2026-08-31.0', '2026-08-31.0', 'draft', '2026-08-31T00:00:00.000Z', '2026-08-31T00:00:00.000Z');
+    INSERT OR IGNORE INTO snapshotLineages (id,code,resourceType,regionCode,variant,identityMode,versionHash,createdAt,updatedAt) VALUES ('fixture-lineage-' || 'snapshot-draft','fixture-lineage-' || 'snapshot-draft','division','hk','default','persistent','fixture','2026-01-01T00:00:00.000Z','2026-01-01T00:00:00.000Z');
+UPDATE snapshotLineages SET resourceType='division' WHERE id='fixture-lineage-' || 'snapshot-draft' AND resourceType IS NULL;
+INSERT INTO snapshots (id, snapshotLineageId, code, cohortKey, status, createdAt, updatedAt) VALUES
+('snapshot-draft', 'fixture-lineage-' || 'snapshot-draft', 'ss-hk-division-2026-08-31.0', '2026-08-31.0', 'draft', '2026-08-31T00:00:00.000Z', '2026-08-31T00:00:00.000Z');
   `)
   sqlite.close()
 

@@ -27,11 +27,15 @@ export async function readAuditGeometry(input: {
     .select({ snapshotId: sources.snapshotId })
     .from(sources)
     .innerJoin(snapshots, eq(snapshots.id, sources.snapshotId))
+    .innerJoin(
+      metaSchema.metaSnapshotLineages,
+      eq(snapshots.snapshotLineageId, metaSchema.metaSnapshotLineages.id),
+    )
     .where(
       and(
         eq(sources.resourceReleaseId, input.resourceReleaseId),
         ne(sources.role, 'lookup'),
-        eq(snapshots.resourceType, 'divisionArea'),
+        eq(metaSchema.metaSnapshotLineages.resourceType, 'divisionArea'),
       ),
     )
     .all()

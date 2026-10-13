@@ -121,14 +121,19 @@ function createPlacesOwnershipDb() {
     );
     CREATE TABLE snapshotLineages (
       id TEXT PRIMARY KEY,
+      code TEXT UNIQUE,
+      regionCode TEXT NOT NULL DEFAULT 'hk',
+      resourceType TEXT,
+      variant TEXT NOT NULL DEFAULT 'default',
+      identityMode TEXT NOT NULL DEFAULT 'persistent',
       primaryDatasetId TEXT,
-      resourceType TEXT NOT NULL,
-      variant TEXT NOT NULL
+      versionHash TEXT NOT NULL DEFAULT 'fixture',
+      createdAt TEXT NOT NULL DEFAULT '2026-01-01T00:00:00.000Z',
+      updatedAt TEXT NOT NULL DEFAULT '2026-01-01T00:00:00.000Z'
     );
     CREATE TABLE snapshots (
       id TEXT PRIMARY KEY,
-      snapshotLineageId TEXT,
-      resourceType TEXT NOT NULL,
+      snapshotLineageId TEXT NOT NULL,
       code TEXT NOT NULL,
       status TEXT NOT NULL
     );
@@ -166,6 +171,7 @@ function createPlacesOwnershipDb() {
       );
     INSERT INTO sourceReleases (id, status, updatedAt) VALUES
       ('places-source-release', 'processing', '2026-09-06T00:00:00.000Z');
+
     INSERT INTO snapshotLineages (
       id, primaryDatasetId, resourceType, variant
     ) VALUES
@@ -177,24 +183,16 @@ function createPlacesOwnershipDb() {
         'overture-places'
       ),
       ('other-lineage', 'other-dataset', 'place', 'default');
-    INSERT INTO snapshots (
-      id, snapshotLineageId, resourceType, code, status
-    ) VALUES
-      (
-        'unlinked-draft',
-        'places-lineage',
-        'place',
-        'data-hk-place-2026-08-19.0',
-        'draft'
-      ),
-      (
-        'address-draft',
-        'places-address-lineage',
-        'address',
-        'data-hk-address-2026-08-19.0--overture-places',
-        'draft'
-      ),
-      ('other-draft', 'other-lineage', 'place', 'other-place', 'draft');
+INSERT OR IGNORE INTO snapshotLineages (id,code,resourceType,regionCode,variant,identityMode,versionHash,createdAt,updatedAt) VALUES ('places-lineage','places-lineage','place','hk','default','persistent','fixture','2026-01-01T00:00:00.000Z','2026-01-01T00:00:00.000Z');
+UPDATE snapshotLineages SET resourceType='place' WHERE id='places-lineage' AND resourceType IS NULL;
+INSERT OR IGNORE INTO snapshotLineages (id,code,resourceType,regionCode,variant,identityMode,versionHash,createdAt,updatedAt) VALUES ('places-address-lineage','places-address-lineage','address','hk','default','persistent','fixture','2026-01-01T00:00:00.000Z','2026-01-01T00:00:00.000Z');
+UPDATE snapshotLineages SET resourceType='address' WHERE id='places-address-lineage' AND resourceType IS NULL;
+INSERT OR IGNORE INTO snapshotLineages (id,code,resourceType,regionCode,variant,identityMode,versionHash,createdAt,updatedAt) VALUES ('other-lineage','other-lineage','place','hk','default','persistent','fixture','2026-01-01T00:00:00.000Z','2026-01-01T00:00:00.000Z');
+UPDATE snapshotLineages SET resourceType='place' WHERE id='other-lineage' AND resourceType IS NULL;
+INSERT INTO snapshots (id, snapshotLineageId, code, status) VALUES
+('unlinked-draft', 'places-lineage', 'data-hk-place-2026-08-19.0', 'draft'),
+('address-draft', 'places-address-lineage', 'data-hk-address-2026-08-19.0--overture-places', 'draft'),
+('other-draft', 'other-lineage', 'other-place', 'draft');
     INSERT INTO assets (id, resourceReleaseId, assetKey) VALUES
       ('places-asset', 'places-release', 'places.parquet');
   `)

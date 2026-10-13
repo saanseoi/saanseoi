@@ -1,3 +1,4 @@
+import { insertFixtureSnapshot } from '../../../../../../libs/core/src/testing/snapshotFixtures'
 import { decompressJsonBrotli } from '@repo/core/pipeline/services/storage/brotliJson'
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
@@ -168,20 +169,20 @@ function fixture(resourceType: ResourceType) {
         VALUES(?,?,'hk',?,?,'cohort_scoped','hash')`,
       )
       .run(lineage(scope), lineage(scope), resourceType, scope.variant)
-    meta
-      .query(
-        `INSERT OR IGNORE INTO snapshots(id,snapshotLineageId,parentSnapshotId,resourceType,code,cohortKey,status,revision)
-        VALUES(?,?,?,?,?,?,'draft',?)`,
-      )
-      .run(
-        snapshotId,
-        lineage(scope),
-        parentSnapshotId,
-        resourceType,
-        snapshotId,
-        scope.cohortKey,
-        revision++,
-      )
+    insertFixtureSnapshot(
+      meta,
+      {
+        id: snapshotId,
+        snapshotLineageId: lineage(scope),
+        parentSnapshotId: parentSnapshotId,
+        resourceType: resourceType,
+        code: snapshotId,
+        cohortKey: scope.cohortKey,
+        status: 'draft',
+        revision: revision++,
+      },
+      true,
+    )
     meta
       .query(
         'INSERT OR IGNORE INTO snapshotShardAssignments(snapshotId,dataShardId) VALUES(?,?)',

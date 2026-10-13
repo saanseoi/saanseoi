@@ -26,7 +26,7 @@ export async function readDistrictCoverageAreas(
       )
       .where(
         and(
-          eq(metaSnapshots.resourceType, resourceType),
+          eq(metaSnapshotLineages.resourceType, resourceType),
           eq(metaSnapshots.status, 'published'),
           eq(metaSnapshotLineages.variant, 'saanseoi'),
           eq(metaSnapshotLineages.regionCode, 'hk'),

@@ -161,10 +161,13 @@ test('supplementary editions reuse cross-year components, replay immutable prove
       sourceReleaseId: resourceReleaseId,
     })
     const currentDb = drizzle({ client: current, schema: currentSchema })
-    meta.exec(`INSERT INTO snapshotLineages(id,code,regionCode,resourceType,identityMode,versionHash)
+    meta.exec(`
+      INSERT INTO snapshotLineages(id,code,regionCode,resourceType,identityMode,versionHash)
       VALUES ('division','division-dependency','hk','division','persistent','fixture');
-      INSERT INTO snapshots(id,code,resourceType,cohortKey,status,snapshotLineageId)
-      VALUES ('division-selected','division-selected','division','2025-08','published','division');`)
+INSERT OR IGNORE INTO snapshotLineages (id,code,resourceType,regionCode,variant,identityMode,versionHash,createdAt,updatedAt) VALUES ('division','division','division','hk','default','persistent','fixture','2026-01-01T00:00:00.000Z','2026-01-01T00:00:00.000Z');
+UPDATE snapshotLineages SET resourceType='division' WHERE id='division' AND resourceType IS NULL;
+INSERT INTO snapshots(id, code, cohortKey, status, snapshotLineageId) VALUES
+('division-selected', 'division-selected', '2025-08', 'published', 'division');`)
     currentDb
       .insert(currentSchema.divisionPublicationState)
       .values({

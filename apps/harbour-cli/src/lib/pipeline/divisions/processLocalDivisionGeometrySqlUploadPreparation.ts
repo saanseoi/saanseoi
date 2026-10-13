@@ -173,7 +173,7 @@ export async function findIdenticalCenstatdGeometrySnapshot(
       cohortKey: metaSchema.metaSnapshots.cohortKey,
       id: metaSchema.metaSnapshots.id,
       parentSnapshotId: metaSchema.metaSnapshots.parentSnapshotId,
-      resourceType: metaSchema.metaSnapshots.resourceType,
+      resourceType: metaSchema.metaSnapshotLineages.resourceType,
       snapshotLineageId: metaSchema.metaSnapshots.snapshotLineageId,
       status: metaSchema.metaSnapshots.status,
     })
@@ -187,7 +187,7 @@ export async function findIdenticalCenstatdGeometrySnapshot(
     )
     .where(
       and(
-        eq(metaSchema.metaSnapshots.resourceType, plan.resourceType),
+        eq(metaSchema.metaSnapshotLineages.resourceType, plan.resourceType),
         eq(metaSchema.metaSnapshots.cohortKey, plan.cohortKey),
         eq(metaSchema.metaSnapshotLineages.regionCode, plan.regionCode),
         eq(metaSchema.metaSnapshotLineages.variant, geometryVariant(plan)),

@@ -72,6 +72,7 @@ export async function assertPlaceAddressDependencies(
       sourceReleaseId: metaSnapshotResourceReleases.resourceReleaseId,
     })
     .from(metaSnapshots)
+
     .innerJoin(
       metaSnapshotResourceReleases,
       eq(metaSnapshotResourceReleases.snapshotId, metaSnapshots.id),
@@ -84,7 +85,7 @@ export async function assertPlaceAddressDependencies(
       and(
         eq(metaSnapshots.id, supplementaryAddressSnapshotId),
         eq(metaSnapshots.status, 'published'),
-        eq(metaSnapshots.resourceType, 'address'),
+        eq(metaSchema.metaSnapshotLineages.resourceType, 'address'),
         eq(metaSchema.metaSnapshotLineages.variant, 'overture-places'),
         eq(metaSnapshotResourceReleases.role, 'primary'),
         eq(metaSnapshotResourceReleases.anchorReleaseId, resourceReleaseId),
@@ -644,10 +645,14 @@ export async function handlePublishDataset(
         const snapshot = await db
           .select({
             id: metaSnapshots.id,
-            resourceType: metaSnapshots.resourceType,
+            resourceType: metaSchema.metaSnapshotLineages.resourceType,
             status: metaSnapshots.status,
           })
           .from(metaSnapshots)
+          .innerJoin(
+            metaSchema.metaSnapshotLineages,
+            eq(metaSnapshots.snapshotLineageId, metaSchema.metaSnapshotLineages.id),
+          )
           .where(eq(metaSnapshots.id, carriedSnapshot.snapshotId))
           .limit(1)
           .get()

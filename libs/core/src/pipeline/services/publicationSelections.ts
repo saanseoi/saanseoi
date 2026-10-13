@@ -3,6 +3,7 @@ import {
   desc,
   eq,
   metaDatasets,
+  metaSnapshotLineages,
   metaSnapshots,
   metaSnapshotResourceReleases,
 } from '@repo/db'
@@ -32,8 +33,12 @@ export async function resolvePublicationSelections(meta: HarbourReadableDb) {
   }
   for (const snapshotId of await listRetainedGeometrySnapshotIds(meta)) {
     const row = await meta
-      .select({ type: metaSnapshots.resourceType })
+      .select({ type: metaSnapshotLineages.resourceType })
       .from(metaSnapshots)
+      .innerJoin(
+        metaSnapshotLineages,
+        eq(metaSnapshots.snapshotLineageId, metaSnapshotLineages.id),
+      )
       .where(eq(metaSnapshots.id, snapshotId))
       .get()
     if (row?.type === 'divisionArea' || row?.type === 'divisionBoundary')
@@ -88,6 +93,10 @@ export async function resolvePublicationSelections(meta: HarbourReadableDb) {
       .select({ id: metaSnapshots.id })
       .from(metaSnapshots)
       .innerJoin(
+        metaSnapshotLineages,
+        eq(metaSnapshots.snapshotLineageId, metaSnapshotLineages.id),
+      )
+      .innerJoin(
         metaSnapshotResourceReleases,
         eq(metaSnapshots.id, metaSnapshotResourceReleases.snapshotId),
       )
@@ -97,7 +106,7 @@ export async function resolvePublicationSelections(meta: HarbourReadableDb) {
       )
       .where(
         and(
-          eq(metaSnapshots.resourceType, 'street'),
+          eq(metaSnapshotLineages.resourceType, 'street'),
           eq(metaSnapshots.status, 'published'),
           eq(metaDatasets.regionCode, region),
           eq(metaSnapshotResourceReleases.role, 'primary'),

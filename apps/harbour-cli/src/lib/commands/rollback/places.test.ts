@@ -1,3 +1,4 @@
+import { snapshotFixtureFields } from '../../../../../../libs/core/src/testing/snapshotFixtures'
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { resolve } from 'node:path'
@@ -17,6 +18,8 @@ function open(family: string) {
   return db
 }
 function insert(db: Database, table: string, row: Record<string, unknown>) {
+  if (table === 'snapshots') row = snapshotFixtureFields(db, row)
+
   const columns = Object.keys(row)
   db.query(
     `INSERT INTO ${table}(${columns.join(',')}) VALUES (${columns.map(() => '?').join(',')})`,

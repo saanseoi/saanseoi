@@ -61,14 +61,36 @@ function fixture() {
         family,
       ]),
     )
-  meta.exec(`CREATE TABLE snapshotLineages(id TEXT PRIMARY KEY,regionCode TEXT,variant TEXT);
-    CREATE TABLE snapshots(id TEXT PRIMARY KEY,parentSnapshotId TEXT,snapshotLineageId TEXT,resourceType TEXT,cohortKey TEXT,status TEXT,revision INTEGER);
+  meta.exec(`CREATE TABLE snapshotLineages (
+      id TEXT PRIMARY KEY,
+      code TEXT UNIQUE,
+      regionCode TEXT NOT NULL DEFAULT 'hk',
+      resourceType TEXT,
+      variant TEXT NOT NULL DEFAULT 'default',
+      identityMode TEXT NOT NULL DEFAULT 'persistent',
+      primaryDatasetId TEXT,
+      versionHash TEXT NOT NULL DEFAULT 'fixture',
+      createdAt TEXT NOT NULL DEFAULT '2026-01-01T00:00:00.000Z',
+      updatedAt TEXT NOT NULL DEFAULT '2026-01-01T00:00:00.000Z'
+    );
+    CREATE TABLE snapshots(
+      id TEXT PRIMARY KEY,
+      parentSnapshotId TEXT,
+      snapshotLineageId TEXT NOT NULL,
+      cohortKey TEXT,
+      status TEXT,
+      revision INTEGER
+    );
     CREATE TABLE dataShards(id TEXT PRIMARY KEY,bindingName TEXT);
     CREATE TABLE snapshotShardAssignments(snapshotId TEXT,dataShardId TEXT);
     INSERT INTO dataShards VALUES('history','DB_HISTORY');
     INSERT INTO snapshotShardAssignments VALUES('parent','history');
-    INSERT INTO snapshotLineages VALUES('lineage','hk','hkgov-censtatd');
-    INSERT INTO snapshots VALUES('parent',NULL,'lineage','divisionArea','2021','published',1);`)
+
+    INSERT INTO snapshotLineages (id,regionCode,variant) VALUES('lineage','hk','hkgov-censtatd');
+INSERT OR IGNORE INTO snapshotLineages (id,code,resourceType,regionCode,variant,identityMode,versionHash,createdAt,updatedAt) VALUES ('lineage','lineage','divisionArea','hk','default','persistent','fixture','2026-01-01T00:00:00.000Z','2026-01-01T00:00:00.000Z');
+UPDATE snapshotLineages SET resourceType='divisionArea' WHERE id='lineage' AND resourceType IS NULL;
+INSERT INTO snapshots (id, parentSnapshotId, snapshotLineageId, cohortKey, status, revision) VALUES
+('parent', NULL, 'lineage', '2021', 'published', 1);`)
   const historyDb = drizzle({ client: history, schema: historySchema })
   const context = {
     currentDb: drizzle({ client: current, schema: currentSchema }),

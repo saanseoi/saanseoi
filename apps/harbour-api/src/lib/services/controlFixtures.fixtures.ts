@@ -116,20 +116,10 @@ export function seedSnapshot(
   seedCompletedAudits(sqlite)
 
   sqlite.exec(`
-    INSERT INTO snapshots (
-      id, resourceType, code, cohortKey, status, publishedAt, validFrom, validTo, createdAt, updatedAt
-    ) VALUES (
-      '${snapshotId}',
-      '${resourceType}',
-      '${code}',
-      '${cohortKey}',
-      '${status}',
-      ${publishedAt},
-      ${publishedAt},
-      null,
-      ${timestamp},
-      ${timestamp}
-    );
+    INSERT OR IGNORE INTO snapshotLineages (id,code,resourceType,regionCode,variant,identityMode,versionHash,createdAt,updatedAt) VALUES ('fixture-lineage-' || '${snapshotId}','fixture-lineage-' || '${snapshotId}','${resourceType}','hk','default','persistent','fixture','2026-01-01T00:00:00.000Z','2026-01-01T00:00:00.000Z');
+UPDATE snapshotLineages SET resourceType='${resourceType}' WHERE id='fixture-lineage-' || '${snapshotId}' AND resourceType IS NULL;
+INSERT INTO snapshots (id, snapshotLineageId, code, cohortKey, status, publishedAt, validFrom, validTo, createdAt, updatedAt) VALUES
+('${snapshotId}', 'fixture-lineage-' || '${snapshotId}', '${code}', '${cohortKey}', '${status}', ${publishedAt}, ${publishedAt}, null, ${timestamp}, ${timestamp});
 
     INSERT INTO snapshotResourceReleases (
       snapshotId, datasetId, resourceReleaseId, role, createdAt
@@ -328,7 +318,7 @@ export function seedSnapshotAssembly(sqlite: Database, snapshotId: string) {
     .run('sha256:' + '0'.repeat(64), snapshotId)
   const snapshot = sqlite
     .query<{ resourceType: string; cohortKey: string }, [string]>(
-      'SELECT resourceType, cohortKey FROM snapshots WHERE id = ?',
+      'SELECT sl.resourceType, s.cohortKey FROM snapshots s JOIN snapshotLineages sl ON sl.id=s.snapshotLineageId WHERE s.id = ?',
     )
     .get(snapshotId)
   if (!snapshot) throw new Error(`Missing fixture snapshot: ${snapshotId}`)

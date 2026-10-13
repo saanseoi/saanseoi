@@ -9,7 +9,23 @@ test('curated build inputs require matching Overture companion releases', async 
     CREATE TABLE publishers (id TEXT PRIMARY KEY, code TEXT);
     CREATE TABLE datasets (id TEXT PRIMARY KEY, publisherId TEXT);
     CREATE TABLE resourceReleases (id TEXT PRIMARY KEY, datasetId TEXT, resourceType TEXT, code TEXT);
-    CREATE TABLE snapshots (id TEXT PRIMARY KEY, resourceType TEXT, status TEXT);
+    CREATE TABLE snapshotLineages (
+      id TEXT PRIMARY KEY,
+      code TEXT UNIQUE,
+      regionCode TEXT NOT NULL DEFAULT 'hk',
+      resourceType TEXT,
+      variant TEXT NOT NULL DEFAULT 'default',
+      identityMode TEXT NOT NULL DEFAULT 'persistent',
+      primaryDatasetId TEXT,
+      versionHash TEXT NOT NULL DEFAULT 'fixture',
+      createdAt TEXT NOT NULL DEFAULT '2026-01-01T00:00:00.000Z',
+      updatedAt TEXT NOT NULL DEFAULT '2026-01-01T00:00:00.000Z'
+    );
+    CREATE TABLE snapshots (
+      id TEXT PRIMARY KEY,
+      snapshotLineageId TEXT NOT NULL,
+      status TEXT
+    );
     CREATE TABLE snapshotResourceReleases (snapshotId TEXT, datasetId TEXT, resourceReleaseId TEXT, role TEXT, selectedByRule TEXT);
     INSERT INTO publishers VALUES ('overture', 'overture');
     INSERT INTO datasets VALUES ('division-dataset', 'overture'), ('area-dataset', 'overture');
@@ -17,10 +33,16 @@ test('curated build inputs require matching Overture companion releases', async 
       ('division-release', 'division-dataset', 'division', 'division-v1'),
       ('area-release', 'area-dataset', 'divisionArea', 'area-v1'),
       ('later-area-release', 'area-dataset', 'divisionArea', 'area-v2');
-    INSERT INTO snapshots VALUES
-      ('curated', 'division', 'published'),
-      ('division', 'division', 'published'),
-      ('area', 'divisionArea', 'published');
+    INSERT OR IGNORE INTO snapshotLineages (id,code,resourceType,regionCode,variant,identityMode,versionHash,createdAt,updatedAt) VALUES ('fixture-lineage-' || 'curated','fixture-lineage-' || 'curated','division','hk','default','persistent','fixture','2026-01-01T00:00:00.000Z','2026-01-01T00:00:00.000Z');
+UPDATE snapshotLineages SET resourceType='division' WHERE id='fixture-lineage-' || 'curated' AND resourceType IS NULL;
+INSERT OR IGNORE INTO snapshotLineages (id,code,resourceType,regionCode,variant,identityMode,versionHash,createdAt,updatedAt) VALUES ('fixture-lineage-' || 'division','fixture-lineage-' || 'division','division','hk','default','persistent','fixture','2026-01-01T00:00:00.000Z','2026-01-01T00:00:00.000Z');
+UPDATE snapshotLineages SET resourceType='division' WHERE id='fixture-lineage-' || 'division' AND resourceType IS NULL;
+INSERT OR IGNORE INTO snapshotLineages (id,code,resourceType,regionCode,variant,identityMode,versionHash,createdAt,updatedAt) VALUES ('fixture-lineage-' || 'area','fixture-lineage-' || 'area','divisionArea','hk','default','persistent','fixture','2026-01-01T00:00:00.000Z','2026-01-01T00:00:00.000Z');
+UPDATE snapshotLineages SET resourceType='divisionArea' WHERE id='fixture-lineage-' || 'area' AND resourceType IS NULL;
+INSERT INTO snapshots (id, snapshotLineageId, status) VALUES
+('curated', 'fixture-lineage-' || 'curated', 'published'),
+('division', 'fixture-lineage-' || 'division', 'published'),
+('area', 'fixture-lineage-' || 'area', 'published');
     INSERT INTO snapshotResourceReleases VALUES
       ('curated', 'division-dataset', 'division-release', 'enrichment', 'provenance:curated-division:build-inputs:v1'),
       ('curated', 'area-dataset', 'area-release', 'enrichment', 'provenance:curated-division:build-inputs:v1'),

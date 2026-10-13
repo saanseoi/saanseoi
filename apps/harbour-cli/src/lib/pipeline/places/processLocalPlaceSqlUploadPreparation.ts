@@ -161,11 +161,18 @@ export async function resolvePlaceSnapshots(
     ? await metaDb
         .select({ id: metaSchema.metaSnapshots.id })
         .from(metaSchema.metaSnapshots)
+        .innerJoin(
+          metaSchema.metaSnapshotLineages,
+          eq(
+            metaSchema.metaSnapshots.snapshotLineageId,
+            metaSchema.metaSnapshotLineages.id,
+          ),
+        )
         .where(
           and(
             eq(metaSchema.metaSnapshots.id, recordedAddressId),
             eq(metaSchema.metaSnapshots.status, 'published'),
-            eq(metaSchema.metaSnapshots.resourceType, 'address'),
+            eq(metaSchema.metaSnapshotLineages.resourceType, 'address'),
           ),
         )
         .get()

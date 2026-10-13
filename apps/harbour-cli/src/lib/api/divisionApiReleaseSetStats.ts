@@ -59,12 +59,19 @@ export async function listDivisionStatsReleases(db: HarbourReadableDb) {
       metaSchema.metaSnapshots,
       eq(metaSchema.metaSnapshots.id, metaSchema.metaApiReleaseSetSnapshots.snapshotId),
     )
+    .innerJoin(
+      metaSchema.metaSnapshotLineages,
+      eq(
+        metaSchema.metaSnapshots.snapshotLineageId,
+        metaSchema.metaSnapshotLineages.id,
+      ),
+    )
     .where(
       and(
         eq(metaSchema.metaApiVersions.familyType, 'divisions'),
         inArray(metaSchema.metaApiVersionReleaseSets.status, ['current', 'archived']),
         eq(metaSchema.metaApiReleaseSetSnapshots.role, 'primary'),
-        eq(metaSchema.metaSnapshots.resourceType, 'division'),
+        eq(metaSchema.metaSnapshotLineages.resourceType, 'division'),
         eq(metaSchema.metaSnapshots.status, 'published'),
       ),
     )

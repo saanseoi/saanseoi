@@ -1,3 +1,4 @@
+import { snapshotFixtureFields } from '../../../../../libs/core/src/testing/snapshotFixtures'
 import { afterEach, describe, expect, test } from 'bun:test'
 import { Database } from 'bun:sqlite'
 import { globSync, readFileSync } from 'node:fs'
@@ -36,6 +37,8 @@ function insert(
   table: string,
   values: Record<string, string | number | null>,
 ) {
+  if (table === 'snapshots') values = snapshotFixtureFields(db, values) as typeof values
+
   if (
     table === 'hkgovCenstatdStatistics' ||
     table === 'hkgovCenstatdDivisionAreaDerivatives'

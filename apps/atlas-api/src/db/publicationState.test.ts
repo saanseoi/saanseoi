@@ -148,8 +148,28 @@ test('geometry history fallback requires a ready replacement within the same lin
   const sqlite = new Database(':memory:')
   const db = drizzle({ client: sqlite }) as unknown as CurrentDatabase & MetaDatabase
   try {
-    sqlite.exec(`CREATE TABLE snapshots(id TEXT,resourceType TEXT,snapshotLineageId TEXT,cohortKey TEXT,status TEXT);
-      INSERT INTO snapshots VALUES ('pinned','divisionArea','lineage','2021','published');
+    sqlite.exec(`CREATE TABLE snapshotLineages (
+      id TEXT PRIMARY KEY,
+      code TEXT UNIQUE,
+      regionCode TEXT NOT NULL DEFAULT 'hk',
+      resourceType TEXT,
+      variant TEXT NOT NULL DEFAULT 'default',
+      identityMode TEXT NOT NULL DEFAULT 'persistent',
+      primaryDatasetId TEXT,
+      versionHash TEXT NOT NULL DEFAULT 'fixture',
+      createdAt TEXT NOT NULL DEFAULT '2026-01-01T00:00:00.000Z',
+      updatedAt TEXT NOT NULL DEFAULT '2026-01-01T00:00:00.000Z'
+    );
+    CREATE TABLE snapshots(
+      id TEXT,
+      snapshotLineageId TEXT NOT NULL,
+      cohortKey TEXT,
+      status TEXT
+    );
+      INSERT OR IGNORE INTO snapshotLineages (id,code,resourceType,regionCode,variant,identityMode,versionHash,createdAt,updatedAt) VALUES ('lineage','lineage','divisionArea','hk','default','persistent','fixture','2026-01-01T00:00:00.000Z','2026-01-01T00:00:00.000Z');
+UPDATE snapshotLineages SET resourceType='divisionArea' WHERE id='lineage' AND resourceType IS NULL;
+INSERT INTO snapshots (id, snapshotLineageId, cohortKey, status) VALUES
+('pinned', 'lineage', '2021', 'published');
       CREATE TABLE divisionAreaPublicationState(scopeId TEXT PRIMARY KEY,snapshotId TEXT UNIQUE,status TEXT,publicationToken TEXT,preparedAt TEXT);
       INSERT INTO divisionAreaPublicationState VALUES ('["lineage","2021"]','replacement','current','token','prepared');`)
     expect(await hasSupersedingPublication(db, db, 'divisionArea', 'pinned')).toBe(true)

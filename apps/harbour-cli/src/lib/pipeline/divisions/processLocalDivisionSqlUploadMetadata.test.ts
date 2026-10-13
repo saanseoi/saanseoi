@@ -16,10 +16,13 @@ test('division metadata replays current-schema statistics without duplicating pr
       ),
     )
     sqlite.exec(`PRAGMA foreign_keys = OFF;
+
       INSERT INTO snapshotLineages (id, code, regionCode, resourceType, identityMode, versionHash)
       VALUES ('lineage', 'lineage', 'hk', 'division', 'source', 'hash');
-      INSERT INTO snapshots (id, snapshotLineageId, resourceType, code, cohortKey, status)
-      VALUES ('snapshot', 'lineage', 'division', 'snapshot', '2025', 'draft');
+INSERT OR IGNORE INTO snapshotLineages (id,code,resourceType,regionCode,variant,identityMode,versionHash,createdAt,updatedAt) VALUES ('lineage','lineage','division','hk','default','persistent','fixture','2026-01-01T00:00:00.000Z','2026-01-01T00:00:00.000Z');
+UPDATE snapshotLineages SET resourceType='division' WHERE id='lineage' AND resourceType IS NULL;
+INSERT INTO snapshots (id, snapshotLineageId, code, cohortKey, status) VALUES
+('snapshot', 'lineage', 'snapshot', '2025', 'draft');
       INSERT INTO snapshotRecipes (id, code, resourceType, version, versionHash) VALUES ('assembly', 'assembly', 'division', 1, 'hash');
       INSERT INTO snapshotAssemblies (id, snapshotId, snapshotRecipeId, status) VALUES ('run', 'snapshot', 'assembly', 'completed');
       INSERT INTO snapshotResourceReleases (snapshotId, datasetId, resourceReleaseId, role) VALUES ('snapshot', 'dataset', 'release', 'primary');

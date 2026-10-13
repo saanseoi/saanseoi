@@ -24,7 +24,10 @@ export async function collectStatsResetDependencies(
   roots: Row[],
 ) {
   const meta = context.metaBinding
-  const allSnapshots = await resetRows(meta, 'SELECT * FROM snapshots ORDER BY id')
+  const allSnapshots = await resetRows(
+    meta,
+    'SELECT s.*, sl.resourceType FROM snapshots s JOIN snapshotLineages sl ON sl.id=s.snapshotLineageId ORDER BY s.id',
+  )
   const sources = await resetRows(
     meta,
     'SELECT * FROM snapshotResourceReleases ORDER BY snapshotId, resourceReleaseId',

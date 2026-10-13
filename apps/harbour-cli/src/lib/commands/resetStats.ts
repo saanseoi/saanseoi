@@ -56,7 +56,7 @@ const TYPES = "('divisionStatistic')"
 const GEOMETRY_TYPES = "('division', 'divisionArea', 'divisionBoundary')"
 const RELEASES = `SELECT id FROM resourceReleases WHERE resourceType IN ${TYPES} OR (resourceType IN ${GEOMETRY_TYPES} AND datasetId IN (SELECT id FROM datasets WHERE theme = 'stats'))`
 // Lookup sources are dependencies, not contributions owned by the dataset.
-const SNAPSHOTS = `SELECT id FROM snapshots WHERE resourceType IN ${TYPES} OR (resourceType IN ${GEOMETRY_TYPES} AND id IN (SELECT snapshotId FROM snapshotResourceReleases WHERE resourceReleaseId IN (${RELEASES}) AND role <> 'lookup'))`
+const SNAPSHOTS = `SELECT id FROM snapshots WHERE snapshotLineageId IN (SELECT id FROM snapshotLineages WHERE resourceType IN ${TYPES}) OR (snapshotLineageId IN (SELECT id FROM snapshotLineages WHERE resourceType IN ${GEOMETRY_TYPES}) AND id IN (SELECT snapshotId FROM snapshotResourceReleases WHERE resourceReleaseId IN (${RELEASES}) AND role <> 'lookup'))`
 const CANONICAL_TABLES = [
   'statsValuesI18n',
   'statsFieldsI18n',
@@ -87,7 +87,7 @@ export async function collectStatsResetPlan(context: ResetReadContext) {
   )
   const snapshots = await rows(
     context.metaBinding,
-    `SELECT * FROM snapshots WHERE id IN (${SNAPSHOTS}) ORDER BY id`,
+    `SELECT s.*, sl.resourceType FROM snapshots s JOIN snapshotLineages sl ON sl.id=s.snapshotLineageId WHERE s.id IN (${SNAPSHOTS}) ORDER BY s.id`,
   )
   return {
     releases,

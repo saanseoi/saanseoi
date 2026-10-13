@@ -383,8 +383,31 @@ test.each([false, true])(
       if (listBefore.status !== 200) return
       expect(listBefore.body.included).toHaveLength(4)
       if (superseded) {
-        fixture.current.sqlite.exec(`CREATE TABLE snapshots(id TEXT,resourceType TEXT,snapshotLineageId TEXT,cohortKey TEXT,status TEXT);
-        INSERT INTO snapshots VALUES ('area-leaf','divisionArea','area-lineage','2026-01','published'),('boundary-leaf','divisionBoundary','boundary-lineage','2026-01','published');
+        fixture.current.sqlite.exec(`CREATE TABLE snapshotLineages (
+      id TEXT PRIMARY KEY,
+      code TEXT UNIQUE,
+      regionCode TEXT NOT NULL DEFAULT 'hk',
+      resourceType TEXT,
+      variant TEXT NOT NULL DEFAULT 'default',
+      identityMode TEXT NOT NULL DEFAULT 'persistent',
+      primaryDatasetId TEXT,
+      versionHash TEXT NOT NULL DEFAULT 'fixture',
+      createdAt TEXT NOT NULL DEFAULT '2026-01-01T00:00:00.000Z',
+      updatedAt TEXT NOT NULL DEFAULT '2026-01-01T00:00:00.000Z'
+    );
+    CREATE TABLE snapshots(
+      id TEXT,
+      snapshotLineageId TEXT NOT NULL,
+      cohortKey TEXT,
+      status TEXT
+    );
+        INSERT OR IGNORE INTO snapshotLineages (id,code,resourceType,regionCode,variant,identityMode,versionHash,createdAt,updatedAt) VALUES ('area-lineage','area-lineage','divisionArea','hk','default','persistent','fixture','2026-01-01T00:00:00.000Z','2026-01-01T00:00:00.000Z');
+UPDATE snapshotLineages SET resourceType='divisionArea' WHERE id='area-lineage' AND resourceType IS NULL;
+INSERT OR IGNORE INTO snapshotLineages (id,code,resourceType,regionCode,variant,identityMode,versionHash,createdAt,updatedAt) VALUES ('boundary-lineage','boundary-lineage','divisionBoundary','hk','default','persistent','fixture','2026-01-01T00:00:00.000Z','2026-01-01T00:00:00.000Z');
+UPDATE snapshotLineages SET resourceType='divisionBoundary' WHERE id='boundary-lineage' AND resourceType IS NULL;
+INSERT INTO snapshots (id, snapshotLineageId, cohortKey, status) VALUES
+('area-leaf', 'area-lineage', '2026-01', 'published'),
+('boundary-leaf', 'boundary-lineage', '2026-01', 'published');
         UPDATE divisionAreaPublicationState SET scopeId='["area-lineage","2026-01"]',snapshotId='area-replacement',status='publishing';
         UPDATE divisionBoundaryPublicationState SET scopeId='["boundary-lineage","2026-01"]',snapshotId='boundary-replacement',status='publishing';`)
         expect((await listDivisions(args)).status).toBe(503)

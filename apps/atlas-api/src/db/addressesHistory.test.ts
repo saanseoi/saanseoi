@@ -31,8 +31,10 @@ test('replays the selected address snapshot from its assigned history shard', as
       ),
     )
     meta.exec(`
-      INSERT INTO snapshots (id, resourceType, code, cohortKey, status, createdAt, updatedAt)
-      VALUES ('address-snapshot-2025', 'address', 'snapshot-address-2025', '2025-09', 'published', '${TIMESTAMP}', '${TIMESTAMP}');
+      INSERT OR IGNORE INTO snapshotLineages (id,code,resourceType,regionCode,variant,identityMode,versionHash,createdAt,updatedAt) VALUES ('fixture-lineage-' || 'address-snapshot-2025','fixture-lineage-' || 'address-snapshot-2025','address','hk','default','persistent','fixture','2026-01-01T00:00:00.000Z','2026-01-01T00:00:00.000Z');
+UPDATE snapshotLineages SET resourceType='address' WHERE id='fixture-lineage-' || 'address-snapshot-2025' AND resourceType IS NULL;
+INSERT INTO snapshots (id, snapshotLineageId, code, cohortKey, status, createdAt, updatedAt) VALUES
+('address-snapshot-2025', 'fixture-lineage-' || 'address-snapshot-2025', 'snapshot-address-2025', '2025-09', 'published', '${TIMESTAMP}', '${TIMESTAMP}');
       INSERT INTO dataShards (
         id, shardType, regionCode, year, environment, databaseName, databaseId,
         bindingName, status, versionHash, createdAt, updatedAt
@@ -256,8 +258,10 @@ test('replays the selected address snapshot from its assigned history shard', as
       }),
     ).toEqual([])
     meta.exec(`
-      INSERT INTO snapshots (id, resourceType, code, cohortKey, status, parentSnapshotId)
-      VALUES ('child', 'address', 'child', '2026', 'published', 'address-snapshot-2025');
+      INSERT OR IGNORE INTO snapshotLineages (id,code,resourceType,regionCode,variant,identityMode,versionHash,createdAt,updatedAt) VALUES ('fixture-lineage-' || 'child','fixture-lineage-' || 'child','address','hk','default','persistent','fixture','2026-01-01T00:00:00.000Z','2026-01-01T00:00:00.000Z');
+UPDATE snapshotLineages SET resourceType='address' WHERE id='fixture-lineage-' || 'child' AND resourceType IS NULL;
+INSERT INTO snapshots (id, snapshotLineageId, code, cohortKey, status, parentSnapshotId) VALUES
+('child', 'fixture-lineage-' || 'child', 'child', '2026', 'published', 'address-snapshot-2025');
       INSERT INTO snapshotShardAssignments (snapshotId, dataShardId) VALUES ('child', 'history-2025');
     `)
     history.exec(`

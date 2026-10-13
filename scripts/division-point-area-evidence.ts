@@ -21,7 +21,8 @@ export function missingDivisionAreaResolver(metaPath: string, currentPath: strin
         const areas = meta
           .query(`SELECT DISTINCT area.snapshotId FROM apiReleaseSetSnapshots own
           JOIN apiReleaseSetSnapshots area ON area.apiReleaseSetId=own.apiReleaseSetId AND area.variant=own.variant
-          JOIN snapshots s ON s.id=area.snapshotId AND s.resourceType='divisionArea'
+          JOIN snapshots s ON s.id=area.snapshotId
+          JOIN snapshotLineages sl ON sl.id=s.snapshotLineageId AND sl.resourceType='divisionArea'
           WHERE own.snapshotId=? AND own.role='primary' AND area.role='geometry'`)
           .all(snapshot) as { snapshotId: string }[]
         for (const area of areas) {

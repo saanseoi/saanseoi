@@ -1,3 +1,4 @@
+import { insertFixtureSnapshot } from '../../../../libs/core/src/testing/snapshotFixtures'
 import { expect, test } from 'bun:test'
 import { Database, type SQLQueryBindings } from 'bun:sqlite'
 import { resolve } from 'node:path'
@@ -29,30 +30,28 @@ test('replays Place text and spatial divisions from the selected version without
   const meta = init('meta')
   const history = init('history')
   try {
-    run(
-      meta,
-      `INSERT INTO snapshots (id, resourceType, code, cohortKey, status, createdAt, updatedAt)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [
-        'place-snapshot-old',
-        'place',
-        'places-old',
-        '2025-09',
-        'published',
-        TIMESTAMP,
-        TIMESTAMP,
-      ],
-    )
+    insertFixtureSnapshot(meta, {
+      id: 'place-snapshot-old',
+      resourceType: 'place',
+      code: 'places-old',
+      cohortKey: '2025-09',
+      status: 'published',
+      createdAt: TIMESTAMP,
+      updatedAt: TIMESTAMP,
+    })
     for (const [id, resourceType] of [
       ['address-snapshot-old', 'address'],
       ['division-snapshot-old', 'division'],
     ] as const) {
-      run(
-        meta,
-        `INSERT INTO snapshots (id, resourceType, code, cohortKey, status, createdAt, updatedAt)
-         VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [id, resourceType, id, '2025-09', 'published', TIMESTAMP, TIMESTAMP],
-      )
+      insertFixtureSnapshot(meta, {
+        id: id,
+        resourceType: resourceType,
+        code: id,
+        cohortKey: '2025-09',
+        status: 'published',
+        createdAt: TIMESTAMP,
+        updatedAt: TIMESTAMP,
+      })
     }
     run(
       meta,
@@ -356,11 +355,16 @@ test('historical Places resolve independently inherited locales across years and
       ['edited', 'base', 'next', '2026'],
       ['removed', 'edited', 'next', '2026'],
     ] as const) {
-      run(
-        meta,
-        'INSERT INTO snapshots(id,resourceType,code,cohortKey,status,parentSnapshotId,createdAt,updatedAt) VALUES(?,?,?,?,?,?,?,?)',
-        [snapshot, 'place', snapshot, year, 'published', parent, TIMESTAMP, TIMESTAMP],
-      )
+      insertFixtureSnapshot(meta, {
+        id: snapshot,
+        resourceType: 'place',
+        code: snapshot,
+        cohortKey: year,
+        status: 'published',
+        parentSnapshotId: parent,
+        createdAt: TIMESTAMP,
+        updatedAt: TIMESTAMP,
+      })
       run(
         meta,
         'INSERT OR IGNORE INTO dataShards(id,shardType,regionCode,year,environment,databaseName,databaseId,bindingName,status,versionHash,createdAt,updatedAt) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)',

@@ -100,7 +100,7 @@ export async function assertAddressUploadPrerequisites(
       )
       .where(
         and(
-          eq(metaSchema.metaSnapshots.resourceType, 'division'),
+          eq(metaSchema.metaSnapshotLineages.resourceType, 'division'),
           eq(metaSchema.metaSnapshots.status, 'published'),
           options.divisionCohortKey
             ? eq(metaSchema.metaSnapshots.cohortKey, options.divisionCohortKey)
@@ -270,7 +270,7 @@ export async function resolveAddressApiReleaseSetReadiness(
       )
       .where(
         and(
-          eq(metaSchema.metaSnapshots.resourceType, 'division'),
+          eq(metaSchema.metaSnapshotLineages.resourceType, 'division'),
           eq(metaSchema.metaSnapshots.status, 'published'),
           eq(metaSchema.metaSnapshotLineages.regionCode, plan.regionCode),
           eq(metaSchema.metaSnapshotLineages.variant, 'overture'),
@@ -390,7 +390,7 @@ async function resolveLocalPublishedDivisionSnapshotForGeometryPlan(
         )
         .where(
           and(
-            eq(metaSchema.metaSnapshots.resourceType, 'division'),
+            eq(metaSchema.metaSnapshotLineages.resourceType, 'division'),
             eq(metaSchema.metaSnapshots.status, 'published'),
             eq(metaSchema.metaSnapshots.cohortKey, plan.cohortKey),
             eq(metaSchema.metaDatasets.regionCode, plan.regionCode),
@@ -420,7 +420,7 @@ async function resolveRemotePublishedSnapshotForGeometryPlan(
     return (
       (await db
         .select({
-          resourceType: metaSchema.metaSnapshots.resourceType,
+          resourceType: metaSchema.metaSnapshotLineages.resourceType,
           snapshotId: metaSchema.metaSnapshots.id,
         })
         .from(metaSchema.metaSnapshots)
@@ -447,7 +447,7 @@ async function resolveRemotePublishedSnapshotForGeometryPlan(
         )
         .where(
           and(
-            eq(metaSchema.metaSnapshots.resourceType, 'division'),
+            eq(metaSchema.metaSnapshotLineages.resourceType, 'division'),
             eq(metaSchema.metaSnapshots.status, 'published'),
             eq(metaSchema.metaDatasets.regionCode, plan.regionCode),
             matchesDivisionDomain(plan.source, plan.datasetCode),
@@ -616,7 +616,7 @@ async function resolveRemotePublishedDivisionSnapshotForAddressPlan(
         )
         .where(
           and(
-            eq(metaSchema.metaSnapshots.resourceType, 'division'),
+            eq(metaSchema.metaSnapshotLineages.resourceType, 'division'),
             eq(metaSchema.metaSnapshots.status, 'published'),
             eq(metaSchema.metaSnapshots.cohortKey, plan.cohortKey),
             eq(metaSchema.metaDatasets.regionCode, plan.regionCode),

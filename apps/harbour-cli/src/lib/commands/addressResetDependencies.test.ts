@@ -72,7 +72,13 @@ test('Address full reset protects exact lookup metadata and external API/source 
   const f = fixture()
   try {
     f.meta.exec(`
-      INSERT INTO snapshots(id,code,resourceType,cohortKey,status) VALUES ('place','place','place','2026','draft'),('address-204','address-204','address','2026','published');
+      INSERT OR IGNORE INTO snapshotLineages (id,code,resourceType,regionCode,variant,identityMode,versionHash,createdAt,updatedAt) VALUES ('fixture-lineage-' || 'place','fixture-lineage-' || 'place','place','hk','default','persistent','fixture','2026-01-01T00:00:00.000Z','2026-01-01T00:00:00.000Z');
+UPDATE snapshotLineages SET resourceType='place' WHERE id='fixture-lineage-' || 'place' AND resourceType IS NULL;
+INSERT OR IGNORE INTO snapshotLineages (id,code,resourceType,regionCode,variant,identityMode,versionHash,createdAt,updatedAt) VALUES ('fixture-lineage-' || 'address-204','fixture-lineage-' || 'address-204','address','hk','default','persistent','fixture','2026-01-01T00:00:00.000Z','2026-01-01T00:00:00.000Z');
+UPDATE snapshotLineages SET resourceType='address' WHERE id='fixture-lineage-' || 'address-204' AND resourceType IS NULL;
+INSERT INTO snapshots(id, snapshotLineageId, code, cohortKey, status) VALUES
+('place', 'fixture-lineage-' || 'place', 'place', '2026', 'draft'),
+('address-204', 'fixture-lineage-' || 'address-204', 'address-204', '2026', 'published');
       INSERT INTO publishers(id,code,versionHash) VALUES ('publisher','publisher','hash');
       INSERT INTO datasets(id,publisherId,code,regionCode,releaseType,releaseFrequency,theme,versionHash) VALUES ('als','publisher','als','hk','snapshot','daily','address','hash');
       INSERT INTO sourceReleases(id,datasetId,code,sourceVersion,cohortKey,status) VALUES ('als-source','als','als-source','2026','2026','current');

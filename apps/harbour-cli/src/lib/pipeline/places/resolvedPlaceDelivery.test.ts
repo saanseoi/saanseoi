@@ -1,3 +1,4 @@
+import { insertFixtureSnapshot } from '../../../../../../libs/core/src/testing/snapshotFixtures'
 import { retainObject } from '@repo/core/provenance'
 import { LocalPipelineBucket } from '../local/localBucket'
 import { Database } from 'bun:sqlite'
@@ -118,18 +119,14 @@ async function setup() {
     const planningMeta = planningClients.DB_META
     if (!planningMeta) throw new Error('Missing planning metadata')
     const snapshotId = `revision-${revision}`
-    planningMeta
-      .query(
-        'INSERT INTO snapshots(id,code,resourceType,cohortKey,status,parentSnapshotId) VALUES (?,?,?,?,?,?)',
-      )
-      .run(
-        snapshotId,
-        snapshotId,
-        'place',
-        '2025',
-        'published',
-        revision > 1 ? `revision-${revision - 1}` : null,
-      )
+    insertFixtureSnapshot(planningMeta, {
+      id: snapshotId,
+      code: snapshotId,
+      resourceType: 'place',
+      cohortKey: '2025',
+      status: 'published',
+      parentSnapshotId: revision > 1 ? `revision-${revision - 1}` : null,
+    })
     planningMeta
       .query('INSERT INTO snapshotShardAssignments VALUES (?,?)')
       .run(snapshotId, 'history')

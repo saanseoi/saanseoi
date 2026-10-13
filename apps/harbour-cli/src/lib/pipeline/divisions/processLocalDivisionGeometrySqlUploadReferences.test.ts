@@ -33,12 +33,15 @@ test('historical C&SD geometry validates against later SaanSeoi history without 
       INSERT INTO publishers(id,code,versionHash) VALUES('saanseoi','saanseoi','hash');
       INSERT INTO datasets(id,publisherId,code,regionCode,releaseType,releaseFrequency,theme,versionHash)
         VALUES('divisions','saanseoi','ds-hk-saanseoi-division','hk','versioned','monthly','divisions','hash');
+
       INSERT INTO snapshotLineages(id,code,regionCode,resourceType,variant,identityMode,versionHash)
         VALUES('lineage','saanseoi','hk','division','saanseoi','persistent','hash');
-      INSERT INTO snapshots(id,snapshotLineageId,parentSnapshotId,resourceType,code,cohortKey,status) VALUES
-        ('early','lineage',NULL,'division','saanseoi-2025','2025-01-01.0','published'),
-        ('complete','lineage','early','division','saanseoi-2026-01','2026-01-01.0','published'),
-        ('latest','lineage','complete','division','saanseoi-2026-08','2026-08-19.0','published');
+INSERT OR IGNORE INTO snapshotLineages (id,code,resourceType,regionCode,variant,identityMode,versionHash,createdAt,updatedAt) VALUES ('lineage','lineage','division','hk','default','persistent','fixture','2026-01-01T00:00:00.000Z','2026-01-01T00:00:00.000Z');
+UPDATE snapshotLineages SET resourceType='division' WHERE id='lineage' AND resourceType IS NULL;
+INSERT INTO snapshots(id, snapshotLineageId, parentSnapshotId, code, cohortKey, status) VALUES
+('early', 'lineage', NULL, 'saanseoi-2025', '2025-01-01.0', 'published'),
+('complete', 'lineage', 'early', 'saanseoi-2026-01', '2026-01-01.0', 'published'),
+('latest', 'lineage', 'complete', 'saanseoi-2026-08', '2026-08-19.0', 'published');
       INSERT INTO snapshotResourceReleases(snapshotId,datasetId,resourceReleaseId,role) VALUES
         ('early','divisions','release-2025','primary'),
         ('complete','divisions','release-2026-01','primary'),

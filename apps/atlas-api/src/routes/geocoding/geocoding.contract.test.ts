@@ -65,6 +65,18 @@ async function fixture() {
         versionHash: family,
       })
       .run()
+    await m
+      .insert(metaSchema.metaSnapshotLineages)
+      .values({
+        id: family,
+        code: family,
+        regionCode: 'hk',
+        resourceType: family === 'addresses' ? 'address' : 'division',
+        variant: 'default',
+        identityMode: 'persistent',
+        versionHash: family,
+      })
+      .run()
     for (const cohort of ['2025-01-01.0', '2026-08-19.0']) {
       const id = `${family}-${cohort}`
       const snapshot = `${id}-snapshot`
@@ -73,7 +85,7 @@ async function fixture() {
         .values({
           id: snapshot,
           code: snapshot,
-          resourceType: family === 'addresses' ? 'address' : 'division',
+          snapshotLineageId: family,
           status: 'published',
           cohortKey: cohort,
         })

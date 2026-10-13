@@ -35,7 +35,7 @@ export async function buildDivisionMetaSqlFile(
       id: metaSnapshots.id,
       snapshotLineageId: metaSnapshots.snapshotLineageId,
       parentSnapshotId: metaSnapshots.parentSnapshotId,
-      resourceType: metaSnapshots.resourceType,
+      resourceType: metaSnapshotLineages.resourceType,
       code: metaSnapshots.code,
       cohortKey: metaSnapshots.cohortKey,
       revision: metaSnapshots.revision,
@@ -47,6 +47,10 @@ export async function buildDivisionMetaSqlFile(
       updatedAt: metaSnapshots.updatedAt,
     })
     .from(metaSnapshots)
+    .innerJoin(
+      metaSnapshotLineages,
+      eq(metaSnapshots.snapshotLineageId, metaSnapshotLineages.id),
+    )
     .where(eq(metaSnapshots.id, state.snapshotId))
     .limit(1)
     .get()
@@ -199,7 +203,6 @@ ON CONFLICT(id) DO UPDATE SET
         'id',
         'snapshotLineageId',
         'parentSnapshotId',
-        'resourceType',
         'code',
         'cohortKey',
         'revision',
@@ -216,7 +219,6 @@ ON CONFLICT(id) DO UPDATE SET
 ON CONFLICT(id) DO UPDATE SET
   snapshotLineageId = excluded.snapshotLineageId,
   parentSnapshotId = excluded.parentSnapshotId,
-  resourceType = excluded.resourceType,
   code = excluded.code,
   cohortKey = excluded.cohortKey,
   revision = excluded.revision,

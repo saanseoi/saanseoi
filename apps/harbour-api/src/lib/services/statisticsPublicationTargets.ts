@@ -8,6 +8,7 @@ import {
   metaApiVersions,
   metaDatasets,
   metaSnapshotResourceReleases,
+  metaSnapshotLineages,
   metaSnapshots,
   ne,
 } from '@repo/db'
@@ -70,6 +71,10 @@ export async function listPublishedStatisticsTargets(db: HarbourReadableDb) {
         eq(metaSnapshots.id, metaApiReleaseSetSnapshots.snapshotId),
       )
       .innerJoin(
+        metaSnapshotLineages,
+        eq(metaSnapshots.snapshotLineageId, metaSnapshotLineages.id),
+      )
+      .innerJoin(
         metaSnapshotResourceReleases,
         eq(metaSnapshotResourceReleases.snapshotId, metaSnapshots.id),
       )
@@ -80,7 +85,7 @@ export async function listPublishedStatisticsTargets(db: HarbourReadableDb) {
       .where(
         and(
           eq(metaApiReleaseSetSnapshots.apiReleaseSetId, release.id),
-          eq(metaSnapshots.resourceType, 'divisionStatistic'),
+          eq(metaSnapshotLineages.resourceType, 'divisionStatistic'),
           ne(metaSnapshotResourceReleases.role, 'lookup'),
         ),
       )

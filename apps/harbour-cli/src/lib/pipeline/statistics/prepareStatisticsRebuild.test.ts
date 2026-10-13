@@ -1,3 +1,4 @@
+import { insertFixtureSnapshot } from '../../../../../../libs/core/src/testing/snapshotFixtures'
 import {
   insertReleaseFixture,
   releaseFixtureSchemaSql,
@@ -48,7 +49,27 @@ function fixture() {
   meta.exec(`
     CREATE TABLE datasets (id TEXT, code TEXT);
     ${releaseFixtureSchemaSql()};
-    CREATE TABLE snapshots (id TEXT, parentSnapshotId TEXT, cohortKey TEXT, resourceType TEXT, revision INTEGER, status TEXT, createdAt TEXT);
+    CREATE TABLE snapshotLineages (
+      id TEXT PRIMARY KEY,
+      code TEXT UNIQUE,
+      regionCode TEXT NOT NULL DEFAULT 'hk',
+      resourceType TEXT,
+      variant TEXT NOT NULL DEFAULT 'default',
+      identityMode TEXT NOT NULL DEFAULT 'persistent',
+      primaryDatasetId TEXT,
+      versionHash TEXT NOT NULL DEFAULT 'fixture',
+      createdAt TEXT NOT NULL DEFAULT '2026-01-01T00:00:00.000Z',
+      updatedAt TEXT NOT NULL DEFAULT '2026-01-01T00:00:00.000Z'
+    );
+    CREATE TABLE snapshots (
+      id TEXT,
+      snapshotLineageId TEXT NOT NULL,
+      parentSnapshotId TEXT,
+      cohortKey TEXT,
+      revision INTEGER,
+      status TEXT,
+      createdAt TEXT
+    );
     CREATE TABLE snapshotResourceReleases (snapshotId TEXT, resourceReleaseId TEXT, datasetId TEXT, role TEXT);
     CREATE TABLE dataShards (id TEXT, bindingName TEXT);
     CREATE TABLE snapshotShardAssignments (snapshotId TEXT, dataShardId TEXT);
@@ -72,17 +93,15 @@ function fixture() {
       sourceVersion: String(number),
       resourceType: 'divisionStatistic',
     })
-    meta
-      .query('INSERT INTO snapshots VALUES (?, ?, ?, ?, ?, ?, ?)')
-      .run(
-        snapshot,
-        number === 1 ? null : `snapshot-${number - 1}`,
-        '2021',
-        'divisionStatistic',
-        number - 1,
-        status,
-        now,
-      )
+    insertFixtureSnapshot(meta, {
+      id: snapshot,
+      parentSnapshotId: number === 1 ? null : `snapshot-${number - 1}`,
+      cohortKey: '2021',
+      resourceType: 'divisionStatistic',
+      revision: number - 1,
+      status: status,
+      createdAt: now,
+    })
     meta
       .query('INSERT INTO snapshotResourceReleases VALUES (?, ?, ?, ?)')
       .run(snapshot, release, 'dataset', 'primary')

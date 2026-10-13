@@ -1,3 +1,4 @@
+import { insertFixtureSnapshot } from '../../../../../../libs/core/src/testing/snapshotFixtures'
 import { Database, type SQLQueryBindings } from 'bun:sqlite'
 import { resolve } from 'node:path'
 
@@ -119,25 +120,18 @@ function seedMeta(sqlite: Database) {
       PUBLISHED_AT,
     ],
   )
-  run(
-    sqlite,
-    `INSERT INTO snapshots (
-      id, resourceType, code, cohortKey, revision, status,
-      publishedAt, validFrom, createdAt, updatedAt
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [
-      'snapshot-statistics',
-      'divisionStatistic',
-      'ss-hk-division-statistic-population-households-2021',
-      '2021',
-      0,
-      'published',
-      PUBLISHED_AT,
-      PUBLISHED_AT,
-      PUBLISHED_AT,
-      PUBLISHED_AT,
-    ],
-  )
+  insertFixtureSnapshot(sqlite, {
+    id: 'snapshot-statistics',
+    resourceType: 'divisionStatistic',
+    code: 'ss-hk-division-statistic-population-households-2021',
+    cohortKey: '2021',
+    revision: 0,
+    status: 'published',
+    publishedAt: PUBLISHED_AT,
+    validFrom: PUBLISHED_AT,
+    createdAt: PUBLISHED_AT,
+    updatedAt: PUBLISHED_AT,
+  })
   run(
     sqlite,
     `INSERT INTO sourceReleases (
@@ -326,25 +320,18 @@ function seedMeta(sqlite: Database) {
       PUBLISHED_AT,
     ],
   )
-  run(
-    sqlite,
-    `INSERT INTO snapshots (
-      id, resourceType, code, cohortKey, revision, status,
-      publishedAt, validFrom, createdAt, updatedAt
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [
-      'snapshot-statistics-historical',
-      'divisionStatistic',
-      'ss-hk-division-statistic-households-2020',
-      '2020',
-      0,
-      'published',
-      PUBLISHED_AT,
-      PUBLISHED_AT,
-      PUBLISHED_AT,
-      PUBLISHED_AT,
-    ],
-  )
+  insertFixtureSnapshot(sqlite, {
+    id: 'snapshot-statistics-historical',
+    resourceType: 'divisionStatistic',
+    code: 'ss-hk-division-statistic-households-2020',
+    cohortKey: '2020',
+    revision: 0,
+    status: 'published',
+    publishedAt: PUBLISHED_AT,
+    validFrom: PUBLISHED_AT,
+    createdAt: PUBLISHED_AT,
+    updatedAt: PUBLISHED_AT,
+  })
   run(
     sqlite,
     `INSERT INTO snapshotResourceReleases (
@@ -711,25 +698,18 @@ function seedSelectedDivision(sqlite: Database) {
       PUBLISHED_AT,
     ],
   )
-  run(
-    sqlite,
-    `INSERT INTO snapshots (
-      id, resourceType, code, cohortKey, revision, status,
-      publishedAt, validFrom, createdAt, updatedAt
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [
-      'snapshot-divisions',
-      'division',
-      'ss-hk-division-overture-2021',
-      '2021',
-      0,
-      'published',
-      PUBLISHED_AT,
-      PUBLISHED_AT,
-      PUBLISHED_AT,
-      PUBLISHED_AT,
-    ],
-  )
+  insertFixtureSnapshot(sqlite, {
+    id: 'snapshot-divisions',
+    resourceType: 'division',
+    code: 'ss-hk-division-overture-2021',
+    cohortKey: '2021',
+    revision: 0,
+    status: 'published',
+    publishedAt: PUBLISHED_AT,
+    validFrom: PUBLISHED_AT,
+    createdAt: PUBLISHED_AT,
+    updatedAt: PUBLISHED_AT,
+  })
   run(
     sqlite,
     `INSERT INTO apiReleaseSets (

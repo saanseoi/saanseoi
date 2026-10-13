@@ -127,6 +127,7 @@ test('frozen history follows sparse ancestry for no-op reissues and exact defini
     createTables(meta, [
       metaSchema.metaApiReleaseSetSnapshots,
       metaSchema.metaSnapshots,
+      metaSchema.metaSnapshotLineages,
       metaSchema.metaSnapshotResourceReleases,
       metaSchema.metaDatasets,
       metaSchema.metaSnapshotShardAssignments,
@@ -140,7 +141,13 @@ test('frozen history follows sparse ancestry for no-op reissues and exact defini
       historySchema.snapshotVersionChanges,
     ])
     meta.exec(`INSERT INTO apiReleaseSetSnapshots (apiReleaseSetId,snapshotId,role) VALUES ('api','reissue','primary');
-      INSERT INTO snapshots (id,resourceType,parentSnapshotId) VALUES ('base','divisionStatistic',NULL),('reissue','divisionStatistic','base');
+      INSERT OR IGNORE INTO snapshotLineages (id,code,resourceType,regionCode,variant,identityMode,versionHash,createdAt,updatedAt) VALUES ('fixture-lineage-' || 'base','fixture-lineage-' || 'base','divisionStatistic','hk','default','persistent','fixture','2026-01-01T00:00:00.000Z','2026-01-01T00:00:00.000Z');
+UPDATE snapshotLineages SET resourceType='divisionStatistic' WHERE id='fixture-lineage-' || 'base' AND resourceType IS NULL;
+INSERT OR IGNORE INTO snapshotLineages (id,code,resourceType,regionCode,variant,identityMode,versionHash,createdAt,updatedAt) VALUES ('fixture-lineage-' || 'reissue','fixture-lineage-' || 'reissue','divisionStatistic','hk','default','persistent','fixture','2026-01-01T00:00:00.000Z','2026-01-01T00:00:00.000Z');
+UPDATE snapshotLineages SET resourceType='divisionStatistic' WHERE id='fixture-lineage-' || 'reissue' AND resourceType IS NULL;
+INSERT INTO snapshots (id, snapshotLineageId, parentSnapshotId) VALUES
+('base', 'fixture-lineage-' || 'base', NULL),
+('reissue', 'fixture-lineage-' || 'reissue', 'base');
       INSERT INTO datasets (id,code) VALUES ('dataset','a');
       INSERT INTO snapshotResourceReleases (snapshotId,datasetId,resourceReleaseId,role) VALUES ('reissue','dataset','new-source','primary');`)
     history.exec(`INSERT INTO statsDefinitionSets (id,fieldDefinitionHashes) VALUES

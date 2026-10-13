@@ -14,9 +14,13 @@ test('Address3D replay loads each locale from its own retained hash and history 
     meta.exec(loadMigrationSql(migrations, ['meta']))
     for (const db of [earlier, later])
       db.exec(loadMigrationSql(migrations, ['history']))
-    meta.exec(`INSERT INTO snapshots(id,resourceType,code,cohortKey,status,parentSnapshotId)
-      VALUES ('one','address','one','2025-09','published',NULL),
-        ('two','address','two','2026-09','published','one');
+    meta.exec(`INSERT OR IGNORE INTO snapshotLineages (id,code,resourceType,regionCode,variant,identityMode,versionHash,createdAt,updatedAt) VALUES ('fixture-lineage-' || 'one','fixture-lineage-' || 'one','address','hk','default','persistent','fixture','2026-01-01T00:00:00.000Z','2026-01-01T00:00:00.000Z');
+UPDATE snapshotLineages SET resourceType='address' WHERE id='fixture-lineage-' || 'one' AND resourceType IS NULL;
+INSERT OR IGNORE INTO snapshotLineages (id,code,resourceType,regionCode,variant,identityMode,versionHash,createdAt,updatedAt) VALUES ('fixture-lineage-' || 'two','fixture-lineage-' || 'two','address','hk','default','persistent','fixture','2026-01-01T00:00:00.000Z','2026-01-01T00:00:00.000Z');
+UPDATE snapshotLineages SET resourceType='address' WHERE id='fixture-lineage-' || 'two' AND resourceType IS NULL;
+INSERT INTO snapshots(id, snapshotLineageId, code, cohortKey, status, parentSnapshotId) VALUES
+('one', 'fixture-lineage-' || 'one', 'one', '2025-09', 'published', NULL),
+('two', 'fixture-lineage-' || 'two', 'two', '2026-09', 'published', 'one');
       INSERT INTO dataShards(id,shardType,regionCode,year,environment,databaseName,databaseId,bindingName,status,versionHash)
       VALUES ('old','history','hk','2025','preview','old','old','DB_HISTORY_HK_2025','active','old'),
         ('new','history','hk','2026','preview','new','new','DB_HISTORY_HK_2026','active','new');

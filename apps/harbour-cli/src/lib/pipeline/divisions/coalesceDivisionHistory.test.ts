@@ -1,3 +1,4 @@
+import { insertFixtureSnapshot } from '../../../../../../libs/core/src/testing/snapshotFixtures'
 import { Database } from 'bun:sqlite'
 import { requireDefined } from '@repo/core/requireDefined'
 import { expect, test } from 'bun:test'
@@ -83,11 +84,16 @@ async function fixture(
       ['old', null, 'DB_HISTORY_OLD'],
       ['next', 'old', 'DB_HISTORY_NEW'],
     ] as const) {
-      meta
-        .query(
-          "INSERT INTO snapshots(id,resourceType,code,cohortKey,status,parentSnapshotId,createdAt,updatedAt) VALUES(?,'division',?,'2025','published',?,'original','original')",
-        )
-        .run(snapshot, snapshot, parent)
+      insertFixtureSnapshot(meta, {
+        id: snapshot,
+        resourceType: 'division',
+        code: snapshot,
+        cohortKey: '2025',
+        status: 'published',
+        parentSnapshotId: parent,
+        createdAt: 'original',
+        updatedAt: 'original',
+      })
       meta
         .query(
           "INSERT INTO dataShards(id,shardType,regionCode,year,environment,databaseName,databaseId,bindingName,status,versionHash) VALUES(?,'history','hk',?,'preview',?,?,?,'active','hash')",
@@ -422,8 +428,10 @@ test('Division publication after rollback compares against selected A when C rep
     ])
       db.exec("UPDATE divisionsI18n SET isCurrent=0 WHERE locale='en'")
     requireDefined(f.candidates.DB_META).db.exec(`
-      INSERT INTO snapshots(id,resourceType,code,cohortKey,status,parentSnapshotId)
-        VALUES('branch-b','division','branch-b','2025','published','old');
+      INSERT OR IGNORE INTO snapshotLineages (id,code,resourceType,regionCode,variant,identityMode,versionHash,createdAt,updatedAt) VALUES ('fixture-lineage-' || 'branch-b','fixture-lineage-' || 'branch-b','division','hk','default','persistent','fixture','2026-01-01T00:00:00.000Z','2026-01-01T00:00:00.000Z');
+UPDATE snapshotLineages SET resourceType='division' WHERE id='fixture-lineage-' || 'branch-b' AND resourceType IS NULL;
+INSERT INTO snapshots(id, snapshotLineageId, code, cohortKey, status, parentSnapshotId) VALUES
+('branch-b', 'fixture-lineage-' || 'branch-b', 'branch-b', '2025', 'published', 'old');
       INSERT INTO snapshotShardAssignments(snapshotId,dataShardId) VALUES('branch-b','DB_HISTORY_NEW');`)
     stage(f.candidates, 'Revised')
     await f.coalesce()

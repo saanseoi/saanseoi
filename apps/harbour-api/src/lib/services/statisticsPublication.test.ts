@@ -13,7 +13,23 @@ const period = '2021'
 function fixture() {
   const meta = new Database(':memory:')
   meta.exec(`
-    CREATE TABLE snapshots (id TEXT PRIMARY KEY, parentSnapshotId TEXT);
+    CREATE TABLE snapshotLineages (
+      id TEXT PRIMARY KEY,
+      code TEXT UNIQUE,
+      regionCode TEXT NOT NULL DEFAULT 'hk',
+      resourceType TEXT,
+      variant TEXT NOT NULL DEFAULT 'default',
+      identityMode TEXT NOT NULL DEFAULT 'persistent',
+      primaryDatasetId TEXT,
+      versionHash TEXT NOT NULL DEFAULT 'fixture',
+      createdAt TEXT NOT NULL DEFAULT '2026-01-01T00:00:00.000Z',
+      updatedAt TEXT NOT NULL DEFAULT '2026-01-01T00:00:00.000Z'
+    );
+    CREATE TABLE snapshots (
+      id TEXT PRIMARY KEY,
+      snapshotLineageId TEXT NOT NULL,
+      parentSnapshotId TEXT
+    );
     CREATE TABLE dataShards (id TEXT PRIMARY KEY, bindingName TEXT);
     CREATE TABLE snapshotShardAssignments (snapshotId TEXT, dataShardId TEXT);
     INSERT INTO dataShards VALUES ('history', 'DB_HISTORY_HK_BEFORE');
@@ -88,7 +104,11 @@ function fixture() {
   })
   const bindings = { DB_HISTORY_HK_BEFORE: d1(history) }
   function snapshot(id: string, parent: string | null) {
-    meta.query('INSERT INTO snapshots VALUES (?, ?)').run(id, parent)
+    meta
+      .query(
+        "INSERT INTO snapshots (id,snapshotLineageId,parentSnapshotId) VALUES (?, 'statistics', ?)",
+      )
+      .run(id, parent)
     meta.query('INSERT INTO snapshotShardAssignments VALUES (?, ?)').run(id, 'history')
   }
   function record(
@@ -313,8 +333,8 @@ describe('packed statistic publication', () => {
     f.record('base', 'north', 'north-1', '10')
     f.meta.exec(`
       ALTER TABLE snapshots ADD COLUMN cohortKey TEXT;
-      ALTER TABLE snapshots ADD COLUMN resourceType TEXT;
-      UPDATE snapshots SET cohortKey = '${period}', resourceType = 'divisionStatistic';
+      UPDATE snapshots SET cohortKey = '${period}';
+      INSERT INTO snapshotLineages (id,resourceType) VALUES ('statistics','divisionStatistic');
       CREATE TABLE apiVersions (id TEXT, familyType TEXT);
       CREATE TABLE apiReleaseSets (id TEXT, cohortKey TEXT, domainCode TEXT, regionCode TEXT, revision INTEGER);
       CREATE TABLE apiVersionReleaseSets (apiReleaseSetId TEXT, apiVersionId TEXT, status TEXT);
@@ -352,7 +372,23 @@ describe('packed statistic publication', () => {
       CREATE TABLE apiReleaseSets (id TEXT, cohortKey TEXT, domainCode TEXT, regionCode TEXT, revision INTEGER);
       CREATE TABLE apiVersionReleaseSets (apiReleaseSetId TEXT, apiVersionId TEXT, status TEXT);
       CREATE TABLE apiReleaseSetSnapshots (apiReleaseSetId TEXT, snapshotId TEXT);
-      CREATE TABLE snapshots (id TEXT, cohortKey TEXT, resourceType TEXT);
+      CREATE TABLE snapshotLineages (
+      id TEXT PRIMARY KEY,
+      code TEXT UNIQUE,
+      regionCode TEXT NOT NULL DEFAULT 'hk',
+      resourceType TEXT,
+      variant TEXT NOT NULL DEFAULT 'default',
+      identityMode TEXT NOT NULL DEFAULT 'persistent',
+      primaryDatasetId TEXT,
+      versionHash TEXT NOT NULL DEFAULT 'fixture',
+      createdAt TEXT NOT NULL DEFAULT '2026-01-01T00:00:00.000Z',
+      updatedAt TEXT NOT NULL DEFAULT '2026-01-01T00:00:00.000Z'
+    );
+    CREATE TABLE snapshots (
+      id TEXT,
+      snapshotLineageId TEXT NOT NULL,
+      cohortKey TEXT
+    );
       CREATE TABLE snapshotResourceReleases (snapshotId TEXT, datasetId TEXT, role TEXT);
       CREATE TABLE datasets (id TEXT, code TEXT);
       INSERT INTO apiVersions VALUES ('stats', 'stats');
@@ -366,7 +402,19 @@ describe('packed statistic publication', () => {
         ('2020-r0', 'stats', 'archived'), ('2020-r1', 'stats', 'archived'),
         ('2020-r2', 'stats', 'draft'), ('2021-r0', 'stats', 'current');
       INSERT INTO apiReleaseSetSnapshots VALUES ('2020-r0', 'old'), ('2020-r1', 'corrected'), ('2020-r2', 'draft'), ('2021-r0', 'new-period');
-      INSERT INTO snapshots VALUES ('old', '2020', 'divisionStatistic'), ('corrected', '2020', 'divisionStatistic'), ('draft', '2020', 'divisionStatistic'), ('new-period', '2021', 'divisionStatistic');
+      INSERT OR IGNORE INTO snapshotLineages (id,code,resourceType,regionCode,variant,identityMode,versionHash,createdAt,updatedAt) VALUES ('fixture-lineage-' || 'old','fixture-lineage-' || 'old','divisionStatistic','hk','default','persistent','fixture','2026-01-01T00:00:00.000Z','2026-01-01T00:00:00.000Z');
+UPDATE snapshotLineages SET resourceType='divisionStatistic' WHERE id='fixture-lineage-' || 'old' AND resourceType IS NULL;
+INSERT OR IGNORE INTO snapshotLineages (id,code,resourceType,regionCode,variant,identityMode,versionHash,createdAt,updatedAt) VALUES ('fixture-lineage-' || 'corrected','fixture-lineage-' || 'corrected','divisionStatistic','hk','default','persistent','fixture','2026-01-01T00:00:00.000Z','2026-01-01T00:00:00.000Z');
+UPDATE snapshotLineages SET resourceType='divisionStatistic' WHERE id='fixture-lineage-' || 'corrected' AND resourceType IS NULL;
+INSERT OR IGNORE INTO snapshotLineages (id,code,resourceType,regionCode,variant,identityMode,versionHash,createdAt,updatedAt) VALUES ('fixture-lineage-' || 'draft','fixture-lineage-' || 'draft','divisionStatistic','hk','default','persistent','fixture','2026-01-01T00:00:00.000Z','2026-01-01T00:00:00.000Z');
+UPDATE snapshotLineages SET resourceType='divisionStatistic' WHERE id='fixture-lineage-' || 'draft' AND resourceType IS NULL;
+INSERT OR IGNORE INTO snapshotLineages (id,code,resourceType,regionCode,variant,identityMode,versionHash,createdAt,updatedAt) VALUES ('fixture-lineage-' || 'new-period','fixture-lineage-' || 'new-period','divisionStatistic','hk','default','persistent','fixture','2026-01-01T00:00:00.000Z','2026-01-01T00:00:00.000Z');
+UPDATE snapshotLineages SET resourceType='divisionStatistic' WHERE id='fixture-lineage-' || 'new-period' AND resourceType IS NULL;
+INSERT INTO snapshots (id, snapshotLineageId, cohortKey) VALUES
+('old', 'fixture-lineage-' || 'old', '2020'),
+('corrected', 'fixture-lineage-' || 'corrected', '2020'),
+('draft', 'fixture-lineage-' || 'draft', '2020'),
+('new-period', 'fixture-lineage-' || 'new-period', '2021');
       INSERT INTO snapshotResourceReleases VALUES ('old', 'dataset', 'primary'), ('corrected', 'dataset', 'primary'), ('draft', 'dataset', 'primary'), ('new-period', 'dataset', 'primary');
     `)
     expect(await listPublishedStatisticsTargets(createLocalHarbourDb(meta))).toEqual([

@@ -1038,7 +1038,7 @@ async function resolveAlsSourceReleases(
           ]),
           eq(metaSchema.metaDatasets.code, 'ds-hk-overture-division'),
           eq(metaSchema.metaDatasets.regionCode, 'hk'),
-          eq(metaSchema.metaSnapshots.resourceType, 'division'),
+          eq(metaSchema.metaSnapshotLineages.resourceType, 'division'),
           eq(metaSchema.metaSnapshots.status, 'published'),
           eq(metaSchema.metaSnapshotLineages.regionCode, 'hk'),
           eq(metaSchema.metaSnapshotLineages.variant, 'overture'),

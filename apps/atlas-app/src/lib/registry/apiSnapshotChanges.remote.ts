@@ -35,8 +35,15 @@ export const getApiSnapshotChanges = query(
     const snapshots = metaSchema.metaSnapshots
     async function read(id: string) {
       const snapshot = await db
-        .select()
+        .select({
+          status: snapshots.status,
+          resourceType: metaSchema.metaSnapshotLineages.resourceType,
+        })
         .from(snapshots)
+        .innerJoin(
+          metaSchema.metaSnapshotLineages,
+          eq(snapshots.snapshotLineageId, metaSchema.metaSnapshotLineages.id),
+        )
         .where(eq(snapshots.id, id))
         .get()
       if (snapshot?.status !== 'published') error(404, 'Retained snapshot unavailable.')

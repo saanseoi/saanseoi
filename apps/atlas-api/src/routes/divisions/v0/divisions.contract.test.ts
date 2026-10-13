@@ -1,3 +1,4 @@
+import { insertFixtureSnapshot } from '../../../../../../libs/core/src/testing/snapshotFixtures'
 import { describe, expect, test } from 'bun:test'
 import { Database, type SQLQueryBindings } from 'bun:sqlite'
 import { resolve } from 'node:path'
@@ -154,24 +155,18 @@ function seedMeta(sqlite: Database) {
   ]
 
   for (const release of releases) {
-    run(
-      sqlite,
-      `INSERT INTO snapshots
-        (id, resourceType, code, cohortKey, revision, status, publishedAt, validFrom, createdAt, updatedAt)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
-        release.snapshot,
-        'division',
-        `ss-hk-division-${release.domain}-${release.cohort}`,
-        release.cohort,
-        0,
-        'published',
-        CATALOG_PUBLISHED_AT,
-        release.effectiveFrom,
-        CATALOG_PUBLISHED_AT,
-        CATALOG_PUBLISHED_AT,
-      ],
-    )
+    insertFixtureSnapshot(sqlite, {
+      id: release.snapshot,
+      resourceType: 'division',
+      code: `ss-hk-division-${release.domain}-${release.cohort}`,
+      cohortKey: release.cohort,
+      revision: 0,
+      status: 'published',
+      publishedAt: CATALOG_PUBLISHED_AT,
+      validFrom: release.effectiveFrom,
+      createdAt: CATALOG_PUBLISHED_AT,
+      updatedAt: CATALOG_PUBLISHED_AT,
+    })
     run(
       sqlite,
       `INSERT INTO apiReleaseSets
@@ -264,24 +259,18 @@ function seedMeta(sqlite: Database) {
   }
 
   for (const snapshot of geometrySnapshots) {
-    run(
-      sqlite,
-      `INSERT INTO snapshots
-        (id, resourceType, code, cohortKey, revision, status, publishedAt, validFrom, createdAt, updatedAt)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
-        snapshot.id,
-        snapshot.resourceType,
-        snapshot.code,
-        '2025-09-24.0',
-        0,
-        'published',
-        CATALOG_PUBLISHED_AT,
-        '2025-09-24T00:00:00.000Z',
-        CATALOG_PUBLISHED_AT,
-        CATALOG_PUBLISHED_AT,
-      ],
-    )
+    insertFixtureSnapshot(sqlite, {
+      id: snapshot.id,
+      resourceType: snapshot.resourceType,
+      code: snapshot.code,
+      cohortKey: '2025-09-24.0',
+      revision: 0,
+      status: 'published',
+      publishedAt: CATALOG_PUBLISHED_AT,
+      validFrom: '2025-09-24T00:00:00.000Z',
+      createdAt: CATALOG_PUBLISHED_AT,
+      updatedAt: CATALOG_PUBLISHED_AT,
+    })
     run(
       sqlite,
       `INSERT INTO apiReleaseSetSnapshots

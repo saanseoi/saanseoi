@@ -1,3 +1,4 @@
+import { snapshotFixtureFields } from '../../../../../libs/core/src/testing/snapshotFixtures'
 import { expect, test } from 'bun:test'
 import { Database, type SQLQueryBindings } from 'bun:sqlite'
 import { resolve } from 'node:path'
@@ -35,6 +36,9 @@ function fixture() {
     table: string,
     values: Record<string, SQLQueryBindings>,
   ) {
+    if (table === 'snapshots')
+      values = snapshotFixtureFields(db, values) as typeof values
+
     const keys = Object.keys(values)
     db.query(
       `INSERT INTO "${table}" (${keys.map(key => `"${key}"`).join(',')}) VALUES (${keys.map(() => '?').join(',')})`,

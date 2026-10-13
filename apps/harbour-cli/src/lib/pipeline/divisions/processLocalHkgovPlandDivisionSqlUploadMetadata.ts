@@ -98,7 +98,6 @@ export async function buildPlandMetaSql(
     'id',
     'snapshotLineageId',
     'parentSnapshotId',
-    'resourceType',
     'code',
     'cohortKey',
     'revision',

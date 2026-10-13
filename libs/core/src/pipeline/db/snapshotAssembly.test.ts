@@ -23,8 +23,10 @@ function fixture() {
   )
   sqlite.exec(`PRAGMA foreign_keys = ON;
     INSERT INTO publishers (id, code, versionHash, createdAt, updatedAt) VALUES ('publisher', 'publisher', 'hash', '${now}', '${now}');
-    INSERT INTO snapshots (id, code, resourceType, cohortKey, status, createdAt, updatedAt)
-    VALUES ('snapshot', 'snapshot', 'address', '2026', 'draft', '${now}', '${now}');`)
+    INSERT OR IGNORE INTO snapshotLineages (id,code,resourceType,regionCode,variant,identityMode,versionHash,createdAt,updatedAt) VALUES ('fixture-lineage-' || 'snapshot','fixture-lineage-' || 'snapshot','address','hk','default','persistent','fixture','2026-01-01T00:00:00.000Z','2026-01-01T00:00:00.000Z');
+UPDATE snapshotLineages SET resourceType='address' WHERE id='fixture-lineage-' || 'snapshot' AND resourceType IS NULL;
+INSERT INTO snapshots (id, snapshotLineageId, code, cohortKey, status, createdAt, updatedAt) VALUES
+('snapshot', 'fixture-lineage-' || 'snapshot', 'snapshot', '2026', 'draft', '${now}', '${now}');`)
   for (const id of ['primary', 'enrichment', 'lookup']) {
     sqlite.exec(`
       INSERT INTO datasets (id, publisherId, code, regionCode, releaseType, releaseFrequency, theme, sourceVariant, versionHash, createdAt, updatedAt)
@@ -143,7 +145,10 @@ test('Places finalisation retains exact dependencies in one assembly', async () 
   const { db, sqlite } = fixture()
   try {
     sqlite.exec(
-      "INSERT INTO snapshots(id,code,resourceType,cohortKey,status) VALUES ('als','als','address','2026','published')",
+      `INSERT OR IGNORE INTO snapshotLineages (id,code,resourceType,regionCode,variant,identityMode,versionHash,createdAt,updatedAt) VALUES ('fixture-lineage-' || 'als','fixture-lineage-' || 'als','address','hk','default','persistent','fixture','2026-01-01T00:00:00.000Z','2026-01-01T00:00:00.000Z');
+UPDATE snapshotLineages SET resourceType='address' WHERE id='fixture-lineage-' || 'als' AND resourceType IS NULL;
+INSERT INTO snapshots(id, snapshotLineageId, code, cohortKey, status) VALUES
+('als', 'fixture-lineage-' || 'als', 'als', '2026', 'published')`,
     )
     await recordPlaceAddressAssembly(db, {
       ...args,
@@ -167,14 +172,19 @@ test('lookup assembly retains exact revisions and merges independently selected 
   try {
     await source(db, 'primary')
     sqlite.exec(
-      "INSERT INTO snapshots(id,code,resourceType,cohortKey,status) VALUES ('street-revision','street-revision','street','2026','published')",
+      `INSERT OR IGNORE INTO snapshotLineages (id,code,resourceType,regionCode,variant,identityMode,versionHash,createdAt,updatedAt) VALUES ('fixture-lineage-' || 'street-revision','fixture-lineage-' || 'street-revision','street','hk','default','persistent','fixture','2026-01-01T00:00:00.000Z','2026-01-01T00:00:00.000Z');
+UPDATE snapshotLineages SET resourceType='street' WHERE id='fixture-lineage-' || 'street-revision' AND resourceType IS NULL;
+INSERT INTO snapshots(id, snapshotLineageId, code, cohortKey, status) VALUES
+('street-revision', 'fixture-lineage-' || 'street-revision', 'street-revision', '2026', 'published')`,
     )
     await recordSnapshotAssembly(db, {
       ...args,
       dependencies: { street: 'street-revision' },
     })
-    sqlite.exec(`INSERT INTO snapshots (id,code,resourceType,cohortKey,status,createdAt,updatedAt)
-      VALUES ('division-revision','division-revision','division','2026','published','${now}','${now}');`)
+    sqlite.exec(`INSERT OR IGNORE INTO snapshotLineages (id,code,resourceType,regionCode,variant,identityMode,versionHash,createdAt,updatedAt) VALUES ('fixture-lineage-' || 'division-revision','fixture-lineage-' || 'division-revision','division','hk','default','persistent','fixture','2026-01-01T00:00:00.000Z','2026-01-01T00:00:00.000Z');
+UPDATE snapshotLineages SET resourceType='division' WHERE id='fixture-lineage-' || 'division-revision' AND resourceType IS NULL;
+INSERT INTO snapshots (id, snapshotLineageId, code, cohortKey, status, createdAt, updatedAt) VALUES
+('division-revision', 'fixture-lineage-' || 'division-revision', 'division-revision', '2026', 'published', '${now}', '${now}');`)
     await upsertSnapshotSource(
       db,
       'division-revision',
@@ -228,8 +238,13 @@ test('dependency roles are unique, replay exactly, and protect published inputs'
   const target = fixture()
   try {
     for (const { sqlite } of [local, target])
-      sqlite.exec(`INSERT INTO snapshots(id,code,resourceType,cohortKey,status)
-        VALUES ('old','old','division','2025','published'),('new','new','division','2026','published');`)
+      sqlite.exec(`INSERT OR IGNORE INTO snapshotLineages (id,code,resourceType,regionCode,variant,identityMode,versionHash,createdAt,updatedAt) VALUES ('fixture-lineage-' || 'old','fixture-lineage-' || 'old','division','hk','default','persistent','fixture','2026-01-01T00:00:00.000Z','2026-01-01T00:00:00.000Z');
+UPDATE snapshotLineages SET resourceType='division' WHERE id='fixture-lineage-' || 'old' AND resourceType IS NULL;
+INSERT OR IGNORE INTO snapshotLineages (id,code,resourceType,regionCode,variant,identityMode,versionHash,createdAt,updatedAt) VALUES ('fixture-lineage-' || 'new','fixture-lineage-' || 'new','division','hk','default','persistent','fixture','2026-01-01T00:00:00.000Z','2026-01-01T00:00:00.000Z');
+UPDATE snapshotLineages SET resourceType='division' WHERE id='fixture-lineage-' || 'new' AND resourceType IS NULL;
+INSERT INTO snapshots(id, snapshotLineageId, code, cohortKey, status) VALUES
+('old', 'fixture-lineage-' || 'old', 'old', '2025', 'published'),
+('new', 'fixture-lineage-' || 'new', 'new', '2026', 'published');`)
     await source(local.db, 'primary')
     await recordSnapshotAssembly(local.db, {
       ...args,

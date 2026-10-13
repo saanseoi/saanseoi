@@ -1,3 +1,4 @@
+import { insertFixtureSnapshot } from '../../testing/snapshotFixtures'
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { resolve } from 'node:path'
@@ -189,10 +190,13 @@ for (const order of [types, [...types].reverse()]) {
           ])
           await registerProcessingResult(db, store, resourceReleaseId, audit.ref)
         }
-        sqlite.run(
-          `INSERT INTO snapshots (id, resourceType, code, cohortKey, status) VALUES (?, ?, ?, '2024', 'published')`,
-          [type, type, type],
-        )
+        insertFixtureSnapshot(sqlite, {
+          id: type,
+          resourceType: type,
+          code: type,
+          cohortKey: '2024',
+          status: 'published',
+        })
         await upsertSnapshotSource(db, type, 'dataset', resourceReleaseId, 'primary')
         await upsertProcessingRunStatus(
           db,

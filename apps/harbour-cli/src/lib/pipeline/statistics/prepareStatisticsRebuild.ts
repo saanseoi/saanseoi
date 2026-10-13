@@ -253,9 +253,9 @@ function listRetainedSnapshots(meta: Database) {
   const rows = meta
     .query(`SELECT s.id, s.parentSnapshotId, s.cohortKey, s.status, s.createdAt,
     ss.resourceReleaseId AS sourceReleaseId, r.sourceVersion, r.code AS releaseCode, d.code AS datasetCode
-    FROM snapshots s JOIN snapshotResourceReleases ss ON ss.snapshotId = s.id
+    FROM snapshots s JOIN snapshotLineages sl ON sl.id = s.snapshotLineageId JOIN snapshotResourceReleases ss ON ss.snapshotId = s.id
     JOIN resourceReleaseDetails r ON r.id = ss.resourceReleaseId JOIN datasets d ON d.id = ss.datasetId
-    WHERE s.resourceType = 'divisionStatistic' AND ss.role <> 'lookup'
+    WHERE sl.resourceType = 'divisionStatistic' AND ss.role <> 'lookup'
     ORDER BY s.createdAt, s.revision, s.id`)
     .all() as Snapshot[]
   const snapshots = new Map<string, Snapshot>()

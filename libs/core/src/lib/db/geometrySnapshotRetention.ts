@@ -1,11 +1,9 @@
 import { and, asc, desc, eq, inArray, metaSchema, ne, sql } from '@repo/db'
 
-import { datasetVariantForSource } from '../../codes'
 import type { HarbourReadableDb } from './types'
 
 const {
   metaDatasets,
-  metaPublishers,
   metaResourceReleases,
   metaSnapshotLineages,
   metaSnapshots,
@@ -23,16 +21,17 @@ export async function listRetainedGeometrySnapshotIds(db: HarbourReadableDb) {
   const candidates = await db
     .select({
       snapshotId: metaSnapshots.id,
-      resourceType: metaSnapshots.resourceType,
+      resourceType: metaSnapshotLineages.resourceType,
       cohortKey: metaSnapshots.cohortKey,
       datasetId: metaDatasets.id,
-      datasetCode: metaDatasets.code,
       regionCode: metaDatasets.regionCode,
-      sourceVariant: metaDatasets.sourceVariant,
-      publisherCode: metaPublishers.code,
       variant: metaSnapshotLineages.variant,
     })
     .from(metaSnapshots)
+    .innerJoin(
+      metaSnapshotLineages,
+      eq(metaSnapshotLineages.id, metaSnapshots.snapshotLineageId),
+    )
     .innerJoin(
       metaSnapshotResourceReleases,
       eq(metaSnapshotResourceReleases.snapshotId, metaSnapshots.id),
@@ -42,21 +41,20 @@ export async function listRetainedGeometrySnapshotIds(db: HarbourReadableDb) {
       and(
         eq(metaResourceReleases.id, metaSnapshotResourceReleases.resourceReleaseId),
         eq(metaResourceReleases.datasetId, metaSnapshotResourceReleases.datasetId),
-        eq(metaResourceReleases.resourceType, metaSnapshots.resourceType),
+        eq(metaResourceReleases.resourceType, metaSnapshotLineages.resourceType),
       ),
     )
     .innerJoin(
       metaDatasets,
       eq(metaDatasets.id, metaSnapshotResourceReleases.datasetId),
     )
-    .innerJoin(metaPublishers, eq(metaPublishers.id, metaDatasets.publisherId))
-    .leftJoin(
-      metaSnapshotLineages,
-      eq(metaSnapshotLineages.id, metaSnapshots.snapshotLineageId),
-    )
+
     .where(
       and(
-        inArray(metaSnapshots.resourceType, ['divisionArea', 'divisionBoundary']),
+        inArray(metaSnapshotLineages.resourceType, [
+          'divisionArea',
+          'divisionBoundary',
+        ]),
         eq(metaSnapshots.status, 'published'),
         eq(metaResourceReleases.status, 'current'),
         ne(metaSnapshotResourceReleases.role, 'lookup'),
@@ -76,17 +74,11 @@ export async function listRetainedGeometrySnapshotIds(db: HarbourReadableDb) {
   const retained = new Set<string>()
   const selectedScopes = new Set<string>()
   for (const candidate of candidates) {
-    const variant =
-      candidate.variant ??
-      datasetVariantForSource(candidate.resourceType, candidate.publisherCode, {
-        datasetCode: candidate.datasetCode,
-        sourceVariant: candidate.sourceVariant,
-      })
     const scope = JSON.stringify([
       candidate.datasetId,
       candidate.regionCode,
       candidate.resourceType,
-      variant,
+      candidate.variant,
       candidate.cohortKey,
     ])
     if (selectedScopes.has(scope)) continue

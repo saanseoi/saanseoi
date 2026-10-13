@@ -1,3 +1,4 @@
+import { insertFixtureSnapshot } from '../../../../../libs/core/src/testing/snapshotFixtures'
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { createLocalHarbourDb } from '@repo/core/testing/localDb'
@@ -15,9 +16,28 @@ function fixture() {
     CREATE TABLE publishers(id TEXT PRIMARY KEY,code TEXT);
     CREATE TABLE datasets(id TEXT PRIMARY KEY,publisherId TEXT,code TEXT,regionCode TEXT,sourceVariant TEXT);
     CREATE TABLE resourceReleases(id TEXT PRIMARY KEY,datasetId TEXT,resourceType TEXT,status TEXT);
-    CREATE TABLE snapshotLineages(id TEXT PRIMARY KEY,variant TEXT);
-    CREATE TABLE snapshots(id TEXT PRIMARY KEY,snapshotLineageId TEXT,resourceType TEXT,
-      cohortKey TEXT,geometryStatus TEXT,revision INTEGER,status TEXT,publishedAt TEXT,createdAt TEXT);
+    CREATE TABLE snapshotLineages (
+      id TEXT PRIMARY KEY,
+      code TEXT UNIQUE,
+      regionCode TEXT NOT NULL DEFAULT 'hk',
+      resourceType TEXT,
+      variant TEXT NOT NULL DEFAULT 'default',
+      identityMode TEXT NOT NULL DEFAULT 'persistent',
+      primaryDatasetId TEXT,
+      versionHash TEXT NOT NULL DEFAULT 'fixture',
+      createdAt TEXT NOT NULL DEFAULT '2026-01-01T00:00:00.000Z',
+      updatedAt TEXT NOT NULL DEFAULT '2026-01-01T00:00:00.000Z'
+    );
+    CREATE TABLE snapshots(
+      id TEXT PRIMARY KEY,
+      snapshotLineageId TEXT NOT NULL,
+      cohortKey TEXT,
+      geometryStatus TEXT,
+      revision INTEGER,
+      status TEXT,
+      publishedAt TEXT,
+      createdAt TEXT
+    );
     CREATE TABLE snapshotResourceReleases(snapshotId TEXT,datasetId TEXT,resourceReleaseId TEXT,role TEXT);
     CREATE TABLE apiVersions(id TEXT PRIMARY KEY,familyType TEXT);
     CREATE TABLE apiReleaseSets(id TEXT PRIMARY KEY,regionCode TEXT);
@@ -28,7 +48,7 @@ function fixture() {
     CREATE TABLE divisionAreas(snapshotId TEXT,id TEXT,PRIMARY KEY(snapshotId,id));
     INSERT INTO publishers VALUES ('publisher','hkgov-pland');
     INSERT INTO datasets VALUES ('geometry','publisher','ds-hk-hkgov-pland-division-new-town','hk','new-town');
-    INSERT INTO snapshotLineages VALUES ('new-town','hkgov-pland-new-town');
+    INSERT INTO snapshotLineages (id,variant) VALUES ('new-town','hkgov-pland-new-town');
     INSERT INTO apiVersions VALUES ('divisions','divisions'),('stats','stats');
   `)
   const db = createLocalHarbourDb(sqlite)
@@ -58,10 +78,17 @@ function fixture() {
     sqlite
       .query("INSERT INTO resourceReleases VALUES (?,'geometry','divisionArea',?)")
       .run(id, options.sourceStatus ?? 'archived')
-    sqlite
-      .query(`INSERT INTO snapshots VALUES (?, 'new-town', 'divisionArea', ?,
-      'authoritative', 0, 'published', '2026-09-11', '2026-09-11')`)
-      .run(id, id)
+    insertFixtureSnapshot(sqlite, {
+      id: id,
+      snapshotLineageId: 'new-town',
+      resourceType: 'divisionArea',
+      cohortKey: id,
+      geometryStatus: 'authoritative',
+      revision: 0,
+      status: 'published',
+      publishedAt: '2026-09-11',
+      createdAt: '2026-09-11',
+    })
     sqlite
       .query("INSERT INTO snapshotResourceReleases VALUES (?,'geometry',?,'primary')")
       .run(id, id)

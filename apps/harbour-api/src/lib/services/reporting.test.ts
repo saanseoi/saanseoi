@@ -29,8 +29,10 @@ describe('reporting service', () => {
           ?.hasStatisticsSnapshot
       expect(await ready()).toBe(false)
       metaSqlite.exec(`
-        INSERT INTO snapshots (id, resourceType, code, cohortKey, status)
-        VALUES ('stats-readiness', 'divisionStatistic', 'stats-readiness', '2026-06', 'draft');
+        INSERT OR IGNORE INTO snapshotLineages (id,code,resourceType,regionCode,variant,identityMode,versionHash,createdAt,updatedAt) VALUES ('fixture-lineage-' || 'stats-readiness','fixture-lineage-' || 'stats-readiness','divisionStatistic','hk','default','persistent','fixture','2026-01-01T00:00:00.000Z','2026-01-01T00:00:00.000Z');
+UPDATE snapshotLineages SET resourceType='divisionStatistic' WHERE id='fixture-lineage-' || 'stats-readiness' AND resourceType IS NULL;
+INSERT INTO snapshots (id, snapshotLineageId, code, cohortKey, status) VALUES
+('stats-readiness', 'fixture-lineage-' || 'stats-readiness', 'stats-readiness', '2026-06', 'draft');
         INSERT INTO snapshotResourceReleases (snapshotId, datasetId, resourceReleaseId, role)
         VALUES ('stats-readiness', 'hkgov-dpo-hk-address',
           'release-dr-hk-hkgov-dpo-address-2026-06-24.0', 'primary');
@@ -248,7 +250,7 @@ INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status
 UPDATE sourceReleases SET sourceVersion = '2026-06-24.0', sourceSchemaVersion = null, publicationDate = null, cohortKey = '2026-06' WHERE id = 'release-3';
 INSERT INTO resourceReleases (id, sourceReleaseId, datasetId, code, resourceType, status, revokedAt, revocationReason, supersededByResourceReleaseId, ingestedAt, createdAt, updatedAt) VALUES ('release-3', 'release-3', 'hkgov-dpo-hk-address', 'dr-hk-hkgov-dpo-address-2026-06-24.0', 'address', 'current', null, null, null, 1761264000000, 1761264000000, 1761264000000);
 
-        INSERT INTO processingRuns (stage, 
+        INSERT INTO processingRuns (stage,
           runId, resourceReleaseId, phase, status, results, error, startedAt, finishedAt, createdAt, updatedAt
         ) VALUES ('assembly', 'run-1a', 'release-1', 'extractAddresses', 'completed', '{"release":1,"run":"a"}', null, '2026-06-26T10:00:00.000Z', '2026-06-26T10:05:00.000Z', 1761434400000, 1761434700000),
           ('assembly', 'run-1b', 'release-1', 'normaliseAddresses', 'completed', '{"release":1,"run":"b"}', null, '2026-06-26T09:00:00.000Z', '2026-06-26T09:05:00.000Z', 1761430800000, 1761431100000),
@@ -485,9 +487,9 @@ INSERT INTO resourceReleases (id, sourceReleaseId, datasetId, code, resourceType
 
 function seedProcessingRun(sqlite: SQLiteDatabase) {
   sqlite.exec(`
-    INSERT INTO processingRuns (stage, 
+    INSERT INTO processingRuns (stage,
       runId, resourceReleaseId, phase, status, results, error, startedAt, finishedAt, createdAt, updatedAt
-    ) VALUES ('assembly', 
+    ) VALUES ('assembly',
       'run-dr-hk-hkgov-dpo-address-2026-06-24.0',
       'release-dr-hk-hkgov-dpo-address-2026-06-24.0',
       'extractAddresses',

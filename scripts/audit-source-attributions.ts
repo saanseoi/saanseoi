@@ -124,7 +124,7 @@ export function auditSourceAttributions(directory: string) {
         names.has('snapshots') && names.has('snapshotLineages')
           ? db
               .query(
-                'SELECT s.id, s.code, s.status, s.resourceType, s.cohortKey, s.snapshotLineageId, s.parentSnapshotId, l.primaryDatasetId FROM snapshots s LEFT JOIN snapshotLineages l ON l.id=s.snapshotLineageId ORDER BY s.id',
+                'SELECT s.id, s.code, s.status, l.resourceType, s.cohortKey, s.snapshotLineageId, s.parentSnapshotId, l.primaryDatasetId FROM snapshots s INNER JOIN snapshotLineages l ON l.id=s.snapshotLineageId ORDER BY s.id',
               )
               .all()
           : []

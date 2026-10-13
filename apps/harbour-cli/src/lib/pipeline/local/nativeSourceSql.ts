@@ -513,7 +513,6 @@ async function prepareNativeDivisionMetaSql(
         'id',
         'snapshotLineageId',
         'parentSnapshotId',
-        'resourceType',
         'code',
         'cohortKey',
         'geometryStatus',

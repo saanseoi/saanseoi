@@ -7,12 +7,31 @@ test('Place publication requires an exact completed supplementary dependency', a
   const sqlite = new Database(':memory:')
   sqlite.exec(`
     CREATE TABLE snapshotDependencies(snapshotId TEXT, dependencySnapshotId TEXT, role TEXT, PRIMARY KEY(snapshotId,role));
-    CREATE TABLE snapshots(id TEXT PRIMARY KEY, snapshotLineageId TEXT, resourceType TEXT, status TEXT);
-    CREATE TABLE snapshotLineages(id TEXT PRIMARY KEY, variant TEXT);
+    CREATE TABLE snapshots(
+      id TEXT PRIMARY KEY,
+      snapshotLineageId TEXT NOT NULL,
+      status TEXT
+    );
+    CREATE TABLE snapshotLineages (
+      id TEXT PRIMARY KEY,
+      code TEXT UNIQUE,
+      regionCode TEXT NOT NULL DEFAULT 'hk',
+      resourceType TEXT,
+      variant TEXT NOT NULL DEFAULT 'default',
+      identityMode TEXT NOT NULL DEFAULT 'persistent',
+      primaryDatasetId TEXT,
+      versionHash TEXT NOT NULL DEFAULT 'fixture',
+      createdAt TEXT NOT NULL DEFAULT '2026-01-01T00:00:00.000Z',
+      updatedAt TEXT NOT NULL DEFAULT '2026-01-01T00:00:00.000Z'
+    );
     CREATE TABLE snapshotResourceReleases(snapshotId TEXT, datasetId TEXT, resourceReleaseId TEXT, role TEXT,
       selectedByRule TEXT, selectionMode TEXT, anchorReleaseId TEXT, sourceCohortKey TEXT, createdAt TEXT);
-    INSERT INTO snapshots VALUES ('supplementary','lineage','address','published');
-    INSERT INTO snapshotLineages VALUES ('lineage','overture-places');
+    INSERT INTO snapshotLineages (id,variant) VALUES ('lineage','overture-places');
+INSERT OR IGNORE INTO snapshotLineages (id,code,resourceType,regionCode,variant,identityMode,versionHash,createdAt,updatedAt) VALUES ('lineage','lineage','address','hk','default','persistent','fixture','2026-01-01T00:00:00.000Z','2026-01-01T00:00:00.000Z');
+UPDATE snapshotLineages SET resourceType='address' WHERE id='lineage' AND resourceType IS NULL;
+INSERT INTO snapshots (id, snapshotLineageId, status) VALUES
+('supplementary', 'lineage', 'published');
+
     INSERT INTO snapshotResourceReleases(snapshotId,resourceReleaseId,role,anchorReleaseId)
       VALUES ('supplementary','address-release','primary','place-release');
     INSERT INTO snapshotResourceReleases(snapshotId,resourceReleaseId,role,selectedByRule)

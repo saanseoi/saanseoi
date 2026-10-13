@@ -160,29 +160,26 @@ export async function findIncompletePublishedReleases(
         .query(
           `
             SELECT s.id AS snapshotId, s.snapshotLineageId AS snapshotLineageId, s.cohortKey AS cohortKey,
-              (s.resourceType = 'division' AND ss.selectionMode = 'exact_ref'
+              (sl.resourceType = 'division' AND ss.selectionMode = 'exact_ref'
                 AND ss.selectedByRule = 'assembly:division:source-release:v1'
                 AND sl.primaryDatasetId = ss.datasetId) AS isNativeDivision,
               (ss.selectedByRule = 'saanseoi-curated-division-assembly-v1'
                 AND sl.primaryDatasetId = ss.datasetId) AS isCuratedPrimary
             FROM snapshots s
             INNER JOIN snapshotResourceReleases ss ON ss.snapshotId = s.id
-            LEFT JOIN snapshotLineages sl ON sl.id = s.snapshotLineageId
+            INNER JOIN snapshotLineages sl ON sl.id = s.snapshotLineageId
             WHERE ss.resourceReleaseId = ?
               AND ss.datasetId = ?
-              AND s.resourceType = ?
+              AND sl.resourceType = ?
               AND (
                 (s.status = 'published' AND (
-                  s.snapshotLineageId IS NULL
-                  OR (sl.resourceType = ? AND sl.primaryDatasetId = ?)
-                  OR (sl.resourceType = s.resourceType
-                    AND ss.selectionMode = 'exact_ref'
+                  (sl.resourceType = ? AND sl.primaryDatasetId = ?)
+                  OR (ss.selectionMode = 'exact_ref'
                     AND ss.selectedByRule = 'saanseoi-curated-division-assembly-v1')
                 ))
                 OR (
                   s.status IN ('draft', 'published')
-                  AND s.resourceType IN ('divisionArea', 'divisionBoundary')
-                  AND sl.resourceType = s.resourceType
+                  AND sl.resourceType IN ('divisionArea', 'divisionBoundary')
                   AND (
                     (ss.selectionMode = 'contributed_geometry'
                       AND ss.selectedByRule = 'assembly:division-geometry:source-release:v1'

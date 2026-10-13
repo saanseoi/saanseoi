@@ -1,3 +1,4 @@
+import { insertFixtureSnapshot } from '../../testing/snapshotFixtures'
 import { describe, expect, test } from 'bun:test'
 import { Database, type SQLQueryBindings } from 'bun:sqlite'
 import { resolve } from 'node:path'
@@ -58,11 +59,15 @@ function fixture() {
   ) {
     const family = options.family ?? 'division'
     const lineage = options.lineage ?? id
-    meta
-      .query(
-        `INSERT INTO snapshots(id, code, snapshotLineageId, resourceType, cohortKey, status, revision) VALUES (?, ?, ?, ?, '2026', ?, ?)`,
-      )
-      .run(id, id, lineage, family, options.status ?? 'published', revision++)
+    insertFixtureSnapshot(meta, {
+      id: id,
+      code: id,
+      snapshotLineageId: lineage,
+      resourceType: family,
+      cohortKey: '2026',
+      status: options.status ?? 'published',
+      revision: revision++,
+    })
     if (options.receipt !== false)
       current
         .query(`INSERT INTO ${family}PublicationState(snapshotId, scopeId, status, publicationToken, preparedAt)

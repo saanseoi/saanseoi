@@ -521,11 +521,18 @@ export async function processLocalDivisionGeometrySqlUpload(
             id: metaSchema.metaSnapshots.id,
             cohortKey: metaSchema.metaSnapshots.cohortKey,
             parentSnapshotId: metaSchema.metaSnapshots.parentSnapshotId,
-            resourceType: metaSchema.metaSnapshots.resourceType,
+            resourceType: metaSchema.metaSnapshotLineages.resourceType,
             snapshotLineageId: metaSchema.metaSnapshots.snapshotLineageId,
             status: metaSchema.metaSnapshots.status,
           })
           .from(metaSchema.metaSnapshots)
+          .innerJoin(
+            metaSchema.metaSnapshotLineages,
+            eq(
+              metaSchema.metaSnapshots.snapshotLineageId,
+              metaSchema.metaSnapshotLineages.id,
+            ),
+          )
           .where(eq(metaSchema.metaSnapshots.id, retainedVersion.snapshotId))
           .get()
       : null
