@@ -16,7 +16,7 @@ export async function retainProcessingRules(
   return id
 }
 
-/** Releases store references; dataset definitions remain authoring metadata. */
+/** Resolve a dataset, release, or recipe hash to its retained policy definition. */
 export function processingRulesSelection(column: AnyColumn) {
   return sql<
     string | null

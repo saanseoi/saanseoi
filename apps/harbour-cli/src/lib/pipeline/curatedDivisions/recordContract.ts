@@ -7,8 +7,9 @@ import type { SourceAttribution } from '@repo/db'
 export function groupCuratedUpstreamAttribution(value: unknown) {
   const grouped: Record<string, SourceAttribution[]> = {}
   for (const source of readSourceAttributions(value)) {
-    grouped[source.publisherCode] ??= []
-    grouped[source.publisherCode].push({ ...source })
+    const sources = grouped[source.publisherCode] ?? []
+    sources.push({ ...source })
+    grouped[source.publisherCode] = sources
   }
   return grouped
 }
