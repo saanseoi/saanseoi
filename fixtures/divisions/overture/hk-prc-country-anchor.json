@@ -8,9 +8,18 @@
   "hierarchies": [],
   "names": {
     "common": [
-      { "language": "en", "value": "China" },
-      { "language": "zh-Hant", "value": "中國" },
-      { "language": "zh-Hans", "value": "中国" }
+      {
+        "language": "en",
+        "value": "China"
+      },
+      {
+        "language": "zh-Hant",
+        "value": "中國"
+      },
+      {
+        "language": "zh-Hans",
+        "value": "中国"
+      }
     ],
     "primary": "China"
   },
@@ -27,6 +36,33 @@
     "version": 1,
     "mappingMethod": "reviewed-hierarchy-reference",
     "reviewStatus": "reviewed",
-    "purpose": "Retain the country reference required by Hong Kong division boundaries when the scoped Overture division extract omits the country row."
+    "purpose": "Retain the country reference required by Hong Kong division boundaries when the scoped Overture division extract omits the country row. Canonical metadata includes a reviewed Wikidata identity and an authored representative point; these are not native publisher geometry."
+  },
+  "canonical": {
+    "divisionCode": "PRC",
+    "identifiers": {
+      "wikidata": {
+        "id": "Q148"
+      }
+    },
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        103,
+        35
+      ]
+    },
+    "cartography": {
+      "minZoom": 2,
+      "maxZoom": 6,
+      "prominence": 100
+    },
+    "sources": [
+      {
+        "publisher": "overture",
+        "dataset": "ds-hk-overture-division",
+        "recordId": "fb68fc73-3ac6-41c9-a692-22fcf20cb5be"
+      }
+    ]
   }
 }
