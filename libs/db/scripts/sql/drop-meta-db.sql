@@ -4,7 +4,6 @@ PRAGMA defer_foreign_keys = true;
 DROP TABLE IF EXISTS `harbourSqlDeliveryReceipts`;
 DROP TABLE IF EXISTS `releaseSetLifecycleJournal`;
 DROP TABLE IF EXISTS `processingAudits`;
-DROP TABLE IF EXISTS `releaseProvenance`;
 
 DROP TABLE IF EXISTS `apiFieldProvenance`;
 DROP TABLE IF EXISTS `apiFieldProvenanceGroups`;

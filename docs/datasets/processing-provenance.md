@@ -110,12 +110,6 @@ objects are verified. Search requests read these artefacts; they do not reconstr
 index from evidence. Complete datasets already loaded in the browser are filtered
 locally, and searches requiring another page keep existing content visible.
 
-To inspect missing indexes in the local registered audit collection, run
-`bun scripts/backfill-audit-search.ts --local`. Add `--apply` to retain the missing
-indexes. The backfill preserves audit hashes, release references and original evidence;
-it only adds derived search artefacts. Repeating it skips existing indexes. The script
-does not write to remote storage.
-
 Division audit operations use an explicit registry of translations, patches, bulk
 declarations and normalisation counters. Unknown operations fail retention before any
 objects are written; operation-name patterns do not establish audit coverage.
@@ -198,10 +192,11 @@ are read. Individual pages are limited to 50 entries. Retained chunks contain at
 256 actions; objects are limited to 1 MiB. Large translation fixtures use ordered
 partitions which preserve every entry and the document's root metadata.
 
-`releaseProvenance` records the manifest hash, byte length, individual action count and
-`attemptStatus` (`completed` or `failed`). It identifies the registered attempt for the
-resource release; published registrations are immutable. Audit declarations, counts and
-reviewed fixture references are retained in R2.
+`processingAudits` records the manifest hash, byte length, individual action count and
+`attemptStatus` (`completed` or `failed`). It identifies the registered attempt by
+resource release, lifecycle stage and output owner; published registrations are
+immutable. Audit declarations, counts and reviewed fixture references are retained in
+R2.
 
 ## Recorded effects contract
 
@@ -246,11 +241,9 @@ Applications contain their own dependency references; the root manifest lists ch
 summaries, not a reference for every record. Oversized individual applications must be
 partitioned before retention.
 
-`releaseProvenance` stores one manifest reference and application count per resource
-release. Identical registration performs no additional D1 write. Registration verifies
-the complete retained graph, byte lengths, hashes, evidence pointers, collection
-references and summary counts before a status-guarded D1 write. A published result
-cannot be replaced. Unregistered uploads are not published results.
+Recorded effects are standalone R2 objects addressed by their manifest reference. They
+have no D1 release registration. Reapplication verifies the retained graph and input
+guards before returning the resulting record state.
 
 Provenance objects are release evidence, not disposable processing caches. A future
 garbage collector must traverse all retained manifest roots before removing shared
@@ -265,9 +258,10 @@ whole graph, checks guards and returns a new state without invoking producer cod
 
 The authenticated Harbour API exposes object upload/read, release registration and
 paginated release views under `/v1/provenance`. The version-1 JSON Schema is available
-at `GET /v1/provenance/schema`. `GET /v1/provenance/releases/{resourceReleaseId}`
-accepts `view=manifest`, `applications`, `audit`, `curations` or `api-fields`. Supply
-the returned manifest hash on subsequent pages to reject a changed staged generation.
+at `GET /v1/provenance/schema`. `POST /v1/provenance/releases/{resourceReleaseId}`
+registers `processing-audit` manifests only. `GET` on the same path requires
+`manifestHash` to select the exact registered lifecycle audit and accepts
+`view=manifest`, `applications`, `audit`, `curations` or `api-fields`.
 
 ## Producer integration
 

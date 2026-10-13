@@ -1168,7 +1168,6 @@ id TEXT PRIMARY KEY,
 
     CREATE TABLE fieldLineageDefinitions (id TEXT PRIMARY KEY, schemaVersion INTEGER NOT NULL, manifestHash TEXT NOT NULL, manifestByteLength INTEGER NOT NULL);
     CREATE TABLE apiFieldProvenance (apiReleaseSetId TEXT PRIMARY KEY, definitionId TEXT NOT NULL, binding TEXT);
-    CREATE TABLE releaseProvenance (resourceReleaseId TEXT PRIMARY KEY, manifestHash TEXT NOT NULL, byteLength INTEGER NOT NULL, applicationCount INTEGER NOT NULL, attemptStatus TEXT NOT NULL DEFAULT 'completed');
     CREATE TABLE processingAudits(resourceReleaseId TEXT NOT NULL,stage TEXT NOT NULL,ownerId TEXT NOT NULL,manifestHash TEXT NOT NULL,byteLength INTEGER NOT NULL,applicationCount INTEGER NOT NULL,attemptStatus TEXT NOT NULL,PRIMARY KEY(resourceReleaseId,stage,ownerId));
     CREATE TABLE processingRuns (runId TEXT PRIMARY KEY, resourceReleaseId TEXT, snapshotId TEXT, apiReleaseSetId TEXT, stage TEXT NOT NULL, phase TEXT NOT NULL, status TEXT NOT NULL, attempt INTEGER NOT NULL DEFAULT 1, checkpoint TEXT, results TEXT, error TEXT, startedAt TEXT NOT NULL, finishedAt TEXT, createdAt TEXT NOT NULL, updatedAt TEXT NOT NULL, UNIQUE(resourceReleaseId,phase), UNIQUE(snapshotId,phase), UNIQUE(apiReleaseSetId,phase));
 

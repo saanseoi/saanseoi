@@ -19,7 +19,6 @@ DROP TABLE IF EXISTS `hkgovPlandDivisions`;
 DROP TABLE IF EXISTS `hkgovPlandPlanningCells`;
 DROP TABLE IF EXISTS `hkgovAlsAddress2dI18n`;
 DROP TABLE IF EXISTS `processingAudits`;
-DROP TABLE IF EXISTS `releaseProvenance`;
 DROP TABLE IF EXISTS `hkgovAlsAddresses2d`;
 DROP TABLE IF EXISTS `hkgovAlsAddresses3d`;
 DROP TABLE IF EXISTS `hkgovTdPedestrianStreetI18n`;

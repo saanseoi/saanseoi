@@ -253,12 +253,9 @@ export function buildStatsResetSql(plan: StatsResetPlan) {
     ...deleteIds('releaseSetLifecycleJournal', 'resourceReleaseId', releaseIds),
     ...deleteIds('stats', 'resourceReleaseId', releaseIds),
     ...deleteIds('stats', 'apiReleaseSetId', setIds),
-    ...[
-      'processingRuns',
-      'releaseShardAssignments',
-      'releaseProvenance',
-      'processingAudits',
-    ].map(table => `DELETE FROM ${table} WHERE resourceReleaseId IN (${RELEASES});`),
+    ...['processingRuns', 'releaseShardAssignments', 'processingAudits'].map(
+      table => `DELETE FROM ${table} WHERE resourceReleaseId IN (${RELEASES});`,
+    ),
     ...deleteIds('snapshotDependencies', 'snapshotId', snapshotIds),
     ...deleteIds('snapshotAssemblies', 'snapshotId', snapshotIds),
     ...deleteIds('snapshotResourceReleases', 'snapshotId', snapshotIds),

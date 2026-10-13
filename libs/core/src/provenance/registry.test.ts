@@ -8,7 +8,7 @@ import {
   retainObject,
   retainAuditResult,
 } from './index'
-import type { Application, ProvenanceStore } from './types'
+import type { ProvenanceStore } from './types'
 
 test('failed guard attempts remain registered and cannot masquerade as completed audits', async () => {
   const f = await fixture()
@@ -53,7 +53,6 @@ test('failed guard attempts remain registered and cannot masquerade as completed
 async function fixture() {
   const sqlite = new Database(':memory:')
   sqlite.exec(`CREATE TABLE resourceReleases (id TEXT PRIMARY KEY, status TEXT NOT NULL, resourceType TEXT NOT NULL, code TEXT);
-    CREATE TABLE releaseProvenance (resourceReleaseId TEXT PRIMARY KEY REFERENCES resourceReleases(id), manifestHash TEXT NOT NULL, byteLength INTEGER NOT NULL, applicationCount INTEGER NOT NULL, attemptStatus TEXT NOT NULL DEFAULT 'completed');
     CREATE TABLE processingAudits(resourceReleaseId TEXT NOT NULL, stage TEXT NOT NULL, ownerId TEXT NOT NULL, manifestHash TEXT NOT NULL, byteLength INTEGER NOT NULL, applicationCount INTEGER NOT NULL, attemptStatus TEXT NOT NULL, PRIMARY KEY(resourceReleaseId,stage,ownerId));
     INSERT INTO resourceReleases VALUES ('r', 'processing', 'address', 'r');`)
   const db = createLocalHarbourDb(sqlite)
@@ -67,10 +66,15 @@ async function fixture() {
       objects.set(key, bytes)
     },
   }
-  const result = await retainProcessingResult(store, {
+  const result = await retainAuditResult(store, {
     resourceReleaseId: 'r',
-    collections: [],
-    applications: [],
+    scope: { stage: 'ingestion', ownerId: 'r' },
+    datasetCode: 'fixture',
+    attempt: { id: 'fixture', status: 'completed' },
+    bulk: [],
+    guards: [],
+    individuals: [],
+    apiFields: await retainObject(store, { fields: [] }),
   })
   return { sqlite, db, store, ...result }
 }
@@ -88,21 +92,12 @@ test('registry uses guarded SQL and identical registration writes no D1 rows', a
     await registerProcessingResult(f.db, f.store, 'r', f.ref)
     const changed = await retainObject(f.store, {
       ...f.manifest,
-      collections: [
-        {
-          id: 's',
-          layer: 'source',
-          datasetCode: 'als',
-          resourceReleaseId: 'r',
-          snapshotId: null,
-          schema: '1',
-        },
-      ],
+      attempt: { id: 'replacement', status: 'completed' },
     })
     await expect(registerProcessingResult(f.db, f.store, 'r', changed)).rejects.toThrow(
-      'immutable',
+      'published',
     )
-    expect(f.sqlite.query('SELECT manifestHash FROM releaseProvenance').get()).toEqual({
+    expect(f.sqlite.query('SELECT manifestHash FROM processingAudits').get()).toEqual({
       manifestHash: f.ref.hash,
     })
   } finally {
@@ -113,33 +108,7 @@ test('registry uses guarded SQL and identical registration writes no D1 rows', a
 test('identical registration does not re-read an already verified closure', async () => {
   const f = await fixture()
   try {
-    const definition = await retainObject(f.store, { rule: 'fixture' })
-    const application: Application = {
-      schemaVersion: 1,
-      kind: 'processing-application',
-      id: 'fixture-application',
-      operation: 'fixture-operation',
-      operationVersion: 1,
-      outcome: 'no-change',
-      summary: 'Kept the fixture unchanged.',
-      reason: 'The fixture already matched.',
-      decision: {
-        id: 'fixture-decision',
-        revision: 1,
-        origin: 'rule',
-        review: 'unreviewed',
-        definition,
-      },
-      inputs: [],
-      effects: [],
-      evidence: [],
-      fields: [],
-    }
-    const result = await retainProcessingResult(f.store, {
-      resourceReleaseId: 'r',
-      collections: [],
-      applications: [application],
-    })
+    const result = { manifest: f.manifest, ref: f.ref }
     await registerProcessingResult(f.db, f.store, 'r', result.ref)
 
     const manifestKey = objectKey(result.ref.hash)
@@ -176,9 +145,9 @@ test('publication racing registration cannot insert or replace provenance', asyn
     await expect(registerProcessingResult(racing, f.store, 'r', f.ref)).rejects.toThrow(
       'changed',
     )
-    expect(f.sqlite.query('SELECT COUNT(*) AS n FROM releaseProvenance').get()).toEqual(
-      { n: 0 },
-    )
+    expect(f.sqlite.query('SELECT COUNT(*) AS n FROM processingAudits').get()).toEqual({
+      n: 0,
+    })
   } finally {
     f.sqlite.close()
   }
@@ -189,19 +158,10 @@ test('registry rejects mismatched ownership', async () => {
   try {
     const changed = await retainObject(f.store, {
       ...f.manifest,
-      collections: [
-        {
-          id: 'c',
-          layer: 'canonical',
-          datasetCode: 'als',
-          resourceReleaseId: 'other',
-          snapshotId: 's',
-          schema: '1',
-        },
-      ],
+      scope: { stage: 'ingestion', ownerId: 'other' },
     })
     await expect(registerProcessingResult(f.db, f.store, 'r', changed)).rejects.toThrow(
-      'different release',
+      'owner',
     )
     await expect(
       registerProcessingResult(f.db, f.store, 'other', f.ref),
@@ -306,6 +266,25 @@ test('audits require exact output membership and preserve distinct lifecycle sta
         registerProcessingResult(f.db, f.store, 'r', replacement.ref),
       ).rejects.toThrow('published')
     }
+  } finally {
+    f.sqlite.close()
+  }
+})
+
+test('release registration rejects standalone effects without writing an audit', async () => {
+  const f = await fixture()
+  try {
+    const effects = await retainProcessingResult(f.store, {
+      resourceReleaseId: 'r',
+      collections: [],
+      applications: [],
+    })
+    await expect(
+      registerProcessingResult(f.db, f.store, 'r', effects.ref),
+    ).rejects.toThrow()
+    expect(f.sqlite.query('SELECT COUNT(*) AS n FROM processingAudits').get()).toEqual({
+      n: 0,
+    })
   } finally {
     f.sqlite.close()
   }

@@ -1,19 +1,6 @@
 import { index, integer, primaryKey, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 import { metaResourceReleases } from './datasets'
 
-/** One verified R2 manifest per resource release; no per-decision D1 writes. */
-export const releaseProvenance = sqliteTable('releaseProvenance', {
-  resourceReleaseId: text('resourceReleaseId')
-    .primaryKey()
-    .references(() => metaResourceReleases.id, { onDelete: 'cascade' }),
-  manifestHash: text('manifestHash').notNull(),
-  byteLength: integer('byteLength').notNull(),
-  applicationCount: integer('applicationCount').notNull(),
-  attemptStatus: text('attemptStatus', { enum: ['completed', 'failed'] })
-    .notNull()
-    .default('completed'),
-})
-
 /** A resource can participate in several independently owned lifecycle executions. */
 export const processingAudits = sqliteTable(
   'processingAudits',

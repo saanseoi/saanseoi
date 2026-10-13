@@ -1,17 +1,12 @@
 import { createRoute, defineOpenAPIRoute, z } from '@hono/zod-openapi'
 import { and, eq, metaSchema } from '@repo/db'
 import {
-  apiFieldView,
-  auditView,
-  curationView,
   hashValue,
   MAX_OBJECT_BYTES,
-  readApplications,
   readObject,
   registerProcessingResult,
   retainObject,
   provenanceSchema,
-  validateManifest,
   type Digest,
   validateAuditManifest,
   readAuditPage,
@@ -94,7 +89,7 @@ const get = createRoute({
       view: z
         .enum(['manifest', 'applications', 'audit', 'curations', 'api-fields'])
         .default('manifest'),
-      manifestHash: digest.optional(),
+      manifestHash: digest,
       offset: z.coerce.number().int().min(0).default(0),
       limit: z.coerce.number().int().min(1).max(256).default(256),
       q: z.string().max(300).default(''),
@@ -177,93 +172,43 @@ const getRoute = defineOpenAPIRoute<typeof get, AppEnv>({
     try {
       const db = createPrimaryMetaRepoDb(c.env.DB_META)
       const table = metaSchema.processingAudits
-      const auditRow = await db
+      const row = await db
         .select({ manifestHash: table.manifestHash, byteLength: table.byteLength })
         .from(table)
         .where(
           and(
             eq(table.resourceReleaseId, c.req.valid('param').resourceReleaseId),
-            eq(table.manifestHash, c.req.valid('query').manifestHash ?? ''),
+            eq(table.manifestHash, c.req.valid('query').manifestHash),
           ),
         )
         .get()
-      const replay = metaSchema.releaseProvenance
-      const row =
-        auditRow ??
-        (await db
-          .select({ manifestHash: replay.manifestHash, byteLength: replay.byteLength })
-          .from(replay)
-          .where(eq(replay.resourceReleaseId, c.req.valid('param').resourceReleaseId))
-          .get())
-      if (!row) throw new Error('Release has no retained processing result.')
-      if (
-        c.req.valid('query').manifestHash &&
-        c.req.valid('query').manifestHash !== row.manifestHash
-      )
-        throw new Error('Provenance generation changed; restart pagination.')
+      if (!row)
+        throw new Error('No registered audit matches this release and manifest hash.')
       const manifest = await readObject(c.env.R2_ASSETS, {
         hash: row.manifestHash as Digest,
         byteLength: row.byteLength,
       })
       const query = c.req.valid('query')
-      if (
-        manifest &&
-        typeof manifest === 'object' &&
-        !Array.isArray(manifest) &&
-        manifest.kind === 'processing-audit'
-      ) {
-        validateAuditManifest(manifest)
-        if (query.view === 'api-fields')
-          return c.json(
-            (manifest.apiFields
-              ? await readObject(c.env.R2_ASSETS, manifest.apiFields)
-              : { fields: [] }) as unknown as Record<string, unknown>,
-            200,
-          )
-        if (query.view === 'manifest')
-          return c.json(manifest as unknown as Record<string, unknown>, 200)
+      validateAuditManifest(manifest)
+      if (query.view === 'api-fields')
         return c.json(
-          {
-            manifestHash: row.manifestHash,
-            ...(await readAuditPage(
-              c.env.R2_ASSETS,
-              manifest,
-              query.q,
-              Number(query.offset),
-              Number(query.limit),
-            )),
-          },
+          (manifest.apiFields
+            ? await readObject(c.env.R2_ASSETS, manifest.apiFields)
+            : { fields: [] }) as unknown as Record<string, unknown>,
           200,
         )
-      }
-      validateManifest(manifest)
       if (query.view === 'manifest')
         return c.json(manifest as unknown as Record<string, unknown>, 200)
-      const applications = await Array.fromAsync(
-        readApplications(
-          c.env.R2_ASSETS,
-          manifest,
-          Number(query.offset),
-          Number(query.limit),
-        ),
-      )
-      const rows =
-        query.view === 'audit'
-          ? applications.map(auditView)
-          : query.view === 'curations'
-            ? applications.map(curationView)
-            : query.view === 'api-fields'
-              ? apiFieldView(applications)
-              : applications
       return c.json(
         {
           manifestHash: row.manifestHash,
-          offset: Number(query.offset),
-          nextOffset:
-            Number(query.offset) + applications.length < manifest.applicationCount
-              ? Number(query.offset) + applications.length
-              : null,
-          rows: rows as unknown[],
+          ...(await readAuditPage(
+            c.env.R2_ASSETS,
+            manifest,
+            query.q,
+            Number(query.offset),
+            Number(query.limit),
+          )),
         },
         200,
       )

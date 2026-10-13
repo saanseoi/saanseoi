@@ -1,13 +1,10 @@
 import { registerAuditResult } from './auditRegistry'
-import { and, eq, inArray, metaSchema, sql } from '@repo/db'
 import type { HarbourReadableDb, HarbourWritableDb } from '../lib/db/types'
 import { readObject } from './objects'
-import { verifyProcessingResult } from './bundle'
-import { validateManifest } from './validation'
 import type { ObjectRef, ProvenanceStore } from './types'
 import { validateAuditManifest } from './audit'
 
-/** Verify new R2 closures first; identical registered manifests are idempotent. */
+/** Verify and register an audit for its exact lifecycle owner. */
 export async function registerProcessingResult(
   db: HarbourReadableDb & HarbourWritableDb,
   store: ProvenanceStore,
@@ -15,87 +12,8 @@ export async function registerProcessingResult(
   ref: ObjectRef,
 ) {
   const manifest = await readObject(store, ref)
-  const audit =
-    !!manifest &&
-    typeof manifest === 'object' &&
-    !Array.isArray(manifest) &&
-    manifest.kind === 'processing-audit'
-  if (audit) validateAuditManifest(manifest)
-  else validateManifest(manifest)
-  // Each format is verified using its own contract before registration.
-  const result = manifest as
-    | import('./types').ProcessingManifest
-    | import('./auditTypes').AuditManifest
-  if (result.resourceReleaseId !== resourceReleaseId)
+  validateAuditManifest(manifest)
+  if (manifest.resourceReleaseId !== resourceReleaseId)
     throw new Error('Provenance release mismatch.')
-  if (result.kind === 'processing-audit')
-    return registerAuditResult(db, store, result, ref)
-  const table = metaSchema.releaseProvenance
-  const releases = metaSchema.metaResourceReleases
-  const release = await db
-    .select({
-      status: releases.status,
-      resourceType: releases.resourceType,
-      code: releases.code,
-    })
-    .from(releases)
-    .where(eq(releases.id, resourceReleaseId))
-    .get()
-  if (!release) throw new Error('Unknown provenance release.')
-  if (
-    result.kind === 'processing-result' &&
-    result.collections.some(
-      c => c.layer === 'canonical' && c.resourceReleaseId !== resourceReleaseId,
-    )
-  )
-    throw new Error('Canonical collection belongs to a different release.')
-  const existing = await db
-    .select()
-    .from(table)
-    .where(eq(table.resourceReleaseId, resourceReleaseId))
-    .get()
-  if (existing?.manifestHash === ref.hash && existing.byteLength === ref.byteLength) {
-    return existing
-  }
-  await verifyProcessingResult(store, result)
-  if (!['staged', 'processing'].includes(release.status))
-    throw new Error('Published provenance is immutable.')
-  // A release has one processing result. Multiple outputs are declared in its collections.
-  await db
-    .insert(table)
-    .select(
-      db
-        .select({
-          resourceReleaseId: releases.id,
-          manifestHash: sql<string>`${ref.hash}`,
-          byteLength: sql<number>`${ref.byteLength}`,
-          applicationCount: sql<number>`${result.applicationCount}`,
-          attemptStatus: sql<'completed' | 'failed'>`${'completed'}`,
-        })
-        .from(releases)
-        .where(
-          and(
-            eq(releases.id, resourceReleaseId),
-            inArray(releases.status, ['staged', 'processing']),
-          ),
-        ),
-    )
-    .onConflictDoUpdate({
-      target: table.resourceReleaseId,
-      set: {
-        manifestHash: ref.hash,
-        byteLength: ref.byteLength,
-        applicationCount: result.applicationCount,
-        attemptStatus: 'completed',
-      },
-    })
-    .run()
-  const saved = await db
-    .select()
-    .from(table)
-    .where(eq(table.resourceReleaseId, resourceReleaseId))
-    .get()
-  if (saved?.manifestHash !== ref.hash || saved.byteLength !== ref.byteLength)
-    throw new Error('Release changed while registering provenance.')
-  return saved
+  return registerAuditResult(db, store, manifest, ref)
 }

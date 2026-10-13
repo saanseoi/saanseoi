@@ -128,7 +128,7 @@ variants are printed separately from exact feature duplicates.
 ## Processing audit trail
 
 At upload, the release retains its processing manifest, automatic consolidation counts
-and reviewed identity-drift fixture references in R2. `releaseProvenance` registers the
+and reviewed identity-drift fixture references in R2. `processingAudits` registers the
 manifest. Inspect the retained evidence in the release Audit view and aggregate
 statistics through:
 

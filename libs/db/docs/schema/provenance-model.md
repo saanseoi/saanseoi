@@ -13,14 +13,15 @@ SaanSeoi tracks provenance at two levels.
 
 ## Retained Processing Audits
 
-Table: `releaseProvenance`
+Table: `processingAudits`
 
 Divisions, Statistics, Addresses and Places retain content-addressed `processing-audit`
 manifests in R2. D1 stores the manifest hash, byte length, individual action count and
-attempt status. Bulk transformations retain declarations and aggregate counts; reviewed
-decisions retain fixture references and selected context. Addresses and Places require
-registered provenance before publication, including the supplementary Address release
-produced by Places. See the
+attempt status, keyed by resource release, lifecycle stage and output owner. Bulk
+transformations retain declarations and aggregate counts; reviewed decisions retain
+fixture references and selected context. Addresses and Places require registered
+provenance before publication, including the supplementary Address release produced by
+Places. See the
 [processing provenance contract](../../../../docs/datasets/processing-provenance.md).
 
 ## Snapshot-Level Provenance

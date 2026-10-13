@@ -480,8 +480,8 @@ the registry and does not derive it from terminal output or release notes.
   values atomically.
 - **Audit** reads registered content-addressed manifests and retained fixtures from R2.
   Bulk rules retain declarations and aggregate counts; reviewed record decisions retain
-  fixture references and selected context. `releaseProvenance` pins the manifest for
-  each resource release. See the
+  fixture references and selected context. `processingAudits` pins each manifest by
+  resource release, lifecycle stage and output owner. See the
   [processing provenance contract](processing-provenance.md).
 
 At source-release creation, the processor captures the selected ingestion policy. At

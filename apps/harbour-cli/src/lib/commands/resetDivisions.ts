@@ -230,12 +230,9 @@ export function buildDivisionResetSql(plan: DivisionResetPlan) {
     `DELETE FROM apiReleaseSetSnapshots WHERE apiReleaseSetId IN (${SETS});`,
     `DELETE FROM releaseSetLifecycleJournal WHERE resourceReleaseId IN (${RELEASES}) OR apiVersionReleaseSetId IN (SELECT id FROM apiVersionReleaseSets WHERE apiVersionId IN (${VERSIONS}));`,
     `DELETE FROM stats WHERE resourceReleaseId IN (${RELEASES}) OR apiReleaseSetId IN (${SETS});`,
-    ...[
-      'processingRuns',
-      'releaseShardAssignments',
-      'releaseProvenance',
-      'processingAudits',
-    ].map(table => `DELETE FROM ${table} WHERE resourceReleaseId IN (${RELEASES});`),
+    ...['processingRuns', 'releaseShardAssignments', 'processingAudits'].map(
+      table => `DELETE FROM ${table} WHERE resourceReleaseId IN (${RELEASES});`,
+    ),
     `DELETE FROM snapshotDependencies WHERE snapshotId IN (${SNAPSHOTS});`,
     `DELETE FROM snapshotAssemblies WHERE snapshotId IN (${SNAPSHOTS});`,
     `DELETE FROM snapshotResourceReleases WHERE snapshotId IN (${SNAPSHOTS});`,

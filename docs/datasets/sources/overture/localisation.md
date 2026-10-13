@@ -76,7 +76,7 @@ English, another retained name in locale order, and the parent ID.
 #### Release audit
 
 Release audits retain rule declarations, bulk counts and reviewed fixture references in
-R2, selected by `releaseProvenance`. Automatic locale transformations use aggregate
+R2, selected by `processingAudits`. Automatic locale transformations use aggregate
 counts; reviewed translations retain their fixture evidence.
 
 - `overture_division_locale_inferred` records source `names`, normalised i18n rows, and

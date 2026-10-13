@@ -1,5 +1,5 @@
 import { afterEach, expect, test } from 'bun:test'
-import { retainProcessingResult, type ProvenanceStore } from '@repo/core/provenance'
+import { retainAuditResult, type ProvenanceStore } from '@repo/core/provenance'
 
 import { deliverProcessingResult } from './provenance.ts'
 
@@ -34,10 +34,14 @@ function memoryStore(): ProvenanceStore {
 
 async function processingResult() {
   const store = memoryStore()
-  const { ref } = await retainProcessingResult(store, {
+  const { ref } = await retainAuditResult(store, {
     resourceReleaseId: 'release',
-    collections: [],
-    applications: [],
+    scope: { stage: 'ingestion', ownerId: 'release' },
+    datasetCode: 'fixture',
+    attempt: { id: 'fixture', status: 'completed' },
+    bulk: [],
+    guards: [],
+    individuals: [],
   })
   return { store, ref }
 }
