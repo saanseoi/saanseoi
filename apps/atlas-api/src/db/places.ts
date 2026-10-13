@@ -184,7 +184,7 @@ export async function listPlaceDivisions(db: CurrentDatabase, lookup: I18nLookup
     .from(placesDivision)
     .where(
       and(
-        publicationScopeCondition('place', placesDivision.placeSnapshotId, [
+        publicationScopeCondition('place', placesDivision.placeScopeId, [
           lookup.snapshotId,
         ]),
         eq(placesDivision.placeId, lookup.placeId),
@@ -419,7 +419,7 @@ function parseDivisionIds(value: string) {
 }
 
 function placeGeographicCondition() {
-  const membership = sql`${placesDivision.placeSnapshotId} = ${places.scopeId} and ${placesDivision.placeId} = ${places.id}`
+  const membership = sql`${placesDivision.placeScopeId} = ${places.scopeId} and ${placesDivision.placeId} = ${places.id}`
   const all = sql`(select json_group_array(${placesDivision.divisionId}) from ${placesDivision} where ${membership})`
   return geographicMembershipSql(all, undefined, targetClass =>
     targetClass === 'district'
@@ -451,9 +451,9 @@ function buildPlaceConditions(
       : undefined,
     lookup.divisionId
       ? sql`(${places.scopeId}, ${places.id}) in (
-          select ${placesDivision.placeSnapshotId}, ${placesDivision.placeId}
+          select ${placesDivision.placeScopeId}, ${placesDivision.placeId}
           from ${placesDivision}
-          where ${publicationScopeCondition('place', placesDivision.placeSnapshotId, [lookup.snapshotId])}
+          where ${publicationScopeCondition('place', placesDivision.placeScopeId, [lookup.snapshotId])}
             and ${placesDivision.divisionId} = ${lookup.divisionId}
         )`
       : undefined,
@@ -479,7 +479,7 @@ export async function listPlaceRecordsCurrent(
   const divisionIds = sql<string>`coalesce((
     select json_group_array(${placesDivision.divisionId})
     from ${placesDivision}
-    where ${placesDivision.placeSnapshotId} = ${places.scopeId}
+    where ${placesDivision.placeScopeId} = ${places.scopeId}
       and ${placesDivision.placeId} = ${places.id}
   ), '[]')`
   const rows = await db

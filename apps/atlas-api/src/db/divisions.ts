@@ -412,7 +412,7 @@ export async function listReplayedDivisionRecords(
       })
   }
 
-  const rowsById = new Map<string, Omit<DivisionRow, 'scopeId' | 'i18n'>>()
+  const rowsById = new Map<string, Omit<DivisionRow, 'snapshotId' | 'i18n'>>()
   await Promise.all(
     [...divisionVersionsByShard.values()].map(
       async ({ db, versions: shardVersions }) => {
@@ -448,7 +448,7 @@ export async function listReplayedDivisionRecords(
         ).flat()
         for (const row of rows) {
           if (expected.has(`${row.id}\u0000${row.versionHash}`)) {
-            rowsById.set(row.id, row as Omit<DivisionRow, 'scopeId' | 'i18n'>)
+            rowsById.set(row.id, row as Omit<DivisionRow, 'snapshotId' | 'i18n'>)
             expected.delete(`${row.id}\u0000${row.versionHash}`)
           }
         }

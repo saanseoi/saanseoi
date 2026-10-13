@@ -41,9 +41,9 @@ FROM selected s
 JOIN "placePublicationState" publication ON publication."snapshotId" = s."snapshotId"
  AND publication."status" = 'current' AND publication."preparedAt" IS NOT NULL
  AND publication."publicationToken" <> ''
-JOIN "places" p ON p."snapshotId" = publication."scopeId"
+JOIN "places" p ON p.scopeId = publication."scopeId"
 JOIN "placesI18n" pi
-  ON pi."snapshotId" = p."snapshotId"
+  ON pi.scopeId = p.scopeId
  AND pi."placeId" = p."id"`,
 }
 export const buildPlaceSearchSyncSql = (scopes: readonly SearchScope[]) =>

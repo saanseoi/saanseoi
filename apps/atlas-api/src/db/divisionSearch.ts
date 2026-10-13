@@ -99,7 +99,7 @@ export async function searchDivisions(
         JOIN divisionPublicationState publication ON publication.snapshotId = s.snapshotId
           AND publication.status = 'current' AND publication.preparedAt IS NOT NULL
           AND publication.publicationToken <> ''
-        JOIN divisions d ON d.snapshotId = publication.scopeId AND d.id = f.divisionId
+        JOIN divisions d ON d.scopeId = publication.scopeId AND d.id = f.divisionId
         WHERE true ${locale} ${geographic}
       ), ranked AS (
         SELECT *, row_number() OVER (

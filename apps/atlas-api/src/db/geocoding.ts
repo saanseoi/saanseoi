@@ -17,7 +17,7 @@ export async function* addressGeocodingCandidates(
     text !== undefined && [...text].some(character => character.charCodeAt(0) > 127)
       ? sql`1 = 1`
       : text !== undefined
-        ? sql`exists (select 1 from ${names} where ${names.snapshotId} = ${address.snapshotId} and ${names.addressId} = ${address.id} and (${
+        ? sql`exists (select 1 from ${names} where ${names.scopeId} = ${address.scopeId} and ${names.addressId} = ${address.id} and (${
             query.address !== undefined
               ? sql`instr(lower(${names.formattedAddress}), ${text}) > 0`
               : sql`instr(lower(coalesce(${names.buildingName}, '')), ${text}) > 0 or instr(lower(coalesce(${names.estateName}, '')), ${text}) > 0 or instr(lower(coalesce(${names.streetName}, '')), ${text}) > 0`
@@ -30,7 +30,7 @@ export async function* addressGeocodingCandidates(
       .from(address)
       .where(
         and(
-          publicationScopeCondition('address', address.snapshotId, snapshotIds),
+          publicationScopeCondition('address', address.scopeId, snapshotIds),
           selection,
           after === undefined ? undefined : sql`${address.id} > ${after}`,
         ),

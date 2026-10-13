@@ -37,7 +37,7 @@ export const addressSearchIndex: SearchIndexDefinition = {
     i.blockExpression, i.phaseExpression, i.estateName, i.streetName
     FROM selected s JOIN addressPublicationState currentScope ON currentScope.snapshotId = s.snapshotId
       AND currentScope.status = 'current' AND currentScope.preparedAt IS NOT NULL
-    JOIN address2dI18n i ON i.snapshotId = currentScope.scopeId`,
+    JOIN address2dI18n i ON i.scopeId = currentScope.scopeId`,
 }
 export const createAddressSearchFtsSql = createSearchFtsSql(addressSearchIndex)
 export const resolveAddressSearchScopes = (db: HarbourReadableDb) =>

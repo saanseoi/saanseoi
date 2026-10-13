@@ -46,7 +46,7 @@ export async function readAuditGeometry(input: {
       .from(currentTable)
       .where(
         and(
-          eq(currentTable.snapshotId, snapshotId),
+          eq(currentTable.scopeId, snapshotId),
           eq(currentTable.divisionId, input.divisionId),
         ),
       )

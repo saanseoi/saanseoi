@@ -172,33 +172,33 @@ export async function cleanupSnapshotByResourceType(
   const c = currentSchema
   const owned = {
     place: [
-      [c.placesCells, c.placesCells.snapshotId],
-      [c.placesDivision, c.placesDivision.placeSnapshotId],
-      [c.placesI18n, c.placesI18n.snapshotId],
-      [c.places, c.places.snapshotId],
+      [c.placesCells, c.placesCells.scopeId],
+      [c.placesDivision, c.placesDivision.placeScopeId],
+      [c.placesI18n, c.placesI18n.scopeId],
+      [c.places, c.places.scopeId],
     ],
     address: [
-      [c.address3dI18n, c.address3dI18n.snapshotId],
-      [c.address3d, c.address3d.snapshotId],
-      [c.address2dI18n, c.address2dI18n.snapshotId],
-      [c.address2dBuildingNumberLookup, c.address2dBuildingNumberLookup.snapshotId],
+      [c.address3dI18n, c.address3dI18n.scopeId],
+      [c.address3d, c.address3d.scopeId],
+      [c.address2dI18n, c.address2dI18n.scopeId],
+      [c.address2dBuildingNumberLookup, c.address2dBuildingNumberLookup.scopeId],
       [c.streetsAddress, c.streetsAddress.addressSnapshotId],
-      [c.address2d, c.address2d.snapshotId],
+      [c.address2d, c.address2d.scopeId],
     ],
     street: [
-      [c.streetChangelog, c.streetChangelog.snapshotId],
-      [c.streetGeometry, c.streetGeometry.snapshotId],
-      [c.streetNameChanges, c.streetNameChanges.snapshotId],
-      [c.streetsAddress, c.streetsAddress.streetSnapshotId],
-      [c.streetsI18n, c.streetsI18n.snapshotId],
-      [c.streets, c.streets.snapshotId],
+      [c.streetChangelog, c.streetChangelog.scopeId],
+      [c.streetGeometry, c.streetGeometry.scopeId],
+      [c.streetNameChanges, c.streetNameChanges.scopeId],
+      [c.streetsAddress, c.streetsAddress.streetScopeId],
+      [c.streetsI18n, c.streetsI18n.scopeId],
+      [c.streets, c.streets.scopeId],
     ],
     division: [
-      [c.divisionsI18n, c.divisionsI18n.snapshotId],
-      [c.divisions, c.divisions.snapshotId],
+      [c.divisionsI18n, c.divisionsI18n.scopeId],
+      [c.divisions, c.divisions.scopeId],
     ],
-    divisionArea: [[c.divisionAreas, c.divisionAreas.snapshotId]],
-    divisionBoundary: [[c.divisionBoundaries, c.divisionBoundaries.snapshotId]],
+    divisionArea: [[c.divisionAreas, c.divisionAreas.scopeId]],
+    divisionBoundary: [[c.divisionBoundaries, c.divisionBoundaries.scopeId]],
   } as const
   await runAtomically(db, [
     ...owned[candidate.resourceType].map(([table, column]) =>

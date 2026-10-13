@@ -43,8 +43,8 @@ export const divisionSearchIndex: SearchIndexDefinition = {
     JOIN divisionPublicationState publication ON publication.snapshotId = s.snapshotId
       AND publication.status = 'current' AND publication.preparedAt IS NOT NULL
       AND publication.publicationToken <> ''
-    JOIN divisions d ON d.snapshotId = publication.scopeId
-    JOIN divisionsI18n i ON i.snapshotId = d.snapshotId AND i.divisionId = d.id
+    JOIN divisions d ON d.scopeId = publication.scopeId
+    JOIN divisionsI18n i ON i.scopeId = d.scopeId AND i.divisionId = d.id
       AND i.locale IN (${apiLocales.map(locale => `'${locale}'`).join(', ')})`,
 }
 

@@ -439,7 +439,7 @@ async function buildPlaceStatsRows(
       countRows(
         db,
         currentSchema.placesDivision,
-        currentSchema.placesDivision.placeSnapshotId,
+        currentSchema.placesDivision.placeScopeId,
         snapshotId,
       ),
       countGrouped(

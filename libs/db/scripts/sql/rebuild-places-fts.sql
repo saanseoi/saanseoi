@@ -1,5 +1,3 @@
-SELECT CASE WHEN NOT EXISTS (SELECT 1 FROM placeSearchScopes selected WHERE NOT EXISTS (SELECT 1 FROM placePublicationState publication WHERE publication.snapshotId = selected.snapshotId AND publication.status = 'current' AND publication.preparedAt IS NOT NULL AND publication.publicationToken <> '')) THEN 1 ELSE abs(-9223372036854775808) END;
-
 CREATE VIRTUAL TABLE IF NOT EXISTS placeSearchFts USING fts5(
     scopeId UNINDEXED, placeId UNINDEXED, locale UNINDEXED, nameText, brandText, taxonomyText, addressText, divisionText, streetText
   );
@@ -22,9 +20,9 @@ FROM selected s
 JOIN "placePublicationState" publication ON publication."snapshotId" = s."snapshotId"
  AND publication."status" = 'current' AND publication."preparedAt" IS NOT NULL
  AND publication."publicationToken" <> ''
-JOIN "places" p ON p."snapshotId" = publication."scopeId"
+JOIN "places" p ON p.scopeId = publication."scopeId"
 JOIN "placesI18n" pi
-  ON pi."snapshotId" = p."snapshotId"
+  ON pi.scopeId = p.scopeId
  AND pi."placeId" = p."id"), removed AS (
       SELECT scopeId, placeId, locale, nameText, brandText, taxonomyText, addressText, divisionText, streetText FROM placeSearchFts EXCEPT SELECT scopeId, placeId, locale, nameText, brandText, taxonomyText, addressText, divisionText, streetText FROM desired
     ) DELETE FROM placeSearchFts WHERE rowid IN (
@@ -50,8 +48,8 @@ FROM selected s
 JOIN "placePublicationState" publication ON publication."snapshotId" = s."snapshotId"
  AND publication."status" = 'current' AND publication."preparedAt" IS NOT NULL
  AND publication."publicationToken" <> ''
-JOIN "places" p ON p."snapshotId" = publication."scopeId"
+JOIN "places" p ON p.scopeId = publication."scopeId"
 JOIN "placesI18n" pi
-  ON pi."snapshotId" = p."snapshotId"
+  ON pi.scopeId = p.scopeId
  AND pi."placeId" = p."id") INSERT INTO placeSearchFts (scopeId, placeId, locale, nameText, brandText, taxonomyText, addressText, divisionText, streetText)
       SELECT scopeId, placeId, locale, nameText, brandText, taxonomyText, addressText, divisionText, streetText FROM desired EXCEPT SELECT scopeId, placeId, locale, nameText, brandText, taxonomyText, addressText, divisionText, streetText FROM placeSearchFts;
