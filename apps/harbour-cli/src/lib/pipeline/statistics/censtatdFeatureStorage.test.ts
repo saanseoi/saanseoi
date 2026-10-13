@@ -111,7 +111,7 @@ test('statistics and geometry share native feature identity, payload and hash', 
     replay(stored)
     replay({ ...stored, resourceReleaseId: 'geometry-release' })
     expect(
-      db.query('SELECT count(*) AS count FROM hkgovCenstatdStatisticsGeometry').get(),
+      db.query('SELECT count(*) AS count FROM hkgovCenstatdGeometry').get(),
     ).toEqual({ count: 1 })
     expect(
       db.query('SELECT count(*) AS count FROM hkgovCenstatdStatistics').get(),

@@ -84,9 +84,9 @@ test('releases and datasets own statistics while reusing geometry, including rep
     expect(db.query('SELECT count(*) AS n FROM hkgovCenstatdStatistics').get()).toEqual(
       { n: 3 },
     )
-    expect(
-      db.query('SELECT count(*) AS n FROM hkgovCenstatdStatisticsGeometry').get(),
-    ).toEqual({ n: 1 })
+    expect(db.query('SELECT count(*) AS n FROM hkgovCenstatdGeometry').get()).toEqual({
+      n: 1,
+    })
     write('r4', 'dataset-a', 120, {
       ...geometry,
       coordinates: [
@@ -98,9 +98,9 @@ test('releases and datasets own statistics while reusing geometry, including rep
         ],
       ],
     })
-    expect(
-      db.query('SELECT count(*) AS n FROM hkgovCenstatdStatisticsGeometry').get(),
-    ).toEqual({ n: 2 })
+    expect(db.query('SELECT count(*) AS n FROM hkgovCenstatdGeometry').get()).toEqual({
+      n: 2,
+    })
     expect(db.query('PRAGMA foreign_key_check').all()).toEqual([])
   } finally {
     db.close()

@@ -77,7 +77,7 @@ const STATISTIC_SOURCE_RECORD_CATALOGUE: Record<string, SourceRecordCatalogueEnt
         geometryColumn: 'sourceGeometry',
         geometryEncoding: 'brotli-json',
         tableName:
-          '(SELECT s.*, g.sourceGeometry FROM hkgovCenstatdStatistics s JOIN hkgovCenstatdStatisticsGeometry g ON g.id = s.geometryId)',
+          '(SELECT s.*, g.sourceGeometry FROM hkgovCenstatdStatistics s JOIN hkgovCenstatdGeometry g ON g.id = s.geometryId)',
         datasetColumn: 'datasetCode',
         exactReleaseOwnership: true,
       },

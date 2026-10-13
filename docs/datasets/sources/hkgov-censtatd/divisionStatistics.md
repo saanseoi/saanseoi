@@ -21,10 +21,10 @@ source object through `sourceAssetId`.
 
 C&SD statistics and geography retain publisher properties in `hkgovCenstatdStatistics`,
 scoped by dataset and resource release. Each row retains an acquisition locator and a
-`geometryId` referencing Brotli-compressed native geometry in
-`hkgovCenstatdStatisticsGeometry`. Geometry content is shared within each yearly SOURCE
-shard, including across datasets and releases. Canonical preparation fields and
-extracted measures belong to the statistics and geometry materialisations.
+`geometryId` referencing Brotli-compressed native geometry in `hkgovCenstatdGeometry`.
+Geometry content is shared within each yearly SOURCE shard, including across datasets
+and releases. Canonical preparation fields and extracted measures belong to the
+statistics and geometry materialisations.
 
 Processing retains shared rule definitions and curation application counts under the
 [shared processing contract](../../pipeline.md#processing-stages-and-retained-evidence).
@@ -730,10 +730,10 @@ upstream field, verified dates and unresolved rolling compilations.
 `hkgovCenstatdStatistics` retains publisher properties, native record identity and
 acquisition locators. Its key is
 `(datasetCode, resourceReleaseId, sourceRecordId, versionHash)`. Statistics rows
-reference immutable geometry by `geometryId`. `hkgovCenstatdStatisticsGeometry.id` is
-the SHA-256 of stable native-geometry JSON; coordinates and CRS are retained without
-rounding or simplification. Identical geometry shares one row within a SOURCE shard;
-yearly shards may each retain a copy.
+reference immutable geometry by `geometryId`. `hkgovCenstatdGeometry.id` is the SHA-256
+of stable native-geometry JSON; coordinates and CRS are retained without rounding or
+simplification. Identical geometry shares one row within a SOURCE shard; yearly shards
+may each retain a copy.
 
 Verified identical area materialisations can share a canonical snapshot within the same
 cohort, region and variant. The comparison includes canonical area and Division

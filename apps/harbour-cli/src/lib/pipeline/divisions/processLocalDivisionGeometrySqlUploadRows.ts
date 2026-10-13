@@ -530,7 +530,7 @@ export async function writeGeometryRows(
     )
   }
   if (version.source === 'hkgov-censtatd' && !isDisplayDerivative) {
-    const table = sourceSchema.sourceHkgovCenstatdStatisticsGeometry
+    const table = sourceSchema.sourceHkgovCenstatdGeometry
     const geometries = [
       ...new Map(
         publisherRows.map(row => {
@@ -678,8 +678,8 @@ async function writeCenstatdSourceDerivatives(
     throw new Error('C&SD derivative write requires a named transform.')
   }
 
-  const geometries = sourceSchema.sourceHkgovCenstatdStatisticsGeometry
-  const derivatives = sourceSchema.sourceHkgovCenstatdStatisticsGeometryDerivatives
+  const geometries = sourceSchema.sourceHkgovCenstatdGeometry
+  const derivatives = sourceSchema.sourceHkgovCenstatdGeometryDerivatives
   const coverageGeometryIds = rows.map(row =>
     censtatdGeometryId(row.source.sourceGeometry),
   )

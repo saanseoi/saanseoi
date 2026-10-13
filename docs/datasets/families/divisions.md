@@ -2047,9 +2047,8 @@ geometry methods are not external identifiers.
 
 C&SD statistics and geography intake retain release-owned properties and acquisition
 locators in `hkgovCenstatdStatistics`. Each row references content-addressed native
-geometry in `hkgovCenstatdStatisticsGeometry`; identical content is shared within a
-SOURCE shard. Canonical statistics and DivisionAreas are separate projections of that
-evidence.
+geometry in `hkgovCenstatdGeometry`; identical content is shared within a SOURCE shard.
+Canonical statistics and DivisionAreas are separate projections of that evidence.
 
 DivisionArea snapshot reuse compares canonical identity, geometry and flags within the
 same cohort, region and variant. Simplified derivatives reference shared geometry and a

@@ -24,9 +24,7 @@ const decode = (value: unknown) =>
 /** Caller holds BEGIN IMMEDIATE. No partially converted schema can be committed. */
 export function convertCenstatdGeometry(db: Database) {
   if (
-    db
-      .query("SELECT 1 FROM sqlite_master WHERE name='hkgovCenstatdStatisticsGeometry'")
-      .get()
+    db.query("SELECT 1 FROM sqlite_master WHERE name='hkgovCenstatdGeometry'").get()
   ) {
     if (!db.query('SELECT 1 FROM d1_migrations WHERE name=?').get(migrationName))
       throw new Error('Geometry table exists without migration receipt.')
@@ -37,7 +35,7 @@ export function convertCenstatdGeometry(db: Database) {
     .query('SELECT * FROM hkgovCenstatdStatisticsReleaseMemberships')
     .all() as Row[]
   const derivatives = db
-    .query('SELECT * FROM hkgovCenstatdStatisticsGeometryDerivatives')
+    .query('SELECT * FROM hkgovCenstatdGeometryDerivatives')
     .all() as Row[]
   const assertions = new Map(statistics.map(row => [key(row), row]))
   const releases = new Map<string, Set<string>>()
@@ -102,18 +100,16 @@ export function convertCenstatdGeometry(db: Database) {
     convertedDerivatives.set(identity, next)
   }
   db.exec(
-    'DELETE FROM hkgovCenstatdStatisticsGeometryDerivatives; DELETE FROM hkgovCenstatdStatisticsReleaseMemberships; DELETE FROM hkgovCenstatdStatistics;',
+    'DELETE FROM hkgovCenstatdGeometryDerivatives; DELETE FROM hkgovCenstatdStatisticsReleaseMemberships; DELETE FROM hkgovCenstatdStatistics;',
   )
   db.exec(migrationSql)
-  insert(db, 'hkgovCenstatdStatisticsGeometry', [...geometries.values()])
+  insert(db, 'hkgovCenstatdGeometry', [...geometries.values()])
   insert(db, 'hkgovCenstatdStatistics', convertedStatistics)
-  insert(db, 'hkgovCenstatdStatisticsGeometryDerivatives', [
-    ...convertedDerivatives.values(),
-  ])
+  insert(db, 'hkgovCenstatdGeometryDerivatives', [...convertedDerivatives.values()])
   // Verify every release still reconstructs the exact retained evidence.
   const actual = db
     .query(
-      'SELECT s.*, g.sourceGeometry FROM hkgovCenstatdStatistics s JOIN hkgovCenstatdStatisticsGeometry g ON g.id=s.geometryId',
+      'SELECT s.*, g.sourceGeometry FROM hkgovCenstatdStatistics s JOIN hkgovCenstatdGeometry g ON g.id=s.geometryId',
     )
     .all() as Row[]
   if (actual.length !== convertedStatistics.length)

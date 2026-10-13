@@ -12,10 +12,10 @@ Canonical source references follow the
 [source evidence contract](../../families/source-evidence.md). Original publisher
 properties and file locators remain in retained source assertions.
 
-Native geometry is content-addressed in `hkgovCenstatdStatisticsGeometry` and shared
-within each yearly SOURCE shard. Release-owned statistics reference its ID. Derivatives
-are immutable and keyed by geometry ID, transform and a hash of settings, engine version
-and coverage geometry IDs; statistics-only changes reuse them.
+Native geometry is content-addressed in `hkgovCenstatdGeometry` and shared within each
+yearly SOURCE shard. Release-owned statistics reference its ID. Derivatives are
+immutable and keyed by geometry ID, transform and a hash of settings, engine version and
+coverage geometry IDs; statistics-only changes reuse them.
 
 Housing Market Area API inventory counts, locale coverage and churn use the shared
 [division API statistics calculation and backfill](../../families/divisions.md#api-release-statistics).
@@ -460,8 +460,8 @@ geometry type is mixed. Building Group centroids do not create DivisionArea memb
 C&SD statistics and geography intake retain release-owned rows in
 `hkgovCenstatdStatistics`, with native identities, complete properties and acquisition
 locators. `geometryId` references shared Brotli-compressed native geometry in
-`hkgovCenstatdStatisticsGeometry`. Canonical statistics and DivisionAreas are separate
-projections of that evidence.
+`hkgovCenstatdGeometry`. Canonical statistics and DivisionAreas are separate projections
+of that evidence.
 
 Geometry reuse compares canonical materialisations within the same cohort, region and
 variant. Simplified derivatives identify shared geometry and the complete transform

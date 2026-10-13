@@ -366,7 +366,7 @@ async function fixture(previous = true) {
     },
   ])
     insertProjectionRow(current, 'statsRecords', row)
-  insert(source, 'hkgovCenstatdStatisticsGeometry', {
+  insert(source, 'hkgovCenstatdGeometry', {
     id: 'geometry',
     sourceGeometry: '{}',
   })

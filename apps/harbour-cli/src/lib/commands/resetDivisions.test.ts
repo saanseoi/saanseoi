@@ -41,16 +41,16 @@ function insert(
 
   if (
     table === 'hkgovCenstatdStatistics' ||
-    table === 'hkgovCenstatdStatisticsGeometryDerivatives'
+    table === 'hkgovCenstatdGeometryDerivatives'
   ) {
     const geometryId =
       values.geometryId ??
       `geometry:${values.sourceRecordId ?? values.resourceReleaseId ?? 'test'}`
     db.query(
-      'INSERT INTO hkgovCenstatdStatisticsGeometry(id,sourceGeometry) VALUES (?, ?) ON CONFLICT DO NOTHING',
+      'INSERT INTO hkgovCenstatdGeometry(id,sourceGeometry) VALUES (?, ?) ON CONFLICT DO NOTHING',
     ).run(geometryId, '{}')
     values = { ...values, geometryId }
-    if (table === 'hkgovCenstatdStatisticsGeometryDerivatives')
+    if (table === 'hkgovCenstatdGeometryDerivatives')
       values = {
         geometryId,
         transform: 'simplified',

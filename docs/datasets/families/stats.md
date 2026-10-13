@@ -130,13 +130,13 @@ columns. Separately versioned geometry derivatives retain their exact input hash
 transformation evidence.
 
 All C&SD datasets retain release-owned publisher properties and acquisition locators in
-`hkgovCenstatdStatistics`. Each row references `hkgovCenstatdStatisticsGeometry` by
-`geometryId`. Geometry is content-addressed and shared across datasets and releases
-within each yearly SOURCE shard. Ingestion reports new and reused geometry counts.
-Derivatives reference the geometry ID and complete transform context, including coverage
-inputs, tolerance and engine version. Statistics-only changes reuse the geometry and its
-derivatives; DivisionArea snapshot reuse additionally verifies canonical identity and
-publication scope.
+`hkgovCenstatdStatistics`. Each row references `hkgovCenstatdGeometry` by `geometryId`.
+Geometry is content-addressed and shared across datasets and releases within each yearly
+SOURCE shard. Ingestion reports new and reused geometry counts. Derivatives reference
+the geometry ID and complete transform context, including coverage inputs, tolerance and
+engine version. Statistics-only changes reuse the geometry and its derivatives;
+DivisionArea snapshot reuse additionally verifies canonical identity and publication
+scope.
 
 Each reference-period snapshot records its exact-release assembly under the
 [assembly provenance contract](../pipeline.md#snapshot-assembly-provenance). Periods can

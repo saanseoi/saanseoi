@@ -4,13 +4,10 @@ import { binaryText, geoBbox, jsonText, timestamps } from '../shared'
 import { sourceAssertionColumns, sourceVersionIndexes } from './shared'
 
 /** Immutable publisher geometry, deduplicated by content within a SOURCE shard. */
-export const sourceHkgovCenstatdStatisticsGeometry = sqliteTable(
-  'hkgovCenstatdStatisticsGeometry',
-  {
-    id: text('id').primaryKey(),
-    sourceGeometry: binaryText('sourceGeometry').notNull(),
-  },
-)
+export const sourceHkgovCenstatdGeometry = sqliteTable('hkgovCenstatdGeometry', {
+  id: text('id').primaryKey(),
+  sourceGeometry: binaryText('sourceGeometry').notNull(),
+})
 
 /** Publisher statistics and provenance owned by one dataset release. */
 export const sourceHkgovCenstatdStatistics = sqliteTable(
@@ -20,7 +17,7 @@ export const sourceHkgovCenstatdStatistics = sqliteTable(
     datasetCode: text('datasetCode').notNull(),
     geometryId: text('geometryId')
       .notNull()
-      .references(() => sourceHkgovCenstatdStatisticsGeometry.id),
+      .references(() => sourceHkgovCenstatdGeometry.id),
     sourceLocator: jsonText<Record<string, unknown>>('sourceLocator'),
     ...timestamps,
   },
@@ -39,12 +36,12 @@ export const sourceHkgovCenstatdStatistics = sqliteTable(
 )
 
 /** Immutable transforms identified by geometry and the complete transform context. */
-export const sourceHkgovCenstatdStatisticsGeometryDerivatives = sqliteTable(
-  'hkgovCenstatdStatisticsGeometryDerivatives',
+export const sourceHkgovCenstatdGeometryDerivatives = sqliteTable(
+  'hkgovCenstatdGeometryDerivatives',
   {
     geometryId: text('geometryId')
       .notNull()
-      .references(() => sourceHkgovCenstatdStatisticsGeometry.id),
+      .references(() => sourceHkgovCenstatdGeometry.id),
     transform: text('transform').notNull(),
     transformHash: text('transformHash').notNull(),
     versionHash: text('versionHash').notNull(),

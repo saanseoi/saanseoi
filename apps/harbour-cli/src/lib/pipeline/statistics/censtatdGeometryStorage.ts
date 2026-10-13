@@ -8,7 +8,7 @@ export async function inspectCenstatdGeometryReuse(
   rows: Array<{ sourceGeometry: unknown }>,
 ) {
   const ids = [...new Set(rows.map(row => censtatdGeometryId(row.sourceGeometry)))]
-  const table = sourceSchema.sourceHkgovCenstatdStatisticsGeometry
+  const table = sourceSchema.sourceHkgovCenstatdGeometry
   let reused = 0
   for (const chunk of chunkArray(ids, 90)) {
     reused += (

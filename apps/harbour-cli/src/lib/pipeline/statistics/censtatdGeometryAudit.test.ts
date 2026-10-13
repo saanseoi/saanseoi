@@ -29,7 +29,7 @@ const polygon = (x: number) => ({
 test('ingestion audit seals distinct new/reused geometry counts before writes and preserves them on retry', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'censtatd-geometry-audit-'))
   const sqlite = new Database(':memory:')
-  sqlite.exec('CREATE TABLE hkgovCenstatdStatisticsGeometry (id TEXT PRIMARY KEY)')
+  sqlite.exec('CREATE TABLE hkgovCenstatdGeometry (id TEXT PRIMARY KEY)')
   const db = drizzle({
     client: sqlite,
     schema: sourceSchema,
@@ -37,7 +37,7 @@ test('ingestion audit seals distinct new/reused geometry counts before writes an
   const existing = polygon(1)
   const fresh = polygon(3)
   sqlite
-    .query('INSERT INTO hkgovCenstatdStatisticsGeometry VALUES (?)')
+    .query('INSERT INTO hkgovCenstatdGeometry VALUES (?)')
     .run(censtatdGeometryId(existing))
   const input = {
     directory,
@@ -51,7 +51,7 @@ test('ingestion audit seals distinct new/reused geometry counts before writes an
     const counts = await prepareCenstatdGeometryAudit(input)
     expect(counts).toEqual({ created: 1, reused: 1, references: 3 })
     sqlite
-      .query('INSERT INTO hkgovCenstatdStatisticsGeometry VALUES (?)')
+      .query('INSERT INTO hkgovCenstatdGeometry VALUES (?)')
       .run(censtatdGeometryId(fresh))
     expect(await prepareCenstatdGeometryAudit(input)).toEqual(counts)
     await expect(
@@ -94,7 +94,7 @@ test('ingestion audit seals distinct new/reused geometry counts before writes an
 test('geometry lookup batches large cohorts and empty input is not applicable', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'censtatd-geometry-audit-'))
   const sqlite = new Database(':memory:')
-  sqlite.exec('CREATE TABLE hkgovCenstatdStatisticsGeometry (id TEXT PRIMARY KEY)')
+  sqlite.exec('CREATE TABLE hkgovCenstatdGeometry (id TEXT PRIMARY KEY)')
   const db = drizzle({
     client: sqlite,
     schema: sourceSchema,
@@ -102,7 +102,7 @@ test('geometry lookup batches large cohorts and empty input is not applicable', 
   const rows = Array.from({ length: 191 }, (_, i) => ({ sourceGeometry: polygon(i) }))
   for (const row of rows)
     sqlite
-      .query('INSERT INTO hkgovCenstatdStatisticsGeometry VALUES (?)')
+      .query('INSERT INTO hkgovCenstatdGeometry VALUES (?)')
       .run(censtatdGeometryId(row.sourceGeometry))
   try {
     expect(

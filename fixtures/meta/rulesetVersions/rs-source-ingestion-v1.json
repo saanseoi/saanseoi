@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:a34253c4a0c60c201668787b48fdaf54239b05029756c0edcb7c5586b29e82ad",
+  "versionHash": "sha256:0a52b3b758d3fb79198d6a30355398fc5bbde8575d848bbf72d9f22aac627bcd",
   "code": "rs-source-ingestion-v1",
   "stage": "ingestion",
   "strategy": "ingestion",
@@ -53,7 +53,7 @@
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdStatisticsGeometry",
+          "collection": "hkgovCenstatdGeometry",
           "path": "sourceGeometry"
         },
         {
@@ -63,7 +63,7 @@
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdStatisticsGeometry",
+          "collection": "hkgovCenstatdGeometry",
           "path": "id"
         }
       ]
@@ -116,7 +116,7 @@
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdStatisticsGeometry",
+          "collection": "hkgovCenstatdGeometry",
           "path": "sourceGeometry"
         },
         {
@@ -126,7 +126,7 @@
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdStatisticsGeometry",
+          "collection": "hkgovCenstatdGeometry",
           "path": "id"
         }
       ]
@@ -179,7 +179,7 @@
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdStatisticsGeometry",
+          "collection": "hkgovCenstatdGeometry",
           "path": "sourceGeometry"
         },
         {
@@ -189,7 +189,7 @@
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdStatisticsGeometry",
+          "collection": "hkgovCenstatdGeometry",
           "path": "id"
         }
       ]
@@ -242,7 +242,7 @@
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdStatisticsGeometry",
+          "collection": "hkgovCenstatdGeometry",
           "path": "sourceGeometry"
         },
         {
@@ -252,7 +252,7 @@
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdStatisticsGeometry",
+          "collection": "hkgovCenstatdGeometry",
           "path": "id"
         }
       ]
@@ -305,7 +305,7 @@
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdStatisticsGeometry",
+          "collection": "hkgovCenstatdGeometry",
           "path": "sourceGeometry"
         },
         {
@@ -315,7 +315,7 @@
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdStatisticsGeometry",
+          "collection": "hkgovCenstatdGeometry",
           "path": "id"
         }
       ]
@@ -368,7 +368,7 @@
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdStatisticsGeometry",
+          "collection": "hkgovCenstatdGeometry",
           "path": "sourceGeometry"
         },
         {
@@ -378,7 +378,7 @@
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdStatisticsGeometry",
+          "collection": "hkgovCenstatdGeometry",
           "path": "id"
         }
       ]
@@ -431,7 +431,7 @@
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdStatisticsGeometry",
+          "collection": "hkgovCenstatdGeometry",
           "path": "sourceGeometry"
         },
         {
@@ -441,7 +441,7 @@
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdStatisticsGeometry",
+          "collection": "hkgovCenstatdGeometry",
           "path": "id"
         }
       ]
@@ -494,7 +494,7 @@
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdStatisticsGeometry",
+          "collection": "hkgovCenstatdGeometry",
           "path": "sourceGeometry"
         },
         {
@@ -504,7 +504,7 @@
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdStatisticsGeometry",
+          "collection": "hkgovCenstatdGeometry",
           "path": "id"
         }
       ]

@@ -236,8 +236,8 @@ export function buildStatsResetSql(plan: StatsResetPlan) {
     ...SOURCE_TABLES.flatMap(table =>
       deleteIds(table, 'resourceReleaseId', releaseIds),
     ),
-    'DELETE FROM hkgovCenstatdStatisticsGeometryDerivatives WHERE NOT EXISTS (SELECT 1 FROM hkgovCenstatdStatistics s WHERE s.geometryId = hkgovCenstatdStatisticsGeometryDerivatives.geometryId);',
-    'DELETE FROM hkgovCenstatdStatisticsGeometry WHERE NOT EXISTS (SELECT 1 FROM hkgovCenstatdStatistics s WHERE s.geometryId = hkgovCenstatdStatisticsGeometry.id);',
+    'DELETE FROM hkgovCenstatdGeometryDerivatives WHERE NOT EXISTS (SELECT 1 FROM hkgovCenstatdStatistics s WHERE s.geometryId = hkgovCenstatdGeometryDerivatives.geometryId);',
+    'DELETE FROM hkgovCenstatdGeometry WHERE NOT EXISTS (SELECT 1 FROM hkgovCenstatdStatistics s WHERE s.geometryId = hkgovCenstatdGeometry.id);',
   ].join('\n')
   const metaSql = [
     ...setIds.map(

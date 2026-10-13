@@ -136,13 +136,13 @@ for (const sourceName of ['overture', 'hkgov-censtatd'] as const)
         { operation: 'insert', id: 'b' },
       ])
       if (sourceName === 'hkgov-censtatd')
-        source.exec("UPDATE hkgovCenstatdStatisticsGeometry SET sourceGeometry=X''")
+        source.exec("UPDATE hkgovCenstatdGeometry SET sourceGeometry=X''")
       const unchanged = await write('reissue', 'first', [row('a'), row('b')])
       if (sourceName === 'hkgov-censtatd')
         expect(
           source
             .query(
-              'SELECT count(*) AS n FROM hkgovCenstatdStatisticsGeometry WHERE length(sourceGeometry)=0',
+              'SELECT count(*) AS n FROM hkgovCenstatdGeometry WHERE length(sourceGeometry)=0',
             )
             .get(),
         ).toEqual({ n: 0 })
@@ -167,7 +167,7 @@ for (const sourceName of ['overture', 'hkgov-censtatd'] as const)
         expect(
           source
             .query(
-              'SELECT DISTINCT typeof(sourceGeometry) AS storage FROM hkgovCenstatdStatisticsGeometry',
+              'SELECT DISTINCT typeof(sourceGeometry) AS storage FROM hkgovCenstatdGeometry',
             )
             .all(),
         ).toEqual([{ storage: 'blob' }])
@@ -207,17 +207,13 @@ for (const sourceName of ['overture', 'hkgov-censtatd'] as const)
         await derive(200)
         expect(
           source
-            .query(
-              'SELECT count(*) AS n FROM hkgovCenstatdStatisticsGeometryDerivatives',
-            )
+            .query('SELECT count(*) AS n FROM hkgovCenstatdGeometryDerivatives')
             .get(),
         ).toEqual({ n: 1 })
         await derive(200, '2')
         expect(
           source
-            .query(
-              'SELECT count(*) AS n FROM hkgovCenstatdStatisticsGeometryDerivatives',
-            )
+            .query('SELECT count(*) AS n FROM hkgovCenstatdGeometryDerivatives')
             .get(),
         ).toEqual({ n: 2 })
       }

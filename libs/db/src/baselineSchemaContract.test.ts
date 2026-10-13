@@ -65,10 +65,9 @@ for (const [family, schema] of Object.entries({ meta, current, history, source }
             ].includes(getTableName(table)),
           )
           if (
-            ![
-              'hkgovCenstatdStatisticsGeometry',
-              'hkgovCenstatdStatisticsGeometryDerivatives',
-            ].includes(getTableName(table))
+            !['hkgovCenstatdGeometry', 'hkgovCenstatdGeometryDerivatives'].includes(
+              getTableName(table),
+            )
           )
             expect(actual.slice(-2).map(column => column.name)).toEqual([
               'createdAt',

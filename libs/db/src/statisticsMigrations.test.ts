@@ -33,7 +33,7 @@ test('Statistics migrations retain publisher payloads and canonical reference pe
         Population: 123,
       })
       sqlite.exec(
-        "INSERT INTO hkgovCenstatdStatisticsGeometry(id,sourceGeometry) VALUES('geometry','{}')",
+        "INSERT INTO hkgovCenstatdGeometry(id,sourceGeometry) VALUES('geometry','{}')",
       )
       sqlite
         .query(`INSERT INTO "${table}" (datasetCode, sourceRecordId, versionHash, resourceReleaseId, validFromRelease, isCurrent, properties, geometryId)

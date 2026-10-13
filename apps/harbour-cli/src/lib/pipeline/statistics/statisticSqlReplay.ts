@@ -114,7 +114,7 @@ export function buildCenstatdGeometryStatements(
   rows: Array<{ id: string; sourceGeometry: Uint8Array }>,
 ) {
   return [...new Map(rows.map(row => [row.id, row])).values()].flatMap(row => {
-    const table = '"hkgovCenstatdStatisticsGeometry"'
+    const table = '"hkgovCenstatdGeometry"'
     const id = sqlValue(row.id)
     const insert = (value: Uint8Array) =>
       `INSERT INTO ${table} (id, sourceGeometry) VALUES (${id}, ${sqlValue(value)}) ON CONFLICT (id) DO NOTHING;`

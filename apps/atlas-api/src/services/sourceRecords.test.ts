@@ -26,7 +26,7 @@ function sourceDatabase(
             all: async () => {
               expect(query).toContain(`FROM ${tableName}`)
               if (tableName === 'hkgovCenstatdStatistics') {
-                expect(query).toContain('hkgovCenstatdStatisticsGeometry')
+                expect(query).toContain('hkgovCenstatdGeometry')
                 expect(values[1]).toBe('source-release-id')
               } else {
                 expect(query).toContain('validFromRelease <= ?')
@@ -177,7 +177,7 @@ describe('source records', () => {
       ${releaseFixtureSchemaSql()};
       CREATE TABLE releaseShardAssignments(resourceReleaseId, dataShardId);
       CREATE TABLE dataShards(id, bindingName, shardType, status);
-      CREATE TABLE hkgovCenstatdStatisticsGeometry(id PRIMARY KEY, sourceGeometry);
+      CREATE TABLE hkgovCenstatdGeometry(id PRIMARY KEY, sourceGeometry);
       CREATE TABLE hkgovCenstatdStatistics(datasetCode, sources, sourceRecordId, versionHash, properties, geometryId, validFromRelease, validToRelease, resourceReleaseId);
       INSERT INTO publishers VALUES('publisher', 'hkgov-censtatd');
       INSERT INTO dataShards VALUES('shard', 'DB_SOURCE_HK_2026', 'source', 'active');
@@ -208,7 +208,7 @@ describe('source records', () => {
       "INSERT INTO hkgovCenstatdStatistics (datasetCode, sourceRecordId, versionHash, properties, geometryId, validFromRelease, validToRelease, resourceReleaseId) VALUES(?, ?, ?, ?, ?, ?, NULL, 'statistic')",
       [datasetCode, 'record', 'hash', '{"population":42}', 'geometry', '2021'],
     )
-    sqlite.run('INSERT INTO hkgovCenstatdStatisticsGeometry VALUES (?, ?)', [
+    sqlite.run('INSERT INTO hkgovCenstatdGeometry VALUES (?, ?)', [
       'geometry',
       compressJsonBrotli({ type: 'Point', coordinates: [114, 22] }),
     ])
@@ -293,7 +293,7 @@ describe('source records', () => {
     )
     insert.run('future', 'v1', '{"future":true}', '2026', null, 'source-release-id')
     sqlite.exec(
-      "CREATE TABLE hkgovCenstatdStatisticsGeometry(id PRIMARY KEY, sourceGeometry); INSERT INTO hkgovCenstatdStatisticsGeometry VALUES('geometry', '{}'); UPDATE hkgovCenstatdStatistics SET resourceReleaseId='source-release-id' WHERE sourceRecordId='a'; UPDATE hkgovCenstatdStatistics SET resourceReleaseId='future-release' WHERE sourceRecordId='future';",
+      "CREATE TABLE hkgovCenstatdGeometry(id PRIMARY KEY, sourceGeometry); INSERT INTO hkgovCenstatdGeometry VALUES('geometry', '{}'); UPDATE hkgovCenstatdStatistics SET resourceReleaseId='source-release-id' WHERE sourceRecordId='a'; UPDATE hkgovCenstatdStatistics SET resourceReleaseId='future-release' WHERE sourceRecordId='future';",
     )
 
     const sourceDb = {

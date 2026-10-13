@@ -564,7 +564,7 @@ for (const family of ['statistics', 'geometry'] as const) {
             geometryId TEXT, sourceRecordId TEXT, sources TEXT, updatedAt TEXT,
             validFromRelease TEXT, validToRelease TEXT, version INTEGER, versionHash TEXT,
             PRIMARY KEY(datasetCode,resourceReleaseId,sourceRecordId,versionHash));
-            CREATE TABLE hkgovCenstatdStatisticsGeometry (id TEXT PRIMARY KEY, sourceGeometry BLOB);`
+            CREATE TABLE hkgovCenstatdGeometry (id TEXT PRIMARY KEY, sourceGeometry BLOB);`
       const sql =
         family === 'geometry'
           ? geometryBuildUpsertSql('divisionAreas', [
@@ -648,8 +648,7 @@ for (const family of ['statistics', 'geometry'] as const) {
         await runSqlDelivery(f.directory, { ...f.options, mode: 'local' })
         expect(local.query(query).all()).toEqual(expected)
         if (family === 'statistics') {
-          const memberships =
-            'SELECT * FROM hkgovCenstatdStatisticsGeometry ORDER BY id'
+          const memberships = 'SELECT * FROM hkgovCenstatdGeometry ORDER BY id'
           expect(local.query(memberships).all()).toEqual(
             baseline.query(memberships).all(),
           )

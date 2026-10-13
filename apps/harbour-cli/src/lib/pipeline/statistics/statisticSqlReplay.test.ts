@@ -14,7 +14,7 @@ const sourceVersion = '2022'
 function replayDatabase() {
   const db = new Database(':memory:')
   db.exec(
-    'CREATE TABLE hkgovCenstatdStatisticsGeometry(id PRIMARY KEY, sourceGeometry BLOB NOT NULL)',
+    'CREATE TABLE hkgovCenstatdGeometry(id PRIMARY KEY, sourceGeometry BLOB NOT NULL)',
   )
   return db
 }
@@ -133,7 +133,7 @@ describe('buildStatisticSqlBatches', () => {
       for (let attempt = 0; attempt < 2; attempt++)
         for (const sql of statements) db.exec(sql)
       expect(
-        db.query('SELECT sourceGeometry FROM hkgovCenstatdStatisticsGeometry').get(),
+        db.query('SELECT sourceGeometry FROM hkgovCenstatdGeometry').get(),
       ).toEqual({ sourceGeometry: Buffer.from(sourceGeometry) })
     } finally {
       db.close()

@@ -1,0 +1,2 @@
+ALTER TABLE `hkgovCenstatdStatisticsGeometry` RENAME TO `hkgovCenstatdGeometry`;--> statement-breakpoint
+ALTER TABLE `hkgovCenstatdStatisticsGeometryDerivatives` RENAME TO `hkgovCenstatdGeometryDerivatives`;

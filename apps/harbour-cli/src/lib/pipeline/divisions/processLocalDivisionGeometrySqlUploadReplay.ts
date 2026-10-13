@@ -195,7 +195,7 @@ export async function generateGeometryReplaySql(
               ...iterateGeometryCacheRows(
                 context.state.dbCacheDir,
                 sourceBindingName,
-                `SELECT g.* FROM hkgovCenstatdStatisticsGeometry g WHERE EXISTS (SELECT 1 FROM hkgovCenstatdStatistics s WHERE s.geometryId = g.id AND s.resourceReleaseId = ${geometrySqlLiteral(resourceReleaseId)})`,
+                `SELECT g.* FROM hkgovCenstatdGeometry g WHERE EXISTS (SELECT 1 FROM hkgovCenstatdStatistics s WHERE s.geometryId = g.id AND s.resourceReleaseId = ${geometrySqlLiteral(resourceReleaseId)})`,
               ),
             ]
             yield* buildCenstatdGeometryStatements(
@@ -231,11 +231,11 @@ export async function generateGeometryReplaySql(
           }
           if (plan.source === 'hkgov-censtatd' && plan.transform === 'simplified') {
             yield* geometryIterateUpsertSql(
-              'hkgovCenstatdStatisticsGeometryDerivatives',
+              'hkgovCenstatdGeometryDerivatives',
               iterateGeometryCacheRows(
                 context.state.dbCacheDir,
                 sourceBindingName,
-                `SELECT d.* FROM hkgovCenstatdStatisticsGeometryDerivatives d WHERE EXISTS (SELECT 1 FROM hkgovCenstatdStatistics s WHERE s.geometryId = d.geometryId AND s.resourceReleaseId = ${geometrySqlLiteral(resourceReleaseId)})`,
+                `SELECT d.* FROM hkgovCenstatdGeometryDerivatives d WHERE EXISTS (SELECT 1 FROM hkgovCenstatdStatistics s WHERE s.geometryId = d.geometryId AND s.resourceReleaseId = ${geometrySqlLiteral(resourceReleaseId)})`,
               ),
               { immutable: true },
             )
