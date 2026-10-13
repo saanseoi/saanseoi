@@ -166,7 +166,6 @@ export async function recordEffectiveSnapshotAssembly(
         datasetId: input.datasetId,
         role: input.role,
         isRequired: true,
-        anchorDatasetId: null,
         maxLagDays: null,
         priority: 0,
         selectionPolicyJson: { rules: input.rules },

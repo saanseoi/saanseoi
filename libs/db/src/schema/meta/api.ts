@@ -389,9 +389,6 @@ export const metaSnapshotRecipeInputs = sqliteTable(
     datasetId: datasetIdColumn(),
     role: text('role').notNull(),
     isRequired: integer('isRequired', { mode: 'boolean' }).notNull(),
-    anchorDatasetId: text('anchorDatasetId').references(() => metaDatasets.id, {
-      onDelete: 'restrict',
-    }),
     maxLagDays: integer('maxLagDays'),
     priority: integer('priority').notNull().default(0),
     selectionPolicyJson:
