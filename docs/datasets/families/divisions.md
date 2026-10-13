@@ -2118,3 +2118,9 @@ Canonical HISTORY events retain their introducing snapshot and `createdAt`, with
 `updatedAt` column. Mutable CURRENT projections and publication receipts keep their own
 update timestamps. Statistics definitions keyed by `versionHash` retain `createdAt`
 only. See [storage timestamp ownership](../pipeline.md#storage-timestamp-ownership).
+
+The PRC ancestry anchor uses division code `PRC`, Wikidata `Q148`, Overture Division
+record attribution and country cartography (`minZoom: 2`, `maxZoom: 6`,
+`prominence: 100`). Its fallback Point `[103, 35]` is authored canonical metadata,
+separate from retained native publisher geometry. Native materialisation and prepared
+SaanSeoi archives share the reviewed anchor metadata.

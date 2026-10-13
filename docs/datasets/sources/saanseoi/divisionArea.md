@@ -652,3 +652,8 @@ Public attribution flattens concrete upstream references into publisher/dataset/
 items. Component-selection indexes and curation decisions remain in the retained
 internal input and audit; they do not qualify public attribution. Only upstream JSON
 Pointer qualifications belong in `property`.
+
+Authored island-group unions and geometry partitions retain their concrete SaanSeoi
+dataset and record references in canonical `sources`. Construction metadata does not
+suppress attribution; method-only evidence without a dataset and selection-only
+references do not establish authorship.

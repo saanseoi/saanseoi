@@ -46,6 +46,8 @@ Historical preparation selects exact Place and dependency component keys in boun
 indexed queries. Local candidates retain the selected predecessor's membership and
 owning shards. Shared SQL replay checks compare rows through their primary keys, and
 provenance transfer checks destination objects before uploading missing content.
+Per-record Place evidence uses bounded checksum-verified destination checks, including
+across source cohorts. An independently selected R2 destination is confirmed separately.
 
 Open source assertions with matching hashes require no release-membership update.
 Finalisation compares complete incoming IDs in bounded, disjoint indexed ranges.

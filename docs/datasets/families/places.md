@@ -38,7 +38,9 @@ record, version and locale keys through composite indexes. Query batches respect
 shared parameter budget; identical hashes on different records do not widen selection.
 Places also uses the shared indexed SQL comparison and verified provenance-object reuse
 described in [SQL delivery](../sql-delivery.md) and
-[processing provenance](../processing-provenance.md).
+[processing provenance](../processing-provenance.md). Per-record evidence is checked in
+batches of at most 64 objects. Verified matching content is reused; missing objects are
+retained before their SQL chunk is imported.
 
 [Minimal initialisation](../minimal-initialisation.md) selects the first two configured
 Overture versions and uses a separate completion manifest.

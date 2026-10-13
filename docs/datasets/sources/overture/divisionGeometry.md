@@ -471,3 +471,9 @@ Canonical HISTORY events retain their introducing snapshot and `createdAt`, with
 `updatedAt` column. Mutable CURRENT projections and publication receipts keep their own
 update timestamps. Statistics definitions keyed by `versionHash` retain `createdAt`
 only. See [storage timestamp ownership](../../pipeline.md#storage-timestamp-ownership).
+
+The reviewed PRC country reference retains native extraction evidence separately from
+canonical metadata. Canonical materialisation supplies `PRC`, Wikidata `Q148`, the
+Overture country record reference and country cartography. An authored representative
+Point `[103, 35]` fills absent native geometry; it is not asserted as an
+Overture-supplied geometry.
