@@ -424,11 +424,7 @@ function seedHistory(sqlite: Database) {
 
   run(
     sqlite,
-    `INSERT INTO statsFields (measureVersionHash, snapshotId,
-      datasetCode, measureCode, fieldName, sourceField, dimensions, sourceNullOption, statisticKind,
-      aggregation, denominatorFieldName, valueKind, unitCode, versionHash,
-      sourceReleaseId, isCurrent, createdAt, updatedAt
-    ) VALUES ('measure-version-hash', 'snapshot-statistics', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO statsFields (measureVersionHash,snapshotId,datasetCode,measureCode,fieldName,sourceField,dimensions,sourceNullOption,statisticKind,aggregation,denominatorFieldName,valueKind,unitCode,versionHash,sourceReleaseId,isCurrent,createdAt) VALUES ('measure-version-hash', 'snapshot-statistics', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       HISTORICAL_DATASET_CODE,
       'households',
@@ -445,14 +441,11 @@ function seedHistory(sqlite: Database) {
       HISTORICAL_RELEASE_ID,
       1,
       PUBLISHED_AT,
-      PUBLISHED_AT,
     ],
   )
   run(
     sqlite,
-    `INSERT INTO statsMeasures (snapshotId,
-      datasetCode, measureCode, versionHash, sourceReleaseId, isCurrent, createdAt, updatedAt
-    ) VALUES ('snapshot-statistics', ?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO statsMeasures (snapshotId,datasetCode,measureCode,versionHash,sourceReleaseId,isCurrent,createdAt) VALUES ('snapshot-statistics', ?, ?, ?, ?, ?, ?)`,
     [
       HISTORICAL_DATASET_CODE,
       'households',
@@ -460,16 +453,11 @@ function seedHistory(sqlite: Database) {
       HISTORICAL_RELEASE_ID,
       1,
       PUBLISHED_AT,
-      PUBLISHED_AT,
     ],
   )
   run(
     sqlite,
-    `INSERT INTO statsMeasuresI18n (snapshotId,
-      datasetCode, measureCode, locale, name, description,
-      isTranslationVerified, versionHash, sourceReleaseId,
-      isCurrent, createdAt, updatedAt
-    ) VALUES ('snapshot-statistics', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO statsMeasuresI18n (snapshotId,datasetCode,measureCode,locale,name,description,isTranslationVerified,versionHash,sourceReleaseId,isCurrent,createdAt) VALUES ('snapshot-statistics', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       HISTORICAL_DATASET_CODE,
       'households',
@@ -481,16 +469,11 @@ function seedHistory(sqlite: Database) {
       HISTORICAL_RELEASE_ID,
       1,
       PUBLISHED_AT,
-      PUBLISHED_AT,
     ],
   )
   run(
     sqlite,
-    `INSERT INTO statsFieldsI18n (snapshotId,
-      datasetCode, fieldName, locale, name, description,
-      isTranslationVerified, versionHash, sourceReleaseId,
-      isCurrent, createdAt, updatedAt
-    ) VALUES ('snapshot-statistics', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO statsFieldsI18n (snapshotId,datasetCode,fieldName,locale,name,description,isTranslationVerified,versionHash,sourceReleaseId,isCurrent,createdAt) VALUES ('snapshot-statistics', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       HISTORICAL_DATASET_CODE,
       'households',
@@ -502,18 +485,11 @@ function seedHistory(sqlite: Database) {
       HISTORICAL_RELEASE_ID,
       1,
       PUBLISHED_AT,
-      PUBLISHED_AT,
     ],
   )
   run(
     sqlite,
-    `INSERT INTO statsRecords (snapshotId,
-      id, datasetCode, sourceReleaseId, sourceFeatureRef, divisionId,
-      referencePeriodCode, referencePeriodStart, referencePeriodEnd,
-      referencePeriodGranularity, referencePeriodEndYear, geography,
-      definitionSetId, "values",
-      versionHash, isCurrent, createdAt, updatedAt
-    ) VALUES ('snapshot-statistics', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO statsRecords (snapshotId,id,datasetCode,sourceReleaseId,sourceFeatureRef,divisionId,referencePeriodCode,referencePeriodStart,referencePeriodEnd,referencePeriodGranularity,referencePeriodEndYear,geography,definitionSetId,"values",versionHash,isCurrent,createdAt) VALUES ('snapshot-statistics', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       STATISTIC_ID,
       DATASET_CODE,
@@ -531,16 +507,11 @@ function seedHistory(sqlite: Database) {
       'record-version-hash',
       1,
       PUBLISHED_AT,
-      PUBLISHED_AT,
     ],
   )
   run(
     sqlite,
-    `INSERT INTO statsFields (measureVersionHash, snapshotId,
-      datasetCode, measureCode, fieldName, sourceField, dimensions, sourceNullOption, statisticKind,
-      aggregation, denominatorFieldName, valueKind, unitCode, versionHash,
-      sourceReleaseId, isCurrent, createdAt, updatedAt
-    ) VALUES ('measure-version-hash', 'snapshot-statistics', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO statsFields (measureVersionHash,snapshotId,datasetCode,measureCode,fieldName,sourceField,dimensions,sourceNullOption,statisticKind,aggregation,denominatorFieldName,valueKind,unitCode,versionHash,sourceReleaseId,isCurrent,createdAt) VALUES ('measure-version-hash', 'snapshot-statistics', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       DATASET_CODE,
       'totalPopulation',
@@ -557,21 +528,17 @@ function seedHistory(sqlite: Database) {
       RELEASE_ID,
       1,
       PUBLISHED_AT,
-      PUBLISHED_AT,
     ],
   )
   run(
     sqlite,
-    `INSERT INTO statsMeasures (snapshotId,
-      datasetCode, measureCode, versionHash, sourceReleaseId, isCurrent, createdAt, updatedAt
-    ) VALUES ('snapshot-statistics', ?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO statsMeasures (snapshotId,datasetCode,measureCode,versionHash,sourceReleaseId,isCurrent,createdAt) VALUES ('snapshot-statistics', ?, ?, ?, ?, ?, ?)`,
     [
       DATASET_CODE,
       'totalPopulation',
       'measure-version-hash',
       RELEASE_ID,
       1,
-      PUBLISHED_AT,
       PUBLISHED_AT,
     ],
   )
@@ -581,25 +548,21 @@ function seedHistory(sqlite: Database) {
       id, datasetCode, sourceReleaseId, sourceFeatureRef, divisionId,
       referencePeriodCode, referencePeriodStart, referencePeriodEnd,
       referencePeriodGranularity, referencePeriodEndYear, geography,
-      definitionSetId, "values", versionHash, isCurrent, createdAt, updatedAt
+      definitionSetId, "values", versionHash, isCurrent, createdAt
     )
     SELECT 'snapshot-superseded',
       id, datasetCode, sourceReleaseId, sourceFeatureRef, divisionId,
       referencePeriodCode, referencePeriodStart, referencePeriodEnd,
       referencePeriodGranularity, referencePeriodEndYear, geography,
       definitionSetId, '{"totalPopulation":"230000"}', 'record-version-hash-superseded', 0,
-      createdAt, updatedAt
+      createdAt
     FROM statsRecords
     WHERE id = ? AND isCurrent = 1`,
     [STATISTIC_ID],
   )
   run(
     sqlite,
-    `INSERT INTO statsMeasuresI18n (snapshotId,
-      datasetCode, measureCode, locale, name, description,
-      isTranslationVerified, versionHash, sourceReleaseId,
-      isCurrent, createdAt, updatedAt
-    ) VALUES ('snapshot-statistics', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO statsMeasuresI18n (snapshotId,datasetCode,measureCode,locale,name,description,isTranslationVerified,versionHash,sourceReleaseId,isCurrent,createdAt) VALUES ('snapshot-statistics', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       DATASET_CODE,
       'totalPopulation',
@@ -611,7 +574,6 @@ function seedHistory(sqlite: Database) {
       RELEASE_ID,
       1,
       PUBLISHED_AT,
-      PUBLISHED_AT,
     ],
   )
   run(
@@ -620,24 +582,20 @@ function seedHistory(sqlite: Database) {
       id, datasetCode, sourceReleaseId, sourceFeatureRef, divisionId,
       referencePeriodCode, referencePeriodStart, referencePeriodEnd,
       referencePeriodGranularity, referencePeriodEndYear, geography,
-      definitionSetId, "values", versionHash, isCurrent, createdAt, updatedAt
+      definitionSetId, "values", versionHash, isCurrent, createdAt
     )
     SELECT 'snapshot-statistics-historical',
       'statistic-population-households-2020-district-1', datasetCode,
       sourceReleaseId, sourceFeatureRef, divisionId, '2020', NULL, NULL,
       'year', '2020', geography, definitionSetId, "values",
-      'record-version-hash-2020', isCurrent, createdAt, updatedAt
+      'record-version-hash-2020', isCurrent, createdAt
     FROM statsRecords
     WHERE id = ? AND isCurrent = 1`,
     [STATISTIC_ID],
   )
   run(
     sqlite,
-    `INSERT INTO statsFieldsI18n (snapshotId,
-      datasetCode, fieldName, locale, name, description,
-      isTranslationVerified, versionHash, sourceReleaseId,
-      isCurrent, createdAt, updatedAt
-    ) VALUES ('snapshot-statistics', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO statsFieldsI18n (snapshotId,datasetCode,fieldName,locale,name,description,isTranslationVerified,versionHash,sourceReleaseId,isCurrent,createdAt) VALUES ('snapshot-statistics', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       DATASET_CODE,
       'totalPopulation',
@@ -649,7 +607,6 @@ function seedHistory(sqlite: Database) {
       RELEASE_ID,
       1,
       PUBLISHED_AT,
-      PUBLISHED_AT,
     ],
   )
   const translations = [
@@ -659,11 +616,7 @@ function seedHistory(sqlite: Database) {
   for (const translation of translations) {
     run(
       sqlite,
-      `INSERT INTO statsFieldsI18n (snapshotId,
-        datasetCode, fieldName, locale, name, description,
-        isTranslationVerified, versionHash, sourceReleaseId,
-        isCurrent, createdAt, updatedAt
-      ) VALUES ('snapshot-statistics', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO statsFieldsI18n (snapshotId,datasetCode,fieldName,locale,name,description,isTranslationVerified,versionHash,sourceReleaseId,isCurrent,createdAt) VALUES ('snapshot-statistics', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         DATASET_CODE,
         'totalPopulation',
@@ -674,7 +627,6 @@ function seedHistory(sqlite: Database) {
         'field-version-hash',
         RELEASE_ID,
         1,
-        PUBLISHED_AT,
         PUBLISHED_AT,
       ],
     )
@@ -844,8 +796,8 @@ function seedPackedPublication(current: Database, history: Database, meta: Datab
   )
   run(
     history,
-    `INSERT INTO statsRecords (snapshotId, id, datasetCode, sourceReleaseId, sourceFeatureRef, divisionId, referencePeriodCode, referencePeriodGranularity, referencePeriodEndYear, geography, definitionSetId, "values", versionHash, isCurrent, createdAt, updatedAt)
-    SELECT 'snapshot-statistics-historical', 'statistic-households-2020-district-1', ?, ?, 'households/2020/11', divisionId, '2020', 'year', '2020', geography, 'households-definition-set', '{"households":"100000"}', 'households-record-version', 1, createdAt, updatedAt FROM statsRecords WHERE id = ? AND isCurrent = 1`,
+    `INSERT INTO statsRecords (snapshotId, id, datasetCode, sourceReleaseId, sourceFeatureRef, divisionId, referencePeriodCode, referencePeriodGranularity, referencePeriodEndYear, geography, definitionSetId, "values", versionHash, isCurrent, createdAt)
+    SELECT 'snapshot-statistics-historical', 'statistic-households-2020-district-1', ?, ?, 'households/2020/11', divisionId, '2020', 'year', '2020', geography, 'households-definition-set', '{"households":"100000"}', 'households-record-version', 1, createdAt FROM statsRecords WHERE id = ? AND isCurrent = 1`,
     [HISTORICAL_DATASET_CODE, HISTORICAL_RELEASE_ID, STATISTIC_ID],
   )
   for (const table of [
@@ -868,7 +820,7 @@ function seedPackedPublication(current: Database, history: Database, meta: Datab
       run(
         current,
         `INSERT INTO "${table}" (${columns.map(name => `"${name}"`).join(',')}) VALUES (${columns.map(() => '?').join(',')})`,
-        columns.map(name => row[name]!),
+        columns.map(name => (name === 'updatedAt' ? row.createdAt! : row[name]!)),
       )
   }
   const records = current

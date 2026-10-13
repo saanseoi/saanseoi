@@ -13,7 +13,7 @@ import { createAMapLlmDecisionMatrixInstructions } from './createAMapLlmDecision
 const joinInstructions = (sections: string[]) =>
   [
     ...sections,
-    'The full Places profile exposes attributes.sources as an array of upstream references with required publisherCode and dataset. Optional upstreamOf identifies the direct publisher carrying an inherited source (for example, openstreetmap upstreamOf overture); direct sources omit it. Optional property is an upstream JSON Pointer; version is an upstream record version. Processing decisions are retained separately in R2.',
+    'The full Places profile exposes attributes.sources as an array of upstream references with required publisher and dataset. Optional upstreamOf identifies the direct publisher carrying an inherited source (for example, openstreetmap upstreamOf overture); direct sources omit it. Optional property is an upstream JSON Pointer; version is an upstream record version. Processing decisions are retained separately in R2.',
     'When inspecting Place provenance, attributes.resourceReleaseId identifies the processed resource release; snapshotId identifies the canonical snapshot.',
     'Treat data[].id as an opaque canonical SaanSeoi Place ID, not an Overture/GERS lookup key. Publisher IDs and identity decisions belong to source provenance. An observation arriving or disappearing does not by itself prove a business opened or closed.',
     'For Places pagination, follow links.next until it is absent. Historical snapshots expose meta.page.hasMore instead of an exact meta.page.total; do not require a total to load subsequent pages.',

@@ -45,7 +45,7 @@ test('division identifiers preserve scalar and multiple matching codes', () => {
 test('SaanSeoi source references use the canonical flat attribution schema', () => {
   const sources = saanseoiDivisionSourceFields.sources!
   expect(sources.type).toBe('array')
-  expect(sources.items?.properties).toHaveProperty('publisherCode')
+  expect(sources.items?.properties).toHaveProperty('publisher')
   expect(sources.items?.properties).not.toHaveProperty('componentIndexes')
   expect(sources.items?.additionalProperties).toBe(false)
 })

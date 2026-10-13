@@ -22,7 +22,6 @@ import {
   resolveSnapshotReplayPlan,
 } from '@repo/core/db/metaRegistry'
 import { resolveSnapshotVersionState } from '@repo/core/pipeline/db/snapshotReplay.ts'
-import type { BBox } from '@repo/core/pipeline/geojson.ts'
 
 import {
   listAddressRecordsCurrent,
@@ -117,7 +116,6 @@ type AddressResourcePayload = {
     address3dCoverage: Address3dCoverage
     snapshotId?: string
     geometry?: AddressPointGeometry | null
-    bbox?: BBox | null
     createdAt?: string
     updatedAt?: string
     identifiers?: CanonicalIdentifiers | null
@@ -584,7 +582,6 @@ function createAddressResource(args: {
 
   if (isMapAddressProfile(args.routeState.profile)) {
     attributes.geometry = addressPointGeometry(address.geometry)
-    attributes.bbox = (address.bbox as BBox | null) ?? null
   }
 
   if (args.routeState.profile === 'full') {

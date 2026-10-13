@@ -117,7 +117,7 @@ test('historical unit reads replay the selected owner coverage and ignore newer 
     ).toBe('FLAT 001 NEW')
     expect(old?.collection.units?.[0]?.id).toBe(newer?.collection.units?.[0]?.id)
     history.exec(
-      `INSERT INTO address3d(snapshotId,id,operation,createdAt,updatedAt) VALUES ('removed','collection','delete','now','now');`,
+      `INSERT INTO address3d (snapshotId,id,operation,createdAt) VALUES ('removed','collection','delete','now');`,
     )
     expect(
       await getAddress3dCollection({

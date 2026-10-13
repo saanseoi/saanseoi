@@ -7,7 +7,7 @@ export const SourceAttributionSchema = z
       .regex(/^(?:\/(?:[^~/]|~[01])*)*$/)
       .nullable()
       .optional(),
-    publisherCode: z.string().min(1),
+    publisher: z.string().min(1).describe('Upstream publisher code.'),
     upstreamOf: z
       .string()
       .min(1)
@@ -15,7 +15,7 @@ export const SourceAttributionSchema = z
       .describe(
         'Direct publisher through which this source was inherited; omitted for direct sources.',
       ),
-    dataset: z.string().min(1),
+    dataset: z.string().min(1).describe('Upstream dataset code.'),
     recordId: z.string().optional().describe('Upstream record identifier.'),
     updateTime: z.string().optional(),
     version: z.string().optional().describe('Publisher-supplied record version.'),

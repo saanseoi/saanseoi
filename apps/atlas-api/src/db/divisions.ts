@@ -437,7 +437,7 @@ export async function listReplayedDivisionRecords(
                   cartography: historyDivisions.cartography,
                   sources: historyDivisions.sources,
                   createdAt: historyDivisions.createdAt,
-                  updatedAt: historyDivisions.updatedAt,
+                  updatedAt: historyDivisions.createdAt,
                   versionHash: historyDivisions.versionHash,
                 })
                 .from(historyDivisions)

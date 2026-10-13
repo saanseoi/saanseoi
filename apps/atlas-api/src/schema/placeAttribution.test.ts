@@ -4,14 +4,14 @@ import { PlaceSourcesSchema } from './places'
 test('source attribution requires publisher and dataset identities', () => {
   for (const item of [
     {},
-    { publisherCode: 'meta' },
+    { publisher: 'meta' },
     { dataset: 'meta' },
-    { publisherCode: null, dataset: 'meta' },
+    { publisher: null, dataset: 'meta' },
   ])
     expect(PlaceSourcesSchema.safeParse([item]).success).toBe(false)
   expect(
     PlaceSourcesSchema.safeParse([
-      { publisherCode: 'meta', dataset: 'meta', property: null, version: '4' },
+      { publisher: 'meta', dataset: 'meta', property: null, version: '4' },
     ]).success,
   ).toBe(true)
 })
@@ -24,13 +24,12 @@ test('source attribution excludes release and processing evidence and validates 
     { property: '/bad~token' },
   ])
     expect(
-      PlaceSourcesSchema.safeParse([
-        { publisherCode: 'meta', dataset: 'meta', ...extra },
-      ]).success,
+      PlaceSourcesSchema.safeParse([{ publisher: 'meta', dataset: 'meta', ...extra }])
+        .success,
     ).toBe(false)
   expect(
     PlaceSourcesSchema.safeParse([
-      { publisherCode: 'meta', dataset: 'meta', property: '/a~1b/0' },
+      { publisher: 'meta', dataset: 'meta', property: '/a~1b/0' },
     ]).success,
   ).toBe(true)
 })

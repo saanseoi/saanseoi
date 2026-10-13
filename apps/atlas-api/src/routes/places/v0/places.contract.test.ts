@@ -362,9 +362,7 @@ function seedCurrent(sqlite: Database) {
 function seedHistory(sqlite: Database) {
   run(
     sqlite,
-    `INSERT INTO divisions
-      (id, level, class, versionHash, sourceReleaseId, snapshotId, isCurrent, createdAt, updatedAt, hierarchies)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, '{"administrative":[],"locality":[],"landform":[],"full":[]}')`,
+    `INSERT INTO divisions (id,level,class,versionHash,sourceReleaseId,snapshotId,isCurrent,createdAt,hierarchies) VALUES (?, ?, ?, ?, ?, ?, ?, ?, '{"administrative":[],"locality":[],"landform":[],"full":[]}')`,
     [
       'division-central',
       2,
@@ -374,15 +372,11 @@ function seedHistory(sqlite: Database) {
       DIVISION_SNAPSHOT,
       1,
       PUBLISHED_AT,
-      PUBLISHED_AT,
     ],
   )
   run(
     sqlite,
-    `INSERT INTO divisionsI18n
-      (divisionId, locale, name, isLocaleInferred, versionHash, sourceReleaseId,
-       snapshotId, isCurrent, createdAt, updatedAt)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO divisionsI18n (divisionId,locale,name,isLocaleInferred,versionHash,sourceReleaseId,snapshotId,isCurrent,createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       'division-central',
       'en',
@@ -392,7 +386,6 @@ function seedHistory(sqlite: Database) {
       'release-overture-2026-08-19',
       DIVISION_SNAPSHOT,
       1,
-      PUBLISHED_AT,
       PUBLISHED_AT,
     ],
   )
@@ -406,16 +399,12 @@ function seedHistory(sqlite: Database) {
     const i18nHash = `${id}-en-v1`
     run(
       sqlite,
-      `INSERT INTO address2d
-        (id, granularity, districtId, geometry, bbox, identifiers, sources,
-         versionHash, sourceReleaseId, snapshotId, isCurrent, createdAt, updatedAt)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO address2d (id,granularity,districtId,geometry,identifiers,sources,versionHash,sourceReleaseId,snapshotId,isCurrent,createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         addressId,
         'building',
         'division-central',
         JSON.stringify({ type: 'Point', coordinates: point }),
-        JSON.stringify([...point, ...point]),
         '{}',
         '{}',
         `${addressId}-v1`,
@@ -423,18 +412,11 @@ function seedHistory(sqlite: Database) {
         ADDRESS_SNAPSHOT,
         1,
         PUBLISHED_AT,
-        PUBLISHED_AT,
       ],
     )
     run(
       sqlite,
-      `INSERT INTO places
-        (id, resourceReleaseId, addressSnapshotId, address2dId, lng, lat, bbox,
-         operatingStatus, basicCategory, taxonomyPrimary, taxonomyHierarchy,
-         taxonomyAlternates, websites, confidence, sources, firstSeenMonth,
-         lastSeenMonth, versionHash, sourceReleaseId, snapshotId, isCurrent,
-         createdAt, updatedAt)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO places (id,resourceReleaseId,addressSnapshotId,address2dId,lng,lat,bbox,operatingStatus,basicCategory,taxonomyPrimary,taxonomyHierarchy,taxonomyAlternates,websites,confidence,sources,firstSeenMonth,lastSeenMonth,versionHash,sourceReleaseId,snapshotId,isCurrent,createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         id,
         'release-overture-2026-08-19',
@@ -458,15 +440,11 @@ function seedHistory(sqlite: Database) {
         PLACE_SNAPSHOT,
         1,
         PUBLISHED_AT,
-        PUBLISHED_AT,
       ],
     )
     run(
       sqlite,
-      `INSERT INTO placesI18n
-        (placeId, locale, name, freeformAddress, provenance, versionHash,
-         sourceReleaseId, snapshotId, isCurrent, createdAt, updatedAt)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO placesI18n (placeId,locale,name,freeformAddress,provenance,versionHash,sourceReleaseId,snapshotId,isCurrent,createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         id,
         'en',
@@ -477,7 +455,6 @@ function seedHistory(sqlite: Database) {
         'release-overture-2026-08-19',
         PLACE_SNAPSHOT,
         1,
-        PUBLISHED_AT,
         PUBLISHED_AT,
       ],
     )

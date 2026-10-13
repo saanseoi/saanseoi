@@ -198,8 +198,8 @@ describe('Statistics API responses through the Worker route', () => {
       )
       run(
         fixture.current,
-        `INSERT INTO statsFields (datasetCode, fieldName, versionHash, measureCode, sourceField, dimensions, statisticKind, aggregation, valueKind, unitCode, createdAt, updatedAt)
-        SELECT datasetCode, fieldName, 'revised-field-hash', measureCode, sourceField, '{"sex":"all","residency":"usual"}', statisticKind, aggregation, valueKind, unitCode, createdAt, updatedAt
+        `INSERT INTO statsFields (datasetCode, fieldName, versionHash, measureCode, sourceField, dimensions, statisticKind, aggregation, valueKind, unitCode, createdAt)
+        SELECT datasetCode, fieldName, 'revised-field-hash', measureCode, sourceField, '{"sex":"all","residency":"usual"}', statisticKind, aggregation, valueKind, unitCode, createdAt
         FROM statsFields WHERE datasetCode = ? AND fieldName = 'totalPopulation' AND versionHash = 'field-version-hash'`,
         [DATASET_CODE],
       )

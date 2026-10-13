@@ -100,7 +100,7 @@ const baseRecord: DivisionRecord = {
     },
     sources: [
       {
-        publisherCode: 'overture',
+        publisher: 'overture',
         property: '/properties/id',
         dataset: 'overture',
         recordId: 'ovt-division-a-kung-ngam',
@@ -660,7 +660,7 @@ describe('division services', () => {
           updatedAt: '2026-06-18T00:00:00.000Z',
           sources: [
             {
-              publisherCode: 'overture',
+              publisher: 'overture',
               property: '/properties/id',
               dataset: 'overture',
               recordId: 'ovt-division-a-kung-ngam',

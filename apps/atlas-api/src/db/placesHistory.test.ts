@@ -88,17 +88,13 @@ test('replays Place text and spatial divisions from the selected version without
 
     run(
       history,
-      `INSERT INTO address2d (
-        id, granularity, countryId, districtId, geometry, bbox, identifiers, sources,
-        versionHash, sourceReleaseId, snapshotId, isCurrent, createdAt, updatedAt
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO address2d (id,granularity,countryId,districtId,geometry,identifiers,sources,versionHash,sourceReleaseId,snapshotId,isCurrent,createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         'address-old',
         'building',
         'division-country-old',
         'division-district-old',
         '{"type":"Point","coordinates":[114.1,22.3]}',
-        '[114.1,22.3,114.1,22.3]',
         '{}',
         '{}',
         'address-old-hash',
@@ -106,18 +102,13 @@ test('replays Place text and spatial divisions from the selected version without
         'address-snapshot-old',
         1,
         TIMESTAMP,
-        TIMESTAMP,
       ],
     )
 
     for (const versionHash of ['place-old-hash', 'place-new-hash']) {
       run(
         history,
-        `INSERT INTO places (
-          id, resourceReleaseId, addressSnapshotId, address2dId, lng, lat, bbox,
-          basicCategory, sources, firstSeenMonth, lastSeenMonth, versionHash,
-          sourceReleaseId, snapshotId, isCurrent, createdAt, updatedAt
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO places (id,resourceReleaseId,addressSnapshotId,address2dId,lng,lat,bbox,basicCategory,sources,firstSeenMonth,lastSeenMonth,versionHash,sourceReleaseId,snapshotId,isCurrent,createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           'place-1',
           versionHash === 'place-old-hash' ? 'release-old' : 'release-new',
@@ -146,16 +137,12 @@ test('replays Place text and spatial divisions from the selected version without
             : 'place-snapshot-new',
           versionHash === 'place-new-hash' ? 1 : 0,
           TIMESTAMP,
-          TIMESTAMP,
         ],
       )
     }
     run(
       history,
-      `INSERT INTO placesI18n (
-        placeId, locale, name, freeformAddress, provenance, versionHash,
-        sourceReleaseId, snapshotId, isCurrent, createdAt, updatedAt
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO placesI18n (placeId,locale,name,freeformAddress,provenance,versionHash,sourceReleaseId,snapshotId,isCurrent,createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         'place-1',
         'en',
@@ -167,15 +154,11 @@ test('replays Place text and spatial divisions from the selected version without
         'place-snapshot-old',
         1,
         TIMESTAMP,
-        TIMESTAMP,
       ],
     )
     run(
       history,
-      `INSERT INTO placesI18n (
-        placeId, locale, name, freeformAddress, provenance, versionHash,
-        sourceReleaseId, snapshotId, isCurrent, createdAt, updatedAt
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO placesI18n (placeId,locale,name,freeformAddress,provenance,versionHash,sourceReleaseId,snapshotId,isCurrent,createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         'place-1',
         'en',
@@ -187,7 +170,6 @@ test('replays Place text and spatial divisions from the selected version without
         'place-snapshot-new',
         0,
         TIMESTAMP,
-        TIMESTAMP,
       ],
     )
     for (let index = 0; index < 100; index += 1) {
@@ -195,10 +177,7 @@ test('replays Place text and spatial divisions from the selected version without
       const versionHash = `${id}-v1`
       run(
         history,
-        `INSERT INTO places (
-          id, resourceReleaseId, lng, lat, firstSeenMonth, lastSeenMonth, versionHash,
-          sourceReleaseId, snapshotId, isCurrent, createdAt, updatedAt
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO places (id,resourceReleaseId,lng,lat,firstSeenMonth,lastSeenMonth,versionHash,sourceReleaseId,snapshotId,isCurrent,createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           id,
           'release-old',
@@ -210,7 +189,6 @@ test('replays Place text and spatial divisions from the selected version without
           'release-old',
           'place-snapshot-old',
           1,
-          TIMESTAMP,
           TIMESTAMP,
         ],
       )
@@ -333,7 +311,7 @@ test('historical Places resolve independently inherited locales across years and
     for (const id of ['place', 'same-hash-neighbour'])
       run(
         old,
-        'INSERT INTO places(id,resourceReleaseId,lng,lat,firstSeenMonth,lastSeenMonth,versionHash,sourceReleaseId,snapshotId,isCurrent,createdAt,updatedAt) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)',
+        'INSERT INTO places (id,resourceReleaseId,lng,lat,firstSeenMonth,lastSeenMonth,versionHash,sourceReleaseId,snapshotId,isCurrent,createdAt) VALUES (?,?,?,?,?,?,?,?,?,?,?)',
         [
           id,
           'source-base',
@@ -346,7 +324,6 @@ test('historical Places resolve independently inherited locales across years and
           id === 'place' ? 'base' : 'unselected',
           1,
           TIMESTAMP,
-          TIMESTAMP,
         ],
       )
     for (const [db, locale, hash, name] of [
@@ -357,7 +334,7 @@ test('historical Places resolve independently inherited locales across years and
       for (const id of ['place', 'same-hash-neighbour'])
         run(
           db,
-          'INSERT INTO placesI18n(placeId,locale,name,versionHash,sourceReleaseId,snapshotId,isCurrent,createdAt,updatedAt) VALUES(?,?,?,?,?,?,?,?,?)',
+          'INSERT INTO placesI18n (placeId,locale,name,versionHash,sourceReleaseId,snapshotId,isCurrent,createdAt) VALUES (?,?,?,?,?,?,?,?)',
           [
             id,
             locale,
@@ -366,7 +343,6 @@ test('historical Places resolve independently inherited locales across years and
             'source-base',
             id === 'place' ? (db === next ? 'edited' : 'base') : 'unselected',
             1,
-            TIMESTAMP,
             TIMESTAMP,
           ],
         )

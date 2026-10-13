@@ -35,7 +35,7 @@ test('source catalogue preserves unchanged reissue counts and frozen definitions
     ])
     for (const db of [history])
       db.exec(
-        `CREATE VIEW historyEvents AS SELECT snapshotId, 'statsRecord' AS recordType, id AS recordId, '' AS locale, versionHash, 'upsert' AS operation, sourceReleaseId, createdAt, updatedAt FROM statsRecords`,
+        `CREATE VIEW historyEvents AS SELECT snapshotId, 'statsRecord' AS recordType, id AS recordId, '' AS locale, versionHash, 'upsert' AS operation, sourceReleaseId, createdAt FROM statsRecords`,
       )
     meta.exec(`INSERT INTO resourceReleases (id,sourceReleaseId,resourceType) VALUES ('resource-reissue','publisher-reissue','divisionStatistic');
       INSERT INTO snapshotLineages (id,code,resourceType,regionCode,variant,identityMode)

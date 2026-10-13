@@ -1112,7 +1112,7 @@ test('SaanSeoi source samples, downloads and schema omit internal containment ev
     names,
     sources: [
       {
-        publisher_code: 'overture',
+        publisher: 'overture',
         dataset: 'divisions',
         record_id: 'native',
         update_time: 'date',
@@ -1175,7 +1175,7 @@ test('SaanSeoi source samples, downloads and schema omit internal containment ev
     })
     expect(result?.records[0]?.properties?.sources).toEqual([
       {
-        publisherCode: 'overture',
+        publisher: 'overture',
         dataset: 'divisions',
         recordId: 'native',
         updateTime: 'date',

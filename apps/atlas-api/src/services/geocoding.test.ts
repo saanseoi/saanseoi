@@ -33,7 +33,6 @@ const address = (
     snapshotId: 'address',
     divisionSnapshotId: 'division',
     geometry: { type: 'Point', coordinates },
-    bbox: null,
     identifiers: null,
     sources: null,
     parentAddressId: null,

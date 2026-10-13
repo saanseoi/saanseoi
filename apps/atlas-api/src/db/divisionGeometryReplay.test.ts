@@ -49,7 +49,7 @@ function createDb(history = false) {
   }
   if (history)
     sqlite.exec(
-      `CREATE VIEW historyEvents AS SELECT snapshotId,'divisionArea' AS recordType,id AS recordId,'' AS locale,versionHash,operation,sourceReleaseId,createdAt,updatedAt FROM divisionAreas UNION ALL SELECT snapshotId,'divisionBoundary',id,'',versionHash,operation,sourceReleaseId,createdAt,updatedAt FROM divisionBoundaries`,
+      `CREATE VIEW historyEvents AS SELECT snapshotId,'divisionArea' AS recordType,id AS recordId,'' AS locale,versionHash,operation,sourceReleaseId,createdAt FROM divisionAreas UNION ALL SELECT snapshotId,'divisionBoundary',id,'',versionHash,operation,sourceReleaseId,createdAt FROM divisionBoundaries`,
     )
   const db = drizzle({
     client: sqlite,

@@ -555,10 +555,7 @@ function seedHistory(sqlite: Database, snapshotIds: string[]) {
       const versionHash = `${snapshotId}-${division.id}`
       run(
         sqlite,
-        `INSERT INTO divisions
-          (id, identifiers, level, category, class, geometry, hierarchies, cartography,
-           sources, versionHash, sourceReleaseId, snapshotId, isCurrent, createdAt, updatedAt)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO divisions (id,identifiers,level,category,class,geometry,hierarchies,cartography,sources,versionHash,sourceReleaseId,snapshotId,isCurrent,createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           division.id,
           null,
@@ -612,17 +609,13 @@ function seedHistory(sqlite: Database, snapshotIds: string[]) {
           snapshotId,
           1,
           timestamp,
-          timestamp,
         ],
       )
       for (const [locale, name] of Object.entries(division.names)) {
         const i18nVersionHash = `${versionHash}-${locale}`
         run(
           sqlite,
-          `INSERT INTO divisionsI18n
-            (divisionId, locale, name, nameVariant, nameAlts, nameRules, isLocaleInferred,
-             versionHash, sourceReleaseId, snapshotId, isCurrent, createdAt, updatedAt)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          `INSERT INTO divisionsI18n (divisionId,locale,name,nameVariant,nameAlts,nameRules,isLocaleInferred,versionHash,sourceReleaseId,snapshotId,isCurrent,createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [
             division.id,
             locale,
@@ -635,7 +628,6 @@ function seedHistory(sqlite: Database, snapshotIds: string[]) {
             'release-overture-2025',
             snapshotId,
             1,
-            timestamp,
             timestamp,
           ],
         )

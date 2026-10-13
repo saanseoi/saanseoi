@@ -114,7 +114,7 @@ INSERT INTO resourceReleases (id, code, sourceReleaseId, resourceType, status) V
 
 test('full Division documents expose stored publisher attribution without history lookups', async () => {
   const sources = [
-    { publisherCode: 'openstreetmap', dataset: 'openstreetmap', recordId: 'r42@2' },
+    { publisher: 'openstreetmap', dataset: 'openstreetmap', recordId: 'r42@2' },
   ]
   const document = {
     data: [

@@ -150,7 +150,7 @@ function fixture() {
       class: 'district',
       level: 2,
       hierarchies: JSON.stringify(emptyDivisionHierarchies()),
-      ...timestamps,
+      createdAt: stamp,
     }
     if (retained) {
       insert(history, 'divisions', {
@@ -169,10 +169,10 @@ function fixture() {
         versionHash: `${id}-name`,
         sourceReleaseId: 'source',
         isCurrent: 0,
-        ...timestamps,
+        createdAt: stamp,
       })
     } else {
-      insert(current, 'divisions', base)
+      insert(current, 'divisions', { ...base, updatedAt: stamp })
       insert(current, 'divisionsI18n', {
         snapshotId: snapshot,
         divisionId: id,

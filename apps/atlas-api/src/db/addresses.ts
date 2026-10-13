@@ -42,7 +42,6 @@ export type AddressRecord = {
     divisionSnapshotId: string | null
     id: string
     geometry: unknown
-    bbox: unknown
     identifiers: unknown
     sources: unknown
     parentAddressId: string | null
@@ -124,7 +123,6 @@ type AddressRow = {
   divisionSnapshotId: string | null
   id: string
   geometry: typeof address2d.$inferSelect.geometry
-  bbox: typeof address2d.$inferSelect.bbox
   identifiers: typeof address2d.$inferSelect.identifiers
   sources: typeof address2d.$inferSelect.sources
   parentAddressId: string | null
@@ -228,7 +226,6 @@ function mapAddressRow(row: AddressRow): AddressRecord {
       divisionSnapshotId: row.divisionSnapshotId,
       id: row.id,
       geometry: row.geometry,
-      bbox: row.bbox,
       identifiers: row.identifiers,
       sources: row.sources,
       parentAddressId: row.parentAddressId,
@@ -371,7 +368,6 @@ export async function getAddressRecordCurrent(
       ),
       id: address2d.id,
       geometry: address2d.geometry,
-      bbox: address2d.bbox,
       identifiers: address2d.identifiers,
       sources: address2d.sources,
       parentAddressId: address2d.parentAddressId,
@@ -427,7 +423,6 @@ export async function listAddressRecordsCurrent(
       ),
       id: address2d.id,
       geometry: address2d.geometry,
-      bbox: address2d.bbox,
       identifiers: address2d.identifiers,
       sources: address2d.sources,
       parentAddressId: address2d.parentAddressId,
@@ -487,7 +482,6 @@ export async function listAddressRecordsCurrentByIds(
       ),
       id: address2d.id,
       geometry: address2d.geometry,
-      bbox: address2d.bbox,
       identifiers: address2d.identifiers,
       sources: address2d.sources,
       parentAddressId: address2d.parentAddressId,

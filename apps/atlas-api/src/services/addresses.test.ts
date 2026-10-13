@@ -255,14 +255,13 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
             id === 'b'
               ? [
                   {
-                    publisherCode: 'overture',
+                    publisher: 'overture',
                     dataset: 'ds-hk-overture-place',
                     recordId: 'place-b',
                   },
                 ]
               : null,
           geometry: { type: 'Point', coordinates: [114.13, 22.28] },
-          bbox: [114.13, 22.28, 114.13, 22.28],
         })
         .run()
       for (const locale of ['en', 'zh-hant', 'zh-hans']) {
@@ -404,6 +403,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
       id: 'b',
       query: { profile: 'full' },
     })
+    expect(full.status === 200 && full.body.data.attributes).not.toHaveProperty('bbox')
     expect(full.status === 200 && full.body.data.attributes.granularity).toBe('unit')
     expect(full.status === 200 && full.body.data.attributes.identifiers).toEqual({
       'hkgov-dpo': { csuId: '000123' },
@@ -440,6 +440,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
       id: 'b',
       query: { profile: 'map' },
     })
+    expect(map.status === 200 && map.body.data.attributes).not.toHaveProperty('bbox')
     expect(map.status === 200 && map.body.data.attributes.geometry).toEqual({
       type: 'Point',
       coordinates: [114.13, 22.28],

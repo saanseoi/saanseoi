@@ -183,6 +183,7 @@ export async function listReplayedPlaceRecords(args: {
       return {
         place: {
           ...row,
+          updatedAt: row.createdAt,
           snapshotId: args.snapshotId,
           bbox: normalisePlaceBbox(row.bbox),
         },

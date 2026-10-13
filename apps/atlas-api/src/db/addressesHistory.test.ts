@@ -48,24 +48,20 @@ INSERT INTO snapshots (id, snapshotLineageId, code, cohortKey, status, createdAt
     `)
     history.exec(`
       INSERT INTO address2d (
-        id, granularity, parentAddressId, countryId, districtId, landformId, geometry, bbox, identifiers, sources, versionHash,
-        sourceReleaseId, snapshotId, isCurrent, createdAt, updatedAt
+        id, granularity, parentAddressId, countryId, districtId, landformId, geometry, identifiers, sources, versionHash,
+        sourceReleaseId, snapshotId, isCurrent, createdAt
       ) VALUES (
         'historic-address', 'building', 'historic-complex', 'hk', 'district-central', 'hong-kong-island-landform', '{"type":"Point","coordinates":[114.1,22.3]}',
-        '[114.1,22.3,114.1,22.3]', '{"source":"historic"}',
+        '{"source":"historic"}',
         '{"hkgov-dpo":[{"record_id":"historic"}]}', 'historic-address-v1',
-        'historic-release', 'address-snapshot-2025', 0, '${TIMESTAMP}', '${TIMESTAMP}'
+        'historic-release', 'address-snapshot-2025', 0, '${TIMESTAMP}'
       );
       INSERT INTO address2d (id, granularity, versionHash, sourceReleaseId, snapshotId, isCurrent)
       VALUES ('historic-address', 'unit', 'historic-address-v2', 'later-release', 'later-snapshot', 1);
-      INSERT INTO address2dI18n (
-        addressId, locale, formattedAddress, buildingName, versionHash,
-        sourceReleaseId, snapshotId, isCurrent, createdAt, updatedAt
-      ) VALUES
-        ('historic-address', 'en', '1 Historic Road', 'Historic House', 'historic-address-en-v1',
-         'historic-release', 'address-snapshot-2025', 0, '${TIMESTAMP}', '${TIMESTAMP}'),
-        ('historic-address', 'zh-Hant', '歷史道1號', '歷史大廈', 'historic-address-zh-hant-v1',
-         'historic-release', 'address-snapshot-2025', 0, '${TIMESTAMP}', '${TIMESTAMP}');
+      INSERT INTO address2dI18n (addressId,locale,formattedAddress,buildingName,versionHash,sourceReleaseId,snapshotId,isCurrent,createdAt) VALUES ('historic-address', 'en', '1 Historic Road', 'Historic House', 'historic-address-en-v1',
+         'historic-release', 'address-snapshot-2025', 0, '${TIMESTAMP}'),
+('historic-address', 'zh-Hant', '歷史道1號', '歷史大廈', 'historic-address-zh-hant-v1',
+         'historic-release', 'address-snapshot-2025', 0, '${TIMESTAMP}');
     `)
 
     const records = await listReplayedAddressRecords({

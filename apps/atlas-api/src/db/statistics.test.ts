@@ -58,8 +58,8 @@ test('replays sparse revisions and unchanged snapshots independently of mutable 
   try {
     run(
       fixture.history,
-      `INSERT INTO statsRecords (snapshotId, id, datasetCode, sourceReleaseId, sourceFeatureRef, divisionId, referencePeriodCode, referencePeriodGranularity, referencePeriodEndYear, geography, definitionSetId, "values", versionHash, isCurrent, createdAt, updatedAt)
-      SELECT 'correction', id, datasetCode, sourceReleaseId, sourceFeatureRef, divisionId, referencePeriodCode, referencePeriodGranularity, referencePeriodEndYear, geography, definitionSetId, '{"totalPopulation":"250000","femalePopulation":"125000"}', 'correction-hash', 0, createdAt, updatedAt FROM statsRecords WHERE id = ? AND versionHash = 'record-version-hash'`,
+      `INSERT INTO statsRecords (snapshotId, id, datasetCode, sourceReleaseId, sourceFeatureRef, divisionId, referencePeriodCode, referencePeriodGranularity, referencePeriodEndYear, geography, definitionSetId, "values", versionHash, isCurrent, createdAt)
+      SELECT 'correction', id, datasetCode, sourceReleaseId, sourceFeatureRef, divisionId, referencePeriodCode, referencePeriodGranularity, referencePeriodEndYear, geography, definitionSetId, '{"totalPopulation":"250000","femalePopulation":"125000"}', 'correction-hash', 0, createdAt FROM statsRecords WHERE id = ? AND versionHash = 'record-version-hash'`,
       [STATISTIC_ID],
     )
     run(fixture.history, 'UPDATE statsRecords SET isCurrent = 0')
@@ -114,8 +114,8 @@ test('selects field meanings by each pack hash while current retains older-perio
   try {
     run(
       fixture.current,
-      `INSERT INTO statsFields (datasetCode, fieldName, measureCode, measureVersionHash, sourceField, dimensions, statisticKind, aggregation, valueKind, unitCode, versionHash, createdAt, updatedAt)
-      SELECT datasetCode, fieldName, measureCode, measureVersionHash, sourceField, '{"sex":"female"}', statisticKind, aggregation, valueKind, unitCode, 'redefined-field-hash', '2026-08-21T00:00:00.000Z', '2026-08-21T00:00:00.000Z' FROM statsFields WHERE datasetCode = ? AND fieldName = 'totalPopulation'`,
+      `INSERT INTO statsFields (datasetCode, fieldName, measureCode, measureVersionHash, sourceField, dimensions, statisticKind, aggregation, valueKind, unitCode, versionHash, createdAt)
+      SELECT datasetCode, fieldName, measureCode, measureVersionHash, sourceField, '{"sex":"female"}', statisticKind, aggregation, valueKind, unitCode, 'redefined-field-hash', '2026-08-21T00:00:00.000Z' FROM statsFields WHERE datasetCode = ? AND fieldName = 'totalPopulation'`,
       [DATASET_CODE],
     )
     run(

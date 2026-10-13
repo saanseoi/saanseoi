@@ -23,7 +23,7 @@ test('current address reads project every dedicated division ID as a relationshi
         publicationToken TEXT, preparedAt TEXT, updatedAt TEXT
       );
       CREATE TABLE address2d (
-        snapshotId TEXT, divisionSnapshotId TEXT, id TEXT, geometry TEXT, bbox TEXT,
+        snapshotId TEXT, divisionSnapshotId TEXT, id TEXT, geometry TEXT,
         identifiers TEXT, sources TEXT, parentAddressId TEXT, granularity TEXT,
         countryId TEXT, landformId TEXT, areaId TEXT,
         districtId TEXT, townId TEXT, ruralAreaId TEXT, macrohoodId TEXT, neighbourhoodId TEXT,

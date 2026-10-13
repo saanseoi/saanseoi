@@ -2207,7 +2207,7 @@ describe('atlas-api', () => {
     })
     expect(divisions.components?.schemas?.SourceAttribution).toMatchObject({
       type: 'object',
-      required: ['publisherCode', 'dataset'],
+      required: ['publisher', 'dataset'],
       additionalProperties: false,
       properties: {
         property: { type: ['string', 'null'], pattern: '^(?:\\/(?:[^~/]|~[01])*)*$' },

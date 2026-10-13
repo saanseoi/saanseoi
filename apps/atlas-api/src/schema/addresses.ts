@@ -60,7 +60,6 @@ export const AddressUnitsResponseSchema = z.object({
 import { openApiText } from '../lib/openapi-i18n'
 import {
   ApiVersionMetadataSchema,
-  BBoxSchema,
   IdSchema,
   JsonApiLinkMapSchema,
   JsonApiVersionSchema,
@@ -281,13 +280,6 @@ const AddressAttributesSchema = z
       .optional()
       .openapi({
         description: openApiText('openapi_addresses_geometry_description'),
-      }),
-    bbox: z
-      .union([BBoxSchema, z.null()])
-      .optional()
-      .openapi({
-        description: openApiText('openapi_addresses_bbox_description'),
-        examples: [[114.132, 22.28566, 114.132, 22.28566]],
       }),
     createdAt: z
       .string()
