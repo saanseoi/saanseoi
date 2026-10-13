@@ -6,6 +6,7 @@ test('the public schema preserves preprocessed inherited attribution and member 
   const [source] = normaliseOvertureAttribution([
     { dataset: 'OpenStreetMap', record_id: 'node', property: '', license: 'ODbL-1.0' },
   ])
+  if (!source) throw new Error('Expected normalised source attribution.')
   const parsed = SourceAttributionSchema.parse(source)
   expect(parsed).toEqual(source)
   expect(Object.keys(parsed)).toEqual([

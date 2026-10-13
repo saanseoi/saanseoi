@@ -679,11 +679,13 @@ live base writes a locale tombstone. Writers compare against the selected parent
 never close or update ancestor rows. The retained `isCurrent` column is an operational
 hint only and never defines snapshot membership.
 
-Fresh databases use the generated HISTORY schema. Populated databases require
-reingestion with their snapshot ancestry and shard assignments preserved and verified.
-The generated structural migration alone cannot recover event origins from mutable
-content-store metadata. Do not apply it to populated HISTORY shards as a data
-conversion.
+Fresh databases use the generated HISTORY schema. The local migration runner combines
+generated DDL with a verified conversion of retained event journals and statistic
+definition references. It preserves snapshot ancestry and shard assignments, rejects
+missing or ambiguous ownership, and retains a pre-migration SQLite backup. See
+[historical membership](../libs/db/docs/schema/data-versioning.md#historical-membership).
+The generated structural migration alone is not a populated-data conversion; populated
+remote HISTORY requires a separately verified rebuild.
 
 ### Schema version
 

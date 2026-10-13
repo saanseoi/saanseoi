@@ -10,6 +10,8 @@ from pathlib import Path
 import sqlite3
 import re
 
+from inline_history_upgrade import MIGRATION as INLINE_HISTORY_MIGRATION, upgrade as upgrade_inline_history
+
 
 def quote(identifier):
     return '"' + identifier.replace('"', '""') + '"'
@@ -85,7 +87,7 @@ def baseline_adoption(db, path):
         expected.close()
 
 
-def migrate(database_path, migrations_dir, backup_dir, table='d1_migrations'):
+def migrate(database_path, migrations_dir, backup_dir, table='d1_migrations', metadata=None):
     database_path = Path(database_path)
     database_path.parent.mkdir(parents=True, exist_ok=True)
     db = sqlite3.connect(database_path, timeout=30, isolation_level=None)
@@ -123,8 +125,11 @@ def migrate(database_path, migrations_dir, backup_dir, table='d1_migrations'):
                 print(f'Adopting schema-verified baseline {name}', flush=True)
             else:
                 print(f'Applying {name}', flush=True)
-                for statement in statements(path.read_text()):
-                    db.execute(statement)
+                if name == INLINE_HISTORY_MIGRATION:
+                    upgrade_inline_history(db, path.read_text(), statements, metadata)
+                else:
+                    for statement in statements(path.read_text()):
+                        db.execute(statement)
             db.execute(f'INSERT INTO {quote(table)} (name) VALUES (?)', (name,))
         violations = db.execute('PRAGMA foreign_key_check').fetchmany(10)
         if violations:
@@ -145,5 +150,6 @@ if __name__ == '__main__':
     parser.add_argument('migrations')
     parser.add_argument('backups')
     parser.add_argument('--table', default='d1_migrations')
+    parser.add_argument('--metadata', help='Local META SQLite path for verified HISTORY ownership')
     args = parser.parse_args()
-    migrate(args.database, args.migrations, args.backups, args.table)
+    migrate(args.database, args.migrations, args.backups, args.table, args.metadata)

@@ -1,4 +1,4 @@
-import { releaseFixtureSchemaSql } from '../../../../../libs/core/src/testing/releaseFixtures'
+import { releaseFixtureSchemaSql } from '@repo/core/testing/releaseFixtures'
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { drizzle } from 'drizzle-orm/bun-sqlite'

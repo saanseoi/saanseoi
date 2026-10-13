@@ -27,6 +27,16 @@ flock 9
 IFS=',' read -r -a binding_names <<< "$bindings_csv"
 IFS=',' read -r -a database_names <<< "$database_names_csv"
 
+# The inline-HISTORY data conversion verifies statistic ownership in local META.
+metadata_id="$(bun -e '
+  const config = JSON.parse(require("node:fs").readFileSync(process.argv[1], "utf8"));
+  const entry = (config.env?.[process.argv[2]]?.d1_databases ?? config.d1_databases)
+    .find(entry => entry.binding === "DB_META");
+  if (!entry) throw new Error("Missing local META binding");
+  process.stdout.write(entry.preview_database_id ?? entry.database_id);
+' "$wrangler_config" "$wrangler_env")"
+metadata_path="$(bash "$script_dir/lib/resolve-local-d1-sqlite-path.sh" "$metadata_id")"
+
 run_migration() {
   local binding_name="$1"
   local database_name="$2"
@@ -48,7 +58,7 @@ run_migration() {
   IFS=$'\t' read -r local_id migrations_dir migrations_table <<< "$target_fields"
   sqlite_path="$(bash "$script_dir/lib/resolve-local-d1-sqlite-path.sh" "$local_id")" || return
   python3 "$script_dir/migrate-local-sqlite.py" "$sqlite_path" "$migrations_dir" \
-    "$(dirname "$persist_dir")/migration-backups" --table "$migrations_table"
+    "$(dirname "$persist_dir")/migration-backups" --table "$migrations_table" --metadata "$metadata_path"
 }
 
 if [[ "${#database_names[@]}" -eq 1 ]]; then

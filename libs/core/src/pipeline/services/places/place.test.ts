@@ -353,9 +353,6 @@ test('base materialisation ignores reference publication churn but tracks depend
   })
   expect(changed).not.toBe(first)
   place.i18n[0]!.name = 'Changed translation'
-  place.sources = [
-    { publisherCode: 'overture', dataset: 'revised publisher assertion' },
-  ]
   place.lastSeenMonth = '2027-01'
   expect(
     await hashPlaceMaterialisation(place, {
@@ -365,4 +362,13 @@ test('base materialisation ignores reference publication churn but tracks depend
       divisionIds: ['division-id'],
     }),
   ).toBe(first)
+  place.sources = { overture: [{ dataset: 'OpenStreetMap', record_id: 'node/123' }] }
+  expect(
+    await hashPlaceMaterialisation(place, {
+      addressSnapshotId: 'address-3',
+      divisionSnapshotId: 'division-3',
+      addressId: 'address-id',
+      divisionIds: ['division-id'],
+    }),
+  ).not.toBe(first)
 })

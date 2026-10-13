@@ -141,5 +141,12 @@ writing membership rows. Meta `snapshotShardAssignments` locates each delta. Rep
 resolves the nearest ancestor event before filtering and pagination, retaining the
 introducing snapshot and shard for exact content reads. Ancestor rows remain immutable.
 
-Generated migrations establish the schema for fresh databases. Populated HISTORY
-requires verified reingestion; structural migration is not an event-origin conversion.
+Generated migrations establish the schema for fresh databases. The local migration
+runner converts populated HISTORY from retained event journals, preserving every upsert,
+deletion and repeated version selection. Statistics dictionaries obtain their snapshot
+ownership from exact observation definition references; district compatibility
+observations require an unambiguous resource-release/year association in local META. The
+conversion rejects missing payloads, unowned content and ambiguous ownership, rolls back
+the whole pending batch on failure, and saves a SQLite backup before writing. Generated
+DDL remains authoritative. Remote migration runners do not perform this local data
+conversion; populated remote HISTORY requires a separately verified rebuild.
