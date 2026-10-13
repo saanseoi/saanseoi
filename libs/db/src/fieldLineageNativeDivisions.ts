@@ -260,7 +260,7 @@ export function nativeDivisionFieldRule(
     sources: [
       hma
         ? '{hkgovCenstatd: sources.map(reference => ({record_id: reference.sourceRecordId}))}; require non-empty record identities.'
-        : '[{publisherCode: "hkgov-landsd", dataset: "ds-hk-hkgov-landsd-division", recordId: requirePublisherPlaceNameId(row)}]',
+        : '[{publisher: "hkgov-landsd", dataset: "ds-hk-hkgov-landsd-division", recordId: requirePublisherPlaceNameId(row)}]',
       hma ? ['sources'] : ['id'],
     ],
     hierarchies: [

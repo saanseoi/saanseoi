@@ -159,7 +159,6 @@ export function currentAddressFieldRule(
         ['resolutions'],
       ],
       geometry: ['null', []],
-      bbox: ['null', []],
       parentAddressId: ['null', []],
       granularity: [
         'establishAddressGranularity({addressId: id, values: entry.values, sourceVersion}).granularity',

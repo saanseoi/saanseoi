@@ -510,7 +510,7 @@ export function canonicalAddress2dColumns<Required extends boolean>(
     /** External identifiers only; supplementary identity-generation keys belong to evidence. */
     identifiers: jsonText('identifiers'),
     sources: jsonText('sources'),
-    ...geoBbox,
+    geometry: jsonTextOrBinary('geometry'),
   }
 }
 

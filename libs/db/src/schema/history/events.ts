@@ -12,5 +12,4 @@ export const historyEvents = sqliteView('historyEvents', {
   operation: text('operation', { enum: ['upsert', 'delete'] }).notNull(),
   sourceReleaseId: text('sourceReleaseId'),
   createdAt: text('createdAt').notNull(),
-  updatedAt: text('updatedAt').notNull(),
 }).as(sql.raw(historyEventsSql))

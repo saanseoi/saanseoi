@@ -47,14 +47,18 @@ for (const [family, schema] of Object.entries({ meta, current, history, source }
           )
           .all()
         expect(
-          actual.map(({ name, type, notnull }) => ({ name, type, notnull })),
+          actual
+            .map(({ name, type, notnull }) => ({ name, type, notnull }))
+            .sort((a, b) => a.name.localeCompare(b.name)),
         ).toEqual(
-          columns.map(column => ({
-            name: column.name,
-            type: column.getSQLType().toUpperCase(),
-            // Drizzle emits column-level primary keys without explicit NOT NULL.
-            notnull: Number(column.notNull && !column.primary),
-          })),
+          columns
+            .map(column => ({
+              name: column.name,
+              type: column.getSQLType().toUpperCase(),
+              // Drizzle emits column-level primary keys without explicit NOT NULL.
+              notnull: Number(column.notNull && !column.primary),
+            }))
+            .sort((a, b) => a.name.localeCompare(b.name)),
         )
         if (family === 'source') {
           expect(actual.some(column => column.name === 'sourceLocator')).toBe(

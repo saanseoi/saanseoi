@@ -1,5 +1,5 @@
 import { integer, text } from 'drizzle-orm/sqlite-core'
-import { timestamps } from '../shared'
+import { defaultIsoTimestamp } from '../shared'
 
 /** A row is a change introduced by this snapshot, inherited by its descendants. */
 export const historyVersioning = {
@@ -11,7 +11,7 @@ export const historyVersioning = {
   sourceReleaseId: text('sourceReleaseId'),
   // Operational hint only. Membership always follows snapshot ancestry.
   isCurrent: integer('isCurrent', { mode: 'boolean' }).notNull().default(true),
-  ...timestamps,
+  createdAt: defaultIsoTimestamp('createdAt').notNull(),
 }
 
 export const historyI18nVersioning = historyVersioning

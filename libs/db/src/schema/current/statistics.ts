@@ -9,7 +9,10 @@ import {
   canonicalStatsRecord,
   canonicalStatsValueI18n,
   timestamps,
+  defaultIsoTimestamp,
 } from '../shared'
+
+const definitionCreation = { createdAt: defaultIsoTimestamp('createdAt').notNull() }
 
 const definitionVersion = { versionHash: text('versionHash').notNull().default('') }
 
@@ -33,7 +36,7 @@ export const statsRecords = sqliteTable(
 
 export const statsFields = sqliteTable(
   'statsFields',
-  { ...canonicalStatsField, ...definitionVersion, ...timestamps },
+  { ...canonicalStatsField, ...definitionVersion, ...definitionCreation },
   table => [
     primaryKey({ columns: [table.datasetCode, table.fieldName, table.versionHash] }),
   ],
@@ -41,7 +44,7 @@ export const statsFields = sqliteTable(
 
 export const statsMeasures = sqliteTable(
   'statsMeasures',
-  { ...canonicalStatsMeasure, ...definitionVersion, ...timestamps },
+  { ...canonicalStatsMeasure, ...definitionVersion, ...definitionCreation },
   table => [
     primaryKey({ columns: [table.datasetCode, table.measureCode, table.versionHash] }),
   ],
@@ -49,7 +52,7 @@ export const statsMeasures = sqliteTable(
 
 export const statsMeasuresI18n = sqliteTable(
   'statsMeasuresI18n',
-  { ...canonicalStatsMeasureI18n, ...definitionVersion, ...timestamps },
+  { ...canonicalStatsMeasureI18n, ...definitionVersion, ...definitionCreation },
   table => [
     primaryKey({
       columns: [table.datasetCode, table.measureCode, table.locale, table.versionHash],
@@ -59,7 +62,7 @@ export const statsMeasuresI18n = sqliteTable(
 
 export const statsFieldsI18n = sqliteTable(
   'statsFieldsI18n',
-  { ...canonicalStatsFieldI18n, ...definitionVersion, ...timestamps },
+  { ...canonicalStatsFieldI18n, ...definitionVersion, ...definitionCreation },
   table => [
     primaryKey({
       columns: [table.datasetCode, table.fieldName, table.locale, table.versionHash],
@@ -69,7 +72,7 @@ export const statsFieldsI18n = sqliteTable(
 
 export const statsValuesI18n = sqliteTable(
   'statsValuesI18n',
-  { ...canonicalStatsValueI18n, ...definitionVersion, ...timestamps },
+  { ...canonicalStatsValueI18n, ...definitionVersion, ...definitionCreation },
   table => [
     primaryKey({
       columns: [

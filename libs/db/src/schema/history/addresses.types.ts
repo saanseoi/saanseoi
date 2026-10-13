@@ -34,9 +34,7 @@ export type CurrentAddressVersionRow = Pick<
   | 'createdAt'
   | 'geometry'
   | 'identifiers'
-  | 'bbox'
   | 'sources'
-  | 'updatedAt'
   | 'versionHash'
 >
 

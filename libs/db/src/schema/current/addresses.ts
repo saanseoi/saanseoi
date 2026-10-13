@@ -31,6 +31,7 @@ export const addressPublicationState = sqliteTable('addressPublicationState', {
 export const address2d = sqliteTable(
   'address2d',
   {
+    /** Stable serving scope; addressPublicationState holds the logical snapshot ID. */
     snapshotId: text('snapshotId').notNull(),
     divisionSnapshotId: text('divisionSnapshotId').notNull(),
     streetSnapshotId: text('streetSnapshotId'),

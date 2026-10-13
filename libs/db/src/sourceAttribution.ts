@@ -6,9 +6,11 @@ export type SourceAttribution = {
    * precedence over a broader attribution for the property it identifies.
    */
   property?: string | null
-  publisherCode: string
+  /** Stable upstream publisher code. */
+  publisher: string
   /** Direct publisher through which this attribution was inherited; omitted for direct sources. */
   upstreamOf?: string
+  /** Stable upstream dataset code. */
   dataset: string
   recordId?: string
   updateTime?: string
@@ -21,7 +23,7 @@ export type SourceAttribution = {
 /** Member order for preprocessed and serialised canonical attribution. */
 export const sourceAttributionFieldOrder = [
   'property',
-  'publisherCode',
+  'publisher',
   'upstreamOf',
   'dataset',
   'recordId',

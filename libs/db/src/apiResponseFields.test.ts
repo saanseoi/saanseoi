@@ -60,10 +60,7 @@ test('shared Division joins retain every dependency across source mappings', () 
 test('explicit aliases and computed inputs override ordinary projections', () => {
   const schema = resolveApiResponseFields('api-addresses-v0.1', 'sv-address-v1')
   schema.resources.address!['attributes.label'] = 'address.i18n.en.formattedAddress'
-  schema.resources.address!['attributes.position'] = [
-    'address.geometry',
-    'address.bbox',
-  ]
+  schema.resources.address!['attributes.position'] = ['address.geometry', 'address.id']
   schema.versionHash = computeVersionHash(schema)
   validateApiResponseFields(schema)
   expect(canonicalResponseInputs(schema, 'address', 'attributes.label')).toEqual([
@@ -71,7 +68,7 @@ test('explicit aliases and computed inputs override ordinary projections', () =>
   ])
   expect(canonicalResponseInputs(schema, 'address', 'attributes.position')).toEqual([
     'address.geometry',
-    'address.bbox',
+    'address.id',
   ])
   expect(
     resolveApiResponseFields(schema.apiVersion, schema.schemaVersion).resources.address,

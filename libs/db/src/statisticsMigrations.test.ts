@@ -94,7 +94,9 @@ test('current and history share packed payloads and retain exact dictionary vers
     expect(currentColumns).not.toContain('dimensions')
     for (const column of ['values', 'fieldSources', 'definitionSetId', 'versionHash'])
       expect(currentColumns).toContain(column)
-    for (const column of currentColumns) expect(historyColumns).toContain(column)
+    for (const column of currentColumns.filter(column => column !== 'updatedAt'))
+      expect(historyColumns).toContain(column)
+    expect(historyColumns).not.toContain('updatedAt')
     expect(
       columns(current, 'statsPublicationState')
         .filter(column => column.pk)

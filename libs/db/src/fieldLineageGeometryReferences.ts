@@ -27,13 +27,13 @@ export function geometryReferenceRule(
     ])
   if (town)
     return result(
-      '[{ publisherCode: "hkgov-pland", dataset: "ds-hk-hkgov-pland-division-new-town", recordId: asNonEmptyString(row.newtown_id) }]',
+      '[{ publisher: "hkgov-pland", dataset: "ds-hk-hkgov-pland-division-new-town", recordId: asNonEmptyString(row.newtown_id) }]',
       ['newtown_id'],
       ['Require a non-empty native town ID.'],
     )
   if (planning)
     return result(
-      '(typeof row.source_cell_ids === "string" ? JSON.parse(row.source_cell_ids) : row.source_cell_ids).map(recordId => ({ publisherCode: "hkgov-pland", dataset: "ds-hk-hkgov-pland-division-pu", recordId }))',
+      '(typeof row.source_cell_ids === "string" ? JSON.parse(row.source_cell_ids) : row.source_cell_ids).map(recordId => ({ publisher: "hkgov-pland", dataset: "ds-hk-hkgov-pland-division-pu", recordId }))',
       ['source_cell_ids'],
       ['Require a non-empty array of non-empty string cell IDs.'],
     )

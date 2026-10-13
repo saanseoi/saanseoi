@@ -75,7 +75,7 @@ export function historyEventsSqlForTables(tables?: ReadonlySet<string>) {
     .filter(([, definition]) => !tables || tables.has(definition.table))
     .map(([type, definition]) => {
       const locale = 'locale' in definition ? `"${definition.locale}"` : "''"
-      return `SELECT snapshotId, '${type}' AS recordType, ${historyRecordIdSql(definition)} AS recordId, ${locale} AS locale, versionHash, operation, sourceReleaseId, createdAt, updatedAt FROM "${definition.table}"`
+      return `SELECT snapshotId, '${type}' AS recordType, ${historyRecordIdSql(definition)} AS recordId, ${locale} AS locale, versionHash, operation, sourceReleaseId, createdAt FROM "${definition.table}"`
     })
   // workerd limits each compound SELECT to five terms, including stored views.
   // Group the branches so every compound remains within that limit.
@@ -98,7 +98,6 @@ export type HistoryDeletion = {
   snapshotId: string
   sourceReleaseId?: string | null
   createdAt?: string
-  updatedAt?: string
 }
 
 export function historyDeletionRow(input: HistoryDeletion) {
@@ -111,7 +110,7 @@ export function historyDeletionRow(input: HistoryDeletion) {
     keys.some(key => typeof key !== 'string')
   )
     throw new Error(`Invalid ${input.recordType} identity`)
-  const now = input.updatedAt ?? new Date().toISOString()
+  const now = input.createdAt ?? new Date().toISOString()
   return {
     table: definition.table,
     row: {
@@ -123,7 +122,6 @@ export function historyDeletionRow(input: HistoryDeletion) {
       sourceReleaseId: input.sourceReleaseId ?? null,
       isCurrent: 0,
       createdAt: input.createdAt ?? now,
-      updatedAt: now,
     },
   }
 }

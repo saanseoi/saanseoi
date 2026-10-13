@@ -72,14 +72,14 @@ test('serialisation preserves attribution type order after alphabetical archive 
     dataset: 'openstreetmap',
     license: 'ODbL-1.0',
     property: '',
-    publisherCode: 'openstreetmap',
+    publisher: 'openstreetmap',
     recordId: 'node',
     upstreamOf: 'overture',
   }
   const text = stringifyGeoJson({ properties: { sources: [source] } })
   expect(Object.keys(JSON.parse(text).properties.sources[0])).toEqual([
     'property',
-    'publisherCode',
+    'publisher',
     'upstreamOf',
     'dataset',
     'recordId',

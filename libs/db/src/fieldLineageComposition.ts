@@ -390,7 +390,6 @@ export function compileResponseField(args: {
         'createdAt',
         'updatedAt',
         'geometry',
-        'bbox',
         'snapshotId',
         'identifiers',
         'identifiers.hkgov-dpo.csuId',
@@ -423,7 +422,7 @@ export function compileResponseField(args: {
     )
       return unknown(`No reviewed Address projection for ${apiField}.`)
     const profiles =
-      name === 'geometry' || name === 'bbox'
+      name === 'geometry'
         ? ['map', 'full']
         : ['snapshotId', 'sources'].includes(name) || name.startsWith('identifiers')
           ? ['full']
