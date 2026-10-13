@@ -48,6 +48,7 @@ import { cachedAlsPreparation } from '../lib/alsPreparationCache.ts'
 import { deliverDivisionPrerequisite } from '../lib/deliverDivisionPrerequisite.ts'
 import { progressPhase } from '../lib/progressPhase.ts'
 import { terminalSafeText } from '../lib/terminal.ts'
+import { ingestAlsReleaseInChild } from '../lib/isolatedAlsIngestion.ts'
 
 const HKGOV_ALS_CATALOGUE_URL = 'https://data.gov.hk/en-data/dataset/hk-dpo-als_01-als'
 const REPO_ROOT = resolve(import.meta.dir, '../../../..')
@@ -182,8 +183,13 @@ export async function runHkgovAlsIngestCommand(
   const decisionsFile = decisionsOption
     ? resolveInvocationPath(decisionsOption)
     : DEFAULT_DECISIONS_FILE
-  let history = await readHistory(historyFile)
-  const decisions = await readDecisions(decisionsFile)
+  // The coordinator must not retain the large identity ledger between workers.
+  let history = options.isolatedSourceVersion
+    ? await readHistory(historyFile)
+    : emptyHkgovAlsIdentityHistory()
+  const decisions = options.isolatedSourceVersion
+    ? await readDecisions(decisionsFile)
+    : emptyHkgovAlsIdentityDecisions()
   const firstSourceVersion = normaliseAlsSourceVersion(
     stringOption(args, 'from-source-version') ?? `${cohortKey.slice(0, 4)}-01-01.0`,
   )
@@ -194,7 +200,10 @@ export async function runHkgovAlsIngestCommand(
         target,
         selectInitialisationVersions(
           resolveAlsReleaseVersions(await listAlsReleaseDirectories(sourceRoot)).filter(
-            release => release.sourceVersion >= firstSourceVersion,
+            release =>
+              release.sourceVersion >= firstSourceVersion &&
+              (!options.isolatedSourceVersion ||
+                release.sourceVersion === options.isolatedSourceVersion),
           ),
           release => release.sourceVersion,
         ),
@@ -244,6 +253,10 @@ export async function runHkgovAlsIngestCommand(
         console.log((await formatCompletedAlsRelease(target)).join('\n'))
         renderedCompletedSkip = true
       }
+      continue
+    }
+    if (!options.isolatedSourceVersion) {
+      await ingestAlsReleaseInChild({ args, target, options, sourceVersion })
       continue
     }
     const outputFile = resolveInvocationPath(
@@ -370,7 +383,9 @@ export async function runHkgovAlsLocalIngestCommand(
   })
 }
 
-type HkgovAlsIngestOptions = {
+export type HkgovAlsIngestOptions = {
+  /** Internal worker boundary; the coordinator alone advances the sequence. */
+  isolatedSourceVersion?: string
   /**
    * A local historical backfill creates an independent address cohort. It must
    * not supersede the newer active source release or API cohort.

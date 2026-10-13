@@ -47,6 +47,11 @@ uses the complete publisher ledger as its sole source writer. The normaliser rea
 Parquet window per SQL chunk. Historical comparison loads exact address, version and
 locale keys in parameter-bounded batches using the existing composite indexes.
 
+Chronological ALS ingestion runs each source release in a fresh process to bound
+retained preparation and replay memory. Each process completes publication and saves
+identity history before the coordinator advances. A failed release stops the sequence;
+completed releases remain available for continuation.
+
 ALS prepared uploads retain publisher provenance in the nullable UTF-8 `publisherSource`
 envelope. Schema validation permits adding this envelope only when every other field
 retains its name, type and nullability. Native null and JSON null both denote an absent

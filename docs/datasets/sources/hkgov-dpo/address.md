@@ -52,6 +52,12 @@ Completed releases are filtered before preparing their Division prerequisites. C
 preparation does not replace publication, predecessor-membership validation or review
 recording.
 
+Each chronological release runs in a fresh ingestion process. The coordinator waits for
+publication and the identity-history write before starting the next release, so large
+preparation and snapshot-replay heaps are released between cohorts. Child failures stop
+the sequence and preserve completed-release checkpoints. Review gates, target selection
+and final reconciliation apply across the complete sequence.
+
 ALS upload sequences defer Address search finalisation until all selected source
 releases succeed. Without `--defer-api-release-set`, `hkgov-dpo:ingest` reconciles once
 at the end, including when completed releases are skipped on retry. With that option,
