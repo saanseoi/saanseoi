@@ -1,5 +1,6 @@
 import { expect, test } from 'bun:test'
 import { assembleCuratedDivisions } from './assemble'
+import { curatedRecordSources } from '@repo/core/pipeline/services/sources/curatedRecordSources'
 import { applyCuratedAreaContract } from './recordContract'
 import { curateIslands, type IslandInventoryEntry } from '../islands/islandCuration'
 
@@ -40,7 +41,14 @@ test('assembly retains the chosen source and component indexes without coordinat
       dataset: 'ds-hk-protomaps-island',
       recordId: 'PROTOMAPS:LAND:selected',
       contributions: ['geometry'],
-      componentIndexes: [2],
+    },
+  ])
+  expect(result.areas[0]!.geometrySource).toEqual(island.geometrySource)
+  expect(curatedRecordSources(result.areas[0]!.sources, 'area')).toEqual([
+    {
+      publisherCode: 'protomaps',
+      dataset: 'ds-hk-protomaps-island',
+      recordId: 'PROTOMAPS:LAND:selected',
     },
   ])
   expect(result.areas[0]!.sources.saanseoi[0].contributions).toEqual(['selection'])
@@ -55,6 +63,14 @@ test('an authored drawing gets no inferred source even when its coordinates are 
   applyCuratedAreaContract(result.areas)
   expect(result.areas[0]!.sources.protomaps).toBeUndefined()
   expect(result.areas[0]!.sources.saanseoi[0].contributions).toEqual(['geometry'])
+  expect(result.areas[0]!.geometrySource).toBeUndefined()
+  expect(curatedRecordSources(result.areas[0]!.sources, 'area')).toEqual([
+    {
+      publisherCode: 'saanseoi',
+      dataset: 'ds-hk-saanseoi-division',
+      recordId: island.id,
+    },
+  ])
 })
 
 test('named option corrections carry the option source through review and assembly', () => {
@@ -106,4 +122,12 @@ test('authored corrections clear selected geometry provenance even for identical
   applyCuratedAreaContract(result.areas)
   expect(result.areas[0]!.sources.protomaps).toBeUndefined()
   expect(result.areas[0]!.sources.saanseoi[0].contributions).toEqual(['geometry'])
+  expect(result.areas[0]!.geometrySource).toBeUndefined()
+  expect(curatedRecordSources(result.areas[0]!.sources, 'area')).toEqual([
+    {
+      publisherCode: 'saanseoi',
+      dataset: 'ds-hk-saanseoi-division',
+      recordId: island.id,
+    },
+  ])
 })

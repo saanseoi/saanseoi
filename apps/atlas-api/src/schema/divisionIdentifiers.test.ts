@@ -46,3 +46,11 @@ test('division and geometry identifiers preserve scalar and multiple matching co
     expect(schema.safeParse({ saanseoi: { sourceId: true } }).success).toBe(false)
   }
 })
+
+test('SaanSeoi source references use the canonical flat attribution schema', () => {
+  const sources = saanseoiDivisionSourceFields.sources!
+  expect(sources.type).toBe('array')
+  expect(sources.items?.properties).toHaveProperty('publisherCode')
+  expect(sources.items?.properties).not.toHaveProperty('componentIndexes')
+  expect(sources.items?.additionalProperties).toBe(false)
+})

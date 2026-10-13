@@ -32,9 +32,13 @@ export function curatedRecordSources(
       // External lookups without a retained dataset belong to field provenance.
       if (!reference.dataset) continue
       const recordId = reference.recordId ?? reference.record_id
-      if (reference.curation) {
+      // Selecting another publisher's geometry does not make it SaanSeoi-authored.
+      if (
+        provider === 'saanseoi' &&
+        reference.contributions?.length &&
+        reference.contributions.every((role: string) => role === 'selection')
+      )
         continue
-      }
       if (
         typeof reference.dataset !== 'string' ||
         !reference.dataset ||
@@ -48,20 +52,6 @@ export function curatedRecordSources(
         publisherCode: provider,
         dataset: reference.dataset,
         recordId,
-      }
-      if (reference.componentIndexes !== undefined) {
-        const indexes = reference.componentIndexes
-        if (
-          !Array.isArray(indexes) ||
-          !indexes.length ||
-          indexes.some(
-            (index, i) =>
-              !Number.isInteger(index) ||
-              index < 0 ||
-              (i > 0 && index <= indexes[i - 1]),
-          )
-        )
-          throw Error('Invalid source component indexes')
       }
       result.set(JSON.stringify(next), next)
     }

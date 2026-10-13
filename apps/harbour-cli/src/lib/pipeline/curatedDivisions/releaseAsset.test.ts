@@ -1,3 +1,4 @@
+import { saanseoiSourcePayload } from '@repo/core/pipeline/services/sources/sourcePayload'
 import { normaliseOvertureAttribution } from '@repo/core/pipeline/services/sources/sourceAttribution'
 import { groupCuratedUpstreamAttribution } from './recordContract'
 import { afterEach, expect, test } from 'bun:test'
@@ -34,7 +35,7 @@ test('archive preserves geometry and provenance and is stable across snapshot re
   const first = await prepareCuratedReleaseAsset(input)
   const zip = unzipSync(await readFile(first.filePath))
   expect(JSON.parse(strFromU8(zip['records.json']!))).toEqual({
-    rows: [{ id: 'area', geometry: input.rows[0]!.geometry, sources: {} }],
+    rows: [{ id: 'area', geometry: input.rows[0]!.geometry, sources: [] }],
   })
   expect(JSON.parse(strFromU8(zip['manifest.json']!)).provenance).toEqual(
     input.provenance,
@@ -129,8 +130,12 @@ test('SaanSeoi archives camelCase inherited JSON and preserve internal containme
   const zip = unzipSync(await readFile(asset.filePath))
   const published = JSON.parse(strFromU8(zip['records.json']!)).rows[0]
   expect(published.cartography).toEqual({ minZoom: 14, maxZoom: 24 })
-  expect(published.sources.overture).toEqual([
-    { dataset: 'ds-hk-overture-division', recordId: 'native-id' },
+  expect(published.sources).toEqual([
+    {
+      publisherCode: 'overture',
+      dataset: 'ds-hk-overture-division',
+      recordId: 'native-id',
+    },
   ])
   expect(published.hierarchies.full[0][0]).toMatchObject({
     fullContainment: true,
@@ -257,4 +262,37 @@ test('preprocessing carries inherited attribution and type order into the prepar
   ])
   expect(Object.keys(direct)).toEqual(['publisherCode', 'dataset', 'recordId'])
   expect(direct).not.toHaveProperty('upstreamOf')
+})
+
+test('archive retains authored attribution and keeps selection evidence outside publisher records', async () => {
+  const input = await fixture()
+  const asset = await prepareCuratedReleaseAsset({
+    ...input,
+    rows: [
+      {
+        ...input.rows[0],
+        geometrySource: { sourceRecordId: 'land', componentIndexes: [2] },
+        sources: {
+          saanseoi: [
+            {
+              dataset: input.datasetCode,
+              recordId: 'drawing',
+              curation: 'division-geometry',
+              contributions: ['geometry'],
+            },
+          ],
+        },
+      },
+    ],
+  })
+  const zip = unzipSync(await readFile(asset.filePath))
+  const row = JSON.parse(strFromU8(zip['records.json']!)).rows[0]
+  expect(row.sources).toEqual([
+    { publisherCode: 'saanseoi', dataset: input.datasetCode, recordId: 'drawing' },
+  ])
+  expect(saanseoiSourcePayload({ id: row.id, record: row }).properties.sources).toEqual(
+    row.sources,
+  )
+  expect(row).not.toHaveProperty('geometrySource')
+  expect(JSON.stringify(row)).not.toContain('componentIndexes')
 })

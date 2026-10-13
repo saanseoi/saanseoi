@@ -2097,3 +2097,16 @@ sources omit `upstreamOf`. For example, OpenStreetMap attribution carried by Ove
 uses `publisherCode: "openstreetmap"` and `upstreamOf: "overture"`. The relationship
 identifies the direct publisher, not a dataset or record ID. Prepared archives retain
 this member order.
+
+### Authored geometry attribution
+
+SaanSeoi-authored drawings and geometry corrections retain `saanseoi` attribution to
+`ds-hk-saanseoi-division` with the curated reference's record ID. Curation labels and
+contribution roles remain preparation evidence. Selecting Protomaps geometry retains the
+Protomaps reference; administrative geometry retains its contributing Overture and, for
+land intersections, Protomaps references. Selection and processing alone do not add
+SaanSeoi authorship.
+
+Component indexes belong to `geometrySource` selection evidence, outside `sources`.
+Prepared publisher records omit this selection evidence and expose flat source
+attribution arrays.

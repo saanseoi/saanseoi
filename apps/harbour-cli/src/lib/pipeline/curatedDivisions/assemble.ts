@@ -452,6 +452,7 @@ function assembleCuratedDivisionsInternal(input: {
             source === 'island-areas' ? curatedSourceIdentifiers(originalId) : null,
           ),
         ),
+        ...(geometrySource ? { geometrySource } : {}),
         sources: JSON.stringify({
           saanseoi: [
             {
@@ -467,9 +468,6 @@ function assembleCuratedDivisionsInternal(input: {
                     dataset: 'ds-hk-protomaps-island',
                     recordId: geometrySource.sourceRecordId,
                     contributions: ['geometry'],
-                    ...(geometrySource.componentIndexes
-                      ? { componentIndexes: geometrySource.componentIndexes }
-                      : {}),
                   },
                 ],
               }

@@ -1,6 +1,7 @@
 import { z } from '@hono/zod-openapi'
 import { divisionTaxonomy } from '@repo/db'
 import { DivisionHierarchiesSchema } from '../schema/divisions'
+import { SourcesSchema } from '../schema/sourceAttribution'
 
 type Schema = {
   type?: string | string[]
@@ -42,26 +43,6 @@ const versionFreeReference = {
       'sourceVersion',
     ].map(key => ({ required: [key] })),
   },
-}
-
-const reference: Schema = {
-  ...versionFreeReference,
-  type: 'object',
-  description:
-    'Contributing retained source record. Exact input versions and processing rules belong to release-set provenance.',
-  required: ['dataset', 'recordId'],
-  properties: {
-    dataset: text('Source dataset code.'),
-    recordId: text('Record identifier within the source dataset.'),
-    componentIndexes: {
-      type: 'array',
-      minItems: 1,
-      uniqueItems: true,
-      description: 'Selected component indexes in the retained full source geometry.',
-      items: { type: 'integer', minimum: 0 },
-    },
-  },
-  additionalProperties: false,
 }
 
 const hierarchyDescriptions: Record<string, string> = {
@@ -228,11 +209,5 @@ export const saanseoiDivisionSourceFields: Record<string, Schema> = {
       },
     },
   },
-  sources: {
-    type: 'object',
-    description:
-      'Retained source record references grouped by provider, for example overture or saanseoi.',
-    'x-additionalPropertiesName': 'provider',
-    additionalProperties: { type: 'array', items: reference },
-  },
+  sources: z.toJSONSchema(SourcesSchema) as Schema,
 }

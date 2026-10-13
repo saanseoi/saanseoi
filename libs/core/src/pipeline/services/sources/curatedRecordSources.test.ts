@@ -25,6 +25,7 @@ test('retains only concrete references and deduplicates roles for the same input
             dataset: 'ds-hk-saanseoi-division',
             recordId: 'review-alias',
             curation: 'island-areas',
+            contributions: ['selection'],
           },
         ],
         openstreetmap: [{ url: 'https://example.com', recordId: 'lookup' }],
@@ -36,8 +37,14 @@ test('retains only concrete references and deduplicates roles for the same input
   ])
 })
 
-test('curation references remain in the retained internal source rather than public attribution', () => {
-  const expected: ReturnType<typeof curatedRecordSources> = []
+test('authored curation retains publisher attribution without processing metadata', () => {
+  const expected = [
+    {
+      publisherCode: 'saanseoi',
+      dataset: 'ds-hk-saanseoi-division',
+      recordId: 'division',
+    },
+  ]
   const result = curatedRecordSources(
     {
       saanseoi: [
@@ -53,13 +60,4 @@ test('curation references remain in the retained internal source rather than pub
   )
   expect(result).toEqual(expected)
   expect(curatedRecordSources(result, 'area')).toEqual(expected)
-})
-
-test('invalid component references cannot be silently retained', () => {
-  expect(() =>
-    curatedRecordSources(
-      { protomaps: [{ dataset: 'ds-test', recordId: 'x', componentIndexes: [2, 1] }] },
-      'area',
-    ),
-  ).toThrow('component indexes')
 })

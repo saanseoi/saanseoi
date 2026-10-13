@@ -208,8 +208,9 @@ membership used to construct group geometry; seed lists alone do not satisfy thi
 ## Canonical source attribution
 
 Public attribution flattens concrete upstream references into publisher/dataset/record
-items and deduplicates references independently of contribution roles. Curation entries
-and synthetic processing markers are retained internally and excluded from `sources`.
+items and deduplicates references independently of contribution roles. Authored
+curations retain their publisher, dataset and record attribution; curation labels and
+synthetic processing markers remain internal evidence.
 
 Division records have no bounding box. For map framing, select a DivisionArea variant
 and use its `bbox`, calculated from that variant’s polygon. DivisionBoundary bounds
@@ -225,3 +226,16 @@ sources omit `upstreamOf`. For example, OpenStreetMap attribution carried by Ove
 uses `publisherCode: "openstreetmap"` and `upstreamOf: "overture"`. The relationship
 identifies the direct publisher, not a dataset or record ID. Prepared archives retain
 this member order.
+
+### Authored geometry attribution
+
+SaanSeoi-authored drawings and geometry corrections retain `saanseoi` attribution to
+`ds-hk-saanseoi-division` with the curated reference's record ID. Curation labels and
+contribution roles remain preparation evidence. Selecting Protomaps geometry retains the
+Protomaps reference; administrative geometry retains its contributing Overture and, for
+land intersections, Protomaps references. Selection and processing alone do not add
+SaanSeoi authorship.
+
+Component indexes belong to `geometrySource` selection evidence, outside `sources`.
+Prepared publisher records omit this selection evidence and expose flat source
+attribution arrays.

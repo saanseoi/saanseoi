@@ -439,6 +439,7 @@ export function curatedIslandToSaanSeoiDivisionRow(
     subtype: 'landform',
     class: classifyIslandArea(island.areaKm2),
     geometry: island.geometry,
+    ...(island.geometrySource ? { geometrySource: island.geometrySource } : {}),
     hierarchies: [],
     names: { common: names, primary: island.names.en },
     identifiers: {
@@ -479,9 +480,6 @@ export function curatedIslandToSaanSeoiDivisionRow(
                 dataset: 'ds-hk-protomaps-island',
                 record_id: island.geometrySource.sourceRecordId,
                 contributions: ['geometry'],
-                ...(island.geometrySource.componentIndexes
-                  ? { componentIndexes: island.geometrySource.componentIndexes }
-                  : {}),
               },
             ],
           }

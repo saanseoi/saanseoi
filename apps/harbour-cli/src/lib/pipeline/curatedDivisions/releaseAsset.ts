@@ -58,7 +58,11 @@ export async function prepareCuratedReleaseAsset(input: {
   const rows = curatedContentRows(input.rows).map(row =>
     Object.fromEntries(
       Object.entries(row)
-        .filter(([key]) => input.resourceType !== 'division' || key !== 'bbox')
+        .filter(
+          ([key]) =>
+            key !== 'geometrySource' &&
+            (input.resourceType !== 'division' || key !== 'bbox'),
+        )
         .map(([key, value]) => [
           key,
           [
