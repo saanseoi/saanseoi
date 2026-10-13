@@ -1,5 +1,9 @@
 # Planning Department TPU and subunit areas
 
+Prepared-artefact cache contract `5` requires the complete PPU → SPU → TPU ancestry
+prefix for each child. Cached immediate-parent-only paths must be regenerated from the
+retained native archive before ingestion.
+
 Planning assembly converts native `PLAND:*` identifiers to grouped `hkgov-pland` codes
 before ancestor validation and canonical content hashing. Source evidence retains the
 native archive representation.
