@@ -2,13 +2,20 @@ import { z } from '@hono/zod-openapi'
 
 export const SourceAttributionSchema = z
   .strictObject({
-    publisherCode: z.string().min(1),
-    dataset: z.string().min(1),
     property: z
       .string()
       .regex(/^(?:\/(?:[^~/]|~[01])*)*$/)
       .nullable()
       .optional(),
+    publisherCode: z.string().min(1),
+    upstreamOf: z
+      .string()
+      .min(1)
+      .optional()
+      .describe(
+        'Direct publisher through which this source was inherited; omitted for direct sources.',
+      ),
+    dataset: z.string().min(1),
     recordId: z.string().optional(),
     updateTime: z.string().optional(),
     version: z.string().optional().describe('Publisher-supplied record version.'),

@@ -1,3 +1,4 @@
+import { stringifyGeoJson, orderGeoJsonText } from '@repo/db/geoJsonSerialisation'
 import {
   buildBeginPublicationSql,
   buildCompletePublicationSql,
@@ -347,7 +348,8 @@ function sqlValue(value: unknown) {
   if (value === null) return 'NULL'
   if (typeof value === 'number' && Number.isFinite(value)) return String(value)
   if (typeof value === 'boolean') return value ? '1' : '0'
-  const text = typeof value === 'string' ? value : JSON.stringify(value)
+  const text =
+    typeof value === 'string' ? orderGeoJsonText(value) : stringifyGeoJson(value)
   return lit(text ?? '')
 }
 

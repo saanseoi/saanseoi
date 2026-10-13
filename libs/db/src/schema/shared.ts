@@ -1,3 +1,4 @@
+import { stringifyGeoJson } from '../geoJsonSerialisation'
 import { sql } from 'drizzle-orm'
 import { customType, integer, real, text } from 'drizzle-orm/sqlite-core'
 import type { DivisionHierarchies } from '../divisionTaxonomy'
@@ -77,7 +78,11 @@ export type EvidenceAsset<TRole extends string = string> = {
 export type StreetEvidenceAsset = EvidenceAsset<StreetEvidenceAssetRole>
 
 export const jsonText = <T = unknown>(name: string) =>
-  text(name, { mode: 'json' }).$type<T>()
+  customType<{ data: T; driverData: string }>({
+    dataType: () => 'text',
+    fromDriver: value => JSON.parse(value) as T,
+    toDriver: value => stringifyGeoJson(value),
+  })(name)
 
 /**
  * A binary value stored in a legacy SQLite TEXT-affinity column. SQLite retains
@@ -116,7 +121,7 @@ export const jsonTextOrBinary = customType<{
   toDriver(value) {
     return value instanceof Uint8Array || value instanceof ArrayBuffer
       ? value
-      : JSON.stringify(value)
+      : stringifyGeoJson(value)
   },
 })
 

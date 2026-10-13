@@ -1,3 +1,4 @@
+import { stringifyGeoJson } from '@repo/db/geoJsonSerialisation'
 import { recordContent } from '@repo/core/pipeline/services/sources/recordContent'
 import { sourceLocatorFromReferences } from '@repo/core/pipeline/services/sources/sourcePayload'
 import { createHash } from 'node:crypto'
@@ -265,7 +266,7 @@ const insert = (table: string, row: Record<string, unknown>, conflict: string) =
     value === undefined
       ? null
       : typeof value === 'object' && value !== null
-        ? JSON.stringify(value)
+        ? stringifyGeoJson(value)
         : value,
   ),
 })

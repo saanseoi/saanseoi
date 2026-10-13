@@ -677,3 +677,14 @@ observation; the Address analyser must still reproduce its address evidence and 
 before reusing it. Disposable automatic defaults are recomputed when their expected
 previous link or target no longer matches the exact predecessor. Version-controlled
 human decisions retain precedence and their previous-link validation.
+
+## Direct and inherited source attribution
+
+Canonical attribution members follow `SourceAttribution` order: `property`,
+`publisherCode`, `upstreamOf`, `dataset`, `recordId`, `updateTime`, `version`,
+`confidence`, `license`, omitting absent fields. Preprocessing marks sources inherited
+through Overture with `upstreamOf: "overture"`; Overture's own entries and other direct
+sources omit `upstreamOf`. For example, OpenStreetMap attribution carried by Overture
+uses `publisherCode: "openstreetmap"` and `upstreamOf: "overture"`. The relationship
+identifies the direct publisher, not a dataset or record ID. Prepared archives retain
+this member order.

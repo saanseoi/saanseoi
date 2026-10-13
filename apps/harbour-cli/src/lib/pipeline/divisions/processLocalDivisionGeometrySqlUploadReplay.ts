@@ -1,3 +1,4 @@
+import { stringifyGeoJson, orderGeoJsonText } from '@repo/db/geoJsonSerialisation'
 import { buildCenstatdGeometryStatements } from '../statistics/statisticSqlReplay'
 import {
   buildBeginPublicationSql,
@@ -632,8 +633,8 @@ function geometryReplayKeyColumns(row: Record<string, unknown>) {
 function geometrySqlLargeValue(value: unknown) {
   if (value instanceof Uint8Array) return value
   if (value instanceof ArrayBuffer) return new Uint8Array(value)
-  if (typeof value === 'string') return value
-  if (value && typeof value === 'object') return JSON.stringify(value)
+  if (typeof value === 'string') return orderGeoJsonText(value)
+  if (value && typeof value === 'object') return stringifyGeoJson(value)
   return null
 }
 
@@ -687,8 +688,8 @@ function geometrySqlLiteral(value: unknown): string {
   if (value instanceof ArrayBuffer) {
     return `X'${Buffer.from(new Uint8Array(value)).toString('hex')}'`
   }
-  if (typeof value === 'object') return geometrySqlLiteral(JSON.stringify(value))
-  return `'${String(value).replaceAll("'", "''")}'`
+  if (typeof value === 'object') return geometrySqlLiteral(stringifyGeoJson(value))
+  return `'${orderGeoJsonText(String(value)).replaceAll("'", "''")}'`
 }
 
 function resolveGeometrySourceTable(plan: GeometryUploadPlan) {

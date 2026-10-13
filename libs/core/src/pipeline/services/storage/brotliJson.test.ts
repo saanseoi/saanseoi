@@ -34,3 +34,10 @@ test('supports maximum-density Brotli compression', () => {
     value,
   )
 })
+
+test('compressed geometry retains the shared GeoJSON member order', () => {
+  const geometry = { coordinates: [114, 22], bbox: [114, 22, 114, 22], type: 'Point' }
+  expect(
+    Object.keys(decompressJsonBrotli(compressJsonBrotli(geometry)) as object),
+  ).toEqual(['type', 'bbox', 'coordinates'])
+})

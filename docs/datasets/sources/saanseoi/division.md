@@ -1,5 +1,15 @@
 # SaanSeoi Division statistics
 
+Retained locale objects use `nameVariant` for the complete ordered list of names: `name`
+followed by alternatives. A locale with no alternatives therefore contains
+`nameVariant: [name]`. This follows the
+[Division name contract](../../internal/overture/division.md); `nameAlts` contains only
+alternatives. Public projections omit the internal `nameVariant` field.
+
+Prepared archives and ingestion use the shared
+[GeoJSON member order](../../resourceType/common.md#geojson-serialisation): `type`,
+optional `bbox`, then `coordinates` (or `geometries` for collections).
+
 Assembly carries upstream attribution through its internal publisher groups. The
 prepared archive restores flat `sources` entries, preserving upstream property, version,
 confidence and licence fields while keeping curation evidence separate.
@@ -204,3 +214,14 @@ and synthetic processing markers are retained internally and excluded from `sour
 Division records have no bounding box. For map framing, select a DivisionArea variant
 and use its `bbox`, calculated from that variant’s polygon. DivisionBoundary bounds
 likewise describe the selected line geometry.
+
+## Direct and inherited source attribution
+
+Canonical attribution members follow `SourceAttribution` order: `property`,
+`publisherCode`, `upstreamOf`, `dataset`, `recordId`, `updateTime`, `version`,
+`confidence`, `license`, omitting absent fields. Preprocessing marks sources inherited
+through Overture with `upstreamOf: "overture"`; Overture's own entries and other direct
+sources omit `upstreamOf`. For example, OpenStreetMap attribution carried by Overture
+uses `publisherCode: "openstreetmap"` and `upstreamOf: "overture"`. The relationship
+identifies the direct publisher, not a dataset or record ID. Prepared archives retain
+this member order.

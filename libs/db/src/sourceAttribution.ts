@@ -7,6 +7,8 @@ export type SourceAttribution = {
    */
   property?: string | null
   publisherCode: string
+  /** Direct publisher through which this attribution was inherited; omitted for direct sources. */
+  upstreamOf?: string
   dataset: string
   recordId?: string
   updateTime?: string
@@ -14,4 +16,25 @@ export type SourceAttribution = {
   version?: string
   confidence?: number
   license?: string
+}
+
+/** Member order for preprocessed and serialised canonical attribution. */
+export const sourceAttributionFieldOrder = [
+  'property',
+  'publisherCode',
+  'upstreamOf',
+  'dataset',
+  'recordId',
+  'updateTime',
+  'version',
+  'confidence',
+  'license',
+] as const satisfies readonly (keyof SourceAttribution)[]
+
+export function orderSourceAttribution(value: SourceAttribution): SourceAttribution {
+  return Object.fromEntries(
+    sourceAttributionFieldOrder
+      .filter(key => Object.hasOwn(value, key))
+      .map(key => [key, value[key]]),
+  ) as SourceAttribution
 }

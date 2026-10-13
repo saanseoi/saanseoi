@@ -794,3 +794,14 @@ can carry its predecessor's supplementary entry forward. Matching address eviden
 reproducible base remain required. Stale automatic Address defaults are recomputed
 against the canonical predecessor; human-curated decisions keep their validation and
 precedence.
+
+## Direct and inherited source attribution
+
+Canonical attribution members follow `SourceAttribution` order: `property`,
+`publisherCode`, `upstreamOf`, `dataset`, `recordId`, `updateTime`, `version`,
+`confidence`, `license`, omitting absent fields. Preprocessing marks sources inherited
+through Overture with `upstreamOf: "overture"`; Overture's own entries and other direct
+sources omit `upstreamOf`. For example, OpenStreetMap attribution carried by Overture
+uses `publisherCode: "openstreetmap"` and `upstreamOf: "overture"`. The relationship
+identifies the direct publisher, not a dataset or record ID. Prepared archives retain
+this member order.

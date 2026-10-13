@@ -1,3 +1,5 @@
+import { normaliseOvertureAttribution } from '@repo/core/pipeline/services/sources/sourceAttribution'
+import { groupCuratedUpstreamAttribution } from './recordContract'
 import { afterEach, expect, test } from 'bun:test'
 import { mkdtemp, readFile, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
@@ -189,4 +191,70 @@ test('archives omit Division bounds and retain selected area bounds', async () =
     if (resourceType === 'division') expect(row).not.toHaveProperty('bbox')
     else expect(row.bbox).toEqual(bbox)
   }
+})
+
+test('prepared archives retain GeoJSON member order despite deterministic record sorting', async () => {
+  const input = await fixture()
+  const asset = await prepareCuratedReleaseAsset({
+    ...input,
+    rows: [
+      {
+        id: 'area',
+        geometry: { coordinates: [114, 22], bbox: [114, 22, 114, 22], type: 'Point' },
+      },
+    ],
+  })
+  const zip = unzipSync(await readFile(asset.filePath))
+  const geometry = JSON.parse(strFromU8(zip['records.json']!)).rows[0].geometry
+  expect(Object.keys(geometry)).toEqual(['type', 'bbox', 'coordinates'])
+})
+
+test('preprocessing carries inherited attribution and type order into the prepared archive', async () => {
+  const input = await fixture()
+  const sources = groupCuratedUpstreamAttribution(
+    normaliseOvertureAttribution([
+      {
+        dataset: 'OpenStreetMap',
+        property: '',
+        record_id: 'n11402980091@2',
+        license: 'ODbL-1.0',
+      },
+    ]),
+  )
+  sources.overture = [
+    {
+      publisherCode: 'overture',
+      dataset: 'ds-hk-overture-division',
+      recordId: 'division',
+    },
+  ]
+  const asset = await prepareCuratedReleaseAsset({
+    ...input,
+    sourceReleases: [
+      {
+        datasetCode: 'ds-hk-overture-division',
+        releaseCode: 'dr-overture',
+        sourceVersion: '2026-08-19.0',
+        resourceType: 'division',
+        rawObjectKey: 'input',
+        contentHash: 'hash',
+        releaseNotesUrl: null,
+      },
+    ],
+    rows: [{ id: 'division', sources }],
+  })
+  const zip = unzipSync(await readFile(asset.filePath))
+  const [inherited, direct] = JSON.parse(strFromU8(zip['records.json']!)).rows[0]
+    .sources
+  expect(inherited.upstreamOf).toBe('overture')
+  expect(Object.keys(inherited)).toEqual([
+    'property',
+    'publisherCode',
+    'upstreamOf',
+    'dataset',
+    'recordId',
+    'license',
+  ])
+  expect(Object.keys(direct)).toEqual(['publisherCode', 'dataset', 'recordId'])
+  expect(direct).not.toHaveProperty('upstreamOf')
 })

@@ -1,5 +1,14 @@
 # Canonical source evidence
 
+## GeoJSON serialisation
+
+Ingestion writes GeoJSON geometry members in the order `type`, optional `bbox`, then
+`coordinates`. Geometry collections use `geometries` instead of `coordinates`, with the
+same ordering applied to their children. Foreign members follow these members. This
+applies to source and canonical JSON, compressed geometry and prepared SaanSeoi archives
+across datasets. Coordinates and existing bounds retain their values; no bounds are
+inferred. Deterministic content hashing remains independent of this presentation order.
+
 Addresses, Divisions and Statistics separate canonical values, source references and
 processing evidence. Canonical `sources` contains record references, not copied
 publisher properties, curation explanations, normalisation flags or prepared alias rows.

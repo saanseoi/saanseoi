@@ -1,3 +1,4 @@
+import { stringifyGeoJson } from '@repo/db/geoJsonSerialisation'
 import { brotliCompressSync, brotliDecompressSync, constants } from 'node:zlib'
 
 // This preserves the exact C&SD geometry below D1's 2 MB row limit without
@@ -9,7 +10,7 @@ export function compressJsonBrotli(
   value: unknown,
   quality: number = BROTLI_QUALITY,
 ): Uint8Array {
-  const json = JSON.stringify(value)
+  const json = stringifyGeoJson(value)
   if (json === undefined) {
     throw new TypeError('Value cannot be serialized as JSON')
   }

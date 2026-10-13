@@ -1,3 +1,4 @@
+import { stringifyGeoJson } from '@repo/db/geoJsonSerialisation'
 import { curatedRecordSources } from '@repo/core/pipeline/services/sources/curatedRecordSources'
 import {
   assertInternalSourcePins,
@@ -6,7 +7,7 @@ import {
 import { divisionIdentifiers } from '@repo/core/pipeline/services/sources/divisionIdentifiers.ts'
 import { camelCaseJson } from '@repo/core/jsonKeys'
 import { curatedNameObject } from './recordContract'
-import { stableJsonStringify } from '@repo/core/pipeline/utils'
+import { stableJsonStringify, sortJsonValue } from '@repo/core/pipeline/utils'
 import { createHash } from 'node:crypto'
 import { writeFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
@@ -115,7 +116,7 @@ export async function prepareCuratedReleaseAsset(input: {
   const bytes = zipSync(
     {
       'manifest.json': strToU8(stableJsonStringify(manifest)!),
-      'records.json': strToU8(stableJsonStringify(records)!),
+      'records.json': strToU8(stringifyGeoJson(sortJsonValue(records))),
     },
     { level: 6, mtime: new Date('1980-01-01T00:00:00Z') },
   )

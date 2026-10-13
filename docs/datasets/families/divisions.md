@@ -2086,3 +2086,14 @@ Publisher classes `city`, `town`, `village` and `hamlet` select their canonical 
 without requiring subtype `locality`. Earlier subtype rules retain their precedence:
 `country`, `dependency` and `region` select `country`, `sar` and `district` respectively
 for class normalisation.
+
+## Direct and inherited source attribution
+
+Canonical attribution members follow `SourceAttribution` order: `property`,
+`publisherCode`, `upstreamOf`, `dataset`, `recordId`, `updateTime`, `version`,
+`confidence`, `license`, omitting absent fields. Preprocessing marks sources inherited
+through Overture with `upstreamOf: "overture"`; Overture's own entries and other direct
+sources omit `upstreamOf`. For example, OpenStreetMap attribution carried by Overture
+uses `publisherCode: "openstreetmap"` and `upstreamOf: "overture"`. The relationship
+identifies the direct publisher, not a dataset or record ID. Prepared archives retain
+this member order.

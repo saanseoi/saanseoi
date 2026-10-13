@@ -1,4 +1,8 @@
-import type { SourceAttribution } from '@repo/db'
+import {
+  orderSourceAttribution,
+  sourceAttributionFieldOrder,
+  type SourceAttribution,
+} from '@repo/db'
 import mappings from '../../../../../../fixtures/meta/sourceAttributions/overture.json'
 
 const datasets = new Map(
@@ -13,16 +17,7 @@ export function readSourceAttributions(value: unknown): SourceAttribution[] {
   if (value == null) return []
   if (!Array.isArray(value))
     throw new Error('Source attribution requires an array; reingest this snapshot.')
-  const fields = new Set([
-    'publisherCode',
-    'dataset',
-    'property',
-    'recordId',
-    'updateTime',
-    'version',
-    'confidence',
-    'license',
-  ])
+  const fields = new Set<string>(sourceAttributionFieldOrder)
   for (const item of value) {
     if (!item || typeof item !== 'object' || Array.isArray(item))
       throw new Error('Invalid source attribution item.')
@@ -31,6 +26,13 @@ export function readSourceAttributions(value: unknown): SourceAttribution[] {
     for (const field of ['publisherCode', 'dataset'])
       if (typeof item[field] !== 'string' || !item[field].trim())
         throw new Error(`Source attribution requires ${field}.`)
+    if (
+      item.upstreamOf !== undefined &&
+      (typeof item.upstreamOf !== 'string' ||
+        !item.upstreamOf.trim() ||
+        item.upstreamOf === item.publisherCode)
+    )
+      throw new Error('Source upstreamOf must name a different direct publisher.')
     for (const field of ['recordId', 'updateTime', 'version', 'license'])
       if (item[field] !== undefined && typeof item[field] !== 'string')
         throw new Error(`Source ${field} must be a string.`)
@@ -48,7 +50,7 @@ export function readSourceAttributions(value: unknown): SourceAttribution[] {
     )
       throw new Error('Source confidence must be between zero and one.')
   }
-  return value
+  return value.map(orderSourceAttribution)
 }
 
 /** Normalise publisher attribution only; preparation and decision evidence stays outside it. */
@@ -64,6 +66,7 @@ export function normaliseOvertureAttribution(value: unknown): SourceAttribution[
       throw new Error(`Unregistered upstream attribution dataset: ${source.dataset}`)
     const result: SourceAttribution = {
       publisherCode: mapping.publisherCode,
+      ...(mapping.publisherCode !== 'overture' ? { upstreamOf: 'overture' } : {}),
       dataset: mapping.dataset,
     }
     if (source.property !== undefined) {
@@ -105,6 +108,6 @@ export function normaliseOvertureAttribution(value: unknown): SourceAttribution[
         throw new Error('Source confidence must be between zero and one.')
       result.confidence = source.confidence
     }
-    return result
+    return orderSourceAttribution(result)
   })
 }

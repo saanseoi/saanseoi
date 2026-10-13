@@ -1,3 +1,4 @@
+import { stringifyGeoJson, orderGeoJsonText } from '@repo/db/geoJsonSerialisation'
 import {
   buildBeginPublicationSql,
   buildCompletePublicationSql,
@@ -508,8 +509,8 @@ function isLowSurrogate(value: number) {
 }
 
 function serialiseSqlText(value: unknown) {
-  if (typeof value === 'string') return value
-  if (value && typeof value === 'object') return JSON.stringify(value)
+  if (typeof value === 'string') return orderGeoJsonText(value)
+  if (value && typeof value === 'object') return stringifyGeoJson(value)
   return null
 }
 
@@ -561,6 +562,7 @@ export function sqlLiteral(value: unknown): string {
   if (value === null || value === undefined) return 'NULL'
   if (typeof value === 'boolean') return value ? '1' : '0'
   if (typeof value === 'number') return Number.isFinite(value) ? String(value) : 'NULL'
-  const text = typeof value === 'string' ? value : JSON.stringify(value)
+  const text =
+    typeof value === 'string' ? orderGeoJsonText(value) : stringifyGeoJson(value)
   return `'${text.replaceAll("'", "''")}'`
 }

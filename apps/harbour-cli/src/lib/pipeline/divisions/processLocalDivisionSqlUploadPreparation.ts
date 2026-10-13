@@ -1,3 +1,4 @@
+import { stringifyGeoJson } from '@repo/db/geoJsonSerialisation'
 import { createDivisionPointGuard } from '@repo/core/pipeline/services/divisions/divisionPoint'
 import { loadLandsdSourceStats } from '@repo/core/pipeline/services/sources/landsdSourceStats'
 import { buildSaanseoiDivisionSourceStats } from '@repo/core/pipeline/services/sources/saanseoiDivisionSourceStats'
@@ -621,7 +622,7 @@ export async function processDivisionRecordBatches(
 }
 
 export function jsonText(value: unknown): string | null {
-  return value === null || value === undefined ? null : JSON.stringify(value)
+  return value === null || value === undefined ? null : stringifyGeoJson(value)
 }
 
 export function resolveParentDivisionIdFromHierarchy(

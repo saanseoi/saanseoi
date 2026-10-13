@@ -1,3 +1,4 @@
+import { stringifyGeoJson } from '@repo/db/geoJsonSerialisation'
 import { sourceLocatorFromReferences } from '../sources/sourcePayload'
 import { readAlsPublisherSource } from '../sources/alsSourcePayload'
 import { sourceResolutionSql } from '../../db/sourceResolutions'
@@ -1331,7 +1332,7 @@ function sqlLiteral(value: unknown): string {
 }
 
 function jsonText(value: unknown): string | null {
-  return value === null || value === undefined ? null : JSON.stringify(value)
+  return value === null || value === undefined ? null : stringifyGeoJson(value)
 }
 
 function asNonEmptyString(value: unknown) {

@@ -1,5 +1,14 @@
 # ResourceType Processing Common Model
 
+## GeoJSON serialisation
+
+Ingestion writes GeoJSON geometry members in the order `type`, optional `bbox`, then
+`coordinates`. Geometry collections use `geometries` instead of `coordinates`, with the
+same ordering applied to their children. Foreign members follow these members. This
+applies to source and canonical JSON, compressed geometry and prepared SaanSeoi archives
+across datasets. Coordinates and existing bounds retain their values; no bounds are
+inferred. Deterministic content hashing remains independent of this presentation order.
+
 This document describes the shared processing model for local SQL-backed resourceTypes.
 ResourceType-specific pages should describe only the source mix, canonical table shape,
 merge semantics, and exceptions from this common flow.

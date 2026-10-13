@@ -1,3 +1,4 @@
+import { stringifyGeoJson, orderGeoJsonText } from '@repo/db/geoJsonSerialisation'
 import { metaSnapshotResourceReleaseDetails } from '@repo/db/metaSchema'
 import { resolveSnapshotProcessingRules } from '../../provenance/processingPolicyCatalogue'
 import type { ProcessingRules } from '../../provenance/processingPolicy'
@@ -271,7 +272,8 @@ function insertSql(
     if (value === null || value === undefined) return 'NULL'
     if (typeof value === 'boolean') return value ? '1' : '0'
     if (typeof value === 'number') return String(value)
-    const text = typeof value === 'string' ? value : JSON.stringify(value)
+    const text =
+      typeof value === 'string' ? orderGeoJsonText(value) : stringifyGeoJson(value)
     return `'${text.replaceAll("'", "''")}'`
   }
   const columns = Object.keys(row)

@@ -108,6 +108,7 @@
     "./address3d": "./src/address3d.ts",
     "./apiReleaseVersions": "./src/apiReleaseVersions.ts",
     "./apiFieldFixtures": "./src/apiFieldFixtures.ts",
+    "./geoJsonSerialisation": "./src/geoJsonSerialisation.ts",
     "./client": "./src/client.ts",
     "./registry": "./src/registry/index.ts",
     "./placementProbe": "./src/placementProbe.ts",

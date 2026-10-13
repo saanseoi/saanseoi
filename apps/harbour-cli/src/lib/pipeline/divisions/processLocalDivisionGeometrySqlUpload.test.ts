@@ -589,7 +589,10 @@ describe('geometryBuildUpsertSql', () => {
       coordinates: ['x'.repeat(MAX_D1_GEOMETRY_SQL_STATEMENT_BYTES * 2)],
       type: 'Polygon',
     }
-    const geometryText = JSON.stringify(geometry)
+    const geometryText = JSON.stringify({
+      type: geometry.type,
+      coordinates: geometry.coordinates,
+    })
     const sql = geometryBuildUpsertSql('divisionAreas', [
       { geometry: 'small', id: 'area-1', snapshotId: 'snapshot-1' },
       { geometry, id: 'area-2', snapshotId: 'snapshot-1' },
@@ -633,7 +636,13 @@ describe('geometryBuildUpsertSql', () => {
       },
       id: 'area-1',
     }
-    const propertiesText = JSON.stringify(properties)
+    const propertiesText = JSON.stringify({
+      ...properties,
+      geometry: {
+        type: properties.geometry.type,
+        coordinates: properties.geometry.coordinates,
+      },
+    })
     const sql = geometryBuildUpsertSql('overtureDivisionAreas', [
       {
         properties,

@@ -1,3 +1,4 @@
+import { stringifyGeoJson, orderGeoJsonText } from '@repo/db/geoJsonSerialisation'
 import { writeResourceSourceParquet } from '../../sources/resourceSourceArchive'
 import { prepareSourceOnlyReleaseMetadata } from './sourceOnlyReleaseMetadata'
 import importFixture from '../../../../../../fixtures/meta/processing-rules/ingestion/native-source-import.json'
@@ -852,7 +853,7 @@ export async function versionNativeSourceRows<T extends NativeSourceRow>(
         })
         if (payload.sourceLocator) {
           for (const [key, value] of Object.entries(locatorDefaults))
-            if (JSON.stringify(payload.sourceLocator[key]) === JSON.stringify(value))
+            if (JSON.stringify(payload.sourceLocator[key]) === stringifyGeoJson(value))
               delete payload.sourceLocator[key]
           if (!Object.keys(payload.sourceLocator).length) payload.sourceLocator = null
         }
@@ -990,7 +991,8 @@ function nativeRowStatements(table: string, row: Record<string, unknown>) {
     const value = row[column]
     if (['sourceRecordId', 'versionHash'].includes(column) || value === null) continue
     if (typeof value !== 'string' && typeof value !== 'object') continue
-    const text = typeof value === 'string' ? value : JSON.stringify(value)
+    const text =
+      typeof value === 'string' ? orderGeoJsonText(value) : stringifyGeoJson(value)
     if (Buffer.byteLength(sqlValue(text)) < 4096) continue
     largeValues.push([column, text])
     placeholder[column] = ''
@@ -1109,7 +1111,8 @@ function sqlValue(value: unknown): string {
     if (!Number.isFinite(value)) throw new Error('Cannot import a non-finite number.')
     return String(value)
   }
-  const text = typeof value === 'string' ? value : JSON.stringify(value)
+  const text =
+    typeof value === 'string' ? orderGeoJsonText(value) : stringifyGeoJson(value)
   return `'${text.replaceAll("'", "''")}'`
 }
 

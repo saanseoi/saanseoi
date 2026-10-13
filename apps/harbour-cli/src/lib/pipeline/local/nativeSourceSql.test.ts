@@ -324,3 +324,47 @@ test('Protomaps polygons retain native geometry and acquisition evidence in the 
     db.close()
   }
 })
+
+test('native SQL ingestion stores GeoJSON in the shared member order', async () => {
+  const db = new Database(':memory:')
+  const config = getTableConfig(sourceSchema.sourceHkgovLandsdRoadCentrelines)
+  db.exec(
+    `CREATE TABLE "${config.name}" (${config.columns.map(column => `"${column.name}" ${column.getSQLType()}${column.notNull ? ' NOT NULL' : ''}`).join(',')}, PRIMARY KEY(sourceRecordId,versionHash,validFromRelease))`,
+  )
+  try {
+    for (const sql of await buildNativeSourceSql(
+      [
+        {
+          name: config.name,
+          provenance: 'required',
+          replaceCurrentRows: true,
+          rows: [
+            {
+              sourceRecordId: 'ordered-road',
+              properties: {},
+              sourceGeometry: {
+                coordinates: [
+                  [1, 2],
+                  [3, 4],
+                ],
+                bbox: [1, 2, 3, 4],
+                type: 'LineString',
+              },
+            },
+          ],
+        },
+      ],
+      'ordered-release',
+      '2026-10-01.0',
+    ))
+      db.exec(sql)
+    const row = db.query(`SELECT sourceGeometry FROM "${config.name}"`).get() as {
+      sourceGeometry: string
+    }
+    expect(row.sourceGeometry).toBe(
+      '{"type":"LineString","bbox":[1,2,3,4],"coordinates":[[1,2],[3,4]]}',
+    )
+  } finally {
+    db.close()
+  }
+})
