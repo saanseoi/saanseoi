@@ -1,3 +1,4 @@
+import { releaseFixtureSchemaSql } from '../../../../libs/core/src/testing/releaseFixtures'
 import { requireDefined } from '@repo/core/requireDefined'
 import { describe, expect, test } from 'bun:test'
 import { Database } from 'bun:sqlite'
@@ -172,8 +173,8 @@ describe('source records', () => {
     sqlite.exec(`
       CREATE TABLE publishers(id, code);
       CREATE TABLE datasets(id, code, publisherId, regionCode, sourceVariant);
-      CREATE TABLE sourceReleases(id, code, status, revokedAt);
-      CREATE TABLE resourceReleases(id, code, sourceReleaseId, datasetId, resourceType, sourceVersion, status, revokedAt);
+      ;
+      ${releaseFixtureSchemaSql()};
       CREATE TABLE releaseShardAssignments(resourceReleaseId, dataShardId);
       CREATE TABLE dataShards(id, bindingName, shardType, status);
       CREATE TABLE hkgovCenstatdStatisticsGeometry(id PRIMARY KEY, sourceGeometry);
@@ -189,24 +190,19 @@ describe('source records', () => {
       'hk',
       'official-statistics',
     ])
-    sqlite.run('INSERT INTO sourceReleases VALUES(?, ?, ?, NULL)', [
-      'parent',
-      code,
-      'current',
-    ])
+    sqlite.run(
+      'INSERT INTO sourceReleases (id, code, status, revokedAt) VALUES(?, ?, ?, NULL)',
+      ['parent', code, 'current'],
+    )
     for (const [id, type] of [
       ['area', 'divisionArea'],
       ['statistic', 'divisionStatistic'],
     ]) {
-      sqlite.run('INSERT INTO resourceReleases VALUES(?, ?, ?, ?, ?, ?, ?, NULL)', [
-        id!,
-        `${code}::${type}`,
-        'parent',
-        'dataset',
-        type!,
-        '2021',
-        'current',
-      ])
+      sqlite.run(
+        'INSERT INTO resourceReleases (id, code, sourceReleaseId, datasetId, resourceType, status, revokedAt) VALUES(?1, ?2, ?3, ?4, ?5, ?7, NULL)',
+        [id!, `${code}::${type}`, 'parent', 'dataset', type!, '2021', 'current'],
+      )
+      sqlite.run("UPDATE sourceReleases SET sourceVersion='2021' WHERE id='parent'")
     }
     sqlite.run(
       "INSERT INTO hkgovCenstatdStatistics (datasetCode, sourceRecordId, versionHash, properties, geometryId, validFromRelease, validToRelease, resourceReleaseId) VALUES(?, ?, ?, ?, ?, ?, NULL, 'statistic')",

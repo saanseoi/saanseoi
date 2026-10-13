@@ -138,7 +138,9 @@ test('requires retained processing audits for Addresses and Places before publis
       updatedAt: '2026-06-05T00:01:00.000Z',
     })
     sqlite
-      .query('UPDATE resourceReleases SET sourceSchemaVersion = ? WHERE id = ?')
+      .query(
+        'UPDATE sourceReleases SET sourceSchemaVersion = ? WHERE id = (SELECT sourceReleaseId FROM resourceReleases WHERE id = ?)',
+      )
       .run('1.17.0', resourceReleaseId)
     await expect(handlePublishDataset(db, { resourceReleaseId })).rejects.toThrow(
       'requires a verified retained processing result',
@@ -163,7 +165,9 @@ test('requires retained processing audits for Addresses and Places before publis
       .run(resourceReleaseId)
     if (datasetType === 'address') {
       sqlite
-        .query('UPDATE resourceReleases SET sourceSchemaVersion = ? WHERE id = ?')
+        .query(
+          'UPDATE sourceReleases SET sourceSchemaVersion = ? WHERE id = (SELECT sourceReleaseId FROM resourceReleases WHERE id = ?)',
+        )
         .run('3.2', resourceReleaseId)
     }
     seedSnapshot(sqlite, {
@@ -304,7 +308,7 @@ test('requires retained processing audits for Addresses and Places before publis
               })
               sqlite
                 .query(
-                  'UPDATE resourceReleases SET sourceSchemaVersion = ? WHERE id = ?',
+                  'UPDATE sourceReleases SET sourceSchemaVersion = ? WHERE id = (SELECT sourceReleaseId FROM resourceReleases WHERE id = ?)',
                 )
                 .run(
                   resourceType === 'address' ? '3.2' : '1.16.0',
@@ -350,8 +354,8 @@ test('requires retained processing audits for Addresses and Places before publis
       ).rejects.toThrow('supplementary Address dependency')
       const supplementaryReleaseId = `supplementary-${resourceReleaseId}`
       sqlite
-        .query(`INSERT INTO resourceReleases (id, sourceReleaseId, datasetId, code, resourceType, sourceVersion, sourceSchemaVersion, cohortKey, status, createdAt, updatedAt)
-        SELECT ?, sourceReleaseId, datasetId, ?, 'address', sourceVersion, sourceSchemaVersion, cohortKey, 'current', createdAt, updatedAt FROM resourceReleases WHERE id = ?`)
+        .query(`INSERT INTO resourceReleases (id, sourceReleaseId, datasetId, code, resourceType, status, createdAt, updatedAt)
+        SELECT ?, sourceReleaseId, datasetId, ?, 'address', 'current', createdAt, updatedAt FROM resourceReleases WHERE id = ?`)
         .run(supplementaryReleaseId, `supplementary-${releaseCode}`, resourceReleaseId)
       const supplementary = await ensureDraftSnapshotForRelease(db, 'address', {
         cohortKey: '2026-06',

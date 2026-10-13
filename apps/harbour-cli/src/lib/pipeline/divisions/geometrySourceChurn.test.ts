@@ -1,3 +1,7 @@
+import {
+  insertReleaseFixture,
+  releaseFixtureSchemaSql,
+} from '../../../../../../libs/core/src/testing/releaseFixtures'
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { drizzle } from 'drizzle-orm/bun-sqlite'
@@ -12,16 +16,17 @@ for (const type of ['divisionArea', 'divisionBoundary'] as const) {
     const current = new Database(':memory:')
     const table =
       type === 'divisionArea' ? 'overtureDivisionAreas' : 'overtureDivisionBoundaries'
-    meta.exec(
-      `CREATE TABLE resourceReleases(id,datasetId,sourceVersion,resourceType,status,revokedAt);`,
-    )
+    meta.exec(`${releaseFixtureSchemaSql()};`)
     for (const [id, version] of [
       ['old', '2025-12'],
       ['new', '2026-01'],
     ])
-      meta
-        .query('INSERT INTO resourceReleases VALUES(?,?,?,?,?,NULL)')
-        .run(id!, 'dataset', version!, type, 'current')
+      insertReleaseFixture(meta, {
+        id: id!,
+        datasetId: 'dataset',
+        sourceVersion: version!,
+        resourceType: type,
+      })
     for (const db of [old, current])
       db.exec(
         `CREATE TABLE ${table}(sourceRecordId,versionHash,properties,sourceGeometry,validFromRelease,validToRelease)`,

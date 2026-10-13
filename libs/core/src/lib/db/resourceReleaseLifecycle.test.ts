@@ -278,9 +278,12 @@ test('current resources finalise their source and archived releases resist late 
       VALUES ('dataset','publisher','dataset','hk','static','monthly','divisions','["division","divisionArea"]','hash');
       INSERT INTO sourceReleases(id,datasetId,code,sourceVersion,expectedResourceTypes,status)
       VALUES ('source','dataset','source','2026','["division","divisionArea"]','processing');
-      INSERT INTO resourceReleases(id,sourceReleaseId,datasetId,code,resourceType,sourceVersion,status)
-      VALUES ('division','source','dataset','division','division','2026','processing'),
-             ('area','source','dataset','area','divisionArea','2026','processing');`)
+      INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status) VALUES ('source', 'dataset', 'source-' || 'division', '2026', 'processing');
+UPDATE sourceReleases SET sourceVersion = '2026' WHERE id = 'source';
+INSERT INTO resourceReleases (id, sourceReleaseId, datasetId, code, resourceType, status) VALUES ('division', 'source', 'dataset', 'division', 'division', 'processing');
+INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status) VALUES ('source', 'dataset', 'source-' || 'area', '2026', 'processing');
+UPDATE sourceReleases SET sourceVersion = '2026' WHERE id = 'source';
+INSERT INTO resourceReleases (id, sourceReleaseId, datasetId, code, resourceType, status) VALUES ('area', 'source', 'dataset', 'area', 'divisionArea', 'processing');`)
     const db = createLocalHarbourDb(sqlite)
     const sourceStatus = () =>
       sqlite.query("SELECT status FROM sourceReleases WHERE id='source'").get()

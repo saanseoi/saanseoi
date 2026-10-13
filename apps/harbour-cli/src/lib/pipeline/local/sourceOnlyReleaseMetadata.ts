@@ -35,8 +35,8 @@ export async function prepareSourceOnlyReleaseMetadata(
     throw new Error(`${contract.label} release requires one active source shard.`)
   const { results: previous } = await meta
     .prepare(
-      `SELECT previous.sourceVersion FROM resourceReleases current
-     JOIN resourceReleases previous ON previous.datasetId = current.datasetId AND previous.resourceType = current.resourceType
+      `SELECT previous.sourceVersion FROM resourceReleaseDetails current
+     JOIN resourceReleaseDetails previous ON previous.datasetId = current.datasetId AND previous.resourceType = current.resourceType
      WHERE current.id = ? AND previous.sourceVersion < ?
        AND previous.status IN ('current', 'archived') AND previous.revokedAt IS NULL
      ORDER BY previous.sourceVersion DESC LIMIT 1`,

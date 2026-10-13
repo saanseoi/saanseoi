@@ -176,7 +176,7 @@ async function resolveSourceRelease(
           resourceReleases.id AS resourceReleaseId,
           resourceReleases.resourceType AS resourceType,
           sourceReleases.code AS sourceReleaseCode,
-          resourceReleases.sourceVersion AS sourceVersion,
+          sourceReleases.sourceVersion AS sourceVersion,
           datasets.sourceVariant AS sourceVariant,
           sourceReleases.id AS sourceReleaseId,
           (SELECT json_group_array(ownedRelease.id) FROM resourceReleases AS ownedRelease
@@ -188,10 +188,10 @@ async function resolveSourceRelease(
           ON sourceReleases.id = resourceReleases.sourceReleaseId
         INNER JOIN datasets ON datasets.id = resourceReleases.datasetId
         INNER JOIN publishers ON publishers.id = datasets.publisherId
-        INNER JOIN resourceReleases AS retainedRelease
+        INNER JOIN resourceReleaseDetails AS retainedRelease
           ON retainedRelease.datasetId = resourceReleases.datasetId
           AND retainedRelease.resourceType = resourceReleases.resourceType
-          AND retainedRelease.sourceVersion <= resourceReleases.sourceVersion
+          AND retainedRelease.sourceVersion <= sourceReleases.sourceVersion
           AND retainedRelease.status IN ('current', 'archived')
           AND retainedRelease.revokedAt IS NULL
         INNER JOIN releaseShardAssignments

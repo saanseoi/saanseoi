@@ -25,7 +25,7 @@ export function sourceOnlyCompletion(
   if (!contract) return null
   const evidence = meta
     .query(`
-    SELECT r.sourceVersion FROM resourceReleases r
+    SELECT r.sourceVersion FROM resourceReleaseDetails r
     JOIN datasets d ON d.id = r.datasetId
     WHERE r.id = ? AND d.code = ?
       AND EXISTS (SELECT 1 FROM processingAudits a

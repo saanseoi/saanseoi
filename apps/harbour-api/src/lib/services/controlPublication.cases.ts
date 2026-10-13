@@ -41,11 +41,11 @@ test('retains a dataset source variant when reading a release for publication', 
     WHERE code = 'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups';
 
     INSERT INTO resourceReleases (
-      id, sourceReleaseId, datasetId, resourceType, code, sourceVersion, cohortKey,
+      id, sourceReleaseId, datasetId, resourceType, code,
       status, ingestedAt, createdAt, updatedAt
     )
     SELECT
-      '${resourceReleaseId}', '${resourceReleaseId}', id, 'divisionArea', 'dr-hk-hkgov-censtatd-hma-2021', '2021', '2021',
+      '${resourceReleaseId}', '${resourceReleaseId}', id, 'divisionArea', 'dr-hk-hkgov-censtatd-hma-2021',
       'staged',
       '2026-08-19T00:00:00.000Z', '2026-08-19T00:00:00.000Z', '2026-08-19T00:00:00.000Z'
     FROM datasets
@@ -307,7 +307,9 @@ test('revokes the superseded dataset only for corrected same-release publishes',
     updatedAt: '2026-06-05T00:01:00.000Z',
   })
   sqlite
-    .query('UPDATE resourceReleases SET sourceSchemaVersion = ? WHERE id = ?')
+    .query(
+      'UPDATE sourceReleases SET sourceSchemaVersion = ? WHERE id = (SELECT sourceReleaseId FROM resourceReleases WHERE id = ?)',
+    )
     .run('1.16.0', 'release-dr-hk-overture-division-2026-02-18.1')
   seedSnapshot(sqlite, {
     code: 'ss-hk-division-2026-02-18.1',
@@ -501,7 +503,9 @@ test('marks the superseded dataset historic for same-cohort releases with differ
     updatedAt: '2026-06-05T00:01:00.000Z',
   })
   sqlite
-    .query('UPDATE resourceReleases SET sourceSchemaVersion = ? WHERE id = ?')
+    .query(
+      'UPDATE sourceReleases SET sourceSchemaVersion = ? WHERE id = (SELECT sourceReleaseId FROM resourceReleases WHERE id = ?)',
+    )
     .run('1.17.0', 'release-dr-hk-overture-division-2026-06-24.0')
   seedSnapshot(sqlite, {
     code: 'ss-hk-division-2026-06-24.0',

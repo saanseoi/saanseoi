@@ -417,15 +417,6 @@ function ensureFixtureCompatibleMetaSchema(db: Database) {
     )
   }
 
-  addColumnIfMissing(db, 'resourceReleases', 'cohortKey', "cohortKey TEXT DEFAULT ''")
-  if (hasColumn(db, 'resourceReleases', 'snapshotMonth')) {
-    db.exec(`
-      UPDATE resourceReleases
-      SET cohortKey = COALESCE(NULLIF(cohortKey, ''), snapshotMonth, sourceVersion)
-      WHERE cohortKey IS NULL OR cohortKey = '';
-    `)
-  }
-
   addColumnIfMissing(db, 'snapshots', 'cohortKey', "cohortKey TEXT NOT NULL DEFAULT ''")
   addColumnIfMissing(db, 'snapshots', 'parentSnapshotId', 'parentSnapshotId TEXT')
 
@@ -1321,8 +1312,6 @@ export function insertFixtureRelease(db: Database, release: FixtureRelease) {
         datasetId,
         resourceType,
         code,
-        sourceVersion,
-        cohortKey,
         status,
         revokedAt,
         revocationReason,
@@ -1341,8 +1330,6 @@ export function insertFixtureRelease(db: Database, release: FixtureRelease) {
         ),
         ?4,
         ?5,
-        ?6,
-        ?7,
         ?10,
         ?11,
         ?12,

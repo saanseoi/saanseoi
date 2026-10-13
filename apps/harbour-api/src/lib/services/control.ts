@@ -2,7 +2,7 @@ import type { ProvenanceStore } from '../../../../../libs/core/src/provenance/ty
 import { releaseSetVersionsForPublication } from './releaseSetVersions'
 import { resolveDivisionPublicationVersion } from './divisionPublicationVersion'
 import { readSnapshotDependencies } from '@repo/core/pipeline/db/snapshotDependencies'
-import { lt } from 'drizzle-orm'
+import { sql } from 'drizzle-orm'
 import {
   publishReleaseArtefacts,
   ensureDraftReleaseSetForRelease,
@@ -238,7 +238,7 @@ export async function handlePublishDataset(
               eq(metaSchema.metaResourceReleases.datasetId, dataset.datasetId),
               eq(metaSchema.metaResourceReleases.resourceType, datasetType),
               eq(metaSchema.metaResourceReleases.status, 'current'),
-              lt(metaSchema.metaResourceReleases.cohortKey, dataset.cohortKey),
+              sql`EXISTS (SELECT 1 FROM sourceReleases s WHERE s.id = resourceReleases.sourceReleaseId AND s.cohortKey < ${dataset.cohortKey})`,
             ),
           )
           .run()

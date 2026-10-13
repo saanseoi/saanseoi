@@ -1,3 +1,4 @@
+import { retainSourceReleaseMetadata } from '@repo/core/db/sourceReleaseMetadata'
 import {
   processingRulesSelection,
   retainIngestionProcessingRules,
@@ -6,10 +7,10 @@ import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import {
   and,
   eq,
-  isNull,
   metaDatasets,
   metaPublishers,
   metaResourceReleases,
+  metaResourceReleaseDetails,
   metaSourceReleases,
   or,
   toIsoTimestamp,
@@ -78,14 +79,14 @@ export async function syncStagedReleaseIntoLocalMetaCache(
 
   const existingRelease = await metaDb
     .select({
-      id: metaResourceReleases.id,
-      datasetId: metaResourceReleases.datasetId,
-      sourceVersion: metaResourceReleases.sourceVersion,
-      status: metaResourceReleases.status,
-      resourceType: metaResourceReleases.resourceType,
+      id: metaResourceReleaseDetails.id,
+      datasetId: metaResourceReleaseDetails.datasetId,
+      sourceVersion: metaResourceReleaseDetails.sourceVersion,
+      status: metaResourceReleaseDetails.status,
+      resourceType: metaResourceReleaseDetails.resourceType,
     })
-    .from(metaResourceReleases)
-    .where(eq(metaResourceReleases.code, release.releaseCode))
+    .from(metaResourceReleaseDetails)
+    .where(eq(metaResourceReleaseDetails.code, release.releaseCode))
     .limit(1)
     .get()
   if (existingRelease && existingRelease.resourceType !== plan.resourceType) {
@@ -165,6 +166,19 @@ export async function syncStagedReleaseIntoLocalMetaCache(
         .onConflictDoNothing({ target: metaSourceReleases.code })
         .run()
 
+      await retainSourceReleaseMetadata(
+        tx as unknown as HarbourReadableDb & HarbourWritableDb,
+        sourceReleaseId,
+        {
+          datasetId: dataset.id,
+          sourceVersion: plan.sourceVersion,
+          sourceSchemaVersion,
+          publicationDate,
+          cohortKey: plan.cohortKey,
+          releaseNotesUrl: null,
+        },
+      )
+
       return tx
         .insert(metaResourceReleases)
         .values({
@@ -173,11 +187,9 @@ export async function syncStagedReleaseIntoLocalMetaCache(
           datasetId: dataset.id,
           code: release.releaseCode,
           resourceType: plan.resourceType,
-          sourceVersion: plan.sourceVersion,
-          sourceSchemaVersion,
+
           processingRules,
-          publicationDate,
-          cohortKey: plan.cohortKey,
+
           status: 'staged',
           revokedAt: null,
           revocationReason: null,
@@ -192,11 +204,9 @@ export async function syncStagedReleaseIntoLocalMetaCache(
             sourceReleaseId,
             datasetId: dataset.id,
             resourceType: plan.resourceType,
-            sourceVersion: plan.sourceVersion,
-            sourceSchemaVersion,
+
             processingRules,
-            publicationDate,
-            cohortKey: plan.cohortKey,
+
             status: 'staged',
             revokedAt: null,
             revocationReason: null,

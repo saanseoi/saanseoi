@@ -59,6 +59,7 @@
     "./parquetInspectorNode": "./src/lib/parquetInspectorNode.ts",
     "./db/types": "./src/lib/db/types.ts",
     "./db/processingRuleDefinitions": "./src/lib/db/processingRuleDefinitions.ts",
+    "./db/sourceReleaseMetadata": "./src/lib/db/sourceReleaseMetadata.ts",
     "./db/processingRuns": "./src/lib/db/processingRuns.ts",
     "./db/metaRegistry": "./src/lib/db/metaRegistry.ts",
     "./sourceAssets": "./src/lib/services/sourceAssets.ts",

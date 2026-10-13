@@ -68,15 +68,15 @@ function curatedPublicationFixture() {
       rawObjectKey: `${source}/${resourceType}/${version}.zip`,
       originalFileName: 'fixture.zip',
       status:
-        source === 'overture' || resourceType === 'divisionArea'
-          ? 'current'
-          : 'staged',
+        source === 'overture' || resourceType === 'divisionArea' ? 'current' : 'staged',
       ingestedAt: '2026-10-01T00:00:00.000Z',
       createdAt: '2026-10-01T00:00:00.000Z',
       updatedAt: '2026-10-01T00:00:00.000Z',
     })
     sqlite
-      .query('UPDATE resourceReleases SET sourceSchemaVersion = ? WHERE id = ?')
+      .query(
+        'UPDATE sourceReleases SET sourceSchemaVersion = ? WHERE id = (SELECT sourceReleaseId FROM resourceReleases WHERE id = ?)',
+      )
       .run(source === 'saanseoi' ? '1.0' : '1.17.0', release.resourceReleaseId)
     const datasetId = (
       sqlite

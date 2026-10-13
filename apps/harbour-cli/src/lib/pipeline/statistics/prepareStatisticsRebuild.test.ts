@@ -1,3 +1,7 @@
+import {
+  insertReleaseFixture,
+  releaseFixtureSchemaSql,
+} from '../../../../../../libs/core/src/testing/releaseFixtures'
 import { statisticDefinitionSet } from '@repo/db'
 import { afterEach, expect, test } from 'bun:test'
 import { Database } from 'bun:sqlite'
@@ -43,7 +47,7 @@ function fixture() {
   const meta = new Database(inputs.meta)
   meta.exec(`
     CREATE TABLE datasets (id TEXT, code TEXT);
-    CREATE TABLE resourceReleases (id TEXT, code TEXT, sourceVersion TEXT);
+    ${releaseFixtureSchemaSql()};
     CREATE TABLE snapshots (id TEXT, parentSnapshotId TEXT, cohortKey TEXT, resourceType TEXT, revision INTEGER, status TEXT, createdAt TEXT);
     CREATE TABLE snapshotResourceReleases (snapshotId TEXT, resourceReleaseId TEXT, datasetId TEXT, role TEXT);
     CREATE TABLE dataShards (id TEXT, bindingName TEXT);
@@ -61,9 +65,13 @@ function fixture() {
   function release(number: number, values: Record<string, string>, status = 'current') {
     const release = `release-${number}`
     const snapshot = `snapshot-${number}`
-    meta
-      .query('INSERT INTO resourceReleases VALUES (?, ?, ?)')
-      .run(release, release, String(number))
+    insertReleaseFixture(meta, {
+      id: release,
+      datasetId: 'dataset',
+      code: release,
+      sourceVersion: String(number),
+      resourceType: 'divisionStatistic',
+    })
     meta
       .query('INSERT INTO snapshots VALUES (?, ?, ?, ?, ?, ?, ?)')
       .run(
@@ -329,11 +337,11 @@ test('Building Group preparation reads exact dataset and resource-release member
   const sourceVersion = '2023-H2'
   f.meta.query('UPDATE datasets SET code = ?').run(datasetCode)
   f.meta
-    .query('UPDATE resourceReleases SET code = ?, sourceVersion = ?')
+    .query('UPDATE resourceReleases SET code = ?')
     .run(
       `dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-${sourceVersion}::divisionStatistic`,
-      sourceVersion,
     )
+  f.meta.query('UPDATE sourceReleases SET sourceVersion = ?').run(sourceVersion)
   for (const db of [f.current, f.history]) {
     for (const table of [
       'statsRecords',

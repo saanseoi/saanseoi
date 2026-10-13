@@ -68,7 +68,7 @@ export async function buildPlaceSourceStats(input: {
   sourceVersion: string
   places: AsyncIterable<NormalisedPlace>
 }) {
-  const releases = metaSchema.metaResourceReleases
+  const releases = metaSchema.metaResourceReleaseDetails
   const previous = await input.metaDb
     .select({ sourceVersion: releases.sourceVersion })
     .from(releases)

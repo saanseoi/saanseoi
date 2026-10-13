@@ -4,7 +4,7 @@ import {
   eq,
   metaAssets,
   metaDatasets,
-  metaResourceReleases,
+  metaResourceReleaseDetails,
   metaSnapshotResourceReleases,
   metaSnapshots,
 } from '@repo/db'
@@ -23,22 +23,25 @@ export async function retainCuratedSourceReleases(
   for (const source of sources) {
     const release = await db
       .select({
-        id: metaResourceReleases.id,
-        datasetId: metaResourceReleases.datasetId,
+        id: metaResourceReleaseDetails.id,
+        datasetId: metaResourceReleaseDetails.datasetId,
         rawObjectKey: metaAssets.assetKey,
         contentHash: metaAssets.contentHash,
-        sourceVersion: metaResourceReleases.sourceVersion,
-        resourceType: metaResourceReleases.resourceType,
-        status: metaResourceReleases.status,
+        sourceVersion: metaResourceReleaseDetails.sourceVersion,
+        resourceType: metaResourceReleaseDetails.resourceType,
+        status: metaResourceReleaseDetails.status,
       })
-      .from(metaResourceReleases)
-      .innerJoin(metaDatasets, eq(metaDatasets.id, metaResourceReleases.datasetId))
+      .from(metaResourceReleaseDetails)
+      .innerJoin(
+        metaDatasets,
+        eq(metaDatasets.id, metaResourceReleaseDetails.datasetId),
+      )
       .innerJoin(
         metaAssets,
         and(
           or(
-            eq(metaAssets.resourceReleaseId, metaResourceReleases.id),
-            eq(metaAssets.sourceReleaseId, metaResourceReleases.sourceReleaseId),
+            eq(metaAssets.resourceReleaseId, metaResourceReleaseDetails.id),
+            eq(metaAssets.sourceReleaseId, metaResourceReleaseDetails.sourceReleaseId),
           ),
           eq(metaAssets.assetKey, source.rawObjectKey),
           or(
@@ -50,7 +53,7 @@ export async function retainCuratedSourceReleases(
       .where(
         and(
           eq(metaDatasets.code, source.datasetCode),
-          eq(metaResourceReleases.code, source.releaseCode),
+          eq(metaResourceReleaseDetails.code, source.releaseCode),
         ),
       )
       .get()

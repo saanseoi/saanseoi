@@ -1,3 +1,4 @@
+import { retainSourceReleaseMetadata } from './sourceReleaseMetadata'
 import { retainCompositionAudits } from '../../provenance/compositionAudit'
 import {
   readFieldLineage,
@@ -99,6 +100,7 @@ const {
   metaSourceReleases,
   metaSnapshotShardAssignments,
   metaResourceReleases,
+  metaResourceReleaseDetails,
   metaSnapshotLineages,
   metaSnapshots,
   metaSnapshotAssemblies,
@@ -463,23 +465,26 @@ export async function listRegistryReleases(
     queryInBatches(sourceReleaseIds, ids =>
       db
         .select({
-          id: metaResourceReleases.id,
-          datasetId: metaResourceReleases.datasetId,
-          code: metaResourceReleases.code,
+          id: metaResourceReleaseDetails.id,
+          datasetId: metaResourceReleaseDetails.datasetId,
+          code: metaResourceReleaseDetails.code,
           datasetCode: metaDatasets.code,
           publisherCode: metaPublishers.code,
-          sourceVersion: metaResourceReleases.sourceVersion,
+          sourceVersion: metaResourceReleaseDetails.sourceVersion,
           kind: metaDatasets.kind,
-          ingestedAt: metaResourceReleases.ingestedAt,
+          ingestedAt: metaResourceReleaseDetails.ingestedAt,
           processingRules: processingRulesSelection(
-            metaResourceReleases.processingRules,
+            metaResourceReleaseDetails.processingRules,
           ),
           resourceTypes: metaDatasets.resourceTypes,
         })
-        .from(metaResourceReleases)
-        .innerJoin(metaDatasets, eq(metaResourceReleases.datasetId, metaDatasets.id))
+        .from(metaResourceReleaseDetails)
+        .innerJoin(
+          metaDatasets,
+          eq(metaResourceReleaseDetails.datasetId, metaDatasets.id),
+        )
         .innerJoin(metaPublishers, eq(metaDatasets.publisherId, metaPublishers.id))
-        .where(inArray(metaResourceReleases.id, ids))
+        .where(inArray(metaResourceReleaseDetails.id, ids))
         .all(),
     ),
     queryInBatches(datasetIds, ids =>
@@ -1857,9 +1862,9 @@ export async function getRegistrySourceVersion(db: MetaDatabase, id: string) {
   return (
     (await db
       .select()
-      .from(metaResourceReleases)
+      .from(metaResourceReleaseDetails)
       .where(
-        sql`${metaResourceReleases.id} = ${id} or ${metaResourceReleases.code} = ${id}`,
+        sql`${metaResourceReleaseDetails.id} = ${id} or ${metaResourceReleaseDetails.code} = ${id}`,
       )
       .limit(1)
       .get()) ?? null
@@ -1942,29 +1947,30 @@ type AtomicWritableDb = HarbourReadableDb &
   }
 
 const releaseRecordSelection = {
-  id: metaResourceReleases.id,
+  id: metaResourceReleaseDetails.id,
   datasetId: metaDatasets.id,
   datasetCode: metaDatasets.code,
-  resourceReleaseId: metaResourceReleases.id,
-  releaseCode: metaResourceReleases.code,
+  resourceReleaseId: metaResourceReleaseDetails.id,
+  releaseCode: metaResourceReleaseDetails.code,
   regionCode: metaDatasets.regionCode,
-  cohortKey: metaResourceReleases.cohortKey,
-  geometryStatus: metaResourceReleases.geometryStatus,
+  cohortKey: metaResourceReleaseDetails.cohortKey,
+  geometryStatus: metaResourceReleaseDetails.geometryStatus,
   theme: metaDatasets.theme,
-  resourceType: metaResourceReleases.resourceType,
+  resourceType: metaResourceReleaseDetails.resourceType,
   sourceVariant: metaDatasets.sourceVariant,
   sourceCrs: metaDatasets.sourceCrs,
   source: metaPublishers.code,
-  sourceVersion: metaResourceReleases.sourceVersion,
-  releaseNotesUrl: metaResourceReleases.releaseNotesUrl,
-  status: metaResourceReleases.status,
+  sourceVersion: metaResourceReleaseDetails.sourceVersion,
+  releaseNotesUrl: metaResourceReleaseDetails.releaseNotesUrl,
+  status: metaResourceReleaseDetails.status,
   supersedesDatasetId: sql<string | null>`null`,
-  supersededByResourceReleaseId: metaResourceReleases.supersededByResourceReleaseId,
-  revokedAt: metaResourceReleases.revokedAt,
-  revocationReason: metaResourceReleases.revocationReason,
-  ingestedAt: metaResourceReleases.ingestedAt,
-  createdAt: metaResourceReleases.createdAt,
-  updatedAt: metaResourceReleases.updatedAt,
+  supersededByResourceReleaseId:
+    metaResourceReleaseDetails.supersededByResourceReleaseId,
+  revokedAt: metaResourceReleaseDetails.revokedAt,
+  revocationReason: metaResourceReleaseDetails.revocationReason,
+  ingestedAt: metaResourceReleaseDetails.ingestedAt,
+  createdAt: metaResourceReleaseDetails.createdAt,
+  updatedAt: metaResourceReleaseDetails.updatedAt,
 } as const
 
 async function runAtomicWriteStatements(
@@ -2010,8 +2016,8 @@ export async function getLatestDatasetForRegionSourceDatasetType(
 ): Promise<LatestDatasetLookup> {
   const datasetRows = (await db
     .select(releaseRecordSelection)
-    .from(metaResourceReleases)
-    .innerJoin(metaDatasets, eq(metaResourceReleases.datasetId, metaDatasets.id))
+    .from(metaResourceReleaseDetails)
+    .innerJoin(metaDatasets, eq(metaResourceReleaseDetails.datasetId, metaDatasets.id))
     .innerJoin(metaPublishers, eq(metaDatasets.publisherId, metaPublishers.id))
     .where(
       and(
@@ -2021,12 +2027,12 @@ export async function getLatestDatasetForRegionSourceDatasetType(
         // type and cohort. Upload chronology and schema compatibility belong
         // to that product's dataset lineage, never to the publisher broadly.
         eq(metaDatasets.code, datasetCode),
-        eq(metaResourceReleases.resourceType, resourceType),
-        ne(metaResourceReleases.status, 'failed'),
-        ne(metaResourceReleases.status, 'uploading'),
+        eq(metaResourceReleaseDetails.resourceType, resourceType),
+        ne(metaResourceReleaseDetails.status, 'failed'),
+        ne(metaResourceReleaseDetails.status, 'uploading'),
       ),
     )
-    .orderBy(desc(metaResourceReleases.ingestedAt))
+    .orderBy(desc(metaResourceReleaseDetails.ingestedAt))
     .all()) as unknown as DatasetRecord[]
   const latestDataset =
     datasetRows.slice().sort((left, right) => {
@@ -2059,18 +2065,18 @@ export async function getLatestNewerDatasetRelease(
 
   const datasetRows = (await db
     .select(releaseRecordSelection)
-    .from(metaResourceReleases)
-    .innerJoin(metaDatasets, eq(metaResourceReleases.datasetId, metaDatasets.id))
+    .from(metaResourceReleaseDetails)
+    .innerJoin(metaDatasets, eq(metaResourceReleaseDetails.datasetId, metaDatasets.id))
     .innerJoin(metaPublishers, eq(metaDatasets.publisherId, metaPublishers.id))
     .where(
       and(
-        eq(metaResourceReleases.datasetId, release.datasetId),
-        ne(metaResourceReleases.id, resourceReleaseId),
-        ne(metaResourceReleases.status, 'failed'),
-        ne(metaResourceReleases.status, 'uploading'),
+        eq(metaResourceReleaseDetails.datasetId, release.datasetId),
+        ne(metaResourceReleaseDetails.id, resourceReleaseId),
+        ne(metaResourceReleaseDetails.status, 'failed'),
+        ne(metaResourceReleaseDetails.status, 'uploading'),
       ),
     )
-    .orderBy(desc(metaResourceReleases.ingestedAt))
+    .orderBy(desc(metaResourceReleaseDetails.ingestedAt))
     .all()) as unknown as DatasetRecord[]
   const latestNewerDataset =
     datasetRows
@@ -2109,19 +2115,22 @@ export async function hasDatasetForCohortKeySourceType(
     ((await db
       .select({
         datasetId: metaDatasets.id,
-        resourceReleaseId: metaResourceReleases.id,
-        releaseCode: metaResourceReleases.code,
+        resourceReleaseId: metaResourceReleaseDetails.id,
+        releaseCode: metaResourceReleaseDetails.code,
       })
-      .from(metaResourceReleases)
-      .innerJoin(metaDatasets, eq(metaResourceReleases.datasetId, metaDatasets.id))
+      .from(metaResourceReleaseDetails)
+      .innerJoin(
+        metaDatasets,
+        eq(metaResourceReleaseDetails.datasetId, metaDatasets.id),
+      )
       .innerJoin(metaPublishers, eq(metaDatasets.publisherId, metaPublishers.id))
       .where(
         and(
           eq(metaDatasets.regionCode, regionCode),
-          eq(metaResourceReleases.cohortKey, cohortKey),
+          eq(metaResourceReleaseDetails.cohortKey, cohortKey),
           eq(metaPublishers.code, publisherCodeForSource(source)),
-          eq(metaResourceReleases.resourceType, resourceType),
-          ne(metaResourceReleases.status, 'failed'),
+          eq(metaResourceReleaseDetails.resourceType, resourceType),
+          ne(metaResourceReleaseDetails.status, 'failed'),
         ),
       )
       .limit(1)
@@ -2174,10 +2183,13 @@ export async function getDatasetRecordByReleaseId(
   return (
     ((await db
       .select(releaseRecordSelection)
-      .from(metaResourceReleases)
-      .innerJoin(metaDatasets, eq(metaResourceReleases.datasetId, metaDatasets.id))
+      .from(metaResourceReleaseDetails)
+      .innerJoin(
+        metaDatasets,
+        eq(metaResourceReleaseDetails.datasetId, metaDatasets.id),
+      )
       .innerJoin(metaPublishers, eq(metaDatasets.publisherId, metaPublishers.id))
-      .where(eq(metaResourceReleases.id, resourceReleaseId))
+      .where(eq(metaResourceReleaseDetails.id, resourceReleaseId))
       .limit(1)
       .get()) as DatasetRecord | undefined) ?? null
   )
@@ -2190,10 +2202,13 @@ export async function getDatasetRecordByReleaseCode(
   return (
     ((await db
       .select(releaseRecordSelection)
-      .from(metaResourceReleases)
-      .innerJoin(metaDatasets, eq(metaResourceReleases.datasetId, metaDatasets.id))
+      .from(metaResourceReleaseDetails)
+      .innerJoin(
+        metaDatasets,
+        eq(metaResourceReleaseDetails.datasetId, metaDatasets.id),
+      )
       .innerJoin(metaPublishers, eq(metaDatasets.publisherId, metaPublishers.id))
-      .where(eq(metaResourceReleases.code, releaseCode))
+      .where(eq(metaResourceReleaseDetails.code, releaseCode))
       .limit(1)
       .get()) as DatasetRecord | undefined) ?? null
   )
@@ -2275,22 +2290,25 @@ export async function getCurrentReleaseForDatasetId(
 ) {
   const whereClause = excludeReleaseId
     ? and(
-        eq(metaResourceReleases.datasetId, datasetId),
-        eq(metaResourceReleases.resourceType, resourceType),
-        eq(metaResourceReleases.status, 'current'),
-        ne(metaResourceReleases.id, excludeReleaseId),
+        eq(metaResourceReleaseDetails.datasetId, datasetId),
+        eq(metaResourceReleaseDetails.resourceType, resourceType),
+        eq(metaResourceReleaseDetails.status, 'current'),
+        ne(metaResourceReleaseDetails.id, excludeReleaseId),
       )
     : and(
-        eq(metaResourceReleases.datasetId, datasetId),
-        eq(metaResourceReleases.resourceType, resourceType),
-        eq(metaResourceReleases.status, 'current'),
+        eq(metaResourceReleaseDetails.datasetId, datasetId),
+        eq(metaResourceReleaseDetails.resourceType, resourceType),
+        eq(metaResourceReleaseDetails.status, 'current'),
       )
 
   return (
     ((await db
       .select(releaseRecordSelection)
-      .from(metaResourceReleases)
-      .innerJoin(metaDatasets, eq(metaResourceReleases.datasetId, metaDatasets.id))
+      .from(metaResourceReleaseDetails)
+      .innerJoin(
+        metaDatasets,
+        eq(metaResourceReleaseDetails.datasetId, metaDatasets.id),
+      )
       .innerJoin(metaPublishers, eq(metaDatasets.publisherId, metaPublishers.id))
       .where(whereClause)
       .limit(1)
@@ -2366,6 +2384,15 @@ export async function insertDataset(
     .onConflictDoNothing()
     .run()
 
+  await retainSourceReleaseMetadata(db, sourceReleaseId, {
+    datasetId: dataset.id,
+    sourceVersion: plan.sourceVersion,
+    sourceSchemaVersion,
+    publicationDate: releasePublicationDate(plan.sourceVersion, plan.publicationDate),
+    cohortKey: plan.cohortKey,
+    releaseNotesUrl: plan.releaseNotesUrl ?? null,
+  })
+
   await db
     .insert(metaResourceReleases)
     .values({
@@ -2374,15 +2401,10 @@ export async function insertDataset(
       datasetId: dataset.id,
       code: plan.releaseCode,
       resourceType: plan.resourceType,
-      sourceVersion: plan.sourceVersion,
-      sourceSchemaVersion,
       processingRules,
-      publicationDate: releasePublicationDate(plan.sourceVersion, plan.publicationDate),
-      cohortKey: plan.cohortKey,
       geometryStatus: isGeometryResourceType(plan.resourceType)
         ? (plan.geometryStatus ?? 'authoritative')
         : null,
-      releaseNotesUrl: plan.releaseNotesUrl ?? null,
       status,
       ingestedAt: now,
       revokedAt: null,
@@ -2537,29 +2559,35 @@ export async function resetFailedDataset(
     sourceVersion: plan.sourceVersion,
     allowOlderMappedRelease: true,
   })
-  const sourceReleaseCode = buildSourceReleaseCode(plan.datasetCode, plan.sourceVersion)
-  const sourceRelease = options.preservePublishedSourceRelease
-    ? await db
-        .select({ status: metaSourceReleases.status })
-        .from(metaSourceReleases)
-        .where(eq(metaSourceReleases.code, sourceReleaseCode))
-        .limit(1)
-        .get()
-    : null
+  const sourceRelease = await db
+    .select({ id: metaSourceReleases.id, status: metaSourceReleases.status })
+    .from(metaResourceReleases)
+    .innerJoin(
+      metaSourceReleases,
+      eq(metaResourceReleases.sourceReleaseId, metaSourceReleases.id),
+    )
+    .where(eq(metaResourceReleases.code, plan.releaseCode))
+    .get()
+  if (!sourceRelease)
+    throw new Error(`Resource release ${plan.releaseCode} has no source release.`)
+
+  await retainSourceReleaseMetadata(db, sourceRelease.id, {
+    datasetId: dataset.id,
+    sourceVersion: plan.sourceVersion,
+    sourceSchemaVersion,
+    publicationDate: releasePublicationDate(plan.sourceVersion, plan.publicationDate),
+    cohortKey: plan.cohortKey,
+    releaseNotesUrl: plan.releaseNotesUrl ?? null,
+  })
 
   await db
     .update(metaResourceReleases)
     .set({
-      sourceVersion: plan.sourceVersion,
       resourceType: plan.resourceType,
-      sourceSchemaVersion,
       processingRules,
-      publicationDate: releasePublicationDate(plan.sourceVersion, plan.publicationDate),
-      cohortKey: plan.cohortKey,
       geometryStatus: isGeometryResourceType(plan.resourceType)
         ? (plan.geometryStatus ?? 'authoritative')
         : null,
-      releaseNotesUrl: plan.releaseNotesUrl ?? null,
       status,
       ingestedAt: now,
       revokedAt: null,
@@ -2573,19 +2601,18 @@ export async function resetFailedDataset(
   await db
     .update(metaSourceReleases)
     .set({
-      sourceSchemaVersion,
       processingRules,
-      publicationDate: releasePublicationDate(plan.sourceVersion, plan.publicationDate),
-      cohortKey: plan.cohortKey,
-      releaseNotesUrl: plan.releaseNotesUrl ?? null,
-      status: sourceRelease?.status === 'current' ? 'current' : status,
+      status:
+        options.preservePublishedSourceRelease && sourceRelease.status === 'current'
+          ? 'current'
+          : status,
       ingestedAt: now,
       revokedAt: null,
       revocationReason: null,
       supersededBySourceReleaseId: null,
       updatedAt: now,
     })
-    .where(eq(metaSourceReleases.code, sourceReleaseCode))
+    .where(eq(metaSourceReleases.id, sourceRelease.id))
     .run()
 }
 
@@ -5082,14 +5109,14 @@ export async function publishReleaseArtefacts(
             datasetId: metaDatasets.id,
             datasetCode: metaDatasets.code,
             source: metaPublishers.code,
-            resourceReleaseId: metaResourceReleases.id,
-            resourceType: metaResourceReleases.resourceType,
-            sourceReleaseId: metaResourceReleases.sourceReleaseId,
+            resourceReleaseId: metaResourceReleaseDetails.id,
+            resourceType: metaResourceReleaseDetails.resourceType,
+            sourceReleaseId: metaResourceReleaseDetails.sourceReleaseId,
             processingRules: processingRulesSelection(
-              metaResourceReleases.processingRules,
+              metaResourceReleaseDetails.processingRules,
             ),
-            sourceSchemaVersion: metaResourceReleases.sourceSchemaVersion,
-            sourceVersion: metaResourceReleases.sourceVersion,
+            sourceSchemaVersion: metaResourceReleaseDetails.sourceSchemaVersion,
+            sourceVersion: metaResourceReleaseDetails.sourceVersion,
           })
           .from(metaSnapshotResourceReleases)
           .innerJoin(
@@ -5098,8 +5125,11 @@ export async function publishReleaseArtefacts(
           )
           .innerJoin(metaPublishers, eq(metaDatasets.publisherId, metaPublishers.id))
           .innerJoin(
-            metaResourceReleases,
-            eq(metaSnapshotResourceReleases.resourceReleaseId, metaResourceReleases.id),
+            metaResourceReleaseDetails,
+            eq(
+              metaSnapshotResourceReleases.resourceReleaseId,
+              metaResourceReleaseDetails.id,
+            ),
           )
           .where(
             and(
@@ -5132,25 +5162,25 @@ export async function publishReleaseArtefacts(
                 datasetId: metaDatasets.id,
                 datasetCode: metaDatasets.code,
                 source: metaPublishers.code,
-                resourceReleaseId: metaResourceReleases.id,
-                resourceType: metaResourceReleases.resourceType,
-                sourceReleaseId: metaResourceReleases.sourceReleaseId,
+                resourceReleaseId: metaResourceReleaseDetails.id,
+                resourceType: metaResourceReleaseDetails.resourceType,
+                sourceReleaseId: metaResourceReleaseDetails.sourceReleaseId,
                 processingRules: processingRulesSelection(
-                  metaResourceReleases.processingRules,
+                  metaResourceReleaseDetails.processingRules,
                 ),
-                sourceSchemaVersion: metaResourceReleases.sourceSchemaVersion,
-                sourceVersion: metaResourceReleases.sourceVersion,
+                sourceSchemaVersion: metaResourceReleaseDetails.sourceSchemaVersion,
+                sourceVersion: metaResourceReleaseDetails.sourceVersion,
               })
-              .from(metaResourceReleases)
+              .from(metaResourceReleaseDetails)
               .innerJoin(
                 metaDatasets,
-                eq(metaResourceReleases.datasetId, metaDatasets.id),
+                eq(metaResourceReleaseDetails.datasetId, metaDatasets.id),
               )
               .innerJoin(
                 metaPublishers,
                 eq(metaDatasets.publisherId, metaPublishers.id),
               )
-              .where(inArray(metaResourceReleases.id, ids))
+              .where(inArray(metaResourceReleaseDetails.id, ids))
               .all(),
         )
       : []

@@ -1,3 +1,4 @@
+import { releaseFixtureSchemaSql } from '../../../../../../libs/core/src/testing/releaseFixtures'
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { readFile } from 'node:fs/promises'
@@ -28,8 +29,10 @@ test('native LandsD settlements deliver canonical rows, source resolutions and a
   const history = new Database(':memory:')
   const meta = new Database(':memory:')
   try {
-    meta.exec(`CREATE TABLE resourceReleases (id TEXT, datasetId TEXT, resourceType TEXT, sourceVersion TEXT, status TEXT, revokedAt TEXT);
-      INSERT INTO resourceReleases VALUES ('release', 'dataset', 'division', '2026-06-10.0', 'current', NULL)`)
+    meta.exec(`${releaseFixtureSchemaSql()};
+      INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status) VALUES (coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'dataset' AND sourceVersion = '2026-06-10.0'), 'source-' || 'release'), 'dataset', 'source-' || 'release', '2026-06-10.0', 'current');
+UPDATE sourceReleases SET sourceVersion = '2026-06-10.0' WHERE id = coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'dataset' AND sourceVersion = '2026-06-10.0'), 'source-' || 'release');
+INSERT INTO resourceReleases (id, datasetId, resourceType, status, revokedAt, sourceReleaseId, code) VALUES ('release', 'dataset', 'division', 'current', NULL, coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'dataset' AND sourceVersion = '2026-06-10.0'), 'source-' || 'release'), 'release')`)
     const migrations = resolve(root, 'libs/db/migrations')
     source.exec(loadMigrationSql(migrations, ['source']))
     current.exec(loadMigrationSql(migrations, ['current']))

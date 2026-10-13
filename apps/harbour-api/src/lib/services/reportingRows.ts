@@ -13,7 +13,7 @@ export const {
   metaDatasets,
   metaPublishers,
   metaReleaseShardAssignments,
-  metaResourceReleases,
+  metaResourceReleaseDetails,
   stats,
 } = metaSchema
 
@@ -91,11 +91,11 @@ export function buildReportFilterWhereClause(options: ReportFilters) {
   }
 
   if (options.releaseCode) {
-    conditions.push(eq(metaResourceReleases.code, options.releaseCode))
+    conditions.push(eq(metaResourceReleaseDetails.code, options.releaseCode))
   }
 
   if (options.resourceReleaseId) {
-    conditions.push(eq(metaResourceReleases.id, options.resourceReleaseId))
+    conditions.push(eq(metaResourceReleaseDetails.id, options.resourceReleaseId))
   }
 
   if (options.source) {
@@ -103,7 +103,7 @@ export function buildReportFilterWhereClause(options: ReportFilters) {
   }
 
   if (options.resourceType) {
-    conditions.push(eq(metaResourceReleases.resourceType, options.resourceType))
+    conditions.push(eq(metaResourceReleaseDetails.resourceType, options.resourceType))
   }
 
   if (conditions.length === 0) {

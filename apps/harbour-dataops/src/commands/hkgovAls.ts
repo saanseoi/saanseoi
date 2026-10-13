@@ -410,17 +410,17 @@ async function listTargetCompletedAlsSourceVersions(
   })
   try {
     const rows = await dbContext.metaDb
-      .select({ sourceVersion: metaSchema.metaResourceReleases.sourceVersion })
-      .from(metaSchema.metaResourceReleases)
+      .select({ sourceVersion: metaSchema.metaResourceReleaseDetails.sourceVersion })
+      .from(metaSchema.metaResourceReleaseDetails)
       .innerJoin(
         metaSchema.metaDatasets,
-        eq(metaSchema.metaResourceReleases.datasetId, metaSchema.metaDatasets.id),
+        eq(metaSchema.metaResourceReleaseDetails.datasetId, metaSchema.metaDatasets.id),
       )
       .where(
         and(
           eq(metaSchema.metaDatasets.code, 'ds-hk-hkgov-dpo-address'),
           inArray(
-            metaSchema.metaResourceReleases.status,
+            metaSchema.metaResourceReleaseDetails.status,
             includeSuperseded ? ['current', 'archived'] : ['current'],
           ),
         ),
@@ -997,14 +997,14 @@ async function resolveAlsSourceReleases(
       .select({ cohortKey: metaSchema.metaSnapshots.cohortKey })
       .from(metaSchema.metaSnapshotResourceReleases)
       .innerJoin(
-        metaSchema.metaResourceReleases,
+        metaSchema.metaResourceReleaseDetails,
         and(
           eq(
-            metaSchema.metaResourceReleases.id,
+            metaSchema.metaResourceReleaseDetails.id,
             metaSchema.metaSnapshotResourceReleases.resourceReleaseId,
           ),
           eq(
-            metaSchema.metaResourceReleases.datasetId,
+            metaSchema.metaResourceReleaseDetails.datasetId,
             metaSchema.metaSnapshotResourceReleases.datasetId,
           ),
         ),
@@ -1032,7 +1032,10 @@ async function resolveAlsSourceReleases(
       )
       .where(
         and(
-          inArray(metaSchema.metaResourceReleases.status, ['current', 'archived']),
+          inArray(metaSchema.metaResourceReleaseDetails.status, [
+            'current',
+            'archived',
+          ]),
           eq(metaSchema.metaDatasets.code, 'ds-hk-overture-division'),
           eq(metaSchema.metaDatasets.regionCode, 'hk'),
           eq(metaSchema.metaSnapshots.resourceType, 'division'),

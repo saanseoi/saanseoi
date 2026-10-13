@@ -31,8 +31,9 @@ function fixture() {
       VALUES ('${id}', 'publisher', '${id}', 'hk', 'static', 'yearly', 'address', '${id}', 'hash', '${now}', '${now}');
       INSERT INTO sourceReleases (id, datasetId, code, sourceVersion, cohortKey, status, ingestedAt, createdAt, updatedAt)
       VALUES ('source-${id}', '${id}', 'source-${id}', '2026', '2026', 'processing', '${now}', '${now}', '${now}');
-      INSERT INTO resourceReleases (id, sourceReleaseId, datasetId, resourceType, code, sourceVersion, cohortKey, status, ingestedAt, createdAt, updatedAt)
-      VALUES ('release-${id}', 'source-${id}', '${id}', 'address', 'release-${id}', '2026', '2026', 'processing', '${now}', '${now}', '${now}');`)
+      INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status, cohortKey) VALUES ('source-${id}', '${id}', 'source-' || 'release-${id}', '2026', 'processing', '2026');
+UPDATE sourceReleases SET sourceVersion = '2026', cohortKey = '2026' WHERE id = 'source-${id}';
+INSERT INTO resourceReleases (id, sourceReleaseId, datasetId, resourceType, code, status, ingestedAt, createdAt, updatedAt) VALUES ('release-${id}', 'source-${id}', '${id}', 'address', 'release-${id}', 'processing', '${now}', '${now}', '${now}');`)
   }
   const db = createLocalHarbourDb(sqlite)
   return { sqlite, db }

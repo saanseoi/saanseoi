@@ -14,34 +14,34 @@ export async function findPreviousComparableCenstatdReleaseStats(
 ): Promise<ReleaseStatsRow[] | null> {
   const release = await metaDb
     .select({
-      datasetId: metaSchema.metaResourceReleases.datasetId,
-      resourceType: metaSchema.metaResourceReleases.resourceType,
-      sourceSchemaVersion: metaSchema.metaResourceReleases.sourceSchemaVersion,
+      datasetId: metaSchema.metaResourceReleaseDetails.datasetId,
+      resourceType: metaSchema.metaResourceReleaseDetails.resourceType,
+      sourceSchemaVersion: metaSchema.metaResourceReleaseDetails.sourceSchemaVersion,
     })
-    .from(metaSchema.metaResourceReleases)
-    .where(eq(metaSchema.metaResourceReleases.id, resourceReleaseId))
+    .from(metaSchema.metaResourceReleaseDetails)
+    .where(eq(metaSchema.metaResourceReleaseDetails.id, resourceReleaseId))
     .get()
   if (!release)
     throw new Error(`Cannot resolve previous C&SD release stats: ${resourceReleaseId}.`)
 
   const candidates = await metaDb
-    .select({ id: metaSchema.metaResourceReleases.id })
-    .from(metaSchema.metaResourceReleases)
+    .select({ id: metaSchema.metaResourceReleaseDetails.id })
+    .from(metaSchema.metaResourceReleaseDetails)
     .where(
       and(
-        eq(metaSchema.metaResourceReleases.datasetId, release.datasetId),
-        eq(metaSchema.metaResourceReleases.resourceType, release.resourceType),
-        ne(metaSchema.metaResourceReleases.id, resourceReleaseId),
-        eq(metaSchema.metaResourceReleases.status, 'current'),
+        eq(metaSchema.metaResourceReleaseDetails.datasetId, release.datasetId),
+        eq(metaSchema.metaResourceReleaseDetails.resourceType, release.resourceType),
+        ne(metaSchema.metaResourceReleaseDetails.id, resourceReleaseId),
+        eq(metaSchema.metaResourceReleaseDetails.status, 'current'),
         release.sourceSchemaVersion === null
-          ? isNull(metaSchema.metaResourceReleases.sourceSchemaVersion)
+          ? isNull(metaSchema.metaResourceReleaseDetails.sourceSchemaVersion)
           : eq(
-              metaSchema.metaResourceReleases.sourceSchemaVersion,
+              metaSchema.metaResourceReleaseDetails.sourceSchemaVersion,
               release.sourceSchemaVersion,
             ),
       ),
     )
-    .orderBy(desc(metaSchema.metaResourceReleases.createdAt))
+    .orderBy(desc(metaSchema.metaResourceReleaseDetails.createdAt))
     .all()
 
   for (const candidate of candidates) {

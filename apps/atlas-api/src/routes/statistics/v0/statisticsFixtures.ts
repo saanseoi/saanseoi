@@ -158,10 +158,7 @@ function seedMeta(sqlite: Database) {
   )
   run(
     sqlite,
-    `INSERT INTO resourceReleases (
-      id, sourceReleaseId, datasetId, resourceType, code, sourceVersion, cohortKey,
-      status, ingestedAt, createdAt, updatedAt
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO resourceReleases (id, sourceReleaseId, datasetId, resourceType, code, status, ingestedAt, createdAt, updatedAt) VALUES (?1, ?2, ?3, ?4, ?5, ?8, ?9, ?10, ?11)`,
     [
       RELEASE_ID,
       RELEASE_ID,
@@ -314,10 +311,7 @@ function seedMeta(sqlite: Database) {
   )
   run(
     sqlite,
-    `INSERT INTO resourceReleases (
-      id, sourceReleaseId, datasetId, resourceType, code, sourceVersion, cohortKey,
-      status, ingestedAt, createdAt, updatedAt
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO resourceReleases (id, sourceReleaseId, datasetId, resourceType, code, status, ingestedAt, createdAt, updatedAt) VALUES (?1, ?2, ?3, ?4, ?5, ?8, ?9, ?10, ?11)`,
     [
       HISTORICAL_RELEASE_ID,
       HISTORICAL_RELEASE_ID,

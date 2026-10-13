@@ -50,9 +50,10 @@ function fixture() {
       VALUES(?,'dataset',?,?,'2026-Q2','processing')`)
       .run(resourceReleaseId, `sr-${resourceReleaseId}`, sourceVersion)
     meta
-      .query(`INSERT INTO resourceReleases(id,sourceReleaseId,datasetId,resourceType,code,sourceVersion,cohortKey,status)
-      VALUES(?,?,'dataset','divisionStatistic',?,?,'2026-Q2','processing')`)
-      .run(resourceReleaseId, resourceReleaseId, resourceReleaseId, sourceVersion)
+      .query(
+        `INSERT INTO resourceReleases (id, sourceReleaseId, datasetId, resourceType, code, status) VALUES (?1, ?2, 'dataset', 'divisionStatistic', ?3, 'processing')`,
+      )
+      .run(resourceReleaseId, resourceReleaseId, resourceReleaseId)
     meta
       .query('UPDATE resourceReleases SET processingRules=? WHERE id=?')
       .run(

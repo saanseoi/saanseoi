@@ -14,7 +14,7 @@ export async function geometrySourceChurn(
   resourceReleaseId: string,
   resourceType: 'divisionArea' | 'divisionBoundary',
 ) {
-  const releases = metaSchema.metaResourceReleases
+  const releases = metaSchema.metaResourceReleaseDetails
   const release = await meta
     .select({ datasetId: releases.datasetId, version: releases.sourceVersion })
     .from(releases)

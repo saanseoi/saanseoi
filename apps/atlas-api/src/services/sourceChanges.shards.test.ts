@@ -1,3 +1,4 @@
+import { releaseFixtureSchemaSql } from '../../../../libs/core/src/testing/releaseFixtures'
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { listSourceChanges } from './sourceChanges'
@@ -22,19 +23,28 @@ test('resolves inherited annual source shards and compares a year-boundary basel
     meta.exec(`
       CREATE TABLE publishers(id, code);
       CREATE TABLE datasets(id, code, publisherId, regionCode, sourceVariant);
-      CREATE TABLE sourceReleases(id, code, status, revokedAt);
-      CREATE TABLE resourceReleases(id, code, sourceReleaseId, datasetId, resourceType, sourceVersion, status, revokedAt);
+      ;
+      ${releaseFixtureSchemaSql()};
       CREATE TABLE releaseShardAssignments(resourceReleaseId, dataShardId);
       CREATE TABLE dataShards(id, bindingName, shardType, status);
       INSERT INTO publishers VALUES('publisher','overture');
       INSERT INTO datasets VALUES('dataset','ds-hk-overture-division','publisher','hk',NULL);
-      INSERT INTO sourceReleases VALUES('dec','dec','archived',NULL),('jan','jan','archived',NULL),('feb','feb','current',NULL),('future','future','current',NULL);
-      INSERT INTO resourceReleases VALUES
-        ('dec','dec','dec','dataset','division','2025-12','archived',NULL),
-        ('jan','jan','jan','dataset','division','2026-01','archived',NULL),
-        ('feb','feb','feb','dataset','division','2026-02','current',NULL),
-        ('future','future','future','dataset','division','2027-01','current',NULL),
-        ('other-type','other-type','dec','dataset','divisionArea','2025-12','archived',NULL);
+      INSERT INTO sourceReleases (id, code, status, revokedAt) VALUES('dec','dec','archived',NULL),('jan','jan','archived',NULL),('feb','feb','current',NULL),('future','future','current',NULL);
+      INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status) VALUES ('dec', 'dataset', 'source-' || 'dec', '2025-12', 'archived');
+UPDATE sourceReleases SET sourceVersion = '2025-12' WHERE id = 'dec';
+INSERT INTO resourceReleases (id, code, sourceReleaseId, datasetId, resourceType, status, revokedAt) VALUES ('dec', 'dec', 'dec', 'dataset', 'division', 'archived', NULL);
+INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status) VALUES ('jan', 'dataset', 'source-' || 'jan', '2026-01', 'archived');
+UPDATE sourceReleases SET sourceVersion = '2026-01' WHERE id = 'jan';
+INSERT INTO resourceReleases (id, code, sourceReleaseId, datasetId, resourceType, status, revokedAt) VALUES ('jan', 'jan', 'jan', 'dataset', 'division', 'archived', NULL);
+INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status) VALUES ('feb', 'dataset', 'source-' || 'feb', '2026-02', 'current');
+UPDATE sourceReleases SET sourceVersion = '2026-02' WHERE id = 'feb';
+INSERT INTO resourceReleases (id, code, sourceReleaseId, datasetId, resourceType, status, revokedAt) VALUES ('feb', 'feb', 'feb', 'dataset', 'division', 'current', NULL);
+INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status) VALUES ('future', 'dataset', 'source-' || 'future', '2027-01', 'current');
+UPDATE sourceReleases SET sourceVersion = '2027-01' WHERE id = 'future';
+INSERT INTO resourceReleases (id, code, sourceReleaseId, datasetId, resourceType, status, revokedAt) VALUES ('future', 'future', 'future', 'dataset', 'division', 'current', NULL);
+INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status) VALUES ('dec', 'dataset', 'source-' || 'other-type', '2025-12', 'archived');
+UPDATE sourceReleases SET sourceVersion = '2025-12' WHERE id = 'dec';
+INSERT INTO resourceReleases (id, code, sourceReleaseId, datasetId, resourceType, status, revokedAt) VALUES ('other-type', 'other-type', 'dec', 'dataset', 'divisionArea', 'archived', NULL);
       INSERT INTO dataShards VALUES('old','DB_SOURCE_HK_2025','source','active'),('new','DB_SOURCE_HK_2026','source','active'),('future','DB_SOURCE_HK_2027','source','active'),('other','DB_SOURCE_OTHER','source','active');
       INSERT INTO releaseShardAssignments VALUES('dec','old'),('jan','new'),('feb','new'),('future','future'),('other-type','other');
     `)

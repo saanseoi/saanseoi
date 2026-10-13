@@ -117,7 +117,7 @@ export async function hydrateCanonicalSourceDocument(
     }
   }
   if (releases.size) {
-    const release = metaSchema.metaResourceReleases
+    const release = metaSchema.metaResourceReleaseDetails
     const dataset = metaSchema.metaDatasets
     const sourceRelease = metaSchema.metaSourceReleases
     const specifications = await databases.metaDb

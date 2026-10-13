@@ -2,7 +2,7 @@ import {
   and,
   eq,
   metaDatasets,
-  metaResourceReleases,
+  metaResourceReleaseDetails,
   metaSourceReleases,
   metaSnapshotResourceReleases,
 } from '@repo/db'
@@ -42,7 +42,7 @@ export async function loadProvenanceSources(
       result[scope.scopeId] = cached
       continue
     }
-    const releases = metaResourceReleases,
+    const releases = metaResourceReleaseDetails,
       datasets = metaDatasets,
       links = metaSnapshotResourceReleases
     const selection = {

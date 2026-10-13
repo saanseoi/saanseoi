@@ -1,3 +1,4 @@
+import { releaseFixtureSchemaSql } from '../../../../../../libs/core/src/testing/releaseFixtures'
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { prepareSourceOnlyReleaseMetadata } from './sourceOnlyReleaseMetadata'
@@ -21,8 +22,13 @@ test('source-only metadata links the source shard and persists exact historical 
   const db = new Database(':memory:')
   db.exec(`CREATE TABLE dataShards(id TEXT, bindingName TEXT, environment TEXT, shardType TEXT, status TEXT);
     INSERT INTO dataShards VALUES ('source', 'DB_SOURCE_HK_2026', 'preview', 'source', 'active');
-    CREATE TABLE resourceReleases(id TEXT, datasetId TEXT, resourceType TEXT, sourceVersion TEXT, status TEXT, revokedAt TEXT);
-    INSERT INTO resourceReleases VALUES ('old', 'islands', 'divisionArea', '2026-09-01.3', 'current', NULL), ('new', 'islands', 'divisionArea', '2026-10-01.1', 'current', NULL);
+    ${releaseFixtureSchemaSql()};
+    INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status) VALUES (coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'islands' AND sourceVersion = '2026-09-01.3'), 'source-' || 'old'), 'islands', 'source-' || 'old', '2026-09-01.3', 'current');
+UPDATE sourceReleases SET sourceVersion = '2026-09-01.3' WHERE id = coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'islands' AND sourceVersion = '2026-09-01.3'), 'source-' || 'old');
+INSERT INTO resourceReleases (id, datasetId, resourceType, status, revokedAt, sourceReleaseId, code) VALUES ('old', 'islands', 'divisionArea', 'current', NULL, coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'islands' AND sourceVersion = '2026-09-01.3'), 'source-' || 'old'), 'old');
+INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status) VALUES (coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'islands' AND sourceVersion = '2026-10-01.1'), 'source-' || 'new'), 'islands', 'source-' || 'new', '2026-10-01.1', 'current');
+UPDATE sourceReleases SET sourceVersion = '2026-10-01.1' WHERE id = coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'islands' AND sourceVersion = '2026-10-01.1'), 'source-' || 'new');
+INSERT INTO resourceReleases (id, datasetId, resourceType, status, revokedAt, sourceReleaseId, code) VALUES ('new', 'islands', 'divisionArea', 'current', NULL, coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'islands' AND sourceVersion = '2026-10-01.1'), 'source-' || 'new'), 'new');
     CREATE TABLE protomapsIslandFeatures(sourceRecordId TEXT, versionHash TEXT, properties TEXT, sourceGeometry TEXT, validFromRelease TEXT, validToRelease TEXT);
     INSERT INTO protomapsIslandFeatures VALUES
       ('same', 'same', '{"kind":"coastline-land"}', 'null', '2026-09-01.3', NULL),
@@ -118,8 +124,10 @@ test('RVD source-only metadata publishes BEFORE shard and assertion counts witho
   const db = new Database(':memory:')
   db.exec(`CREATE TABLE dataShards(id TEXT, bindingName TEXT, environment TEXT, shardType TEXT, status TEXT);
     INSERT INTO dataShards VALUES ('before', 'DB_SOURCE_HK_BEFORE', 'preview', 'source', 'active');
-    CREATE TABLE resourceReleases(id TEXT, datasetId TEXT, resourceType TEXT, sourceVersion TEXT, status TEXT, revokedAt TEXT);
-    INSERT INTO resourceReleases VALUES ('rvd', 'rvd', 'division', '2015-04-30.0', 'current', NULL);
+    ${releaseFixtureSchemaSql()};
+    INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status) VALUES (coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'rvd' AND sourceVersion = '2015-04-30.0'), 'source-' || 'rvd'), 'rvd', 'source-' || 'rvd', '2015-04-30.0', 'current');
+UPDATE sourceReleases SET sourceVersion = '2015-04-30.0' WHERE id = coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'rvd' AND sourceVersion = '2015-04-30.0'), 'source-' || 'rvd');
+INSERT INTO resourceReleases (id, datasetId, resourceType, status, revokedAt, sourceReleaseId, code) VALUES ('rvd', 'rvd', 'division', 'current', NULL, coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'rvd' AND sourceVersion = '2015-04-30.0'), 'source-' || 'rvd'), 'rvd');
     CREATE TABLE hkgovRvdAreas(sourceRecordId TEXT, properties TEXT, validFromRelease TEXT, validToRelease TEXT);
     INSERT INTO hkgovRvdAreas VALUES
       ('area', '{"kind":"area"}', '2015-04-30.0', NULL),

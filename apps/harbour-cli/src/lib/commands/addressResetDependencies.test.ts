@@ -76,7 +76,9 @@ test('Address full reset protects exact lookup metadata and external API/source 
       INSERT INTO publishers(id,code,versionHash) VALUES ('publisher','publisher','hash');
       INSERT INTO datasets(id,publisherId,code,regionCode,releaseType,releaseFrequency,theme,versionHash) VALUES ('als','publisher','als','hk','snapshot','daily','address','hash');
       INSERT INTO sourceReleases(id,datasetId,code,sourceVersion,cohortKey,status) VALUES ('als-source','als','als-source','2026','2026','current');
-      INSERT INTO resourceReleases(id,sourceReleaseId,datasetId,resourceType,code,sourceVersion,cohortKey,status) VALUES ('als-release','als-source','als','address','als-release','2026','2026','current');
+      INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status, cohortKey) VALUES ('als-source', 'als', 'source-' || 'als-release', '2026', 'current', '2026');
+UPDATE sourceReleases SET sourceVersion = '2026', cohortKey = '2026' WHERE id = 'als-source';
+INSERT INTO resourceReleases (id, sourceReleaseId, datasetId, resourceType, code, status) VALUES ('als-release', 'als-source', 'als', 'address', 'als-release', 'current');
       INSERT INTO apiVersions(id,code,familyType,version,status,versionHash) VALUES ('places-api','places-api','places','v0','current','hash');
       INSERT INTO apiReleaseSets(id,code,schemaVersion,rulesetVersion,versionHash) VALUES ('places','places','v1','v1','hash');
       INSERT INTO apiVersionReleaseSets(id,apiVersionId,apiReleaseSetId,status,versionHash) VALUES ('places-version','places-api','places','current','hash');

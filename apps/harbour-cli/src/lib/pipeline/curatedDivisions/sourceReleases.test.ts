@@ -1,3 +1,4 @@
+import { releaseFixtureSchemaSql } from '../../../../../../libs/core/src/testing/releaseFixtures'
 import { expect, test } from 'bun:test'
 import { Database } from 'bun:sqlite'
 import { createLocalHarbourDb } from '@repo/core/testing/localDb'
@@ -15,13 +16,15 @@ const source = {
 test('pins upstream archives and source releases independently of synthetic release notes', async () => {
   const sqlite = new Database(':memory:')
   sqlite.exec(`CREATE TABLE datasets(id TEXT PRIMARY KEY, code TEXT);
-    CREATE TABLE sourceReleases(id TEXT PRIMARY KEY, releaseNotesUrl TEXT);
-    CREATE TABLE resourceReleases(id TEXT PRIMARY KEY, datasetId TEXT, sourceReleaseId TEXT, code TEXT, rawObjectKey TEXT, sourceVersion TEXT, resourceType TEXT, status TEXT);
+    ;
+    ${releaseFixtureSchemaSql()};
     CREATE TABLE assets(resourceReleaseId TEXT, sourceReleaseId TEXT, assetKey TEXT, contentHash TEXT, role TEXT);
     CREATE TABLE snapshotResourceReleases(snapshotId TEXT, datasetId TEXT, resourceReleaseId TEXT, role TEXT, anchorReleaseId TEXT, selectedByRule TEXT, selectionMode TEXT, sourceCohortKey TEXT, createdAt TEXT, PRIMARY KEY(snapshotId,resourceReleaseId));
     INSERT INTO datasets VALUES ('upstream-id','upstream');
-    INSERT INTO sourceReleases VALUES ('source-input','/sources/upstream/v1'),('synthetic','/sources/saanseoi/v1');
-    INSERT INTO resourceReleases VALUES ('input','upstream-id','source-input','upstream-v1','materialisation.parquet','v1','division','archived');`)
+    INSERT INTO sourceReleases (id, releaseNotesUrl) VALUES ('source-input','/sources/upstream/v1'),('synthetic','/sources/saanseoi/v1');
+    INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status) VALUES ('source-input', 'upstream-id', 'source-' || 'upstream-v1', 'v1', 'archived');
+UPDATE sourceReleases SET sourceVersion = 'v1' WHERE id = 'source-input';
+INSERT INTO resourceReleases (id, datasetId, sourceReleaseId, code, resourceType, status) VALUES ('input', 'upstream-id', 'source-input', 'upstream-v1', 'division', 'archived');`)
   sqlite
     .query(
       'INSERT INTO assets (resourceReleaseId, assetKey, contentHash, role) VALUES (?,?,?,?)',

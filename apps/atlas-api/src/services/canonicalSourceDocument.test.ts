@@ -1,3 +1,4 @@
+import { releaseFixtureSchemaSql } from '../../../../libs/core/src/testing/releaseFixtures'
 import { Database } from 'bun:sqlite'
 import { drizzle } from 'drizzle-orm/bun-sqlite'
 import { expect, test } from 'bun:test'
@@ -9,11 +10,16 @@ import {
 test('full Statistics specifications preserve each field release rather than substituting the latest release', async () => {
   const sqlite = new Database(':memory:')
   sqlite.exec(`CREATE TABLE datasets(id TEXT,code TEXT);
-    CREATE TABLE sourceReleases(id TEXT,code TEXT);
-    CREATE TABLE resourceReleases(id TEXT,code TEXT,datasetId TEXT,sourceReleaseId TEXT,sourceVersion TEXT,cohortKey TEXT,sourceSchemaVersion TEXT);
+    ;
+    ${releaseFixtureSchemaSql()};
     INSERT INTO datasets VALUES('dataset','ds-statistic');
-    INSERT INTO sourceReleases VALUES('source-old','old-source'),('source-new','new-source');
-    INSERT INTO resourceReleases VALUES('old','old-resource','dataset','source-old','2024','2024','v1'),('new','new-resource','dataset','source-new','2026','2026','v2');`)
+    INSERT INTO sourceReleases (id, code) VALUES('source-old','old-source'),('source-new','new-source');
+    INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status, cohortKey, sourceSchemaVersion) VALUES ('source-old', 'dataset', 'source-' || 'old-resource', '2024', 'current', '2024', 'v1');
+UPDATE sourceReleases SET sourceVersion = '2024', cohortKey = '2024', sourceSchemaVersion = 'v1' WHERE id = 'source-old';
+INSERT INTO resourceReleases (id, code, datasetId, sourceReleaseId, resourceType, status) VALUES ('old', 'old-resource', 'dataset', 'source-old', 'division', 'current');
+INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status, cohortKey, sourceSchemaVersion) VALUES ('source-new', 'dataset', 'source-' || 'new-resource', '2026', 'current', '2026', 'v2');
+UPDATE sourceReleases SET sourceVersion = '2026', cohortKey = '2026', sourceSchemaVersion = 'v2' WHERE id = 'source-new';
+INSERT INTO resourceReleases (id, code, datasetId, sourceReleaseId, resourceType, status) VALUES ('new', 'new-resource', 'dataset', 'source-new', 'division', 'current');`)
   const document = {
     data: [
       {
@@ -66,12 +72,14 @@ test('units responses expand implicit full provenance for both address API versi
 test('Planning geometry references use the selected snapshot release specification', async () => {
   const sqlite = new Database(':memory:')
   sqlite.exec(`CREATE TABLE datasets(id TEXT,code TEXT);
-    CREATE TABLE sourceReleases(id TEXT,code TEXT);
-    CREATE TABLE resourceReleases(id TEXT,code TEXT,datasetId TEXT,sourceReleaseId TEXT,sourceVersion TEXT,cohortKey TEXT,sourceSchemaVersion TEXT);
+    ;
+    ${releaseFixtureSchemaSql()};
     CREATE TABLE snapshotResourceReleases(snapshotId TEXT,datasetId TEXT,resourceReleaseId TEXT,role TEXT);
     INSERT INTO datasets VALUES('dataset','ds-hk-hkgov-pland-division-area-pu');
-    INSERT INTO sourceReleases VALUES('source','planning-source');
-    INSERT INTO resourceReleases VALUES('release','planning-resource','dataset','source','2024','2024','v1');
+    INSERT INTO sourceReleases (id, code) VALUES('source','planning-source');
+    INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status, cohortKey, sourceSchemaVersion) VALUES ('source', 'dataset', 'source-' || 'planning-resource', '2024', 'current', '2024', 'v1');
+UPDATE sourceReleases SET sourceVersion = '2024', cohortKey = '2024', sourceSchemaVersion = 'v1' WHERE id = 'source';
+INSERT INTO resourceReleases (id, code, datasetId, sourceReleaseId, resourceType, status) VALUES ('release', 'planning-resource', 'dataset', 'source', 'division', 'current');
     INSERT INTO snapshotResourceReleases VALUES('selected','dataset','release','primary');`)
   const document = {
     data: {

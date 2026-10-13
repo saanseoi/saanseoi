@@ -1,5 +1,19 @@
 # Dataset pipeline
 
+## Source metadata ownership
+
+`sourceReleases` owns the publisher artefact's `sourceVersion`, `sourceSchemaVersion`,
+`publicationDate`, `cohortKey`, and `releaseNotesUrl`. Each `resourceReleases` row
+references one source release and retains its resource identity, geometry status,
+processing evidence, and independent lifecycle state. The `resourceReleaseDetails` view
+joins resource state to authoritative source metadata without storing another copy.
+
+A composite foreign key requires the resource and source release to belong to the same
+dataset. A source release has at most one materialisation per resource type.
+Registration and retry may fill missing source metadata; conflicting supplied values are
+rejected before a resource is registered or reset. Omitted optional metadata does not
+clear a retained value.
+
 ## Source and resource release states
 
 Source and resource releases use `uploading`, `staged`, `processing`, `current`,

@@ -1,6 +1,6 @@
 import { landsdPlaceNameLocales, type LandsdPlaceName } from './landsdPlaceNames'
 import { and, desc, eq, gt, isNull, lt, lte, or } from 'drizzle-orm'
-import { metaResourceReleases, sourceSchema } from '@repo/db'
+import { metaResourceReleaseDetails, sourceSchema } from '@repo/db'
 import type { HarbourReadableDb } from '../../../lib/db/types'
 import { buildSourceChurnCounts, type SourceChurnRecord } from './sourceChurn'
 import {
@@ -68,7 +68,7 @@ export async function loadLandsdSourceStats(
   resourceReleaseId: string,
   sourceVersion: string,
 ) {
-  const releases = metaResourceReleases
+  const releases = metaResourceReleaseDetails
   const release = await meta
     .select({ datasetId: releases.datasetId, resourceType: releases.resourceType })
     .from(releases)

@@ -152,79 +152,18 @@ describe('reporting service', () => {
           ('release-2', 'hkgov-dpo-hk-address', 'sr-release-2', '2026-06-25.0', '2026-06', 'current'),
           ('release-3', 'hkgov-dpo-hk-address', 'sr-release-3', '2026-06-24.0', '2026-06', 'current'),
           ('release-4', 'hkgov-dpo-hk-address', 'sr-release-4', '2026-06-23.0', '2026-06', 'current');
-        INSERT INTO resourceReleases (id, sourceReleaseId, datasetId, code, resourceType, sourceVersion, sourceSchemaVersion, publicationDate, cohortKey, status, revokedAt, revocationReason, supersededByResourceReleaseId, ingestedAt, createdAt, updatedAt) VALUES
-          (
-            'release-1',
-            'release-1',
-            'hkgov-dpo-hk-address',
-            'dr-hk-hkgov-dpo-address-2026-06-26.0',
-            'address',
-            '2026-06-26.0',
-            null,
-            null,
-            '2026-06',
-            'current',
-            null,
-            null,
-            null,
-            1761436800000,
-            1761436800000,
-            1761436800000
-          ),
-          (
-            'release-2',
-            'release-2',
-            'hkgov-dpo-hk-address',
-            'dr-hk-hkgov-dpo-address-2026-06-25.0',
-            'address',
-            '2026-06-25.0',
-            null,
-            null,
-            '2026-06',
-            'current',
-            null,
-            null,
-            null,
-            1761350400000,
-            1761350400000,
-            1761350400000
-          ),
-          (
-            'release-3',
-            'release-3',
-            'hkgov-dpo-hk-address',
-            'dr-hk-hkgov-dpo-address-2026-06-24.0',
-            'address',
-            '2026-06-24.0',
-            null,
-            null,
-            '2026-06',
-            'current',
-            null,
-            null,
-            null,
-            1761264000000,
-            1761264000000,
-            1761264000000
-          ),
-          (
-            'release-4',
-            'release-4',
-            'hkgov-dpo-hk-address',
-            'dr-hk-hkgov-dpo-address-2026-06-23.0',
-            'address',
-            '2026-06-23.0',
-            null,
-            null,
-            '2026-06',
-            'current',
-            null,
-            null,
-            null,
-            1761177600000,
-            1761177600000,
-            1761177600000
-          );
+        INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status, sourceSchemaVersion, publicationDate, cohortKey) VALUES ('release-1', 'hkgov-dpo-hk-address', 'source-' || 'dr-hk-hkgov-dpo-address-2026-06-26.0', '2026-06-26.0', 'current', null, null, '2026-06');
+UPDATE sourceReleases SET sourceVersion = '2026-06-26.0', sourceSchemaVersion = null, publicationDate = null, cohortKey = '2026-06' WHERE id = 'release-1';
+INSERT INTO resourceReleases (id, sourceReleaseId, datasetId, code, resourceType, status, revokedAt, revocationReason, supersededByResourceReleaseId, ingestedAt, createdAt, updatedAt) VALUES ('release-1', 'release-1', 'hkgov-dpo-hk-address', 'dr-hk-hkgov-dpo-address-2026-06-26.0', 'address', 'current', null, null, null, 1761436800000, 1761436800000, 1761436800000);
+INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status, sourceSchemaVersion, publicationDate, cohortKey) VALUES ('release-2', 'hkgov-dpo-hk-address', 'source-' || 'dr-hk-hkgov-dpo-address-2026-06-25.0', '2026-06-25.0', 'current', null, null, '2026-06');
+UPDATE sourceReleases SET sourceVersion = '2026-06-25.0', sourceSchemaVersion = null, publicationDate = null, cohortKey = '2026-06' WHERE id = 'release-2';
+INSERT INTO resourceReleases (id, sourceReleaseId, datasetId, code, resourceType, status, revokedAt, revocationReason, supersededByResourceReleaseId, ingestedAt, createdAt, updatedAt) VALUES ('release-2', 'release-2', 'hkgov-dpo-hk-address', 'dr-hk-hkgov-dpo-address-2026-06-25.0', 'address', 'current', null, null, null, 1761350400000, 1761350400000, 1761350400000);
+INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status, sourceSchemaVersion, publicationDate, cohortKey) VALUES ('release-3', 'hkgov-dpo-hk-address', 'source-' || 'dr-hk-hkgov-dpo-address-2026-06-24.0', '2026-06-24.0', 'current', null, null, '2026-06');
+UPDATE sourceReleases SET sourceVersion = '2026-06-24.0', sourceSchemaVersion = null, publicationDate = null, cohortKey = '2026-06' WHERE id = 'release-3';
+INSERT INTO resourceReleases (id, sourceReleaseId, datasetId, code, resourceType, status, revokedAt, revocationReason, supersededByResourceReleaseId, ingestedAt, createdAt, updatedAt) VALUES ('release-3', 'release-3', 'hkgov-dpo-hk-address', 'dr-hk-hkgov-dpo-address-2026-06-24.0', 'address', 'current', null, null, null, 1761264000000, 1761264000000, 1761264000000);
+INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status, sourceSchemaVersion, publicationDate, cohortKey) VALUES ('release-4', 'hkgov-dpo-hk-address', 'source-' || 'dr-hk-hkgov-dpo-address-2026-06-23.0', '2026-06-23.0', 'current', null, null, '2026-06');
+UPDATE sourceReleases SET sourceVersion = '2026-06-23.0', sourceSchemaVersion = null, publicationDate = null, cohortKey = '2026-06' WHERE id = 'release-4';
+INSERT INTO resourceReleases (id, sourceReleaseId, datasetId, code, resourceType, status, revokedAt, revocationReason, supersededByResourceReleaseId, ingestedAt, createdAt, updatedAt) VALUES ('release-4', 'release-4', 'hkgov-dpo-hk-address', 'dr-hk-hkgov-dpo-address-2026-06-23.0', 'address', 'current', null, null, null, 1761177600000, 1761177600000, 1761177600000);
 
         INSERT INTO stats (
           id, resourceReleaseId, category, measure, unit, value, dimension, dimensionValue, createdAt, updatedAt
@@ -299,61 +238,15 @@ describe('reporting service', () => {
           ('release-1', 'hkgov-dpo-hk-address', 'sr-release-1', '2026-06-26.0', '2026-06', 'current'),
           ('release-2', 'hkgov-dpo-hk-address', 'sr-release-2', '2026-06-25.0', '2026-06', 'current'),
           ('release-3', 'hkgov-dpo-hk-address', 'sr-release-3', '2026-06-24.0', '2026-06', 'current');
-        INSERT INTO resourceReleases (id, sourceReleaseId, datasetId, code, resourceType, sourceVersion, sourceSchemaVersion, publicationDate, cohortKey, status, revokedAt, revocationReason, supersededByResourceReleaseId, ingestedAt, createdAt, updatedAt) VALUES
-          (
-            'release-1',
-            'release-1',
-            'hkgov-dpo-hk-address',
-            'dr-hk-hkgov-dpo-address-2026-06-26.0',
-            'address',
-            '2026-06-26.0',
-            null,
-            null,
-            '2026-06',
-            'current',
-            null,
-            null,
-            null,
-            1761436800000,
-            1761436800000,
-            1761436800000
-          ),
-          (
-            'release-2',
-            'release-2',
-            'hkgov-dpo-hk-address',
-            'dr-hk-hkgov-dpo-address-2026-06-25.0',
-            'address',
-            '2026-06-25.0',
-            null,
-            null,
-            '2026-06',
-            'current',
-            null,
-            null,
-            null,
-            1761350400000,
-            1761350400000,
-            1761350400000
-          ),
-          (
-            'release-3',
-            'release-3',
-            'hkgov-dpo-hk-address',
-            'dr-hk-hkgov-dpo-address-2026-06-24.0',
-            'address',
-            '2026-06-24.0',
-            null,
-            null,
-            '2026-06',
-            'current',
-            null,
-            null,
-            null,
-            1761264000000,
-            1761264000000,
-            1761264000000
-          );
+        INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status, sourceSchemaVersion, publicationDate, cohortKey) VALUES ('release-1', 'hkgov-dpo-hk-address', 'source-' || 'dr-hk-hkgov-dpo-address-2026-06-26.0', '2026-06-26.0', 'current', null, null, '2026-06');
+UPDATE sourceReleases SET sourceVersion = '2026-06-26.0', sourceSchemaVersion = null, publicationDate = null, cohortKey = '2026-06' WHERE id = 'release-1';
+INSERT INTO resourceReleases (id, sourceReleaseId, datasetId, code, resourceType, status, revokedAt, revocationReason, supersededByResourceReleaseId, ingestedAt, createdAt, updatedAt) VALUES ('release-1', 'release-1', 'hkgov-dpo-hk-address', 'dr-hk-hkgov-dpo-address-2026-06-26.0', 'address', 'current', null, null, null, 1761436800000, 1761436800000, 1761436800000);
+INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status, sourceSchemaVersion, publicationDate, cohortKey) VALUES ('release-2', 'hkgov-dpo-hk-address', 'source-' || 'dr-hk-hkgov-dpo-address-2026-06-25.0', '2026-06-25.0', 'current', null, null, '2026-06');
+UPDATE sourceReleases SET sourceVersion = '2026-06-25.0', sourceSchemaVersion = null, publicationDate = null, cohortKey = '2026-06' WHERE id = 'release-2';
+INSERT INTO resourceReleases (id, sourceReleaseId, datasetId, code, resourceType, status, revokedAt, revocationReason, supersededByResourceReleaseId, ingestedAt, createdAt, updatedAt) VALUES ('release-2', 'release-2', 'hkgov-dpo-hk-address', 'dr-hk-hkgov-dpo-address-2026-06-25.0', 'address', 'current', null, null, null, 1761350400000, 1761350400000, 1761350400000);
+INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status, sourceSchemaVersion, publicationDate, cohortKey) VALUES ('release-3', 'hkgov-dpo-hk-address', 'source-' || 'dr-hk-hkgov-dpo-address-2026-06-24.0', '2026-06-24.0', 'current', null, null, '2026-06');
+UPDATE sourceReleases SET sourceVersion = '2026-06-24.0', sourceSchemaVersion = null, publicationDate = null, cohortKey = '2026-06' WHERE id = 'release-3';
+INSERT INTO resourceReleases (id, sourceReleaseId, datasetId, code, resourceType, status, revokedAt, revocationReason, supersededByResourceReleaseId, ingestedAt, createdAt, updatedAt) VALUES ('release-3', 'release-3', 'hkgov-dpo-hk-address', 'dr-hk-hkgov-dpo-address-2026-06-24.0', 'address', 'current', null, null, null, 1761264000000, 1761264000000, 1761264000000);
 
         INSERT INTO processingRuns (stage, 
           runId, resourceReleaseId, phase, status, results, error, startedAt, finishedAt, createdAt, updatedAt
@@ -579,24 +472,9 @@ function seedRelease(
       '${sourceVersion}', '2026-06', 'current',
       ${timestamp}, ${timestamp}, ${timestamp}
     );
-    INSERT INTO resourceReleases (id, sourceReleaseId, datasetId, code, resourceType, sourceVersion, sourceSchemaVersion, publicationDate, cohortKey, status, revokedAt, revocationReason, supersededByResourceReleaseId, ingestedAt, createdAt, updatedAt) VALUES (
-      '${resourceReleaseId}',
-      '${resourceReleaseId}',
-      'hkgov-dpo-hk-address',
-      '${releaseCode}',
-      'address',
-      '${sourceVersion}',
-      null,
-      null,
-      '2026-06',
-      'current',
-      null,
-      null,
-      null,
-      ${timestamp},
-      ${timestamp},
-      ${timestamp}
-    );
+    INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status, sourceSchemaVersion, publicationDate, cohortKey) VALUES ('${resourceReleaseId}', 'hkgov-dpo-hk-address', 'source-' || '${releaseCode}', '${sourceVersion}', 'current', null, null, '2026-06');
+UPDATE sourceReleases SET sourceVersion = '${sourceVersion}', sourceSchemaVersion = null, publicationDate = null, cohortKey = '2026-06' WHERE id = '${resourceReleaseId}';
+INSERT INTO resourceReleases (id, sourceReleaseId, datasetId, code, resourceType, status, revokedAt, revocationReason, supersededByResourceReleaseId, ingestedAt, createdAt, updatedAt) VALUES ('${resourceReleaseId}', '${resourceReleaseId}', 'hkgov-dpo-hk-address', '${releaseCode}', 'address', 'current', null, null, null, ${timestamp}, ${timestamp}, ${timestamp});
 
     INSERT INTO releaseShardAssignments (resourceReleaseId, dataShardId) VALUES (
       '${resourceReleaseId}',

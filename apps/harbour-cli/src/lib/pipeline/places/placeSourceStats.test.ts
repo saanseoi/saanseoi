@@ -1,3 +1,7 @@
+import {
+  insertReleaseFixture,
+  releaseFixtureSchemaSql,
+} from '../../../../../../libs/core/src/testing/releaseFixtures'
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { drizzle } from 'drizzle-orm/bun-sqlite'
@@ -7,13 +11,21 @@ import { buildPlaceSourceStats, readPlaceSourceStatsRecords } from './placeSourc
 
 function fixture() {
   const meta = new Database(':memory:')
-  meta.exec(`CREATE TABLE resourceReleases (datasetId, resourceType, sourceVersion, status);
-    INSERT INTO resourceReleases VALUES
-      ('places', 'place', '2025-09', 'archived'),
-      ('places', 'place', '2025-10', 'archived'),
-      ('places', 'place', '2025-11', 'failed'),
-      ('other', 'place', '2025-11', 'current'),
-      ('places', 'place', '2026-01', 'current');`)
+  meta.exec(releaseFixtureSchemaSql())
+  for (const [datasetId, sourceVersion, status] of [
+    ['places', '2025-09', 'archived'],
+    ['places', '2025-10', 'archived'],
+    ['places', '2025-11', 'failed'],
+    ['other', '2025-11', 'current'],
+    ['places', '2026-01', 'current'],
+  ] as const)
+    insertReleaseFixture(meta, {
+      id: `${datasetId}-${sourceVersion}`,
+      datasetId,
+      sourceVersion,
+      status,
+      resourceType: 'place',
+    })
   const sources = [new Database(':memory:'), new Database(':memory:')]
   for (const db of sources)
     db.exec(

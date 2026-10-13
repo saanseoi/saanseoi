@@ -39,13 +39,9 @@ test.each(['2026-Q2', '2023-H2'])(
       'source-release', 'dataset', 'source-release-statistics-2026-q2', '2026-Q2',
       '2026-Q2', 'processing', '${NOW}', '${NOW}', '${NOW}'
     );
-    INSERT INTO resourceReleases (
-      id, sourceReleaseId, datasetId, resourceType, code, sourceVersion, cohortKey,
-      status, ingestedAt, createdAt, updatedAt
-    ) VALUES (
-      'release', 'source-release', 'dataset', 'divisionStatistic', 'release-statistics-2026-q2',
-      '2026-Q2', '2026-Q2', 'processing', '${NOW}', '${NOW}', '${NOW}'
-    );
+    INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status, cohortKey) VALUES ('source-release', 'dataset', 'source-' || 'release-statistics-2026-q2', '2026-Q2', 'processing', '2026-Q2');
+UPDATE sourceReleases SET sourceVersion = '2026-Q2', cohortKey = '2026-Q2' WHERE id = 'source-release';
+INSERT INTO resourceReleases (id, sourceReleaseId, datasetId, resourceType, code, status, ingestedAt, createdAt, updatedAt) VALUES ('release', 'source-release', 'dataset', 'divisionStatistic', 'release-statistics-2026-q2', 'processing', '${NOW}', '${NOW}', '${NOW}');
     INSERT INTO dataShards (
       id, shardType, regionCode, year, environment, databaseName, databaseId,
       bindingName, status, versionHash, createdAt, updatedAt
@@ -67,7 +63,7 @@ test.each(['2026-Q2', '2023-H2'])(
       );
   `)
     const db = createLocalHarbourDb(sqlite)
-    sqlite.run('UPDATE resourceReleases SET sourceVersion = ?', [sourceVersion])
+    sqlite.run('UPDATE sourceReleases SET sourceVersion = ?', [sourceVersion])
     sqlite.run('UPDATE dataShards SET year = NULL WHERE id = ?', ['source-2026'])
     if (sourceVersion.startsWith('2026')) {
       sqlite.run('UPDATE dataShards SET year = ? WHERE id = ?', ['2026', 'source-2026'])
@@ -210,13 +206,9 @@ test('rejects a reference period later than the source release cohort', async ()
       'source-release', 'dataset', 'source-release-statistics-2021', '2021',
       '2021', 'processing', '${NOW}', '${NOW}', '${NOW}'
     );
-    INSERT INTO resourceReleases (
-      id, sourceReleaseId, datasetId, resourceType, code, sourceVersion, cohortKey,
-      status, ingestedAt, createdAt, updatedAt
-    ) VALUES (
-      'release', 'source-release', 'dataset', 'divisionStatistic', 'release-statistics-2021',
-      '2021', '2021', 'processing', '${NOW}', '${NOW}', '${NOW}'
-    );
+    INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status, cohortKey) VALUES ('source-release', 'dataset', 'source-' || 'release-statistics-2021', '2021', 'processing', '2021');
+UPDATE sourceReleases SET sourceVersion = '2021', cohortKey = '2021' WHERE id = 'source-release';
+INSERT INTO resourceReleases (id, sourceReleaseId, datasetId, resourceType, code, status, ingestedAt, createdAt, updatedAt) VALUES ('release', 'source-release', 'dataset', 'divisionStatistic', 'release-statistics-2021', 'processing', '${NOW}', '${NOW}', '${NOW}');
   `)
   const db = createLocalHarbourDb(sqlite)
 

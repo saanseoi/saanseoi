@@ -311,19 +311,19 @@ async function listGeometryReleases(
 ): Promise<BackfillRelease[]> {
   const rows = await db
     .select({
-      code: metaSchema.metaResourceReleases.code,
+      code: metaSchema.metaResourceReleaseDetails.code,
       datasetCode: metaSchema.metaDatasets.code,
-      id: metaSchema.metaResourceReleases.id,
+      id: metaSchema.metaResourceReleaseDetails.id,
       regionCode: metaSchema.metaDatasets.regionCode,
-      resourceType: metaSchema.metaResourceReleases.resourceType,
+      resourceType: metaSchema.metaResourceReleaseDetails.resourceType,
       sourceVariant: metaSchema.metaDatasets.sourceVariant,
-      sourceVersion: metaSchema.metaResourceReleases.sourceVersion,
-      status: metaSchema.metaResourceReleases.status,
+      sourceVersion: metaSchema.metaResourceReleaseDetails.sourceVersion,
+      status: metaSchema.metaResourceReleaseDetails.status,
     })
-    .from(metaSchema.metaResourceReleases)
+    .from(metaSchema.metaResourceReleaseDetails)
     .innerJoin(
       metaSchema.metaDatasets,
-      eq(metaSchema.metaResourceReleases.datasetId, metaSchema.metaDatasets.id),
+      eq(metaSchema.metaResourceReleaseDetails.datasetId, metaSchema.metaDatasets.id),
     )
     .all()
   return rows

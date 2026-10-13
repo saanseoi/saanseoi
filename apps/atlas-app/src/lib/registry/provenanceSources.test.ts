@@ -1,24 +1,16 @@
+import { releaseFixtureSchemaSql } from '../../../../../libs/core/src/testing/releaseFixtures'
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { drizzle } from 'drizzle-orm/bun-sqlite'
 import { getTableConfig } from 'drizzle-orm/sqlite-core'
-import {
-  metaDatasets,
-  metaResourceReleases,
-  metaSourceReleases,
-  metaSnapshotResourceReleases,
-} from '@repo/db'
+import { metaDatasets, metaSnapshotResourceReleases } from '@repo/db'
 import { loadProvenanceSources } from './provenanceSources'
 
 test('preprocessing releases require the exact pinned snapshot, owner and source-selection rule', async () => {
   const sqlite = new Database(':memory:')
   try {
-    for (const table of [
-      metaDatasets,
-      metaResourceReleases,
-      metaSourceReleases,
-      metaSnapshotResourceReleases,
-    ]) {
+    sqlite.exec(releaseFixtureSchemaSql())
+    for (const table of [metaDatasets, metaSnapshotResourceReleases]) {
       const config = getTableConfig(table)
       sqlite.exec(
         `CREATE TABLE "${config.name}" (${config.columns.map(column => `"${column.name}" ${column.getSQLType()}`).join(',')})`,
@@ -26,7 +18,18 @@ test('preprocessing releases require the exact pinned snapshot, owner and source
     }
     sqlite.exec(`INSERT INTO datasets(id,code) VALUES ('d','source');
       INSERT INTO sourceReleases(id,datasetId,code) VALUES ('owner','d','reviewed'),('exact','d','frozen'),('future','d','future'),('other','d','other');
-      INSERT INTO resourceReleases(id,datasetId,sourceReleaseId,code,sourceVersion,resourceType) VALUES ('owner','d','owner','reviewed::division','v1','division'),('exact','d','exact','frozen::division','v1','division'),('future','d','future','future::division','v2','division'),('other','d','other','other::division','v1','division');
+      INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status) VALUES ('owner', 'd', 'source-' || 'reviewed::division', 'v1', 'current');
+UPDATE sourceReleases SET sourceVersion = 'v1' WHERE id = 'owner';
+INSERT INTO resourceReleases (id, datasetId, sourceReleaseId, code, resourceType, status) VALUES ('owner', 'd', 'owner', 'reviewed::division', 'division', 'current');
+INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status) VALUES ('exact', 'd', 'source-' || 'frozen::division', 'v1', 'current');
+UPDATE sourceReleases SET sourceVersion = 'v1' WHERE id = 'exact';
+INSERT INTO resourceReleases (id, datasetId, sourceReleaseId, code, resourceType, status) VALUES ('exact', 'd', 'exact', 'frozen::division', 'division', 'current');
+INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status) VALUES ('future', 'd', 'source-' || 'future::division', 'v2', 'current');
+UPDATE sourceReleases SET sourceVersion = 'v2' WHERE id = 'future';
+INSERT INTO resourceReleases (id, datasetId, sourceReleaseId, code, resourceType, status) VALUES ('future', 'd', 'future', 'future::division', 'division', 'current');
+INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status) VALUES ('other', 'd', 'source-' || 'other::division', 'v1', 'current');
+UPDATE sourceReleases SET sourceVersion = 'v1' WHERE id = 'other';
+INSERT INTO resourceReleases (id, datasetId, sourceReleaseId, code, resourceType, status) VALUES ('other', 'd', 'other', 'other::division', 'division', 'current');
       INSERT INTO snapshotResourceReleases(snapshotId,resourceReleaseId,anchorReleaseId,selectedByRule,selectionMode) VALUES
       ('snapshot','exact','owner','provenance:curated-division:build-inputs:v1','exact_ref'),
       ('future-snapshot','future','owner','provenance:curated-division:build-inputs:v1','exact_ref'),

@@ -1,3 +1,4 @@
+import { releaseFixtureSchemaSql } from '../../../../../../libs/core/src/testing/releaseFixtures'
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { join } from 'node:path'
@@ -172,9 +173,11 @@ test('curated references use edition validity, including unchanged records and e
   const meta = new Database(':memory:')
   const source = new Database(':memory:')
   try {
-    meta.exec(`CREATE TABLE resourceReleases(id TEXT, sourceVersion TEXT);
+    meta.exec(`${releaseFixtureSchemaSql()};
       CREATE TABLE snapshotResourceReleases(snapshotId TEXT, resourceReleaseId TEXT, role TEXT);
-      INSERT INTO resourceReleases VALUES('new-release','2026-10-01.0');
+      INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status) VALUES (coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'fixture' AND sourceVersion = '2026-10-01.0'), 'source-' || 'new-release'), 'fixture', 'source-' || 'new-release', '2026-10-01.0', 'current');
+UPDATE sourceReleases SET sourceVersion = '2026-10-01.0' WHERE id = coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'fixture' AND sourceVersion = '2026-10-01.0'), 'source-' || 'new-release');
+INSERT INTO resourceReleases (id, sourceReleaseId, datasetId, code, resourceType, status) VALUES ('new-release', coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'fixture' AND sourceVersion = '2026-10-01.0'), 'source-' || 'new-release'), 'fixture', 'new-release', 'division', 'current');
       INSERT INTO snapshotResourceReleases VALUES('snapshot','new-release','primary');`)
     source.exec(`CREATE TABLE ssDivision(sourceRecordId TEXT, resourceReleaseId TEXT, validFromRelease TEXT, validToRelease TEXT);
       INSERT INTO ssDivision VALUES

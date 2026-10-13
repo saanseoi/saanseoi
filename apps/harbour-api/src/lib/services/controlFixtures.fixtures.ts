@@ -220,20 +220,9 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
         '2024', '2024', 'current'
       );
 
-    INSERT OR IGNORE INTO resourceReleases (
-      id, sourceReleaseId, datasetId, resourceType, code, sourceVersion, sourceSchemaVersion,
-      cohortKey, status, ingestedAt, createdAt,
-      updatedAt
-    ) VALUES
-    (
-      'release-dr-hk-hkgov-censtatd-division-area-district-annual-2024',
-      'release-dr-hk-hkgov-censtatd-division-area-district-annual-2024',
-      'hkgov-censtatd-hk-district-annual', 'divisionArea',
-      'dr-hk-hkgov-censtatd-division-area-district-annual-2024',
-      '2024', '1.0', '2024',
-      'current', '2026-06-05T00:00:00.000Z',
-      '2026-06-05T00:00:00.000Z', '2026-06-05T00:00:00.000Z'
-    );
+    INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status, sourceSchemaVersion, cohortKey) VALUES ('release-dr-hk-hkgov-censtatd-division-area-district-annual-2024', 'hkgov-censtatd-hk-district-annual', 'source-' || 'dr-hk-hkgov-censtatd-division-area-district-annual-2024', '2024', 'current', '1.0', '2024');
+UPDATE sourceReleases SET sourceVersion = '2024', sourceSchemaVersion = '1.0', cohortKey = '2024' WHERE id = 'release-dr-hk-hkgov-censtatd-division-area-district-annual-2024';
+INSERT INTO resourceReleases (id, sourceReleaseId, datasetId, resourceType, code, status, ingestedAt, createdAt, updatedAt) VALUES ('release-dr-hk-hkgov-censtatd-division-area-district-annual-2024', 'release-dr-hk-hkgov-censtatd-division-area-district-annual-2024', 'hkgov-censtatd-hk-district-annual', 'divisionArea', 'dr-hk-hkgov-censtatd-division-area-district-annual-2024', 'current', '2026-06-05T00:00:00.000Z', '2026-06-05T00:00:00.000Z', '2026-06-05T00:00:00.000Z');
 
     INSERT OR IGNORE INTO snapshotResourceReleases (
       snapshotId, datasetId, resourceReleaseId, role
@@ -291,7 +280,9 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
       updatedAt: '2026-06-05T00:00:00.000Z',
     })
     sqlite
-      .query('UPDATE resourceReleases SET sourceSchemaVersion = ? WHERE id = ?')
+      .query(
+        'UPDATE sourceReleases SET sourceSchemaVersion = ? WHERE id = (SELECT sourceReleaseId FROM resourceReleases WHERE id = ?)',
+      )
       .run(release.schemaVersion, resourceReleaseId)
     const datasetId = sqlite
       .query('SELECT datasetId FROM resourceReleases WHERE id = ?')
@@ -314,7 +305,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
       [string]
     >(
       `SELECT r.id AS resourceReleaseId, r.datasetId, r.resourceType, r.cohortKey
-     FROM snapshotResourceReleases sr JOIN resourceReleases r ON r.id = sr.resourceReleaseId
+     FROM snapshotResourceReleases sr JOIN resourceReleaseDetails r ON r.id = sr.resourceReleaseId
      WHERE sr.snapshotId = ? AND r.resourceType IN ('divisionArea', 'divisionBoundary')`,
     )
     .all(snapshotId)

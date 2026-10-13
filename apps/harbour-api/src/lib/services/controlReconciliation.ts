@@ -25,7 +25,7 @@ import {
   metaApiReleaseSetSnapshots,
   metaApiVersions,
   metaDatasets,
-  metaResourceReleases,
+  metaResourceReleaseDetails,
   metaSchema,
   metaSnapshotResourceReleases,
   or,
@@ -175,20 +175,20 @@ async function restoreMissingDivisionReleaseSets(
   regionCode?: 'hk' | 'mo',
 ) {
   const releases = await db
-    .select({ id: metaResourceReleases.id })
-    .from(metaResourceReleases)
-    .innerJoin(metaDatasets, eq(metaResourceReleases.datasetId, metaDatasets.id))
+    .select({ id: metaResourceReleaseDetails.id })
+    .from(metaResourceReleaseDetails)
+    .innerJoin(metaDatasets, eq(metaResourceReleaseDetails.datasetId, metaDatasets.id))
     .where(
       and(
-        eq(metaResourceReleases.resourceType, 'division'),
+        eq(metaResourceReleaseDetails.resourceType, 'division'),
         or(
-          eq(metaResourceReleases.status, 'current'),
-          eq(metaResourceReleases.status, 'archived'),
+          eq(metaResourceReleaseDetails.status, 'current'),
+          eq(metaResourceReleaseDetails.status, 'archived'),
         ),
         regionCode ? eq(metaDatasets.regionCode, regionCode) : undefined,
       ),
     )
-    .orderBy(metaResourceReleases.cohortKey)
+    .orderBy(metaResourceReleaseDetails.cohortKey)
     .all()
   for (const release of releases) {
     const dataset = await getDatasetRecordByReleaseId(db, release.id)
@@ -258,8 +258,8 @@ async function listCurrentReleaseSetStatsTargets(
     .select({
       apiReleaseSetId: metaApiReleaseSets.id,
       cohortKey: metaApiReleaseSets.cohortKey,
-      releaseCode: metaResourceReleases.code,
-      resourceReleaseId: metaResourceReleases.id,
+      releaseCode: metaResourceReleaseDetails.code,
+      resourceReleaseId: metaResourceReleaseDetails.id,
       snapshotId: metaApiReleaseSetSnapshots.snapshotId,
     })
     .from(metaApiReleaseSets)
@@ -289,8 +289,8 @@ async function listCurrentReleaseSetStatsTargets(
       ),
     )
     .innerJoin(
-      metaResourceReleases,
-      eq(metaSnapshotResourceReleases.resourceReleaseId, metaResourceReleases.id),
+      metaResourceReleaseDetails,
+      eq(metaSnapshotResourceReleases.resourceReleaseId, metaResourceReleaseDetails.id),
     )
     .where(
       and(
@@ -314,8 +314,8 @@ async function listCurrentReleaseSetStatsTargets(
           ? eq(metaApiReleaseSets.regionCode, request.regionCode)
           : undefined,
         or(
-          eq(metaResourceReleases.status, 'current'),
-          eq(metaResourceReleases.status, 'archived'),
+          eq(metaResourceReleaseDetails.status, 'current'),
+          eq(metaResourceReleaseDetails.status, 'archived'),
         ),
       ),
     )
@@ -390,14 +390,17 @@ export async function handleBootstrapStatsReleaseSets(
     // Select the source family here; the snapshot lookup below remains the
     // resource-type gate for the Statistics API release set.
     const sourceReleases = await db
-      .select({ id: metaResourceReleases.id })
-      .from(metaResourceReleases)
-      .innerJoin(metaDatasets, eq(metaResourceReleases.datasetId, metaDatasets.id))
+      .select({ id: metaResourceReleaseDetails.id })
+      .from(metaResourceReleaseDetails)
+      .innerJoin(
+        metaDatasets,
+        eq(metaResourceReleaseDetails.datasetId, metaDatasets.id),
+      )
       .where(
         and(
           eq(metaDatasets.regionCode, regionCode),
           eq(metaDatasets.theme, 'stats'),
-          eq(metaResourceReleases.status, 'current'),
+          eq(metaResourceReleaseDetails.status, 'current'),
         ),
       )
       .all()

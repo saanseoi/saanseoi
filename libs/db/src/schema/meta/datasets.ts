@@ -1,9 +1,11 @@
+import { eq, getTableColumns } from 'drizzle-orm'
 import type { MetaTranslations } from './i18n'
 import {
   foreignKey,
   index,
   primaryKey,
   sqliteTable,
+  sqliteView,
   text,
   uniqueIndex,
 } from 'drizzle-orm/sqlite-core'
@@ -159,22 +161,15 @@ export const metaResourceReleases = sqliteTable(
   'resourceReleases',
   {
     id: primaryUuid('id'),
-    sourceReleaseId: text('sourceReleaseId')
-      .notNull()
-      .references(() => metaSourceReleases.id, { onDelete: 'restrict' }),
+    sourceReleaseId: text('sourceReleaseId').notNull(),
     datasetId: text('datasetId')
       .notNull()
       .references(() => metaDatasets.id, { onDelete: 'restrict' }),
     code: text('code').notNull().unique(),
     resourceType: text('resourceType', { enum: datasetTypes }).notNull(),
-    sourceVersion: text('sourceVersion').notNull(),
-    sourceSchemaVersion: text('sourceSchemaVersion'),
-    publicationDate: text('publicationDate'),
-    cohortKey: text('cohortKey'),
     geometryStatus: text('geometryStatus', {
       enum: ['authoritative', 'fallback'],
     }),
-    releaseNotesUrl: text('releaseNotesUrl'),
     status: text('status', { enum: releaseStatuses }).notNull(),
     // Content-addressed reference to the immutable processingRuleDefinitions row.
     // Releases sharing a policy retain the same reference.
@@ -187,11 +182,15 @@ export const metaResourceReleases = sqliteTable(
   },
   table => [
     index('resourceReleases_sourceReleaseId_idx').on(table.sourceReleaseId),
-    uniqueIndex('resourceReleases_datasetId_resourceType_sourceVersion_unique_idx').on(
-      table.datasetId,
+    uniqueIndex('resourceReleases_sourceReleaseId_resourceType_unique_idx').on(
+      table.sourceReleaseId,
       table.resourceType,
-      table.sourceVersion,
     ),
+    foreignKey({
+      columns: [table.sourceReleaseId, table.datasetId],
+      foreignColumns: [metaSourceReleases.id, metaSourceReleases.datasetId],
+      name: 'resourceReleases_sourceReleaseId_datasetId_sourceReleases_fk',
+    }).onDelete('restrict'),
     uniqueIndex('resourceReleases_id_datasetId_unique_idx').on(
       table.id,
       table.datasetId,
@@ -213,3 +212,21 @@ export const metaProcessingRuleDefinitions = sqliteTable('processingRuleDefiniti
   id: text('id').primaryKey(),
   definition: jsonText('definition').notNull(),
 })
+
+/** Read-only resource context. Source metadata has one owner, sourceReleases. */
+export const metaResourceReleaseDetails = sqliteView('resourceReleaseDetails').as(qb =>
+  qb
+    .select({
+      ...getTableColumns(metaResourceReleases),
+      sourceVersion: metaSourceReleases.sourceVersion,
+      sourceSchemaVersion: metaSourceReleases.sourceSchemaVersion,
+      publicationDate: metaSourceReleases.publicationDate,
+      cohortKey: metaSourceReleases.cohortKey,
+      releaseNotesUrl: metaSourceReleases.releaseNotesUrl,
+    })
+    .from(metaResourceReleases)
+    .innerJoin(
+      metaSourceReleases,
+      eq(metaResourceReleases.sourceReleaseId, metaSourceReleases.id),
+    ),
+)

@@ -6,7 +6,7 @@ import {
 } from '@repo/core/db/metaRegistry'
 import type { HarbourReadableDb } from '@repo/core/db/types'
 import {
-  metaResourceReleases,
+  metaResourceReleaseDetails,
   metaSnapshotResourceReleases,
   sourceSchema,
 } from '@repo/db'
@@ -111,11 +111,11 @@ export async function readCuratedDivisionSourceIds(
   snapshotId: string,
 ) {
   const releases = await metaDb
-    .select({ sourceVersion: metaResourceReleases.sourceVersion })
+    .select({ sourceVersion: metaResourceReleaseDetails.sourceVersion })
     .from(metaSnapshotResourceReleases)
     .innerJoin(
-      metaResourceReleases,
-      eq(metaResourceReleases.id, metaSnapshotResourceReleases.resourceReleaseId),
+      metaResourceReleaseDetails,
+      eq(metaResourceReleaseDetails.id, metaSnapshotResourceReleases.resourceReleaseId),
     )
     .where(
       and(
