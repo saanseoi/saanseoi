@@ -9,7 +9,7 @@ type CuratedName = {
   nameAlts: string | null
   nameVariant: string[] | null
   nameRules: Array<{ value: string; variant: string | null }> | null
-  isLocaleInferred: boolean
+  meta: import('@repo/db').I18nMeta
 }
 
 const classes = new Map([
@@ -74,7 +74,7 @@ export function applyCuratedDivisionNames(id: string, names: CuratedName[]) {
         nameAlts: null,
         nameVariant: null,
         nameRules: null,
-        isLocaleInferred: false,
+        meta: { isLocaleInferred: false },
       }
       result.push(row)
     }

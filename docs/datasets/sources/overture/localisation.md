@@ -70,8 +70,8 @@ English, another retained name in locale order, and the parent ID.
   release audit action; Chinese text is never silently kept under `en`
 - Mixed-script values remain one source value unless the publisher supplies separate
   variants. `zh-hant` identifies Traditional Chinese script, not Cantonese
-- Inferred rows are marked with `isLocaleInferred = true`; the raw publisher value is
-  retained, and conflict evidence is recorded in the release audit
+- Inferred rows are marked with `meta.isLocaleInferred = true`; the raw publisher value
+  is retained, and conflict evidence is recorded in the release audit
 
 #### Release audit
 
@@ -171,7 +171,7 @@ genuinely Han Traditional Chinese and the English value contains no Han characte
 - 沒有標籤且只包含拉丁字母及數字的名稱會推斷為 `en`
 - 混合腳本值會保留為一個來源值，不會自行拆分；`zh-hant` 代表繁體中文腳本，不代表粵語
 - 與腳本衝突的來源標籤會被修正，並將來源值及衝突證據記錄在發布審核動作中；推斷值會標記
-  `isLocaleInferred = true`
+  `meta.isLocaleInferred = true`
 - Places 翻譯是可選的，只會翻譯已有目標資料列中缺少的 `name` 或
   `freeformAddress`，不會翻譯品牌或只為翻譯新增資料列
 - 語言標籤與強烈腳本證據衝突時，來源值及衝突證據會記錄在發布審核動作中
@@ -202,7 +202,14 @@ genuinely Han Traditional Chinese and the English value contains no Han characte
 - 没有标签且只包含拉丁字母及数字的名称会推断为 `en`
 - 混合脚本值会保留为一个源值，不会自行拆分；`zh-hant` 代表繁体中文脚本，不代表粤语
 - 与脚本冲突的源标签会被修正，并将源值及冲突证据记录在发布审核动作中；推断值会标记
-  `isLocaleInferred = true`
+  `meta.isLocaleInferred = true`
 - Places 翻译是可选的，只会翻译已有目标资料列中缺少的 `name` 或
   `freeformAddress`，不会翻译品牌或只为翻译新增资料列
 - 语言标签与强烈文字脚本证据冲突时，源值及冲突证据会记录在发布审核动作中
+
+## Canonical localisation metadata
+
+Canonical locale rows store metadata in `meta`. See the shared
+[localisation metadata contract](../../i18n-metadata.md) for field origins, locale
+inference and verification. Source evidence remains separate from the canonical metadata
+projection.

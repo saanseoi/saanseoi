@@ -1,3 +1,4 @@
+import { parseI18nMeta } from '@repo/db'
 import { normaliseDivisionCartography } from './divisionCartography'
 import { prcCountryAnchor } from './prcCountryAnchor'
 import type {
@@ -690,8 +691,8 @@ export async function processDivisionDataset(
         storedCanonicalI18n.map(row => ({
           hasAltName: Boolean(row.nameAlts),
           hasName: Boolean(row.name),
-          isLocaleInferred: row.isLocaleInferred,
           locale: row.locale,
+          meta: row.meta,
         })),
       )
       const districtId = resolveDistrictId(normalised.base)
@@ -1651,20 +1652,16 @@ export function resolveDistrictId(base: {
   return ids.size === 1 ? [...ids][0]! : null
 }
 
-export function normaliseDivisionI18nSnapshotRow(row: DivisionI18nPayload) {
+export function normaliseDivisionI18nSnapshotRow(
+  row: DivisionI18nPayload,
+): DivisionI18nPayload {
   return {
     ...row,
-    isLocaleInferred: Boolean(row.isLocaleInferred),
-    nameProvenance:
-      row.nameProvenance ?? (row.isLocaleInferred ? 'inferred' : 'provided'),
+    meta: parseI18nMeta(row.meta),
   } satisfies DivisionI18nPayload
 }
 
-/**
- * Canonical records use an explicit provenance value. This keeps new rows equal
- * to their persisted predecessors when an upstream-provided name has no
- * provenance field of its own.
- */
+/** Preserve independently recorded metadata without inventing missing field origins. */
 export function normaliseDivisionI18nForStorage(rows: DivisionI18nPayload[]) {
   return rows.map(normaliseDivisionI18nSnapshotRow)
 }
@@ -1720,7 +1717,7 @@ export function buildOvertureDivisionLocaleProcessingActions(input: {
     sourceNames: JSON.parse(JSON.stringify(input.rawNames ?? null)),
     normalisedI18n: input.sourceI18n,
   }
-  const inferredI18n = input.sourceI18n.filter(row => row.isLocaleInferred)
+  const inferredI18n = input.sourceI18n.filter(row => row.meta.isLocaleInferred)
   const sourceLocales = new Set(input.sourceI18n.map(row => row.locale))
   const fallbackI18n = input.canonicalI18n.flatMap(row => {
     if (sourceLocales.has(row.locale)) return []
@@ -1780,9 +1777,9 @@ function isDivisionI18nFallbackSource(
     source.name === fallback.name &&
     source.nameAlts === fallback.nameAlts &&
     source.nameRules === fallback.nameRules &&
-    source.nameProvenance === fallback.nameProvenance &&
+    source.meta.fields?.name?.origin === fallback.meta.fields?.name?.origin &&
     source.nameVariant === fallback.nameVariant &&
-    source.isLocaleInferred === fallback.isLocaleInferred
+    source.meta.isLocaleInferred === fallback.meta.isLocaleInferred
   )
 }
 
@@ -1871,12 +1868,15 @@ export function normaliseDivisionI18n(
 
     return {
       divisionId,
-      isLocaleInferred: localisedInferredFlags.get(locale) ?? false,
       locale,
       name: name ?? null,
       nameAlts: alts.length > 0 ? alts.join('|') : null,
       nameRules: nameRules.length > 0 ? nameRules : null,
       nameVariant: values.length > 0 ? values : null,
+      meta: {
+        isLocaleInferred: localisedInferredFlags.get(locale) ?? false,
+        fields: { name: { origin: 'provided' as const } },
+      } as import('@repo/db').I18nMeta,
     } satisfies DivisionI18nPayload
   })
 }

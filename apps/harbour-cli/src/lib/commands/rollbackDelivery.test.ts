@@ -32,7 +32,7 @@ async function fixture() {
     "CREATE TABLE resourceReleases(id TEXT PRIMARY KEY,status TEXT);INSERT INTO resourceReleases VALUES('release','current')",
   )
   current.exec(`INSERT INTO divisions(scopeId,id,class,category,level,hierarchies) VALUES('scope','id','district','administrative',2,'{}'),('other','else','district','administrative',2,'{}');
-    INSERT INTO divisionsI18n(scopeId,divisionId,locale,name,nameProvenance,isLocaleInferred) VALUES('scope','id','en','New term','provided',0),('scope','id','zh-hant','保留','provided',0),('other','else','en','Other name','provided',0);
+    INSERT INTO divisionsI18n(scopeId,divisionId,locale,name,meta) VALUES('scope','id','en','New term',json_object('fields',json_object('name',json_object('origin','provided')),'isLocaleInferred',json(CASE 0 WHEN 1 THEN 'true' ELSE 'false' END))),('scope','id','zh-hant','保留',json_object('fields',json_object('name',json_object('origin','provided')),'isLocaleInferred',json(CASE 0 WHEN 1 THEN 'true' ELSE 'false' END))),('other','else','en','Other name',json_object('fields',json_object('name',json_object('origin','provided')),'isLocaleInferred',json(CASE 0 WHEN 1 THEN 'true' ELSE 'false' END)));
     INSERT INTO divisionPublicationState(scopeId,snapshotId,status,publicationToken,preparedAt) VALUES('scope','new','current','original','date'),('other','other-snapshot','current','other-token','date');`)
   current.exec(
     buildDivisionSearchSyncSql([

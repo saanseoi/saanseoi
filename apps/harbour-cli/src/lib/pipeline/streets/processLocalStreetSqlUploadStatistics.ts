@@ -46,8 +46,8 @@ export function buildStreetStats(
       street.i18n.map(item => ({
         hasAltName: false,
         hasName: Boolean(item.name),
-        isLocaleInferred: false,
         locale: item.locale,
+        meta: { isLocaleInferred: false },
       })),
     )
     for (const districtId of street.districtIds) increment(districtCounts, districtId)

@@ -20,6 +20,7 @@ import { buildSupplementaryAddressRows } from './supplementaryPlaceAddressRows.t
 import policy from './testFixtures/supplementaryAddressPolicy.json'
 
 const english = {
+  meta: { isLocaleInferred: false },
   ...parsedAddressSeed(),
   addressId: 'als-example',
   locale: 'en',
@@ -68,8 +69,12 @@ test('English edits preserve unchanged Chinese names, translate vocabulary and m
     phaseExpression: '第2期',
   })
   expect(values[1]?.formattedAddress).toContain('示例路20–24號')
-  expect(values[1]?.provenance?.isHumanVerified).toEqual([])
-  expect(values[1]?.provenance?.isMachineTranslated).toContain('buildingNumberTo')
+  expect(
+    Object.values(values[1]?.meta?.fields ?? {}).every(
+      field => field?.isHumanVerified !== true,
+    ),
+  ).toBe(true)
+  expect(values[1]?.meta?.fields?.buildingNumberTo?.origin).toBe('ai-translated')
   expect(
     localiseEditedAddress(
       { ...edited, buildingName: 'New Proper Name' },
@@ -132,10 +137,12 @@ test('New Address decisions replay without an ALS base and retain localisation p
   })
   expect(rows[0]?.current.districtId).toBeNull()
   expect(
-    first.entry?.values.find(value => value.locale === 'zh-hant')?.provenance
-      ?.isHumanVerified,
-  ).toEqual([])
-  expect(rows[0]?.i18n[1]).not.toHaveProperty('provenance')
+    first.entry?.values.find(value => value.locale === 'zh-hant')?.meta?.fields,
+  ).toMatchObject({ formattedAddress: { origin: 'ai-translated' } })
+  expect(rows[0]?.i18n[1]).toHaveProperty(
+    'meta.fields.formattedAddress.origin',
+    'ai-translated',
+  )
 })
 
 test('Place geometry overrides replay from an explicit ALS decision', () => {
@@ -236,6 +243,7 @@ test('unlinked decisions survive unit changes but reopen a changed 2D address', 
 
 test('review note omits missing components and previous links; candidate uses the DB formatted address', () => {
   const candidate = {
+    meta: { isLocaleInferred: false },
     addressId: english.addressId,
     score: 120,
     distanceMetres: 12.4,

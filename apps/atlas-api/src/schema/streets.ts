@@ -1,3 +1,4 @@
+import { I18nMetaSchema } from './i18nMeta'
 import { z } from '@hono/zod-openapi'
 import {
   streetChangelogKinds,
@@ -28,6 +29,7 @@ export type StreetAsset = z.infer<typeof StreetAssetSchema>
 
 const StreetLocaleSchema = z
   .object({
+    meta: I18nMetaSchema,
     description: z.string().nullable(),
     name: z.string(),
   })

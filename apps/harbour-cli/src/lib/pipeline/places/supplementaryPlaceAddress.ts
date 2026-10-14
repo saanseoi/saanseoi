@@ -31,11 +31,7 @@ export type SupplementaryPolicy = {
 }
 export type SupplementaryValues = Omit<PlaceAddressDefinition, 'addressId'> & {
   formattedAddress: string
-  provenance?: {
-    isHumanVerified: string[]
-    isMachineTranslated: string[]
-    isLocaleInferred: boolean
-  }
+  meta?: import('@repo/db').I18nMeta
 }
 export type SupplementaryEntry = {
   placeId: string

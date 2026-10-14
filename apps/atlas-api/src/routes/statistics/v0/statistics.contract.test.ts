@@ -375,9 +375,21 @@ describe('Statistics API responses through the Worker route', () => {
             attributes: {
               fieldName: 'totalPopulation',
               i18n: {
-                en: { name: 'Total population', description: 'Number of people.' },
-                'zh-hant': { name: '總人口', description: '人口數目。' },
-                'zh-hans': { name: '总人口', description: '人口数目。' },
+                en: {
+                  meta: { isLocaleInferred: false },
+                  name: 'Total population',
+                  description: 'Number of people.',
+                },
+                'zh-hant': {
+                  meta: { isLocaleInferred: false },
+                  name: '總人口',
+                  description: '人口數目。',
+                },
+                'zh-hans': {
+                  meta: { isLocaleInferred: false },
+                  name: '总人口',
+                  description: '人口数目。',
+                },
               },
             },
           },

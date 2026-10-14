@@ -446,8 +446,8 @@ function seedCurrent(sqlite: Database) {
         run(
           sqlite,
           `INSERT INTO divisionsI18n
-            (scopeId, divisionId, locale, name, nameVariant, nameAlts, nameRules, isLocaleInferred, createdAt, updatedAt)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            (scopeId, divisionId, locale, name, nameVariant, nameAlts, nameRules,meta, createdAt, updatedAt)
+            VALUES (?, ?, ?, ?, ?, ?, ?,json_object('isLocaleInferred',json(CASE ? WHEN 1 THEN 'true' ELSE 'false' END)), ?, ?)`,
           [
             `scope:${snapshotId}`,
             division.id,
@@ -615,7 +615,7 @@ function seedHistory(sqlite: Database, snapshotIds: string[]) {
         const i18nVersionHash = `${versionHash}-${locale}`
         run(
           sqlite,
-          `INSERT INTO divisionsI18n (divisionId,locale,name,nameVariant,nameAlts,nameRules,isLocaleInferred,versionHash,sourceReleaseId,snapshotId,isCurrent,createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          `INSERT INTO divisionsI18n (divisionId,locale,name,nameVariant,nameAlts,nameRules,meta,versionHash,sourceReleaseId,snapshotId,isCurrent,createdAt) VALUES (?, ?, ?, ?, ?, ?,json_object('isLocaleInferred',json(CASE ? WHEN 1 THEN 'true' ELSE 'false' END)), ?, ?, ?, ?, ?)`,
           [
             division.id,
             locale,

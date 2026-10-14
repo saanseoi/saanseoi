@@ -87,6 +87,7 @@ const NORMALIZED_I18N_COLUMNS = [
   'runId',
   'sourceRecordId',
   'locale',
+  'meta',
   'formattedAddress',
   'buildingName',
   'buildingNumberExpression',
@@ -142,6 +143,7 @@ const RESOLVED_I18N_COLUMNS = [
   'versionHash',
   'snapshotId',
   'locale',
+  'meta',
   'formattedAddress',
   'buildingName',
   'buildingNumberExpression',
@@ -248,6 +250,7 @@ export function buildAddressSourceSqlImportFiles(
       NORMALIZED_I18N_COLUMNS,
       sourceRows.flatMap(row =>
         row.i18n.map(localised => ({
+          meta: jsonText(localised.meta),
           runId,
           sourceRecordId: row.sourceId,
           locale: localised.locale,
@@ -418,6 +421,7 @@ export function buildAddressHistorySqlImportFile(
       RESOLVED_I18N_COLUMNS,
       artefact.rows.flatMap(row =>
         row.i18n.map(localised => ({
+          meta: jsonText(localised.meta),
           runId,
           addressId: row.addressId,
           versionHash: row.versionHash,
@@ -514,6 +518,7 @@ export function buildAddressCurrentSqlImportFile(
       RESOLVED_I18N_COLUMNS,
       artefact.rows.flatMap(row =>
         row.i18n.map(localised => ({
+          meta: jsonText(localised.meta),
           runId,
           addressId: row.addressId,
           versionHash: row.versionHash,
@@ -686,6 +691,7 @@ CREATE TABLE IF NOT EXISTS ${NORMALIZED_I18N_TABLE} (
   runId TEXT NOT NULL,
   sourceRecordId TEXT NOT NULL,
   locale TEXT NOT NULL,
+  meta TEXT,
   formattedAddress TEXT,
   buildingName TEXT,
   buildingNumberExpression TEXT,
@@ -753,6 +759,7 @@ CREATE TABLE IF NOT EXISTS ${RESOLVED_I18N_TABLE} (
   versionHash TEXT NOT NULL,
   snapshotId TEXT NOT NULL,
   locale TEXT NOT NULL,
+  meta TEXT,
   formattedAddress TEXT NOT NULL,
   buildingName TEXT,
   buildingNumberExpression TEXT,
@@ -890,7 +897,7 @@ WHERE r.runId = ${run}
 ON CONFLICT(id, snapshotId) DO NOTHING;
 INSERT INTO address2dI18n (
   addressId, versionHash, sourceReleaseId, snapshotId,
-  isCurrent, locale, formattedAddress, buildingName,
+  isCurrent, locale, meta, formattedAddress, buildingName,
   buildingNumberExpression, buildingNumberFrom, buildingNumberTo, buildingNumberConnector,
   blockExpression, blockType, blockRef, blockTypeBeforeNumber,
   phaseExpression, phaseName, phaseRef, estateName,
@@ -898,7 +905,7 @@ INSERT INTO address2dI18n (
 )
 SELECT
   i.addressId, i.versionHash, ${resourceReleaseId}, i.snapshotId, 1,
-  i.locale, i.formattedAddress, i.buildingName, i.buildingNumberExpression,
+  i.locale, i.meta, i.formattedAddress, i.buildingName, i.buildingNumberExpression,
   i.buildingNumberFrom, i.buildingNumberTo, i.buildingNumberConnector,
   i.blockExpression, i.blockType, i.blockRef, i.blockTypeBeforeNumber,
   i.phaseExpression, i.phaseName, i.phaseRef, i.estateName, i.streetName,
@@ -1005,14 +1012,14 @@ WHERE EXISTS (
     AND i.addressId = address2dI18n.addressId AND i.locale = address2dI18n.locale
 );
 INSERT INTO address2dI18n (
-  scopeId, addressId, locale, formattedAddress, buildingName,
+  scopeId, addressId, locale, meta, formattedAddress, buildingName,
   buildingNumberExpression, buildingNumberFrom, buildingNumberTo, buildingNumberConnector,
   blockExpression, blockType, blockRef, blockTypeBeforeNumber,
   phaseExpression, phaseName, phaseRef, estateName,
   streetName, createdAt, updatedAt
 )
 SELECT
-  i.snapshotId, i.addressId, i.locale, i.formattedAddress, i.buildingName,
+  i.snapshotId, i.addressId, i.locale, i.meta, i.formattedAddress, i.buildingName,
   i.buildingNumberExpression, i.buildingNumberFrom, i.buildingNumberTo,
   i.buildingNumberConnector, i.blockExpression, i.blockType, i.blockRef,
   i.blockTypeBeforeNumber, i.phaseExpression, i.phaseName, i.phaseRef,
@@ -1024,6 +1031,7 @@ WHERE i.runId = ${run}
     WHERE r.runId = i.runId AND r.addressId = i.addressId AND r.changed = 1
   )
 ON CONFLICT(scopeId, addressId, locale) DO UPDATE SET
+  meta = excluded.meta,
   formattedAddress = excluded.formattedAddress,
   buildingName = excluded.buildingName,
   buildingNumberExpression = excluded.buildingNumberExpression,
@@ -1040,7 +1048,8 @@ ON CONFLICT(scopeId, addressId, locale) DO UPDATE SET
   estateName = excluded.estateName,
   streetName = excluded.streetName,
   updatedAt = excluded.updatedAt
-WHERE address2dI18n.formattedAddress IS NOT excluded.formattedAddress
+WHERE address2dI18n.meta IS NOT excluded.meta
+  OR address2dI18n.formattedAddress IS NOT excluded.formattedAddress
   OR address2dI18n.buildingName IS NOT excluded.buildingName
   OR address2dI18n.buildingNumberExpression IS NOT excluded.buildingNumberExpression
   OR address2dI18n.buildingNumberFrom IS NOT excluded.buildingNumberFrom

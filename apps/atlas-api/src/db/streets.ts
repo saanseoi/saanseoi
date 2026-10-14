@@ -10,6 +10,7 @@ export type StreetCurrentRecord = {
   districtIds: string[] | null
   gazetteDate: string | null
   i18n: Array<{
+    meta: import('@repo/db').I18nMeta
     description: string | null
     locale: string
     name: string
@@ -58,6 +59,7 @@ export async function getStreetCurrentById(
   const [i18n, changelog] = await Promise.all([
     db
       .select({
+        meta: streetsI18n.meta,
         description: streetsI18n.description,
         locale: streetsI18n.locale,
         name: streetsI18n.name,

@@ -1,3 +1,4 @@
+import { I18nMetaSchema } from './i18nMeta'
 import { geographicCodeQueryShape } from './geographicCodeFilters'
 import { RegionFilterSchema } from './region'
 import { z } from '@hono/zod-openapi'
@@ -708,12 +709,7 @@ const IncludedStatisticResourceSchema = z.union([
                       null,
                     ],
                   }),
-                isTranslationVerified: z.boolean().openapi({
-                  description: openApiText(
-                    'openapi_statistics_field_i18n_verified_description',
-                  ),
-                  examples: [true, false],
-                }),
+                meta: I18nMetaSchema,
               }),
             )
             .openapi({
@@ -723,12 +719,18 @@ const IncludedStatisticResourceSchema = z.union([
                   en: {
                     name: 'Public rental housing',
                     description: 'Public rental housing',
-                    isTranslationVerified: false,
+                    meta: {
+                      isLocaleInferred: false,
+                      fields: { name: { origin: 'ai-translated' } },
+                    },
                   },
                   'zh-Hant': {
                     name: '公共租住房屋',
                     description: '公共租住房屋',
-                    isTranslationVerified: false,
+                    meta: {
+                      isLocaleInferred: false,
+                      fields: { name: { origin: 'ai-translated' } },
+                    },
                   },
                 },
               ],

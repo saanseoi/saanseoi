@@ -1,3 +1,4 @@
+import { parseI18nMeta } from '@repo/db'
 import type { RequestedApiLocale, RequestedApiLocaleSelection } from '@repo/core'
 import { historyVersionSelection } from '@repo/core/pipeline/db/snapshotReplay.ts'
 import { decompressJsonBrotli } from '@repo/core/pipeline/services/storage/brotliJson.ts'
@@ -38,6 +39,7 @@ export type DivisionNameRule = {
 }
 
 export type DivisionLocaleValue = {
+  meta: import('@repo/db').I18nMeta
   name: string | null
   nameVariant?: string[] | null
   nameAlts?: string[] | null
@@ -292,7 +294,8 @@ function buildDivisionI18nJsonSelection(localeSelection: DivisionLocaleSelection
         'name', ${divisionsI18n.name},
         'nameVariant', ${divisionsI18n.nameVariant},
         'nameAlts', ${divisionsI18n.nameAlts},
-        'nameRules', ${divisionsI18n.nameRules}
+        'nameRules', ${divisionsI18n.nameRules},
+        'meta', json(${divisionsI18n.meta})
       )
     )
     from ${divisionsI18n}
@@ -330,6 +333,7 @@ function mapDivisionLocaleValue(value: unknown): DivisionLocaleValue {
         : undefined
 
   return {
+    meta: parseI18nMeta(raw.meta),
     name: typeof raw.name === 'string' ? raw.name : null,
     nameVariant: parseOptionalJsonString<string[]>(raw.nameVariant),
     nameAlts,
@@ -480,6 +484,7 @@ export async function listReplayedDivisionRecords(
                 nameVariant: historyDivisionsI18n.nameVariant,
                 nameAlts: historyDivisionsI18n.nameAlts,
                 nameRules: historyDivisionsI18n.nameRules,
+                meta: historyDivisionsI18n.meta,
                 versionHash: historyDivisionsI18n.versionHash,
               })
               .from(historyDivisionsI18n)
@@ -500,6 +505,7 @@ export async function listReplayedDivisionRecords(
           nameVariant: row.nameVariant,
           nameAlts: row.nameAlts,
           nameRules: row.nameRules,
+          meta: row.meta,
         }
         i18nByDivisionId.set(row.divisionId, values)
         expected.delete(`${row.divisionId}\u0000${row.locale}\u0000${row.versionHash}`)

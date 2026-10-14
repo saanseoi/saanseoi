@@ -1,3 +1,4 @@
+import { parseI18nMeta } from '@repo/db'
 import { withPlacePublication } from '../../../services/places'
 import {
   getPublicationReadiness,
@@ -109,21 +110,10 @@ export function placeGeometry({ lat, lng }: PlaceCoordinates) {
 }
 
 export function toPlaceI18nApiRecord<
-  T extends { provenance?: unknown; searchDependencyText?: unknown },
+  T extends { meta?: unknown; searchDependencyText?: unknown },
 >(record: T) {
-  const { provenance, searchDependencyText: _searchDependencyText, ...rest } = record
-  if (!provenance || typeof provenance !== 'object') {
-    return { ...rest, provenance: null }
-  }
-  const value = provenance as Record<string, unknown>
-  return {
-    ...rest,
-    provenance: {
-      isMachineTranslated: stringArray(value.isMachineTranslated),
-      isHumanVerified: stringArray(value.isHumanVerified),
-      isLocaleInferred: value.isLocaleInferred === true,
-    },
-  }
+  const { meta, searchDependencyText: _searchDependencyText, ...rest } = record
+  return { ...rest, meta: parseI18nMeta(meta) }
 }
 
 type PlaceApiRecord<T extends PlaceTaxonomy> = Omit<

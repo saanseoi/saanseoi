@@ -337,8 +337,14 @@ export function collectionStatements(
     insert('address3d', history, 'ON CONFLICT(id,snapshotId) DO NOTHING'),
   ]
   for (const [locale, units] of Object.entries(locales)) {
-    const localeVersionHash = als3dHash({ address3dId: base.id, locale, units })
+    const localeVersionHash = als3dHash({
+      meta: { isLocaleInferred: false, fields: { units: { origin: 'provided' } } },
+      address3dId: base.id,
+      locale,
+      units,
+    })
     const fields = {
+      meta: { isLocaleInferred: false, fields: { units: { origin: 'provided' } } },
       address3dId: base.id,
       locale,
       units,
@@ -348,7 +354,7 @@ export function collectionStatements(
       insert(
         'address3dI18n',
         { ...fields, updatedAt: now, scopeId: currentSnapshotId },
-        'ON CONFLICT(scopeId,address3dId,locale) DO UPDATE SET units=excluded.units,updatedAt=excluded.updatedAt WHERE address3dI18n.units IS NOT excluded.units',
+        'ON CONFLICT(scopeId,address3dId,locale) DO UPDATE SET meta=excluded.meta,units=excluded.units,updatedAt=excluded.updatedAt WHERE address3dI18n.meta IS NOT excluded.meta OR address3dI18n.units IS NOT excluded.units',
       ),
     )
     historyStatements.push(

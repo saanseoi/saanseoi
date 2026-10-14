@@ -48,24 +48,21 @@ test('keeps public localisation provenance trust-oriented', () => {
     locale: 'zh-hant',
     freeformAddress: '中環',
     searchDependencyText: { addressSnapshotId: 'pinned', addressText: 'index input' },
-    provenance: {
-      isMachineTranslated: ['name'],
-      isHumanVerified: [],
+    meta: {
+      fields: { name: { origin: 'ai-translated' } },
       isLocaleInferred: true,
     },
   })
 
   expect(result).toMatchObject({
     freeformAddress: '中環',
-    provenance: {
-      isMachineTranslated: ['name'],
-      isHumanVerified: [],
+    meta: {
+      fields: { name: { origin: 'ai-translated' } },
       isLocaleInferred: true,
     },
   })
-  expect(result.provenance).toEqual({
-    isMachineTranslated: ['name'],
-    isHumanVerified: [],
+  expect(result.meta).toEqual({
+    fields: { name: { origin: 'ai-translated' } },
     isLocaleInferred: true,
   })
   expect(result).not.toHaveProperty('searchDependencyText')

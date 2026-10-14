@@ -638,6 +638,15 @@ Unknown codes return 422. Follow response links so geographicReleaseSet remains 
 Planning geography requires a published spatial crosswalk; retry 503 only after that
 crosswalk is ready. Overlap fractions must not be used as population weights.
 
+## Localisation metadata
+
+For the Places full profile, inspect \`attributes.i18n.{locale}.meta\`.
+\`isLocaleInferred\` describes language assignment. Each recorded entry in
+\`fields\` has an \`origin\` of provided, inferred, ai-translated or human-translated,
+with optional \`isHumanVerified\` and \`translatorId\`. Human verification is
+independent of translation origin. Omitted field metadata is unknown. Marker rendering
+does not require these attributes.
+
 ## Places discovery
 
 Places text search uses the latest published regional release. Search results include

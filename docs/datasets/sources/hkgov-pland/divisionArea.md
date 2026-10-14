@@ -559,3 +559,10 @@ The ranges overlap while progressively finer units appear at closer zooms. These
 settings belong to the Division point, independently of the companion Area geometry.
 Native classes and levels remain intact. CURRENT, HISTORY and the source audit's
 cartography table use the policy in `libs/db/src/divisionCartography.ts`.
+
+## Canonical localisation metadata
+
+Canonical locale rows store metadata in `meta`. See the shared
+[localisation metadata contract](../../i18n-metadata.md) for field origins, locale
+inference and verification. Source evidence remains separate from the canonical metadata
+projection.

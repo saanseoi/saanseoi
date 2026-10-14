@@ -106,8 +106,9 @@ export async function buildSupplementaryAddressRows(input: {
       // Identity-generation inputs remain in the Place curation ledger.
       identifiers: null,
     }
-    const i18n = entry.values.map(({ provenance: _provenance, ...value }) => ({
+    const i18n = entry.values.map(value => ({
       ...value,
+      meta: value.meta ?? { isLocaleInferred: false },
       addressId: id,
     }))
     const versionHash = await createHash(canonical)

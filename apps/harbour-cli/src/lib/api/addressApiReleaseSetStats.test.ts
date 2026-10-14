@@ -174,7 +174,13 @@ INSERT INTO snapshots(id, snapshotLineageId, code, cohortKey, status, parentSnap
             .join(',')}) VALUES(${Object.keys(row)
             .map(() => '?')
             .join(',')})`,
-        ).run(...Object.values(row))
+        ).run(
+          ...Object.entries(row).map(([key, value]) =>
+            key === 'meta' && value !== null && typeof value === 'object'
+              ? JSON.stringify(value)
+              : value,
+          ),
+        )
       },
     })
     const oldChange = eventWriter(earlier, 'one')

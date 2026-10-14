@@ -1,3 +1,4 @@
+import { parseI18nMeta } from '@repo/db'
 import { geographicDivisionClassification } from '@repo/db'
 import type { DivisionI18nPayload, NewDivisionRow } from '@repo/db/currentSchema'
 import type { GeoJsonGeometry } from '../../geojson'
@@ -69,7 +70,7 @@ export function normaliseCuratedDivision(row: Record<string, unknown>) {
       locale,
       nameRules: json(value.nameRules) ?? null,
       nameVariant: json(value.nameVariant) ?? null,
-      isLocaleInferred: Boolean(value.isLocaleInferred),
+      meta: parseI18nMeta(json(value.meta) ?? { isLocaleInferred: false }),
     })) as DivisionI18nPayload[],
     overtureHongKongDivisionClassificationCorrection: null,
     overtureHongKongAreaHierarchyAssignment: null,

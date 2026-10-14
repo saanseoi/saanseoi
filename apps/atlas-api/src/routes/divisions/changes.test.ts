@@ -42,7 +42,13 @@ function fixture() {
     const keys = Object.keys(values)
     db.query(
       `INSERT INTO "${table}" (${keys.map(key => `"${key}"`).join(',')}) VALUES (${keys.map(() => '?').join(',')})`,
-    ).run(...Object.values(values))
+    ).run(
+      ...Object.entries(values).map(([key, value]) =>
+        key === 'meta' && value !== null && typeof value === 'object'
+          ? JSON.stringify(value)
+          : value,
+      ),
+    )
   }
   const timestamps = { createdAt: stamp, updatedAt: stamp }
   insert(meta, 'apiVersions', {
@@ -164,11 +170,11 @@ function fixture() {
         divisionId: id,
         locale: 'en',
         name: label,
-        isLocaleInferred: 0,
         versionHash: `${id}-name`,
         sourceReleaseId: 'source',
         isCurrent: 0,
         createdAt: stamp,
+        meta: { isLocaleInferred: false },
       })
     } else {
       insert(current, 'divisions', { ...base, scopeId: snapshot, updatedAt: stamp })
@@ -177,8 +183,8 @@ function fixture() {
         divisionId: id,
         locale: 'en',
         name: label,
-        isLocaleInferred: 0,
         ...timestamps,
+        meta: { isLocaleInferred: false },
       })
     }
   }

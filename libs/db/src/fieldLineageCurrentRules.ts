@@ -339,8 +339,7 @@ export function currentPlaceFieldRule(apiField: string): CurrentFieldRule | null
       brandNameVariant:
         'brandForLocale.length > 1 ? brandForLocale.slice(1).map(value => value.value) : null',
       freeformAddress: 'addressesForLocale[0]?.value ?? null',
-      provenance:
-        '{ isMachineTranslated: [], isHumanVerified: [], isLocaleInferred: valuesForLocale.some(value => value.inferred) }',
+      meta: '{ isLocaleInferred: valuesForLocale.some(value => value.inferred), fields: publisherFieldOrigins }',
       accessHint: 'selectedLocale.accessHint ?? null',
     }
     if (expressions[locale[1]!])

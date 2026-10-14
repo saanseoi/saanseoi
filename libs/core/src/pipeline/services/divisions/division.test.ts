@@ -818,11 +818,14 @@ describe('normaliseDivisionRow i18n', () => {
     expect(normalised.i18n).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          isLocaleInferred: false,
           locale: 'zh-hant',
           name: '石崗',
           nameAlts: '西人村',
           nameRules: [{ value: '西人村', variant: 'alternate' }],
+          meta: {
+            isLocaleInferred: false,
+            fields: { name: { origin: 'provided' as const } },
+          },
         }),
       ]),
     )
@@ -847,10 +850,13 @@ describe('normaliseDivisionRow i18n', () => {
 
     expect(normalised.i18n).toEqual([
       expect.objectContaining({
-        isLocaleInferred: true,
         locale: 'zh-hant',
         name: '上灣村',
         nameRules: [{ value: '上灣村', variant: 'alternate' }],
+        meta: {
+          isLocaleInferred: true,
+          fields: { name: { origin: 'provided' as const } },
+        },
       }),
     ])
   })
@@ -1264,7 +1270,10 @@ describe('buildOvertureDivisionLocaleProcessingActions', () => {
       {
         ...traditional,
         locale: 'zh-hans',
-        nameProvenance: 'ai-translated' as const,
+        meta: {
+          ...traditional.meta,
+          fields: { name: { origin: 'ai-translated' as const } },
+        },
       },
     ]
 
@@ -1284,19 +1293,25 @@ describe('normaliseDivisionI18nForStorage', () => {
     const incoming = [
       {
         divisionId: 'division-provenance',
-        isLocaleInferred: false,
         locale: 'en',
         name: 'Example',
         nameAlts: null,
         nameRules: null,
         nameVariant: null,
+        meta: {
+          isLocaleInferred: false,
+          fields: { name: { origin: 'provided' as const } },
+        },
       },
     ]
     const persisted = [
       expect.objectContaining({
         divisionId: 'division-provenance',
         locale: 'en',
-        nameProvenance: 'provided',
+        meta: {
+          isLocaleInferred: false,
+          fields: { name: { origin: 'provided' as const } },
+        },
       }),
     ]
 
@@ -1306,7 +1321,10 @@ describe('normaliseDivisionI18nForStorage', () => {
         i18n: [
           {
             ...incoming[0],
-            nameProvenance: 'provided',
+            meta: {
+              isLocaleInferred: false,
+              fields: { name: { origin: 'provided' as const } },
+            },
           },
         ],
       }),

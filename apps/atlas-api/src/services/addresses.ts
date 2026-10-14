@@ -102,7 +102,10 @@ type Address3dResourcePayload = {
     unitCount: number
     sources?: unknown
     units: Address3dUnit[]
-    i18n: Record<string, Record<string, Address3dUnitI18n>>
+    i18n: Record<
+      string,
+      { meta: import('@repo/db').I18nMeta; units: Record<string, Address3dUnitI18n> }
+    >
   }
 }
 
@@ -317,7 +320,7 @@ function createAddress3dResource(args: {
       i18n: Object.fromEntries(
         args.record.i18n
           .filter(row => selectedLocales.has(row.locale))
-          .map(row => [row.locale, row.units]),
+          .map(row => [row.locale, { meta: row.meta, units: row.units }]),
       ),
     },
   }
@@ -512,6 +515,7 @@ function projectAddressI18n(i18n: AddressRecord['i18n'], profile: AddressProfile
     profile !== 'compact'
       ? value
       : {
+          meta: value.meta,
           formattedAddress: value.formattedAddress,
         },
   ])

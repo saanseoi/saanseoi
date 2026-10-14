@@ -249,7 +249,7 @@ export async function buildPlaceSql(
         brandNameAlts: localised.brandNameAlts,
         freeformAddress: localised.freeformAddress,
         accessHint: localised.accessHint ?? null,
-        provenance: localised.provenance,
+        meta: localised.meta,
         searchDependencyText,
         createdAt: now,
         updatedAt: now,

@@ -152,7 +152,7 @@ test('unlinked Places use corrected coordinates and geometry changes invalidate 
       divisionId: 'town',
       locale: 'en',
       name: 'Town',
-      isLocaleInferred: 0,
+      meta: { isLocaleInferred: false },
     })
     insert('divisionAreas', {
       scopeId: 'g-scope',

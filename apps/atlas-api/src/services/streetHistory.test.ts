@@ -31,7 +31,14 @@ test('Street versions retain deletion details and inherited names from inline to
     ])
     expect(deleted[1]).toMatchObject({
       deletedAt: '2026-01-02',
-      i18n: [{ locale: 'en', name: 'Example Road', description: null }],
+      i18n: [
+        {
+          meta: { isLocaleInferred: false },
+          locale: 'en',
+          name: 'Example Road',
+          description: null,
+        },
+      ],
     })
     expect(
       (await getStreetHistory({ history: db }, 'road', metaDb, 'sibling')).map(

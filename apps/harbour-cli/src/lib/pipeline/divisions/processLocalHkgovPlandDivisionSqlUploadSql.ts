@@ -230,7 +230,7 @@ async function buildPlandHistorySql(
     'nameVariant',
     'nameAlts',
     'nameRules',
-    'isLocaleInferred',
+    'meta',
     'versionHash',
     'operation',
     'sourceReleaseId',
@@ -278,8 +278,7 @@ export async function buildPlandCurrentSql(
     'nameVariant',
     'nameAlts',
     'nameRules',
-    'nameProvenance',
-    'isLocaleInferred',
+    'meta',
     'createdAt',
     'updatedAt',
   ]

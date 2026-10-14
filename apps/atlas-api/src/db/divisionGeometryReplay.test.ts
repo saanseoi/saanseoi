@@ -282,7 +282,12 @@ const divisionRecord: DivisionRecord = {
     createdAt: '2026-01-01',
     updatedAt: '2026-01-01',
   },
-  i18n: { en: { name: 'District A' } },
+  i18n: {
+    en: {
+      meta: { isLocaleInferred: false },
+      name: 'District A',
+    },
+  },
 }
 
 test.each([false, true])(

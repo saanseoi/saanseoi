@@ -321,18 +321,18 @@ expiring specification link, followed by a `sourceField -> fieldName` proposal w
 compatible previously reviewed unit suggestion and all three locales inline before
 acceptance. On rejection, the CSDI English name and description are editable defaults.
 Changing either invokes Azure Translator for fresh Chinese defaults; accepted machine
-values are stored with `isTranslationVerified=false`, while official CSDI locale rows
-remain verified. `--yes` refuses every uncurated field. The importer retains the exact
-publisher `Null Option` as the measure's nullable `sourceNullOption`. It does not
-replace SaanSeoi's normalised observation status or automatically admit a unit. When a
-reviewed code is not yet in `fixtures/meta/units`, the CLI prompts for the unit's
-dimension, symbol, English name, and definition, then writes the unit registry with
-Azure-generated Traditional and Simplified Chinese names and definitions before it
-writes that measure's curation decision. Each completed measure decision is written
-immediately to the curation manifest, so an interrupted review can be resumed or
-hand-edited without repeating completed measures. The release page presents the
-resulting measure dictionary in Stats, while Audit remains for processing decisions and
-their evidence.
+values are stored with `meta.fields.{name,description}.isHumanVerified=false`, while
+official CSDI locale rows have `provided` origin. `--yes` refuses every uncurated field.
+The importer retains the exact publisher `Null Option` as the measure's nullable
+`sourceNullOption`. It does not replace SaanSeoi's normalised observation status or
+automatically admit a unit. When a reviewed code is not yet in `fixtures/meta/units`,
+the CLI prompts for the unit's dimension, symbol, English name, and definition, then
+writes the unit registry with Azure-generated Traditional and Simplified Chinese names
+and definitions before it writes that measure's curation decision. Each completed
+measure decision is written immediately to the curation manifest, so an interrupted
+review can be resumed or hand-edited without repeating completed measures. The release
+page presents the resulting measure dictionary in Stats, while Audit remains for
+processing decisions and their evidence.
 
 Where C&SD explicitly declares that an economic-activity-status classification changed,
 the curated field stores a `comparability` caution with the affected earlier reference
@@ -792,3 +792,10 @@ Canonical HISTORY events retain their introducing snapshot and `createdAt`, with
 `updatedAt` column. Mutable CURRENT projections and publication receipts keep their own
 update timestamps. Statistics definitions keyed by `versionHash` retain `createdAt`
 only. See [storage timestamp ownership](../../pipeline.md#storage-timestamp-ownership).
+
+## Canonical localisation metadata
+
+Canonical locale rows store metadata in `meta`. See the shared
+[localisation metadata contract](../../i18n-metadata.md) for field origins, locale
+inference and verification. Source evidence remains separate from the canonical metadata
+projection.

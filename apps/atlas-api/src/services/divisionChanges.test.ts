@@ -236,7 +236,16 @@ test('metadata-only names and hierarchy labels refresh without geocoding', async
   expect(body.data[0]).toMatchObject({
     changedFields: ['hierarchyNames', 'names'],
     canAffectGeocodingMembership: false,
-    after: { attributes: { names: { en: { name: 'New label' } } } },
+    after: {
+      attributes: {
+        names: {
+          en: {
+            meta: { isLocaleInferred: false },
+            name: 'New label',
+          },
+        },
+      },
+    },
     affectedDescendantIds: { before: [], after: [] },
   })
 })
@@ -406,7 +415,12 @@ test('default feed omits polygons and supplies immutable geometry links', async 
   const body = successful(await f.run({ include: undefined }))
   expect(body.data[0]!.after!.membershipGeometry).toBeUndefined()
   expect(body.data[0]!.after!.geometry).toContain('definitionHash=')
-  expect(body.data[0]!.after!.attributes.names).toEqual({ en: { name: 'a' } })
+  expect(body.data[0]!.after!.attributes.names).toEqual({
+    en: {
+      meta: { isLocaleInferred: false },
+      name: 'a',
+    },
+  })
 })
 
 test('Overture inventory geometry changes remain visible in the change feed', async () => {

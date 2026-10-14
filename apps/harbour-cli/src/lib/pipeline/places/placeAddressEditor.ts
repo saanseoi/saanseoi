@@ -120,17 +120,25 @@ export function localiseEditedAddress(
   return [
     {
       ...value,
-      provenance: {
-        isHumanVerified: addressEditorFields.map(([key]) => key),
-        isMachineTranslated: [],
+      meta: {
+        fields: Object.fromEntries(
+          addressEditorFields.map(([key]) => [
+            key,
+            { origin: 'provided' as const, isHumanVerified: true },
+          ]),
+        ),
         isLocaleInferred: false,
       },
     },
     {
       ...chinese,
-      provenance: {
-        isHumanVerified: [],
-        isMachineTranslated: [...generated, 'formattedAddress'],
+      meta: {
+        fields: Object.fromEntries(
+          [...generated, 'formattedAddress'].map(key => [
+            key,
+            { origin: 'ai-translated' as const },
+          ]),
+        ),
         isLocaleInferred: false,
       },
     },

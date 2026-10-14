@@ -7,6 +7,10 @@ solely because it compiles or an LLM generated the wording.
 
 ## Objective coverage
 
+Places full-profile locale values expose `i18n.{locale}.meta`. The hand-over
+instructions distinguish locale inference from field origin and human verification;
+marker clients can use names without requiring metadata.
+
 Place provenance uses `attributes.resourceReleaseId` for the processed resource release
 and `snapshotId` for the canonical snapshot. The hand-over instructions describe these
 identifiers; marker rendering does not require either identifier.

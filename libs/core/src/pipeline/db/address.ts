@@ -396,6 +396,7 @@ async function loadReplayedAddressI18nRows(
     for (const batch of chunkArray(shardVersions, getMaxItemsPerInClause(4))) {
       const candidates = await db
         .select({
+          meta: historySchema.address2dI18n.meta,
           addressId: historySchema.address2dI18n.addressId,
           locale: historySchema.address2dI18n.locale,
           formattedAddress: historySchema.address2dI18n.formattedAddress,
@@ -620,6 +621,7 @@ export async function cloneAddressCurrentSnapshot(
       .select(
         db
           .select({
+            meta: currentSchema.address2dI18n.meta,
             snapshotId: sql<string>`${toSnapshotId}`,
             addressId: currentSchema.address2dI18n.addressId,
             locale: currentSchema.address2dI18n.locale,
@@ -1097,6 +1099,7 @@ async function insertAddressI18nInChunks(
             currentSchema.address2dI18n.locale,
           ],
           set: {
+            meta: excluded('meta'),
             formattedAddress: excluded('formattedAddress'),
             buildingName: excluded('buildingName'),
             buildingNumberExpression: excluded('buildingNumberExpression'),

@@ -1,3 +1,4 @@
+import { parseI18nMeta, type I18nMeta } from '../i18nMeta'
 import type { NotNull } from 'drizzle-orm'
 import { sql } from 'drizzle-orm'
 import type { SQLiteColumnBuilder } from 'drizzle-orm/sqlite-core'
@@ -209,13 +210,7 @@ export function canonicalDivisionI18nColumns<Required extends boolean>(
     nameVariant: jsonText('nameVariant'),
     nameAlts: text('nameAlts'),
     nameRules: jsonText('nameRules'),
-    nameProvenance: text('nameProvenance', {
-      enum: ['provided', 'inferred', 'ai-translated', 'human-translated'],
-    }),
-    isLocaleInferred: requiredColumn(
-      integer('isLocaleInferred', { mode: 'boolean' }),
-      required,
-    ),
+    meta: i18nMetaColumn(required),
   }
 }
 
@@ -442,11 +437,7 @@ export function canonicalStatsMeasureI18nColumns<Required extends boolean>(
     locale: text('locale').notNull(),
     name: requiredColumn(text('name'), required),
     description: text('description'),
-    /** False only when a machine translation filled a missing publisher locale. */
-    isTranslationVerified: requiredColumn(
-      integer('isTranslationVerified', { mode: 'boolean' }).default(true),
-      required,
-    ),
+    meta: i18nMetaColumn(required),
   }
 }
 
@@ -461,11 +452,7 @@ export function canonicalStatsFieldI18nColumns<Required extends boolean>(
     locale: text('locale').notNull(),
     name: requiredColumn(text('name'), required),
     description: text('description'),
-    /** False only when a machine translation filled a missing publisher locale. */
-    isTranslationVerified: requiredColumn(
-      integer('isTranslationVerified', { mode: 'boolean' }).default(true),
-      required,
-    ),
+    meta: i18nMetaColumn(required),
   }
 }
 
@@ -479,6 +466,7 @@ export function canonicalStatsValueI18nColumns<Required extends boolean>(
     dimensionCode: text('dimensionCode').notNull(),
     valueCode: text('valueCode').notNull(),
     locale: text('locale').notNull(),
+    meta: i18nMetaColumn(required),
     name: requiredColumn(text('name'), required),
   }
 }
@@ -544,6 +532,7 @@ export function canonicalAddress2dI18nColumns<Required extends boolean>(
   return {
     addressId: text('addressId').notNull(),
     locale: text('locale').notNull(),
+    meta: i18nMetaColumn(required),
     formattedAddress: requiredColumn(text('formattedAddress'), required),
     buildingName: text('buildingName'),
     buildingNumberExpression: text('buildingNumberExpression'),
@@ -602,6 +591,7 @@ export function canonicalAddress3dI18nColumns<Required extends boolean>(
   return {
     address3dId: text('address3dId').notNull(),
     locale: text('locale').notNull(),
+    meta: i18nMetaColumn(required),
     units: requiredColumn(
       jsonText<Record<string, Address3dUnitI18n>>('units'),
       required,
@@ -668,7 +658,7 @@ export function canonicalPlaceColumns<Required extends boolean>(required: Requir
 export const canonicalPlace = canonicalPlaceColumns(true)
 
 export function canonicalPlaceI18nColumns<Required extends boolean>(
-  _required: Required,
+  required: Required,
 ) {
   return {
     /** Exact dependency text and revision evidence resolved during local preparation. */
@@ -688,17 +678,11 @@ export function canonicalPlaceI18nColumns<Required extends boolean>(
     brandNameAlts: text('brandNameAlts'),
     freeformAddress: text('freeformAddress'),
     accessHint: text('accessHint'),
-    provenance: jsonText<PlaceI18nProvenance>('provenance'),
+    meta: i18nMetaColumn(required),
   }
 }
 
 export const canonicalPlaceI18n = canonicalPlaceI18nColumns(true)
-
-export type PlaceI18nProvenance = {
-  isMachineTranslated: Array<'name' | 'brand' | 'freeformAddress'>
-  isHumanVerified: Array<'name' | 'brand' | 'freeformAddress'>
-  isLocaleInferred: boolean
-}
 
 export function canonicalStreetColumns<Required extends boolean>(required: Required) {
   return {
@@ -732,6 +716,7 @@ export function canonicalStreetI18nColumns<Required extends boolean>(
   return {
     streetId: text('streetId').notNull(),
     locale: text('locale').notNull(),
+    meta: i18nMetaColumn(required),
     name: requiredColumn(text('name'), required),
     base: text('base'),
     designator: text('designator'),
@@ -752,4 +737,14 @@ function requiredColumn<T extends SQLiteColumnBuilder, Required extends boolean>
   return (required ? column.notNull() : column) as Required extends true
     ? NotNull<T>
     : T
+}
+
+/** Live rows have explicit locale metadata; deletion events contain identity only. */
+function i18nMetaColumn<Required extends boolean>(required: Required) {
+  const column = customType<{ data: I18nMeta; driverData: string }>({
+    dataType: () => 'text',
+    fromDriver: value => parseI18nMeta(JSON.parse(value)),
+    toDriver: value => JSON.stringify(parseI18nMeta(value)),
+  })('meta').default({ isLocaleInferred: false })
+  return requiredColumn(column, required)
 }

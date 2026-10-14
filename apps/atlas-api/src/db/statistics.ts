@@ -93,7 +93,7 @@ export type StatisticFieldDefinition = {
     {
       name: string
       description: string | null
-      isTranslationVerified: boolean
+      meta: import('@repo/db').I18nMeta
     }
   >
 }
@@ -107,7 +107,7 @@ export type StatisticMeasureDefinition = {
     {
       name: string
       description: string | null
-      isTranslationVerified: boolean
+      meta: import('@repo/db').I18nMeta
     }
   >
 }
@@ -444,7 +444,7 @@ export async function listStatisticFieldDefinitions(
       definition.i18n[row.locale.toLowerCase()] = {
         name: row.name,
         description: row.description,
-        isTranslationVerified: row.isTranslationVerified,
+        meta: row.meta,
       }
   }
   return [...definitions.values()]
@@ -524,7 +524,7 @@ export async function listStatisticMeasureDefinitions(
       definition.i18n[row.locale.toLowerCase()] = {
         name: row.name,
         description: row.description,
-        isTranslationVerified: row.isTranslationVerified,
+        meta: row.meta,
       }
   }
   return [...definitions.values()]
@@ -688,7 +688,7 @@ async function historicalDictionaryMetadata(
           {
             name: name.name,
             description: name.description,
-            isTranslationVerified: name.isTranslationVerified,
+            meta: name.meta,
           },
         ]),
     )

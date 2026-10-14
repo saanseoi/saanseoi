@@ -78,7 +78,14 @@ test('curated archive preserves locale rows, ancestry evidence and upstream rele
         { id: 'child', class: 'microhood', hierarchies, geometry: null },
         { id: 'parent', class: 'district', hierarchies: { full: [] }, geometry: null },
       ],
-      [{ divisionId: 'child', locale: 'zh-hant', name: '四小龍', isLocaleInferred: 0 }],
+      [
+        {
+          divisionId: 'child',
+          locale: 'zh-hant',
+          name: '四小龍',
+          meta: { isLocaleInferred: false, fields: { name: { origin: 'provided' } } },
+        },
+      ],
     ),
   )
   const result = normaliseDivisionRow(rows[0]!, {
@@ -94,7 +101,7 @@ test('curated archive preserves locale rows, ancestry evidence and upstream rele
   expect(result.i18n[0]).toMatchObject({
     locale: 'zh-hant',
     name: '四小龍',
-    isLocaleInferred: false,
+    meta: { isLocaleInferred: false },
   })
   expect(manifest.sourceReleases).toEqual(sourceReleases)
 })
@@ -209,7 +216,12 @@ test('curated records enter ordinary SQL preparation without adding upstream fix
         class: 'microhood',
         hierarchies: { full: [] },
         geometry: { type: 'Point', coordinates: [114.15, 22.33] },
-        names: { 'zh-hant': { name: '四小龍', isLocaleInferred: false } },
+        names: {
+          'zh-hant': {
+            name: '四小龍',
+            meta: { isLocaleInferred: false },
+          },
+        },
       },
     ]),
   )
@@ -244,7 +256,7 @@ test('curated records enter ordinary SQL preparation without adding upstream fix
   expect(state.records[0]!.canonicalI18n[0]).toMatchObject({
     locale: 'zh-hant',
     name: '四小龍',
-    isLocaleInferred: false,
+    meta: { isLocaleInferred: false },
   })
 })
 

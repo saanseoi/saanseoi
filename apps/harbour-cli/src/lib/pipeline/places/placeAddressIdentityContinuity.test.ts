@@ -38,6 +38,7 @@ function setup() {
       placeId: 'old',
       ...supplementaryIdentity([
         {
+          meta: { isLocaleInferred: false },
           locale: 'en',
           formattedAddress: 'Cafe Building',
           buildingName: null,
@@ -55,6 +56,7 @@ function setup() {
       baseAddressId: null,
       values: [
         {
+          meta: { isLocaleInferred: false },
           locale: 'en',
           formattedAddress: 'Cafe Building',
           buildingName: null,

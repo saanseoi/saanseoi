@@ -249,7 +249,13 @@ function assembleCuratedDivisionsInternal(input: {
         ['en', island.name],
         ['zh-hant', island.zh],
       ])
-        if (name) names.push({ divisionId: id, locale, name, isLocaleInferred: 0 })
+        if (name)
+          names.push({
+            divisionId: id,
+            locale,
+            name,
+            meta: { isLocaleInferred: false, fields: { name: { origin: 'provided' } } },
+          })
     }
     const selected = divisions.get(id)!
     selected.identifiers = JSON.stringify(

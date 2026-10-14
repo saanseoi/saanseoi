@@ -25,8 +25,9 @@ const name = (id: string, value: string, extra = {}) =>
     divisionId: id,
     locale: 'en',
     name: value,
+    meta: { isLocaleInferred: false, fields: { name: { origin: 'provided' } } },
     ...extra,
-  }) as DivisionStatsSnapshot['names'][number]
+  }) as unknown as DivisionStatsSnapshot['names'][number]
 const totals = (rows: ReturnType<typeof buildDivisionStatsFromSnapshots>) =>
   Object.fromEntries(
     rows
@@ -127,7 +128,12 @@ test('name ordering and provenance do not create content churn', () => {
     divisions: [division('a')],
     names: [
       name('a', '甲', { locale: 'zh-hant' }),
-      name('a', 'A', { nameProvenance: 'human-translated' }),
+      name('a', 'A', {
+        meta: {
+          isLocaleInferred: false,
+          fields: { name: { origin: 'human-translated' } },
+        },
+      }),
     ],
   }
   expect(totals(buildDivisionStatsFromSnapshots(after, before)).unchanged_count).toBe(1)
@@ -190,8 +196,8 @@ INSERT INTO snapshots (id, snapshotLineageId, parentSnapshotId) VALUES
       INSERT INTO snapshotShardAssignments (snapshotId, dataShardId) VALUES ('root', 'old'), ('leaf', 'new');`)
     older.exec(`INSERT INTO divisions (id, versionHash, class, level) VALUES ('keep', 'v1', 'district', 2), ('remove', 'v2', 'district', 2);
       INSERT INTO divisionsI18n (divisionId, locale, versionHash, name) VALUES ('keep', 'en', 'n1', 'Kept'), ('remove', 'en', 'n2', 'Removed');
-      UPDATE divisions SET scopeId='root', sourceReleaseId='source';
-      UPDATE divisionsI18n SET scopeId='root', sourceReleaseId='source' ;`)
+      UPDATE divisions SET snapshotId='root', sourceReleaseId='source';
+      UPDATE divisionsI18n SET snapshotId='root', sourceReleaseId='source' ;`)
     newer.exec(
       `INSERT INTO divisions (snapshotId,id,operation) VALUES ('leaf','remove','delete');`,
     )

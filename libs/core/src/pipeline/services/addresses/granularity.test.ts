@@ -12,6 +12,7 @@ import {
 import { createHash } from '../../utils'
 
 const value = {
+  meta: { isLocaleInferred: false },
   locale: 'en',
   formattedAddress: '134 Example Road',
   buildingNumberFrom: '134',
@@ -202,7 +203,14 @@ test('curation version bounds preserve earlier classifications and include numer
 })
 
 test('fingerprints ignore locale row order but retain changed evidence', () => {
-  const bilingual = [...values, { locale: 'zh-hant', formattedAddress: '示例道134號' }]
+  const bilingual = [
+    ...values,
+    {
+      meta: { isLocaleInferred: false },
+      locale: 'zh-hant',
+      formattedAddress: '示例道134號',
+    },
+  ]
   expect(addressGranularityFingerprint(bilingual)).toBe(
     addressGranularityFingerprint([...bilingual].reverse()),
   )

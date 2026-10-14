@@ -321,13 +321,12 @@ export async function buildDivisionSqlState(
           ? await createHash({
               baseVersionHash: versionHash,
               i18n: storedCanonicalI18n.map(localised => ({
-                isLocaleInferred: localised.isLocaleInferred,
-                nameProvenance: localised.nameProvenance,
                 locale: localised.locale,
                 name: localised.name ?? null,
                 nameAlts: localised.nameAlts ?? null,
                 nameRules: localised.nameRules,
                 nameVariant: localised.nameVariant,
+                meta: localised.meta,
               })),
               kind: 'division-i18n',
             })
@@ -350,9 +349,8 @@ export async function buildDivisionSqlState(
         storedCanonicalI18n.map(localised => ({
           hasAltName: Boolean(localised.nameAlts),
           hasName: Boolean(localised.name),
-          isLocaleInferred: localised.isLocaleInferred,
-          nameProvenance: localised.nameProvenance,
           locale: localised.locale,
+          meta: localised.meta,
         })),
       )
       const districtId = resolveDistrictId(normalised.base)

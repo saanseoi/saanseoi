@@ -65,12 +65,21 @@ test('counts dataset-qualified fields, literal availability and localisation wit
     ],
     labels: [
       {
+        snapshotId: 'snapshot',
+        sourceReleaseId: 'release',
+        operation: 'upsert',
+        isCurrent: true,
+        createdAt: '',
         datasetCode: 'a',
         fieldName: 'population',
         versionHash: 'definition-a-population',
         locale: 'zh-Hant',
+        description: null,
         name: 'Population',
-        isTranslationVerified: false,
+        meta: {
+          isLocaleInferred: false,
+          fields: { name: { origin: 'ai-translated', isHumanVerified: false } },
+        },
       },
     ] as StatisticsStatsData['labels'],
   }

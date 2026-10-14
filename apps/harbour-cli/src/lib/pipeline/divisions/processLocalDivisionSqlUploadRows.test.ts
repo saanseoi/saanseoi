@@ -40,8 +40,10 @@ test('a returning base version keeps distinct localisation provenance versions',
                 divisionId: 'division',
                 locale: 'en',
                 name: 'Same name',
-                isLocaleInferred: inferred,
-                nameProvenance: inferred ? 'inferred' : 'provided',
+                meta: {
+                  isLocaleInferred: inferred,
+                  fields: { name: { origin: inferred ? 'inferred' : 'provided' } },
+                },
               },
             ],
           },
@@ -63,7 +65,7 @@ test('a returning base version keeps distinct localisation provenance versions',
     }
     const rows = db
       .query(
-        'SELECT versionHash, isLocaleInferred FROM divisionsI18n ORDER BY isLocaleInferred',
+        "SELECT versionHash, json_extract(meta, '$.isLocaleInferred') AS isLocaleInferred FROM divisionsI18n ORDER BY isLocaleInferred",
       )
       .all() as Array<{ versionHash: string; isLocaleInferred: number }>
     expect(rows).toHaveLength(2)

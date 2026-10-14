@@ -157,7 +157,7 @@ test('displayed automatic name variant agrees with the actual name processor', a
       nameAlts: null,
       nameVariant: null,
       nameRules: null,
-      isLocaleInferred: false,
+      meta: { isLocaleInferred: false },
     },
   ])
   expect(result[0]!.nameAlts).toBe('Example Village')

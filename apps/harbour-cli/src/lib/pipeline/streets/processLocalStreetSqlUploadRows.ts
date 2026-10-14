@@ -1,3 +1,4 @@
+import { providedI18nMeta } from '@repo/db'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import { recordHistoryDeletions } from '@repo/core/pipeline/db/historyDeletions'
 import { currentRowChangedSql } from '@repo/core/pipeline/services/publication/currentWrites.ts'
@@ -90,6 +91,7 @@ export async function listCurrentMaterialisedStreets(
   if (streetRows.length === 0) return []
   const i18nRows = await db
     .select({
+      meta: currentSchema.streetsI18n.meta,
       description: currentSchema.streetsI18n.description,
       locale: currentSchema.streetsI18n.locale,
       name: currentSchema.streetsI18n.name,
@@ -345,6 +347,9 @@ export async function replaceCurrentStreetI18nRows(
     .filter(record => record.status === 'active')
     .flatMap(record =>
       record.i18n.map(item => ({
+        meta:
+          item.meta ??
+          providedI18nMeta(['name', ...(item.description ? ['description'] : [])]),
         base: null,
         createdAt: now,
         description: item.description,
@@ -370,6 +375,7 @@ export async function replaceCurrentStreetI18nRows(
           currentSchema.streetsI18n.locale,
         ],
         set: {
+          meta: sql`excluded.meta`,
           base: sql`excluded.base`,
           description: sql`excluded.description`,
           designator: sql`excluded.designator`,
@@ -380,6 +386,7 @@ export async function replaceCurrentStreetI18nRows(
           updatedAt: sql`excluded.updatedAt`,
         },
         setWhere: currentRowChangedSql('streetsI18n', [
+          'meta',
           'base',
           'description',
           'designator',
@@ -534,6 +541,9 @@ export async function insertHistoryI18nRows(
         .filter(record => record.status === 'active')
         .flatMap(record =>
           record.i18n.map(async item => ({
+            meta:
+              item.meta ??
+              providedI18nMeta(['name', ...(item.description ? ['description'] : [])]),
             base: null,
             createdAt: now,
             description: item.description,
@@ -578,6 +588,9 @@ export async function insertHistoryI18nRows(
       .filter(row => row.status === 'deleted')
       .flatMap(record =>
         record.i18n.map(item => ({
+          meta:
+            item.meta ??
+            providedI18nMeta(['name', ...(item.description ? ['description'] : [])]),
           streetId: record.id,
           snapshotId,
           locale: item.locale,

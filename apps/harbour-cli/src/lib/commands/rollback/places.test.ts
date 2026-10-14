@@ -169,7 +169,10 @@ async function fixture() {
     'd0',
     'division',
     'division-name',
-    { name: 'County', isLocaleInferred: 0 },
+    {
+      name: 'County',
+      meta: { isLocaleInferred: false },
+    },
     'en',
   )
   history(recent, 'divisions', 'd2', 'division', 'division-changed', {

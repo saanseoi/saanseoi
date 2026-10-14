@@ -257,8 +257,8 @@ function seedCurrent(sqlite: Database) {
   run(
     sqlite,
     `INSERT INTO divisionsI18n
-      (scopeId, divisionId, locale, name, isLocaleInferred, createdAt, updatedAt)
-      VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      (scopeId, divisionId, locale, name,meta, createdAt, updatedAt)
+      VALUES (?, ?, ?, ?,json_object('isLocaleInferred',json(CASE ? WHEN 1 THEN 'true' ELSE 'false' END)), ?, ?)`,
     [
       `scope:${DIVISION_SNAPSHOT}`,
       'division-central',
@@ -326,7 +326,7 @@ function seedCurrent(sqlite: Database) {
     run(
       sqlite,
       `INSERT INTO placesI18n
-        (scopeId, placeId, locale, name, brandName, freeformAddress, provenance, createdAt, updatedAt)
+        (scopeId, placeId, locale, name, brandName, freeformAddress, meta, createdAt, updatedAt)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         `scope:${PLACE_SNAPSHOT}`,
@@ -352,7 +352,13 @@ function seedCurrent(sqlite: Database) {
         'division-central',
         JSON.stringify({
           level: 2,
-          locales: [{ locale: 'en', name: 'Central and Western' }],
+          locales: [
+            {
+              meta: { isLocaleInferred: false },
+              locale: 'en',
+              name: 'Central and Western',
+            },
+          ],
         }),
       ],
     )
@@ -376,7 +382,7 @@ function seedHistory(sqlite: Database) {
   )
   run(
     sqlite,
-    `INSERT INTO divisionsI18n (divisionId,locale,name,isLocaleInferred,versionHash,sourceReleaseId,snapshotId,isCurrent,createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO divisionsI18n (divisionId,locale,name,meta,versionHash,sourceReleaseId,snapshotId,isCurrent,createdAt) VALUES (?, ?, ?,json_object('isLocaleInferred',json(CASE ? WHEN 1 THEN 'true' ELSE 'false' END)), ?, ?, ?, ?, ?)`,
     [
       'division-central',
       'en',
@@ -444,13 +450,13 @@ function seedHistory(sqlite: Database) {
     )
     run(
       sqlite,
-      `INSERT INTO placesI18n (placeId,locale,name,freeformAddress,provenance,versionHash,sourceReleaseId,snapshotId,isCurrent,createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO placesI18n (placeId,locale,name,freeformAddress,meta,versionHash,sourceReleaseId,snapshotId,isCurrent,createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         id,
         'en',
         name,
         'Central, Hong Kong',
-        '{}',
+        '{"isLocaleInferred":false}',
         i18nHash,
         'release-overture-2026-08-19',
         PLACE_SNAPSHOT,

@@ -21,7 +21,12 @@ export function division(
       createdAt: '',
       updatedAt: '',
     },
-    i18n: { en: { name: id } },
+    i18n: {
+      en: {
+        meta: { isLocaleInferred: false },
+        name: id,
+      },
+    },
   }
 }
 export const entry = (id: string, klass = 'district') => ({

@@ -33,9 +33,7 @@ test('does not translate Place names or freeform addresses', async () => {
       brandNameAlts: null,
       brandNameVariant: null,
       freeformAddress: null,
-      provenance: {
-        isMachineTranslated: [],
-        isHumanVerified: [],
+      meta: {
         isLocaleInferred: false,
       },
     })

@@ -31,7 +31,7 @@ test('geometry dependency reads use current scope or replay old Division members
     ('removed','v1','parent','r1',0,'district','{"full":[],"administrative":[],"locality":[]}');
     INSERT INTO divisions(id,snapshotId,operation) VALUES('removed','old','delete');
     INSERT INTO divisions(id,versionHash,snapshotId,sourceReleaseId,class,hierarchies) VALUES('inherited','v1','sibling','sibling-release','district','{}');
-    INSERT INTO divisionsI18n(divisionId,locale,snapshotId,versionHash,sourceReleaseId,name,isLocaleInferred) VALUES('inherited','en','parent','name','r1','District',0),('inherited','en','sibling','name','sibling-release','District',0);`)
+    INSERT INTO divisionsI18n(divisionId,locale,snapshotId,versionHash,sourceReleaseId,name,meta) VALUES('inherited','en','parent','name','r1','District',json_object('isLocaleInferred',json(CASE 0 WHEN 1 THEN 'true' ELSE 'false' END))),('inherited','en','sibling','name','sibling-release','District',json_object('isLocaleInferred',json(CASE 0 WHEN 1 THEN 'true' ELSE 'false' END)));`)
   const args = [
     drizzle({ client: current, schema: currentSchema }) as never,
     drizzle({ client: meta, schema: metaSchema }) as never,

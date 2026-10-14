@@ -260,19 +260,19 @@ export function buildDivisionStatsFromSnapshots(
     if (!locale) continue
     if (row.name != null) {
       add(localeStats.count, locale, row.divisionId)
-      const provenance =
-        row.nameProvenance ?? (row.isLocaleInferred ? 'inferred' : 'provided')
-      add(
-        provenance === 'inferred'
-          ? localeStats.inferredCoverage
-          : provenance === 'ai-translated'
-            ? localeStats.aiTranslatedCoverage
-            : provenance === 'human-translated'
-              ? localeStats.humanTranslatedCoverage
-              : localeStats.providedCoverage,
-        locale,
-        row.divisionId,
-      )
+      const provenance = row.meta.fields?.name?.origin
+      if (provenance)
+        add(
+          provenance === 'inferred'
+            ? localeStats.inferredCoverage
+            : provenance === 'ai-translated'
+              ? localeStats.aiTranslatedCoverage
+              : provenance === 'human-translated'
+                ? localeStats.humanTranslatedCoverage
+                : localeStats.providedCoverage,
+          locale,
+          row.divisionId,
+        )
     }
     if (row.nameAlts != null) add(localeStats.altCoverage, locale, row.divisionId)
   }

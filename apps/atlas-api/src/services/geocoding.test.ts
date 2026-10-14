@@ -52,7 +52,13 @@ const address = (
     createdAt: '',
     updatedAt: '',
   },
-  i18n: { en: { formattedAddress: name, buildingName: name } },
+  i18n: {
+    en: {
+      meta: { isLocaleInferred: false },
+      formattedAddress: name,
+      buildingName: name,
+    },
+  },
 })
 function fixture(overrides: Partial<GeocodingDependencies> = {}) {
   const calls: unknown[][] = []

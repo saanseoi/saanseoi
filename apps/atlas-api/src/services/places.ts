@@ -186,7 +186,7 @@ function projectPlaceI18n(
             nameAlts: value.nameAlts,
             brandNameVariant: value.brandNameVariant,
             brandNameAlts: value.brandNameAlts,
-            provenance: value.provenance,
+            meta: value.meta,
           }
         : {}),
     },

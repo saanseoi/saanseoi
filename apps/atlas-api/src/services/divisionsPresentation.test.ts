@@ -28,6 +28,7 @@ test('public division hierarchies retain containment flags without leaking or mu
   }
   const record = division('child', 'administrative', hierarchies)
   record.i18n.en = {
+    meta: { isLocaleInferred: false },
     name: 'Child',
     nameVariant: ['Child', 'Alias'],
     nameAlts: ['Alias'],
@@ -74,6 +75,7 @@ test('public division hierarchies retain containment flags without leaking or mu
         expect(JSON.stringify(resource)).not.toContain('nameVariant')
         if (profile === 'full')
           expect(resource.attributes.i18n?.en).toEqual({
+            meta: { isLocaleInferred: false },
             name: 'Child',
             nameAlts: ['Alias'],
             nameRules: [{ value: 'Alias', variant: 'alternate' }],

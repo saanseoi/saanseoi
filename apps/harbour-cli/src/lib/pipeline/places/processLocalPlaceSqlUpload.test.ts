@@ -169,7 +169,7 @@ describe('Places SQL materialisation', () => {
         scopeId TEXT, placeId TEXT, locale TEXT, name TEXT, nameVariant TEXT,
         nameAlts TEXT, brandName TEXT,
         brandNameVariant TEXT, brandNameAlts TEXT, freeformAddress TEXT, accessHint TEXT,
-        provenance TEXT, searchDependencyText TEXT, createdAt TEXT, updatedAt TEXT
+        meta TEXT, searchDependencyText TEXT, createdAt TEXT, updatedAt TEXT
       );
       CREATE TABLE placesDivision (placeScopeId TEXT, placeId TEXT);
       CREATE TABLE placesCells (scopeId TEXT, id TEXT, h3Level INTEGER, h3Cell TEXT);
@@ -193,7 +193,7 @@ describe('Places SQL materialisation', () => {
         brandName TEXT, brandNameVariant TEXT,
         brandNameAlts TEXT, versionHash TEXT, sourceReleaseId TEXT,
         snapshotId TEXT, isCurrent INTEGER, createdAt TEXT, updatedAt TEXT
-        , freeformAddress TEXT, accessHint TEXT, provenance TEXT, searchDependencyText TEXT
+        , freeformAddress TEXT, accessHint TEXT, meta TEXT, searchDependencyText TEXT
       );
       ALTER TABLE places ADD operation TEXT DEFAULT 'upsert';
       ALTER TABLE placesI18n ADD operation TEXT DEFAULT 'upsert';
@@ -268,9 +268,7 @@ describe('Places SQL materialisation', () => {
                 brandNameVariant: null,
                 brandNameAlts: null,
                 freeformAddress: '1 Example Road',
-                provenance: {
-                  isMachineTranslated: [],
-                  isHumanVerified: [],
+                meta: {
                   isLocaleInferred: false,
                 },
               },
@@ -339,13 +337,9 @@ describe('Places SQL materialisation', () => {
         .get(),
     ).toEqual(i18nVersionHash)
     expect(i18nVersionHash.versionHash).not.toBe(placeVersionHash.versionHash)
-    expect(
-      sqlite.query('SELECT freeformAddress, provenance FROM placesI18n').get(),
-    ).toEqual({
+    expect(sqlite.query('SELECT freeformAddress, meta FROM placesI18n').get()).toEqual({
       freeformAddress: '1 Example Road',
-      provenance: JSON.stringify({
-        isMachineTranslated: [],
-        isHumanVerified: [],
+      meta: JSON.stringify({
         isLocaleInferred: false,
       }),
     })

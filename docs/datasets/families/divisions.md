@@ -2162,3 +2162,10 @@ policy is defined.
 Native policies and their materialiser live in `libs/db/src/divisionCartography.ts`. The
 audit tables read these policy definitions directly; they do not maintain a separate
 copy of the values.
+
+## Localisation metadata
+
+Locale values carry the shared [localisation metadata](../i18n-metadata.md) contract.
+`meta.isLocaleInferred` records language assignment, while `meta.fields` records each
+field's origin, optional human verification and optional translator identity. Metadata
+participates in canonical content hashes and retained locale revisions.

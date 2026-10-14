@@ -1,3 +1,4 @@
+import { I18nMetaSchema } from './i18nMeta'
 import { IdentifiersSchema } from './identifiers'
 import { SourcesSchema } from './sourceAttribution'
 import { geographicCodeQueryShape } from './geographicCodeFilters'
@@ -39,14 +40,17 @@ const Address3dResourceSchema = z
       ),
       i18n: z.record(
         z.string(),
-        z.record(
-          z.string(),
-          z.object({
-            unitExpression: z.string(),
-            floorExpression: z.string(),
-            formattedAddressPart: z.string().optional(),
-          }),
-        ),
+        z.object({
+          meta: I18nMetaSchema,
+          units: z.record(
+            z.string(),
+            z.object({
+              unitExpression: z.string(),
+              floorExpression: z.string(),
+              formattedAddressPart: z.string().optional(),
+            }),
+          ),
+        }),
       ),
     }),
   })
@@ -69,6 +73,7 @@ import {
 
 const AddressI18nAttributesSchema = z
   .object({
+    meta: I18nMetaSchema,
     formattedAddress: z.string().openapi({
       description: openApiText('openapi_addresses_formatted_address_description'),
       examples: [

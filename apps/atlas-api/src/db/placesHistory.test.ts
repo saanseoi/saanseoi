@@ -142,13 +142,13 @@ test('replays Place text and spatial divisions from the selected version without
     }
     run(
       history,
-      `INSERT INTO placesI18n (placeId,locale,name,freeformAddress,provenance,versionHash,sourceReleaseId,snapshotId,isCurrent,createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO placesI18n (placeId,locale,name,freeformAddress,meta,versionHash,sourceReleaseId,snapshotId,isCurrent,createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         'place-1',
         'en',
         'Old Place Name',
         'Old Address Text',
-        '{}',
+        '{"isLocaleInferred":false}',
         'place-old-en-hash',
         'release-old',
         'place-snapshot-old',
@@ -158,13 +158,13 @@ test('replays Place text and spatial divisions from the selected version without
     )
     run(
       history,
-      `INSERT INTO placesI18n (placeId,locale,name,freeformAddress,provenance,versionHash,sourceReleaseId,snapshotId,isCurrent,createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO placesI18n (placeId,locale,name,freeformAddress,meta,versionHash,sourceReleaseId,snapshotId,isCurrent,createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         'place-1',
         'en',
         'Current Place Name',
         'Current Address Text',
-        '{}',
+        '{"isLocaleInferred":false}',
         'place-new-en-hash',
         'release-new',
         'place-snapshot-new',
@@ -252,6 +252,7 @@ test('replays Place text and spatial divisions from the selected version without
       },
       i18n: {
         en: {
+          meta: { isLocaleInferred: false },
           name: 'Old Place Name',
           freeformAddress: 'Old Address Text',
         },

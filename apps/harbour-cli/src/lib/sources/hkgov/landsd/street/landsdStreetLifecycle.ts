@@ -15,6 +15,7 @@ import type { LandsdStreetSourceKind } from './landsdStreet.ts'
 export type LandsdStreetLifecycleLocale = StreetLocaleCode
 
 export type LandsdStreetLifecycleI18n = {
+  meta?: import('@repo/db').I18nMeta
   description: string | null
   locale: LandsdStreetLifecycleLocale
   name: string

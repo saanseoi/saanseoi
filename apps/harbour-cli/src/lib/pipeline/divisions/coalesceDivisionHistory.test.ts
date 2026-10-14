@@ -68,8 +68,8 @@ async function fixture(
         ['en', 'Original'],
         ['zh-hant', '原文'],
       ])
-        db.query(`INSERT INTO divisionsI18n(${isHistory ? 'versionHash,sourceReleaseId,isCurrent,' : ''}isLocaleInferred,${isHistory ? 'snapshotId' : 'scopeId'},divisionId,locale,name,nameVariant,createdAt${isHistory ? '' : ',updatedAt'})
-          VALUES(${isHistory ? "'old-base','release-old',1," : ''}0,?,?,?,?,?,?${isHistory ? '' : ',?'})`).run(
+        db.query(`INSERT INTO divisionsI18n(${isHistory ? 'versionHash,sourceReleaseId,isCurrent,' : ''}meta,${isHistory ? 'snapshotId' : 'scopeId'},divisionId,locale,name,nameVariant,createdAt${isHistory ? '' : ',updatedAt'})
+          VALUES(${isHistory ? "'old-base','release-old',1," : ''}'{"isLocaleInferred":false}',?,?,?,?,?,?${isHistory ? '' : ',?'})`).run(
           isHistory ? 'old' : 'scope',
           'district',
           requireDefined(locale),
@@ -166,7 +166,7 @@ function stage(candidates: ResolvedSqlCandidates, english = 'Original') {
       .run(requireDefined(name), JSON.stringify([name]), requireDefined(locale))
     next
       .query(
-        "INSERT INTO divisionsI18n (versionHash,sourceReleaseId,isCurrent,isLocaleInferred,snapshotId,divisionId,locale,name,nameVariant,createdAt) VALUES ('whole-candidate','release-next',1,0,'next','district',?,?,?,'now')",
+        "INSERT INTO divisionsI18n (versionHash,sourceReleaseId,isCurrent,meta,snapshotId,divisionId,locale,name,nameVariant,createdAt) VALUES ('whole-candidate','release-next',1,json_object('isLocaleInferred',json(CASE 0 WHEN 1 THEN 'true' ELSE 'false' END)),'next','district',?,?,?,'now')",
       )
       .run(requireDefined(locale), requireDefined(name), JSON.stringify([name]))
   }
@@ -360,7 +360,7 @@ test('Division publication after rollback compares against selected A when C rep
       requireDefined(f.candidates.DB_HISTORY_NEW).db,
     ])
       db.exec(`
-        INSERT INTO divisionsI18n (versionHash,sourceReleaseId,isCurrent,isLocaleInferred,snapshotId,divisionId,locale,name,nameVariant,createdAt) VALUES ('branch-b','release-b',1,0,'branch-b','district','en','Revised','["Revised"]','b');
+        INSERT INTO divisionsI18n (versionHash,sourceReleaseId,isCurrent,meta,snapshotId,divisionId,locale,name,nameVariant,createdAt) VALUES ('branch-b','release-b',1,json_object('isLocaleInferred',json(CASE 0 WHEN 1 THEN 'true' ELSE 'false' END)),'branch-b','district','en','Revised','["Revised"]','b');
         `)
     for (const db of [
       requireDefined(f.before.DB_HISTORY_OLD),
@@ -424,11 +424,11 @@ test('Division coalescing permits a new locale with no predecessor', () =>
   fixture(async f => {
     stage(f.candidates)
     requireDefined(f.candidates.DB_CURRENT).db.exec(
-      "INSERT INTO divisionsI18n(scopeId,divisionId,locale,name,isLocaleInferred) VALUES('scope','district','fr','District',0)",
+      "INSERT INTO divisionsI18n(scopeId,divisionId,locale,name,meta) VALUES('scope','district','fr','District',json_object('isLocaleInferred',json(CASE 0 WHEN 1 THEN 'true' ELSE 'false' END)))",
     )
     const next = requireDefined(f.candidates.DB_HISTORY_NEW).db
     next.exec(`
-      INSERT INTO divisionsI18n(snapshotId,divisionId,locale,name,isLocaleInferred,versionHash,sourceReleaseId,isCurrent) VALUES('next','district','fr','District',0,'french','release-next',1);
+      INSERT INTO divisionsI18n(snapshotId,divisionId,locale,name,meta,versionHash,sourceReleaseId,isCurrent) VALUES('next','district','fr','District',json_object('isLocaleInferred',json(CASE 0 WHEN 1 THEN 'true' ELSE 'false' END)),'french','release-next',1);
       `)
     await f.coalesce()
     expect(next.query('SELECT locale,versionHash FROM historyEvents').all()).toEqual([

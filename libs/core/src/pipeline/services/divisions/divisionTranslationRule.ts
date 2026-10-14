@@ -27,15 +27,21 @@ export const divisionTranslationRule = registerRule(
           : [
               {
                 divisionId,
-                isLocaleInferred: false,
                 locale: localised.locale,
                 name: localised.name,
                 nameAlts: null,
-                nameProvenance:
-                  input.applications.find(a => a.locale === localised.locale)
-                    ?.provenance ?? 'ai-translated',
                 nameRules: null,
                 nameVariant: [localised.name],
+                meta: {
+                  isLocaleInferred: false,
+                  fields: {
+                    name: {
+                      origin:
+                        input.applications.find(a => a.locale === localised.locale)
+                          ?.provenance ?? 'ai-translated',
+                    },
+                  },
+                },
               } satisfies DivisionI18nPayload,
             ],
       ),

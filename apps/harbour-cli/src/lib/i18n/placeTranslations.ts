@@ -219,17 +219,13 @@ export function applyPlaceTranslationApplications(
       )
       if (!row) continue
       ;(row as Record<string, unknown>)[application.field] = application.text
-      const provenance = (row as PlaceI18nRecord).provenance
-      if (provenance) {
-        const field: PlaceI18nField = application.field
-        if (application.provenance === 'human-translated') {
-          if (!provenance.isMachineTranslated.includes(field))
-            provenance.isMachineTranslated.push(field)
-          if (!provenance.isHumanVerified.includes(field))
-            provenance.isHumanVerified.push(field)
-        } else if (!provenance.isMachineTranslated.includes(field)) {
-          provenance.isMachineTranslated.push(field)
-        }
+      const meta = (row as PlaceI18nRecord).meta
+      meta.fields ??= {}
+      meta.fields[application.field] = {
+        origin: application.provenance,
+        ...(application.provenance === 'human-translated'
+          ? { isHumanVerified: true }
+          : {}),
       }
     }
   }

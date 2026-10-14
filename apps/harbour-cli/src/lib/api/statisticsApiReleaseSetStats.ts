@@ -301,7 +301,11 @@ export function buildStatisticsStatsRows(
     )
     add(
       'unverified_field_labels',
-      selected.filter(row => !row.isTranslationVerified).length,
+      selected.filter(row =>
+        Object.values(row.meta.fields ?? {}).some(
+          field => field?.origin === 'ai-translated' && field.isHumanVerified !== true,
+        ),
+      ).length,
       'locale',
       locale,
     )

@@ -1,3 +1,4 @@
+import { parseI18nMeta, type I18nMeta } from '../i18nMeta'
 import { resolveIngestionProcessingRules } from '../../../core/src/provenance/processingPolicyCatalogue'
 import type {
   ProcessingRules,
@@ -72,6 +73,7 @@ type PublisherFixture = {
   contactUrl?: string
   parentCode?: string
   i18n: LocaleMap<{
+    meta?: I18nMeta
     name: string
     nameShort?: string
     description?: string
@@ -92,6 +94,7 @@ type UnitFixture = {
     dimension: string
     symbol: string
     i18n: LocaleMap<{
+      meta?: I18nMeta
       name: string
       description?: string
     }>
@@ -122,6 +125,7 @@ type DatasetFixture = {
     operationCodes: string[]
   }>
   i18n: LocaleMap<{
+    meta?: I18nMeta
     name: string
     description?: string
   }>
@@ -184,6 +188,7 @@ type ApiCompositionFixture = {
     code: string
     isDefault?: boolean
     i18n: LocaleMap<{
+      meta?: I18nMeta
       name: string
       descriptionShort?: string
       description?: string
@@ -502,14 +507,18 @@ export const initialPublishers: InitialPublisherSeed[] = publisherFixtures
     url: fixture.url,
     contactUrl: fixture.contactUrl,
     parentCode: fixture.parentCode,
-    i18n: fixture.i18n,
+    i18n: normaliseTranslationMeta(fixture.i18n),
     versionHash: fixture.versionHash,
   }))
 
 export const initialLicenses = readFixtureDir<InitialLicenseSeed>('dataLicenses')
 
 export const initialUnits: InitialUnitSeed[] = unitFixtures.flatMap(fixture =>
-  fixture.units.map(unit => ({ ...unit, versionHash: fixture.versionHash })),
+  fixture.units.map(unit => ({
+    ...unit,
+    i18n: normaliseTranslationMeta(unit.i18n),
+    versionHash: fixture.versionHash,
+  })),
 )
 
 export const initialDatasets: InitialDatasetSeed[] = datasetFixtures.map(fixture => ({
@@ -530,7 +539,7 @@ export const initialDatasets: InitialDatasetSeed[] = datasetFixtures.map(fixture
   schemaURL: fixture.schemaURL,
   category: fixture.category,
   processingRules: resolveDatasetMergeRules(fixture.processingRules),
-  i18n: fixture.i18n,
+  i18n: normaliseTranslationMeta(fixture.i18n),
 }))
 
 /**
@@ -590,7 +599,7 @@ export const initialApiCompositionMembers: InitialApiCompositionMemberSeed[] =
       ? fixture.domains.flatMap(domain =>
           domain.members.map(member => ({
             domainCode: domain.code,
-            i18n: domain.i18n,
+            i18n: normaliseTranslationMeta(domain.i18n),
             member,
           })),
         )
@@ -1125,4 +1134,21 @@ export function buildMetaRegistrySyncSql(environment: MetaRegistrySyncEnvironmen
     'PRAGMA foreign_keys = ON;',
     ...buildMetaRegistrySyncStatements(environment),
   ].join('\n\n')
+}
+
+function normaliseTranslationMeta<T extends { meta?: I18nMeta }>(
+  translations: Record<string, T>,
+): Record<string, T & { meta: I18nMeta }> {
+  return Object.fromEntries(
+    Object.entries(translations).map(([locale, value]) => [
+      locale,
+      {
+        ...value,
+        meta:
+          value.meta === undefined
+            ? { isLocaleInferred: false }
+            : parseI18nMeta(value.meta),
+      },
+    ]),
+  )
 }

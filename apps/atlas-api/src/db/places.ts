@@ -1,3 +1,4 @@
+import { parseI18nMeta } from '@repo/db'
 import { geographicMembershipSql } from '../lib/geographicFilterContext'
 import {
   getPublicationReadiness,
@@ -56,11 +57,7 @@ export type PlaceLocaleValue = {
   brandNameAlts: string | null
   freeformAddress: string | null
   accessHint?: string | null
-  provenance: {
-    isMachineTranslated: string[]
-    isHumanVerified: string[]
-    isLocaleInferred: boolean
-  } | null
+  meta: import('@repo/db').I18nMeta
 }
 
 export type PlaceRecord = {
@@ -332,7 +329,7 @@ function buildPlaceI18nJsonSelection(localeSelection: RequestedApiLocaleSelectio
         'brandNameAlts', ${placesI18n.brandNameAlts},
         'freeformAddress', ${placesI18n.freeformAddress},
         'accessHint', ${placesI18n.accessHint},
-        'provenance', ${placesI18n.provenance}
+        'meta', json(${placesI18n.meta})
       )
     )
     from ${placesI18n}
@@ -360,25 +357,8 @@ function asNullableStringArray(value: unknown) {
   }
 }
 
-function asPlaceProvenance(value: unknown): PlaceLocaleValue['provenance'] {
-  const parsed =
-    typeof value === 'string'
-      ? (() => {
-          try {
-            return JSON.parse(value) as unknown
-          } catch {
-            return null
-          }
-        })()
-      : value
-  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return null
-
-  const record = parsed as Record<string, unknown>
-  return {
-    isMachineTranslated: asNullableStringArray(record.isMachineTranslated) ?? [],
-    isHumanVerified: asNullableStringArray(record.isHumanVerified) ?? [],
-    isLocaleInferred: record.isLocaleInferred === true,
-  }
+function asPlaceMeta(value: unknown): import('@repo/db').I18nMeta {
+  return parseI18nMeta(typeof value === 'string' ? JSON.parse(value) : value)
 }
 
 function parsePlaceI18n(value: string): Record<string, PlaceLocaleValue> {
@@ -399,7 +379,7 @@ function parsePlaceI18n(value: string): Record<string, PlaceLocaleValue> {
             brandNameAlts: asNullableString(record.brandNameAlts),
             freeformAddress: asNullableString(record.freeformAddress),
             accessHint: asNullableString(record.accessHint),
-            provenance: asPlaceProvenance(record.provenance),
+            meta: asPlaceMeta(record.meta),
           },
         ],
       ]

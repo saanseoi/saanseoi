@@ -108,7 +108,13 @@ function insert(
       .join(',')}) VALUES (${Object.keys(row)
       .map(() => '?')
       .join(',')})`,
-  ).run(...Object.values(row))
+  ).run(
+    ...Object.entries(row).map(([key, value]) =>
+      key === 'meta' && value !== null && typeof value === 'object'
+        ? JSON.stringify(value)
+        : value,
+    ),
+  )
 }
 
 function setup() {

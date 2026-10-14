@@ -139,9 +139,9 @@ export async function replaceCurrentI18n(
       nameVariant: [item.name],
       nameAlts: null,
       nameRules: null,
-      isLocaleInferred: false,
       createdAt: now,
       updatedAt: now,
+      meta: { isLocaleInferred: false },
     })),
   )
   await replaceDivisionCurrentI18n(db, snapshotId, ids, rows)
@@ -202,12 +202,12 @@ export async function insertHistoryI18nRows(
       nameVariant: [item.name],
       nameAlts: null,
       nameRules: null,
-      isLocaleInferred: false,
       versionHash: record.versionHash,
       sourceReleaseId: resourceReleaseId,
       snapshotId,
       isCurrent: true,
       createdAt: now,
+      meta: { isLocaleInferred: false },
     })),
   )
   let processedRows = 0

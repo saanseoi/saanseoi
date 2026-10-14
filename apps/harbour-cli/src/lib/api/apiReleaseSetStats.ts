@@ -463,7 +463,7 @@ async function buildPlaceStatsRows(
     brandNameAlts: string | null
     brandNameVariant: unknown
     freeformAddress: string | null
-    provenance: unknown
+    meta: unknown
   }>
   const placeCount = typedPlaceRows.length
   const i18nCount = typedI18nRows.length
@@ -486,11 +486,9 @@ async function buildPlaceStatsRows(
         brandNameAlts: row.brandNameAlts,
         brandNameVariant: row.brandNameVariant as string[] | null,
         freeformAddress: row.freeformAddress,
-        provenance: (row.provenance ?? {
-          isMachineTranslated: [],
-          isHumanVerified: [],
+        meta: (row.meta ?? {
           isLocaleInferred: false,
-        }) as PlaceI18nRecord['provenance'],
+        }) as PlaceI18nRecord['meta'],
       })),
     })),
   )

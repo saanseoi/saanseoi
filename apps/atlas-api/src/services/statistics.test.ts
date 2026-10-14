@@ -190,9 +190,9 @@ function dependencies() {
         unitCode: 'person',
         i18n: {
           en: {
+            meta: { isLocaleInferred: false },
             name: 'Total population',
             description: null,
-            isTranslationVerified: true,
           },
         },
       },
@@ -213,7 +213,12 @@ function dependencies() {
           createdAt: '2026-08-14T00:00:00.000Z',
           updatedAt: '2026-08-14T00:00:00.000Z',
         },
-        i18n: { en: { name: 'Central and Western District' } },
+        i18n: {
+          en: {
+            meta: { isLocaleInferred: false },
+            name: 'Central and Western District',
+          },
+        },
       },
     ],
     getPublicationReadiness: async () => 'ready',
@@ -606,9 +611,9 @@ describe('Statistics service', () => {
             unitCode: 'person',
             i18n: {
               en: {
+                meta: { isLocaleInferred: false },
                 name: 'Total population',
                 description: null,
-                isTranslationVerified: true,
               },
             },
           },

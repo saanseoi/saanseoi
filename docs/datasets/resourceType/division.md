@@ -112,7 +112,7 @@ canonical API representations of the hierarchy and classification remain
 - `nameVariant`
 - `nameAlts`
 - `nameRules`
-- `isLocaleInferred`
+- `meta.isLocaleInferred`
 
 Locale storage behaviour:
 

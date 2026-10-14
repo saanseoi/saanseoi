@@ -180,6 +180,7 @@ async function fixture(
         await c
           .insert(currentSchema.address2dI18n)
           .values({
+            meta: { isLocaleInferred: false },
             scopeId: id,
             addressId: 'address',
             locale: 'en',
@@ -219,8 +220,8 @@ async function fixture(
             scopeId: id,
             divisionId: 'division',
             locale: 'en',
-            isLocaleInferred: false,
             name: cohort === '2025-01-01.0' ? 'Old Village' : 'New Village',
+            meta: { isLocaleInferred: false },
           })
           .run()
       }
@@ -366,7 +367,12 @@ test.each(['preview', 'production'] as const)(
         included: expect.arrayContaining([
           expect.objectContaining({
             attributes: expect.objectContaining({
-              i18n: { en: { name: 'Old Village' } },
+              i18n: {
+                en: {
+                  meta: { isLocaleInferred: false },
+                  name: 'Old Village',
+                },
+              },
             }),
           }),
         ]),

@@ -106,7 +106,11 @@ function historyRow(
   snapshotId = 'a',
 ) {
   insert(db, table, {
-    ...(table === 'divisionsI18n' ? { isLocaleInferred: 0 } : {}),
+    ...(table === 'divisionsI18n'
+      ? {
+          meta: { isLocaleInferred: false },
+        }
+      : {}),
     ...(table === 'address2dI18n' ? { formattedAddress: 'Building 5A-5C' } : {}),
     snapshotId,
     sourceReleaseId: `${snapshotId}-source`,

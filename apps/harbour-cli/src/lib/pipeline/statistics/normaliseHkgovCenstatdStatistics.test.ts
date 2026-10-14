@@ -255,7 +255,7 @@ describe('normaliseHkgovCenstatdStatistics', () => {
         expect.objectContaining({ locale: 'en', name: 'Land area' }),
         expect.objectContaining({ locale: 'zh-Hant', name: '土地面積' }),
         expect.objectContaining({
-          isTranslationVerified: false,
+          meta: { isLocaleInferred: false },
           locale: 'zh-Hans',
           name: '土地面积',
         }),

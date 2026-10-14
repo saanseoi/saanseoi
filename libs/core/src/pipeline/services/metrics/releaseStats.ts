@@ -1,3 +1,4 @@
+import type { I18nOrigin } from '@repo/db'
 import { toIsoTimestamp } from '@repo/db'
 import type {
   ApiReleaseSetScopedStatsRow,
@@ -168,16 +169,9 @@ export function buildGeometryReleaseStatsRows(
 export type LocalisedStatsRow = {
   hasAltName: boolean
   hasName: boolean
-  isLocaleInferred: boolean
+  meta: import('@repo/db').I18nMeta
   locale: string
-  nameProvenance?: NameProvenance | null
 }
-
-export type NameProvenance =
-  | 'provided'
-  | 'inferred'
-  | 'ai-translated'
-  | 'human-translated'
 
 export type StatsSnapshot<TLocalisedRow> = {
   churnHash: string
@@ -230,7 +224,8 @@ export function updateLocaleStatsAccumulator(
 
     coverageGroups.add(group)
 
-    provenanceGroups[resolveNameProvenance(row)].add(group)
+    const origin = resolveNameOrigin(row)
+    if (origin) provenanceGroups[origin].add(group)
 
     if (row.hasAltName) {
       altCoverageGroups.add(group)
@@ -327,8 +322,8 @@ export function buildLocaleStatsRows(statsAccumulator: LocaleStatsAccumulator) {
   })
 }
 
-function resolveNameProvenance(row: LocalisedStatsRow): NameProvenance {
-  return row.nameProvenance ?? (row.isLocaleInferred ? 'inferred' : 'provided')
+function resolveNameOrigin(row: LocalisedStatsRow): I18nOrigin | undefined {
+  return row.meta.fields?.name?.origin
 }
 
 /**
@@ -968,7 +963,7 @@ export function hasLocaleRegression<TLocalisedRow extends { locale: string }>(
  */
 export function hasNameRegression<
   TLocalisedRow extends {
-    isLocaleInferred: boolean
+    meta: import('@repo/db').I18nMeta
     locale: string
     name: string | null
     nameAlts: string | null
@@ -988,7 +983,7 @@ export function hasNameRegression<
     }
 
     const currentNames = getNameSet(current)
-    const previousPrimaryName = !previous.isLocaleInferred ? previous.name : null
+    const previousPrimaryName = !previous.meta.isLocaleInferred ? previous.name : null
 
     if (previousPrimaryName && !currentNames.has(previousPrimaryName)) {
       return true
@@ -1278,11 +1273,11 @@ function getChurnCountsForType(byType: Map<string, ChurnCounts>, type: string) {
 }
 
 function hasTrackedNames(row: {
-  isLocaleInferred: boolean
+  meta: import('@repo/db').I18nMeta
   name: string | null
   nameAlts: string | null
 }) {
-  return Boolean((!row.isLocaleInferred && row.name) || row.nameAlts)
+  return Boolean((!row.meta.isLocaleInferred && row.name) || row.nameAlts)
 }
 
 function getNameSet(row: { name: string | null; nameAlts: string | null }) {

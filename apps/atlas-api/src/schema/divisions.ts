@@ -1,3 +1,4 @@
+import { I18nMetaSchema } from './i18nMeta'
 import { IdentifiersSchema } from './identifiers'
 import { geographicCodeQueryShape } from './geographicCodeFilters'
 import { RegionFilterSchema } from './region'
@@ -54,6 +55,7 @@ const DivisionNameRuleSchema = z
 
 const DivisionI18nAttributesSchema = z
   .object({
+    meta: I18nMetaSchema,
     name: z
       .string()
       .nullable()

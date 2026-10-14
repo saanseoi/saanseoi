@@ -11,7 +11,7 @@ import {
   buildDivisionBaseHashInput,
   normaliseDivisionI18nSnapshotRow,
 } from '../services/divisions/division'
-import { createHash } from '../utils'
+import { createHash, stableJsonStringify } from '../utils'
 import {
   type DivisionBaseRecord,
   deleteStaleDivisionCurrentRows,
@@ -62,8 +62,7 @@ const locale = (language: string, id = 'a'): DivisionI18nPayload => ({
   nameAlts: null,
   nameRules: null,
   nameVariant: null,
-  nameProvenance: 'provided',
-  isLocaleInferred: false,
+  meta: { isLocaleInferred: false, fields: { name: { origin: 'provided' } } },
 })
 
 function fixture() {
@@ -265,7 +264,10 @@ test('core Division writes inherit unchanged base/locales and close only changed
         {
           ...locale('en'),
           name: 'New English name',
-          nameProvenance: 'human-translated' as const,
+          meta: {
+            isLocaleInferred: false,
+            fields: { name: { origin: 'human-translated' as const } },
+          },
         },
       ],
     }
@@ -293,8 +295,13 @@ test('core Division writes inherit unchanged base/locales and close only changed
       { locale: 'zh-hant', isCurrent: 1 },
     ])
     expect(
-      data.client('new').query('SELECT nameProvenance FROM divisionsI18n').get(),
-    ).toEqual({ nameProvenance: 'human-translated' })
+      data
+        .client('new')
+        .query(
+          "SELECT json_extract(meta, '$.fields.name.origin') AS origin FROM divisionsI18n",
+        )
+        .get(),
+    ).toEqual({ origin: 'human-translated' })
     expect(
       data
         .client('old')
@@ -546,7 +553,13 @@ test('locale content identity includes name provenance independently of base fie
   const provided = locale('en')
   expect(await createHash(divisionLocaleContent(provided))).not.toBe(
     await createHash(
-      divisionLocaleContent({ ...provided, nameProvenance: 'human-translated' }),
+      divisionLocaleContent({
+        ...provided,
+        meta: {
+          isLocaleInferred: false,
+          fields: { name: { origin: 'human-translated' } },
+        },
+      }),
     ),
   )
   expect(buildDivisionBaseHashInput(base())).toEqual(
@@ -621,4 +634,55 @@ test('geometry fingerprints do not write Division versions or current rows', asy
   } finally {
     data.close()
   }
+})
+
+test('locale identity retains translator and verification changes with unchanged text', () => {
+  const row = {
+    divisionId: 'metadata-only',
+    locale: 'de',
+    name: 'Name',
+    nameAlts: null,
+    nameVariant: null,
+    nameRules: null,
+    meta: {
+      isLocaleInferred: false,
+      fields: {
+        name: { origin: 'ai-translated' as const, translatorId: 'translator-a' },
+      },
+    },
+  }
+  const before = stableJsonStringify(divisionLocaleContent(row))
+  expect(
+    stableJsonStringify(
+      divisionLocaleContent({
+        ...row,
+        meta: {
+          ...row.meta,
+          fields: { name: { ...row.meta.fields.name, isHumanVerified: true } },
+        },
+      }),
+    ),
+  ).not.toBe(before)
+  expect(
+    stableJsonStringify(
+      divisionLocaleContent({
+        ...row,
+        meta: {
+          ...row.meta,
+          fields: { name: { ...row.meta.fields.name, translatorId: 'translator-b' } },
+        },
+      }),
+    ),
+  ).not.toBe(before)
+  expect(
+    stableJsonStringify(
+      divisionLocaleContent({
+        ...row,
+        meta: {
+          fields: row.meta.fields,
+          isLocaleInferred: false,
+        },
+      }),
+    ),
+  ).toBe(before)
 })

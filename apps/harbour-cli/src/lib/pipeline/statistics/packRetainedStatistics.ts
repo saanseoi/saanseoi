@@ -144,12 +144,10 @@ function definitionRow(row: RetainedSqlRow) {
     measureVersionHash: _measureVersion,
     ...definition
   } = row
-  for (const key of ['dimensions', 'comparability']) {
+  for (const key of ['dimensions', 'comparability', 'meta']) {
     if (typeof definition[key] === 'string')
       definition[key] = JSON.parse(definition[key])
   }
-  if (definition.isTranslationVerified !== undefined)
-    definition.isTranslationVerified = Boolean(definition.isTranslationVerified)
   return definition
 }
 

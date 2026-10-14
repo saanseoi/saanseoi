@@ -268,6 +268,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
         currentDb
           .insert(currentSchema.address2dI18n)
           .values({
+            meta: { isLocaleInferred: false },
             scopeId: `scope:${snapshotId}`,
             addressId: id,
             locale,
@@ -364,6 +365,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
     expect(all.body.data[2]?.attributes.granularity).toBe('unknown')
     expect(all.body.data[0]?.attributes.i18n).toEqual({
       en: {
+        meta: { isLocaleInferred: false },
         formattedAddress: 'Harbour a',
         buildingName: 'Harbour',
         buildingNumberExpression: '20',
@@ -381,6 +383,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
         streetName: null,
       },
       'zh-hant': {
+        meta: { isLocaleInferred: false },
         formattedAddress: 'Harbour a',
         buildingName: 'Harbour',
         buildingNumberExpression: '20',
@@ -432,8 +435,14 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
       'granularityProvenance',
     )
     expect(compact.status === 200 && compact.body.data.attributes.i18n).toEqual({
-      en: { formattedAddress: 'Harbour b' },
-      'zh-hant': { formattedAddress: 'Harbour b' },
+      en: {
+        meta: { isLocaleInferred: false },
+        formattedAddress: 'Harbour b',
+      },
+      'zh-hant': {
+        meta: { isLocaleInferred: false },
+        formattedAddress: 'Harbour b',
+      },
     })
     const map = await getAddressDetail({
       ...args,
@@ -682,7 +691,12 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
       attributes: {
         address2dId: 'a',
         units: [unit],
-        i18n: { en: { unit: { unitExpression: 'FLAT 01', floorExpression: '1/F' } } },
+        i18n: {
+          en: {
+            meta: { isLocaleInferred: false },
+            units: { unit: { unitExpression: 'FLAT 01', floorExpression: '1/F' } },
+          },
+        },
       },
     })
     const inventory = await getAddressUnits({

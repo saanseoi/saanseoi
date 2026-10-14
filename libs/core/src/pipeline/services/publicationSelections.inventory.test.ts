@@ -31,7 +31,13 @@ test('v0.2 curated catalogues retain older geometry pins and require complete de
           .map(() => '?')
           .join(',')})`,
       )
-      .run(...Object.values(values))
+      .run(
+        ...Object.entries(values).map(([key, value]) =>
+          key === 'meta' && value !== null && typeof value === 'object'
+            ? JSON.stringify(value)
+            : value,
+        ),
+      )
   }
   try {
     for (const [version, cohort, area] of [

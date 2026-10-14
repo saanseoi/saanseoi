@@ -1,3 +1,4 @@
+import { I18nMetaSchema } from '../schema/i18nMeta'
 import { z } from '@hono/zod-openapi'
 import { divisionTaxonomy } from '@repo/db'
 import { DivisionHierarchiesSchema } from '../schema/divisions'
@@ -201,11 +202,7 @@ export const saanseoiDivisionSourceFields: Record<string, Schema> = {
             },
           },
         },
-        isLocaleInferred: {
-          type: ['boolean', 'number'],
-          description:
-            'Whether the locale was inferred. Values are booleans; null or absent means unknown.',
-        },
+        meta: z.toJSONSchema(I18nMetaSchema) as Schema,
       },
     },
   },

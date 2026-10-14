@@ -42,7 +42,12 @@ test('JSON:API relationships keep category branches ordered and names concise', 
   expect(output.data[0]!.relationships!.locality!.data.map(r => r.id)).toEqual(['city'])
   expect(output.data[0]!.relationships!.hood!.data.map(r => r.id)).toEqual(['hood'])
   expect(output.meta.divisionRelease).toBeUndefined()
-  expect(output.included[0]!.attributes.i18n).toEqual({ en: { name: 'hk' } })
+  expect(output.included[0]!.attributes.i18n).toEqual({
+    en: {
+      meta: { isLocaleInferred: false },
+      name: 'hk',
+    },
+  })
   expect(output.data[0]!.meta).toBeUndefined()
 })
 test('compact, default, map and full preserve identities while controlling detail', () => {

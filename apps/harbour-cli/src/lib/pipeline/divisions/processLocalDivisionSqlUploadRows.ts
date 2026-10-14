@@ -185,9 +185,8 @@ export async function buildDivisionHistorySqlFile(
             nameVariant: jsonText(localised.nameVariant),
             nameAlts: localised.nameAlts ?? null,
             nameRules: jsonText(localised.nameRules),
-            nameProvenance: localised.nameProvenance,
-            isLocaleInferred: localised.isLocaleInferred,
             createdAt: record.base.updatedAt,
+            meta: jsonText(localised.meta),
           })),
         )),
       )
@@ -245,8 +244,7 @@ ON CONFLICT(id, snapshotId) DO NOTHING`.trim(),
         'nameVariant',
         'nameAlts',
         'nameRules',
-        'nameProvenance',
-        'isLocaleInferred',
+        'meta',
         'createdAt',
       ],
       i18nRows,
@@ -333,10 +331,9 @@ export async function buildDivisionCurrentSqlFile(
             nameVariant: jsonText(localised.nameVariant),
             nameAlts: localised.nameAlts ?? null,
             nameRules: jsonText(localised.nameRules),
-            nameProvenance: localised.nameProvenance,
-            isLocaleInferred: localised.isLocaleInferred,
             createdAt: record.base.updatedAt,
             updatedAt: record.base.updatedAt,
+            meta: jsonText(localised.meta),
           })),
       )
     }
@@ -388,8 +385,7 @@ ON CONFLICT(scopeId, id) DO UPDATE SET
         'nameVariant',
         'nameAlts',
         'nameRules',
-        'nameProvenance',
-        'isLocaleInferred',
+        'meta',
         'createdAt',
         'updatedAt',
       ],
@@ -401,15 +397,13 @@ ON CONFLICT(scopeId, divisionId, locale) DO UPDATE SET
   nameVariant = excluded.nameVariant,
   nameAlts = excluded.nameAlts,
   nameRules = excluded.nameRules,
-  nameProvenance = excluded.nameProvenance,
-  isLocaleInferred = excluded.isLocaleInferred,
+  meta = excluded.meta,
   updatedAt = excluded.updatedAt
 WHERE divisionsI18n.name IS NOT excluded.name
   OR divisionsI18n.nameVariant IS NOT excluded.nameVariant
   OR divisionsI18n.nameAlts IS NOT excluded.nameAlts
   OR divisionsI18n.nameRules IS NOT excluded.nameRules
-  OR divisionsI18n.nameProvenance IS NOT excluded.nameProvenance
-  OR divisionsI18n.isLocaleInferred IS NOT excluded.isLocaleInferred`.trim(),
+  OR divisionsI18n.meta IS NOT excluded.meta`.trim(),
       },
     ),
     ...buildDeleteCurrentDivisionStatements(scopeId, missingIds),

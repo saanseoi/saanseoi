@@ -10,8 +10,10 @@ test('ignores automated translations in every locale and retains publisher and h
       nameAlts: null,
       nameRules: null,
       nameVariant: null,
-      isLocaleInferred: false,
-      nameProvenance: 'provided' as const,
+      meta: {
+        isLocaleInferred: false,
+        fields: { name: { origin: 'provided' as const } },
+      },
     },
   ]
   const result = divisionTranslationRule.execute({

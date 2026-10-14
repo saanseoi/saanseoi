@@ -1,3 +1,4 @@
+import { parseI18nMeta } from '@repo/db'
 import { geographicMembershipSql } from '../lib/geographicFilterContext'
 import { getPublicationReadiness, publicationLogicalSnapshot } from './publicationState'
 import type { AddressBlockType, CurrentDatabase } from '@repo/db'
@@ -18,6 +19,7 @@ const {
 } = currentSchema
 
 export type AddressLocaleValue = {
+  meta: import('@repo/db').I18nMeta
   formattedAddress: string
   buildingName?: string | null
   buildingNumberExpression?: string | null
@@ -176,7 +178,8 @@ function buildAddressI18nJsonSelection(localeSelection: RequestedApiLocaleSelect
         'phaseName', ${address2dI18n.phaseName},
         'phaseRef', ${address2dI18n.phaseRef},
         'estateName', ${address2dI18n.estateName},
-        'streetName', ${address2dI18n.streetName}
+        'streetName', ${address2dI18n.streetName},
+        'meta', json(${address2dI18n.meta})
       )
     )
     from ${address2dI18n}
@@ -197,6 +200,7 @@ function parseI18n(value: string): Record<string, AddressLocaleValue> {
         [
           locale,
           {
+            meta: parseI18nMeta(record.meta),
             formattedAddress: record.formattedAddress,
             buildingName: asNullableString(record.buildingName),
             buildingNumberExpression: asNullableString(record.buildingNumberExpression),

@@ -736,3 +736,10 @@ preparation resumes.
 An explicit Address retirement remains effective when retrying the same observation
 after its generated entry has been revoked. Replay requires the same Place, previous
 Address and source release, with no conflicting active or canonical predecessor link.
+
+## Localisation metadata
+
+Locale values carry the shared [localisation metadata](../i18n-metadata.md) contract.
+`meta.isLocaleInferred` records language assignment, while `meta.fields` records each
+field's origin, optional human verification and optional translator identity. Metadata
+participates in canonical content hashes and retained locale revisions.

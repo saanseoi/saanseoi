@@ -1,3 +1,4 @@
+import { providedI18nMeta } from '@repo/db'
 import type { StreetEvidenceAsset } from '@repo/db'
 import type {
   LandsdStreetLifecycleI18n,
@@ -222,6 +223,9 @@ export function normaliseStreetName(value: string) {
 
 export function stableI18n(value: PreparedStreetI18n) {
   return {
+    meta:
+      value.meta ??
+      providedI18nMeta(['name', ...(value.description ? ['description'] : [])]),
     description: value.description,
     locale: value.locale,
     name: value.name,
@@ -230,6 +234,9 @@ export function stableI18n(value: PreparedStreetI18n) {
 
 export function stableLifecycleI18n(value: LandsdStreetLifecycleI18n) {
   return {
+    meta:
+      value.meta ??
+      providedI18nMeta(['name', ...(value.description ? ['description'] : [])]),
     description: value.description,
     locale: value.locale,
     name: value.name,

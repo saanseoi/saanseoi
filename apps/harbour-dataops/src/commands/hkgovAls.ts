@@ -761,14 +761,13 @@ async function loadReplayedDivisionI18nRows(versions: ResolvedSnapshotVersion[])
       const batchRows = await db
         .select({
           divisionId: historySchema.divisionsI18n.divisionId,
-          isLocaleInferred: historySchema.divisionsI18n.isLocaleInferred,
           locale: historySchema.divisionsI18n.locale,
           name: historySchema.divisionsI18n.name,
           nameAlts: historySchema.divisionsI18n.nameAlts,
-          nameProvenance: historySchema.divisionsI18n.nameProvenance,
           nameRules: historySchema.divisionsI18n.nameRules,
           nameVariant: historySchema.divisionsI18n.nameVariant,
           versionHash: historySchema.divisionsI18n.versionHash,
+          meta: historySchema.divisionsI18n.meta,
         })
         .from(historySchema.divisionsI18n)
         .where(historyVersionSelection(historySchema.divisionsI18n, versionBatch))

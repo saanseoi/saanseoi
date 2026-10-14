@@ -1103,7 +1103,7 @@ test('SaanSeoi source samples, downloads and schema omit internal containment ev
       nameVariant: ['Child', 'Alias'],
       nameAlts: 'Alias',
       nameRules: [{ value: 'Alias', variant: 'alternate' }],
-      isLocaleInferred: 0,
+      meta: { isLocaleInferred: false },
     },
   }
   const properties = {
@@ -1192,7 +1192,7 @@ test('SaanSeoi source samples, downloads and schema omit internal containment ev
         name: 'Child',
         nameAlts: 'Alias',
         nameRules: [{ value: 'Alias', variant: 'alternate' }],
-        isLocaleInferred: 0,
+        meta: { isLocaleInferred: false },
       },
     })
   }

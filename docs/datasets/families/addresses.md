@@ -1633,3 +1633,10 @@ The FTS5 virtual table `addressSearchFts` is created by search finalisation, out
 Drizzle's ordinary table migrations. A database with no finalised Address search
 selection can have an empty `addressSearchScopes` table and no FTS table. Publication
 and release-set reconciliation run the finalisation workflow.
+
+## Localisation metadata
+
+Locale values carry the shared [localisation metadata](../i18n-metadata.md) contract.
+`meta.isLocaleInferred` records language assignment, while `meta.fields` records each
+field's origin, optional human verification and optional translator identity. Metadata
+participates in canonical content hashes and retained locale revisions.

@@ -16,9 +16,15 @@ exports[`Divisions API responses through the Worker route default list through a
           },
           "i18n": {
             "en": {
+              "meta": {
+                "isLocaleInferred": false,
+              },
               "name": "China",
             },
             "zh-hant": {
+              "meta": {
+                "isLocaleInferred": false,
+              },
               "name": "中國",
             },
           },
@@ -61,9 +67,15 @@ exports[`Divisions API responses through the Worker route default list through a
           },
           "i18n": {
             "en": {
+              "meta": {
+                "isLocaleInferred": false,
+              },
               "name": "Hong Kong SAR",
             },
             "zh-hant": {
+              "meta": {
+                "isLocaleInferred": false,
+              },
               "name": "香港特別行政區",
             },
           },
@@ -116,9 +128,15 @@ exports[`Divisions API responses through the Worker route default list through a
           },
           "i18n": {
             "en": {
+              "meta": {
+                "isLocaleInferred": false,
+              },
               "name": "Eastern District",
             },
             "zh-hant": {
+              "meta": {
+                "isLocaleInferred": false,
+              },
               "name": "東區",
             },
           },
@@ -181,9 +199,15 @@ exports[`Divisions API responses through the Worker route default list through a
           },
           "i18n": {
             "en": {
+              "meta": {
+                "isLocaleInferred": false,
+              },
               "name": "A Kung Ngam",
             },
             "zh-hant": {
+              "meta": {
+                "isLocaleInferred": false,
+              },
               "name": "阿公岩",
             },
           },
@@ -259,9 +283,15 @@ exports[`Divisions API responses through the Worker route current alias and map 
           },
           "i18n": {
             "en": {
+              "meta": {
+                "isLocaleInferred": false,
+              },
               "name": "China",
             },
             "zh-hant": {
+              "meta": {
+                "isLocaleInferred": false,
+              },
               "name": "中國",
             },
           },
@@ -314,9 +344,15 @@ exports[`Divisions API responses through the Worker route current alias and map 
           },
           "i18n": {
             "en": {
+              "meta": {
+                "isLocaleInferred": false,
+              },
               "name": "Hong Kong SAR",
             },
             "zh-hant": {
+              "meta": {
+                "isLocaleInferred": false,
+              },
               "name": "香港特別行政區",
             },
           },
@@ -379,9 +415,15 @@ exports[`Divisions API responses through the Worker route current alias and map 
           },
           "i18n": {
             "en": {
+              "meta": {
+                "isLocaleInferred": false,
+              },
               "name": "Eastern District",
             },
             "zh-hant": {
+              "meta": {
+                "isLocaleInferred": false,
+              },
               "name": "東區",
             },
           },
@@ -454,9 +496,15 @@ exports[`Divisions API responses through the Worker route current alias and map 
           },
           "i18n": {
             "en": {
+              "meta": {
+                "isLocaleInferred": false,
+              },
               "name": "A Kung Ngam",
             },
             "zh-hant": {
+              "meta": {
+                "isLocaleInferred": false,
+              },
               "name": "阿公岩",
             },
           },
@@ -522,9 +570,15 @@ exports[`Divisions API responses through the Worker route areas and boundaries t
           },
           "i18n": {
             "en": {
+              "meta": {
+                "isLocaleInferred": false,
+              },
               "name": "China",
             },
             "zh-hant": {
+              "meta": {
+                "isLocaleInferred": false,
+              },
               "name": "中國",
             },
           },
@@ -567,9 +621,15 @@ exports[`Divisions API responses through the Worker route areas and boundaries t
           },
           "i18n": {
             "en": {
+              "meta": {
+                "isLocaleInferred": false,
+              },
               "name": "Hong Kong SAR",
             },
             "zh-hant": {
+              "meta": {
+                "isLocaleInferred": false,
+              },
               "name": "香港特別行政區",
             },
           },
@@ -631,9 +691,15 @@ exports[`Divisions API responses through the Worker route areas and boundaries t
           },
           "i18n": {
             "en": {
+              "meta": {
+                "isLocaleInferred": false,
+              },
               "name": "Eastern District",
             },
             "zh-hant": {
+              "meta": {
+                "isLocaleInferred": false,
+              },
               "name": "東區",
             },
           },
@@ -713,9 +779,15 @@ exports[`Divisions API responses through the Worker route areas and boundaries t
           },
           "i18n": {
             "en": {
+              "meta": {
+                "isLocaleInferred": false,
+              },
               "name": "A Kung Ngam",
             },
             "zh-hant": {
+              "meta": {
+                "isLocaleInferred": false,
+              },
               "name": "阿公岩",
             },
           },
@@ -880,11 +952,17 @@ exports[`Divisions API responses through the Worker route detail and hierarchy t
         },
         "i18n": {
           "en": {
+            "meta": {
+              "isLocaleInferred": false,
+            },
             "name": "A Kung Ngam",
             "nameAlts": null,
             "nameRules": null,
           },
           "zh-hant": {
+            "meta": {
+              "isLocaleInferred": false,
+            },
             "name": "阿公岩",
             "nameAlts": null,
             "nameRules": null,
@@ -934,11 +1012,17 @@ exports[`Divisions API responses through the Worker route detail and hierarchy t
           },
           "i18n": {
             "en": {
+              "meta": {
+                "isLocaleInferred": false,
+              },
               "name": "China",
               "nameAlts": null,
               "nameRules": null,
             },
             "zh-hant": {
+              "meta": {
+                "isLocaleInferred": false,
+              },
               "name": "中國",
               "nameAlts": null,
               "nameRules": null,
@@ -1003,11 +1087,17 @@ exports[`Divisions API responses through the Worker route detail and hierarchy t
           },
           "i18n": {
             "en": {
+              "meta": {
+                "isLocaleInferred": false,
+              },
               "name": "Hong Kong SAR",
               "nameAlts": null,
               "nameRules": null,
             },
             "zh-hant": {
+              "meta": {
+                "isLocaleInferred": false,
+              },
               "name": "香港特別行政區",
               "nameAlts": null,
               "nameRules": null,
@@ -1082,11 +1172,17 @@ exports[`Divisions API responses through the Worker route detail and hierarchy t
           },
           "i18n": {
             "en": {
+              "meta": {
+                "isLocaleInferred": false,
+              },
               "name": "Eastern District",
               "nameAlts": null,
               "nameRules": null,
             },
             "zh-hant": {
+              "meta": {
+                "isLocaleInferred": false,
+              },
               "name": "東區",
               "nameAlts": null,
               "nameRules": null,
@@ -1158,9 +1254,15 @@ exports[`Divisions API responses through the Worker route planning domain throug
           },
           "i18n": {
             "en": {
+              "meta": {
+                "isLocaleInferred": false,
+              },
               "name": "China",
             },
             "zh-hant": {
+              "meta": {
+                "isLocaleInferred": false,
+              },
               "name": "中國",
             },
           },
@@ -1203,9 +1305,15 @@ exports[`Divisions API responses through the Worker route planning domain throug
           },
           "i18n": {
             "en": {
+              "meta": {
+                "isLocaleInferred": false,
+              },
               "name": "Hong Kong SAR",
             },
             "zh-hant": {
+              "meta": {
+                "isLocaleInferred": false,
+              },
               "name": "香港特別行政區",
             },
           },
@@ -1258,9 +1366,15 @@ exports[`Divisions API responses through the Worker route planning domain throug
           },
           "i18n": {
             "en": {
+              "meta": {
+                "isLocaleInferred": false,
+              },
               "name": "Eastern District",
             },
             "zh-hant": {
+              "meta": {
+                "isLocaleInferred": false,
+              },
               "name": "東區",
             },
           },
@@ -1323,9 +1437,15 @@ exports[`Divisions API responses through the Worker route planning domain throug
           },
           "i18n": {
             "en": {
+              "meta": {
+                "isLocaleInferred": false,
+              },
               "name": "A Kung Ngam",
             },
             "zh-hant": {
+              "meta": {
+                "isLocaleInferred": false,
+              },
               "name": "阿公岩",
             },
           },
@@ -1427,9 +1547,15 @@ exports[`Divisions API responses through the Worker route filters and pagination
           },
           "i18n": {
             "en": {
+              "meta": {
+                "isLocaleInferred": false,
+              },
               "name": "A Kung Ngam",
             },
             "zh-hant": {
+              "meta": {
+                "isLocaleInferred": false,
+              },
               "name": "阿公岩",
             },
           },

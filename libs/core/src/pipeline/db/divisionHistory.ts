@@ -52,9 +52,7 @@ export function divisionLocaleContent(row: DivisionI18nPayload) {
     nameAlts: row.nameAlts ?? null,
     nameRules: row.nameRules ?? null,
     nameVariant: row.nameVariant ?? null,
-    isLocaleInferred: Boolean(row.isLocaleInferred),
-    nameProvenance:
-      row.nameProvenance ?? (row.isLocaleInferred ? 'inferred' : 'provided'),
+    meta: row.meta,
   }
 }
 

@@ -82,7 +82,13 @@ test('historical unit reads replay the selected owner coverage and ignore newer 
       for (const [locale, units] of Object.entries(locales))
         await historyDb
           .insert(historySchema.address3dI18n)
-          .values({ ...version, address3dId: 'collection', locale, units })
+          .values({
+            meta: { isLocaleInferred: false },
+            ...version,
+            address3dId: 'collection',
+            locale,
+            units,
+          })
           .run()
     }
     const records = ['old', 'new'].map(snapshotId => ({

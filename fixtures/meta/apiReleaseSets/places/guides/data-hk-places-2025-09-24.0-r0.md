@@ -143,7 +143,7 @@ not a boundary or a claim that a Place belongs to a Division.
 Names and brand names are localised values. The upstream data sadly is not always
 consistent in assigning the correct locale to the names, so you may still need to verify
 the values if that is important to you. Also, don't assume an unverified Chinese name is
-a Cantonese transliteration; inspect <black>i18n.{locale}.provenance</black> in the full
+a Cantonese transliteration; inspect <black>i18n.{locale}.meta</black> in the full
 profile when that distinction matters. Finally, names coverage is incomplete, so you may
 need to coalesce <black>en</black> and <black>zh-hant</black> to be guaranteed a name.
 
@@ -337,8 +337,7 @@ membership 來自 geometry，無需地址或 Division link。
 {{localeSelectionSection:zh-Hant}}
 
 名稱及品牌名稱是本地化值。上游資料未必總能為名稱指定正確的 locale，因此如有需要，您仍須核實這些值。亦不要假定未驗證的中文名稱是粵語音譯；如需區分，請檢查 full
-profile 中的
-<black>i18n.{locale}.provenance</black>。最後，名稱覆蓋並不完整，您可能需要在
+profile 中的 <black>i18n.{locale}.meta</black>。最後，名稱覆蓋並不完整，您可能需要在
 <black>en</black> 及 <black>zh-hant</black> 之間取首個非空值，以確保取得名稱。
 
 ## 篩選及分頁
@@ -526,8 +525,7 @@ membership 来自 geometry，无需地址或 Division link。
 {{localeSelectionSection:zh-Hans}}
 
 名称及品牌名称是本地化值。上游数据未必总能为名称指定正确的 locale，因此如有需要，您仍须核实这些值。也不要假定未验证的中文名称是粤语音译；如需区分，请检查 full
-profile 中的
-<black>i18n.{locale}.provenance</black>。最后，名称覆盖并不完整，您可能需要在
+profile 中的 <black>i18n.{locale}.meta</black>。最后，名称覆盖并不完整，您可能需要在
 <black>en</black> 及 <black>zh-hant</black> 之间取首个非空值，以确保获取名称。
 
 ## 筛选及分页

@@ -89,8 +89,7 @@ const divisionI18nPayloadColumns = [
   'nameVariant',
   'nameAlts',
   'nameRules',
-  'nameProvenance',
-  'isLocaleInferred',
+  'meta',
 ] as const
 
 function resolveParentDivisionIdFromHierarchy(hierarchy: unknown): string | null {
@@ -128,13 +127,12 @@ export async function getDivisionVersionMapForSnapshot(
   const i18nRows = (await db
     .select({
       divisionId: currentSchema.divisionsI18n.divisionId,
-      isLocaleInferred: currentSchema.divisionsI18n.isLocaleInferred,
-      nameProvenance: currentSchema.divisionsI18n.nameProvenance,
       locale: currentSchema.divisionsI18n.locale,
       name: currentSchema.divisionsI18n.name,
       nameAlts: currentSchema.divisionsI18n.nameAlts,
       nameRules: currentSchema.divisionsI18n.nameRules,
       nameVariant: currentSchema.divisionsI18n.nameVariant,
+      meta: currentSchema.divisionsI18n.meta,
     })
     .from(currentSchema.divisionsI18n)
     .where(eq(currentSchema.divisionsI18n.scopeId, snapshotId))
@@ -561,8 +559,7 @@ export async function insertDivisionVersionRows(
   i18nRows: Array<
     {
       divisionId: string
-      isLocaleInferred: boolean
-      nameProvenance?: DivisionI18nPayload['nameProvenance']
+      meta: import('@repo/db').I18nMeta
       locale: string
       name: string | null
       nameAlts: string | null
@@ -624,8 +621,6 @@ export async function insertDivisionVersionRows(
       historyDb,
       i18nRows.map(row => ({
         divisionId: row.divisionId,
-        isLocaleInferred: row.isLocaleInferred,
-        nameProvenance: row.nameProvenance ?? null,
         locale: row.locale,
         name: row.name,
         nameAlts: row.nameAlts,
@@ -636,6 +631,7 @@ export async function insertDivisionVersionRows(
         isCurrent: true,
         versionHash: row.versionHash,
         createdAt: row.createdAt,
+        meta: row.meta,
       })),
       options,
     )
@@ -671,9 +667,8 @@ async function insertDivisionsI18nInChunks(
               nameVariant: excluded('nameVariant'),
               nameAlts: excluded('nameAlts'),
               nameRules: excluded('nameRules'),
-              nameProvenance: excluded('nameProvenance'),
-              isLocaleInferred: excluded('isLocaleInferred'),
               updatedAt: excluded('updatedAt'),
+              meta: excluded('meta'),
             },
             setWhere: currentRowChangedSql('divisionsI18n', divisionI18nPayloadColumns),
           }),
@@ -690,13 +685,7 @@ async function insertDivisionVersionsI18nInChunks(
   db: HarbourWritableDb,
   rows: Array<{
     divisionId: string
-    isLocaleInferred: boolean
-    nameProvenance:
-      | 'provided'
-      | 'inferred'
-      | 'ai-translated'
-      | 'human-translated'
-      | null
+    meta: import('@repo/db').I18nMeta
     locale: string
     name: string | null
     nameAlts: string | null

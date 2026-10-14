@@ -1,3 +1,4 @@
+import { parseI18nMeta } from '@repo/db'
 import type { RequestedApiLocaleSelection } from '@repo/core/apiLocales'
 import { resolveSnapshotReplayPlan } from '@repo/core/db/metaRegistry'
 import {
@@ -51,7 +52,7 @@ function mapPlaceLocale(row: HistoryPlaceI18n): PlaceLocaleValue {
     brandNameAlts: row.brandNameAlts,
     freeformAddress: row.freeformAddress,
     accessHint: row.accessHint,
-    provenance: row.provenance,
+    meta: parseI18nMeta(row.meta),
   }
 }
 

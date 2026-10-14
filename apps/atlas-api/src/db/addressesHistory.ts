@@ -27,6 +27,7 @@ function localeIsSelected(selection: RequestedApiLocaleSelection, locale: string
 }
 
 function mapLocaleValue(value: {
+  meta: import('@repo/db').I18nMeta
   formattedAddress: string
   buildingName: string | null
   buildingNumberExpression: string | null
@@ -44,6 +45,7 @@ function mapLocaleValue(value: {
   streetName: string | null
 }): AddressLocaleValue {
   return {
+    meta: value.meta,
     formattedAddress: value.formattedAddress,
     buildingName: value.buildingName,
     buildingNumberExpression: value.buildingNumberExpression,

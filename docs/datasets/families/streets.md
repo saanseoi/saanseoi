@@ -250,3 +250,10 @@ Canonical HISTORY events retain their introducing snapshot and `createdAt`, with
 `updatedAt` column. Mutable CURRENT projections and publication receipts keep their own
 update timestamps. Statistics definitions keyed by `versionHash` retain `createdAt`
 only. See [storage timestamp ownership](../pipeline.md#storage-timestamp-ownership).
+
+## Localisation metadata
+
+Locale values carry the shared [localisation metadata](../i18n-metadata.md) contract.
+`meta.isLocaleInferred` records language assignment, while `meta.fields` records each
+field's origin, optional human verification and optional translator identity. Metadata
+participates in canonical content hashes and retained locale revisions.

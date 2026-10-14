@@ -49,6 +49,7 @@ export type AssetLink = {
 }
 
 export type PreparedStreetI18n = {
+  meta?: import('@repo/db').I18nMeta
   description: string | null
   locale: StreetLocaleCode
   name: string

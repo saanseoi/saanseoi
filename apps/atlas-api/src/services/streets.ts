@@ -1,3 +1,4 @@
+import { parseI18nMeta } from '@repo/db'
 import { resolveSnapshotReplayPlan } from '@repo/core/db/metaRegistry'
 import {
   groupResolvedVersionsByShard,
@@ -322,6 +323,7 @@ export async function getStreetHistory(
               locale: name.locale,
               name: name.name!,
               description: name.description,
+              meta: parseI18nMeta(name.meta),
             })),
           changelog: changes.map(publicChangelogEntry),
         })
@@ -338,6 +340,7 @@ export async function getStreetHistory(
         id: street.id,
         i18n: i18n.map(item => ({
           description: item.description,
+          meta: parseI18nMeta(item.meta),
           locale: item.locale,
           name: item.name,
         })),
@@ -520,6 +523,7 @@ function locales(street: StreetState) {
         locale,
         {
           description: row.description,
+          meta: parseI18nMeta(row.meta),
           name: row.name,
         } satisfies StreetLocale,
       ]

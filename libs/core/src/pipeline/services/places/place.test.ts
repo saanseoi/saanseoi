@@ -59,10 +59,8 @@ describe('Overture place normalisation', () => {
         brandNameAlts: null,
         brandNameVariant: null,
         freeformAddress: null,
-        provenance: expect.objectContaining({
+        meta: expect.objectContaining({
           isLocaleInferred: false,
-          isMachineTranslated: [],
-          isHumanVerified: [],
         }),
       }),
       expect.objectContaining({

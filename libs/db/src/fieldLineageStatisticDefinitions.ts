@@ -32,7 +32,7 @@ export function statisticDefinitionFoldSpecification() {
       'For each accepted publisher field, parseObservationValue(sourceField, sourceValue), then select metadata by datasetCode + U+0000 + sourceField.',
       'Resolve fieldName = metadata.fieldName ?? sourceField, measureCode = metadata.measureCode ?? fieldName. Read the prior field from the fold map; reject a different sourceField for the same dataset/field key.',
       'Replace the field map entry with fieldExpression. Numeric classification persists once any accepted observation or reviewed metadata makes the field numeric.',
-      'For each field localisation, project only locale, name, description and isTranslationVerified through statisticLocalisationRule; add datasetCode/fieldName and replace the matching locale map entry.',
+      'For each field localisation, project locale, name, description and field metadata through statisticLocalisationRule; add datasetCode/fieldName and replace the matching locale map entry.',
       'Set the measure entry to {datasetCode, measureCode}. Select reviewedMeasure using datasetCode + U+0000 + measureCode. When field metadata and a measure registry are supplied, require the referenced reviewed measure.',
       'Use reviewedMeasure.localisations ?? fieldLocalisations. Project through statisticLocalisationRule and add datasetCode/measureCode. Reject a conflicting JSON representation for an existing measure/locale key.',
       'Return arrays from the four maps in insertion order, before versionStatisticsDefinitions adds hashes.',

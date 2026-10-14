@@ -242,8 +242,8 @@ test('Division replay seeks exact identity/version/locale tuples across batches'
       (id,versionHash,class,hierarchies,sourceReleaseId,snapshotId,isCurrent)
       VALUES (?,?,'district','{}','release',?2,0)`)
     const insertName = sqlite.prepare(`INSERT INTO divisionsI18n
-      (divisionId,versionHash,locale,name,isLocaleInferred,sourceReleaseId,snapshotId,isCurrent)
-      VALUES (?,?,'en',?,0,'release',?2,0)`)
+      (divisionId,versionHash,locale,name,meta,sourceReleaseId,snapshotId,isCurrent)
+      VALUES (?,?,'en',?,json_object('isLocaleInferred',json(CASE 0 WHEN 1 THEN 'true' ELSE 'false' END)),'release',?2,0)`)
     for (let i = 0; i < 300; i++) {
       insert.run(`d${i}`, 'selected')
       insert.run(`d${i}`, 'other')

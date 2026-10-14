@@ -115,7 +115,7 @@ test('base deletion prevents inherited locales returning after a restoration', a
   const { client, db } = fixture()
   try {
     client.exec(`INSERT INTO divisions(id,snapshotId,versionHash,sourceReleaseId,class,hierarchies) VALUES ('a','root','h','release','district','{"full":[]}'),('a','restored','h','release','district','{"full":[]}');
-      INSERT INTO divisionsI18n(divisionId,snapshotId,locale,versionHash,sourceReleaseId,name,isLocaleInferred) VALUES ('a','root','en','n','release','Original',0);`)
+      INSERT INTO divisionsI18n(divisionId,snapshotId,locale,versionHash,sourceReleaseId,name,meta) VALUES ('a','root','en','n','release','Original',json_object('isLocaleInferred',json(CASE 0 WHEN 1 THEN 'true' ELSE 'false' END)));`)
     client.exec(
       historyDeletionSql({
         recordType: 'division',

@@ -13,7 +13,7 @@ export type PlaceI18nRecord = {
   brandNameAlts: string | null
   brandNameVariant: string[] | null
   freeformAddress: string | null
-  provenance: PlaceI18nProvenance
+  meta: PlaceI18nMeta
 }
 
 export type PlaceI18nField = 'name' | 'brand' | 'freeformAddress'
@@ -27,11 +27,9 @@ export type PlaceLocaleEvidence = {
   reason: string | null
 }
 
-export type PlaceI18nProvenance = {
-  isMachineTranslated: PlaceI18nField[]
-  isHumanVerified: PlaceI18nField[]
-  isLocaleInferred: boolean
-}
+export type PlaceI18nMeta = import('@repo/db').I18nMeta<
+  'name' | 'brandName' | 'freeformAddress' | 'accessHint'
+>
 
 export type PlaceLocaleConflict = PlaceLocaleEvidence & {
   field: PlaceI18nField
@@ -475,15 +473,11 @@ export function buildPlaceLocalisationStatistics(
         if (!value) continue
         stats.valueCount += 1
         const provenanceField: PlaceI18nField = field === 'brandName' ? 'brand' : field
-        const isMachineTranslated =
-          row.provenance.isMachineTranslated.includes(provenanceField)
-        const isHumanVerified = row.provenance.isHumanVerified.includes(provenanceField)
-        if (isMachineTranslated) stats.aiTranslatedCount += 1
-        if (isHumanVerified) stats.humanTranslatedCount += 1
-        if (!isMachineTranslated && !isHumanVerified) {
-          if (row.provenance.isLocaleInferred) stats.inferredCount += 1
-          else stats.providedCount += 1
-        }
+        const origin = row.meta.fields?.[field]?.origin
+        if (origin === 'ai-translated') stats.aiTranslatedCount += 1
+        else if (origin === 'human-translated') stats.humanTranslatedCount += 1
+        else if (origin === 'inferred') stats.inferredCount += 1
+        else if (origin === 'provided') stats.providedCount += 1
         if (
           place.localeConflicts?.some(
             evidence =>
@@ -541,10 +535,15 @@ function mergePlaceI18n(
       brandNameVariant:
         brand.length > 1 ? brand.slice(1).map(value => value.value) : null,
       freeformAddress: addresses[0]?.value ?? null,
-      provenance: {
-        isMachineTranslated: [],
-        isHumanVerified: [],
+      meta: {
         isLocaleInferred: values.some(value => value.inferred),
+        fields: Object.fromEntries([
+          ...(name.length ? [['name', { origin: 'provided' as const }]] : []),
+          ...(brand.length ? [['brandName', { origin: 'provided' as const }]] : []),
+          ...(addresses.length
+            ? [['freeformAddress', { origin: 'provided' as const }]]
+            : []),
+        ]),
       },
     }
   })

@@ -290,7 +290,10 @@ test('exact historical Place dependencies replay independent locale shards and s
       'divisionsI18n',
       'd',
       'country',
-      { name: 'Historic country', isLocaleInferred: 0 },
+      {
+        name: 'Historic country',
+        meta: { isLocaleInferred: false },
+      },
       'en',
     )
     history(before, 'address2d', 'a0', 'building', {

@@ -7,12 +7,36 @@ export const statisticLocalisationRule = registerRule(
   (
     localisation: Pick<
       CenstatdFieldLocalisation,
-      'locale' | 'name' | 'isTranslationVerified'
+      'locale' | 'name' | 'isTranslationVerified' | 'origin'
     > & { description: string | null },
   ) => ({
     locale: localisation.locale,
     name: localisation.name,
     description: localisation.description,
-    isTranslationVerified: localisation.isTranslationVerified,
+    meta: {
+      isLocaleInferred: false,
+      ...(localisation.origin
+        ? {
+            fields: Object.fromEntries(
+              ['name', ...(localisation.description ? ['description'] : [])].map(
+                field => [
+                  field,
+                  {
+                    origin:
+                      localisation.origin?.kind === 'machine-translated'
+                        ? ('ai-translated' as const)
+                        : localisation.origin?.kind === 'human-translated'
+                          ? ('human-translated' as const)
+                          : ('provided' as const),
+                    ...(localisation.origin?.kind === 'publisher'
+                      ? {}
+                      : { isHumanVerified: localisation.isTranslationVerified }),
+                  },
+                ],
+              ),
+            ),
+          }
+        : {}),
+    },
   }),
 )

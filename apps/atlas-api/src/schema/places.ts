@@ -1,3 +1,4 @@
+import { I18nMetaSchema } from './i18nMeta'
 import { SourcesSchema } from './sourceAttribution'
 import { geographicCodeQueryShape } from './geographicCodeFilters'
 import { RegionFilterSchema } from './region'
@@ -224,24 +225,7 @@ const PlaceI18nSchema = z
         description: openApiText('openapi_places_address_freeform_description'),
         examples: ['Shop 10, Ngong Ping 360, Lantau Island', '74 San Hing St', null],
       }),
-    provenance: z
-      .object({
-        isMachineTranslated: z.array(z.string()),
-        isHumanVerified: z.array(z.string()),
-        isLocaleInferred: z.boolean(),
-      })
-      .nullable()
-      .openapi({
-        description: openApiText('openapi_places_provenance_description'),
-        examples: [
-          {
-            isMachineTranslated: [],
-            isHumanVerified: [],
-            isLocaleInferred: true,
-          },
-          null,
-        ],
-      }),
+    meta: I18nMetaSchema,
     createdAt: z
       .string()
       .optional()
@@ -596,12 +580,9 @@ const PlaceCollectionI18nValueSchema = z
         description: openApiText('openapi_places_brand_name_alts_description'),
         examples: ['language', '大快活', null],
       }),
-    provenance: PlaceI18nSchema.shape.provenance.optional().openapi({
+    meta: PlaceI18nSchema.shape.meta.optional().openapi({
       description: openApiText('openapi_places_provenance_description'),
-      examples: [
-        { isMachineTranslated: [], isHumanVerified: [], isLocaleInferred: true },
-        null,
-      ],
+      examples: [{ isLocaleInferred: true }, null],
     }),
   })
   .openapi('PlaceCollectionI18nValue', {

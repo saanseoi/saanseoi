@@ -22,7 +22,7 @@ test('village suffix curations retain the place name and discard standalone suff
       nameAlts: base!,
       nameVariant: [suffix!, base!],
       nameRules: [{ value: suffix!, variant: 'alternate' }],
-      isLocaleInferred: false,
+      meta: { isLocaleInferred: false },
     }))
     const result = applyCuratedDivisionNames(id, source)
     expect(result.map(row => row.name)).toEqual([`${en} Village`, `${zh}村`])
@@ -45,7 +45,7 @@ function names(english: string) {
       nameAlts: null,
       nameVariant: null,
       nameRules: null,
-      isLocaleInferred: false,
+      meta: { isLocaleInferred: false },
     })),
   )
 }
@@ -129,7 +129,7 @@ test('dedicated aliases preserve source alternatives and apply idempotently', ()
         nameAlts: 'Existing alias',
         nameVariant: [primary!, 'Existing alias'],
         nameRules: [{ value: 'Existing alias', variant: 'alternate' }],
-        isLocaleInferred: false,
+        meta: { isLocaleInferred: false },
       },
     ]
     const once = applyCuratedDivisionNames(entry.divisionId, source)
@@ -154,7 +154,7 @@ test('Kwun Chung excludes Jordan aliases from every name representation', () => 
         { value: 'Jordan', variant: 'alternate' },
         { value: 'Retained', variant: 'alternate' },
       ],
-      isLocaleInferred: false,
+      meta: { isLocaleInferred: false },
     },
   ])[0]!
   expect(result.nameAlts).toBe('Retained')

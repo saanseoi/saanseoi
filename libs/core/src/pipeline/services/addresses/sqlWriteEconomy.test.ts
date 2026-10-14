@@ -54,6 +54,7 @@ function fixture(snapshotId: string, changed = true): ResolvedAddressChunkArtefa
         } as ResolvedAddressChunkArtefact['rows'][number]['base'],
         i18n: [
           {
+            meta: { isLocaleInferred: false },
             addressId: 'a',
             snapshotId,
             locale: 'en',

@@ -383,11 +383,13 @@ function projectDivisionI18n(
       const projectedValue =
         profile === 'full'
           ? {
+              meta: value.meta,
               name: value.name,
               nameAlts: value.nameAlts ?? null,
               nameRules: value.nameRules ?? null,
             }
           : {
+              meta: value.meta,
               name: value.name,
             }
 
