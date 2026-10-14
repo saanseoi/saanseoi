@@ -255,6 +255,22 @@ name fixture.
 
 ## New Town boundaries
 
+New Town canonical Divisions receive inferred administrative ancestry limited to
+`HKSAR → Area → District`. Each district intersecting at least 5% of the New Town's area
+inside the district union contributes a separate path. Selection uses unrounded
+EPSG:2326 area measurements and excludes uncovered territory from its denominator. It
+uses the prepared polygon, including its declared canonical geometry repairs, rather
+than the Division's label point. Boundary contact alone contributes no polygon area.
+
+`native-division-administrative-hierarchy.json` pins canonical ancestor identities and
+territorial source geometry. Area geometry is the union of its district territories. The
+assembly audit retains the inference policy, input pins, geometry hashes, selected and
+rejected overlaps, uncovered area and strict containment. `apiField` provenance explains
+this spatial fill separately from the publisher's empty native Planning hierarchy.
+Inference occurs before canonical content hashing; native source properties and
+attribution remain the Planning Department's. The 2021 local geometry check matches all
+13 records, with two receiving multiple district paths.
+
 Curated New Town Division codes use `SCREAMING_SNAKE_CASE`, such as `TSEUNG_KWAN_O` and
 `TSUEN_WAN_KWAI_CHUNG_AREA`. These public codes are assigned through the metadata
 registry independently of the source name identifiers and canonical UUIDs.

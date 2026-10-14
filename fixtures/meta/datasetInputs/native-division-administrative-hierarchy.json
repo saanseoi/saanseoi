@@ -1,0 +1,1796 @@
+{
+  "schemaVersion": 1,
+  "purpose": "Pinned canonical administrative identities and territorial source geometry for native Division ancestry. Area geometry is the union of its constituent district territories.",
+  "minimumCoveredFraction": 0.05,
+  "sourceReleases": [
+    {
+      "snapshotId": "d8017b0c-2401-56ee-a388-5e75a758860a",
+      "datasetCode": "ds-hk-overture-division",
+      "releaseCode": "dr-hk-overture-division-area-2026-09-23.0",
+      "sourceVersion": "2026-09-23.0",
+      "resourceType": "divisionArea",
+      "rawObjectKey": "by-source/hk/overture/ds-hk-overture-division/dr-hk-overture-division-area-2026-09-23.0/95d2d04aac5241eb5f3498d24c85e145f33a17dce5d96cb79df229ebbf579c7e-ds-hk-overture-division-2026-09-23.0.parquet",
+      "contentHash": "95d2d04aac5241eb5f3498d24c85e145f33a17dce5d96cb79df229ebbf579c7e",
+      "releaseNotesUrl": "https://docs.overturemaps.org/blog/2026/09/23/release-notes/#divisions"
+    }
+  ],
+  "canonicalReference": {
+    "releaseCode": "dr-hk-saanseoi-division-2026-10-01.0",
+    "archiveSha256": "3f67b59ead786e2b13546a285cbbba4982502134275406de3d2d0e5bddbbf025",
+    "snapshotId": "b239d389-13bd-5d8a-ba83-f96d153f06b8"
+  },
+  "references": [
+    {
+      "id": "8d17afe0-5631-49c5-b86d-d53c5d4b2f9d",
+      "class": "district",
+      "names": {
+        "cs": "Okres 中西區 Central and Western",
+        "da": "中西區 Central and Western-distriktet",
+        "de": "Distrikt 中西區 Central and Western",
+        "en": "Central and Western District",
+        "es": "Distrito 中西區 Central and Western",
+        "fr": "District 中西區 Central and Western",
+        "id": "Distrik 中西區 Central and Western",
+        "it": "Distretto 中西區 Central and Western",
+        "ja": "中西区",
+        "ko": "중시구",
+        "ms": "Daerah 中西區 Central and Western",
+        "nl": "District van 中西區 Central and Western",
+        "no": "中西區 Central and Western District",
+        "pl": "Dystrykt 中西區 Central and Western",
+        "pt": "Distrito 中西區 Central and Western",
+        "ro": "Districtul 中西區 Central and Western",
+        "ru": "Центральный и Западный округ",
+        "sv": "中西區 Central and Western-distriktet",
+        "tr": "Bölgesi 中西區 Central and Western",
+        "yue-latn-jyutping": "zung1 sai1 keoi1",
+        "zh-hans": "中西区",
+        "zh-hant": "中西區"
+      },
+      "hierarchies": {
+        "administrative": [
+          [
+            {
+              "class": "sar",
+              "containmentGeometry": {
+                "ancestor": "sha256:571105ea1dd9d3926ba895b4e3249536c4b4f15dccae2d60549d2d8428981630",
+                "division": "sha256:f11dd1e82da989c7cbd3e2d5d6d48ef81bb4bca59a91706377ebdc6d8e5212fc"
+              },
+              "fullContainment": true,
+              "id": "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+              "name": "香港 Hong Kong"
+            },
+            {
+              "class": "area",
+              "containmentGeometry": {
+                "ancestor": "sha256:fd1f71f23153828cee4d23b1b7e9f35021a132e693a0183ccae74fec50341372",
+                "division": "sha256:f11dd1e82da989c7cbd3e2d5d6d48ef81bb4bca59a91706377ebdc6d8e5212fc"
+              },
+              "fullContainment": true,
+              "id": "ss-25cec859-44f3-5e1d-a72b-952f804e56ab",
+              "name": "香港島 Hong Kong Island"
+            }
+          ]
+        ],
+        "full": [
+          [
+            {
+              "class": "sar",
+              "containmentGeometry": {
+                "ancestor": "sha256:571105ea1dd9d3926ba895b4e3249536c4b4f15dccae2d60549d2d8428981630",
+                "division": "sha256:f11dd1e82da989c7cbd3e2d5d6d48ef81bb4bca59a91706377ebdc6d8e5212fc"
+              },
+              "fullContainment": true,
+              "id": "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+              "name": "香港 Hong Kong"
+            },
+            {
+              "class": "area",
+              "containmentGeometry": {
+                "ancestor": "sha256:fd1f71f23153828cee4d23b1b7e9f35021a132e693a0183ccae74fec50341372",
+                "division": "sha256:f11dd1e82da989c7cbd3e2d5d6d48ef81bb4bca59a91706377ebdc6d8e5212fc"
+              },
+              "fullContainment": true,
+              "id": "ss-25cec859-44f3-5e1d-a72b-952f804e56ab",
+              "name": "香港島 Hong Kong Island"
+            }
+          ]
+        ],
+        "landform": [],
+        "locality": []
+      }
+    },
+    {
+      "id": "01b58985-268d-4b8a-8e09-64604668b13e",
+      "class": "district",
+      "names": {
+        "cs": "Okres 東區 Eastern",
+        "da": "東區 Eastern-distriktet",
+        "de": "Distrikt 東區 Eastern",
+        "en": "Eastern District",
+        "es": "Distrito 東區 Eastern",
+        "fr": "District 東區 Eastern",
+        "id": "Distrik 東區 Eastern",
+        "it": "Distretto 東區 Eastern",
+        "ja": "東区",
+        "ko": "둥구",
+        "ms": "Daerah 東區 Eastern",
+        "nl": "District van 東區 Eastern",
+        "no": "東區 Eastern District",
+        "pl": "Dystrykt 東區 Eastern",
+        "pt": "Distrito 東區 Eastern",
+        "ro": "Districtul 東區 Eastern",
+        "sv": "東區 Eastern-distriktet",
+        "tr": "Bölgesi 東區 Eastern",
+        "yue-latn-jyutping": "dung1 keoi1",
+        "zh-hans": "东区",
+        "zh-hant": "東區"
+      },
+      "hierarchies": {
+        "administrative": [
+          [
+            {
+              "class": "sar",
+              "containmentGeometry": {
+                "ancestor": "sha256:571105ea1dd9d3926ba895b4e3249536c4b4f15dccae2d60549d2d8428981630",
+                "division": "sha256:c135336d9189d3b6b336775681004dd50f1c358b3f1651e7e6b301a8480fa356"
+              },
+              "fullContainment": true,
+              "id": "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+              "name": "香港 Hong Kong"
+            },
+            {
+              "class": "area",
+              "containmentGeometry": {
+                "ancestor": "sha256:fd1f71f23153828cee4d23b1b7e9f35021a132e693a0183ccae74fec50341372",
+                "division": "sha256:c135336d9189d3b6b336775681004dd50f1c358b3f1651e7e6b301a8480fa356"
+              },
+              "fullContainment": true,
+              "id": "ss-25cec859-44f3-5e1d-a72b-952f804e56ab",
+              "name": "香港島 Hong Kong Island"
+            }
+          ]
+        ],
+        "full": [
+          [
+            {
+              "class": "sar",
+              "containmentGeometry": {
+                "ancestor": "sha256:571105ea1dd9d3926ba895b4e3249536c4b4f15dccae2d60549d2d8428981630",
+                "division": "sha256:c135336d9189d3b6b336775681004dd50f1c358b3f1651e7e6b301a8480fa356"
+              },
+              "fullContainment": true,
+              "id": "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+              "name": "香港 Hong Kong"
+            },
+            {
+              "class": "area",
+              "containmentGeometry": {
+                "ancestor": "sha256:fd1f71f23153828cee4d23b1b7e9f35021a132e693a0183ccae74fec50341372",
+                "division": "sha256:c135336d9189d3b6b336775681004dd50f1c358b3f1651e7e6b301a8480fa356"
+              },
+              "fullContainment": true,
+              "id": "ss-25cec859-44f3-5e1d-a72b-952f804e56ab",
+              "name": "香港島 Hong Kong Island"
+            }
+          ]
+        ],
+        "landform": [],
+        "locality": []
+      }
+    },
+    {
+      "id": "5aa908d4-65c5-4aac-b6eb-bb7481c14a31",
+      "class": "district",
+      "names": {
+        "cs": "Okres 離島區 Islands",
+        "da": "離島區 Islands-distriktet",
+        "de": "Distrikt 離島區 Islands",
+        "en": "Islands District",
+        "es": "Distrito 離島區 Islands",
+        "fr": "District 離島區 Islands",
+        "id": "Distrik 離島區 Islands",
+        "it": "Distretto 離島區 Islands",
+        "ja": "離島区",
+        "ko": "레이도구",
+        "ms": "Daerah 離島區 Islands",
+        "nl": "District van 離島區 Islands",
+        "no": "離島區 Islands District",
+        "pl": "Dystrykt 離島區 Islands",
+        "pt": "Distrito 離島區 Islands",
+        "ro": "Districtul 離島區 Islands",
+        "ru": "Островной район",
+        "sv": "離島區 Islands-distriktet",
+        "tr": "Bölgesi 離島區 Islands",
+        "uk": "Айлендс округ",
+        "vi": "Li Đảo",
+        "yue-latn-jyutping": "lei4 dou2 keoi1",
+        "zh-hans": "离岛区",
+        "zh-hant": "離島區"
+      },
+      "hierarchies": {
+        "administrative": [
+          [
+            {
+              "class": "sar",
+              "containmentGeometry": {
+                "ancestor": "sha256:571105ea1dd9d3926ba895b4e3249536c4b4f15dccae2d60549d2d8428981630",
+                "division": "sha256:a01584193f3a07ee1696c4f01bf8a4978590c1c457620aa29c15c0e415fc6e81"
+              },
+              "fullContainment": true,
+              "id": "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+              "name": "香港 Hong Kong"
+            },
+            {
+              "class": "area",
+              "containmentGeometry": {
+                "ancestor": "sha256:c0f06f7766a4de8cd3a6e3351f131bc50da56a54d05d54d72618db60215174c0",
+                "division": "sha256:a01584193f3a07ee1696c4f01bf8a4978590c1c457620aa29c15c0e415fc6e81"
+              },
+              "fullContainment": true,
+              "id": "ss-780c42b7-213b-5076-9d36-6ae0024e3bd3",
+              "name": "新界 New Territories"
+            }
+          ]
+        ],
+        "full": [
+          [
+            {
+              "class": "sar",
+              "containmentGeometry": {
+                "ancestor": "sha256:571105ea1dd9d3926ba895b4e3249536c4b4f15dccae2d60549d2d8428981630",
+                "division": "sha256:a01584193f3a07ee1696c4f01bf8a4978590c1c457620aa29c15c0e415fc6e81"
+              },
+              "fullContainment": true,
+              "id": "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+              "name": "香港 Hong Kong"
+            },
+            {
+              "class": "area",
+              "containmentGeometry": {
+                "ancestor": "sha256:c0f06f7766a4de8cd3a6e3351f131bc50da56a54d05d54d72618db60215174c0",
+                "division": "sha256:a01584193f3a07ee1696c4f01bf8a4978590c1c457620aa29c15c0e415fc6e81"
+              },
+              "fullContainment": true,
+              "id": "ss-780c42b7-213b-5076-9d36-6ae0024e3bd3",
+              "name": "新界 New Territories"
+            }
+          ]
+        ],
+        "landform": [],
+        "locality": []
+      }
+    },
+    {
+      "id": "94d17307-4085-457b-93a1-1f2f31f1b6c0",
+      "class": "district",
+      "names": {
+        "cs": "Okres 九龍城區 Kowloon City",
+        "da": "九龍城區 Kowloon City-distriktet",
+        "de": "Distrikt 九龍城區 Kowloon City",
+        "en": "Kowloon City District",
+        "es": "Distrito 九龍城區 Kowloon City",
+        "fr": "District 九龍城區 Kowloon City",
+        "id": "Distrik 九龍城區 Kowloon City",
+        "it": "Distretto 九龍城區 Kowloon City",
+        "ja": "九龍城区",
+        "ko": "가우룽싱구",
+        "ms": "Daerah 九龍城區 Kowloon City",
+        "nl": "District van 九龍城區 Kowloon City",
+        "no": "九龍城區 Kowloon City District",
+        "pl": "Dystrykt 九龍城區 Kowloon City",
+        "pt": "Distrito 九龍城區 Kowloon City",
+        "ro": "Districtul 九龍城區 Kowloon City",
+        "ru": "Коулун-Сити",
+        "sv": "九龍城區 Kowloon City-distriktet",
+        "tr": "Bölgesi 九龍城區 Kowloon City",
+        "uk": "Коулун-Сіті",
+        "yue-latn-jyutping": "gau2 lung4 sing4 keoi1",
+        "zh-hans": "九龙城区",
+        "zh-hant": "九龍城區"
+      },
+      "hierarchies": {
+        "administrative": [
+          [
+            {
+              "class": "sar",
+              "containmentGeometry": {
+                "ancestor": "sha256:571105ea1dd9d3926ba895b4e3249536c4b4f15dccae2d60549d2d8428981630",
+                "division": "sha256:0d53e12abcc6aee2c416323ec83326632a4063bf0472d9f07868542640c7a012"
+              },
+              "fullContainment": true,
+              "id": "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+              "name": "香港 Hong Kong"
+            },
+            {
+              "class": "area",
+              "containmentGeometry": {
+                "ancestor": "sha256:d12a812fc6d95c462a70590e11f12fa309ff900f91381686af5aba14f5462cf3",
+                "division": "sha256:0d53e12abcc6aee2c416323ec83326632a4063bf0472d9f07868542640c7a012"
+              },
+              "fullContainment": true,
+              "id": "ss-bb5c7e0a-fd09-5416-8bb8-9593c90280fb",
+              "name": "九龍 Kowloon"
+            }
+          ]
+        ],
+        "full": [
+          [
+            {
+              "class": "sar",
+              "containmentGeometry": {
+                "ancestor": "sha256:571105ea1dd9d3926ba895b4e3249536c4b4f15dccae2d60549d2d8428981630",
+                "division": "sha256:0d53e12abcc6aee2c416323ec83326632a4063bf0472d9f07868542640c7a012"
+              },
+              "fullContainment": true,
+              "id": "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+              "name": "香港 Hong Kong"
+            },
+            {
+              "class": "area",
+              "containmentGeometry": {
+                "ancestor": "sha256:d12a812fc6d95c462a70590e11f12fa309ff900f91381686af5aba14f5462cf3",
+                "division": "sha256:0d53e12abcc6aee2c416323ec83326632a4063bf0472d9f07868542640c7a012"
+              },
+              "fullContainment": true,
+              "id": "ss-bb5c7e0a-fd09-5416-8bb8-9593c90280fb",
+              "name": "九龍 Kowloon"
+            }
+          ]
+        ],
+        "landform": [],
+        "locality": []
+      }
+    },
+    {
+      "id": "cf79b69e-8575-4e9b-b15a-a4a8901e685b",
+      "class": "district",
+      "names": {
+        "cs": "Okres 觀塘區 Kwun Tong",
+        "da": "觀塘區 Kwun Tong-distriktet",
+        "de": "Distrikt 觀塘區 Kwun Tong",
+        "en": "Kwun Tong District",
+        "es": "Distrito 觀塘區 Kwun Tong",
+        "fr": "District 觀塘區 Kwun Tong",
+        "id": "Distrik 觀塘區 Kwun Tong",
+        "it": "Distretto 觀塘區 Kwun Tong",
+        "ja": "観塘区",
+        "ko": "군통구",
+        "ms": "Daerah 觀塘區 Kwun Tong",
+        "nl": "District van 觀塘區 Kwun Tong",
+        "no": "觀塘區 Kwun Tong District",
+        "pl": "Dystrykt 觀塘區 Kwun Tong",
+        "pt": "Distrito 觀塘區 Kwun Tong",
+        "ro": "Districtul 觀塘區 Kwun Tong",
+        "ru": "Куньтхон",
+        "sv": "觀塘區 Kwun Tong-distriktet",
+        "tr": "Bölgesi 觀塘區 Kwun Tong",
+        "uk": "Куньтон",
+        "zh-hans": "观塘区",
+        "zh-hant": "觀塘區"
+      },
+      "hierarchies": {
+        "administrative": [
+          [
+            {
+              "class": "sar",
+              "containmentGeometry": {
+                "ancestor": "sha256:571105ea1dd9d3926ba895b4e3249536c4b4f15dccae2d60549d2d8428981630",
+                "division": "sha256:446172a0474817f78064be843367410dc7b3af42c9f0b4f88c305bf913ff94e0"
+              },
+              "fullContainment": true,
+              "id": "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+              "name": "香港 Hong Kong"
+            },
+            {
+              "class": "area",
+              "containmentGeometry": {
+                "ancestor": "sha256:d12a812fc6d95c462a70590e11f12fa309ff900f91381686af5aba14f5462cf3",
+                "division": "sha256:446172a0474817f78064be843367410dc7b3af42c9f0b4f88c305bf913ff94e0"
+              },
+              "fullContainment": true,
+              "id": "ss-bb5c7e0a-fd09-5416-8bb8-9593c90280fb",
+              "name": "九龍 Kowloon"
+            }
+          ]
+        ],
+        "full": [
+          [
+            {
+              "class": "sar",
+              "containmentGeometry": {
+                "ancestor": "sha256:571105ea1dd9d3926ba895b4e3249536c4b4f15dccae2d60549d2d8428981630",
+                "division": "sha256:446172a0474817f78064be843367410dc7b3af42c9f0b4f88c305bf913ff94e0"
+              },
+              "fullContainment": true,
+              "id": "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+              "name": "香港 Hong Kong"
+            },
+            {
+              "class": "area",
+              "containmentGeometry": {
+                "ancestor": "sha256:d12a812fc6d95c462a70590e11f12fa309ff900f91381686af5aba14f5462cf3",
+                "division": "sha256:446172a0474817f78064be843367410dc7b3af42c9f0b4f88c305bf913ff94e0"
+              },
+              "fullContainment": true,
+              "id": "ss-bb5c7e0a-fd09-5416-8bb8-9593c90280fb",
+              "name": "九龍 Kowloon"
+            }
+          ]
+        ],
+        "landform": [],
+        "locality": []
+      }
+    },
+    {
+      "id": "106de92f-8a6d-44ba-b2c6-488d181a0deb",
+      "class": "district",
+      "names": {
+        "cs": "Okres 葵青區 Kwai Tsing",
+        "da": "葵青區 Kwai Tsing-distriktet",
+        "de": "Distrikt 葵青區 Kwai Tsing",
+        "en": "Kwai Tsing District",
+        "es": "Distrito 葵青區 Kwai Tsing",
+        "fr": "District 葵青區 Kwai Tsing",
+        "id": "Distrik 葵青區 Kwai Tsing",
+        "it": "Distretto 葵青區 Kwai Tsing",
+        "ja": "葵青区",
+        "ko": "콰이칭구",
+        "ms": "Daerah 葵青區 Kwai Tsing",
+        "nl": "District van 葵青區 Kwai Tsing",
+        "no": "葵青區 Kwai Tsing District",
+        "pl": "Dystrykt 葵青區 Kwai Tsing",
+        "pt": "Distrito 葵青區 Kwai Tsing",
+        "ro": "Districtul 葵青區 Kwai Tsing",
+        "sv": "葵青區 Kwai Tsing-distriktet",
+        "tr": "Bölgesi 葵青區 Kwai Tsing",
+        "ur": "ضلع کھوئی چھنگ",
+        "vi": "Quỳ Thanh",
+        "yue-latn-jyutping": "kwai4 cing1 keoi1",
+        "zh-hans": "葵青区",
+        "zh-hant": "葵青區"
+      },
+      "hierarchies": {
+        "administrative": [
+          [
+            {
+              "class": "sar",
+              "containmentGeometry": {
+                "ancestor": "sha256:571105ea1dd9d3926ba895b4e3249536c4b4f15dccae2d60549d2d8428981630",
+                "division": "sha256:a8c9e5eaab9e6b70c4ed4afd7a0194ac3672f0d4fc366fe7e2edf62575318d3e"
+              },
+              "fullContainment": true,
+              "id": "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+              "name": "香港 Hong Kong"
+            },
+            {
+              "class": "area",
+              "containmentGeometry": {
+                "ancestor": "sha256:c0f06f7766a4de8cd3a6e3351f131bc50da56a54d05d54d72618db60215174c0",
+                "division": "sha256:a8c9e5eaab9e6b70c4ed4afd7a0194ac3672f0d4fc366fe7e2edf62575318d3e"
+              },
+              "fullContainment": true,
+              "id": "ss-780c42b7-213b-5076-9d36-6ae0024e3bd3",
+              "name": "新界 New Territories"
+            }
+          ]
+        ],
+        "full": [
+          [
+            {
+              "class": "sar",
+              "containmentGeometry": {
+                "ancestor": "sha256:571105ea1dd9d3926ba895b4e3249536c4b4f15dccae2d60549d2d8428981630",
+                "division": "sha256:a8c9e5eaab9e6b70c4ed4afd7a0194ac3672f0d4fc366fe7e2edf62575318d3e"
+              },
+              "fullContainment": true,
+              "id": "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+              "name": "香港 Hong Kong"
+            },
+            {
+              "class": "area",
+              "containmentGeometry": {
+                "ancestor": "sha256:c0f06f7766a4de8cd3a6e3351f131bc50da56a54d05d54d72618db60215174c0",
+                "division": "sha256:a8c9e5eaab9e6b70c4ed4afd7a0194ac3672f0d4fc366fe7e2edf62575318d3e"
+              },
+              "fullContainment": true,
+              "id": "ss-780c42b7-213b-5076-9d36-6ae0024e3bd3",
+              "name": "新界 New Territories"
+            }
+          ]
+        ],
+        "landform": [],
+        "locality": []
+      }
+    },
+    {
+      "id": "e0c8872f-c29e-4ea3-8efd-88afccef2b08",
+      "class": "district",
+      "names": {
+        "cs": "Okres 北區 North",
+        "da": "北區 North-distriktet",
+        "de": "Distrikt 北區 North",
+        "en": "North District",
+        "es": "Distrito 北區 North",
+        "fr": "District 北區 North",
+        "id": "Distrik 北區 North",
+        "it": "Distretto 北區 North",
+        "ja": "北区",
+        "ko": "박구",
+        "ms": "Daerah 北區 North",
+        "nl": "District van 北區 North",
+        "no": "北區 North District",
+        "pl": "Dystrykt 北區 North",
+        "pt": "Distrito 北區 North",
+        "ro": "Districtul 北區 North",
+        "sv": "北區 North-distriktet",
+        "tr": "Bölgesi 北區 North",
+        "yue-latn-jyutping": "bak1 keoi1",
+        "zh-hans": "北区",
+        "zh-hant": "北區"
+      },
+      "hierarchies": {
+        "administrative": [
+          [
+            {
+              "class": "sar",
+              "containmentGeometry": {
+                "ancestor": "sha256:571105ea1dd9d3926ba895b4e3249536c4b4f15dccae2d60549d2d8428981630",
+                "division": "sha256:8f1cfacc92d692b0eb7ffaf6ba73b4d2ad9b30443911c6d1f09f2078a5afc55f"
+              },
+              "fullContainment": true,
+              "id": "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+              "name": "香港 Hong Kong"
+            },
+            {
+              "class": "area",
+              "containmentGeometry": {
+                "ancestor": "sha256:c0f06f7766a4de8cd3a6e3351f131bc50da56a54d05d54d72618db60215174c0",
+                "division": "sha256:8f1cfacc92d692b0eb7ffaf6ba73b4d2ad9b30443911c6d1f09f2078a5afc55f"
+              },
+              "fullContainment": true,
+              "id": "ss-780c42b7-213b-5076-9d36-6ae0024e3bd3",
+              "name": "新界 New Territories"
+            }
+          ]
+        ],
+        "full": [
+          [
+            {
+              "class": "sar",
+              "containmentGeometry": {
+                "ancestor": "sha256:571105ea1dd9d3926ba895b4e3249536c4b4f15dccae2d60549d2d8428981630",
+                "division": "sha256:8f1cfacc92d692b0eb7ffaf6ba73b4d2ad9b30443911c6d1f09f2078a5afc55f"
+              },
+              "fullContainment": true,
+              "id": "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+              "name": "香港 Hong Kong"
+            },
+            {
+              "class": "area",
+              "containmentGeometry": {
+                "ancestor": "sha256:c0f06f7766a4de8cd3a6e3351f131bc50da56a54d05d54d72618db60215174c0",
+                "division": "sha256:8f1cfacc92d692b0eb7ffaf6ba73b4d2ad9b30443911c6d1f09f2078a5afc55f"
+              },
+              "fullContainment": true,
+              "id": "ss-780c42b7-213b-5076-9d36-6ae0024e3bd3",
+              "name": "新界 New Territories"
+            }
+          ]
+        ],
+        "landform": [],
+        "locality": []
+      }
+    },
+    {
+      "id": "c11cb4be-3b0b-405a-9c30-34677c6c4ab2",
+      "class": "district",
+      "names": {
+        "cs": "Okres 西貢區 Sai Kung",
+        "da": "西貢區 Sai Kung-distriktet",
+        "de": "Distrikt 西貢區 Sai Kung",
+        "en": "Sai Kung District",
+        "es": "Distrito 西貢區 Sai Kung",
+        "fr": "District 西貢區 Sai Kung",
+        "id": "Distrik 西貢區 Sai Kung",
+        "it": "Distretto 西貢區 Sai Kung",
+        "ja": "西貢区",
+        "ko": "사이궁구",
+        "ms": "Daerah 西貢區 Sai Kung",
+        "nl": "District van 西貢區 Sai Kung",
+        "no": "西貢區 Sai Kung District",
+        "pl": "Dystrykt 西貢區 Sai Kung",
+        "pt": "Distrito 西貢區 Sai Kung",
+        "ro": "Districtul 西貢區 Sai Kung",
+        "sv": "西貢區 Sai Kung-distriktet",
+        "tr": "Bölgesi 西貢區 Sai Kung",
+        "yue-latn-jyutping": "sai1 gung3 keoi1",
+        "zh-hans": "西贡区",
+        "zh-hant": "西貢區"
+      },
+      "hierarchies": {
+        "administrative": [
+          [
+            {
+              "class": "sar",
+              "containmentGeometry": {
+                "ancestor": "sha256:571105ea1dd9d3926ba895b4e3249536c4b4f15dccae2d60549d2d8428981630",
+                "division": "sha256:3d7e2dbdb9886c21abbf6d1809916790920a309e60271374036ab7c6f8952b59"
+              },
+              "fullContainment": true,
+              "id": "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+              "name": "香港 Hong Kong"
+            },
+            {
+              "class": "area",
+              "containmentGeometry": {
+                "ancestor": "sha256:c0f06f7766a4de8cd3a6e3351f131bc50da56a54d05d54d72618db60215174c0",
+                "division": "sha256:3d7e2dbdb9886c21abbf6d1809916790920a309e60271374036ab7c6f8952b59"
+              },
+              "fullContainment": true,
+              "id": "ss-780c42b7-213b-5076-9d36-6ae0024e3bd3",
+              "name": "新界 New Territories"
+            }
+          ]
+        ],
+        "full": [
+          [
+            {
+              "class": "sar",
+              "containmentGeometry": {
+                "ancestor": "sha256:571105ea1dd9d3926ba895b4e3249536c4b4f15dccae2d60549d2d8428981630",
+                "division": "sha256:3d7e2dbdb9886c21abbf6d1809916790920a309e60271374036ab7c6f8952b59"
+              },
+              "fullContainment": true,
+              "id": "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+              "name": "香港 Hong Kong"
+            },
+            {
+              "class": "area",
+              "containmentGeometry": {
+                "ancestor": "sha256:c0f06f7766a4de8cd3a6e3351f131bc50da56a54d05d54d72618db60215174c0",
+                "division": "sha256:3d7e2dbdb9886c21abbf6d1809916790920a309e60271374036ab7c6f8952b59"
+              },
+              "fullContainment": true,
+              "id": "ss-780c42b7-213b-5076-9d36-6ae0024e3bd3",
+              "name": "新界 New Territories"
+            }
+          ]
+        ],
+        "landform": [],
+        "locality": []
+      }
+    },
+    {
+      "id": "73e4cfa9-558b-4017-84a3-f5c0b3507aa5",
+      "class": "district",
+      "names": {
+        "cs": "Okres 深水埗區 Sham Shui Po",
+        "da": "深水埗區 Sham Shui Po-distriktet",
+        "de": "Distrikt 深水埗區 Sham Shui Po",
+        "en": "Sham Shui Po District",
+        "es": "Distrito 深水埗區 Sham Shui Po",
+        "fr": "District 深水埗區 Sham Shui Po",
+        "id": "Distrik 深水埗區 Sham Shui Po",
+        "it": "Distretto 深水埗區 Sham Shui Po",
+        "ja": "深水埗区",
+        "ko": "삼서이보구",
+        "ms": "Daerah 深水埗區 Sham Shui Po",
+        "nl": "District van 深水埗區 Sham Shui Po",
+        "no": "深水埗區 Sham Shui Po District",
+        "pl": "Dystrykt 深水埗區 Sham Shui Po",
+        "pt": "Distrito 深水埗區 Sham Shui Po",
+        "ro": "Districtul 深水埗區 Sham Shui Po",
+        "ru": "Самсёйпоу",
+        "sv": "深水埗區 Sham Shui Po-distriktet",
+        "tr": "Bölgesi 深水埗區 Sham Shui Po",
+        "uk": "Самсейпоу",
+        "yue-latn-jyutping": "sam1 seoi2 bou2 keoi1",
+        "zh-hans": "深水埗区",
+        "zh-hant": "深水埗區"
+      },
+      "hierarchies": {
+        "administrative": [
+          [
+            {
+              "class": "sar",
+              "containmentGeometry": {
+                "ancestor": "sha256:571105ea1dd9d3926ba895b4e3249536c4b4f15dccae2d60549d2d8428981630",
+                "division": "sha256:2d9ac6109ecb576d0c613813086cdacab1900e1b36e1ccf03d4375f6c2de93f0"
+              },
+              "fullContainment": true,
+              "id": "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+              "name": "香港 Hong Kong"
+            },
+            {
+              "class": "area",
+              "containmentGeometry": {
+                "ancestor": "sha256:d12a812fc6d95c462a70590e11f12fa309ff900f91381686af5aba14f5462cf3",
+                "division": "sha256:2d9ac6109ecb576d0c613813086cdacab1900e1b36e1ccf03d4375f6c2de93f0"
+              },
+              "fullContainment": true,
+              "id": "ss-bb5c7e0a-fd09-5416-8bb8-9593c90280fb",
+              "name": "九龍 Kowloon"
+            }
+          ]
+        ],
+        "full": [
+          [
+            {
+              "class": "sar",
+              "containmentGeometry": {
+                "ancestor": "sha256:571105ea1dd9d3926ba895b4e3249536c4b4f15dccae2d60549d2d8428981630",
+                "division": "sha256:2d9ac6109ecb576d0c613813086cdacab1900e1b36e1ccf03d4375f6c2de93f0"
+              },
+              "fullContainment": true,
+              "id": "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+              "name": "香港 Hong Kong"
+            },
+            {
+              "class": "area",
+              "containmentGeometry": {
+                "ancestor": "sha256:d12a812fc6d95c462a70590e11f12fa309ff900f91381686af5aba14f5462cf3",
+                "division": "sha256:2d9ac6109ecb576d0c613813086cdacab1900e1b36e1ccf03d4375f6c2de93f0"
+              },
+              "fullContainment": true,
+              "id": "ss-bb5c7e0a-fd09-5416-8bb8-9593c90280fb",
+              "name": "九龍 Kowloon"
+            }
+          ]
+        ],
+        "landform": [],
+        "locality": []
+      }
+    },
+    {
+      "id": "e70ad27b-857b-45f9-b94f-2168550591da",
+      "class": "district",
+      "names": {
+        "cs": "Okres 沙田區 Sha Tin",
+        "da": "沙田區 Sha Tin-distriktet",
+        "de": "Distrikt 沙田區 Sha Tin",
+        "en": "Sha Tin District",
+        "es": "Distrito 沙田區 Sha Tin",
+        "fr": "District 沙田區 Sha Tin",
+        "id": "Distrik 沙田區 Sha Tin",
+        "it": "Distretto 沙田區 Sha Tin",
+        "ja": "沙田区",
+        "ko": "사틴구",
+        "ms": "Daerah 沙田區 Sha Tin",
+        "nl": "District van 沙田區 Sha Tin",
+        "no": "沙田區 Sha Tin District",
+        "pl": "Dystrykt 沙田區 Sha Tin",
+        "pt": "Distrito 沙田區 Sha Tin",
+        "ro": "Districtul 沙田區 Sha Tin",
+        "sv": "沙田區 Sha Tin-distriktet",
+        "tr": "Bölgesi 沙田區 Sha Tin",
+        "yue-latn-jyutping": "saa1 tin4 keoi1",
+        "zh-hans": "沙田区",
+        "zh-hant": "沙田區"
+      },
+      "hierarchies": {
+        "administrative": [
+          [
+            {
+              "class": "sar",
+              "containmentGeometry": {
+                "ancestor": "sha256:571105ea1dd9d3926ba895b4e3249536c4b4f15dccae2d60549d2d8428981630",
+                "division": "sha256:29761db89be94d16f2c546e4b68e25fb8cd28b5f225210e3c073092b32c8ae84"
+              },
+              "fullContainment": true,
+              "id": "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+              "name": "香港 Hong Kong"
+            },
+            {
+              "class": "area",
+              "containmentGeometry": {
+                "ancestor": "sha256:c0f06f7766a4de8cd3a6e3351f131bc50da56a54d05d54d72618db60215174c0",
+                "division": "sha256:29761db89be94d16f2c546e4b68e25fb8cd28b5f225210e3c073092b32c8ae84"
+              },
+              "fullContainment": true,
+              "id": "ss-780c42b7-213b-5076-9d36-6ae0024e3bd3",
+              "name": "新界 New Territories"
+            }
+          ]
+        ],
+        "full": [
+          [
+            {
+              "class": "sar",
+              "containmentGeometry": {
+                "ancestor": "sha256:571105ea1dd9d3926ba895b4e3249536c4b4f15dccae2d60549d2d8428981630",
+                "division": "sha256:29761db89be94d16f2c546e4b68e25fb8cd28b5f225210e3c073092b32c8ae84"
+              },
+              "fullContainment": true,
+              "id": "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+              "name": "香港 Hong Kong"
+            },
+            {
+              "class": "area",
+              "containmentGeometry": {
+                "ancestor": "sha256:c0f06f7766a4de8cd3a6e3351f131bc50da56a54d05d54d72618db60215174c0",
+                "division": "sha256:29761db89be94d16f2c546e4b68e25fb8cd28b5f225210e3c073092b32c8ae84"
+              },
+              "fullContainment": true,
+              "id": "ss-780c42b7-213b-5076-9d36-6ae0024e3bd3",
+              "name": "新界 New Territories"
+            }
+          ]
+        ],
+        "landform": [],
+        "locality": []
+      }
+    },
+    {
+      "id": "1dff7a5f-afe1-4db2-8ca7-cda8bb25754a",
+      "class": "district",
+      "names": {
+        "ar": "المقاطعة الجنوبية (هونغ كونغ)",
+        "ceb": "Southern",
+        "cmn": "南區",
+        "cs": "Okres 南區 Southern",
+        "da": "南區 Southern-distriktet",
+        "de": "Southern District",
+        "en": "Southern District",
+        "es": "Distrito Sur",
+        "eu": "Hegoaldeko barrutia",
+        "fa": "منطقه جنوبی، هنگ کنگ",
+        "fr": "Southern",
+        "hak": "Nàm-khî",
+        "he": "דרום הונג קונג",
+        "hu": "Déli kerület",
+        "id": "Distrik Selatan",
+        "it": "Distretto Meridionale",
+        "ja": "南区",
+        "ko": "남구",
+        "ms": "Daerah 南區 Southern",
+        "nan": "Lâm-khu",
+        "nan-hant": "南區",
+        "nan-latn-pehoeji": "Lâm-khu",
+        "nan-latn-tailo": "Lâm-khu",
+        "nl": "Southern District",
+        "no": "南區 Southern District",
+        "pl": "Southern",
+        "pt": "Distrito 南區 Southern",
+        "ro": "Districtul 南區 Southern",
+        "ru": "Южный округ",
+        "sv": "Södra Hongkong",
+        "ta": "தென் மாவட்டம் (ஹொங்கொங் தீவு)",
+        "tr": "Güney Semti",
+        "ur": "جنوبی ضلع (ہانگ کانگ)",
+        "vi": "Quận Nam",
+        "yue": "南區",
+        "yue-latn-jyutping": "naam4 keoi1",
+        "zh-hans": "南区",
+        "zh-hant": "南區"
+      },
+      "hierarchies": {
+        "administrative": [
+          [
+            {
+              "class": "sar",
+              "containmentGeometry": {
+                "ancestor": "sha256:571105ea1dd9d3926ba895b4e3249536c4b4f15dccae2d60549d2d8428981630",
+                "division": "sha256:ab5bacbdcad409ced1fbb416fc7d937aba900bdc0e37022216089321f0429719"
+              },
+              "fullContainment": true,
+              "id": "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+              "name": "香港 Hong Kong"
+            },
+            {
+              "class": "area",
+              "containmentGeometry": {
+                "ancestor": "sha256:fd1f71f23153828cee4d23b1b7e9f35021a132e693a0183ccae74fec50341372",
+                "division": "sha256:ab5bacbdcad409ced1fbb416fc7d937aba900bdc0e37022216089321f0429719"
+              },
+              "fullContainment": true,
+              "id": "ss-25cec859-44f3-5e1d-a72b-952f804e56ab",
+              "name": "香港島 Hong Kong Island"
+            }
+          ]
+        ],
+        "full": [
+          [
+            {
+              "class": "sar",
+              "containmentGeometry": {
+                "ancestor": "sha256:571105ea1dd9d3926ba895b4e3249536c4b4f15dccae2d60549d2d8428981630",
+                "division": "sha256:ab5bacbdcad409ced1fbb416fc7d937aba900bdc0e37022216089321f0429719"
+              },
+              "fullContainment": true,
+              "id": "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+              "name": "香港 Hong Kong"
+            },
+            {
+              "class": "area",
+              "containmentGeometry": {
+                "ancestor": "sha256:fd1f71f23153828cee4d23b1b7e9f35021a132e693a0183ccae74fec50341372",
+                "division": "sha256:ab5bacbdcad409ced1fbb416fc7d937aba900bdc0e37022216089321f0429719"
+              },
+              "fullContainment": true,
+              "id": "ss-25cec859-44f3-5e1d-a72b-952f804e56ab",
+              "name": "香港島 Hong Kong Island"
+            }
+          ]
+        ],
+        "landform": [],
+        "locality": []
+      }
+    },
+    {
+      "id": "a55585af-2cb4-41a5-93a9-2e22568c9839",
+      "class": "district",
+      "names": {
+        "cs": "Okres 屯門區 Tuen Mun",
+        "da": "屯門區 Tuen Mun-distriktet",
+        "de": "Distrikt 屯門區 Tuen Mun",
+        "en": "Tuen Mun District",
+        "es": "Distrito 屯門區 Tuen Mun",
+        "fr": "District 屯門區 Tuen Mun",
+        "id": "Distrik 屯門區 Tuen Mun",
+        "it": "Distretto 屯門區 Tuen Mun",
+        "ja": "屯門区",
+        "ko": "튄문구",
+        "ms": "Daerah 屯門區 Tuen Mun",
+        "nl": "District van 屯門區 Tuen Mun",
+        "no": "屯門區 Tuen Mun District",
+        "pl": "Dystrykt 屯門區 Tuen Mun",
+        "pt": "Distrito 屯門區 Tuen Mun",
+        "ro": "Districtul 屯門區 Tuen Mun",
+        "sv": "屯門區 Tuen Mun-distriktet",
+        "tr": "Bölgesi 屯門區 Tuen Mun",
+        "yue-latn-jyutping": "tyun4 mun4 keoi1",
+        "zh-hans": "屯门区",
+        "zh-hant": "屯門區"
+      },
+      "hierarchies": {
+        "administrative": [
+          [
+            {
+              "class": "sar",
+              "containmentGeometry": {
+                "ancestor": "sha256:571105ea1dd9d3926ba895b4e3249536c4b4f15dccae2d60549d2d8428981630",
+                "division": "sha256:0a893581e22af81db1b20ca033b3b822b8087fda3e3d97396b708a81d16e20aa"
+              },
+              "fullContainment": true,
+              "id": "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+              "name": "香港 Hong Kong"
+            },
+            {
+              "class": "area",
+              "containmentGeometry": {
+                "ancestor": "sha256:c0f06f7766a4de8cd3a6e3351f131bc50da56a54d05d54d72618db60215174c0",
+                "division": "sha256:0a893581e22af81db1b20ca033b3b822b8087fda3e3d97396b708a81d16e20aa"
+              },
+              "fullContainment": true,
+              "id": "ss-780c42b7-213b-5076-9d36-6ae0024e3bd3",
+              "name": "新界 New Territories"
+            }
+          ]
+        ],
+        "full": [
+          [
+            {
+              "class": "sar",
+              "containmentGeometry": {
+                "ancestor": "sha256:571105ea1dd9d3926ba895b4e3249536c4b4f15dccae2d60549d2d8428981630",
+                "division": "sha256:0a893581e22af81db1b20ca033b3b822b8087fda3e3d97396b708a81d16e20aa"
+              },
+              "fullContainment": true,
+              "id": "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+              "name": "香港 Hong Kong"
+            },
+            {
+              "class": "area",
+              "containmentGeometry": {
+                "ancestor": "sha256:c0f06f7766a4de8cd3a6e3351f131bc50da56a54d05d54d72618db60215174c0",
+                "division": "sha256:0a893581e22af81db1b20ca033b3b822b8087fda3e3d97396b708a81d16e20aa"
+              },
+              "fullContainment": true,
+              "id": "ss-780c42b7-213b-5076-9d36-6ae0024e3bd3",
+              "name": "新界 New Territories"
+            }
+          ]
+        ],
+        "landform": [],
+        "locality": []
+      }
+    },
+    {
+      "id": "f20e26ca-8ab6-422d-bf31-d4648b931b8c",
+      "class": "district",
+      "names": {
+        "cs": "Okres 大埔區 Tai Po",
+        "da": "大埔區 Tai Po-distriktet",
+        "de": "Distrikt 大埔區 Tai Po",
+        "en": "Tai Po District",
+        "es": "Distrito 大埔區 Tai Po",
+        "fr": "District 大埔區 Tai Po",
+        "id": "Distrik 大埔區 Tai Po",
+        "it": "Distretto 大埔區 Tai Po",
+        "ja": "大埔区",
+        "ko": "다이보구",
+        "ms": "Daerah 大埔區 Tai Po",
+        "nl": "District van 大埔區 Tai Po",
+        "no": "大埔區 Tai Po District",
+        "pl": "Dystrykt 大埔區 Tai Po",
+        "pt": "Distrito 大埔區 Tai Po",
+        "ro": "Districtul 大埔區 Tai Po",
+        "sv": "大埔區 Tai Po-distriktet",
+        "tr": "Bölgesi 大埔區 Tai Po",
+        "yue-latn-jyutping": "daai6 bou3 keoi1",
+        "zh-hans": "大埔区",
+        "zh-hant": "大埔區"
+      },
+      "hierarchies": {
+        "administrative": [
+          [
+            {
+              "class": "sar",
+              "containmentGeometry": {
+                "ancestor": "sha256:571105ea1dd9d3926ba895b4e3249536c4b4f15dccae2d60549d2d8428981630",
+                "division": "sha256:c03efe3863461d4e5f3803ef7740c820c1cf27da0cb0dc6bf2cfdcf0a5256875"
+              },
+              "fullContainment": true,
+              "id": "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+              "name": "香港 Hong Kong"
+            },
+            {
+              "class": "area",
+              "containmentGeometry": {
+                "ancestor": "sha256:c0f06f7766a4de8cd3a6e3351f131bc50da56a54d05d54d72618db60215174c0",
+                "division": "sha256:c03efe3863461d4e5f3803ef7740c820c1cf27da0cb0dc6bf2cfdcf0a5256875"
+              },
+              "fullContainment": true,
+              "id": "ss-780c42b7-213b-5076-9d36-6ae0024e3bd3",
+              "name": "新界 New Territories"
+            }
+          ]
+        ],
+        "full": [
+          [
+            {
+              "class": "sar",
+              "containmentGeometry": {
+                "ancestor": "sha256:571105ea1dd9d3926ba895b4e3249536c4b4f15dccae2d60549d2d8428981630",
+                "division": "sha256:c03efe3863461d4e5f3803ef7740c820c1cf27da0cb0dc6bf2cfdcf0a5256875"
+              },
+              "fullContainment": true,
+              "id": "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+              "name": "香港 Hong Kong"
+            },
+            {
+              "class": "area",
+              "containmentGeometry": {
+                "ancestor": "sha256:c0f06f7766a4de8cd3a6e3351f131bc50da56a54d05d54d72618db60215174c0",
+                "division": "sha256:c03efe3863461d4e5f3803ef7740c820c1cf27da0cb0dc6bf2cfdcf0a5256875"
+              },
+              "fullContainment": true,
+              "id": "ss-780c42b7-213b-5076-9d36-6ae0024e3bd3",
+              "name": "新界 New Territories"
+            }
+          ]
+        ],
+        "landform": [],
+        "locality": []
+      }
+    },
+    {
+      "id": "bfb5966d-812d-4eee-9303-b6abf899b81e",
+      "class": "district",
+      "names": {
+        "cs": "Okres 荃灣區 Tsuen Wan",
+        "da": "荃灣區 Tsuen Wan-distriktet",
+        "de": "Distrikt 荃灣區 Tsuen Wan",
+        "en": "Tsuen Wan District",
+        "es": "Distrito 荃灣區 Tsuen Wan",
+        "fr": "District 荃灣區 Tsuen Wan",
+        "id": "Distrik 荃灣區 Tsuen Wan",
+        "it": "Distretto 荃灣區 Tsuen Wan",
+        "ja": "荃湾区",
+        "ko": "췬완구",
+        "ms": "Daerah 荃灣區 Tsuen Wan",
+        "nl": "District van 荃灣區 Tsuen Wan",
+        "no": "荃灣區 Tsuen Wan District",
+        "pl": "Dystrykt 荃灣區 Tsuen Wan",
+        "pt": "Distrito 荃灣區 Tsuen Wan",
+        "ro": "Districtul 荃灣區 Tsuen Wan",
+        "sv": "荃灣區 Tsuen Wan-distriktet",
+        "tr": "Bölgesi 荃灣區 Tsuen Wan",
+        "yue-latn-jyutping": "cyun4 waan1 keoi1",
+        "zh-hans": "荃湾区",
+        "zh-hant": "荃灣區"
+      },
+      "hierarchies": {
+        "administrative": [
+          [
+            {
+              "class": "sar",
+              "containmentGeometry": {
+                "ancestor": "sha256:571105ea1dd9d3926ba895b4e3249536c4b4f15dccae2d60549d2d8428981630",
+                "division": "sha256:d1396ddee9533ce0189c2f298c496ee218212a64bc7f62929f3f89607ba89a6f"
+              },
+              "fullContainment": true,
+              "id": "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+              "name": "香港 Hong Kong"
+            },
+            {
+              "class": "area",
+              "containmentGeometry": {
+                "ancestor": "sha256:c0f06f7766a4de8cd3a6e3351f131bc50da56a54d05d54d72618db60215174c0",
+                "division": "sha256:d1396ddee9533ce0189c2f298c496ee218212a64bc7f62929f3f89607ba89a6f"
+              },
+              "fullContainment": true,
+              "id": "ss-780c42b7-213b-5076-9d36-6ae0024e3bd3",
+              "name": "新界 New Territories"
+            }
+          ]
+        ],
+        "full": [
+          [
+            {
+              "class": "sar",
+              "containmentGeometry": {
+                "ancestor": "sha256:571105ea1dd9d3926ba895b4e3249536c4b4f15dccae2d60549d2d8428981630",
+                "division": "sha256:d1396ddee9533ce0189c2f298c496ee218212a64bc7f62929f3f89607ba89a6f"
+              },
+              "fullContainment": true,
+              "id": "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+              "name": "香港 Hong Kong"
+            },
+            {
+              "class": "area",
+              "containmentGeometry": {
+                "ancestor": "sha256:c0f06f7766a4de8cd3a6e3351f131bc50da56a54d05d54d72618db60215174c0",
+                "division": "sha256:d1396ddee9533ce0189c2f298c496ee218212a64bc7f62929f3f89607ba89a6f"
+              },
+              "fullContainment": true,
+              "id": "ss-780c42b7-213b-5076-9d36-6ae0024e3bd3",
+              "name": "新界 New Territories"
+            }
+          ]
+        ],
+        "landform": [],
+        "locality": []
+      }
+    },
+    {
+      "id": "a3f5d985-9d91-4629-a530-f66420a0be01",
+      "class": "district",
+      "names": {
+        "cs": "Okres 灣仔區 Wan Chai",
+        "da": "灣仔區 Wan Chai-distriktet",
+        "de": "Distrikt 灣仔區 Wan Chai",
+        "en": "Wan Chai District",
+        "es": "Distrito 灣仔區 Wan Chai",
+        "fr": "District 灣仔區 Wan Chai",
+        "id": "Distrik 灣仔區 Wan Chai",
+        "it": "Distretto 灣仔區 Wan Chai",
+        "ja": "湾仔区",
+        "ko": "완자이구",
+        "ms": "Daerah 灣仔區 Wan Chai",
+        "nl": "District van 灣仔區 Wan Chai",
+        "no": "灣仔區 Wan Chai District",
+        "pl": "Dystrykt 灣仔區 Wan Chai",
+        "pt": "Distrito 灣仔區 Wan Chai",
+        "ro": "Districtul 灣仔區 Wan Chai",
+        "sv": "灣仔區 Wan Chai-distriktet",
+        "tr": "Bölgesi 灣仔區 Wan Chai",
+        "vi": "Loan Tử",
+        "zh-hans": "湾仔区",
+        "zh-hant": "灣仔區"
+      },
+      "hierarchies": {
+        "administrative": [
+          [
+            {
+              "class": "sar",
+              "containmentGeometry": {
+                "ancestor": "sha256:571105ea1dd9d3926ba895b4e3249536c4b4f15dccae2d60549d2d8428981630",
+                "division": "sha256:5851178e912540918caa1f415761eac596d609ba4b5e9ae1c013ae7833d7eb26"
+              },
+              "fullContainment": true,
+              "id": "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+              "name": "香港 Hong Kong"
+            },
+            {
+              "class": "area",
+              "containmentGeometry": {
+                "ancestor": "sha256:fd1f71f23153828cee4d23b1b7e9f35021a132e693a0183ccae74fec50341372",
+                "division": "sha256:5851178e912540918caa1f415761eac596d609ba4b5e9ae1c013ae7833d7eb26"
+              },
+              "fullContainment": true,
+              "id": "ss-25cec859-44f3-5e1d-a72b-952f804e56ab",
+              "name": "香港島 Hong Kong Island"
+            }
+          ]
+        ],
+        "full": [
+          [
+            {
+              "class": "sar",
+              "containmentGeometry": {
+                "ancestor": "sha256:571105ea1dd9d3926ba895b4e3249536c4b4f15dccae2d60549d2d8428981630",
+                "division": "sha256:5851178e912540918caa1f415761eac596d609ba4b5e9ae1c013ae7833d7eb26"
+              },
+              "fullContainment": true,
+              "id": "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+              "name": "香港 Hong Kong"
+            },
+            {
+              "class": "area",
+              "containmentGeometry": {
+                "ancestor": "sha256:fd1f71f23153828cee4d23b1b7e9f35021a132e693a0183ccae74fec50341372",
+                "division": "sha256:5851178e912540918caa1f415761eac596d609ba4b5e9ae1c013ae7833d7eb26"
+              },
+              "fullContainment": true,
+              "id": "ss-25cec859-44f3-5e1d-a72b-952f804e56ab",
+              "name": "香港島 Hong Kong Island"
+            }
+          ]
+        ],
+        "landform": [],
+        "locality": []
+      }
+    },
+    {
+      "id": "8cb650f2-5721-4c32-bb57-330ecc13987d",
+      "class": "district",
+      "names": {
+        "cs": "Okres 黃大仙區 Wong Tai Sin",
+        "da": "黃大仙區 Wong Tai Sin-distriktet",
+        "de": "Distrikt 黃大仙區 Wong Tai Sin",
+        "en": "Wong Tai Sin District",
+        "es": "Distrito 黃大仙區 Wong Tai Sin",
+        "fr": "District 黃大仙區 Wong Tai Sin",
+        "id": "Distrik 黃大仙區 Wong Tai Sin",
+        "it": "Distretto 黃大仙區 Wong Tai Sin",
+        "ja": "黄大仙区",
+        "ko": "웡다이신구",
+        "ms": "Daerah 黃大仙區 Wong Tai Sin",
+        "nl": "District van 黃大仙區 Wong Tai Sin",
+        "no": "黃大仙區 Wong Tai Sin District",
+        "pl": "Dystrykt 黃大仙區 Wong Tai Sin",
+        "pt": "Distrito 黃大仙區 Wong Tai Sin",
+        "ro": "Districtul 黃大仙區 Wong Tai Sin",
+        "ru": "Вонтайсинь",
+        "sv": "黃大仙區 Wong Tai Sin-distriktet",
+        "tr": "Bölgesi 黃大仙區 Wong Tai Sin",
+        "uk": "Вонтайсінь",
+        "yue-latn-jyutping": "wong4 daai6 sin1 keoi1",
+        "zh-hans": "黄大仙区",
+        "zh-hant": "黃大仙區"
+      },
+      "hierarchies": {
+        "administrative": [
+          [
+            {
+              "class": "sar",
+              "containmentGeometry": {
+                "ancestor": "sha256:571105ea1dd9d3926ba895b4e3249536c4b4f15dccae2d60549d2d8428981630",
+                "division": "sha256:224ed5ab35f39738ddd993512bb4daea904351b81faeb25f744582aabdd23931"
+              },
+              "fullContainment": true,
+              "id": "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+              "name": "香港 Hong Kong"
+            },
+            {
+              "class": "area",
+              "containmentGeometry": {
+                "ancestor": "sha256:d12a812fc6d95c462a70590e11f12fa309ff900f91381686af5aba14f5462cf3",
+                "division": "sha256:224ed5ab35f39738ddd993512bb4daea904351b81faeb25f744582aabdd23931"
+              },
+              "fullContainment": true,
+              "id": "ss-bb5c7e0a-fd09-5416-8bb8-9593c90280fb",
+              "name": "九龍 Kowloon"
+            }
+          ]
+        ],
+        "full": [
+          [
+            {
+              "class": "sar",
+              "containmentGeometry": {
+                "ancestor": "sha256:571105ea1dd9d3926ba895b4e3249536c4b4f15dccae2d60549d2d8428981630",
+                "division": "sha256:224ed5ab35f39738ddd993512bb4daea904351b81faeb25f744582aabdd23931"
+              },
+              "fullContainment": true,
+              "id": "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+              "name": "香港 Hong Kong"
+            },
+            {
+              "class": "area",
+              "containmentGeometry": {
+                "ancestor": "sha256:d12a812fc6d95c462a70590e11f12fa309ff900f91381686af5aba14f5462cf3",
+                "division": "sha256:224ed5ab35f39738ddd993512bb4daea904351b81faeb25f744582aabdd23931"
+              },
+              "fullContainment": true,
+              "id": "ss-bb5c7e0a-fd09-5416-8bb8-9593c90280fb",
+              "name": "九龍 Kowloon"
+            }
+          ]
+        ],
+        "landform": [],
+        "locality": []
+      }
+    },
+    {
+      "id": "d70db334-3685-4475-a252-23bdd13650e8",
+      "class": "district",
+      "names": {
+        "ar": "مقاطعة يوين لونغ",
+        "ceb": "Yuen Long District",
+        "cmn": "元朗區",
+        "cs": "Okres 元朗區 Yuen Long",
+        "da": "元朗區 Yuen Long-distriktet",
+        "de": "Yuen Long",
+        "en": "Yuen Long District",
+        "es": "Yuen Long",
+        "eu": "Yuen Long barrutia",
+        "fa": "منطقه یوئن لانگ",
+        "fi": "Yuen Long",
+        "fr": "Yuen Long",
+        "hak": "Ngièn-lóng-khî",
+        "he": "יואן לונג",
+        "hu": "Jűnlóng",
+        "id": "Distrik 元朗區 Yuen Long",
+        "it": "Distretto di Yuen Long",
+        "ja": "元朗区",
+        "ko": "윈롱구",
+        "ms": "Daerah 元朗區 Yuen Long",
+        "nan": "Goân-lóng-khu",
+        "nan-hant": "元朗區",
+        "nan-latn-pehoeji": "Goân-lóng-khu",
+        "nan-latn-tailo": "Guân-lóng-khu",
+        "nl": "District van 元朗區 Yuen Long",
+        "no": "元朗區 Yuen Long District",
+        "pl": "Yuen Long",
+        "pt": "Yuen Long (distrito)",
+        "ro": "Districtul 元朗區 Yuen Long",
+        "ru": "Юньлон",
+        "sv": "Yuen Long",
+        "ta": "யுன் லோங் மாவட்டம்",
+        "tr": "Yuen Long",
+        "ur": "یون لونگ ضلع",
+        "vi": "Nguyên Lãng",
+        "yue": "元朗區",
+        "yue-latn-jyutping": "jyun4 long5 keoi1",
+        "zh-hans": "元朗区",
+        "zh-hant": "元朗區"
+      },
+      "hierarchies": {
+        "administrative": [
+          [
+            {
+              "class": "sar",
+              "containmentGeometry": {
+                "ancestor": "sha256:571105ea1dd9d3926ba895b4e3249536c4b4f15dccae2d60549d2d8428981630",
+                "division": "sha256:ecf709c17650318899be2ddbc50218211fa791d91593ca395c91063c6120a08a"
+              },
+              "fullContainment": true,
+              "id": "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+              "name": "香港 Hong Kong"
+            },
+            {
+              "class": "area",
+              "containmentGeometry": {
+                "ancestor": "sha256:c0f06f7766a4de8cd3a6e3351f131bc50da56a54d05d54d72618db60215174c0",
+                "division": "sha256:ecf709c17650318899be2ddbc50218211fa791d91593ca395c91063c6120a08a"
+              },
+              "fullContainment": true,
+              "id": "ss-780c42b7-213b-5076-9d36-6ae0024e3bd3",
+              "name": "新界 New Territories"
+            }
+          ]
+        ],
+        "full": [
+          [
+            {
+              "class": "sar",
+              "containmentGeometry": {
+                "ancestor": "sha256:571105ea1dd9d3926ba895b4e3249536c4b4f15dccae2d60549d2d8428981630",
+                "division": "sha256:ecf709c17650318899be2ddbc50218211fa791d91593ca395c91063c6120a08a"
+              },
+              "fullContainment": true,
+              "id": "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+              "name": "香港 Hong Kong"
+            },
+            {
+              "class": "area",
+              "containmentGeometry": {
+                "ancestor": "sha256:c0f06f7766a4de8cd3a6e3351f131bc50da56a54d05d54d72618db60215174c0",
+                "division": "sha256:ecf709c17650318899be2ddbc50218211fa791d91593ca395c91063c6120a08a"
+              },
+              "fullContainment": true,
+              "id": "ss-780c42b7-213b-5076-9d36-6ae0024e3bd3",
+              "name": "新界 New Territories"
+            }
+          ]
+        ],
+        "landform": [],
+        "locality": []
+      }
+    },
+    {
+      "id": "c8ca7da1-2688-402a-8eb9-199b69b5691c",
+      "class": "district",
+      "names": {
+        "cs": "Okres 油尖旺區 Yau Tsim Mong",
+        "da": "油尖旺區 Yau Tsim Mong-distriktet",
+        "de": "Distrikt 油尖旺區 Yau Tsim Mong",
+        "en": "Yau Tsim Mong District",
+        "es": "Distrito 油尖旺區 Yau Tsim Mong",
+        "fr": "District 油尖旺區 Yau Tsim Mong",
+        "id": "Distrik 油尖旺區 Yau Tsim Mong",
+        "it": "Distretto 油尖旺區 Yau Tsim Mong",
+        "ja": "油尖旺区",
+        "ko": "야우짐웡구",
+        "ms": "Daerah 油尖旺區 Yau Tsim Mong",
+        "nl": "District van 油尖旺區 Yau Tsim Mong",
+        "no": "油尖旺區 Yau Tsim Mong District",
+        "pl": "Dystrykt 油尖旺區 Yau Tsim Mong",
+        "pt": "Distrito 油尖旺區 Yau Tsim Mong",
+        "ro": "Districtul 油尖旺區 Yau Tsim Mong",
+        "ru": "Яучиммон",
+        "sv": "油尖旺區 Yau Tsim Mong-distriktet",
+        "tr": "Bölgesi 油尖旺區 Yau Tsim Mong",
+        "uk": "Яучіммон",
+        "yue-latn-jyutping": "jau4 zim1 wong6 keoi1",
+        "zh-hans": "油尖旺区",
+        "zh-hant": "油尖旺區"
+      },
+      "hierarchies": {
+        "administrative": [
+          [
+            {
+              "class": "sar",
+              "containmentGeometry": {
+                "ancestor": "sha256:571105ea1dd9d3926ba895b4e3249536c4b4f15dccae2d60549d2d8428981630",
+                "division": "sha256:2254c6dd11620b2466a5be7c80958d4924753359521f86b0e8e0bab656cccb8d"
+              },
+              "fullContainment": true,
+              "id": "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+              "name": "香港 Hong Kong"
+            },
+            {
+              "class": "area",
+              "containmentGeometry": {
+                "ancestor": "sha256:d12a812fc6d95c462a70590e11f12fa309ff900f91381686af5aba14f5462cf3",
+                "division": "sha256:2254c6dd11620b2466a5be7c80958d4924753359521f86b0e8e0bab656cccb8d"
+              },
+              "fullContainment": true,
+              "id": "ss-bb5c7e0a-fd09-5416-8bb8-9593c90280fb",
+              "name": "九龍 Kowloon"
+            }
+          ]
+        ],
+        "full": [
+          [
+            {
+              "class": "sar",
+              "containmentGeometry": {
+                "ancestor": "sha256:571105ea1dd9d3926ba895b4e3249536c4b4f15dccae2d60549d2d8428981630",
+                "division": "sha256:2254c6dd11620b2466a5be7c80958d4924753359521f86b0e8e0bab656cccb8d"
+              },
+              "fullContainment": true,
+              "id": "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+              "name": "香港 Hong Kong"
+            },
+            {
+              "class": "area",
+              "containmentGeometry": {
+                "ancestor": "sha256:d12a812fc6d95c462a70590e11f12fa309ff900f91381686af5aba14f5462cf3",
+                "division": "sha256:2254c6dd11620b2466a5be7c80958d4924753359521f86b0e8e0bab656cccb8d"
+              },
+              "fullContainment": true,
+              "id": "ss-bb5c7e0a-fd09-5416-8bb8-9593c90280fb",
+              "name": "九龍 Kowloon"
+            }
+          ]
+        ],
+        "landform": [],
+        "locality": []
+      }
+    },
+    {
+      "id": "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+      "class": "sar",
+      "names": {
+        "ab": "Гонконг",
+        "ace": "Hong Kong",
+        "af": "Hongkong",
+        "ak": "Hong Kong",
+        "am": "ሆንግ ኮንግ",
+        "an": "Hong Kong",
+        "ar": "هونغ كونغ",
+        "as": "হংকং",
+        "az": "Honkonq",
+        "ba": "Гонконг",
+        "be": "Ганконг",
+        "bg": "Хонконг",
+        "bh": "हांगकांग",
+        "bi": "Hong Kong",
+        "bm": "Hong Kong",
+        "bn": "হংকং",
+        "bo": "ཧོང་ཀོང་།",
+        "br": "Hong Kong",
+        "bs": "Hong Kong",
+        "bug": "ᨖᨚᨊᨁ ᨀᨚᨊᨁ",
+        "ca": "Hong Kong",
+        "cdo": "Hiông-kóng",
+        "ce": "Гонконг",
+        "chr": "ᎰᏂᎩ ᎪᏂᎩ",
+        "chy": "Hong Kong",
+        "ckb": "ھۆنگ کۆنگ",
+        "cmn": "香港",
+        "cmn-hant": "香港",
+        "cmn-latn": "Xiang gang",
+        "cmn-latn-pinyin": "Xiāng gǎng",
+        "cs": "Hongkong",
+        "cv": "Гонконг",
+        "cy": "Hong Cong",
+        "da": "Hongkong",
+        "de": "Hongkong",
+        "dv": "ހޮންކޮންގު",
+        "ee": "Hong Kong",
+        "el": "Χονγκ Κονγκ",
+        "en": "Hong Kong",
+        "eo": "Hongkongo",
+        "es": "Hong Kong",
+        "et": "Hongkong",
+        "eu": "Hong Kong",
+        "fa": "هنگ‌کنگ",
+        "fi": "Hongkong",
+        "fo": "Hongkong",
+        "fr": "Hong Kong",
+        "fy": "Hongkong",
+        "ga": "Hong Cong",
+        "gan": "香港",
+        "gd": "Hong Kong",
+        "gl": "Hong Kong",
+        "gn": "Hong Kong",
+        "gu": "હોંગકોંગ",
+        "ha": "Hong Kong",
+        "hak": "Hiông-kóng",
+        "haw": "Hong Kong",
+        "he": "הונג קונג",
+        "hi": "हांगकांग",
+        "hif": "Hong Kong",
+        "hr": "Hong Kong",
+        "ht": "Hong Kong",
+        "hu": "Hongkong",
+        "hy": "Հոնկոնգ",
+        "ia": "Hong Kong",
+        "id": "Hong Kong",
+        "ie": "Hongkong",
+        "ig": "Hong Kong",
+        "io": "Hong Kong",
+        "is": "Hong Kong",
+        "it": "Hong Kong",
+        "ja": "香港",
+        "jv": "Hong Kong",
+        "ka": "ჰონგ-კონგი",
+        "kbp": "Hɔŋkɔŋ",
+        "kcg": "Hong Kong",
+        "ki": "Hong Kong",
+        "kk": "Гонконг",
+        "kl": "Hongkong",
+        "km": "ហុងកុង",
+        "kn": "ಹಾಂಗ್ಕಾಂಗ್",
+        "ko": "홍콩",
+        "ku": "Hong Kong",
+        "kw": "Hong Kong",
+        "ky": "Гонконг",
+        "la": "Hongcongum",
+        "lb": "Hong Kong",
+        "lfn": "Hongkong",
+        "li": "Hong Kong",
+        "ln": "Hong Kong",
+        "lo": "ຮົງກົງ",
+        "lt": "Honkongas",
+        "lv": "Honkonga",
+        "mg": "Hong Kong",
+        "mi": "Hongipua",
+        "mk": "Хонгконг",
+        "ml": "ഹോങ്കോങ്",
+        "mn": "Хонконг",
+        "mni": "ꯍꯣꯡ ꯀꯣꯡ",
+        "mr": "हाँग काँग",
+        "ms": "Hong Kong",
+        "my": "ဟောင်ကောင်",
+        "nan": "Hiong-káng",
+        "nan-hant": "香港",
+        "nan-latn-pehoeji": "Hiong-káng",
+        "nan-latn-tailo": "Hiong-káng",
+        "ne": "हङकङ",
+        "nl": "Hongkong",
+        "nn": "Hongkong",
+        "no": "Hongkong",
+        "ny": "Hong Kong",
+        "oc": "Hongkong",
+        "or": "ହଂକଂ",
+        "os": "Гонконг",
+        "pa": "ਹਾਂਗਕਾਂਗ",
+        "pih": "Hong Kong",
+        "pl": "Hongkong",
+        "ps": "هنګ کنګ",
+        "pt": "Hong Kong",
+        "qu": "Hong Kong",
+        "ro": "Hong Kong",
+        "ru": "Гонконг",
+        "rw": "Hongo Kongo",
+        "sa": "हांग् कांग् नगरम्",
+        "sc": "Hong Kong",
+        "si": "හොංකොං",
+        "sk": "Hongkong",
+        "sl": "Hong Kong",
+        "so": "Hong Kong",
+        "sq": "Hong Kong",
+        "sr-cyrl": "Хонгконг",
+        "st": "Hong Kong",
+        "su": "Hong Kong",
+        "sv": "Hongkong",
+        "sw": "Hong Kong",
+        "szl": "Hůngkůng",
+        "ta": "ஃகொங்கொங்",
+        "te": "హాంగ్‌కాంగ్",
+        "tg": "Ҳонгконг",
+        "th": "ฮ่องกง",
+        "ti": "ሆንግ ኮንግ",
+        "tk": "Gonkong",
+        "tl": "Hong Kong",
+        "tn": "Hong Kong",
+        "tr": "Hong Kong",
+        "tt": "Һоң Коң",
+        "tw": "Hong Kong",
+        "ug": "شياڭگاڭ",
+        "uk": "Гонконг",
+        "ur": "ہانگ کانگ",
+        "uz": "Hong Kong",
+        "vi": "Hồng Kông",
+        "vo": "Honkeän",
+        "wa": "Hong Kong",
+        "wo": "Ooŋ Koŋ",
+        "wuu": "香港",
+        "xh": "Hong Kong",
+        "yi": "האנג קאנג",
+        "yo": "Họ́ng Kọng",
+        "yue": "香港",
+        "yue-hant": "香港",
+        "yue-latn": "Heung Gong",
+        "yue-latn-jyutping": "Hoeng1 gong2",
+        "za": "Yanghgangj",
+        "zh-hans": "香港",
+        "zh-hant": "香港",
+        "zh-latn-pinyin": "Xiāng gǎng",
+        "zu": "Hong Kong"
+      },
+      "hierarchies": {
+        "administrative": [],
+        "full": [],
+        "landform": [],
+        "locality": []
+      }
+    },
+    {
+      "id": "ss-25cec859-44f3-5e1d-a72b-952f804e56ab",
+      "class": "area",
+      "names": {
+        "en": "Hong Kong Island",
+        "zh-hant": "香港島"
+      },
+      "hierarchies": {
+        "administrative": [
+          [
+            {
+              "class": "sar",
+              "containmentGeometry": {
+                "ancestor": "sha256:571105ea1dd9d3926ba895b4e3249536c4b4f15dccae2d60549d2d8428981630",
+                "division": "sha256:fd1f71f23153828cee4d23b1b7e9f35021a132e693a0183ccae74fec50341372"
+              },
+              "fullContainment": true,
+              "id": "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+              "name": "香港 Hong Kong"
+            }
+          ]
+        ],
+        "full": [
+          [
+            {
+              "class": "sar",
+              "containmentGeometry": {
+                "ancestor": "sha256:571105ea1dd9d3926ba895b4e3249536c4b4f15dccae2d60549d2d8428981630",
+                "division": "sha256:fd1f71f23153828cee4d23b1b7e9f35021a132e693a0183ccae74fec50341372"
+              },
+              "fullContainment": true,
+              "id": "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+              "name": "香港 Hong Kong"
+            }
+          ]
+        ],
+        "landform": [],
+        "locality": []
+      }
+    },
+    {
+      "id": "ss-780c42b7-213b-5076-9d36-6ae0024e3bd3",
+      "class": "area",
+      "names": {
+        "en": "New Territories",
+        "zh-hant": "新界"
+      },
+      "hierarchies": {
+        "administrative": [
+          [
+            {
+              "class": "sar",
+              "containmentGeometry": {
+                "ancestor": "sha256:571105ea1dd9d3926ba895b4e3249536c4b4f15dccae2d60549d2d8428981630",
+                "division": "sha256:c0f06f7766a4de8cd3a6e3351f131bc50da56a54d05d54d72618db60215174c0"
+              },
+              "fullContainment": true,
+              "id": "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+              "name": "香港 Hong Kong"
+            }
+          ]
+        ],
+        "full": [
+          [
+            {
+              "class": "sar",
+              "containmentGeometry": {
+                "ancestor": "sha256:571105ea1dd9d3926ba895b4e3249536c4b4f15dccae2d60549d2d8428981630",
+                "division": "sha256:c0f06f7766a4de8cd3a6e3351f131bc50da56a54d05d54d72618db60215174c0"
+              },
+              "fullContainment": true,
+              "id": "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+              "name": "香港 Hong Kong"
+            }
+          ]
+        ],
+        "landform": [],
+        "locality": []
+      }
+    },
+    {
+      "id": "ss-bb5c7e0a-fd09-5416-8bb8-9593c90280fb",
+      "class": "area",
+      "names": {
+        "en": "Kowloon",
+        "zh-hant": "九龍"
+      },
+      "hierarchies": {
+        "administrative": [
+          [
+            {
+              "class": "sar",
+              "containmentGeometry": {
+                "ancestor": "sha256:571105ea1dd9d3926ba895b4e3249536c4b4f15dccae2d60549d2d8428981630",
+                "division": "sha256:d12a812fc6d95c462a70590e11f12fa309ff900f91381686af5aba14f5462cf3"
+              },
+              "fullContainment": true,
+              "id": "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+              "name": "香港 Hong Kong"
+            }
+          ]
+        ],
+        "full": [
+          [
+            {
+              "class": "sar",
+              "containmentGeometry": {
+                "ancestor": "sha256:571105ea1dd9d3926ba895b4e3249536c4b4f15dccae2d60549d2d8428981630",
+                "division": "sha256:d12a812fc6d95c462a70590e11f12fa309ff900f91381686af5aba14f5462cf3"
+              },
+              "fullContainment": true,
+              "id": "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+              "name": "香港 Hong Kong"
+            }
+          ]
+        ],
+        "landform": [],
+        "locality": []
+      }
+    }
+  ]
+}

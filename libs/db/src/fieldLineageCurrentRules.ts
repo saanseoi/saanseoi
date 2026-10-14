@@ -603,7 +603,7 @@ export function currentDivisionFieldRule(
   }
   if (resource !== 'division') return null
   if (datasetCode.startsWith('ds-hk-hkgov-pland-')) {
-    const planning = planningDivisionFieldRule(field)
+    const planning = planningDivisionFieldRule(field, datasetCode)
     if (planning) return planning
   }
   if (

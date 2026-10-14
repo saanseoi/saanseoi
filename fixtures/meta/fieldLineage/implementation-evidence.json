@@ -311,6 +311,18 @@
         }
       ]
     },
+    "apps/harbour-cli/src/lib/pipeline/divisions/nativeAdministrativeHierarchy.ts#createNativeAdministrativeHierarchy": {
+      "path": "apps/harbour-cli/src/lib/pipeline/divisions/nativeAdministrativeHierarchy.ts",
+      "symbol": "createNativeAdministrativeHierarchy",
+      "sourceHash": "sha256:f9e1ec3cdb03236009510e2c62326bff4da3d417a17a40c335aedf3f73cc1389",
+      "dependencies": [
+        {
+          "path": "apps/harbour-cli/src/lib/pipeline/divisions/nativeAdministrativeHierarchyInputs.ts",
+          "symbol": "loadNativeAdministrativeHierarchy",
+          "sourceHash": "sha256:a8041811bef44c3b33189958d1338e91dba5566d6675e9373ae8ab02cbc24ec1"
+        }
+      ]
+    },
     "libs/core/src/pipeline/services/divisions/division.ts#buildCanonicalDivisionApiI18n": {
       "path": "libs/core/src/pipeline/services/divisions/division.ts",
       "symbol": "buildCanonicalDivisionApiI18n",
@@ -374,12 +386,12 @@
     "apps/harbour-cli/src/lib/pipeline/divisions/processLocalHkgovPlandDivisionSqlUploadPreparation.ts#normalisePreparedDivision": {
       "path": "apps/harbour-cli/src/lib/pipeline/divisions/processLocalHkgovPlandDivisionSqlUploadPreparation.ts",
       "symbol": "normalisePreparedDivision",
-      "sourceHash": "sha256:a3d53be279548220ac4772bd6a8f80c02adcccad048ffa94440f48e20fcfb909",
+      "sourceHash": "sha256:847f7d9699bb5f1c52716357dc2cadec7ac304ac4ecdf1be0c31ee378a24b76c",
       "dependencies": [
         {
           "path": "apps/harbour-cli/src/lib/pipeline/divisions/processLocalHkgovPlandDivisionSqlUploadRows.ts",
           "symbol": "levelNumber",
-          "sourceHash": "sha256:e736e855f68ed0da1411572d8101cf74669fd8a38ade1ea8c8d53baf4a33863f"
+          "sourceHash": "sha256:628a7bda6eb61b604e96a3ade631f9433507f5f87f10fb819359e1aa52269d63"
         }
       ]
     },
@@ -398,7 +410,7 @@
     "apps/harbour-cli/src/lib/pipeline/divisions/processLocalHkgovPlandDivisionSqlUploadPreparation.ts#readPreparedDivisionsInternal": {
       "path": "apps/harbour-cli/src/lib/pipeline/divisions/processLocalHkgovPlandDivisionSqlUploadPreparation.ts",
       "symbol": "readPreparedDivisionsInternal",
-      "sourceHash": "sha256:a3d53be279548220ac4772bd6a8f80c02adcccad048ffa94440f48e20fcfb909",
+      "sourceHash": "sha256:847f7d9699bb5f1c52716357dc2cadec7ac304ac4ecdf1be0c31ee378a24b76c",
       "dependencies": [
         {
           "path": "apps/harbour-cli/src/lib/i18n/sourceReleaseTranslations.ts",
@@ -408,7 +420,7 @@
         {
           "path": "apps/harbour-cli/src/lib/pipeline/divisions/processLocalHkgovPlandDivisionSqlUploadRows.ts",
           "symbol": "levelNumber",
-          "sourceHash": "sha256:e736e855f68ed0da1411572d8101cf74669fd8a38ade1ea8c8d53baf4a33863f"
+          "sourceHash": "sha256:628a7bda6eb61b604e96a3ade631f9433507f5f87f10fb819359e1aa52269d63"
         }
       ]
     },

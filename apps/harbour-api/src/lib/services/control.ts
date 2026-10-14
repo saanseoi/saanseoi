@@ -271,6 +271,11 @@ export async function handlePublishDataset(
     const rebuildPublishedSnapshot =
       request.rebuildPublishedSnapshot === true &&
       ((datasetType === 'division' && dataset.source === 'overture') ||
+        (datasetType === 'division' &&
+          (dataset.datasetCode === 'ds-hk-hkgov-landsd-division' ||
+            dataset.datasetCode === 'ds-hk-hkgov-pland-division-new-town' ||
+            dataset.datasetCode ===
+              'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups')) ||
         (dataset.source === 'saanseoi' &&
           (datasetType === 'division' || datasetType === 'divisionArea')))
     // Only the Geographic domain attaches separately selectable C&SD geometry to

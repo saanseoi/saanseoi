@@ -99,6 +99,8 @@ export type NativeSourceRelease = {
   divisionRows?: Record<string, unknown>[]
   /** Restore the native source ledger for a published converted release. */
   recoverPublishedRelease?: boolean
+  /** Re-materialise canonical content as a new snapshot revision. */
+  rebuildCanonical?: boolean
   source: string
   sourceVersion: string
   tables: NativeSourceTable[]
@@ -132,7 +134,9 @@ export async function processNativeSourceSqlRelease(
   }
   const registered = await resolveNativeSourceRelease(target, input, registerOptions)
   const canonicalCompleted =
-    'canonicalCompleted' in registered && registered.canonicalCompleted
+    !input.rebuildCanonical &&
+    'canonicalCompleted' in registered &&
+    registered.canonicalCompleted
   const resourceReleaseId = requireString(
     registered.resourceReleaseId,
     'resourceReleaseId',
@@ -391,6 +395,7 @@ export async function processNativeSourceSqlRelease(
           ),
         ),
         reuseExistingRelease: true,
+        rebuildPublishedSnapshot: input.recoverPublishedRelease === true,
       },
     )
   }

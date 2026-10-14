@@ -125,6 +125,21 @@ INSERT INTO resourceReleases (id, resourceType, status, revokedAt, sourceRelease
     )
     expect(state.records).toHaveLength(1613)
     expect(state.records.every(record => record.base.class === 'settlement')).toBe(true)
+    expect(
+      state.records.every(record => record.base.hierarchies.full.length === 1),
+    ).toBe(true)
+    expect(
+      state.records.every(
+        record =>
+          record.base.hierarchies.full[0]!.map(parent => parent.class).join(',') ===
+          'sar,area,district',
+      ),
+    ).toBe(true)
+    expect(
+      state.processingActions.filter(
+        action => action.action === 'native_administrative_hierarchy_inferred',
+      ),
+    ).toHaveLength(1613)
     expect(JSON.stringify(features.map(feature => feature.properties))).toBe(
       originalProperties,
     )
@@ -155,6 +170,13 @@ INSERT INTO resourceReleases (id, resourceType, status, revokedAt, sourceRelease
     expect(current.query('SELECT count(*) AS count FROM divisions').get()).toEqual({
       count: 1613,
     })
+    expect(
+      current
+        .query(
+          "SELECT count(*) AS count FROM divisions WHERE json_array_length(hierarchies, '$.full') = 1",
+        )
+        .get(),
+    ).toEqual({ count: 1613 })
     expect(
       source.query('SELECT count(*) AS count FROM hkgovLandsdPlaceNames').get(),
     ).toEqual({ count: 2706 })

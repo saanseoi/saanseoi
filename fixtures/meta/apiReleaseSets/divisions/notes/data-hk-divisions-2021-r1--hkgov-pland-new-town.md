@@ -1,0 +1,109 @@
+---
+createdAt: "2026-10-14T18:15:14.757Z"
+updatedAt: "2026-10-14T18:15:14.757Z"
+apiFamily: "divisions"
+apiVersion: "api-divisions-v0.2"
+apiReleaseSet: "data-hk-divisions-2021-r1--hkgov-pland-new-town"
+regionCode: "hk"
+cohortKey: "2021"
+domainCode: "hkgov-pland-new-town"
+revision: "1"
+---
+
+# EN
+
+## Changelog
+
+- <orange>Upstream</orange> publishes the <black>{{ cohortKey }}</black> <i>Planning
+  Department</i> New Town cohort.
+
+## Revision log
+
+- `r{{ revision }}` Provides inferred HKSAR → Area → District ancestry, with a separate
+  path for every district meeting the inclusive 5% covered-area threshold. Field
+  provenance identifies the spatial inference and pinned reference geometry.
+
+- `r0` adds <black>division</black> and <black>division-area</black> from the source
+  release.
+
+## Release scope
+
+This immutable [release set](saanseoi:en:definition/release-set/v1) publishes the
+<black>{{ domainCode }}</black> [domain](saanseoi:en:definition/domain/v1) for
+[cohort](saanseoi:en:definition/cohort/v1) <black>{{ cohortKey }}</black> in
+{{regionName:en}}. The following source releases make up this release set.
+
+{{apiReleaseSetSources:en}}
+
+## Notes and limitations
+
+- <black>New Towns</black> are planning geographies. Their names are cohort-scoped, so
+  the API does not infer an identity across cohorts or from <black>Overture</black>
+  divisions, as they do not refer to the same areas even if they have the same names.
+- Some general Divisions fields are blank (<black>null</black>) because the source does
+  not provide them. This is expected.
+- Consult the [source-release notes]({{ primarySourceReleaseUrl }}) for
+  <black>{{ primarySourceRelease }}</black> for publisher-specific compatibility and
+  quality decisions.
+
+# ZH-HANT
+
+## 更新紀錄
+
+- <orange>上游</orange> 發布 <black>{{ cohortKey }}</black> <i>規劃署</i>新市鎮 cohort。
+
+## 修訂紀錄
+
+- `r{{ revision }}`
+  提供推算的香港特別行政區 → 地域 → 區議會分區階層；每個佔已覆蓋面積至少百分之五的分區均有獨立路徑。欄位來源說明空間推算規則及固定版本參考幾何。
+
+- `r0` 從來源發布加入 <black>division</black> 及 <black>division-area</black>。
+
+## 發布範圍
+
+此不可變的 [發布集](saanseoi:zh-hant:definition/release-set/v1) 發布
+{{regionName:zh-Hant}} 的 <black>{{ domainCode }}</black>
+[domain](saanseoi:zh-hant:definition/domain/v1)
+[cohort](saanseoi:zh-hant:definition/cohort/v1)
+<black>{{ cohortKey }}</black>。以下來源發布組成此發布集。
+
+{{apiReleaseSetSources:zh-Hant}}
+
+## 備註與限制
+
+- <black>新市鎮</black>屬規劃地理單元。其名稱按 cohort 劃分，因此 API 不會跨 cohort 或根據
+  <black>Overture</black> divisions 推斷身分；即使名稱相同，其所指範圍亦不相同。
+- 部分一般 Divisions 欄位因來源未提供而為空值 (<black>null</black>)。這是預期行為。
+- 請參閱 <black>{{ primarySourceRelease }}</black>
+  的 [來源發布說明]({{ primarySourceReleaseUrl }})，以了解發布者特有的相容性及品質決定。
+
+# ZH-HANS
+
+## 更新记录
+
+- <orange>上游</orange> 发布 <black>{{ cohortKey }}</black> <i>规划署</i>新市镇 cohort。
+
+## 修订记录
+
+- `r{{ revision }}`
+  提供推算的香港特别行政区 → 地域 → 区议会分区层级；每个占已覆盖面积至少百分之五的分区均有独立路径。字段来源说明空间推算规则及固定版本参考几何。
+
+- `r0` 从源发布加入 <black>division</black> 及 <black>division-area</black>。
+
+## 发布范围
+
+此不可变的 [发布集](saanseoi:zh-hans:definition/release-set/v1) 发布
+{{regionName:zh-Hans}} 的 <black>{{ domainCode }}</black>
+[domain](saanseoi:zh-hans:definition/domain/v1)
+[cohort](saanseoi:zh-hans:definition/cohort/v1)
+<black>{{ cohortKey }}</black>。以下源发布构成此发布集。
+
+{{apiReleaseSetSources:zh-Hans}}
+
+## 备注与限制
+
+- <black>新市镇</black>属规划地理单元。其名称按 cohort 划分，因此 API 不会跨 cohort 或根据
+  <black>Overture</black> divisions 推断身份；即使名称相同，其所指范围也不相同。
+- 部分一般 Divisions 字段因源未提供而为空值 (<black>null</black>)。这是预期行为。
+- 请参阅 <black>{{ primarySourceRelease }}</black>
+  的 [源发布说明]({{ primarySourceReleaseUrl }})，以了解发布者特有的兼容性及质量决定。

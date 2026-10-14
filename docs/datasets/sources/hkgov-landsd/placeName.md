@@ -67,6 +67,29 @@ Hydrographic and Topographic rows are deliberately excluded from divisions. They
 named geographic features and belong in a future government place-name projection under
 the Places API family, rather than in the administrative division hierarchy.
 
+## Inferred administrative ancestry
+
+Canonical settlements receive only `HKSAR → Area → District` ancestor paths. Assembly
+checks which hash-pinned district territorial polygons cover the publisher's settlement
+Point; shared-boundary points may contribute more than one path. The canonical ancestor
+IDs, names and paths come from
+`fixtures/meta/datasetInputs/native-division-administrative-hierarchy.json`. Area
+polygons are unions of their constituent district territories. No neighbourhood,
+locality or landform ancestors are inferred, and the publisher's `DISTRICT` attribute
+remains source evidence rather than overriding the spatial check.
+
+Inference runs before canonical hashing. The retained assembly decision fixture records
+the source point, reference pins, ancestor geometry hashes and matched or unmatched
+outcome. A settlement outside every district remains unmatched; no nearest-district
+fallback is used. Point membership does not establish whole-polygon containment, so
+`full_containment` remains null. `apiField` provenance identifies the administrative
+ancestry as a SaanSeoi spatial fill. The complete local source check matches all 1,613
+selected settlements.
+
+`hkgov-landsd:place-name --force-upload` re-materialises the canonical projection as a
+new snapshot and API release revision using the supplied retained archive. Ordinary
+source recovery keeps a complete published canonical projection.
+
 ## Upstream
 
 - [CSDI dataset](https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=landsd_rcd_1648571595120_89752)

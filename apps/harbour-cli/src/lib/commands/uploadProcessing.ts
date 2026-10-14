@@ -369,6 +369,7 @@ export async function processPreparedUpload({
       preparedUploadFile,
       {
         cacheArtefacts,
+        rebuildPublishedSnapshot: options.rebuildPublishedSnapshot,
         deferApiReleaseSet: options.deferApiReleaseSet,
         skipSnapshotCleanup: options.skipSnapshotCleanup,
       },

@@ -733,6 +733,31 @@ and performs them in dependency order. The resulting geometry snapshot records t
 selected division source release as a lookup input, preserving replayable provenance
 without duplicating the dependency declaration in each source fixture.
 
+## Native administrative hierarchy inference
+
+Housing Market Areas, Planning Department New Towns and Lands Department settlements
+receive inferred `HKSAR → Area → District` paths during canonical assembly. The
+reference fixture `native-division-administrative-hierarchy.json` pins canonical
+identities and hash-verified territorial source polygons. Area geometry is the union of
+its district territories, matching SaanSeoi administrative assembly. No CURRENT/latest
+lookup participates in this inference.
+
+HMA and New Town polygons select every district with at least 5% of the source's area
+covered by the district union, using unrounded EPSG:2326 areas. The cutoff is inclusive;
+uncovered territory is excluded from the denominator. Settlements select every district
+covering the native Point, including shared-boundary alternatives. Only administrative
+ancestors are filled. Planning Unit ancestry and country/SAR roots are independent.
+
+Each selected district contributes its own full path. Polygon full containment is a
+separate strict coverage test for each ancestor; point-only settlements retain null
+containment. Unmatched geometry retains empty ancestry with an explicit audit outcome.
+The assembly audit retains reference pins, geometry hashes, selected/rejected overlaps,
+denominators and uncovered area in individual decision fixtures. `apiField` provenance
+for each of the three datasets explains the SaanSeoi inference while native source
+attribution remains with its publisher. Inferred content participates in HISTORY hashes,
+snapshot replay and CURRENT publication through the ordinary ingestion path; publishing
+retained inputs requires a new snapshot revision.
+
 ## Bootstrap recovery
 
 `saanseoi update --target <environment> --api-family divisions --download --yes` reads

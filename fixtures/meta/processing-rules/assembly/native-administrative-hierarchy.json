@@ -1,0 +1,44 @@
+{
+  "kind": "processing-rule",
+  "schemaVersion": 1,
+  "id": "native_administrative_hierarchy_inferred",
+  "scope": "individual",
+  "basis": "fixture",
+  "summary": "Infer native Division administrative ancestry from pinned SaanSeoi polygons.",
+  "inputs": [
+    "native-source-geometry",
+    "native-division-administrative-hierarchy"
+  ],
+  "outputs": [
+    "divisions.hierarchies"
+  ],
+  "parameters": {
+    "minimumCoveredFraction": 0.05,
+    "polygonDenominator": "area inside the district union",
+    "pointMembership": "district covers source point",
+    "ancestorClasses": [
+      "sar",
+      "area",
+      "district"
+    ],
+    "unmatched": "retain empty ancestry and record unmatched outcome"
+  },
+  "implementation": {
+    "path": "apps/harbour-cli/src/lib/pipeline/divisions/nativeAdministrativeHierarchy.ts",
+    "symbol": "createNativeAdministrativeHierarchy"
+  },
+  "review": {
+    "kind": "patch"
+  },
+  "i18n": {
+    "en": {
+      "description": "Infer HKSAR, Area and District paths using pinned polygons: inclusive 5% covered-area overlap for HMA and New Towns; point coverage for Lands Department settlements."
+    },
+    "zh-hant": {
+      "description": "使用固定版本多邊形推算香港特別行政區、地域及區議會分區階層；樓市片區及新市鎮採用已覆蓋面積至少百分之五的交疊，地政總署聚落採用點覆蓋。"
+    },
+    "zh-hans": {
+      "description": "使用固定版本多边形推算香港特别行政区、地域及区议会分区层级；楼市片区及新市镇采用已覆盖面积至少百分之五的重叠，地政总署聚落采用点覆盖。"
+    }
+  }
+}

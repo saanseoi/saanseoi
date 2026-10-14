@@ -1,4 +1,8 @@
 import { divisionCartographyRule } from './fieldLineageDivisionCartography'
+import {
+  inferredAdministrativeDatasets,
+  nativeAdministrativeHierarchyHuman,
+} from './fieldLineageNativeAdministrativeHierarchy'
 import { withRecordSelection } from './fieldLineageRecordSelection'
 import { geometryHumanField } from './fieldLineageGeometryHuman'
 import {
@@ -481,6 +485,12 @@ export function humanDivisionField(
   apiField: string,
   dataset: string,
 ): HumanOperation | undefined {
+  if (
+    resource === 'division' &&
+    apiField.replace(/^attributes\./, '') === 'hierarchies' &&
+    inferredAdministrativeDatasets.has(dataset)
+  )
+    return nativeAdministrativeHierarchyHuman(dataset)
   const geometry = geometryHumanField(resource, apiField, dataset)
   if (geometry) return geometry
   const human = baseHumanDivisionField(resource, apiField, dataset)

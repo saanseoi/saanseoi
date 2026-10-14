@@ -98,6 +98,7 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
     /** Publish source data and snapshots, but leave the API release set draft. */
     deferApiReleaseSet?: boolean
     skipSnapshotCleanup?: boolean
+    rebuildPublishedSnapshot?: boolean
   } = {},
 ) {
   const resourceReleaseId = requireString(
@@ -154,6 +155,7 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
                   target.environment === 'production' ? 'production' : 'preview',
                 )
               : context.state.dbCacheDir,
+            reuseExistingRelease: options.rebuildPublishedSnapshot,
           },
         )
         await client.stageRunning(
@@ -176,6 +178,7 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
           regionCode: previewPlan.regionCode,
           sourceReleaseId: dataset.resourceReleaseId,
           variant: previewPlan.source,
+          rebuildPublishedSnapshot: options.rebuildPublishedSnapshot,
         })
         await upsertSnapshotSource(
           metaDb,
@@ -241,7 +244,9 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
         {
           context: deliveryContext,
           resourceReleaseId,
-          phase: 'planning-division-data',
+          phase: options.rebuildPublishedSnapshot
+            ? `planning-division-data-rebuild-${snapshot.id}`
+            : 'planning-division-data',
           inputs: {
             preparedSha256: await deliveryFileSha256(preparedUpload.filePath),
             snapshotId: snapshot.id,
@@ -254,6 +259,8 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
           const metaDb = context.metaDb as unknown as HarbourReadableDb &
             HarbourWritableDb
           const pointGuard = createDivisionPointGuard()
+          const hierarchyActions: import('@repo/core/provenance/processingAction').ReleaseProcessingAction[] =
+            []
           const cartographyCounts = createBranchCounts(
             planningDivisionRule.declaration.branches!,
           )
@@ -272,6 +279,8 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
                   : new Map(),
                 pointGuard,
                 cartographyCounts,
+                undefined,
+                hierarchyActions,
               ),
           )
           validatePreparedDivisions(records, previewPlan.rowCount)
@@ -531,8 +540,9 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
                 normalisation: planningDivisionRule.declaration,
                 branchCounts: cartographyCounts,
                 guards: pointGuard.snapshot(),
-                actions:
-                  repairedGeometryRecords.length > 0
+                actions: [
+                  ...hierarchyActions,
+                  ...(repairedGeometryRecords.length > 0
                     ? [
                         {
                           action: 'planning_geometry_self_intersection_repaired',
@@ -558,12 +568,13 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
                                     }
                                   : null,
                           })),
-                          mode: 'automatic',
+                          mode: 'automatic' as const,
                           summary:
                             'Repaired known Planning Department polygon self-intersections with buffer(0); publisher geometry remains in source records and repaired geometry is stored in canonical divisions.',
                         },
                       ]
-                    : [],
+                    : []),
+                ],
               })
               await deliverProcessingResult(target, bucket, audit.ref)
               await replaceDatasetStats(metaDb, resourceReleaseId, [
@@ -665,6 +676,7 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
       () =>
         client.publishDataset(resourceReleaseId, releaseCode, {
           deferApiReleaseSet: options.deferApiReleaseSet,
+          rebuildPublishedSnapshot: options.rebuildPublishedSnapshot,
           skipSnapshotCleanup: options.skipSnapshotCleanup,
         }),
     )

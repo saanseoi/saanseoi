@@ -14,15 +14,26 @@ The schema and all 173 HMA records in the locally archived 2021 release were che
 13 October 2026. This establishes the absence of a parent field in this release, not the
 absence of spatial relationships or the impossibility of another published crosswalk.
 
-## Why canonical ancestry is empty
+## Canonical administrative ancestry
 
-`prepareHkgovCenstatdStatisticGeographyUploads` writes an empty `parent_division_id`.
-`normaliseHkgovCenstatdStatisticDivisionRow` explicitly initialises empty canonical
-hierarchies. The HMA merge ruleset supplies no hierarchy rule. The existing district
-intersection calculation produces release record-distribution statistics only.
-Consequently, the empty ancestry is an assembly limitation, not evidence that HMAs
-cannot have inferred district ancestry. HMA classification and its nullable level are
-separate from ancestry.
+The native HMA transport supplies no parent identifier. Canonical assembly fills
+`hierarchies.full` and `hierarchies.administrative` with separate
+`HKSAR → Area → District` paths using `createNativeAdministrativeHierarchy`. It runs
+before canonical hashing and leaves the publisher properties, source geometry and source
+attribution intact.
+
+The reference fixture is
+`fixtures/meta/datasetInputs/native-division-administrative-hierarchy.json`. It retains
+canonical identities, names and paths from the pinned SaanSeoi edition, together with
+hash-pinned Overture territorial geometry. Area polygons are unions of their constituent
+district territories, matching SaanSeoi administrative assembly. Preparation reads exact
+retained archives rather than CURRENT or the latest published release.
+
+Polygon branch selection uses the inclusive 5% covered-area policy below. Assembly
+retains an individual decision fixture with input pins, source and ancestor geometry
+hashes, overlap areas, denominators, uncovered area, selected/rejected districts and
+strict containment results. `apiField` provenance describes this SaanSeoi inference;
+C&SD remains the upstream attribution for the native HMA record.
 
 ## Geometry audit
 
@@ -100,10 +111,11 @@ source attribution. It requires:
 - An explicit remainder policy. A district-union gap does not itself prove coverage by
   an Area or HKSAR polygon.
 
-The investigation produces candidate evidence. It does not mutate canonical rows, select
-an overlap threshold, publish an assembly audit, or upload private evidence. The runtime
-HMA hierarchy remains empty until an assembly rule consumes reviewed branch decisions or
-an explicitly adopted spatial policy.
+The investigation is candidate evidence, not a publication receipt. Canonical assembly
+uses the adopted policy against its pinned administrative reference. A complete local
+comparison of all 173 HMAs selects exactly the same district branches as this review:
+156 single-path and 17 two-path HMAs. Existing published releases require ordinary
+re-ingestion and publication of a snapshot revision to expose the materialised ancestry.
 
 ## Reproduction
 

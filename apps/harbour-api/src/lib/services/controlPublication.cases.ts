@@ -462,6 +462,104 @@ test('rebuilds a published Geographic snapshot into a new API release-set revisi
   ])
 })
 
+test.each([
+  ['ds-hk-hkgov-pland-division-new-town', 'hkgov-pland-new-town'],
+  ['ds-hk-hkgov-landsd-division', 'hkgov-landsd'],
+  [
+    'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups',
+    'hkgov-censtatd-hma',
+  ],
+])(
+  'rebuilds native administrative ancestry for %s without mutating its published API set',
+  async (datasetCode, variant) => {
+    const sqlite = initDb(join(createTempDir(), 'native-hierarchy-revision.sqlite'))
+    const db = createLocalHarbourDb(sqlite)
+    try {
+      const publisher =
+        variant === 'hkgov-pland-new-town'
+          ? 'hkgov-pland'
+          : variant === 'hkgov-censtatd-hma'
+            ? 'hkgov-censtatd'
+            : 'hkgov-landsd'
+      sqlite
+        .query(
+          `INSERT OR IGNORE INTO publishers(id,code,versionHash,createdAt,updatedAt) VALUES(?,?,'native-publisher',0,0)`,
+        )
+        .run(publisher, publisher)
+      sqlite
+        .query(`INSERT OR IGNORE INTO datasets(id,publisherId,code,regionCode,releaseType,releaseFrequency,theme,sourceVariant,versionHash,createdAt,updatedAt)
+      VALUES(?,(SELECT id FROM publishers WHERE code=?),?,'hk','static','as-needed','divisions',?,'native-dataset',0,0)`)
+        .run(variant, publisher, datasetCode, variant)
+      const dataset = sqlite
+        .query<{ id: string }, [string]>('SELECT id FROM datasets WHERE code=?')
+        .get(datasetCode)!
+      sqlite
+        .query(`INSERT OR IGNORE INTO apiCompositionMembers(apiCompositionId,domainCode,resourceType,variant,role,isRequired,cohortMatchingMode,priority)
+      SELECT apiCompositionId,?,'division',?,'primary',1,'exact_ref',0 FROM apiCompositionMembers
+      WHERE domainCode='hkgov-landsd' AND resourceType='division' LIMIT 1`)
+        .run(variant, variant)
+      const version = variant === 'hkgov-landsd' ? '2026-06-10.0' : '2021'
+      sqlite
+        .query(`INSERT INTO sourceReleases(id,datasetId,code,sourceVersion,sourceSchemaVersion,cohortKey,status)
+      VALUES('native-source',?,'native-source',?,'1.0',?,'staged')`)
+        .run(dataset.id, version, version)
+      sqlite.exec(`INSERT INTO resourceReleases(id,sourceReleaseId,resourceType,code,status)
+      VALUES('native-release','native-source','division','native-resource','staged')`)
+      if (variant !== 'hkgov-landsd') {
+        sqlite
+          .query(`INSERT OR IGNORE INTO apiCompositionMembers(apiCompositionId,domainCode,resourceType,variant,role,isRequired,cohortMatchingMode,priority)
+        SELECT apiCompositionId,?,'divisionArea',?,'geometry',1,'exact_ref',0 FROM apiCompositionMembers
+        WHERE domainCode='hkgov-landsd' AND resourceType='division' LIMIT 1`)
+          .run(variant, variant)
+        sqlite.exec(`INSERT INTO resourceReleases(id,sourceReleaseId,resourceType,code,status)
+        VALUES('native-area-release','native-source','divisionArea','native-area-resource','current')`)
+        seedSnapshot(sqlite, {
+          code: `ss-hk-division-area-${variant}-${version}`,
+          cohortKey: version,
+          datasetId: dataset.id,
+          resourceType: 'divisionArea',
+          resourceReleaseId: 'native-area-release',
+          snapshotId: 'native-area',
+          status: 'published',
+        })
+      }
+      seedSnapshot(sqlite, {
+        code: `ss-hk-division-${variant}-${version}`,
+        cohortKey: version,
+        datasetId: dataset.id,
+        resourceReleaseId: 'native-release',
+        snapshotId: 'native-first',
+      })
+      const first = await handlePublishDataset(db, {
+        resourceReleaseId: 'native-release',
+      })
+      seedSnapshot(sqlite, {
+        code: `ss-hk-division-${variant}-${version}-r1`,
+        cohortKey: version,
+        datasetId: dataset.id,
+        resourceReleaseId: 'native-release',
+        snapshotId: 'native-rebuilt',
+        timestamp: 1762300860000,
+      })
+      sqlite.exec(
+        "UPDATE snapshots SET parentSnapshotId='native-first' WHERE id='native-rebuilt'",
+      )
+      const rebuilt = await handlePublishDataset(db, {
+        resourceReleaseId: 'native-release',
+        rebuildPublishedSnapshot: true,
+      })
+      expect(rebuilt.apiReleaseSetStatus).toBe('current')
+      expect(rebuilt.apiReleaseSetCode).not.toBe(first.apiReleaseSetCode)
+      expect(
+        sqlite.query("SELECT status FROM snapshots WHERE id='native-first'").get(),
+      ).toEqual({ status: 'published' })
+      expect(rebuilt.snapshotId).toBe('native-rebuilt')
+    } finally {
+      sqlite.close()
+    }
+  },
+)
+
 test('marks the superseded dataset historic for same-cohort releases with different source dates', async () => {
   const tempDir = createTempDir()
   const dbPath = join(tempDir, 'harbour-publish-same-cohort.sqlite')

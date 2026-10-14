@@ -23,6 +23,7 @@ import {
   createDivisionBranchCounts,
   normaliseDivisionI18nForStorage,
   normaliseDivisionRow,
+  parseWkbGeometry,
   resolveDistrictId,
 } from '@repo/core/pipeline/services/divisions/division'
 import { readDivisionRowsWithFixtures } from '@repo/core/pipeline/services/divisions/divisionFixtures'
@@ -59,6 +60,8 @@ import { curationDocumentsFor } from '../../curationDocuments'
 import type { resolveLocalAddressDbContext } from '../../dbCache/localDbCache.ts'
 import type { LocalPipelineBucket } from '../local/localBucket.ts'
 import { DIVISION_BATCH_SIZE } from './processLocalDivisionSqlUploadConfig.ts'
+import { loadNativeAdministrativeHierarchy } from './nativeAdministrativeHierarchyInputs'
+import type { NativeAdministrativeHierarchy } from './nativeAdministrativeHierarchy'
 import {
   buildDivisionTranslationProcessingActions,
   divisionAuditParents,
@@ -157,6 +160,7 @@ export async function buildDivisionSqlState(
   sourceDatabases: readonly HarbourReadableDb[] = [],
   nativeRows?: Record<string, unknown>[],
   supplementalRows: Record<string, unknown>[] = [],
+  administrativeHierarchy?: NativeAdministrativeHierarchy,
 ) {
   const traceDivisionIds = resolveDivisionTraceIds()
   const previousRows = new Map(currentRows)
@@ -169,6 +173,13 @@ export async function buildDivisionSqlState(
   const hierarchyGuard = createHongKongHierarchyGuard()
   const pointGuard = createDivisionPointGuard()
   const records: DivisionPreparedRecord[] = []
+  const inferAdministrativeHierarchy =
+    administrativeHierarchy ??
+    (message.source === 'hkgov-landsd' ||
+    message.datasetCode ===
+      'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups'
+      ? await loadNativeAdministrativeHierarchy()
+      : undefined)
   const seenIds = new Set<string>()
   const isInitialSourceLoad = currentSourceRows.size === 0
   const file = nativeRows
@@ -250,6 +261,18 @@ export async function buildDivisionSqlState(
         hierarchyGuard,
         pointGuard,
       })
+      if (
+        inferAdministrativeHierarchy &&
+        ['housing-market-area', 'settlement'].includes(normalised.base.class)
+      ) {
+        const shape =
+          typeof raw.geometry === 'string' && raw.geometry.trim().startsWith('{')
+            ? JSON.parse(raw.geometry)
+            : parseWkbGeometry(raw.geometry)
+        const inferred = inferAdministrativeHierarchy(normalised.base.id, shape)
+        normalised.base.hierarchies = inferred.hierarchies
+        processingActions.push(inferred.action)
+      }
       if (normalised.overtureHongKongDivisionClassificationCorrection)
         processingActions.push(
           ...buildOvertureHongKongDivisionClassificationProcessingActions(

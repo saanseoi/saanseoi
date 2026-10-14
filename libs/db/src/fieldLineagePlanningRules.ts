@@ -1,4 +1,5 @@
 import type { CurrentFieldRule } from './fieldLineageCurrentRules'
+import { nativeAdministrativeHierarchyFieldRule } from './fieldLineageNativeAdministrativeHierarchy'
 
 const implementation = {
   path: 'apps/harbour-cli/src/lib/pipeline/divisions/processLocalHkgovPlandDivisionSqlUploadPreparation.ts',
@@ -6,7 +7,12 @@ const implementation = {
 }
 
 /** Planning has its own materialiser; it does not execute Overture taxonomy or names. */
-export function planningDivisionFieldRule(field: string): CurrentFieldRule | null {
+export function planningDivisionFieldRule(
+  field: string,
+  dataset?: string,
+): CurrentFieldRule | null {
+  if (field === 'hierarchies' && dataset === 'ds-hk-hkgov-pland-division-new-town')
+    return nativeAdministrativeHierarchyFieldRule(dataset)
   const contracts: Record<string, [string, string[]]> = {
     id: ['requireString(value.id, "id")', ['id']],
     level: [

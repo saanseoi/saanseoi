@@ -36,6 +36,9 @@ import ruleFixture from '../../../../../../fixtures/meta/processing-rules/assemb
 import { resolveSourceReleaseNameTranslationsBatch } from '../../i18n/sourceReleaseTranslations.ts'
 import type { LocalPipelineBucket } from '../local/localBucket.ts'
 import { validatePlanningHierarchy } from './planningHierarchy'
+import { loadNativeAdministrativeHierarchy } from './nativeAdministrativeHierarchyInputs'
+import type { NativeAdministrativeHierarchy } from './nativeAdministrativeHierarchy'
+import type { ReleaseProcessingAction } from '@repo/core/provenance/processingAction'
 import {
   asRecord,
   levelNumber,
@@ -111,6 +114,8 @@ async function readPreparedDivisionsInternal(
   divisionCodesByCanonicalId: ReadonlyMap<string, string>,
   pointGuard = createDivisionPointGuard(),
   branchCounts?: BranchCounts,
+  administrativeHierarchy?: NativeAdministrativeHierarchy,
+  hierarchyActions: ReleaseProcessingAction[] = [],
 ) {
   const file = await createAsyncBufferFromR2(bucket, key)
   const records: PreparedDivision[] = []
@@ -144,6 +149,11 @@ async function readPreparedDivisionsInternal(
     return { ...record, i18n: resolved.localisations }
   })
   const byId = new Map(translated.map(record => [record.base.id, record]))
+  const inferAdministrativeHierarchy =
+    administrativeHierarchy ??
+    (translated.some(record => record.base.class === 'planning-newtown')
+      ? await loadNativeAdministrativeHierarchy()
+      : undefined)
   return Promise.all(
     translated.map(async record => {
       const rawPath = Array.isArray(record.raw.hierarchy) ? record.raw.hierarchy : []
@@ -171,6 +181,14 @@ async function readPreparedDivisionsInternal(
       const base = {
         ...record.base,
         hierarchies: materialiseDivisionHierarchies(record.base.id, [path]),
+      }
+      if (base.class === 'planning-newtown' && inferAdministrativeHierarchy) {
+        const inferred = inferAdministrativeHierarchy(
+          base.id,
+          parseWkbGeometry(record.raw.geometry),
+        )
+        base.hierarchies = inferred.hierarchies
+        hierarchyActions.push(inferred.action)
       }
       return {
         ...record,
@@ -346,6 +364,19 @@ function validatePreparedDivisionsInternal(
     if (ids.has(record.base.id))
       throw new Error(`Duplicate planning division ${record.base.id}.`)
     ids.add(record.base.id)
+    if (record.base.class === 'planning-newtown') {
+      for (const path of record.base.hierarchies.full) {
+        if (
+          path.map(parent => parent.class).join(',') !== 'sar,area,district' ||
+          new Set(path.map(parent => parent.id)).size !== 3 ||
+          path.some(parent => parent.id === record.base.id)
+        )
+          throw Error(
+            `Invalid inferred New Town administrative path for ${record.base.id}.`,
+          )
+      }
+      continue
+    }
     for (const parent of record.base.hierarchies.full.flat()) {
       if (typeof parent.id === 'string' && !ids.has(parent.id)) {
         // Parent rows are emitted before their children; this guards accidental cross-domain links.

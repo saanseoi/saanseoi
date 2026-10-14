@@ -2,6 +2,7 @@ import selection from '../../../fixtures/meta/processing-rules/assembly/landsd-s
 import type { CurrentFieldRule } from './fieldLineageCurrentRules'
 import { hierarchyProducer } from './fieldLineageHierarchyPreparation'
 import type { ProducerSpecification } from './fieldLineageProducer'
+import { nativeAdministrativeHierarchyFieldRule } from './fieldLineageNativeAdministrativeHierarchy'
 
 const root = 'apps/harbour-cli/src/lib/'
 const landsd = `${root}sources/hkgov/landsd/landsdPlaceName.ts`
@@ -235,6 +236,7 @@ export function nativeDivisionFieldRule(
 ): CurrentFieldRule | null {
   if (![HMA_DATASET, LANDSD_DATASET].includes(dataset) || resource !== 'division')
     return null
+  if (field === 'hierarchies') return nativeAdministrativeHierarchyFieldRule(dataset)
   const hma = dataset === HMA_DATASET
   const base: Record<string, [string, string[]]> = {
     id: ['Require native canonical id', ['id']],

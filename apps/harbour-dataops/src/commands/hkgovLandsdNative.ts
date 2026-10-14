@@ -72,6 +72,7 @@ export async function runHkgovLandsdPlaceNameIngestCommand(
     divisionRows: landsdSettlementDivisionRows(features),
     releaseNotesUrl: input.releaseNotesUrl,
     recoverPublishedRelease: true,
+    rebuildCanonical: args.options['force-upload'] === true,
     rowCount: rows.length,
     source: 'hkgov-landsd',
     sourceVersion: input.sourceVersion,
