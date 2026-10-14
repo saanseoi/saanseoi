@@ -1,3 +1,4 @@
+import { divisionCartographyRule } from './fieldLineageDivisionCartography'
 import { withRecordSelection } from './fieldLineageRecordSelection'
 import { geometryHumanField } from './fieldLineageGeometryHuman'
 import {
@@ -483,6 +484,20 @@ export function humanDivisionField(
   const geometry = geometryHumanField(resource, apiField, dataset)
   if (geometry) return geometry
   const human = baseHumanDivisionField(resource, apiField, dataset)
+  if (
+    human &&
+    resource === 'division' &&
+    apiField.replace(/^attributes\./, '') === 'cartography' &&
+    dataset !== curated
+  )
+    return {
+      ...human,
+      description:
+        dataset === 'ds-hk-hkgov-landsd-division'
+          ? 'Look up the native PLACE_TYPE in the settlement label policy. Towns, areas and villages retain their native classification and receive display zooms and prominence.'
+          : 'Look up the resolved native class in the label policy. Broader divisions appear earlier; finer divisions appear at closer zooms. Publisher cartography remains source evidence.',
+      rule: divisionCartographyRule(dataset),
+    }
   if (!human || resource !== 'division' || dataset !== 'ds-hk-saanseoi-division')
     return human
   const field = apiField.replace(/^attributes\./, '')

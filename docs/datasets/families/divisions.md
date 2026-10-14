@@ -2126,3 +2126,39 @@ record attribution and country cartography (`minZoom: 2`, `maxZoom: 6`,
 `prominence: 100`). Its fallback Point `[103, 35]` is authored canonical metadata,
 separate from retained native publisher geometry. Native materialisation and prepared
 SaanSeoi archives share the reviewed anchor metadata.
+
+## Native Division cartography
+
+Every ingested Division carries `cartography` with `minZoom`, `maxZoom` and
+`prominence`. Values are materialised before content hashing and are retained in CURRENT
+and HISTORY. Deletion events do not carry cartography. The source audit tab shows the
+same policy table used by ingestion.
+
+Geographic classes use `divisionCartography` in `libs/db/src/divisionTaxonomy.ts`.
+Overture uses its resolved class; its optional publisher cartography remains unchanged
+in SOURCE evidence. SaanSeoi archives carry the reviewed geographic class policy. Native
+domains keep their own classifications and hierarchy levels.
+
+| Native class or type    | Min zoom | Max zoom | Prominence |
+| ----------------------- | -------: | -------: | ---------: |
+| LandsD Town             |       10 |       15 |         80 |
+| LandsD Area             |       12 |       16 |         70 |
+| LandsD Village          |       13 |       18 |         55 |
+| Planning new town       |       10 |       15 |         80 |
+| Primary planning unit   |       10 |       15 |         75 |
+| Secondary planning unit |       12 |       16 |         65 |
+| Tertiary planning unit  |       14 |       18 |         55 |
+| Planning subunit        |       16 |       19 |         40 |
+| Housing market area     |       13 |       18 |         60 |
+
+Broader units appear at lower zooms with greater prominence. Smaller units appear at
+closer zooms; overlapping ranges allow adjacent levels to coexist. LandsD's native
+`PLACE_TYPE` distinguishes Town, Area and Village even though the canonical class is
+`settlement` with level 5. Housing market areas retain a null hierarchy level and use
+neighbourhood-scale display settings. Planning's native levels determine successively
+finer label scales. Unknown classes or LandsD types block ingestion until their label
+policy is defined.
+
+Native policies and their materialiser live in `libs/db/src/divisionCartography.ts`. The
+audit tables read these policy definitions directly; they do not maintain a separate
+copy of the values.

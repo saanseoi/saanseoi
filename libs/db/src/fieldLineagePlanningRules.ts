@@ -18,7 +18,10 @@ export function planningDivisionFieldRule(field: string): CurrentFieldRule | nul
       ['planning_level'],
     ],
     category: ['null', []],
-    cartography: ['null', []],
+    cartography: [
+      'materialiseDivisionCartography("planning-" + value.planning_level)',
+      ['planning_level'],
+    ],
     geometry: [
       'parseWkbGeometry(value.geometry); reject absent or invalid geometry.',
       ['geometry'],
@@ -68,6 +71,18 @@ export function planningDivisionFieldRule(field: string): CurrentFieldRule | nul
     expression: contract[0],
     inputs: contract[1],
     additionalImplementations: [
+      ...(field === 'cartography'
+        ? [
+            {
+              path: 'libs/core/src/pipeline/services/divisions/divisionCartography.ts',
+              symbol: 'normaliseDivisionCartography',
+            },
+            {
+              path: 'libs/db/src/divisionCartography.ts',
+              symbol: 'materialiseDivisionCartography',
+            },
+          ]
+        : []),
       {
         path: 'apps/harbour-cli/src/lib/pipeline/divisions/processLocalHkgovPlandDivisionSqlUploadRows.ts',
         symbol: 'levelNumber',

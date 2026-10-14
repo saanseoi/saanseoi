@@ -267,7 +267,12 @@ export function nativeDivisionFieldRule(
       'emptyDivisionHierarchies(); native input supplies no ancestry',
       ['id'],
     ],
-    cartography: ['null', []],
+    cartography: [
+      hma
+        ? 'materialiseDivisionCartography("housing-market-area")'
+        : 'materialiseDivisionCartography(class, "hkgov-landsd"); class is the native PLACE_TYPE, not the output settlement class.',
+      hma ? ['canonical_type'] : ['class'],
+    ],
     divisionCode: ['null', []],
     'relationships.areas': [
       'Join selected DivisionArea records by divisionId within this release and the requested variant.',
@@ -286,6 +291,20 @@ export function nativeDivisionFieldRule(
     : base[field]
   return entry
     ? {
+        ...(field === 'cartography'
+          ? {
+              additionalImplementations: [
+                {
+                  path: 'libs/core/src/pipeline/services/divisions/divisionCartography.ts',
+                  symbol: 'normaliseDivisionCartography',
+                },
+                {
+                  path: 'libs/db/src/divisionCartography.ts',
+                  symbol: 'materialiseDivisionCartography',
+                },
+              ],
+            }
+          : {}),
         expression: entry[0],
         inputs: entry[1],
         implementation: {

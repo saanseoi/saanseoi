@@ -501,3 +501,12 @@ statistics and geometry resource children retain independent properties and loca
 Canonical geometry attribution requires the selected registered dataset code and native
 source record IDs. A dataset code must be supplied by ingestion; the publisher name
 alone cannot identify which C&SD dataset contributed the geometry.
+
+## Housing market area cartography
+
+Housing market area Division ingestion assigns `minZoom: 13`, `maxZoom: 18` and
+`prominence: 60`. This neighbourhood-scale label policy does not assign a hierarchy
+level: `housing-market-area` retains its null level. Values participate in canonical
+content hashes and persist in CURRENT and HISTORY. The source audit shows the same
+policy table used by ingestion in `libs/db/src/divisionCartography.ts`. Publisher
+properties and native geometry remain SOURCE evidence.

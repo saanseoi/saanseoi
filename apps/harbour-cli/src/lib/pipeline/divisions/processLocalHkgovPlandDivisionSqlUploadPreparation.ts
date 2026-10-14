@@ -1,3 +1,5 @@
+import { normaliseDivisionCartography } from '@repo/core/pipeline/services/divisions/divisionCartography'
+import type { BranchCounts } from '@repo/core/provenance'
 import { resolveSnapshotReplayPlan } from '@repo/core/db/metaRegistry'
 import type { HarbourReadableDb } from '@repo/core/db/types'
 import { historyVersionSelection } from '@repo/core/pipeline/db/snapshotReplay'
@@ -22,7 +24,12 @@ import {
   ruleDeclarationFromFixture,
 } from '@repo/core/provenance'
 import { composeSourceRecordId } from '@repo/core/sourceRecordIdentity'
-import { emptyDivisionHierarchies, historySchema, metaSchema } from '@repo/db'
+import {
+  emptyDivisionHierarchies,
+  divisionCartographyBranches,
+  historySchema,
+  metaSchema,
+} from '@repo/db'
 import type { DivisionVersionRow } from '@repo/db/historySchema'
 import { eq } from 'drizzle-orm'
 import ruleFixture from '../../../../../../fixtures/meta/processing-rules/assembly/planning-division-normalisation.json'
@@ -103,13 +110,19 @@ async function readPreparedDivisionsInternal(
   allowTranslationGeneration: boolean,
   divisionCodesByCanonicalId: ReadonlyMap<string, string>,
   pointGuard = createDivisionPointGuard(),
+  branchCounts?: BranchCounts,
 ) {
   const file = await createAsyncBufferFromR2(bucket, key)
   const records: PreparedDivision[] = []
   for await (const batch of readParquetObjectsInBatches(file, 512)) {
     for (const raw of batch) {
       records.push(
-        await normalisePreparedDivision(raw, divisionCodesByCanonicalId, pointGuard),
+        await normalisePreparedDivision(
+          raw,
+          divisionCodesByCanonicalId,
+          pointGuard,
+          branchCounts,
+        ),
       )
     }
   }
@@ -175,6 +188,7 @@ export async function normalisePreparedDivision(
   value: Record<string, unknown>,
   divisionCodesByCanonicalId: ReadonlyMap<string, string>,
   pointGuard = createDivisionPointGuard(),
+  branchCounts?: BranchCounts,
 ) {
   const id = requireString(value.id, 'id')
   const level = requireString(value.planning_level, 'planning_level')
@@ -201,7 +215,11 @@ export async function normalisePreparedDivision(
   })
   if (!geometry) throw new Error(`Planning division ${id} has invalid geometry.`)
   const base = {
-    cartography: null,
+    cartography: normaliseDivisionCartography(
+      `planning-${level}`,
+      undefined,
+      branchCounts,
+    ),
     divisionCode: resolvePlandDivisionCode(level, id, divisionCodesByCanonicalId),
     geometry,
     hierarchies: emptyDivisionHierarchies(),
@@ -340,7 +358,12 @@ function validatePreparedDivisionsInternal(
 }
 
 export const planningDivisionRule = registerRule(
-  ruleDeclarationFromFixture(ruleFixture),
+  {
+    ...ruleDeclarationFromFixture(ruleFixture),
+    branches: divisionCartographyBranches().filter(branch =>
+      branch.id.startsWith('cartography.class.planning-'),
+    ),
+  },
   (args: Parameters<typeof readPreparedDivisionsInternal>) =>
     readPreparedDivisionsInternal(...args),
 )

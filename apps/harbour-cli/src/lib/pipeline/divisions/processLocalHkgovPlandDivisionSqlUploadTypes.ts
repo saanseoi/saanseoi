@@ -21,7 +21,7 @@ export type HkgovPlandDivisionUploadPlan = {
 
 export type PreparedDivision = {
   base: {
-    cartography: null
+    cartography: import('@repo/db').DivisionCartography
     divisionCode: string | null
     geometry: unknown
     hierarchies: import('@repo/db').DivisionHierarchies

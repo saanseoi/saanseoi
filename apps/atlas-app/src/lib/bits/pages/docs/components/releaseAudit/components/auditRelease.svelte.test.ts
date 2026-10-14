@@ -1,3 +1,5 @@
+import { getRetainedRuleDeclaration } from '#lib/registry/audit.remote.js'
+import { divisionCartographyBranches } from '../../../../../../../../../../libs/db/src/divisionCartography'
 import { expect, test, vi } from 'vitest'
 import { render } from 'vitest-browser-svelte'
 import type { AuditManifest } from '@repo/core/provenance'
@@ -128,4 +130,53 @@ test('statistics ingestion exposes new and reused source geometry under searchab
       filteredCount: 1,
       totalCount: 1,
     })
+})
+
+test('Planning cartography appears in searchable audit rule tables with retained counts', async () => {
+  vi.mocked(getRetainedRuleDeclaration).mockResolvedValue({
+    branches: divisionCartographyBranches().filter(branch =>
+      branch.id.startsWith('cartography.class.planning-'),
+    ),
+    parameters: {},
+  })
+  const manifest = {
+    resourceReleaseId: 'planning-release',
+    applicationCount: 0,
+    bulk: [
+      {
+        id: 'normalise-planning-divisions',
+        basis: 'code',
+        summary: 'Materialise Planning divisions',
+        outcome: 'applied',
+        definition: { hash: 'definition' },
+        fixtures: [],
+        counts: {
+          inputs: { divisions: 1 },
+          outputs: { divisions: 1 },
+          recordsAffected: 1,
+          decisions: {},
+          branches: { 'cartography.class.planning-ppu': { matched: 1, changed: 1 } },
+        },
+      },
+    ],
+    individualFixtures: [],
+    guards: [],
+  } as unknown as AuditManifest
+  const screen = await render(AuditRelease, {
+    manifest,
+    hash: 'audit-hash',
+    releaseCode: 'planning',
+    resourceType: 'division',
+    showControls: false,
+    query: 'cartography',
+  })
+  await expect
+    .element(screen.getByRole('heading', { name: 'Cartography', exact: true }))
+    .toBeVisible()
+  await expect
+    .element(
+      screen.getByText('minZoom: 10, maxZoom: 15, prominence: 75', { exact: false }),
+    )
+    .toBeVisible()
+  await expect.element(screen.getByText('planning-ppu', { exact: true })).toBeVisible()
 })

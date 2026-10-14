@@ -1,3 +1,4 @@
+import { normaliseDivisionCartography } from './divisionCartography'
 import { prcCountryAnchor } from './prcCountryAnchor'
 import type {
   CurrentDatabase,
@@ -8,6 +9,7 @@ import type {
 } from '@repo/db'
 import {
   emptyDivisionHierarchies,
+  divisionCartographyBranches,
   geographicDivisionClassification,
   metaSchema,
 } from '@repo/db'
@@ -1290,7 +1292,12 @@ function normaliseDivisionRowInternal(
 
   return {
     base: {
-      cartography: countryAnchor?.cartography ?? row.cartography ?? null,
+      cartography: normaliseDivisionCartography(
+        landsdPlaceName ? (otClass ?? '') : type,
+        landsdPlaceName ? 'hkgov-landsd' : undefined,
+        options.branchCounts,
+        row.cartography,
+      ),
       createdAt: now,
       divisionCode: countryAnchor?.divisionCode ?? null,
       geometry: normalisedGeometry ?? countryAnchor?.geometry ?? null,
@@ -1419,6 +1426,7 @@ export const divisionNormalisationRule = registerRule(
       ...divisionTaxonomyBranches(ruleFixture.parameters),
       ...divisionLocaleBranches(ruleFixture.parameters),
       ...localeInferenceBranches,
+      ...divisionCartographyBranches(),
     ],
   },
   ({
@@ -1550,7 +1558,7 @@ function normaliseHkgovCenstatdStatisticDivisionRow(
   const now = new Date().toISOString()
   return {
     base: {
-      cartography: null,
+      cartography: normaliseDivisionCartography(type, undefined, branchCounts),
       createdAt: now,
       divisionCode: null,
       geometry,

@@ -45,7 +45,11 @@ let failure = $state('')
 let loading = $state(false)
 let retry = $state(0)
 const isMapping = (id: string) =>
-  ['normalise-divisions', 'prepare-curated-division-rules'].includes(id)
+  [
+    'normalise-divisions',
+    'normalise-planning-divisions',
+    'prepare-curated-division-rules',
+  ].includes(id)
 // Load from the unfiltered manifest so searching cannot change the loader's scope.
 let mappingIds = $derived(
   allBulk

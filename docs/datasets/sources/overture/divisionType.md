@@ -451,3 +451,15 @@ supplemental addition.
 Reconstructed city records retain their district ancestry in `hierarchies` and their
 reconstruction reference in `sources`. Construction codes, district member lists and
 geometry methods are not external identifiers.
+
+## Canonical label cartography
+
+Division ingestion materialises `minZoom`, `maxZoom` and `prominence` from the resolved
+geographic class using `divisionCartography` in `libs/db/src/divisionTaxonomy.ts`.
+Country and regional labels appear at broad scales; localities, neighbourhoods and small
+islands appear at progressively closer scales. The complete class policy is shown in the
+source audit's cartography table and is shared with SaanSeoi archive preparation.
+
+Canonical cartography participates in content hashes and persists in CURRENT and
+HISTORY. Optional Overture cartography, including its publisher prominence scale and
+null zoom bounds, remains unchanged in SOURCE evidence.

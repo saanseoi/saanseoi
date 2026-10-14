@@ -237,3 +237,15 @@ response stages.
 Canonical Division attribution uses `hkgov-landsd`, `ds-hk-hkgov-landsd-division` and
 the retained `LANDSD:PLACE_NAME:<GEO_NAME_ID>` publisher record identity. Canonical
 entity-resolution markers are excluded from public attribution.
+
+## Division cartography
+
+Division ingestion assigns label settings from native `PLACE_TYPE`: Town uses
+`minZoom: 10`, `maxZoom: 15`, `prominence: 80`; Area uses `12`, `16`, `70`; Village uses
+`13`, `18`, `55`. The canonical class remains `settlement` and level remains 5. These
+policies distinguish broad settlements from villages without altering publisher
+properties. Unknown settlement types block ingestion.
+
+The cartography audit table uses the same policy as ingestion. The values participate in
+canonical content hashes and persist in CURRENT and HISTORY. Native SOURCE records
+retain their publisher properties unchanged.

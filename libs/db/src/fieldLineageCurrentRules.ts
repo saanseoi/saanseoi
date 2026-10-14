@@ -679,6 +679,7 @@ export function currentDivisionFieldRule(
         ['sources'],
       ],
       hierarchies: ['emptyDivisionHierarchies()', []],
+      cartography: ['materialiseDivisionCartography(type)', ['canonical_type']],
     }
     const name = /^i18n\.[^.]+\.(name|nameAlts|nameRules|nameVariant)$/.exec(field)
     const selected = name
@@ -710,6 +711,8 @@ export function currentDivisionFieldRule(
       "row.source === 'hkgov-landsd' ? 5 : resolveDivisionLevel({ row, otClass, otSubtype, parentDivisionId })",
     category:
       'geographicDivisionClassification(resolveDivisionClass({ row, otClass, otSubtype, parentDivisionId }))?.category ?? null; specific classification curations and patches are separate candidates.',
+    cartography:
+      'materialiseDivisionCartography(effectiveClass); ignore optional publisher cartography in canonical output.',
     geometry: 'parseWkbGeometry(row.geometry)',
     identifiers: 'divisionIdentifiersWithWikidata(row.identifiers, row.wikidata)',
     'identifiers.wikidata.id':
@@ -769,6 +772,7 @@ export function currentDivisionFieldRule(
               'parent_division_id',
               'source',
             ],
+            cartography: ['effectiveClass'],
             geometry: ['geometry'],
             identifiers: ['identifiers', 'wikidata'],
             'identifiers.wikidata.id': ['identifiers', 'wikidata'],
@@ -786,6 +790,20 @@ export function currentDivisionFieldRule(
           } as Record<string, string[]>
         )[field]!,
         {
+          ...(field === 'cartography'
+            ? {
+                additionalImplementations: [
+                  {
+                    path: 'libs/core/src/pipeline/services/divisions/divisionCartography.ts',
+                    symbol: 'normaliseDivisionCartography',
+                  },
+                  {
+                    path: 'libs/db/src/divisionCartography.ts',
+                    symbol: 'materialiseDivisionCartography',
+                  },
+                ],
+              }
+            : {}),
           steps: [
             'Dispatch SaanSeoi archive and C&SD native rows before Overture/native normalisation.',
             'Resolve hierarchy references using the selected snapshot lookup.',

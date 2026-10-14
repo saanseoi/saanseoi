@@ -119,6 +119,7 @@ let fixtureRows = $derived(
               'prepare-curated-division-rules',
               'prepare-division-update-policy',
               'normalise-divisions',
+              'normalise-planning-divisions',
             ].includes(id) ||
               (id === preparation.id && type !== 'curation-definitions'))
           )
@@ -218,7 +219,11 @@ const matchesBulk = (item: AuditManifest['bulk'][number]) =>
       'Automatic division updates',
       auditObject(preparationValue).outcomeRecords,
     )) ||
-  (['normalise-divisions', 'prepare-curated-division-rules'].includes(item.id)
+  ([
+    'normalise-divisions',
+    'normalise-planning-divisions',
+    'prepare-curated-division-rules',
+  ].includes(item.id)
     ? divisionRulesMatching ||
       (!!hierarchyCount &&
         matchesAudit(effectiveQuery, m.source_audit_rules(), hierarchy, hierarchyCount))
@@ -246,6 +251,7 @@ let visibleBulk = $derived(
           'prepare-curated-division-rules',
           'prepare-division-update-policy',
           'normalise-divisions',
+          'normalise-planning-divisions',
         ].includes(item.id)
       ) &&
       !(
@@ -271,7 +277,11 @@ let rules = $derived(
     item =>
       item.basis === 'code' &&
       !isPatch(item.id) &&
-      (['normalise-divisions', 'prepare-curated-division-rules'].includes(item.id) ||
+      ([
+        'normalise-divisions',
+        'normalise-planning-divisions',
+        'prepare-curated-division-rules',
+      ].includes(item.id) ||
         matchesBulk(item)),
   ),
 )
@@ -290,7 +300,11 @@ let patches = $derived(
 )
 let hierarchyCount = $derived(
   manifest.bulk.find(item =>
-    ['normalise-divisions', 'prepare-curated-division-rules'].includes(item.id),
+    [
+      'normalise-divisions',
+      'normalise-planning-divisions',
+      'prepare-curated-division-rules',
+    ].includes(item.id),
   )?.counts.decisions.overture_division_hong_kong_area_hierarchy_assigned,
 )
 let hierarchy = $derived({

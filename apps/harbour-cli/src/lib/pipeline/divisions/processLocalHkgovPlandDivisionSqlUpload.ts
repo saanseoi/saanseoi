@@ -1,3 +1,4 @@
+import { createBranchCounts } from '@repo/core/provenance'
 import {
   ensureDraftSnapshotForRelease,
   recordSnapshotAssembly,
@@ -253,6 +254,9 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
           const metaDb = context.metaDb as unknown as HarbourReadableDb &
             HarbourWritableDb
           const pointGuard = createDivisionPointGuard()
+          const cartographyCounts = createBranchCounts(
+            planningDivisionRule.declaration.branches!,
+          )
           const records = await runPlandProgressPhase(
             progress,
             'Normalise',
@@ -267,6 +271,7 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
                   ? await loadPlandNewTownDivisionCodes(metaDb)
                   : new Map(),
                 pointGuard,
+                cartographyCounts,
               ),
           )
           validatePreparedDivisions(records, previewPlan.rowCount)
@@ -524,6 +529,7 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
                 inputCount: records.length,
                 outputCount: records.length,
                 normalisation: planningDivisionRule.declaration,
+                branchCounts: cartographyCounts,
                 guards: pointGuard.snapshot(),
                 actions:
                   repairedGeometryRecords.length > 0

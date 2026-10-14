@@ -22,7 +22,7 @@ const make = (version: string): PreparedDivision => ({
     class: 'planning-subunit',
     level: 6,
     identifiers: null,
-    cartography: null,
+    cartography: { minZoom: 16, maxZoom: 19, prominence: 40 },
     hierarchies: { full: [], administrative: [], locality: [], landform: [] },
     geometry: {
       type: 'Polygon',

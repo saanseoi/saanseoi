@@ -543,3 +543,19 @@ immutable. Reversions and independent branch changes have distinct introducing e
 The read-only `historyEvents` view stores no additional membership rows. Snapshot reads
 resolve ancestry before filtering and use the exact introducing snapshot to fetch
 content. SOURCE release validity and interpretation evidence remain separate.
+
+## Division label cartography
+
+Planning Division ingestion materialises label settings from `planning_level` before
+content hashing. The tuple below is `(minZoom, maxZoom, prominence)`:
+
+- New town: `(10, 15, 80)`.
+- Primary planning unit (`ppu`): `(10, 15, 75)`.
+- Secondary planning unit (`spu`): `(12, 16, 65)`.
+- Tertiary planning unit (`tpu`): `(14, 18, 55)`.
+- Subunit: `(16, 19, 40)`.
+
+The ranges overlap while progressively finer units appear at closer zooms. These
+settings belong to the Division point, independently of the companion Area geometry.
+Native classes and levels remain intact. CURRENT, HISTORY and the source audit's
+cartography table use the policy in `libs/db/src/divisionCartography.ts`.

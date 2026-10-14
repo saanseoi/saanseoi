@@ -68,7 +68,7 @@ test('Planning copies isolate failed preparation and resume partial delivery wit
     const record: PreparedDivision = {
       base: {
         id: 'planning-test',
-        cartography: null,
+        cartography: { minZoom: 16, maxZoom: 19, prominence: 40 },
         divisionCode: 'test',
         geometry: {
           type: 'Polygon',
