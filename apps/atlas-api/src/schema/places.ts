@@ -225,7 +225,9 @@ const PlaceI18nSchema = z
         description: openApiText('openapi_places_address_freeform_description'),
         examples: ['Shop 10, Ngong Ping 360, Lantau Island', '74 San Hing St', null],
       }),
-    meta: I18nMetaSchema,
+    meta: I18nMetaSchema.openapi({
+      description: openApiText('openapi_places_provenance_description'),
+    }),
     createdAt: z
       .string()
       .optional()

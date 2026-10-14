@@ -1,3 +1,5 @@
+/* biome-ignore-all lint/style/noDescendingSpecificity: Tool-specific sections intentionally layer state and responsive panel overrides. */
+/* biome-ignore-all lint/complexity/noImportantStyles: Explicit priorities preserve MapLibre controls, drag cursors and hidden-panel behaviour. */
 @import "maplibre-gl/dist/maplibre-gl.css";
 * {
   box-sizing: border-box;

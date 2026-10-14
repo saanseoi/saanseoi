@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:dc69f6f6324722b2331ad3b7ad78c63977fc32558f8766386b970e95bbaecfba",
+  "versionHash": "sha256:ee39e0c9797ad63232af6fc17b2443658d95993cfe2507a99cd66bbec6c8e5fc",
   "apiVersion": "api-places-v0.1",
   "domainCode": "overture",
   "mappingVersion": 1,
@@ -618,7 +618,7 @@
       "confidence": 1
     },
     {
-      "apiField": "attributes.i18n.*.provenance",
+      "apiField": "attributes.i18n.*.meta",
       "sourceDatasetCode": "ds-hk-overture-place",
       "inputs": [
         {

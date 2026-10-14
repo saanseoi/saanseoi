@@ -230,14 +230,14 @@ export async function fixture(previous = true) {
       divisionId: 'district',
       locale: 'en',
       name: scopeId === 'lineage' ? 'New Name' : 'Unrelated Name',
-      meta: { isLocaleInferred: 0 },
+      meta: { isLocaleInferred: false },
     })
     insert(current, 'divisionsI18n', {
       scopeId: scopeId,
       divisionId: 'district',
       locale: 'zh-hant',
       name: '中文',
-      meta: { isLocaleInferred: 0 },
+      meta: { isLocaleInferred: false },
     })
   }
   for (const statement of buildDivisionSearchSyncSql([
@@ -265,7 +265,7 @@ export async function fixture(previous = true) {
       locale: 'en',
       name: 'Old Name',
       versionHash: 'old-en',
-      meta: { isLocaleInferred: 0 },
+      meta: { isLocaleInferred: false },
     })
     insert(history, 'divisionsI18n', {
       ...envelope,
@@ -273,7 +273,7 @@ export async function fixture(previous = true) {
       locale: 'zh-hant',
       name: '中文',
       versionHash: 'old-zh',
-      meta: { isLocaleInferred: 0 },
+      meta: { isLocaleInferred: false },
     })
   }
   const context = {

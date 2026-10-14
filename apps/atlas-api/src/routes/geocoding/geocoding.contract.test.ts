@@ -369,7 +369,6 @@ test.each(['preview', 'production'] as const)(
             attributes: expect.objectContaining({
               i18n: {
                 en: {
-                  meta: { isLocaleInferred: false },
                   name: 'Old Village',
                 },
               },

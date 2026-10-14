@@ -80,7 +80,7 @@ test('retained Places contributors preserve native references and licences', () 
   for (const [dataset, publisher, recordId, license] of [
     ['AllThePlaces', 'alltheplaces', 'TM4TIs3aSeDvNL9KaoD8XPCczrU=', 'CC0-1.0'],
     ['DAC', 'dac', 'overture:places:place:9001223561', 'CDLA-Permissive-2.0'],
-  ]) {
+  ] as const) {
     expect(
       normaliseOvertureAttribution([
         { dataset, record_id: recordId, license, property: '' },

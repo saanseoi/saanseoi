@@ -104,7 +104,7 @@ const definitions = (name: string) =>
         locale: 'en',
         name,
         description: null,
-        isTranslationVerified: true,
+        meta: { isLocaleInferred: false, fields: { name: { origin: 'provided' } } },
       },
     ],
     measures: [{ datasetCode, measureCode: 'population' }],
@@ -115,7 +115,7 @@ const definitions = (name: string) =>
         locale: 'en',
         name,
         description: null,
-        isTranslationVerified: true,
+        meta: { isLocaleInferred: false, fields: { name: { origin: 'provided' } } },
       },
     ],
   })

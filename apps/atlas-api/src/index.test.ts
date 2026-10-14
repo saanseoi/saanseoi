@@ -435,6 +435,7 @@ function streetRows(query: string, values: unknown[] = []): unknown[][] {
         ...localizations('street-version-1', null).map(row => [
           'landsd-street-notice-example',
           row[1],
+          JSON.stringify({ isLocaleInferred: false }),
           row[2],
           null,
           null,
@@ -454,6 +455,7 @@ function streetRows(query: string, values: unknown[] = []): unknown[][] {
           row => [
             'landsd-street-notice-example',
             row[1],
+            JSON.stringify({ isLocaleInferred: false }),
             row[2],
             null,
             null,
@@ -476,6 +478,7 @@ function streetRows(query: string, values: unknown[] = []): unknown[][] {
         ).map(row => [
           'landsd-street-notice-example',
           row[1],
+          JSON.stringify({ isLocaleInferred: false }),
           row[2],
           null,
           null,
@@ -492,7 +495,7 @@ function streetRows(query: string, values: unknown[] = []): unknown[][] {
           '2026-09-01T00:00:00.000Z',
         ]),
       ],
-      11,
+      12,
     )
   }
   if (!query.includes('from "streets"') && !query.includes('from "streetsI18n"')) {
@@ -504,7 +507,12 @@ function streetRows(query: string, values: unknown[] = []): unknown[][] {
     ]
   }
   if (query.includes('from "streetsI18n"') && query.includes('"snapshotId" = ?')) {
-    return localizations('street-version-1', null).map(row => [row[0], row[1], row[2]])
+    return localizations('street-version-1', null).map(row => [
+      JSON.stringify({ isLocaleInferred: false }),
+      row[0],
+      row[1],
+      row[2],
+    ])
   }
   if (query.includes('from "streets"')) {
     return [
@@ -530,8 +538,14 @@ function streetRows(query: string, values: unknown[] = []): unknown[][] {
   }
   if (query.includes('from "streetsI18n"')) {
     return [
-      ...localizations('street-version-1', null),
-      ...localizations('street-version-2', 'Deleted by Government Notice.'),
+      ...localizations('street-version-1', null).map(row => [
+        JSON.stringify({ isLocaleInferred: false }),
+        ...row,
+      ]),
+      ...localizations('street-version-2', 'Deleted by Government Notice.').map(row => [
+        JSON.stringify({ isLocaleInferred: false }),
+        ...row,
+      ]),
     ]
   }
   return []
@@ -1109,6 +1123,8 @@ describe('atlas-api', () => {
         writeDataPoint: event => productEvents.push(event ?? {}),
       } as AnalyticsEngineDataset,
       SUBSTACK_SESSION_COOKIE: '',
+      TELEGRAM_BOT_TOKEN: '',
+      TELEGRAM_ADMIN_ID: '',
     })
     const res = await app.fetch(
       new Request('http://localhost/v0/meta/substack', {
@@ -1478,6 +1494,7 @@ describe('atlas-api', () => {
     ])
     expect(Object.keys(body.data.attributes.i18n.en).sort()).toEqual([
       'description',
+      'meta',
       'name',
     ])
     expect(body.data.attributes.i18n['zh-Hant']).toMatchObject({
@@ -2341,7 +2358,7 @@ describe('atlas-api', () => {
       'brandNameVariant',
       'brandNameAlts',
       'freeformAddress',
-      'provenance',
+      'meta',
     ])
     expectPlaceFieldsDescribed('PlaceCollectionAttributes', [
       'referenceName',

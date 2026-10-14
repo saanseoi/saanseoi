@@ -105,7 +105,9 @@ describe('Planning Department New Town source identifiers', () => {
           if (division.newTown?.wasGeometryRepaired) {
             expect(division.base.geometry).not.toEqual(division.newTown.sourceGeometry)
           }
-          expect(division.base.identifiers).toEqual({ 'PLAND:NEWTOWN': sourceRecordId })
+          expect(division.base.identifiers).toEqual({
+            'hkgov-pland': { newTownId: sourceRecordId },
+          })
           expect(
             Object.fromEntries(division.i18n.map(row => [row.locale, row.name])),
           ).toEqual({

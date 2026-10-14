@@ -1,7 +1,7 @@
 {
   "extends": "$app/tsconfig",
   "compilerOptions": {
-    "rootDir": ".",
+    "rootDir": "../..",
     "rewriteRelativeImportExtensions": true,
     "checkJs": false,
     "sourceMap": true,

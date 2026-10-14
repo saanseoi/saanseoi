@@ -44,7 +44,7 @@ test('statistic preparation identity tracks reviewed metadata and bridge values'
   ).not.toBe(original)
 })
 
-test('native Statistics adapter resumes source/history plans without regenerating or repeating committed SQL', async () => {
+test('native Statistics source delivery resumes without regenerating SQL or writing canonical history', async () => {
   const root = await mkdtemp(join(tmpdir(), 'native-statistics-'))
   const sourcePath = join(root, 'source.sqlite')
   const historyPath = join(root, 'history.sqlite')
@@ -84,7 +84,6 @@ test('native Statistics adapter resumes source/history plans without regeneratin
           generated++
           return {
             source: ['UPDATE counter SET n=n+1;', 'UPDATE counter SET n=n+2;'],
-            history: ['UPDATE counter SET n=n+4;'],
           }
         },
         {
@@ -112,7 +111,7 @@ test('native Statistics adapter resumes source/history plans without regeneratin
       { delivery },
     )
     expect(source.query('SELECT n FROM counter').get()).toEqual({ n: 3 })
-    expect(history.query('SELECT n FROM counter').get()).toEqual({ n: 4 })
+    expect(history.query('SELECT n FROM counter').get()).toEqual({ n: 0 })
     expect(generated).toBe(1)
     await expect(
       replayStatisticSqlBatches(

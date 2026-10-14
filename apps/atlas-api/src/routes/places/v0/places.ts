@@ -424,12 +424,6 @@ async function handlePlaceDetail(
   )
 }
 
-function stringArray(value: unknown) {
-  return Array.isArray(value)
-    ? value.filter((item): item is string => typeof item === 'string')
-    : []
-}
-
 async function handlePlacesByCell(
   c: Context<AppEnv>,
   args: { region: 'hk' | 'mo'; h3Level: string; h3Cell: string; limit?: number },
