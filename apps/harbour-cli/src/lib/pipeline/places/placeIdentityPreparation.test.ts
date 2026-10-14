@@ -3,12 +3,14 @@ import { expect, test } from 'bun:test'
 import { mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { serialise } from '@repo/core/provenance'
 import {
   type NormalisedPlace,
   normaliseOverturePlace,
 } from '@repo/core/pipeline/services/places/place'
 import {
   canonicalAddressResolutions,
+  previousPlaceIdentity,
   stagePlaceIdentities,
 } from './placeIdentityPreparation'
 import { readStagedJsonLines } from './processLocalPlaceSqlUploadPreparation'
@@ -42,6 +44,16 @@ const history = (place: NormalisedPlace): PlaceHistoryState => ({
   },
 })
 
+test('canonical source attribution preserves upstream identity matching evidence', () => {
+  const state = history(normalised('canonical-place'))
+  state.row.sources = [
+    { publisher: 'meta', upstreamOf: 'overture', dataset: 'meta', recordId: '123' },
+  ]
+  expect(previousPlaceIdentity(state).evidence.attribution).toEqual([
+    JSON.stringify(['meta', '123']),
+  ])
+})
+
 test('preparation preserves raw publisher identity, deterministic births and retry evidence', async () => {
   const root = await mkdtemp(join(tmpdir(), 'place-identity-'))
   try {
@@ -68,6 +80,17 @@ test('preparation preserves raw publisher identity, deterministic births and ret
       historyRows: [history(staged)],
     })
     expect(rerun.bySourceId.get('source-new')).toEqual(
+      first.bySourceId.get('source-new'),
+    )
+    const persisted = history(staged)
+    persisted.row.sources = []
+    persisted.identity = JSON.parse(serialise(first.bySourceId.get('source-new')))
+    const unchanged = await stagePlaceIdentities({
+      ...input,
+      sourceVersion: '2026-02-01.0',
+      historyRows: [persisted],
+    })
+    expect(unchanged.bySourceId.get('source-new')).toEqual(
       first.bySourceId.get('source-new'),
     )
     await writeFile(path, `${JSON.stringify(normalised('source-replacement'))}\n`)

@@ -1,4 +1,8 @@
-import { deliverRecordEvidence } from '../../api/provenance'
+import {
+  deliverRecordEvidence,
+  readRetainedProvenanceObject,
+} from '../../api/provenance'
+import { hydratePlaceIdentityHistory } from './placeIdentityHistory'
 import {
   stagePlaceIdentities,
   canonicalAddressResolutions,
@@ -255,15 +259,19 @@ export async function processLocalPlaceSqlUpload(
       progress,
       'Match',
       'Place identities',
-      () =>
-        stagePlaceIdentities({
+      async () => {
+        await hydratePlaceIdentityHistory(metaDb, historyRows, ref =>
+          readRetainedProvenanceObject(target, ref),
+        )
+        return stagePlaceIdentities({
           sourcePath: stagedPlaces.path,
           historyRows,
           scope: snapshots.snapshotLineageId,
           predecessorSnapshotId: publicationPrevious?.snapshotId ?? null,
           sourceVersion: previewPlan.sourceVersion,
           releaseRoot,
-        }),
+        })
+      },
     )
     const supplementary = await runPlaceProgressPhase(
       progress,
@@ -288,7 +296,10 @@ export async function processLocalPlaceSqlUpload(
           retainAudit: async (auditReleaseId, auditDatasetCode, addresses) =>
             deliverProducerAudit({
               target,
-              directory: resolve(releaseRoot, `provenance-${auditReleaseId}`),
+              directory: resolve(
+                releaseRoot,
+                `provenance-${auditReleaseId}-${addresses.snapshotId}`,
+              ),
               allowFailed: auditReleaseId === resourceReleaseId,
               identity: JSON.stringify({
                 addresses: addresses.materialisationHash ?? {
@@ -343,6 +354,14 @@ export async function processLocalPlaceSqlUpload(
         ),
       stagedPlaces.includedRows,
     )
+    // The sealed enriched file and identity ledger now carry preparation output.
+    // SQL generation reloads its exact predecessor under the delivery lock, so
+    // retaining the earlier matching view would duplicate the full history graph.
+    historyRows.length = 0
+    identities.bySourceId.clear()
+    await dependencies.close()
+    dependencies = undefined
+    Bun.gc(true)
     const sourceRows = await runPlaceProgressPhase(
       progress,
       'Prepare',
@@ -497,11 +516,15 @@ export async function processLocalPlaceSqlUpload(
       async () =>
         deliverProducerAudit({
           target,
-          directory: resolve(releaseRoot, `provenance-${resourceReleaseId}`),
+          directory: resolve(
+            releaseRoot,
+            `provenance-${resourceReleaseId}-${snapshots.snapshotId}`,
+          ),
           identity: JSON.stringify({
             source: await deliveryFileSha256(stagedPlaces.path),
             enriched: sqlDelivery.inputs.enrichedSha256,
             supplementary: supplementary.audit.materialisationHash,
+            identityLedger: identities.ledger.hash,
           }),
           retain: store =>
             retainPlaceProvenance(store, {
@@ -510,6 +533,8 @@ export async function processLocalPlaceSqlUpload(
               datasetCode,
               staged: stagedPlaces,
               addresses: supplementary.audit,
+              identityPath: identities.path,
+              identityLedger: identities.ledger,
             }),
         }),
     )
@@ -646,7 +671,10 @@ export async function processLocalPlaceSqlUpload(
       resourceReleaseId,
       datasetCode,
       store: new LocalPipelineBucket(
-        resolve(releaseRoot, `provenance-${resourceReleaseId}`),
+        resolve(
+          releaseRoot,
+          `provenance-${resourceReleaseId}-${failureAuditScope.ownerId}`,
+        ),
       ),
     })
     progress.fail(error)

@@ -234,7 +234,8 @@ SaanSeoi-authored drawings and geometry corrections retain `saanseoi` attributio
 contribution roles remain preparation evidence. Selecting Protomaps geometry retains the
 Protomaps reference; administrative geometry retains its contributing Overture and, for
 land intersections, Protomaps references. Selection and processing alone do not add
-SaanSeoi authorship.
+SaanSeoi authorship. Method-only derivation entries remain processing evidence through
+the Area contract; they do not acquire a dataset reference during archive preparation.
 
 Component indexes belong to `geometrySource` selection evidence, outside `sources`.
 Prepared publisher records omit this selection evidence and expose flat source

@@ -27,6 +27,7 @@ export type NetSqlitePlanInput<T> = {
   >
   generate: (candidates: Record<string, { db: Database; path: string }>) => Promise<T>
   append: (target: SqlDeliveryTarget, bytes: Uint8Array, kind: 'bound') => Promise<void>
+  onProgress?: (phase: string) => void
   /** Deliver all selected final rows to an empty, schema-provisioned target. */
   bootstrap?: boolean
   limits?: { maxStatements?: number; maxPayloadBytes?: number }

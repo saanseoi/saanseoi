@@ -113,7 +113,7 @@ export async function registerPendingSqlDelivery(
     NAME,
     JSON.stringify({
       resourceReleaseId,
-      directories: [...new Set([...(pending?.directories ?? []), directory])],
+      directories: [...new Set([...(pending?.directories ?? []), resolve(directory)])],
     }),
   )
 }

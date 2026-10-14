@@ -67,6 +67,22 @@
       "publisherCode": "overture",
       "dataset": "overture",
       "reason": "Explicit attribution policy: attribute this native dataset to Overture; retain its property pointer, record reference and licence without asserting original publisher ownership."
+    },
+    {
+      "names": [
+        "AllThePlaces"
+      ],
+      "publisherCode": "alltheplaces",
+      "dataset": "alltheplaces",
+      "publisherReference": "https://docs.overturemaps.org/attribution/"
+    },
+    {
+      "names": [
+        "DAC"
+      ],
+      "publisherCode": "dac",
+      "dataset": "dac",
+      "publisherReference": "https://docs.overturemaps.org/attribution/"
     }
   ],
   "unresolved": []

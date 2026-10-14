@@ -76,6 +76,28 @@ test('rejects unidentified datasets and invalid pointers', () => {
   ).toThrow('JSON Pointer')
 })
 
+test('retained Places contributors preserve native references and licences', () => {
+  for (const [dataset, publisher, recordId, license] of [
+    ['AllThePlaces', 'alltheplaces', 'TM4TIs3aSeDvNL9KaoD8XPCczrU=', 'CC0-1.0'],
+    ['DAC', 'dac', 'overture:places:place:9001223561', 'CDLA-Permissive-2.0'],
+  ]) {
+    expect(
+      normaliseOvertureAttribution([
+        { dataset, record_id: recordId, license, property: '' },
+      ]),
+    ).toEqual([
+      {
+        publisher,
+        upstreamOf: 'overture',
+        dataset: publisher,
+        recordId,
+        license,
+        property: '',
+      },
+    ])
+  }
+})
+
 test('retained camelCase references preserve identity without guessing unknown publishers', () => {
   expect(
     normaliseOvertureAttribution([

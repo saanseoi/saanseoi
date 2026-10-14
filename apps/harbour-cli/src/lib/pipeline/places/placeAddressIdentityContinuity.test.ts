@@ -78,7 +78,15 @@ function setup() {
     {
       row: {
         id: prior.id,
-        sources: { placeIdentity: prior },
+        sources: [
+          {
+            publisher: 'foursquare',
+            upstreamOf: 'overture',
+            dataset: 'foursquare',
+            recordId: 'business',
+          },
+        ],
+        addresses: ['Cafe Building'],
         address2dId: fixture.entries[0]!.addressId,
       },
     },
@@ -146,4 +154,50 @@ test('a new canonical business does not inherit the rejected predecessor Address
   input.identities.get('new')!.id = 'different-business'
   expect(reconcilePlaceAddressIdentityContinuity(input)).toEqual(input.defaults)
   expect(input.fixture.entries).toHaveLength(1)
+})
+
+test('an applied retirement replays after the generated entry ledger is persisted', () => {
+  const input = setup()
+  input.historyRows = []
+  const entry = input.fixture.entries[0]!
+  entry.placeId = 'new'
+  input.defaults[0]!.previousAddressId = entry.addressId
+  input.fixture.decisions = reconcilePlaceAddressIdentityContinuity(input)
+  const observation = {
+    placeId: 'new',
+    sourceRelease: 'now',
+    texts: ['Cafe Building'],
+    lng: 114,
+    lat: 22,
+  }
+  const analyse = () =>
+    createSupplementaryAddressAnalyser(
+      [],
+      new Set(),
+      new Map(),
+      input.fixture,
+    )(observation, null)
+  expect(analyse()).toMatchObject({ tier: 'delayed', reason: 'explicit_retirement' })
+  expect(entry.revokedAt).toBe('now')
+  input.fixture = structuredClone(input.fixture)
+  input.fixture.decisions = reconcilePlaceAddressIdentityContinuity(input)
+  expect(input.fixture.decisions).toEqual(input.defaults)
+  expect(analyse()).toMatchObject({ tier: 'delayed', reason: 'explicit_retirement' })
+  input.fixture.entries[0]!.revokedAt = 'before'
+  expect(reconcilePlaceAddressIdentityContinuity(input)).toEqual([])
+})
+
+test('changed predecessor evidence and conflicting accepted entries cannot carry an Address', () => {
+  const changed = setup()
+  changed.historyRows[0]!.row.addresses = ['Different Building']
+  reconcilePlaceAddressIdentityContinuity(changed)
+  expect(changed.fixture.entries).toHaveLength(1)
+
+  const conflicting = setup()
+  const duplicate = structuredClone(conflicting.fixture.entries[0]!)
+  duplicate.placeId = 'another-owner'
+  duplicate.baseAddressId = 'different-base'
+  conflicting.fixture.entries.push(duplicate)
+  reconcilePlaceAddressIdentityContinuity(conflicting)
+  expect(conflicting.fixture.entries).toHaveLength(2)
 })

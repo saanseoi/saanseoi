@@ -81,6 +81,7 @@ export type PlaceLocaleHistoryState = {
 }
 
 export type PlaceHistoryState = {
+  identity?: import('@repo/core/pipeline/services/places/placeIdentity').PlaceIdentityDecision
   bindingName: string
   row: PlaceHistoryRow
   locales?: PlaceLocaleHistoryState[]

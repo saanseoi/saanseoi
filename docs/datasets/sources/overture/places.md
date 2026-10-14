@@ -48,6 +48,9 @@ owning shards. Shared SQL replay checks compare rows through their primary keys,
 provenance transfer checks destination objects before uploading missing content.
 Per-record Place evidence uses bounded checksum-verified destination checks, including
 across source cohorts. An independently selected R2 destination is confirmed separately.
+When publisher Place IDs change, supplementary Address entries follow the matched
+canonical predecessor only when its accepted Address identity and text evidence agree.
+Conflicting accepted definitions or changed evidence remain subject to review.
 
 Open source assertions with matching hashes require no release-membership update.
 Finalisation compares complete incoming IDs in bounded, disjoint indexed ranges.
@@ -266,6 +269,17 @@ Places data batches are sealed in a [delivery manifest](../../sql-delivery.md) b
 remote data writes. Recovery verifies checksums and database receipts, then resumes
 remote delivery or local mirror replay without rebuilding SQL. The manifest records the
 enriched input checksum and selected reference snapshots.
+
+Planning keeps rollback journals on disk and releases generation buffers before the
+final comparison. Each shard must pass exact replay and foreign-key checks before any
+delivery batches are emitted; phase progress remains visible during this verification.
+After enrichment, preparation releases its predecessor graph, identity matching map and
+dependency view. SQL generation loads the exact predecessor again under the delivery
+lock, so these working sets do not overlap. Supplementary Address plans include their
+snapshot identity in the delivery phase, so a new snapshot revision has separate
+receipts from the published revision it corrects. Audit delivery caches likewise use the
+resource release and snapshot owner, preserving each revision's immutable audit graph
+independently.
 
 Places ingestion prepares SQL from the local D1 mirror and staged enriched records. Each
 generated batch contains up to 512 Place records. Remote delivery combines its
@@ -549,10 +563,10 @@ component events.
 
 Address history and inline HISTORY events reproduce each snapshot independently. An
 existing published supplementary snapshot must reproduce its recorded materialisation;
-an incompatible fixture edit requires a source-release revision. Published retries
-recover withdrawal IDs from immutable version changes and update the generated entry
-ledger only after the materialisation hash matches. The initializer does not discover or
-upload the supplementary dataset separately.
+an incompatible preparation requires a new snapshot revision. Published retries recover
+withdrawal IDs from immutable version changes and update the generated entry ledger only
+after the materialisation hash matches. The initializer does not discover or upload the
+supplementary dataset separately.
 
 Places with `CN` or `MO` address country codes are excluded from the Hong Kong
 projection. Places with a missing country code remain included. Both cases are recorded
@@ -770,6 +784,12 @@ Overture IDs, release references, agreements, conflicts, score and competing-mat
 margins. The ledger header pins the observed release, scope, policy and implementation
 hashes.
 
+Successful assembly retains the full identity ledger. Subsequent cohorts load each
+predecessor component's decisions from its exact completed assembly audit, preserving
+unchanged assignment evidence. Missing or mismatched retained decisions block
+preparation rather than reconstructing private identity evidence from public
+attribution.
+
 Places Source Audit shows before/after comparisons under the assembly identity rule and
 retains an immutable, partitioned copy linked to the ledger hash. Raw Overture SOURCE
 records remain unchanged. Unknown opening hours do not count as matching hours. The
@@ -782,7 +802,10 @@ Canonical `sources` is an array with required `publisher` and `dataset` fields. 
 upstream `property` JSON Pointer is preserved; optional record ID, update time, record
 version, confidence and licence are retained only when supplied. Native dataset names
 resolve through `fixtures/meta/sourceAttributions/overture.json`. Unknown names require
-an explicit mapping. No ingestion release is added to the attribution.
+an explicit mapping. No ingestion release is added to the attribution. The retained
+Places releases include AllThePlaces (`alltheplaces`) and DAC (`dac`), identified by
+[Overture’s attribution catalogue](https://docs.overturemaps.org/attribution/). Their
+record references, licences and property pointers remain as supplied by Overture.
 
 Place identity and Division association decisions are retained as immutable R2
 record-evidence objects before SQL delivery, with collection and record identity in each
@@ -812,3 +835,12 @@ Canonical HISTORY events retain their introducing snapshot and `createdAt`, with
 `updatedAt` column. Mutable CURRENT projections and publication receipts keep their own
 update timestamps. Statistics definitions keyed by `versionHash` retain `createdAt`
 only. See [storage timestamp ownership](../../pipeline.md#storage-timestamp-ownership).
+
+Places preparation records the exact official Address, Division and DivisionArea
+dependencies before supplementary processing. Supplementary Address lookups use the
+`supplementaryAddress` role, preserving the official `address` input when an interrupted
+preparation resumes.
+
+An explicit Address retirement remains effective when retrying the same observation
+after its generated entry has been revoked. Replay requires the same Place, previous
+Address and source release, with no conflicting active or canonical predecessor link.

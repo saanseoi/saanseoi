@@ -508,9 +508,20 @@ export function createSupplementaryAddressAnalyserInternal(
       JSON.stringify([observation.placeId, fingerprint, observation.sourceRelease]),
     )
     if (decision) {
+      const replayedRetirement =
+        decision.resolution === 'leave_unlinked' &&
+        !previous?.addressId &&
+        !entry &&
+        (byPlace.get(observation.placeId) ?? []).some(
+          retired =>
+            retired.addressId === decision.previousAddressId &&
+            retired.firstSeen <= observation.sourceRelease &&
+            retired.revokedAt === observation.sourceRelease,
+        )
       if (
         decision.previousAddressId !==
           (previous?.addressId ?? entry?.addressId ?? null) &&
+        !replayedRetirement &&
         !(
           decision.address &&
           entry?.addressId === decision.addressId &&

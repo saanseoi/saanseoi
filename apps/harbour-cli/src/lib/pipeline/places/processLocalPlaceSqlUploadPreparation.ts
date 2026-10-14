@@ -1,4 +1,7 @@
-import { readSnapshotDependencies } from '@repo/core/pipeline/db/snapshotDependencies'
+import {
+  readSnapshotDependencies,
+  recordSnapshotDependencies,
+} from '@repo/core/pipeline/db/snapshotDependencies'
 import { createDivisionMembership } from '../divisions/divisionMembership'
 import { createRecordEnrichmentReuse } from './placeRecordEnrichment.ts'
 import { recordCacheKey, type PlaceRecordCache } from './placeRecordCache.ts'
@@ -212,6 +215,13 @@ export async function resolvePlaceSnapshots(
     metaDb,
     address.id,
   )
+  // Retain the exact official input before supplementary preparation can publish
+  // another Address snapshot or be interrupted before final Place metadata.
+  await recordSnapshotDependencies(metaDb, place.id, {
+    address: address.id,
+    division: division.id,
+    divisionArea: divisionAreaSnapshotId,
+  })
   return {
     addressSnapshotId: address.id,
     divisionSnapshotId: division.id,

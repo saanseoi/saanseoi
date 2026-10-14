@@ -56,6 +56,7 @@ export async function captureResolvedSqlPlan<T>(input: {
   publicationTables?: PublicationTable[]
   append: (target: SqlDeliveryTarget, bytes: Uint8Array, kind: 'bound') => Promise<void>
   generate: (candidates: ResolvedSqlCandidates) => Promise<T>
+  onProgress?: (phase: string) => void
 }) {
   const publications: ReturnType<typeof scopedPublicationDelivery>[] = []
   const retainedSql: Array<{ binding: string; sql: string }> = []
@@ -69,6 +70,7 @@ export async function captureResolvedSqlPlan<T>(input: {
     await (publications.at(-1)?.append ?? input.append)(target, bytes, kind)
   }
   const result = await captureNetSqlitePlan({
+    onProgress: input.onProgress,
     targets: Object.fromEntries(
       Object.entries(input.targets).map(([binding, target]) => [
         binding,

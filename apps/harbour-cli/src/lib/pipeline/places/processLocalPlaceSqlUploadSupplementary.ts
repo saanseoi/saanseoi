@@ -775,7 +775,7 @@ async function prepareSupplementaryAddressesLocked(
       {
         context: input.context,
         resourceReleaseId: input.resourceReleaseId,
-        phase: 'places-address-publication-data',
+        phase: `places-address-publication-data-${snapshot.id}`,
         nativeLocal: true,
         scopeId: currentScopeId,
         snapshotId: snapshot.id,
@@ -856,7 +856,7 @@ async function prepareSupplementaryAddressesLocked(
       {
         context: input.context,
         resourceReleaseId: input.resourceReleaseId,
-        phase: 'places-address-metadata',
+        phase: `places-address-metadata-${snapshot.id}`,
         nativeLocal: true,
         inputs: { materialisationHash, snapshotId: snapshot.id },
       },
@@ -875,6 +875,7 @@ async function prepareSupplementaryAddressesLocked(
     snapshotId: input.snapshots.snapshotId,
     anchorReleaseId: input.resourceReleaseId,
     lookupSnapshotId: snapshot.id,
+    dependencyRole: 'supplementaryAddress',
     selectedByRule:
       'api-composition:places/overture:place/overture->address/overture-places',
     selectionMode: 'exact_ref',

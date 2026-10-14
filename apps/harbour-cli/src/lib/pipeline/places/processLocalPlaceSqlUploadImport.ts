@@ -138,7 +138,15 @@ export async function importPlaceSqlBatches(
         ownershipDirectory: delivery.context.state.dbCacheDir,
         generate,
       })
-      await runNativeSqlDelivery(delivery.directory, { files })
+      await runNativeSqlDelivery(delivery.directory, {
+        files,
+        onProgress: (completed, total) =>
+          onProgress?.({
+            current: completed === total ? totalRows : 0,
+            detail: `delivery ${completed}/${total} SQL batches`,
+            phase: 'import',
+          }),
+      })
       return
     }
     if (!options.isLocal) {
@@ -230,7 +238,7 @@ export async function runPlaceProgressPhase<T>(
   ) => Promise<T> | T,
   totalUnits?: number,
 ) {
-  return runLocalProgressPhase(
+  const result = await runLocalProgressPhase(
     progress,
     {
       action,
@@ -240,6 +248,9 @@ export async function runPlaceProgressPhase<T>(
     },
     operation,
   )
+  // Large analysis indexes and parsed batches need not overlap the next phase.
+  Bun.gc(true)
+  return result
 }
 
 export function normaliseError(error: unknown) {

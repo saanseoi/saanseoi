@@ -98,12 +98,17 @@ export function applyCuratedAreaContract(rows: Record<string, any>[]) {
   for (const row of rows) {
     const sources = object(row.sources) ?? {}
     if (sources.saanseoi)
-      sources.saanseoi = sources.saanseoi.map((source: any) => ({
-        ...source,
-        dataset: 'ds-hk-saanseoi-division',
-        curation: source.curation ?? source.dataset,
-        contributions: source.contributions ?? ['geometry'],
-      }))
+      sources.saanseoi = sources.saanseoi.map((source: any) => {
+        // Method-only derivations are processing evidence, not authored records.
+        if (!source.dataset && !source.recordId && !source.record_id && source.method)
+          return source
+        return {
+          ...source,
+          dataset: 'ds-hk-saanseoi-division',
+          curation: source.curation ?? source.dataset,
+          contributions: source.contributions ?? ['geometry'],
+        }
+      })
     row.sources = sources
   }
 }

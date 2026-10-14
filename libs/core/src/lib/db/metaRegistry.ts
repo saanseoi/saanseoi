@@ -6123,6 +6123,7 @@ export async function recordSnapshotLookupDependency(
   args: {
     anchorReleaseId: string
     lookupSnapshotId: string
+    dependencyRole?: string
     selectedByRule: string
     selectionMode: string
     snapshotId: string
@@ -6186,7 +6187,9 @@ export async function recordSnapshotLookupDependency(
     snapshotId: args.snapshotId,
     resourceType: snapshot.resourceType,
     anchorReleaseId: args.anchorReleaseId,
-    dependencies: { [lookupSource.resourceType]: args.lookupSnapshotId },
+    dependencies: {
+      [args.dependencyRole ?? lookupSource.resourceType]: args.lookupSnapshotId,
+    },
   })
 }
 

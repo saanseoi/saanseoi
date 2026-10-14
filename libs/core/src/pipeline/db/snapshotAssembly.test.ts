@@ -202,6 +202,40 @@ INSERT INTO snapshots (id, snapshotLineageId, code, cohortKey, status, createdAt
   }
 })
 
+test('supplementary Address lookup preserves the official Address dependency on retry', async () => {
+  const { db, sqlite } = fixture()
+  try {
+    await source(db, 'primary')
+    sqlite.exec(`INSERT INTO snapshotLineages(id,code,resourceType,regionCode,variant,identityMode,versionHash)
+      VALUES ('official-lineage','official-lineage','address','hk','hkgov-dpo','persistent','fixture'),
+             ('supplementary-lineage','supplementary-lineage','address','hk','overture-places','persistent','fixture');
+      INSERT INTO snapshots(id, snapshotLineageId, code, cohortKey, status)
+      VALUES ('official', 'official-lineage', 'official', '2026', 'published'),
+             ('supplementary', 'supplementary-lineage', 'supplementary', '2026', 'published')`)
+    await recordSnapshotDependencies(db, 'snapshot', { address: 'official' })
+    await upsertSnapshotSource(db, 'supplementary', 'release-lookup', 'primary', {
+      selectedByRule: 'supplementary-address',
+      selectionMode: 'exact_ref',
+    })
+    for (let attempt = 0; attempt < 2; attempt++) {
+      await recordSnapshotLookupDependency(db, {
+        snapshotId: 'snapshot',
+        lookupSnapshotId: 'supplementary',
+        dependencyRole: 'supplementaryAddress',
+        anchorReleaseId: 'release-primary',
+        selectedByRule: 'places-supplementary-address',
+        selectionMode: 'exact_ref',
+      })
+      expect(await readSnapshotDependencies(db, 'snapshot')).toEqual({
+        address: 'official',
+        supplementaryAddress: 'supplementary',
+      })
+    }
+  } finally {
+    sqlite.close()
+  }
+})
+
 test('missing selection rules fail explicitly instead of recording invented provenance', async () => {
   const { db, sqlite } = fixture()
   try {

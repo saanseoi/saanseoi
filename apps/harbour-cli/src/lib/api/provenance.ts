@@ -16,6 +16,22 @@ const PROVENANCE_UPLOAD_RETRY_LIMIT = 3
 const PROVENANCE_UPLOAD_RETRY_DELAY_MS = 250
 const PROVENANCE_REQUEST_TIMEOUT_MS = 60_000
 
+/** The authenticated endpoint verifies retained bytes before returning the document. */
+export async function readRetainedProvenanceObject(
+  target: UploadTarget,
+  ref: ObjectRef,
+) {
+  const baseUrl = normaliseBaseUrl(resolveHarbourApiUrl(target))
+  const response = await fetch(
+    `${baseUrl}/v1/provenance/objects/${ref.hash}?byteLength=${ref.byteLength}`,
+    {
+      headers: getAuthHeaders(),
+      signal: AbortSignal.timeout(PROVENANCE_REQUEST_TIMEOUT_MS),
+    },
+  )
+  return readProvenanceResponse(response)
+}
+
 function isRetryableProvenanceUploadError(error: unknown) {
   return (
     error instanceof Error &&

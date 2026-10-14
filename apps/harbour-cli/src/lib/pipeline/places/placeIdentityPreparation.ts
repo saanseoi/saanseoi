@@ -1,5 +1,6 @@
 import { open, rename } from 'node:fs/promises'
 import { resolve } from 'node:path'
+import { isDeepStrictEqual } from 'node:util'
 import type { NormalisedPlace } from '@repo/core/pipeline/services/places/place'
 import {
   matchPlaceIdentities,
@@ -17,7 +18,8 @@ export function previousPlaceIdentity(
 ): PlaceIdentityCandidate {
   const row = state.row
   const sources = row.sources as Record<string, unknown> | null
-  const retained = sources?.placeIdentity as PlaceIdentityDecision | undefined
+  const retained =
+    state.identity ?? (sources?.placeIdentity as PlaceIdentityDecision | undefined)
   if (retained) {
     if (
       retained.id !== row.id ||
@@ -43,7 +45,7 @@ export function previousPlaceIdentity(
         socials: row.socials,
         websites: row.websites,
         emails: row.emails,
-        sources: sources?.overture,
+        sources: Array.isArray(row.sources) ? row.sources : sources?.overture,
         categories: { primary: row.taxonomyPrimary },
         addresses: (Array.isArray(row.addresses) ? row.addresses : []).map(
           freeform => ({ freeform }),
@@ -77,8 +79,9 @@ export async function stagePlaceIdentities(input: {
   const retainedById = new Map(
     input.historyRows.map(state => [
       state.row.id,
-      (state.row.sources as { placeIdentity?: PlaceIdentityDecision } | null)
-        ?.placeIdentity,
+      state.identity ??
+        (state.row.sources as { placeIdentity?: PlaceIdentityDecision } | null)
+          ?.placeIdentity,
     ]),
   )
   const bySourceId = new Map(
@@ -88,8 +91,7 @@ export async function stagePlaceIdentities(input: {
       // This keeps same-release recovery and unchanged observations idempotent.
       return [
         d.sourceId,
-        retained?.model === d.model &&
-        JSON.stringify(retained.evidence) === JSON.stringify(d.evidence)
+        retained?.model === d.model && isDeepStrictEqual(retained.evidence, d.evidence)
           ? retained
           : d,
       ]

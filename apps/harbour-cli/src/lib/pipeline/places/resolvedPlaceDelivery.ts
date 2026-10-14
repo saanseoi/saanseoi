@@ -52,6 +52,15 @@ export async function captureResolvedPlaceDelivery(input: {
   if (!files?.DB_CURRENT)
     throw new Error('Places planning requires the acknowledged local mirror.')
   const result = await captureResolvedSqlPlan({
+    onProgress: detail =>
+      input.onProgress?.({
+        current:
+          detail.startsWith('copy ') || detail === 'generate candidate databases'
+            ? 0
+            : input.totalRows,
+        phase: 'generate',
+        detail: `plan ${detail}`,
+      }),
     targets: Object.fromEntries(
       Object.entries(files).flatMap(([binding, path]) => {
         const tables = placeMutationTables(binding)

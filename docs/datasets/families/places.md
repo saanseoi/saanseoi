@@ -40,7 +40,10 @@ Places also uses the shared indexed SQL comparison and verified provenance-objec
 described in [SQL delivery](../sql-delivery.md) and
 [processing provenance](../processing-provenance.md). Per-record evidence is checked in
 batches of at most 64 objects. Verified matching content is reused; missing objects are
-retained before their SQL chunk is imported.
+retained before their SQL chunk is imported. Supplementary Address continuity follows
+the exact predecessor Place and accepted Address identity with matching text evidence.
+Public attribution arrays supply upstream matching evidence without carrying private
+identity decisions.
 
 [Minimal initialisation](../minimal-initialisation.md) selects the first two configured
 Overture versions and uses a separate completion manifest.
@@ -521,6 +524,17 @@ the last real content change. Current API responses derive `lastSeenMonth` from 
 selected complete publication cohort; immutable history retains its recorded version
 values.
 
+SQL planning uses disposable database copies with disk-backed rollback journals.
+Generation buffers are collected before comparison, and each comparison connection is
+closed after its shard passes replay verification. Progress identifies comparison,
+normalisation, mutation journalling, payload batching and replay phases. Supplementary
+Address delivery plans belong to an exact snapshot revision, preserving earlier sealed
+plans when a correction needs a new immutable snapshot. Retained audit delivery caches
+also belong to the exact snapshot owner. Place-processing phase boundaries also release
+temporary analysis objects before the next stage. After enrichment, preparation discards
+its matching history, identity map and dependency view before SQL generation loads the
+exact predecessor under the delivery lock.
+
 A newer Address revision with identical relevant base, selected unit and locale content
 reuses the Place's earlier reference. Changed dependency content advances that exact
 reference. Division links retain their selected logical revision and a small definition
@@ -658,7 +672,10 @@ the staged ledger hash; retention fails if the ledger and prepared decisions dif
 Publisher SOURCE rows keep their own IDs. Canonical history retains canonical content
 and publisher attribution; the retained identity ledger records assignment decisions.
 Local staging and caches are disposable. Generated ledgers are not stored in Git;
-published historical audits require an explicit rebuild to contain the evidence.
+successful publication retains the complete ledger in its assembly audit. Predecessor
+matching restores private identity evidence from the completed audit for each exact
+resource release and component snapshot. Missing decisions or mismatched audit owners
+block preparation; public attribution is not a substitute for private identity evidence.
 
 ## Record attribution and evidence
 
@@ -666,7 +683,10 @@ Canonical `sources` is an array with required `publisher` and `dataset` fields. 
 upstream `property` JSON Pointer is preserved; optional record ID, update time, record
 version, confidence and licence are retained only when supplied. Native dataset names
 resolve through `fixtures/meta/sourceAttributions/overture.json`. Unknown names require
-an explicit mapping. No ingestion release is added to the attribution.
+an explicit mapping. No ingestion release is added to the attribution. The retained
+Places releases include AllThePlaces (`alltheplaces`) and DAC (`dac`), identified by
+[Overture’s attribution catalogue](https://docs.overturemaps.org/attribution/). Their
+record references, licences and property pointers remain as supplied by Overture.
 
 Place identity and Division association decisions are retained as immutable R2
 record-evidence objects before SQL delivery, with collection and record identity in each
@@ -707,3 +727,12 @@ The FTS5 virtual table `placeSearchFts` is created by search finalisation, outsi
 Drizzle's ordinary table migrations. `placeSearchScopes` records the published snapshots
 represented by that index. An empty scope table and absent FTS table indicate that no
 Place search selection has been finalised in that database.
+
+Places preparation records the exact official Address, Division and DivisionArea
+dependencies before supplementary processing. Supplementary Address lookups use the
+`supplementaryAddress` role, preserving the official `address` input when an interrupted
+preparation resumes.
+
+An explicit Address retirement remains effective when retrying the same observation
+after its generated entry has been revoked. Replay requires the same Place, previous
+Address and source release, with no conflicting active or canonical predecessor link.

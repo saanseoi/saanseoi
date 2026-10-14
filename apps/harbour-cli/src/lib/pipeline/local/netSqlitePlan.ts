@@ -62,11 +62,16 @@ export async function captureNetSqlitePlan<T>(input: NetSqlitePlanInput<T>) {
     bytes: 0,
   }
   let phase = 'initialise journal'
+  const reportPhase = (value: string) => {
+    phase = value
+    input.onProgress?.(value)
+  }
   let failed = false
   try {
     // Every file in this directory is disposable until the sealed delivery is
-    // emitted. Avoid device-wide durability barriers while building candidates.
-    journal.exec(`PRAGMA journal_mode=MEMORY; PRAGMA synchronous=OFF; PRAGMA temp_store=FILE;
+    // emitted. Disk-backed rollback journals bound native memory without requiring
+    // durability barriers for these disposable planning copies.
+    journal.exec(`PRAGMA journal_mode=DELETE; PRAGMA synchronous=OFF; PRAGMA temp_store=FILE;
       CREATE TABLE mutations(seq INTEGER PRIMARY KEY, binding TEXT NOT NULL, groupKey TEXT NOT NULL, sortOrder INTEGER NOT NULL, statement TEXT NOT NULL, tableName TEXT NOT NULL, kind TEXT NOT NULL, rowKey TEXT NOT NULL);
       CREATE INDEX mutations_group ON mutations(binding,groupKey,sortOrder,seq);
       CREATE INDEX mutations_row ON mutations(binding,tableName,kind,rowKey);
@@ -74,7 +79,7 @@ export async function captureNetSqlitePlan<T>(input: NetSqlitePlanInput<T>) {
       CREATE TABLE payloads(seq INTEGER PRIMARY KEY, binding TEXT NOT NULL, contents TEXT NOT NULL);`)
     const entries = Object.entries(input.targets)
     for (const [index, [binding, target]] of entries.entries()) {
-      phase = `copy ${binding}`
+      reportPhase(`copy ${binding}`)
       const baseline = join(directory, `${index}.baseline.sqlite`)
       const source = new DatabaseSync(target.path, { readOnly: true })
       try {
@@ -91,11 +96,11 @@ export async function captureNetSqlitePlan<T>(input: NetSqlitePlanInput<T>) {
       const db = new Database(path, { readwrite: true, create: false })
       candidates[binding] = { db, path }
       db.exec(
-        'PRAGMA journal_mode=MEMORY; PRAGMA synchronous=OFF; PRAGMA foreign_keys=ON; PRAGMA temp_store=FILE;',
+        'PRAGMA journal_mode=DELETE; PRAGMA synchronous=OFF; PRAGMA foreign_keys=ON; PRAGMA temp_store=FILE;',
       )
       tables[binding] = orderNetTables(readNetTables(db, target.tables))
     }
-    phase = 'generate candidate databases'
+    reportPhase('generate candidate databases')
     const result = await input.generate(candidates)
     // Generation is finished. Release its prepared statements and native caches
     // before opening the exact diff readers and replay databases.
@@ -104,12 +109,15 @@ export async function captureNetSqlitePlan<T>(input: NetSqlitePlanInput<T>) {
         throw new Error(`Net-plan generation left an open transaction: ${binding}`)
       candidate.db.close()
     }
+    // Generation can leave large parsed batches awaiting collection. Release them
+    // before the synchronous diff and replay loops allocate their working sets.
+    Bun.gc(true)
     const insert = journal.query(
       'INSERT INTO mutations(binding,groupKey,sortOrder,statement,tableName,kind,rowKey) VALUES(?,?,?,?,?,?,?)',
     )
     let sequence = 0
     for (const [binding] of entries) {
-      phase = `diff ${binding}`
+      reportPhase(`diff ${binding}`)
       const candidate = candidates[binding]
       const baseline = baselines[binding]
       const ordered = tables[binding]
@@ -172,7 +180,7 @@ export async function captureNetSqlitePlan<T>(input: NetSqlitePlanInput<T>) {
           )
       }
       for (const table of ordered) {
-        phase = `normalise ${binding}.${table.policy.name}`
+        reportPhase(`normalise ${binding}.${table.policy.name}`)
         assertNetSchema(db, table)
         if (!input.bootstrap) normaliseNetIgnoredColumns(db, table)
       }
@@ -181,7 +189,7 @@ export async function captureNetSqlitePlan<T>(input: NetSqlitePlanInput<T>) {
       summary.tables[binding] = counts
       journal.transaction(() => {
         for (const [rank, table] of ordered.entries()) {
-          phase = `journal ${binding}.${table.policy.name}`
+          reportPhase(`journal ${binding}.${table.policy.name}`)
           counts[table.policy.name] = journalNetTable({
             db,
             table,
@@ -209,10 +217,10 @@ export async function captureNetSqlitePlan<T>(input: NetSqlitePlanInput<T>) {
           })
         }
       })()
-      phase = `order dependencies ${binding}`
+      reportPhase(`order dependencies ${binding}`)
       if (!input.bootstrap)
         postponeNetParentDeletions({ db, journalPath, binding, tables: ordered })
-      phase = `batch payloads ${binding}`
+      reportPhase(`batch payloads ${binding}`)
       journalPayloads(journal, binding, { maxStatements, maxPayloadBytes }, summary)
       // Replay and emission read payloads only. Reuse these journal pages for
       // later shards instead of retaining both representations of every row.
@@ -227,9 +235,12 @@ export async function captureNetSqlitePlan<T>(input: NetSqlitePlanInput<T>) {
         !Object.values(counts).some(
           table => table.inserted || table.updated || table.deleted,
         )
-      )
+      ) {
+        db.close()
+        Bun.gc(true)
         continue
-      phase = `replay ${binding}`
+      }
+      reportPhase(`replay ${binding}`)
       const replayPath = join(
         directory,
         `${entries.findIndex(([name]) => name === binding)}.replay.sqlite`,
@@ -243,7 +254,7 @@ export async function captureNetSqlitePlan<T>(input: NetSqlitePlanInput<T>) {
       try {
         // Replay copies are disposable and are rebuilt after interruption. Keep
         // each payload's transaction/FK boundary without durable journal flushes.
-        replay.exec('PRAGMA journal_mode=MEMORY; PRAGMA synchronous=OFF;')
+        replay.exec('PRAGMA journal_mode=DELETE; PRAGMA synchronous=OFF;')
         if (input.bootstrap) {
           replay.exec('PRAGMA foreign_keys=OFF')
           replay.transaction(() => {
@@ -252,6 +263,7 @@ export async function captureNetSqlitePlan<T>(input: NetSqlitePlanInput<T>) {
           })()
         }
         replay.exec('PRAGMA foreign_keys=ON; PRAGMA temp_store=FILE;')
+        let replayed = 0
         for (const payload of journal
           .query<{ contents: string }, [string]>(
             'SELECT contents FROM payloads WHERE binding=? ORDER BY seq',
@@ -262,9 +274,14 @@ export async function captureNetSqlitePlan<T>(input: NetSqlitePlanInput<T>) {
             for (const statement of statements)
               replay.query(statement.sql).run(...statement.params)
           })()
+          replayed++
+          if (replayed % 256 === 0) reportPhase(`replay ${binding} ${replayed} batches`)
         }
+        reportPhase(`replay foreign keys ${binding}`)
         assertNetForeignKeys(replay)
+        reportPhase(`replay attach candidate ${binding}`)
         replay.query('ATTACH DATABASE ? AS net_candidate').run(candidate.path)
+        reportPhase(`replay compare candidate ${binding}`)
         assertNetReplayEqualsCandidate(replay, ordered)
       } catch (error) {
         throw new Error(
@@ -277,8 +294,10 @@ export async function captureNetSqlitePlan<T>(input: NetSqlitePlanInput<T>) {
       // Equality and foreign-key checks have finished; this disposable copy
       // is never read again. Keep failed replays available for diagnostics.
       await rm(replayPath, { force: true })
+      db.close()
+      Bun.gc(true)
     }
-    phase = 'emit delivery batches'
+    reportPhase('emit delivery batches')
     for (const row of journal
       .query<{ binding: string; contents: string }, []>(
         'SELECT binding,contents FROM payloads ORDER BY seq',
@@ -303,6 +322,14 @@ export async function captureNetSqlitePlan<T>(input: NetSqlitePlanInput<T>) {
             phase,
             message: error instanceof Error ? error.message : String(error),
             stack: error instanceof Error ? error.stack : null,
+            cause:
+              error instanceof Error && error.cause instanceof Error
+                ? {
+                    ...error.cause,
+                    message: error.cause.message,
+                    stack: error.cause.stack,
+                  }
+                : null,
           },
           null,
           2,

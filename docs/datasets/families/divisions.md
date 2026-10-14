@@ -69,7 +69,9 @@ partition metadata are not identifiers. Construction methods, curation actions a
 partition details belong to `ApiFieldsProvenance` at the API release-set level.
 Record-level `sources` contains only retained dataset and record references, with
 optional geometry component indexes. The `isLand` and `isTerritorial` fields describe
-the geometry representation.
+the geometry representation. Administrative clipping and geometry partition methods
+remain processing evidence; archive preparation preserves their concrete upstream
+dataset and record references.
 
 LandsD place-name identities use `hkgov-landsd.geoNameId`. Retained Overture Division
 records establish `overture.divisionId`; UUID syntax alone does not establish publisher

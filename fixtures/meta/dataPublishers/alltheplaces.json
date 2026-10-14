@@ -1,0 +1,22 @@
+{
+  "code": "alltheplaces",
+  "url": "https://alltheplaces.xyz/",
+  "i18n": {
+    "en": {
+      "name": "AllThePlaces",
+      "nameShort": "AllThePlaces",
+      "description": "Open-source project that collects and publishes business locations and points of interest from company websites for use in mapping and geospatial applications."
+    },
+    "zh-hant": {
+      "name": "AllThePlaces",
+      "nameShort": "AllThePlaces",
+      "description": "開源項目，從企業網站收集並發佈商業地點及興趣點資料，供地圖製作及地理空間應用使用。"
+    },
+    "zh-hans": {
+      "name": "AllThePlaces",
+      "nameShort": "AllThePlaces",
+      "description": "开源项目，从企业网站收集并发布商业地点及兴趣点数据，供地图制作及地理空间应用使用。"
+    }
+  },
+  "versionHash": "sha256:cca8095af1846fea316415c32ab44ac8d80bf1dfa6b99838b0e88ec4ee750fb4"
+}

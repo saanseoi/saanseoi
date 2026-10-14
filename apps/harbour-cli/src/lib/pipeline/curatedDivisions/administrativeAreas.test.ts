@@ -1,9 +1,11 @@
 import { expect, test } from 'bun:test'
+import { curatedRecordSources } from '@repo/core/pipeline/services/sources/curatedRecordSources'
 import {
   buildAdministrativeAreas,
   partitionAdministrativeArea,
 } from './administrativeAreas'
 import { assembleCuratedDivisions } from './assemble'
+import { applyCuratedAreaContract } from './recordContract'
 const rectangle = (x: number, y: number, w = 1, h = 1) => ({
   type: 'Polygon',
   coordinates: [
@@ -64,6 +66,13 @@ test('territory and land retain disconnected components and exact ingredient pro
   )
   expect(territorial.id).not.toBe(land.id)
   expect(buildAdministrativeAreas(input)).toEqual(rows)
+  applyCuratedAreaContract(rows)
+  for (const row of rows)
+    expect(
+      curatedRecordSources(row.sources, row.id).some(
+        source => source.publisher === 'saanseoi',
+      ),
+    ).toBe(false)
 })
 test('Area territories are unions of every constituent Overture district', () => {
   const names = [
@@ -166,4 +175,7 @@ test('storage partitioning preserves every polygon and hole without simplificati
     })
   }
   expect(partitionAdministrativeArea(row, 250)).toEqual(parts)
+  applyCuratedAreaContract(parts)
+  for (const part of parts)
+    expect(curatedRecordSources(part.sources, part.id)).toEqual([])
 })

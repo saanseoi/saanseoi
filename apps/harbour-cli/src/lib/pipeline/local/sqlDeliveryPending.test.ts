@@ -1,7 +1,7 @@
 import { expect, test } from 'bun:test'
 import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
-import { join } from 'node:path'
+import { join, relative } from 'node:path'
 import {
   assertSqlDeliveryPlanningAllowed,
   completeSqlDeliveryRelease,
@@ -16,6 +16,24 @@ import {
   writeDeliveryFile,
 } from './sqlDeliveryFiles.ts'
 import { buildDeterministicReleaseId } from '@repo/core/db/metaRegistry'
+
+test('relative plan registration retains one absolute path for recovery from another working directory', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'pending-relative-'))
+  try {
+    const directory = join(root, 'plan')
+    await withDeliveryLock(join(root, 'sql-delivery-lock'), async () => {
+      await registerPendingSqlDelivery(root, 'release', directory)
+      await registerPendingSqlDelivery(
+        root,
+        'release',
+        relative(process.cwd(), directory),
+      )
+    })
+    expect((await readPendingSqlDelivery(root))?.directories).toEqual([directory])
+  } finally {
+    await rm(root, { recursive: true, force: true })
+  }
+})
 
 test('malformed pending markers cannot be mistaken for an unowned cache', async () => {
   const root = await mkdtemp(join(tmpdir(), 'pending-invalid-'))

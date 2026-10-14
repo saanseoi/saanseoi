@@ -194,10 +194,34 @@
       "sourceVersion": "2025-10-22.0"
     },
     {
+      "path": "fixtures/reviews/overture-place-address-investigations/2025-10-22.0-dc95fd671249142f9cc8c73dab879e8dca50f65d6e0108bf308691cbd3951a04.json",
+      "sha256": "a6064923e35a95af0239831c01c5d546a29e21f7aef1eded4f87f0fda2caca0a",
+      "size": 308580,
+      "objectKey": "evidence/sha256/a6064923e35a95af0239831c01c5d546a29e21f7aef1eded4f87f0fda2caca0a",
+      "kind": "overture-place-address-investigations",
+      "sourceVersion": "2025-10-22.0"
+    },
+    {
+      "path": "fixtures/reviews/overture-place-address-investigations/2025-12-17.0-003641b5e39a0df17b5b29e2b295b6137a8a60870879f2b66530a8bbf5ef8461.json",
+      "sha256": "9247192bb1f20028fa2afc61135793fd96e5d6c2ff3c0584fe88cfd095b180a4",
+      "size": 2700889,
+      "objectKey": "evidence/sha256/9247192bb1f20028fa2afc61135793fd96e5d6c2ff3c0584fe88cfd095b180a4",
+      "kind": "overture-place-address-investigations",
+      "sourceVersion": "2025-12-17.0"
+    },
+    {
       "path": "fixtures/reviews/overture-place-address-investigations/2025-12-17.0-3e3b2e0df0b15dd0f631d0a69d1a925e8a22122711c96f87da148259fd7e4648.json",
       "sha256": "e6305ca3638f87c2135d04e12303d18bb72ad5fbf4dbfcd8da36130604eaf2e2",
       "size": 3670317,
       "objectKey": "evidence/sha256/e6305ca3638f87c2135d04e12303d18bb72ad5fbf4dbfcd8da36130604eaf2e2",
+      "kind": "overture-place-address-investigations",
+      "sourceVersion": "2025-12-17.0"
+    },
+    {
+      "path": "fixtures/reviews/overture-place-address-investigations/2025-12-17.0-dce69830851526d084078ac14ebdf1b7bb4872407718e313eb2a0389a42d9bf1.json",
+      "sha256": "15ff7d972d94603c9292c4b163462f3d3b6b1f5483044ca07aef92c380cf46ec",
+      "size": 2685426,
+      "objectKey": "evidence/sha256/15ff7d972d94603c9292c4b163462f3d3b6b1f5483044ca07aef92c380cf46ec",
       "kind": "overture-place-address-investigations",
       "sourceVersion": "2025-12-17.0"
     },
@@ -208,6 +232,22 @@
       "objectKey": "evidence/sha256/3cecf0131a4bbf67a8b915943e0530ccca508686385116fd943bec988dd9720c",
       "kind": "overture-place-address-investigations",
       "sourceVersion": "2026-01-21.0"
+    },
+    {
+      "path": "fixtures/reviews/overture-place-address-investigations/2026-01-21.0-ca55d6956d1a404bdf44a6f0c8d5f53e7d08402fedb862bcab336d21b1ca5cee.json",
+      "sha256": "832c33fc4c3367ee20e156f222a0c32a6d2882fea0ffc1ef20906263b0fd20cd",
+      "size": 1643478,
+      "objectKey": "evidence/sha256/832c33fc4c3367ee20e156f222a0c32a6d2882fea0ffc1ef20906263b0fd20cd",
+      "kind": "overture-place-address-investigations",
+      "sourceVersion": "2026-01-21.0"
+    },
+    {
+      "path": "fixtures/reviews/overture-place-address-investigations/2026-02-18.0-368add2b3dd48ba2bad49251e591abc781f52645047a32111d8e37b903c315d0.json",
+      "sha256": "ce5e9340d102f9ca5e72f50082678c5ca04b9a92b75a0a3944ce173ed05454b8",
+      "size": 1651884,
+      "objectKey": "evidence/sha256/ce5e9340d102f9ca5e72f50082678c5ca04b9a92b75a0a3944ce173ed05454b8",
+      "kind": "overture-place-address-investigations",
+      "sourceVersion": "2026-02-18.0"
     },
     {
       "path": "fixtures/reviews/overture-place-address-investigations/2026-02-18.0-4a21dfe9a6417356c9c0e456d5d98de91f5fd54b5ee08fa8f6da5b3a8ae36a68.json",
@@ -226,12 +266,36 @@
       "sourceVersion": "2026-03-18.0"
     },
     {
+      "path": "fixtures/reviews/overture-place-address-investigations/2026-03-18.0-ef93199933af0f32fbf7652d94710736c71a9f4e17ed8ce5368f2acbb35c92a4.json",
+      "sha256": "6c673f63b45fde73ad8e89816893e6fb2459394f5f9af483f75fc3d9b44a924c",
+      "size": 4509527,
+      "objectKey": "evidence/sha256/6c673f63b45fde73ad8e89816893e6fb2459394f5f9af483f75fc3d9b44a924c",
+      "kind": "overture-place-address-investigations",
+      "sourceVersion": "2026-03-18.0"
+    },
+    {
+      "path": "fixtures/reviews/overture-place-address-investigations/2026-04-15.0-7fcbae34cace6ca9f0e01d7c8bd8ac95b65662b0fd3c430faf036c804d9abc04.json",
+      "sha256": "3f20f8fe1012c44ff804d0a4eef7fbb466cb89a93f9e6d1ad7682dd07d345f59",
+      "size": 6828011,
+      "objectKey": "evidence/sha256/3f20f8fe1012c44ff804d0a4eef7fbb466cb89a93f9e6d1ad7682dd07d345f59",
+      "kind": "overture-place-address-investigations",
+      "sourceVersion": "2026-04-15.0"
+    },
+    {
       "path": "fixtures/reviews/overture-place-address-investigations/2026-04-15.0-ca6b6af9176b56b2e3a1701cd1e47d7b9579ed133f914b2a3ef6c408ddd1551a.json",
       "sha256": "7ec9214687957dd749f83608069b648ef05e1c6e029fc31b11bfa430c7e2711d",
       "size": 37023679,
       "objectKey": "evidence/sha256/7ec9214687957dd749f83608069b648ef05e1c6e029fc31b11bfa430c7e2711d",
       "kind": "overture-place-address-investigations",
       "sourceVersion": "2026-04-15.0"
+    },
+    {
+      "path": "fixtures/reviews/overture-place-address-investigations/2026-05-20.0-d5ceafd1a7cc846f8fb3bf373033d42c96e2071ed404933e393239d537129a72.json",
+      "sha256": "9cd07a5ee095fd75bbdb591eb2ef7de8c8f4c0c04abd0ab8972e8113ad0ce014",
+      "size": 8145816,
+      "objectKey": "evidence/sha256/9cd07a5ee095fd75bbdb591eb2ef7de8c8f4c0c04abd0ab8972e8113ad0ce014",
+      "kind": "overture-place-address-investigations",
+      "sourceVersion": "2026-05-20.0"
     },
     {
       "path": "fixtures/reviews/overture-place-address-investigations/2026-05-20.0-e133637f0c8afa1341690875a81217023515528d768298a7f75749c42e5ac9ff.json",

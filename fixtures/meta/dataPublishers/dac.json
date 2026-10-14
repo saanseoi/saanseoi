@@ -1,0 +1,22 @@
+{
+  "code": "dac",
+  "url": "https://www.dacgroup.com/",
+  "i18n": {
+    "en": {
+      "name": "DAC",
+      "nameShort": "DAC",
+      "description": "Digital marketing agency that manages business location information and local listings, contributing place data to the Overture Maps geospatial ecosystem."
+    },
+    "zh-hant": {
+      "name": "DAC",
+      "nameShort": "DAC",
+      "description": "數碼營銷機構，管理商業地點資訊及本地商戶名錄，並向 Overture Maps 地理空間生態系統提供地點資料。"
+    },
+    "zh-hans": {
+      "name": "DAC",
+      "nameShort": "DAC",
+      "description": "数字营销机构，管理商业地点信息及本地商户名录，并向 Overture Maps 地理空间生态系统提供地点数据。"
+    }
+  },
+  "versionHash": "sha256:d88a53c34ff574b39bec970d8af8eedbffebddcde330f1961285a66a5d6a15ea"
+}
