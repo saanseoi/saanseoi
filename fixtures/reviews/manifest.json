@@ -330,6 +330,14 @@
       "sourceVersion": "2026-07-22.0"
     },
     {
+      "path": "fixtures/reviews/overture-place-address-investigations/2026-07-22.0-b68b397242ecb2974dc5eb30af12042a81a7fc422e18b95caf9bd29ff0f3931e.json",
+      "sha256": "630d5336b6fcd7eb70ede01afa746a39adfa5f7551e507a44c7e3b373ed676da",
+      "size": 9589428,
+      "objectKey": "evidence/sha256/630d5336b6fcd7eb70ede01afa746a39adfa5f7551e507a44c7e3b373ed676da",
+      "kind": "overture-place-address-investigations",
+      "sourceVersion": "2026-07-22.0"
+    },
+    {
       "path": "fixtures/reviews/overture-place-address-investigations/2026-08-19.0-178b094112160749a81d09580a1c5747e37c88deb0f154a5e1ee33c646316ba2.json",
       "sha256": "2458b94764594b62812efd443e83e108c902c2a105c0686d3d44e838e486bc3b",
       "size": 78191658,
