@@ -634,15 +634,17 @@ export function canonicalPlaceColumns<Required extends boolean>(required: Requir
     address3dMembership: text('address3dMembership', {
       enum: ['established', 'unresolved'],
     }),
-    lng: requiredColumn(real('lng'), required),
-    lat: requiredColumn(real('lat'), required),
-    bbox: jsonText('bbox'),
+    geometry: requiredColumn(
+      jsonText<{ type: 'Point'; coordinates: [number, number] }>('geometry'),
+      required,
+    ),
+    bbox: jsonText<[number, number, number, number]>('bbox'),
     operatingStatus: text('operatingStatus'),
     basicCategory: text('basicCategory'),
     taxonomyPrimary: text('taxonomyPrimary'),
     taxonomyHierarchy: jsonText('taxonomyHierarchy'),
     taxonomyAlternates: jsonText('taxonomyAlternates'),
-    wikidataId: text('wikidataId'),
+    identifiers: jsonText<{ wikidata: { brandId: { id: string } } }>('identifiers'),
     websites: jsonText('websites'),
     socials: jsonText('socials'),
     emails: jsonText('emails'),
@@ -651,7 +653,6 @@ export function canonicalPlaceColumns<Required extends boolean>(required: Requir
     confidence: real('confidence'),
     sources: jsonText('sources'),
     firstSeenMonth: requiredColumn(text('firstSeenMonth'), required),
-    lastSeenMonth: requiredColumn(text('lastSeenMonth'), required),
   }
 }
 

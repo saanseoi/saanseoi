@@ -7,6 +7,10 @@ solely because it compiles or an LLM generated the wording.
 
 ## Objective coverage
 
+Places geometry and bbox use the canonical GeoJSON Point and four-number bounds
+contracts. The hand-over instructions distinguish brand Wikidata identity from venue
+identity and explain observation months and materialisation timestamps.
+
 Places full-profile locale values expose `i18n.{locale}.meta`. The hand-over
 instructions distinguish locale inference from field origin and human verification;
 marker clients can use names without requiring metadata.

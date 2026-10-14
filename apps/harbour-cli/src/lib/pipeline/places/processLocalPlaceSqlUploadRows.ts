@@ -1,3 +1,4 @@
+import { placePoint } from '@repo/core/pipeline/services/places/placeGeometry'
 import type { HarbourReadableDb } from '@repo/core/db/types'
 import { publisherPlaceId } from '@repo/core/pipeline/services/places/place'
 import { normaliseOvertureAttribution } from '@repo/core/pipeline/services/sources/sourceAttribution'
@@ -181,15 +182,14 @@ export async function buildPlaceSql(
       address3dId: row.address3dId,
       address3dUnitId: row.address3dUnitId ?? null,
       address3dMembership: row.address3dMembership ?? null,
-      lng,
-      lat,
+      geometry: placePoint(lng, lat),
       bbox: place.bbox,
       operatingStatus: place.operatingStatus,
       basicCategory: place.basicCategory,
       taxonomyPrimary: place.taxonomyPrimary,
       taxonomyHierarchy: place.taxonomyHierarchy,
       taxonomyAlternates: place.taxonomyAlternates,
-      wikidataId: place.wikidataId,
+      identifiers: place.identifiers,
       websites: place.websites,
       socials: place.socials,
       emails: place.emails,
@@ -198,7 +198,6 @@ export async function buildPlaceSql(
       confidence: place.confidence,
       sources: unchanged ? (previous.row.sources ?? resolvedSources) : resolvedSources,
       firstSeenMonth,
-      lastSeenMonth: unchanged ? previous.row.lastSeenMonth : place.lastSeenMonth,
       createdAt: now,
       updatedAt: now,
     })
@@ -301,12 +300,16 @@ export async function buildPlaceSql(
           ? previousDivision.divisionSnapshotId
           : input.snapshots.divisionSnapshotId
       publicationCounts.divisionLinks += 1
+      currentInserts.add('placeDivisionDefinitions', {
+        divisionSnapshotId,
+        divisionId,
+        definition,
+      })
       currentInserts.add('placesDivision', {
         placeScopeId: scopeId,
         placeId: place.id,
         divisionSnapshotId,
         divisionId,
-        definition,
       })
     }
 
@@ -323,15 +326,14 @@ export async function buildPlaceSql(
             address3dId: row.address3dId,
             address3dUnitId: row.address3dUnitId ?? null,
             address3dMembership: row.address3dMembership ?? null,
-            lng,
-            lat,
+            geometry: placePoint(lng, lat),
             bbox: place.bbox,
             operatingStatus: place.operatingStatus,
             basicCategory: place.basicCategory,
             taxonomyPrimary: place.taxonomyPrimary,
             taxonomyHierarchy: place.taxonomyHierarchy,
             taxonomyAlternates: place.taxonomyAlternates,
-            wikidataId: place.wikidataId,
+            identifiers: place.identifiers,
             websites: place.websites,
             socials: place.socials,
             emails: place.emails,

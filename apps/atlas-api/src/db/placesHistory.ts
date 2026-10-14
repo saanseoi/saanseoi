@@ -184,6 +184,8 @@ export async function listReplayedPlaceRecords(args: {
       return {
         place: {
           ...row,
+          lng: row.geometry!.coordinates[0],
+          lat: row.geometry!.coordinates[1],
           updatedAt: row.createdAt,
           snapshotId: args.snapshotId,
           bbox: normalisePlaceBbox(row.bbox),

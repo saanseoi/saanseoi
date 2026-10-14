@@ -329,10 +329,10 @@ test('base edits retain locale versions and retirement excludes another current 
     await f.run([row])
     const old = getDatabase(f.databases, 'old')
     f.current.exec(
-      "INSERT INTO places(scopeId,id,resourceReleaseId,lng,lat,firstSeenMonth,lastSeenMonth,createdAt,updatedAt) VALUES('another-scope','foreign','foreign',114,22,'2025','2025','original','original')",
+      "INSERT INTO places(scopeId,id,resourceReleaseId,geometry,firstSeenMonth,createdAt,updatedAt) VALUES('another-scope','foreign','foreign',json_object('type','Point','coordinates',json_array(114,22)),'2025','original','original')",
     )
     old.exec(
-      "INSERT INTO places (id,resourceReleaseId,lng,lat,firstSeenMonth,lastSeenMonth,versionHash,sourceReleaseId,snapshotId,isCurrent,createdAt) VALUES ('foreign','foreign',114,22,'2025','2025','foreign','foreign','foreign',1,'original')",
+      "INSERT INTO places (id,resourceReleaseId,geometry,firstSeenMonth,lastSeenMonth,versionHash,sourceReleaseId,snapshotId,isCurrent,createdAt) VALUES ('foreign','foreign',json_object('type','Point','coordinates',json_array(114,22)),'2025','2025','foreign','foreign','foreign',1,'original')",
     )
     row.place.operatingStatus = 'temporarily_closed'
     row.versionHash = await hashPlaceMaterialisation(row.place, {

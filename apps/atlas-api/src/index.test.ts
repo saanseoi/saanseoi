@@ -220,6 +220,7 @@ function streetRows(query: string, values: unknown[] = []): unknown[][] {
       ['en', 'Central Wan Chai Bypass'],
       ['zh-Hant', '中環灣仔繞道'],
     ].map(([locale, name]) => [
+      JSON.stringify({ isLocaleInferred: false }),
       description,
       locale,
       name,
@@ -434,14 +435,15 @@ function streetRows(query: string, values: unknown[] = []): unknown[][] {
       [
         ...localizations('street-version-1', null).map(row => [
           'landsd-street-notice-example',
-          row[1],
           row[2],
+          JSON.stringify({ isLocaleInferred: false }),
+          row[3],
           null,
           null,
           null,
           null,
           'central wan chai bypass',
-          row[0],
+          row[1],
           'street-root',
           'upsert',
           'street-version-1',
@@ -453,14 +455,15 @@ function streetRows(query: string, values: unknown[] = []): unknown[][] {
         ...localizations('street-version-2', 'Deleted by Government Notice.').map(
           row => [
             'landsd-street-notice-example',
-            row[1],
             row[2],
+            JSON.stringify({ isLocaleInferred: false }),
+            row[3],
             null,
             null,
             null,
             null,
             'central wan chai bypass',
-            row[0],
+            row[1],
             'street-snapshot',
             'upsert',
             'street-version-2',
@@ -475,14 +478,15 @@ function streetRows(query: string, values: unknown[] = []): unknown[][] {
           'Published after the selected snapshot.',
         ).map(row => [
           'landsd-street-notice-example',
-          row[1],
           row[2],
+          JSON.stringify({ isLocaleInferred: false }),
+          row[3],
           null,
           null,
           null,
           null,
           'central wan chai bypass',
-          row[0],
+          row[1],
           'future-street-snapshot',
           'upsert',
           'street-version-3',
@@ -492,7 +496,7 @@ function streetRows(query: string, values: unknown[] = []): unknown[][] {
           '2026-09-01T00:00:00.000Z',
         ]),
       ],
-      11,
+      12,
     )
   }
   if (!query.includes('from "streets"') && !query.includes('from "streetsI18n"')) {
@@ -504,7 +508,12 @@ function streetRows(query: string, values: unknown[] = []): unknown[][] {
     ]
   }
   if (query.includes('from "streetsI18n"') && query.includes('"snapshotId" = ?')) {
-    return localizations('street-version-1', null).map(row => [row[0], row[1], row[2]])
+    return localizations('street-version-1', null).map(row => [
+      row[0],
+      row[1],
+      row[2],
+      row[3],
+    ])
   }
   if (query.includes('from "streets"')) {
     return [
@@ -1478,6 +1487,7 @@ describe('atlas-api', () => {
     ])
     expect(Object.keys(body.data.attributes.i18n.en).sort()).toEqual([
       'description',
+      'meta',
       'name',
     ])
     expect(body.data.attributes.i18n['zh-Hant']).toMatchObject({
@@ -2341,13 +2351,13 @@ describe('atlas-api', () => {
       'brandNameVariant',
       'brandNameAlts',
       'freeformAddress',
-      'provenance',
+      'meta',
     ])
     expectPlaceFieldsDescribed('PlaceCollectionAttributes', [
       'referenceName',
       'basicCategory',
       'operatingStatus',
-      'wikidataId',
+      'identifiers',
       'websites',
       'socials',
       'emails',

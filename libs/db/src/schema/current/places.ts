@@ -58,11 +58,10 @@ export const placesI18n = sqliteTable(
   ],
 )
 
-export const placesDivision = sqliteTable(
-  'placesDivision',
+/** Immutable shared definitions selected by logical Division revision and identity. */
+export const placeDivisionDefinitions = sqliteTable(
+  'placeDivisionDefinitions',
   {
-    placeScopeId: text('placeScopeId').notNull(),
-    placeId: text('placeId').notNull(),
     divisionSnapshotId: text('divisionSnapshotId').notNull(),
     divisionId: text('divisionId').notNull(),
     /** Retained exact dependency; independent of mutable Division serving scopes. */
@@ -73,6 +72,17 @@ export const placesDivision = sqliteTable(
       }>()
       .notNull(),
   },
+  table => [primaryKey({ columns: [table.divisionSnapshotId, table.divisionId] })],
+)
+
+export const placesDivision = sqliteTable(
+  'placesDivision',
+  {
+    placeScopeId: text('placeScopeId').notNull(),
+    placeId: text('placeId').notNull(),
+    divisionSnapshotId: text('divisionSnapshotId').notNull(),
+    divisionId: text('divisionId').notNull(),
+  },
   table => [
     primaryKey({
       columns: [table.placeScopeId, table.placeId, table.divisionId],
@@ -82,6 +92,13 @@ export const placesDivision = sqliteTable(
       foreignColumns: [places.scopeId, places.id],
       name: 'placesDivision_placeScopeId_placeId_places_fk',
     }).onDelete('cascade'),
+    foreignKey({
+      columns: [table.divisionSnapshotId, table.divisionId],
+      foreignColumns: [
+        placeDivisionDefinitions.divisionSnapshotId,
+        placeDivisionDefinitions.divisionId,
+      ],
+    }),
     index('placesDivision_scope_division_place_idx').on(
       table.placeScopeId,
       table.divisionId,

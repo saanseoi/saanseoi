@@ -27,6 +27,14 @@ const insert = (db: Database, table: string, row: Record<string, unknown>) => {
   if (table === 'snapshots') row = snapshotFixtureFields(db, row) as typeof row
 
   row = { ...row }
+  if (table === 'placesDivision' && row.definition !== undefined) {
+    insert(db, 'placeDivisionDefinitions', {
+      divisionSnapshotId: row.divisionSnapshotId,
+      divisionId: row.divisionId,
+      definition: row.definition,
+    })
+    delete row.definition
+  }
   const fixtureColumns = new Set(
     db
       .query<{ name: string }, []>(`PRAGMA table_info(${table})`)
@@ -42,6 +50,7 @@ const insert = (db: Database, table: string, row: Record<string, unknown>) => {
     delete row.snapshotId
   }
   if (!fixtureColumns.has('updatedAt')) delete row.updatedAt
+  if (!fixtureColumns.has('lastSeenMonth')) delete row.lastSeenMonth
 
   db.query(
     `INSERT INTO ${table} (${Object.keys(row).join(',')}) VALUES (${Object.keys(row)
@@ -436,8 +445,7 @@ test('exact historical Place dependencies replay independent locale shards and s
       address3dId: 'collection',
       address3dUnitId: 'chosen',
       address3dMembership: 'established',
-      lng: 114,
-      lat: 22,
+      geometry: { type: 'Point', coordinates: [114, 22] },
       firstSeenMonth: '2025-01',
       lastSeenMonth: '2025-01',
     })
@@ -487,13 +495,13 @@ test('exact historical Place dependencies replay independent locale shards and s
       .query('UPDATE placesI18n SET searchDependencyText=?')
       .run(JSON.stringify(dependencies.searchDependencies.en))
     current.exec(
-      "UPDATE placesDivision SET definition=json_set(definition,'$.level',9)",
+      "UPDATE placeDivisionDefinitions SET definition=json_set(definition,'$.level',9)",
     )
     await expect(
       validateResolvedPlaces(current, staged, 'place-scope', 1),
     ).rejects.toThrow('exact Division definitions')
     current
-      .query('UPDATE placesDivision SET definition=?')
+      .query('UPDATE placeDivisionDefinitions SET definition=?')
       .run(JSON.stringify(dependencies.divisionDefinitions.country))
     insert(current, 'placeSearchScopes', { scopeId: 'search', snapshotId: 'p' })
     const rebuild = readFileSync(

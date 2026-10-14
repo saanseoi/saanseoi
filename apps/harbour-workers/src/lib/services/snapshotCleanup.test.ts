@@ -58,7 +58,7 @@ function fixture(beforeQuery?: (sqlite: Database, query: string) => void) {
       address:
         "INSERT INTO address2d(scopeId,id,divisionSnapshotId) VALUES ('scope','address','division-scope')",
       place:
-        "INSERT INTO places(scopeId,id,resourceReleaseId,lng,lat,firstSeenMonth,lastSeenMonth) VALUES ('scope','place','release',114,22,'2026-01','2026-01')",
+        "INSERT INTO places(scopeId,id,resourceReleaseId,geometry,firstSeenMonth) VALUES ('scope','place','release',json_object('type','Point','coordinates',json_array(114,22)),'2026-01')",
     }[family]
     sqlite.exec(insert)
   }
@@ -145,7 +145,7 @@ test.each(['obsolete', 'scope'])(
       }
       f.sqlite
         .query(
-          "INSERT INTO places(scopeId,id,resourceReleaseId,lng,lat,firstSeenMonth,lastSeenMonth,addressSnapshotId) VALUES ('dependent','place','release',114,22,'2026-01','2026-01',?)",
+          "INSERT INTO places(scopeId,id,resourceReleaseId,geometry,firstSeenMonth,addressSnapshotId) VALUES ('dependent','place','release',json_object('type','Point','coordinates',json_array(114,22)),'2026-01',?)",
         )
         .run(logicalSnapshotId)
       const definition = JSON.stringify({
@@ -154,9 +154,14 @@ test.each(['obsolete', 'scope'])(
       })
       f.sqlite
         .query(
-          "INSERT INTO placesDivision(placeScopeId,placeId,divisionSnapshotId,divisionId,definition) VALUES ('dependent','place',?,'division',?)",
+          "INSERT INTO placeDivisionDefinitions(divisionSnapshotId,divisionId,definition) VALUES (?,'division',?)",
         )
         .run(logicalSnapshotId, definition)
+      f.sqlite
+        .query(
+          "INSERT INTO placesDivision(placeScopeId,placeId,divisionSnapshotId,divisionId) VALUES ('dependent','place',?,'division')",
+        )
+        .run(logicalSnapshotId)
       for (const family of ['address', 'division'] as const)
         expect(await f.clean(family)).toBe(true)
       expect(f.sqlite.query('SELECT addressSnapshotId FROM places').get()).toEqual({
@@ -164,7 +169,9 @@ test.each(['obsolete', 'scope'])(
       })
       expect(
         f.sqlite
-          .query('SELECT divisionSnapshotId,definition FROM placesDivision')
+          .query(
+            'SELECT p.divisionSnapshotId,d.definition FROM placesDivision p JOIN placeDivisionDefinitions d USING(divisionSnapshotId,divisionId)',
+          )
           .get(),
       ).toEqual({ divisionSnapshotId: logicalSnapshotId, definition })
     } finally {

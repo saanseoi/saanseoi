@@ -1,4 +1,4 @@
-import { index, primaryKey, sqliteTable } from 'drizzle-orm/sqlite-core'
+import { index, primaryKey, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 import { canonicalPlaceColumns, canonicalPlaceI18nColumns } from '../shared'
 import { historyEventConstraints } from './constraints'
 import { historyI18nVersioning, historyVersioning } from './shared'
@@ -7,13 +7,14 @@ export const places = sqliteTable(
   'places',
   {
     ...canonicalPlaceColumns(false),
+    /** Observation month captured by this immutable content version. */
+    lastSeenMonth: text('lastSeenMonth'),
     ...historyVersioning,
   },
   table => [
     ...historyEventConstraints(table, [
       'resourceReleaseId',
-      'lng',
-      'lat',
+      'geometry',
       'firstSeenMonth',
       'lastSeenMonth',
     ]),

@@ -844,3 +844,15 @@ preparation resumes.
 An explicit Address retirement remains effective when retrying the same observation
 after its generated entry has been revoked. Replay requires the same Place, previous
 Address and source release, with no conflicting active or canonical predecessor link.
+
+## Canonical geometry and brand identity
+
+Place normalisation requires usable Point coordinates and writes a GeoJSON Point into
+canonical storage. Publisher bbox structs become `[west, south, east, north]` tuples in
+canonical rows; source records retain native bounds. `brand.wikidata` maps to
+`identifiers.wikidata.brandId.id`, preserving its brand-level meaning.
+
+Complete publications establish the current observation month without rewriting
+unchanged serving rows. Immutable content versions retain their recorded observation
+month. Exact Division names and levels are shared by logical revision and identity;
+Place links retain that revision independently of the live Division scope.

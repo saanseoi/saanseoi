@@ -64,8 +64,8 @@ function createPlacesResetCurrentDb() {
       .query('INSERT INTO placeSearchScopes(scopeId,snapshotId) VALUES(?,?)')
       .run(scope, snapshot)
     sqlite
-      .query(`INSERT INTO places(scopeId,id,resourceReleaseId,lng,lat,firstSeenMonth,lastSeenMonth)
-      VALUES(?,'place','release',114,22,'2026-09','2026-09')`)
+      .query(`INSERT INTO places(scopeId,id,resourceReleaseId,geometry,firstSeenMonth)
+      VALUES(?,'place','release',json_object('type','Point','coordinates',json_array(114,22)),'2026-09')`)
       .run(scope)
     sqlite
       .query(
@@ -77,9 +77,12 @@ function createPlacesResetCurrentDb() {
         "INSERT INTO placesCells(scopeId,id,h3Level,h3Cell) VALUES(?,'place',5,'cell')",
       )
       .run(scope)
+    sqlite.exec(
+      "INSERT OR IGNORE INTO placeDivisionDefinitions VALUES('division-scope','division','{}')",
+    )
     sqlite
-      .query(`INSERT INTO placesDivision(placeScopeId,placeId,divisionSnapshotId,divisionId,definition)
-      VALUES(?,'place','division-scope','division','{}')`)
+      .query(`INSERT INTO placesDivision(placeScopeId,placeId,divisionSnapshotId,divisionId)
+      VALUES(?,'place','division-scope','division')`)
       .run(scope)
   }
   return { db: createLocalHarbourDb(sqlite), sqlite }

@@ -69,7 +69,12 @@ export async function restorePlaceDivisionLinks(
         state.values(),
       )) {
         for (const row of rows) {
-          const base = row as PlaceRollbackBase
+          const geometry = row.geometry as { coordinates: [number, number] }
+          const base = {
+            ...row,
+            lng: geometry.coordinates[0],
+            lat: geometry.coordinates[1],
+          } as PlaceRollbackBase
           if (
             !Number.isFinite(base.lng) ||
             !Number.isFinite(base.lat) ||

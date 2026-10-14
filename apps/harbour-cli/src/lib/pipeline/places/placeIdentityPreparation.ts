@@ -51,8 +51,8 @@ export function previousPlaceIdentity(
           freeform => ({ freeform }),
         ),
       },
-      Number(row.lng),
-      Number(row.lat),
+      Number(row.geometry?.coordinates[0]),
+      Number(row.geometry?.coordinates[1]),
     ),
   }
 }

@@ -74,6 +74,7 @@ test('omits the derived Places full-text index from the current cache profile', 
   const tables = resolveCacheTablesForBinding('DB_CURRENT', 'places')
   expect(tables).not.toContain('placesFts')
   expect(tables).toContain('placesDivision')
+  expect(tables).toContain('placeDivisionDefinitions')
   expect(tables).toContain('placesCells')
   expect(tables).toContain('address2dBuildingNumberLookup')
   expect(tables).not.toContain('address2dEvidence')
@@ -138,10 +139,10 @@ test('uses the bounded family profiles for remote mirrors', () => {
     localDatabaseId: 'acceptance-local-database',
   }))
 
-  expect(countRemoteCacheWorkUnits(targets)).toBe(164)
+  expect(countRemoteCacheWorkUnits(targets)).toBe(165)
   expect(countRemoteCacheWorkUnits(targets, 'division')).toBe(38)
   expect(countRemoteCacheWorkUnits(targets, 'address')).toBe(115)
-  expect(countRemoteCacheWorkUnits(targets, 'places')).toBe(70)
+  expect(countRemoteCacheWorkUnits(targets, 'places')).toBe(71)
   expect(countRemoteCacheWorkUnits(targets, 'statistics')).toBe(52)
   expect(resolveCacheTablesForBinding('DB_CURRENT', 'divisionGeometry')).toEqual([
     'divisions',

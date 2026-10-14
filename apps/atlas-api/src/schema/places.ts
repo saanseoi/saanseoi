@@ -33,6 +33,13 @@ export {
   SearchUnavailableErrorResponseSchema,
 } from './placesSearchErrors'
 
+export const PlaceIdentifiersSchema = z
+  .object({ wikidata: z.object({ brandId: z.object({ id: WikidataIdSchema }) }) })
+  .openapi('PlaceIdentifiers', {
+    description:
+      'External identifiers. Wikidata brandId identifies the brand, rather than the venue.',
+  })
+
 export const PlaceParamsSchema = z
   .object({
     id: z.string(),
@@ -301,7 +308,7 @@ const PlaceSchema = z
         description: openApiText('openapi_places_basic_category_description'),
       }),
     taxonomy: PlaceTaxonomySchema,
-    wikidataId: z.union([WikidataIdSchema, z.null()]).openapi({
+    identifiers: PlaceIdentifiersSchema.nullable().openapi({
       description: openApiText('openapi_places_brand_description'),
     }),
     websites: PlaceWebsitesSchema,
@@ -633,12 +640,11 @@ const PlaceCollectionAttributesSchema = z
         },
       ],
     }),
-    wikidataId: z
-      .union([WikidataIdSchema, z.null()])
+    identifiers: PlaceIdentifiersSchema.nullable()
       .optional()
       .openapi({
         description: openApiText('openapi_places_brand_description'),
-        examples: ['Q106298409', 'Q113365214', null],
+        examples: [{ wikidata: { brandId: { id: 'Q106298409' } } }, null],
       }),
     websites: PlaceWebsitesSchema.optional().openapi({
       examples: [['http://www.lantaublue.com/'], null],

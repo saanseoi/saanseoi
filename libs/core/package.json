@@ -45,6 +45,7 @@
     "./pipeline/services": "./src/pipeline/services/index.ts",
     "./pipeline/services/addresses": "./src/pipeline/services/addresses/index.ts",
     "./pipeline/services/addresses/searchIndex": "./src/pipeline/services/addresses/searchIndex.ts",
+    "./pipeline/services/places/placeGeometry": "./src/pipeline/services/places/placeGeometry.ts",
     "./pipeline/services/places/searchIndex": "./src/pipeline/services/places/searchIndex.ts",
     "./pipeline/services/search/*": "./src/pipeline/services/search/*.ts",
     "./pipeline/services/publicationState": "./src/pipeline/services/publicationState.ts",

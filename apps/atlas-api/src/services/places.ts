@@ -238,7 +238,7 @@ function createPlaceResource(args: {
 
   if (isDefaultPlaceProfile(args.routeState.profile)) {
     Object.assign(attributes, {
-      wikidataId: place.wikidataId,
+      identifiers: place.identifiers,
       websites: place.websites,
       socials: place.socials,
       emails: place.emails,

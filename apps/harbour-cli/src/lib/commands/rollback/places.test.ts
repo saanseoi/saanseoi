@@ -22,6 +22,14 @@ function insert(db: Database, table: string, row: Record<string, unknown>) {
   if (table === 'snapshots') row = snapshotFixtureFields(db, row)
 
   row = { ...row }
+  if (table === 'placesDivision' && row.definition !== undefined) {
+    insert(db, 'placeDivisionDefinitions', {
+      divisionSnapshotId: row.divisionSnapshotId,
+      divisionId: row.divisionId,
+      definition: row.definition,
+    })
+    delete row.definition
+  }
   const fixtureColumns = new Set(
     db
       .query<{ name: string }, []>(`PRAGMA table_info(${table})`)
@@ -37,6 +45,7 @@ function insert(db: Database, table: string, row: Record<string, unknown>) {
     delete row.snapshotId
   }
   if (!fixtureColumns.has('updatedAt')) delete row.updatedAt
+  if (!fixtureColumns.has('lastSeenMonth')) delete row.lastSeenMonth
 
   const columns = Object.keys(row)
   db.query(
@@ -216,8 +225,7 @@ async function fixture() {
   }
   const base = {
     resourceReleaseId: 'release-p0',
-    lng: 114.1,
-    lat: 22.3,
+    geometry: { type: 'Point', coordinates: [114.1, 22.3] },
     addressSnapshotId: 'a0',
     addressDependencyHash,
     address2dId: 'building',
@@ -315,7 +323,7 @@ test('Place rollback reconstructs unjournaled Division definition changes and th
       expect(
         f.current
           .query(
-            "SELECT divisionSnapshotId,json_extract(definition,'$.level') AS level FROM placesDivision",
+            "SELECT p.divisionSnapshotId,json_extract(d.definition,'$.level') AS level FROM placesDivision p JOIN placeDivisionDefinitions d USING(divisionSnapshotId,divisionId)",
           )
           .get(),
       ).toEqual({ divisionSnapshotId: pointer, level })
@@ -528,12 +536,22 @@ test('Place rollback rebuilds address-free membership from the pinned geometry, 
         .query("SELECT name FROM sqlite_schema WHERE name='sourceResolutions'")
         .all(),
     ).toEqual([])
-    const before = f.current.query('SELECT * FROM placesDivision').all()
+    const before = f.current
+      .query(
+        'SELECT p.*,d.definition FROM placesDivision p JOIN placeDivisionDefinitions d USING(divisionSnapshotId,divisionId)',
+      )
+      .all()
     f.meta.exec(
       "DELETE FROM snapshotDependencies WHERE snapshotId='a0' AND role='divisionArea'",
     )
     await expect(f.restore('p0')).rejects.toThrow('DivisionArea dependency')
-    expect(f.current.query('SELECT * FROM placesDivision').all()).toEqual(before)
+    expect(
+      f.current
+        .query(
+          'SELECT p.*,d.definition FROM placesDivision p JOIN placeDivisionDefinitions d USING(divisionSnapshotId,divisionId)',
+        )
+        .all(),
+    ).toEqual(before)
   } finally {
     f.close()
   }

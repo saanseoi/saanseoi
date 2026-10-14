@@ -1,3 +1,4 @@
+import { normalisePlaceBbox } from './placeGeometry'
 import { normaliseOvertureAttribution } from '../sources/sourceAttribution'
 import type { PlaceIdentityDecision } from './placeIdentity'
 import { createHash } from '../../utils'
@@ -59,13 +60,13 @@ export type NormalisedPlace = {
   id: string
   lng: number
   lat: number
-  bbox: unknown
+  bbox: [number, number, number, number] | null
   operatingStatus: string | null
   basicCategory: string | null
   taxonomyPrimary: string | null
   taxonomyHierarchy: unknown
   taxonomyAlternates: unknown
-  wikidataId: string | null
+  identifiers: { wikidata: { brandId: { id: string } } } | null
   websites: unknown
   socials: unknown
   emails: unknown
@@ -137,7 +138,7 @@ function normaliseOverturePlaceInternal(
     id,
     lng: coordinates[0],
     lat: coordinates[1],
-    bbox: jsonValue(row.bbox),
+    bbox: normalisePlaceBbox(jsonValue(row.bbox)),
     operatingStatus: asString(row.operating_status),
     basicCategory:
       asString(row.basic_category) ?? asString(row.basicCategory) ?? taxonomyPrimary,
@@ -146,7 +147,9 @@ function normaliseOverturePlaceInternal(
     taxonomyAlternates: jsonValue(
       categories?.alternate ?? taxonomy?.alternates ?? taxonomy?.alternate,
     ),
-    wikidataId: asString(brand?.wikidata),
+    identifiers: asString(brand?.wikidata)
+      ? { wikidata: { brandId: { id: asString(brand?.wikidata)! } } }
+      : null,
     websites: jsonValue(row.websites),
     socials: jsonValue(row.socials),
     emails: jsonValue(row.emails),
@@ -174,7 +177,7 @@ export async function hashNormalisedPlace(place: NormalisedPlace) {
     taxonomyPrimary: place.taxonomyPrimary,
     taxonomyHierarchy: place.taxonomyHierarchy,
     taxonomyAlternates: place.taxonomyAlternates,
-    wikidataId: place.wikidataId,
+    identifiers: place.identifiers,
     websites: place.websites,
     socials: place.socials,
     emails: place.emails,
@@ -213,7 +216,7 @@ export async function hashPlaceMaterialisation(
     taxonomyPrimary: place.taxonomyPrimary,
     taxonomyHierarchy: place.taxonomyHierarchy,
     taxonomyAlternates: place.taxonomyAlternates,
-    wikidataId: place.wikidataId,
+    identifiers: place.identifiers,
     websites: place.websites,
     socials: place.socials,
     emails: place.emails,

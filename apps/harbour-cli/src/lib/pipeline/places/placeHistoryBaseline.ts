@@ -1,3 +1,4 @@
+import { getTableColumns } from '@repo/db'
 import type { SnapshotReplayStep } from '@repo/core/db/metaRegistry'
 import type { HarbourReadableDb } from '@repo/core/db/types'
 import {
@@ -148,8 +149,24 @@ export async function loadCurrentPlaceHistory(
       'Missing exact Place predecessor content: locale membership differs from its serving scope.',
     )
   const links = await ownership.currentDb
-    .select()
+    .select({
+      ...getTableColumns(currentSchema.placesDivision),
+      definition: currentSchema.placeDivisionDefinitions.definition,
+    })
     .from(currentSchema.placesDivision)
+    .innerJoin(
+      currentSchema.placeDivisionDefinitions,
+      and(
+        eq(
+          currentSchema.placesDivision.divisionSnapshotId,
+          currentSchema.placeDivisionDefinitions.divisionSnapshotId,
+        ),
+        eq(
+          currentSchema.placesDivision.divisionId,
+          currentSchema.placeDivisionDefinitions.divisionId,
+        ),
+      ),
+    )
     .where(eq(currentSchema.placesDivision.placeScopeId, ownership.scopeId))
     .all()
   for (const link of links) {
@@ -159,7 +176,7 @@ export async function loadCurrentPlaceHistory(
         `Current Place Division link without a base: ${link.placeId}/${link.divisionId}.`,
       )
     state.divisionLinks ??= []
-    state.divisionLinks.push(link as typeof currentSchema.placesDivision.$inferSelect)
+    state.divisionLinks.push(link)
   }
   return [...states.values()]
 }

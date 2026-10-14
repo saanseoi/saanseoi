@@ -339,19 +339,21 @@ export function insertSqlParts(
   return [
     `INSERT INTO "${table}" (${entries.map(([key]) => `"${key}"`).join(', ')}) VALUES `,
     `(${entries.map(([, value]) => sqlValue(value)).join(', ')})`,
-    ` ON CONFLICT DO UPDATE SET ${updates.map(([key]) => `"${key}" = excluded."${key}"`).join(', ')}${
-      preserveOpenVersion
-        ? ` WHERE "${table}".isCurrent <> 1 OR "${table}".validToRelease IS NOT NULL`
-        : currentProjection
-          ? ` WHERE ${currentRowChangedSqlText(
-              table,
-              entries.map(([key]) => key),
-              table === 'places'
-                ? ['createdAt', 'updatedAt', 'resourceReleaseId', 'lastSeenMonth']
-                : undefined,
-            )}`
-          : ''
-    };`,
+    table === 'placeDivisionDefinitions'
+      ? ' ON CONFLICT DO NOTHING;'
+      : ` ON CONFLICT DO UPDATE SET ${updates.map(([key]) => `"${key}" = excluded."${key}"`).join(', ')}${
+          preserveOpenVersion
+            ? ` WHERE "${table}".isCurrent <> 1 OR "${table}".validToRelease IS NOT NULL`
+            : currentProjection
+              ? ` WHERE ${currentRowChangedSqlText(
+                  table,
+                  entries.map(([key]) => key),
+                  table === 'places'
+                    ? ['createdAt', 'updatedAt', 'resourceReleaseId', 'lastSeenMonth']
+                    : undefined,
+                )}`
+              : ''
+        };`,
   ]
 }
 

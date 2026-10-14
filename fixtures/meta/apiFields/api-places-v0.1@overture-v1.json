@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:dc69f6f6324722b2331ad3b7ad78c63977fc32558f8766386b970e95bbaecfba",
+  "versionHash": "sha256:bd8009d388df971716a6c8bc6c914bb78214bf8f81b459d9fd6aed02846840e2",
   "apiVersion": "api-places-v0.1",
   "domainCode": "overture",
   "mappingVersion": 1,
@@ -267,7 +267,7 @@
       ]
     },
     {
-      "apiField": "attributes.wikidataId",
+      "apiField": "attributes.identifiers.wikidata.brandId.id",
       "sourceDatasetCode": "ds-hk-overture-place",
       "resolverCode": "direct_copy",
       "contributionType": "primary",
@@ -618,7 +618,7 @@
       "confidence": 1
     },
     {
-      "apiField": "attributes.i18n.*.provenance",
+      "apiField": "attributes.i18n.*.meta",
       "sourceDatasetCode": "ds-hk-overture-place",
       "inputs": [
         {

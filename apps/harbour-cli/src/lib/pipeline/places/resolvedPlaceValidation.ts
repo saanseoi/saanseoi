@@ -133,8 +133,8 @@ export async function validateResolvedPlaces(
       )
     if (
       db
-        .query(`SELECT 1 FROM placesDivision p JOIN expectedPlaceDivisions e ON p.placeId=e.placeId AND p.divisionId=e.divisionId
-      WHERE p.placeScopeId=? AND p.definition IS NOT e.definition LIMIT 1`)
+        .query(`SELECT 1 FROM placesDivision p JOIN placeDivisionDefinitions d ON d.divisionSnapshotId=p.divisionSnapshotId AND d.divisionId=p.divisionId JOIN expectedPlaceDivisions e ON p.placeId=e.placeId AND p.divisionId=e.divisionId
+      WHERE p.placeScopeId=? AND d.definition IS NOT e.definition LIMIT 1`)
         .get(scopeId)
     )
       throw new Error(

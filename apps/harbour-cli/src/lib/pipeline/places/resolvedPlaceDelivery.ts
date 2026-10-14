@@ -19,7 +19,13 @@ import { validateResolvedPlaces } from './resolvedPlaceValidation.ts'
 export function placeMutationTables(binding: string): NetTablePolicy[] {
   const names =
     binding === 'DB_CURRENT'
-      ? ['places', 'placesI18n', 'placesCells', 'placesDivision']
+      ? [
+          'places',
+          'placesI18n',
+          'placesCells',
+          'placeDivisionDefinitions',
+          'placesDivision',
+        ]
       : binding.startsWith('DB_HISTORY_')
         ? ['places', 'placesI18n']
         : binding.startsWith('DB_SOURCE_')
@@ -30,7 +36,10 @@ export function placeMutationTables(binding: string): NetTablePolicy[] {
     ignoredColumns: (binding.startsWith('DB_HISTORY_')
       ? ['createdAt']
       : ['createdAt', 'updatedAt']
-    ).filter(() => !['placesCells', 'placesDivision'].includes(name)),
+    ).filter(
+      () =>
+        !['placesCells', 'placesDivision', 'placeDivisionDefinitions'].includes(name),
+    ),
   }))
 }
 

@@ -16,6 +16,7 @@ export {
   places,
   placesI18n,
   placesDivision,
+  placeDivisionDefinitions,
   placesCells,
   placeSearchScopes,
 } from './places'

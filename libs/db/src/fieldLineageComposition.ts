@@ -266,7 +266,8 @@ export function compileResponseField(args: {
         'address3dId',
         'address3dUnitId',
         'address3dMembership',
-        'wikidataId',
+        'identifiers',
+        'identifiers.wikidata.brandId.id',
         'websites',
         'socials',
         'emails',
@@ -291,7 +292,7 @@ export function compileResponseField(args: {
           'nameAlts',
           'brandNameVariant',
           'brandNameAlts',
-          'provenance',
+          'meta',
         ].includes(locale)
       )
     )
@@ -307,7 +308,8 @@ export function compileResponseField(args: {
       'sources',
     ]
     const normal = [
-      'wikidataId',
+      'identifiers',
+      'identifiers.wikidata.brandId.id',
       'websites',
       'socials',
       'emails',
@@ -329,7 +331,7 @@ export function compileResponseField(args: {
           'nameAlts',
           'brandNameVariant',
           'brandNameAlts',
-          'provenance',
+          'meta',
         ].includes(locale))
     )
       profiles = ['full']

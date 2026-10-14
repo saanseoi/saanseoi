@@ -208,7 +208,6 @@ test('unchanged canonical Places retain their content provenance across release 
         id: row.place.id,
         versionHash: row.versionHash,
         firstSeenMonth: '2026-07',
-        lastSeenMonth: '2026-08',
         resourceReleaseId: 'release-original',
         createdAt: 'original',
         address2dId: null,
@@ -219,22 +218,16 @@ test('unchanged canonical Places retain their content provenance across release 
     const data = { ...input([row]), historyRows: [previous] }
     db.exec((await buildPlaceSql(data)).currentSql.join('\n'))
     expect(
-      db
-        .query('SELECT resourceReleaseId,firstSeenMonth,lastSeenMonth FROM places')
-        .get(),
+      db.query('SELECT resourceReleaseId,firstSeenMonth FROM places').get(),
     ).toEqual({
       resourceReleaseId: 'release-original',
       firstSeenMonth: '2026-07',
-      lastSeenMonth: '2026-08',
     })
     row.versionHash = 'changed'
     row.place.operatingStatus = 'temporarily_closed'
     db.exec((await buildPlaceSql(data)).currentSql.join('\n'))
-    expect(
-      db.query('SELECT resourceReleaseId,lastSeenMonth FROM places').get(),
-    ).toEqual({
+    expect(db.query('SELECT resourceReleaseId FROM places').get()).toEqual({
       resourceReleaseId: 'release-new',
-      lastSeenMonth: '2026-09',
     })
   } finally {
     db.close()

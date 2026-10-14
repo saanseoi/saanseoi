@@ -14,7 +14,8 @@ type AddressLocale = Pick<
 >
 type Collection = typeof currentSchema.address3d.$inferSelect
 type CollectionLocale = typeof currentSchema.address3dI18n.$inferSelect
-type DivisionDefinition = typeof currentSchema.placesDivision.$inferSelect.definition
+type DivisionDefinition =
+  typeof currentSchema.placeDivisionDefinitions.$inferSelect.definition
 
 /** Resolve once locally; both fresh and incremental FTS consume these retained texts. */
 export function createPlaceSearchDependencies(

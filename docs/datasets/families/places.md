@@ -519,10 +519,10 @@ lookup rows never enter delivered tables. Missing revision evidence fails prepar
 
 Final-difference delivery preserves unchanged Place content, cells, localisations and
 links without transmitting their candidate SQL. Complete replacement membership removes
-absent rows within that scope. The stored `resourceReleaseId` and `lastSeenMonth` retain
-the last real content change. Current API responses derive `lastSeenMonth` from the
-selected complete publication cohort; immutable history retains its recorded version
-values.
+absent rows within that scope. The stored `resourceReleaseId` retains the last real
+content change. CURRENT has no `lastSeenMonth` column. Current API responses derive
+`lastSeenMonth` from the selected complete publication cohort; immutable history retains
+its recorded version values.
 
 SQL planning uses disposable database copies with disk-backed rollback journals.
 Generation buffers are collected before comparison, and each comparison connection is
@@ -743,3 +743,30 @@ Locale values carry the shared [localisation metadata](../i18n-metadata.md) cont
 `meta.isLocaleInferred` records language assignment, while `meta.fields` records each
 field's origin, optional human verification and optional translator identity. Metadata
 participates in canonical content hashes and retained locale revisions.
+
+## Canonical spatial and identifier fields
+
+CURRENT and HISTORY Places store `geometry` as a GeoJSON Point with longitude before
+latitude. Canonical `bbox` is `[west, south, east, north]`; SOURCE retains the publisher
+bbox struct. Numeric coordinates are transient processing values for membership and H3.
+
+`identifiers.wikidata.brandId.id` identifies the publisher's brand, rather than the
+individual venue. A Place without a brand identifier has null `identifiers`.
+
+`createdAt` and `updatedAt` describe serving materialisation. A changed point, category,
+contact, address association or dependency may update a base row. Locale content and
+retained search text update independently. Timestamp-only and observation-only changes
+do not rewrite serving rows. Immutable history captures content versions with creation
+time and its recorded observation month; current observation months derive from the
+selected completed publication.
+
+`placesDivision` stores indexed membership and exact revision pointers. Names and levels
+are held once per `(divisionSnapshotId, divisionId)` in `placeDivisionDefinitions`,
+independently of mutable Division serving scopes. Shared definitions remain retained
+when serving scopes are retired. `searchDependencyText` retains the selected locale's
+address, street and Division text for reproducible fresh and incremental FTS rebuilding.
+
+Scalar Address2D-style columns represent only recognised unambiguous classes. Excluding
+SAR and island groups permits that representation for those classes, but cities also
+have no Address2D scalar column. The indexed membership contract retains those
+additional ancestry classes and arbitrary Division filtering.

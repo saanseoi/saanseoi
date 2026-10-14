@@ -45,7 +45,7 @@ export async function restorePlaceDerivedRows(input: Input) {
     (
       input.current
         .query(
-          'SELECT id,lng,lat,addressSnapshotId,addressDependencyHash,address2dId,address3dId,address3dUnitId FROM places WHERE scopeId=?',
+          "SELECT id,json_extract(geometry, '$.coordinates[0]') lng,json_extract(geometry, '$.coordinates[1]') lat,addressSnapshotId,addressDependencyHash,address2dId,address3dId,address3dUnitId FROM places WHERE scopeId=?",
         )
         .all(input.scopeId) as PlaceRollbackBase[]
     ).map(row => [row.id, row]),
@@ -136,16 +136,37 @@ export async function restorePlaceDerivedRows(input: Input) {
         .run(input.scopeId)
       input.current.query('DELETE FROM placesCells WHERE scopeId=?').run(input.scopeId)
       const insertLink = input.current.query(
-        'INSERT INTO placesDivision(placeScopeId,placeId,divisionSnapshotId,divisionId,definition) VALUES (?,?,?,?,?)',
+        'INSERT INTO placesDivision(placeScopeId,placeId,divisionSnapshotId,divisionId) VALUES (?,?,?,?)',
       )
-      for (const link of links.values())
+      const insertDefinition = input.current.query(
+        'INSERT INTO placeDivisionDefinitions(divisionSnapshotId,divisionId,definition) VALUES (?,?,?) ON CONFLICT DO NOTHING',
+      )
+      for (const link of links.values()) {
+        insertDefinition.run(
+          link.divisionSnapshotId,
+          link.divisionId,
+          JSON.stringify(link.definition),
+        )
+        const retained = input.current
+          .query<{ definition: string }, [string, string]>(
+            'SELECT definition FROM placeDivisionDefinitions WHERE divisionSnapshotId=? AND divisionId=?',
+          )
+          .get(link.divisionSnapshotId, link.divisionId)
+        if (
+          !retained ||
+          canonicalPlaceJson(JSON.parse(retained.definition)) !==
+            canonicalPlaceJson(link.definition)
+        )
+          throw new Error(
+            `Conflicting exact Place Division definition ${link.divisionSnapshotId}/${link.divisionId}.`,
+          )
         insertLink.run(
           input.scopeId,
           link.placeId,
           link.divisionSnapshotId,
           link.divisionId,
-          JSON.stringify(link.definition),
         )
+      }
       const insertCell = input.current.query(
         'INSERT INTO placesCells(scopeId,id,h3Level,h3Cell) VALUES (?,?,?,?)',
       )
@@ -262,7 +283,11 @@ async function validateLocaleDependencies(
           )
           .get()
         if (!row) throw new Error(`Missing original Place content ${locale.placeId}.`)
-        return row as PlaceRollbackBase
+        return {
+          ...row,
+          lng: (row.geometry as { coordinates: [number, number] }).coordinates[0],
+          lat: (row.geometry as { coordinates: [number, number] }).coordinates[1],
+        } as PlaceRollbackBase
       })()
       originBases.set(originKey, originBase)
     }

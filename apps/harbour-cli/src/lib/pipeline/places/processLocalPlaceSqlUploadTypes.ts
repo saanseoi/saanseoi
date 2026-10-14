@@ -69,7 +69,6 @@ export type PlaceHistoryRow = Pick<
   | 'addresses'
   | 'createdAt'
   | 'firstSeenMonth'
-  | 'lastSeenMonth'
   | 'resourceReleaseId'
   | 'versionHash'
 > &
@@ -85,7 +84,9 @@ export type PlaceHistoryState = {
   bindingName: string
   row: PlaceHistoryRow
   locales?: PlaceLocaleHistoryState[]
-  divisionLinks?: (typeof currentSchema.placesDivision.$inferSelect)[]
+  divisionLinks?: (typeof currentSchema.placesDivision.$inferSelect & {
+    definition: typeof currentSchema.placeDivisionDefinitions.$inferSelect.definition
+  })[]
 }
 
 export type BuildPlaceSqlInput = {

@@ -73,6 +73,7 @@ export function resolveCacheTablesForBinding(
         'places',
         'placePublicationState',
         'placesI18n',
+        'placeDivisionDefinitions',
         'placesDivision',
         'placesCells',
       ]
@@ -123,6 +124,7 @@ export function resolveCacheTablesForBinding(
       'places',
       'placePublicationState',
       'placesI18n',
+      'placeDivisionDefinitions',
       'placesDivision',
       'placesCells',
       'addressPublicationState',

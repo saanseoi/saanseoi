@@ -36,6 +36,7 @@ const history = (place: NormalisedPlace): PlaceHistoryState => ({
   bindingName: 'history',
   row: {
     ...place,
+    geometry: { type: 'Point', coordinates: [place.lng, place.lat] },
     createdAt: '2025-01-01',
     versionHash: 'before',
     resourceReleaseId: 'before',

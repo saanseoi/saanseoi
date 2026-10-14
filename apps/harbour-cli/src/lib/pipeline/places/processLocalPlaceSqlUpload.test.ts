@@ -158,12 +158,12 @@ describe('Places SQL materialisation', () => {
       );
       CREATE TABLE places (
         scopeId TEXT, id TEXT, resourceReleaseId TEXT, addressSnapshotId TEXT, addressDependencyHash TEXT,
-        address2dId TEXT, address3dId TEXT, address3dUnitId TEXT, address3dMembership TEXT, lng REAL, lat REAL, bbox TEXT,
+        address2dId TEXT, address3dId TEXT, address3dUnitId TEXT, address3dMembership TEXT, geometry TEXT, bbox TEXT,
         operatingStatus TEXT, basicCategory TEXT, taxonomyPrimary TEXT,
-        taxonomyHierarchy TEXT, taxonomyAlternates TEXT, wikidataId TEXT,
+        taxonomyHierarchy TEXT, taxonomyAlternates TEXT, identifiers TEXT,
         websites TEXT, socials TEXT, emails TEXT, phones TEXT, addresses TEXT,
         confidence REAL, sources TEXT, firstSeenMonth TEXT,
-        lastSeenMonth TEXT, createdAt TEXT, updatedAt TEXT, PRIMARY KEY (scopeId, id)
+        createdAt TEXT, updatedAt TEXT, PRIMARY KEY (scopeId, id)
       );
       CREATE TABLE placesI18n (
         scopeId TEXT, placeId TEXT, locale TEXT, name TEXT, nameVariant TEXT,
@@ -171,6 +171,7 @@ describe('Places SQL materialisation', () => {
         brandNameVariant TEXT, brandNameAlts TEXT, freeformAddress TEXT, accessHint TEXT,
         meta TEXT, searchDependencyText TEXT, createdAt TEXT, updatedAt TEXT
       );
+      CREATE TABLE placeDivisionDefinitions(divisionSnapshotId TEXT,divisionId TEXT,definition TEXT,PRIMARY KEY(divisionSnapshotId,divisionId));
       CREATE TABLE placesDivision (placeScopeId TEXT, placeId TEXT);
       CREATE TABLE placesCells (scopeId TEXT, id TEXT, h3Level INTEGER, h3Cell TEXT);
     `)
@@ -180,9 +181,9 @@ describe('Places SQL materialisation', () => {
 
       CREATE TABLE places (
         id TEXT, resourceReleaseId TEXT, addressSnapshotId TEXT, addressDependencyHash TEXT, address2dId TEXT,
-        address3dId TEXT, address3dUnitId TEXT, address3dMembership TEXT, lng REAL, lat REAL, bbox TEXT, operatingStatus TEXT,
+        address3dId TEXT, address3dUnitId TEXT, address3dMembership TEXT, geometry TEXT, bbox TEXT, operatingStatus TEXT,
         basicCategory TEXT, taxonomyPrimary TEXT, taxonomyHierarchy TEXT,
-        taxonomyAlternates TEXT, wikidataId TEXT, websites TEXT, socials TEXT,
+        taxonomyAlternates TEXT, identifiers TEXT, websites TEXT, socials TEXT,
         emails TEXT, phones TEXT, addresses TEXT, confidence REAL,
         sources TEXT, firstSeenMonth TEXT, lastSeenMonth TEXT, versionHash TEXT,
         sourceReleaseId TEXT, snapshotId TEXT, isCurrent INTEGER, createdAt TEXT,
@@ -248,7 +249,7 @@ describe('Places SQL materialisation', () => {
             taxonomyPrimary: 'restaurant',
             taxonomyHierarchy: ['food', 'restaurant'],
             taxonomyAlternates: null,
-            wikidataId: null,
+            identifiers: null,
             websites: null,
             socials: null,
             emails: null,
@@ -300,7 +301,13 @@ describe('Places SQL materialisation', () => {
     expect(history.query('SELECT COUNT(*) AS count FROM places').get()).toEqual({
       count: 1,
     })
-    expect(sqlite.query('SELECT lng, lat FROM places').get()).toEqual({
+    expect(
+      sqlite
+        .query(
+          "SELECT json_extract(geometry,'$.coordinates[0]') lng,json_extract(geometry,'$.coordinates[1]') lat FROM places",
+        )
+        .get(),
+    ).toEqual({
       lng: 114.2,
       lat: 22.4,
     })
@@ -310,7 +317,13 @@ describe('Places SQL materialisation', () => {
         .all()
         .map(row => (row as { name: string }).name),
     ).not.toContain('lng')
-    expect(history.query('SELECT lng, lat FROM places').get()).toEqual({
+    expect(
+      history
+        .query(
+          "SELECT json_extract(geometry,'$.coordinates[0]') lng,json_extract(geometry,'$.coordinates[1]') lat FROM places",
+        )
+        .get(),
+    ).toEqual({
       lng: 114.2,
       lat: 22.4,
     })
