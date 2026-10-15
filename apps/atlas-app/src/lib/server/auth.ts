@@ -1,6 +1,5 @@
 import { env, waitUntil } from 'cloudflare:workers'
 import { betterAuth } from 'better-auth/minimal'
-import { drizzleAdapter } from 'better-auth/adapters/drizzle'
 import { oneTap } from 'better-auth/plugins'
 import { sveltekitCookies } from 'better-auth/svelte-kit'
 import { passkey } from '@better-auth/passkey'
@@ -16,7 +15,7 @@ import {
 } from '$app/env/private'
 
 import { getRequestEvent } from '$app/server'
-import { createMetaDb } from '@repo/db/client'
+import { createAuthDatabase } from './authDatabase'
 import { createAuthEmail } from './auth-email'
 import { authCookieOptions } from './authCookies'
 import { authLocaleOptions } from './authLocale'
@@ -151,7 +150,7 @@ export const createAuth = (
 ) =>
   betterAuth({
     ...createAuthConfig(baseURL, authEnv),
-    database: drizzleAdapter(createMetaDb(d1), { provider: 'sqlite' }),
+    database: createAuthDatabase(d1),
   })
 
 /**
