@@ -266,3 +266,16 @@ Canonical HISTORY events follow the shared
 [producer ownership contract](../../families/source-evidence.md#history-producer-ownership).
 The introducing snapshot retains its exact producing inputs; source attribution and
 field-level evidence identify the contributing publisher records.
+
+## Monthly production
+
+SaanSeoi produces its own Division and DivisionArea edition on the first day of each
+month in `Asia/Hong_Kong`, conditional on the required publisher inputs and editorial
+decisions being available. A delayed run retains the first-of-month edition date.
+Assembly selects reviewed publisher pins on or before that date and requires a Protomaps
+extraction from the edition's own month.
+
+Automatic monthly production is not wired into `saanseoi update`. SaanSeoi has no
+upstream source check or daily polling policy; the updater reports the pending
+production integration separately. Explicit assembly and initialisation remain available
+for reviewed editions.

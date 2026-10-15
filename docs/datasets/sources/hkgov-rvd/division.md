@@ -96,3 +96,10 @@ Original publisher inputs use `releaseSourceArchive` assets owned by their sourc
 release. Resource-specific source exports use Parquet `resourceSourceArchive` assets
 owned by their resource release. Each archive has a downloadable manifest recording its
 original filename and packaging.
+
+## Updater intake
+
+`saanseoi update` retrieves the official appendix URL for the checked-in source version
+and invokes `hkgov-rvd:areas`. The native importer retains the PDF and deterministic
+extraction together, publishes source-only records to the selected target, and leaves
+canonical membership to curated Division assembly.

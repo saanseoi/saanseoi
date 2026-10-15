@@ -3,10 +3,10 @@
 For the complete source-addition workflow, including the DataOps and upload hand-offs,
 see the [dataset pipeline](pipeline.md).
 
-`saanseoi update` checks every dataset fixture in `fixtures/meta/datasets` against its
-registered upstream source adapter. It prints the latest upstream version when one is
-available and records the source cursor and last check time in
-`.local/harbour/update-state.json`.
+`saanseoi update` checks dataset fixtures outside the paused Streets family in
+`fixtures/meta/datasets` against their registered upstream source adapter. It prints the
+latest upstream version when one is available and records the source cursor and last
+check time in `.local/harbour/update-state.json`.
 
 Use `--dataset CODE[,CODE...]` to narrow the check. New downloadable artefacts are
 offered interactively; `--download` downloads them without asking. Downloads are written
@@ -35,7 +35,7 @@ Wrangler R2 state, while `preview` and `production` use their respective remote 
 buckets. For example:
 
 ```sh
-saanseoi update --dataset ds-hk-hkgov-hyd-street --target preview
+saanseoi update --dataset ds-hk-hkgov-pland-division-pu --target preview
 ```
 
 Every CSDI source object remains available as an immutable ZIP in R2. Publisher ZIPs are
@@ -99,32 +99,48 @@ The update report collapses already-current CSDI archive slots into one row per 
 release. The updater still retains and checks state for every archive slot; a newly
 changed publisher object remains visible as an actionable update.
 
-Publish the current LandsD gazetted street-name register before preparing historical
-evidence. The current command pins the baseline PDF and canonical identities in the
-checked-in registry, publishes the source release and snapshot, and is a no-op when that
-exact cohort is already published:
+Streets updates are paused. The family picker and `all` selection exclude every Streets
+dataset, including HyD, TD, LandsD road centrelines, the gazetted street-name register
+and DPang. Explicit `--api-family streets`, `--scope streets` and Streets `--dataset`
+selections stop with an explanation before discovery or ingestion. Maintainer street
+commands remain separate from the updater.
 
-```bash
-bun run dataops -- hkgov-landsd-streets:current --target local|preview|production
+SaanSeoi's own Division dataset is produced internally. Its monthly edition is due on 1
+January, 1 February, and so on, in `Asia/Hong_Kong`, conditional on the required
+publisher inputs and curation decisions being available. A delayed run must retain the
+first-of-month edition date. The assembler requires a Protomaps extraction from that
+same month and selects eligible publisher pins on or before the edition date.
+
+Automatic monthly production is not wired into `saanseoi update`. The updater reports
+that separately and performs no upstream source check for SaanSeoi, including with
+`--check-now`. Use the existing explicit assembly and initialisation workflows for
+reviewed editions.
+
+Reviewed publisher inputs use their checked-in `releases` lists:
+
+- Protomaps island inputs use the exact hash-verified archive pins in the Division
+  review and publication inputs. Prepare and pin an extraction before registering its
+  version; a basemap date alone does not identify an extraction revision.
+- RVD uses the official Property Review appendix and the native PDF extraction importer,
+  retaining the PDF and extracted records as source evidence.
+
+These checks do not invent editions or advance reviewed pins. A missing retained archive
+produces an actionable error; `SAANSEOI_REVIEW_ARCHIVE_URL` can supply the exact pinned
+archive bytes. Existing newer reviewed editions suppress automatic historical replay;
+use the relevant initialiser for a deliberate rebuild.
+
+```sh
+saanseoi update --target local --api-family all --download --yes
 ```
 
-Historical backfill is maintainer-only staging for a later reviewed correction revision:
-
-```bash
-bun run dataops -- hkgov-landsd-streets:landsd-notices --target local|preview|production
-bun run dataops -- hkgov-landsd-streets:official-egazette --target local|preview|production
-```
-
-Stage artefacts use separate directories per remote environment because managed
-evidence-asset IDs are target-specific. Historical source preparation does not publish
-or advance the current-release cursor. A future revision assembler must reuse the
-published canonical identity bridge and prove present-state parity before publication.
-`lastUpdated` in the dataset fixture is the checked-in bootstrap baseline; live update
-state belongs in the ignored update-state file.
-
-The LandsD updater publishes the pinned baseline cohort only. Historical notice dates
-are evidence dates, not current-register release versions, and do not enqueue automatic
-publications. Historical enrichment requires a separately reviewed revision.
+Selected datasets run in dependency order, with each provider's archive and release work
+finishing before its consumers. `--with-dependencies` adds missing providers to an
+explicit selection, including the reviewed Division ingredients. Without that flag, the
+selected dataset set stays exact. A target report must confirm every declared resource
+in a cohort before the dataset is considered complete; Overture Division outputs are
+checked independently, and Places also requires its supplementary Address output. A
+missing cohort bypasses the saved check interval so failed or declined intake can be
+retried. An unavailable target report makes the run fail.
 
 When `--target` is supplied, the updater first queries that SaanSeoi environment's
 `/v1/reports/releases` endpoint for each dataset. The returned latest release is used as
@@ -198,11 +214,11 @@ the known artefacts for that source release. A match is saved as an
 `verifiedIdenticalArchiveSlots` fixture entry, so the same archive object is not made
 actionable again.
 
-The console collects due source discoveries before processing them, then renders the
-actionable results under `NEW RELEASES`, `NEW REVISIONS`, and `ARCHIVES`. A source
-adapter may expose an archive catalogue while checking a release or revision; its
-archive packages are processed only when the archive policy itself is due or its
-configured discovery event occurs.
+The console collects due source discoveries before processing them, then renders each
+selected dataset in dependency order under `NEW RELEASES`, `NEW REVISIONS`, and
+`ARCHIVES`. A source adapter may expose an archive catalogue while checking a release or
+revision; its archive packages are processed only when the archive policy itself is due
+or its configured discovery event occurs.
 
 When a logical dataset has multiple publisher catalogue records, each `releases[]` entry
 may provide its own `sourceUrl`. Check state is stored independently for each source

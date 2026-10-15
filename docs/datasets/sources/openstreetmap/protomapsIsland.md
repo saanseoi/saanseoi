@@ -180,3 +180,10 @@ published. A missing or expired version fails ingestion. Existing audit entries 
 this independent verification.
 
 Release-note fixtures live under `fixtures/meta/releases/ds-hk-protomaps-island/`.
+
+## Updater intake
+
+`saanseoi update` reads the reviewed extraction versions from the dataset fixture and
+resolves each exact archive pin from the Division review and publication inputs. The
+archive loader verifies its SHA-256 before native source-only ingestion. New basemap
+releases require a prepared, reviewed extraction and a registered source version.

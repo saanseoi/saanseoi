@@ -2239,3 +2239,16 @@ Canonical events derive their producing release from their introducing snapshot'
 primary inputs. Inherited events retain that original ownership. See
 [HISTORY producer ownership](source-evidence.md#history-producer-ownership) for the
 shared contract and dataset discriminators on combined geometry snapshots.
+
+## Updater and monthly production
+
+`saanseoi update` includes the hash-pinned Protomaps island extractions and the RVD
+Property Review appendix. `--with-dependencies` adds reviewed publisher ingredients to
+an explicit dataset selection.
+
+SaanSeoi's own edition is due on the first of each month in `Asia/Hong_Kong`, once the
+required inputs and editorial decisions are available. It is produced internally and has
+no daily upstream check. Automatic monthly production is not yet wired into the updater.
+See [dataset update checks](../update.md) for source selection and
+[monthly production](../sources/saanseoi/division.md#monthly-production) for the
+publication requirements.
