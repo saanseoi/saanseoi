@@ -90,6 +90,10 @@ export async function resetLocalDb(
         force: true,
         recursive: true,
       }),
+      rm(resolve(repoRoot, '.local/overture-preparation-audits/dev'), {
+        force: true,
+        recursive: true,
+      }),
     ])
     for (const result of cleanup) {
       if (result.status === 'rejected') throw result.reason
