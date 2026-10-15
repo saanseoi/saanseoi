@@ -662,7 +662,7 @@ export function canonicalPlaceColumns<Required extends boolean>(required: Requir
     taxonomyPrimary: text('taxonomyPrimary'),
     taxonomyHierarchy: jsonText('taxonomyHierarchy'),
     taxonomyAlternates: jsonText('taxonomyAlternates'),
-    identifiers: jsonText<{ wikidata: { brandId: { id: string } } }>('identifiers'),
+    identifiers: jsonText<{ wikidata: { brandId: string } }>('identifiers'),
     websites: jsonText('websites'),
     socials: jsonText('socials'),
     emails: jsonText('emails'),

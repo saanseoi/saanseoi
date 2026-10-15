@@ -852,7 +852,7 @@ Address and source release, with no conflicting active or canonical predecessor 
 Place normalisation requires usable Point coordinates and writes a GeoJSON Point into
 canonical storage. Publisher bbox structs become `[west, south, east, north]` tuples in
 canonical rows; source records retain native bounds. `brand.wikidata` maps to
-`identifiers.wikidata.brandId.id`, preserving its brand-level meaning.
+`identifiers.wikidata.brandId`, preserving its brand-level meaning.
 
 Complete publications establish the current observation month without rewriting
 unchanged serving rows. Immutable content versions retain their recorded observation

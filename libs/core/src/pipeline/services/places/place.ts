@@ -66,7 +66,7 @@ export type NormalisedPlace = {
   taxonomyPrimary: string | null
   taxonomyHierarchy: unknown
   taxonomyAlternates: unknown
-  identifiers: { wikidata: { brandId: { id: string } } } | null
+  identifiers: { wikidata: { brandId: string } } | null
   websites: unknown
   socials: unknown
   emails: unknown
@@ -148,7 +148,7 @@ function normaliseOverturePlaceInternal(
       categories?.alternate ?? taxonomy?.alternates ?? taxonomy?.alternate,
     ),
     identifiers: asString(brand?.wikidata)
-      ? { wikidata: { brandId: { id: asString(brand?.wikidata)! } } }
+      ? { wikidata: { brandId: asString(brand?.wikidata)! } }
       : null,
     websites: jsonValue(row.websites),
     socials: jsonValue(row.socials),

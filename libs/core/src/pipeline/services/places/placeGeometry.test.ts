@@ -11,7 +11,7 @@ test('canonical Places distinguish brand identity and normalise native bounds', 
     },
     '2026-09-23.0',
   )!
-  expect(row.identifiers).toEqual({ wikidata: { brandId: { id: 'Q123' } } })
+  expect(row.identifiers).toEqual({ wikidata: { brandId: 'Q123' } })
   expect(row.bbox).toEqual([113, 21, 115, 23])
   expect(placePoint(row.lng, row.lat)).toEqual({
     type: 'Point',

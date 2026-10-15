@@ -34,7 +34,7 @@ export {
 } from './placesSearchErrors'
 
 export const PlaceIdentifiersSchema = z
-  .object({ wikidata: z.object({ brandId: z.object({ id: WikidataIdSchema }) }) })
+  .object({ wikidata: z.object({ brandId: WikidataIdSchema }) })
   .openapi('PlaceIdentifiers', {
     description:
       'External identifiers. Wikidata brandId identifies the brand, rather than the venue.',
@@ -657,7 +657,7 @@ const PlaceCollectionAttributesSchema = z
       .optional()
       .openapi({
         description: openApiText('openapi_places_brand_description'),
-        examples: [{ wikidata: { brandId: { id: 'Q106298409' } } }, null],
+        examples: [{ wikidata: { brandId: 'Q106298409' } }, null],
       }),
     websites: PlaceWebsitesSchema.optional().openapi({
       examples: [['http://www.lantaublue.com/'], null],

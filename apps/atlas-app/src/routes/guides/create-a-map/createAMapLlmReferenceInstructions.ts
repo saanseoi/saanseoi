@@ -650,7 +650,7 @@ does not require these attributes.
 ## Places spatial and identifier fields
 
 Places geometry is a GeoJSON Point with longitude before latitude. Bbox is a four-number
-array ordered west, south, east, north. In full-profile responses, identifiers.wikidata.brandId.id
+array ordered west, south, east, north. In full-profile responses, identifiers.wikidata.brandId
 identifies the brand; do not treat it as a venue Wikidata identity. lastSeenMonth is the
 observation month of the selected completed publication. updatedAt records content
 materialisation, rather than publisher modification time.

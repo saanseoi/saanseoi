@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:7bb14ca5c750be49c9a96fe64b021343fb038600d0a471eeef203e587f99446b",
+  "versionHash": "sha256:220cd12e0bcc7c715dfba5508570fbb27351fb559206e2ac7bb1adab814d3abf",
   "apiVersion": "api-places-v0.1",
   "domainCode": "overture",
   "mappingVersion": 1,
@@ -267,7 +267,7 @@
       ]
     },
     {
-      "apiField": "attributes.identifiers.wikidata.brandId.id",
+      "apiField": "attributes.identifiers.wikidata.brandId",
       "sourceDatasetCode": "ds-hk-overture-place",
       "resolverCode": "direct_copy",
       "contributionType": "primary",
@@ -817,7 +817,7 @@
     },
     {
       "apiField": "attributes.countryId",
-      "sourceDatasetCode": "ds-hk-overture-place",
+      "sourceDatasetCode": "ds-hk-overture-division",
       "inputs": [
         {
           "origin": "registry",
@@ -831,7 +831,7 @@
     },
     {
       "apiField": "attributes.areaId",
-      "sourceDatasetCode": "ds-hk-overture-place",
+      "sourceDatasetCode": "ds-hk-overture-division",
       "inputs": [
         {
           "origin": "registry",
@@ -845,7 +845,7 @@
     },
     {
       "apiField": "attributes.districtId",
-      "sourceDatasetCode": "ds-hk-overture-place",
+      "sourceDatasetCode": "ds-hk-overture-division",
       "inputs": [
         {
           "origin": "registry",
@@ -859,7 +859,7 @@
     },
     {
       "apiField": "attributes.townId",
-      "sourceDatasetCode": "ds-hk-overture-place",
+      "sourceDatasetCode": "ds-hk-overture-division",
       "inputs": [
         {
           "origin": "registry",
@@ -873,7 +873,7 @@
     },
     {
       "apiField": "attributes.ruralAreaId",
-      "sourceDatasetCode": "ds-hk-overture-place",
+      "sourceDatasetCode": "ds-hk-overture-division",
       "inputs": [
         {
           "origin": "registry",
@@ -887,7 +887,7 @@
     },
     {
       "apiField": "attributes.macrohoodId",
-      "sourceDatasetCode": "ds-hk-overture-place",
+      "sourceDatasetCode": "ds-hk-overture-division",
       "inputs": [
         {
           "origin": "registry",
@@ -901,7 +901,7 @@
     },
     {
       "apiField": "attributes.neighbourhoodId",
-      "sourceDatasetCode": "ds-hk-overture-place",
+      "sourceDatasetCode": "ds-hk-overture-division",
       "inputs": [
         {
           "origin": "registry",
@@ -915,7 +915,7 @@
     },
     {
       "apiField": "attributes.villageId",
-      "sourceDatasetCode": "ds-hk-overture-place",
+      "sourceDatasetCode": "ds-hk-overture-division",
       "inputs": [
         {
           "origin": "registry",
@@ -929,7 +929,7 @@
     },
     {
       "apiField": "attributes.microhoodId",
-      "sourceDatasetCode": "ds-hk-overture-place",
+      "sourceDatasetCode": "ds-hk-overture-division",
       "inputs": [
         {
           "origin": "registry",
@@ -943,7 +943,7 @@
     },
     {
       "apiField": "attributes.hamletId",
-      "sourceDatasetCode": "ds-hk-overture-place",
+      "sourceDatasetCode": "ds-hk-overture-division",
       "inputs": [
         {
           "origin": "registry",
@@ -957,7 +957,7 @@
     },
     {
       "apiField": "attributes.landformId",
-      "sourceDatasetCode": "ds-hk-overture-place",
+      "sourceDatasetCode": "ds-hk-overture-division",
       "inputs": [
         {
           "origin": "registry",

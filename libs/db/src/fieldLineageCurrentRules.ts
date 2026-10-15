@@ -382,7 +382,7 @@ export function currentPlaceFieldRule(apiField: string): CurrentFieldRule | null
       'jsonValue(categories?.alternate ?? taxonomy?.alternates ?? taxonomy?.alternate)',
     geometry: 'placePoint(effectiveLng, effectiveLat)',
     bbox: 'normalisePlaceBbox(row.bbox)',
-    'identifiers.wikidata.brandId.id': 'asString(brand?.wikidata)',
+    'identifiers.wikidata.brandId': 'asString(brand?.wikidata)',
     sources: 'normaliseOvertureAttribution(row.sources)',
     firstSeenMonth:
       'Preserve the existing identity firstSeenMonth; for a new identity use sourceVersion.slice(0, 7).',
@@ -526,7 +526,7 @@ export function currentPlaceFieldRule(apiField: string): CurrentFieldRule | null
         ],
         geometry: ['geometry'],
         bbox: ['place'],
-        'identifiers.wikidata.brandId.id': ['place'],
+        'identifiers.wikidata.brandId': ['place'],
         sources: ['sources'],
         firstSeenMonth: ['sourceVersion', 'previousIdentity'],
         lastSeenMonth: ['publication.cohortKey'],

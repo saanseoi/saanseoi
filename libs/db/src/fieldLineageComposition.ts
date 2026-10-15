@@ -269,7 +269,7 @@ export function compileResponseField(args: {
         'address3dMembership',
         ...placeDivisionFieldNames,
         'identifiers',
-        'identifiers.wikidata.brandId.id',
+        'identifiers.wikidata.brandId',
         'websites',
         'socials',
         'emails',
@@ -312,7 +312,7 @@ export function compileResponseField(args: {
     ]
     const normal = [
       'identifiers',
-      'identifiers.wikidata.brandId.id',
+      'identifiers.wikidata.brandId',
       'websites',
       'socials',
       'emails',

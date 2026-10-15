@@ -751,7 +751,7 @@ CURRENT and HISTORY Places store `geometry` as a GeoJSON Point with longitude be
 latitude. Canonical `bbox` is `[west, south, east, north]`; SOURCE retains the publisher
 bbox struct. Numeric coordinates are transient processing values for membership and H3.
 
-`identifiers.wikidata.brandId.id` identifies the publisher's brand, rather than the
+`identifiers.wikidata.brandId` identifies the publisher's brand, rather than the
 individual venue. A Place without a brand identifier has null `identifiers`.
 
 `createdAt` and `updatedAt` describe serving materialisation. A changed point, category,
