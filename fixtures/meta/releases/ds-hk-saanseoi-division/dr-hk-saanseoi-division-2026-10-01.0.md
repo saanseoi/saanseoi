@@ -9,8 +9,8 @@ sourceSchemaVersion: "1.0"
 type: "division"
 cohortKey: "2026-10-01.0"
 countsRelease: "dr-hk-saanseoi-division-2026-10-01.0"
-divisionArchiveSha256: "c54d03b913a1ad97b023ff9c66451a20dacdc783346d774e35df27b7c3b31fb2"
-areaArchiveSha256: "4ee7f9706f3908b5a387254b4e2a9f849073fc52b9fdef2c8ca2e049742618b7"
+divisionArchiveSha256: "58ba35738c96d6dad339a70edf68d763c02c04645152011e6a7bf823e4a1a484"
+areaArchiveSha256: "3ced11d17b5d438940639ec2cfedf30865eaaec545b01453267cc14dd4eacdbb"
 divisionCount: "2,003"
 areaCount: "591"
 coveredDivisionCount: "563"
@@ -36,10 +36,11 @@ categoryCount_landform: "262"
 categoryCount_locality: "1,166"
 overtureVersion: "2026-09-23.0"
 overtureAreaVersion: "2026-09-23.0"
-protomapsVersion: "2026-10-01.1"
+protomapsVersion: "2026-10-01.0"
 landsdVersion: "2026-06-10.0"
 rvdVersion: "2015-04-30.0"
 basemapRelease: "2026-10-01"
+classCount_rural_area: "0"
 ---
 
 # EN
@@ -75,7 +76,7 @@ an upstream removal does not automatically remove a curated place.
 ### Protomaps
 
 The coastline and island input uses Protomaps `{{protomapsVersion}}`, replacing
-`2026-09-01.3`. Six islands lose alternative or local-name tags upstream. SaanSeoi's
+`2026-09-01.0`. Six islands lose alternative or local-name tags upstream. SaanSeoi's
 name inventory retains these names as aliases, without replacing the islands' primary
 names or identities.
 
@@ -284,7 +285,7 @@ polygons, preserving sea gaps; member islands also retain their individual polyg
 ### Protomaps 來源更新及島嶼別名保留
 
 海岸線及島嶼輸入採用 Protomaps `{{protomapsVersion}}`，取代
-`2026-09-01.3`。六個島嶼在上游失去別名或地方名稱標籤。SaanSeoi 的名稱清單將以下名稱保留為別名，不取代島嶼的主名稱或身分。
+`2026-09-01.0`。六個島嶼在上游失去別名或地方名稱標籤。SaanSeoi 的名稱清單將以下名稱保留為別名，不取代島嶼的主名稱或身分。
 
 | 島嶼                      | 保留的別名                     |
 | ------------------------- | ------------------------------ |
@@ -436,7 +437,7 @@ schema
 ### Protomaps 来源更新及岛屿别名保留
 
 海岸线及岛屿输入采用 Protomaps `{{protomapsVersion}}`，取代
-`2026-09-01.3`。六个岛屿在上游失去别名或地方名称标签。SaanSeoi 的名称清单将以下名称保留为别名，不取代岛屿的主名称或身份。
+`2026-09-01.0`。六个岛屿在上游失去别名或地方名称标签。SaanSeoi 的名称清单将以下名称保留为别名，不取代岛屿的主名称或身份。
 
 | 岛屿                      | 保留的别名                     |
 | ------------------------- | ------------------------------ |

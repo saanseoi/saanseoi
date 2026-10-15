@@ -13,7 +13,7 @@ test('source-only completion requires both archives, ingestion evidence and reta
   const source = new Database(path)
   const release = {
     id: 'release',
-    code: 'dr-hk-protomaps-island-2026-10-01.1::divisionArea',
+    code: 'dr-hk-protomaps-island-2026-10-01.0::divisionArea',
     resourceType: 'divisionArea',
   }
   try {
@@ -22,8 +22,8 @@ test('source-only completion requires both archives, ingestion evidence and reta
       CREATE TABLE datasets(id TEXT,code TEXT);
       CREATE TABLE processingAudits(resourceReleaseId TEXT,ownerId TEXT,stage TEXT,attemptStatus TEXT);
       CREATE TABLE assets(sourceReleaseId TEXT,resourceReleaseId TEXT,role TEXT,byteLength INTEGER,contentHash TEXT);
-      INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status) VALUES ('edition', 'dataset', 'source-' || 'release', '2026-10-01.1', 'current');
-UPDATE sourceReleases SET datasetId = 'dataset', sourceVersion = '2026-10-01.1' WHERE id = 'edition';
+      INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status) VALUES ('edition', 'dataset', 'source-' || 'release', '2026-10-01.0', 'current');
+UPDATE sourceReleases SET datasetId = 'dataset', sourceVersion = '2026-10-01.0' WHERE id = 'edition';
 INSERT INTO resourceReleases (id, sourceReleaseId, code, resourceType, status) VALUES ('release', 'edition', 'release', 'division', 'current');
       INSERT INTO datasets VALUES ('dataset','ds-hk-protomaps-island');
       INSERT INTO processingAudits VALUES ('release','release','ingestion','completed');
@@ -31,11 +31,11 @@ INSERT INTO resourceReleases (id, sourceReleaseId, code, resourceType, status) V
       INSERT INTO assets VALUES (NULL,'release','resourceSourceArchive',10,'hash');
     `)
     source.exec(`CREATE TABLE protomapsIslandFeatures(validFromRelease TEXT,validToRelease TEXT);
-      INSERT INTO protomapsIslandFeatures VALUES ('2026-09-01.3',NULL);`)
+      INSERT INTO protomapsIslandFeatures VALUES ('2026-09-01.0',NULL);`)
     const files = { DB_SOURCE_HK_2026: path }
     const check = () => sourceOnlyCompletion(meta, files, release)
     expect(check()).toBe(true)
-    source.exec("UPDATE protomapsIslandFeatures SET validToRelease='2026-10-01.1'")
+    source.exec("UPDATE protomapsIslandFeatures SET validToRelease='2026-10-01.0'")
     expect(check()).toBe(false)
     source.exec('UPDATE protomapsIslandFeatures SET validToRelease=NULL')
     meta.exec("UPDATE processingAudits SET attemptStatus='failed'")

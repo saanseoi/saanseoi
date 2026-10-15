@@ -15,7 +15,7 @@ const sourceReleases = [
   'protomaps-island',
   'hkgov-landsd-division',
   'hkgov-rvd-division',
-].map(source => ({ datasetCode: `ds-hk-${source}`, sourceVersion: '2026-09-01.3' }))
+].map(source => ({ datasetCode: `ds-hk-${source}`, sourceVersion: '2026-09-01.0' }))
 async function archive(type: 'division' | 'divisionArea', rows: object[]) {
   const code =
     type === 'division' ? release : release.replace('division-', 'division-area-')
@@ -54,7 +54,7 @@ test('queries distinct coverage, uncovered divisions and classes within an exact
     uncoveredDivisionCount: '1',
     classCount_hamlet: '1',
     countsRelease: release,
-    protomapsVersion: '2026-09-01.3',
+    protomapsVersion: '2026-09-01.0',
     basemapRelease: '2026-09-01',
   })
   expect(values.divisionArchiveSha256).toMatch(/^[a-f0-9]{64}$/)

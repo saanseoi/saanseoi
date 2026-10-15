@@ -24,8 +24,8 @@ hashes. The manifest also identifies the archived upstream OSM PBF and its check
 Preparation reads the source inputs, never the combined island review fixture:
 
 ```sh
-bun apps/harbour-dataops/src/cli.ts protomaps-islands:prepare --manifest .local/tiles/data/hk/hongkong-2026-09-01.json --source-version 2026-09-01.3 --out-dir .local/protomaps-islands/2026-09-01.3
-bun apps/harbour-dataops/src/cli.ts protomaps-islands:ingest .local/protomaps-islands/2026-09-01.3/dr-hk-protomaps-island-2026-09-01.3.zip --target local
+bun apps/harbour-dataops/src/cli.ts protomaps-islands:prepare --manifest .local/tiles/data/hk/hongkong-2026-09-01.json --source-version 2026-09-01.0 --out-dir .local/protomaps-islands/2026-09-01.0
+bun apps/harbour-dataops/src/cli.ts protomaps-islands:ingest .local/protomaps-islands/2026-09-01.0/dr-hk-protomaps-island-2026-09-01.0.zip --target local
 ```
 
 The deterministic ZIP uses `schemaVersion: 2`. It contains the input manifest, shared
@@ -53,7 +53,7 @@ locale suffix of each `name:*` tag. Untagged `name` remains a publisher tag; pre
 does not infer its language. Missing names remain missing. No LandsD label, curated name
 or canonical division ID enters the source ledger.
 
-The September `2026-09-01.3` extraction contains 764 OSM features (760 polygon features
+The September `2026-09-01.0` extraction contains 764 OSM features (760 polygon features
 and four points) and 907 full coastline records, stored once. Island membership selects
 all 764 OSM features and 906 detached coastline records; the mainland has no island
 membership. 295 OSM features carry explicit locale-tagged names. These source counts are
@@ -122,7 +122,7 @@ Ung Kong retains Basalt Island, Bluff Island and Wang Chau as its seed envelope.
 Explicit members Kong Tau Pai
 (`LANDSD:PLACE_NAME:732`), 四排尾 (`BASEMAP:ISLAND:20237d751b5fe16d`) and Kam Chung Ngam
 (`BASEMAP:ISLAND:ad777e9a7bc9fd4c`) are supported by the retained Protomaps
-`OSM:a31915135` archipelago MultiPolygon from `2026-09-01.3`. Their selected polygons
+`OSM:a31915135` archipelago MultiPolygon from `2026-09-01.0`. Their selected polygons
 have more than 80% area overlap with that source geometry. Explicit membership keeps
 nearby Town Island outside the group without enlarging the automatic envelope. The
 resulting Ung Kong union has 14 member records. No source names, reviewed identities or
@@ -187,3 +187,8 @@ Release-note fixtures live under `fixtures/meta/releases/ds-hk-protomaps-island/
 resolves each exact archive pin from the Division review and publication inputs. The
 archive loader verifies its SHA-256 before native source-only ingestion. New basemap
 releases require a prepared, reviewed extraction and a registered source version.
+
+Monthly extraction versions use `YYYY-MM-01.0` for the initial retained baseline. The
+ZIP manifest, release metadata and curated Division archive pins identify the same
+version and SHA-256. Island selections, publisher records and geometry remain
+independent of the packaging revision.

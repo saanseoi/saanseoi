@@ -1557,8 +1557,8 @@ Assembly retains inputs and curation hashes in generated reports and archive man
 without writing fixture files. Island extraction evidence must agree with the pinned
 Protomaps version.
 
-Local initialisation retains both pinned Protomaps archives (`2026-09-01.3` and
-`2026-10-01.1`) before assembling the September and October SaanSeoi editions. Resuming
+Local initialisation retains both pinned Protomaps archives (`2026-09-01.0` and
+`2026-10-01.0`) before assembling the September and October SaanSeoi editions. Resuming
 source-only Protomaps and RVD inputs verifies their ingestion audit, retained publisher
 and resource archives, and source-row validity without requiring a canonical snapshot
 for those inputs.
@@ -2003,7 +2003,7 @@ Pai (Wok Tuk Pai), Pyramid Rock (Wei Sam Chau), Tuen Tau Chau (Tse Leung Chau), 
 Island (Chu Kwu Chau; 豬牯洲), Cha Kwo Chau (Yeung Chau; 洋洲) and Wong Mau Chau (South
 Gau; Nam Kau; 南牛; 南滘). These aliases remain attached to the canonical island
 identifiers; primary names are unchanged. Evidence is retained in Protomaps
-`2026-09-01.3`, compared with `2026-10-01.1`.
+`2026-09-01.0`, compared with `2026-10-01.0`.
 
 Assembly applies the name inventory after island identities are materialised, including
 islands without an Overture match. Alias patches populate alternate names, name variants

@@ -1,10 +1,10 @@
 ---
 dataset: "ds-hk-protomaps-island"
-release: "dr-hk-protomaps-island-2026-09-01.3"
+release: "dr-hk-protomaps-island-2026-10-01.0"
 regionCode: "hk"
 source: "protomaps"
-sourceVersion: "2026-09-01.3"
-releaseVersion: "2026-09-01.3"
+sourceVersion: "2026-10-01.0"
+releaseVersion: "2026-10-01.0"
 type: "divisionArea"
 ---
 
@@ -12,15 +12,13 @@ type: "divisionArea"
 
 ## Changelog
 
-- Initial 山水 | SaanSeoi source release of island and coastline data from the September
-  2026 Protomaps map of Hong Kong.
-- Retains **1,671 source records**: 764 OpenStreetMap island features and 907 coastline
-  land records.
-- Establishes the baseline for comparisons with later releases.
+- Since
+  [September](/sources/ds-hk-protomaps-island/dr-hk-protomaps-island-2026-09-01.0): 1
+  source record added, 1 removed and 6 updated.
 
 ## Coverage
 
-The [Protomaps basemap release](https://tiles.saanseoi.hk/releases/hk/2026-09-01.json)
+The [Protomaps basemap release](https://tiles.saanseoi.hk/releases/hk/2026-10-01.json)
 supplies island locations and shapes, together with the coastline of Hong Kong. SaanSeoi
 uses these records to identify islands and to limit administrative area shapes to land.
 
@@ -54,13 +52,11 @@ curated names, island identities and boundaries are published separately in
 
 ## 更新記錄
 
-- 山水 | SaanSeoi 初始來源版本，收錄 2026 年 9 月 Protomaps 香港地圖的島嶼及海岸線資料。
-- 保留 **1,671 筆來源記錄**：764 筆 OpenStreetMap 島嶼要素及 907 筆海岸線陸地記錄。
-- 作為往後版本比較的基準。
+- 與[9 月版本](/sources/ds-hk-protomaps-island/dr-hk-protomaps-island-2026-09-01.0)相比：新增 1 筆來源記錄、移除 1 筆、更新 6 筆。
 
 ## 涵蓋範圍
 
-[Protomaps 底圖版本](https://tiles.saanseoi.hk/releases/hk/2026-09-01.json)提供島嶼位置及形狀，以及香港海岸線。山水利用這些記錄辨識島嶼，並將行政區域的形狀限制在陸地上。
+[Protomaps 底圖版本](https://tiles.saanseoi.hk/releases/hk/2026-10-01.json)提供島嶼位置及形狀，以及香港海岸線。山水利用這些記錄辨識島嶼，並將行政區域的形狀限制在陸地上。
 
 OpenStreetMap 要素包括島嶼、小島及群島記錄。部分只有位置標記，沒有輪廓。海岸線記錄同時涵蓋大陸陸地及島嶼；保留完整海岸線也能支援行政區域的劃定。
 
@@ -83,13 +79,11 @@ OpenStreetMap 要素包括島嶼、小島及群島記錄。部分只有位置標
 
 ## 更新记录
 
-- 山水 | SaanSeoi 初始来源版本，收录 2026 年 9 月 Protomaps 香港地图的岛屿及海岸线资料。
-- 保留 **1,671 条来源记录**：764 条 OpenStreetMap 岛屿要素及 907 条海岸线陆地记录。
-- 作为以后版本比较的基准。
+- 与[9 月版本](/sources/ds-hk-protomaps-island/dr-hk-protomaps-island-2026-09-01.0)相比：新增 1 条来源记录、移除 1 条、更新 6 条。
 
 ## 涵盖范围
 
-[Protomaps 底图版本](https://tiles.saanseoi.hk/releases/hk/2026-09-01.json)提供岛屿位置及形状，以及香港海岸线。山水利用这些记录识别岛屿，并将行政区域的形状限制在陆地上。
+[Protomaps 底图版本](https://tiles.saanseoi.hk/releases/hk/2026-10-01.json)提供岛屿位置及形状，以及香港海岸线。山水利用这些记录识别岛屿，并将行政区域的形状限制在陆地上。
 
 OpenStreetMap 要素包括岛屿、小岛及群岛记录。部分只有位置标记，没有轮廓。海岸线记录同时涵盖大陆陆地及岛屿；保留完整海岸线也能支持行政区域的划定。
 

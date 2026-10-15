@@ -31,7 +31,7 @@ end
 
 # These source-only ingredients are pinned by the curated release manifest.
 # Retain them in the selected local database before publishing that manifest.
-for protomaps_version in 2026-09-01.3 2026-10-01.1
+for protomaps_version in 2026-09-01.0 2026-10-01.0
     set -l protomaps_release_code "dr-hk-protomaps-island-$protomaps_version"
     if not init_skip_completed_release "$protomaps_release_code::divisionArea"
         set -l protomaps_archive \

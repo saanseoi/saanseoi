@@ -28,7 +28,7 @@ domainCode: "geographic"
   macrohood. 羅馬廣場 is excluded by the plaza/square coverage policy. See the
   [SaanSeoi changes](/sources/ds-hk-saanseoi-division/dr-hk-saanseoi-division-2026-10-01.0?tab=changes).
 - <orange>Geometry</orange> Uses Protomaps
-  [`2026-10-01.1`](/sources/ds-hk-protomaps-island/dr-hk-protomaps-island-2026-10-01.1?tab=changes).
+  [`2026-10-01.0`](/sources/ds-hk-protomaps-island/dr-hk-protomaps-island-2026-10-01.0?tab=changes).
   Accepted aliases for six islands are retained despite their removal from upstream name
   tags. Lands Department `2026-06-10.0` and RVD `2015-04-30.0` remain the pinned naming
   inputs.
@@ -82,7 +82,7 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
   `macrohood`。羅馬廣場按廣場覆蓋政策排除。請參閱
   [SaanSeoi 變動](/sources/ds-hk-saanseoi-division/dr-hk-saanseoi-division-2026-10-01.0?tab=changes)。
 - <orange>幾何</orange> 使用 Protomaps
-  [`2026-10-01.1`](/sources/ds-hk-protomaps-island/dr-hk-protomaps-island-2026-10-01.1?tab=changes)。六個島嶼的已確認別名即使被上游名稱標籤移除，仍然保留。地政總署
+  [`2026-10-01.0`](/sources/ds-hk-protomaps-island/dr-hk-protomaps-island-2026-10-01.0?tab=changes)。六個島嶼的已確認別名即使被上游名稱標籤移除，仍然保留。地政總署
   `2026-06-10.0` 及差餉物業估價署 `2015-04-30.0` 仍為固定的名稱輸入。
 
 ## 修訂紀錄
@@ -126,7 +126,7 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
   `macrohood`。罗马广场按广场覆盖政策排除。请参阅
   [SaanSeoi 变动](/sources/ds-hk-saanseoi-division/dr-hk-saanseoi-division-2026-10-01.0?tab=changes)。
 - <orange>几何</orange> 使用 Protomaps
-  [`2026-10-01.1`](/sources/ds-hk-protomaps-island/dr-hk-protomaps-island-2026-10-01.1?tab=changes)。六个岛屿的已确认别名即使被上游名称标签移除，仍然保留。地政总署
+  [`2026-10-01.0`](/sources/ds-hk-protomaps-island/dr-hk-protomaps-island-2026-10-01.0?tab=changes)。六个岛屿的已确认别名即使被上游名称标签移除，仍然保留。地政总署
   `2026-06-10.0` 及差饷物业估价署 `2015-04-30.0` 仍为固定的名称输入。
 
 ## 修订记录
