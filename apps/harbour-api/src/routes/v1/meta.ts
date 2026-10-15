@@ -527,6 +527,18 @@ async function listApiReleaseSetSources(dbBinding: D1Database) {
           -- Lookup bindings expose the bound dataset, rather than the
           -- enrichment ingredients used to assemble that dataset's snapshot.
           AND (arss.role <> 'lookup' OR ss.role = 'primary')
+          -- A primary dataset may also feed a lookup projection. Do not
+          -- present that projection as the dataset supporting itself.
+          AND (arss.role <> 'lookup' OR NOT EXISTS (
+            SELECT 1
+            FROM apiReleaseSetSnapshots primaryBinding
+            INNER JOIN snapshotResourceReleaseDetails primarySource
+              ON primarySource.snapshotId = primaryBinding.snapshotId
+            WHERE primaryBinding.apiReleaseSetId = arss.apiReleaseSetId
+              AND primaryBinding.role = 'primary'
+              AND primarySource.role = 'primary'
+              AND primarySource.datasetId = ss.datasetId
+          ))
         ORDER BY arss.apiReleaseSetId, role, sl.resourceType, r.code
         `,
       )
