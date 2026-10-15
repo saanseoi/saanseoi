@@ -1,0 +1,5062 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "id": "035a3a08-a2eb-4155-89b8-678cb7451bdb",
+  "prevIds": ["2a493a69-0410-4984-9e1b-47c753f4326b"],
+  "ddl": [
+    {
+      "name": "address2d",
+      "entityType": "tables"
+    },
+    {
+      "name": "address2dBuildingNumberLookup",
+      "entityType": "tables"
+    },
+    {
+      "name": "address2dI18n",
+      "entityType": "tables"
+    },
+    {
+      "name": "address3d",
+      "entityType": "tables"
+    },
+    {
+      "name": "address3dI18n",
+      "entityType": "tables"
+    },
+    {
+      "name": "divisionAreas",
+      "entityType": "tables"
+    },
+    {
+      "name": "divisionBoundaries",
+      "entityType": "tables"
+    },
+    {
+      "name": "divisions",
+      "entityType": "tables"
+    },
+    {
+      "name": "divisionsI18n",
+      "entityType": "tables"
+    },
+    {
+      "name": "places",
+      "entityType": "tables"
+    },
+    {
+      "name": "placesI18n",
+      "entityType": "tables"
+    },
+    {
+      "name": "statsDefinitionSets",
+      "entityType": "tables"
+    },
+    {
+      "name": "statsFields",
+      "entityType": "tables"
+    },
+    {
+      "name": "statsFieldsI18n",
+      "entityType": "tables"
+    },
+    {
+      "name": "statsMeasures",
+      "entityType": "tables"
+    },
+    {
+      "name": "statsMeasuresI18n",
+      "entityType": "tables"
+    },
+    {
+      "name": "statsRecords",
+      "entityType": "tables"
+    },
+    {
+      "name": "statsValuesI18n",
+      "entityType": "tables"
+    },
+    {
+      "name": "streetGeometry",
+      "entityType": "tables"
+    },
+    {
+      "name": "streetChangelog",
+      "entityType": "tables"
+    },
+    {
+      "name": "streetNameChangeStreets",
+      "entityType": "tables"
+    },
+    {
+      "name": "streetNameChanges",
+      "entityType": "tables"
+    },
+    {
+      "name": "streets",
+      "entityType": "tables"
+    },
+    {
+      "name": "streetsI18n",
+      "entityType": "tables"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "id",
+      "entityType": "columns",
+      "table": "address2d"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "parentAddressId",
+      "entityType": "columns",
+      "table": "address2d"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": "'unknown'",
+      "generated": null,
+      "name": "granularity",
+      "entityType": "columns",
+      "table": "address2d"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "streetId",
+      "entityType": "columns",
+      "table": "address2d"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "hamletId",
+      "entityType": "columns",
+      "table": "address2d"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "microhoodId",
+      "entityType": "columns",
+      "table": "address2d"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "villageId",
+      "entityType": "columns",
+      "table": "address2d"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "neighbourhoodId",
+      "entityType": "columns",
+      "table": "address2d"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "ruralAreaId",
+      "entityType": "columns",
+      "table": "address2d"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "macrohoodId",
+      "entityType": "columns",
+      "table": "address2d"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "townId",
+      "entityType": "columns",
+      "table": "address2d"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "landformId",
+      "entityType": "columns",
+      "table": "address2d"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "districtId",
+      "entityType": "columns",
+      "table": "address2d"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "areaId",
+      "entityType": "columns",
+      "table": "address2d"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "countryId",
+      "entityType": "columns",
+      "table": "address2d"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "identifiers",
+      "entityType": "columns",
+      "table": "address2d"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sources",
+      "entityType": "columns",
+      "table": "address2d"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "geometry",
+      "entityType": "columns",
+      "table": "address2d"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "snapshotId",
+      "entityType": "columns",
+      "table": "address2d"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "'upsert'",
+      "generated": null,
+      "name": "operation",
+      "entityType": "columns",
+      "table": "address2d"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "versionHash",
+      "entityType": "columns",
+      "table": "address2d"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceReleaseId",
+      "entityType": "columns",
+      "table": "address2d"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "true",
+      "generated": null,
+      "name": "isCurrent",
+      "entityType": "columns",
+      "table": "address2d"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "address2d"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "addressId",
+      "entityType": "columns",
+      "table": "address2dBuildingNumberLookup"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "buildingNumber",
+      "entityType": "columns",
+      "table": "address2dBuildingNumberLookup"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "numericStem",
+      "entityType": "columns",
+      "table": "address2dBuildingNumberLookup"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "evidence",
+      "entityType": "columns",
+      "table": "address2dBuildingNumberLookup"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "derivation",
+      "entityType": "columns",
+      "table": "address2dBuildingNumberLookup"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "snapshotId",
+      "entityType": "columns",
+      "table": "address2dBuildingNumberLookup"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "'upsert'",
+      "generated": null,
+      "name": "operation",
+      "entityType": "columns",
+      "table": "address2dBuildingNumberLookup"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "versionHash",
+      "entityType": "columns",
+      "table": "address2dBuildingNumberLookup"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceReleaseId",
+      "entityType": "columns",
+      "table": "address2dBuildingNumberLookup"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "true",
+      "generated": null,
+      "name": "isCurrent",
+      "entityType": "columns",
+      "table": "address2dBuildingNumberLookup"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "address2dBuildingNumberLookup"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "addressId",
+      "entityType": "columns",
+      "table": "address2dI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "locale",
+      "entityType": "columns",
+      "table": "address2dI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "formattedAddress",
+      "entityType": "columns",
+      "table": "address2dI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "buildingName",
+      "entityType": "columns",
+      "table": "address2dI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "buildingNumberExpression",
+      "entityType": "columns",
+      "table": "address2dI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "buildingNumberFrom",
+      "entityType": "columns",
+      "table": "address2dI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "buildingNumberTo",
+      "entityType": "columns",
+      "table": "address2dI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "buildingNumberConnector",
+      "entityType": "columns",
+      "table": "address2dI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "blockExpression",
+      "entityType": "columns",
+      "table": "address2dI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "blockType",
+      "entityType": "columns",
+      "table": "address2dI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "blockRef",
+      "entityType": "columns",
+      "table": "address2dI18n"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "blockTypeBeforeNumber",
+      "entityType": "columns",
+      "table": "address2dI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "phaseExpression",
+      "entityType": "columns",
+      "table": "address2dI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "phaseName",
+      "entityType": "columns",
+      "table": "address2dI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "phaseRef",
+      "entityType": "columns",
+      "table": "address2dI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "estateName",
+      "entityType": "columns",
+      "table": "address2dI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "streetName",
+      "entityType": "columns",
+      "table": "address2dI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "snapshotId",
+      "entityType": "columns",
+      "table": "address2dI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "'upsert'",
+      "generated": null,
+      "name": "operation",
+      "entityType": "columns",
+      "table": "address2dI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "versionHash",
+      "entityType": "columns",
+      "table": "address2dI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceReleaseId",
+      "entityType": "columns",
+      "table": "address2dI18n"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "true",
+      "generated": null,
+      "name": "isCurrent",
+      "entityType": "columns",
+      "table": "address2dI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "address2dI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "id",
+      "entityType": "columns",
+      "table": "address3d"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "address2dId",
+      "entityType": "columns",
+      "table": "address3d"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "units",
+      "entityType": "columns",
+      "table": "address3d"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "unitCount",
+      "entityType": "columns",
+      "table": "address3d"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "contentHash",
+      "entityType": "columns",
+      "table": "address3d"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "unresolvedSectionIds",
+      "entityType": "columns",
+      "table": "address3d"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sources",
+      "entityType": "columns",
+      "table": "address3d"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "snapshotId",
+      "entityType": "columns",
+      "table": "address3d"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "'upsert'",
+      "generated": null,
+      "name": "operation",
+      "entityType": "columns",
+      "table": "address3d"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "versionHash",
+      "entityType": "columns",
+      "table": "address3d"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceReleaseId",
+      "entityType": "columns",
+      "table": "address3d"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "true",
+      "generated": null,
+      "name": "isCurrent",
+      "entityType": "columns",
+      "table": "address3d"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "address3d"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "address3dId",
+      "entityType": "columns",
+      "table": "address3dI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "locale",
+      "entityType": "columns",
+      "table": "address3dI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "units",
+      "entityType": "columns",
+      "table": "address3dI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "snapshotId",
+      "entityType": "columns",
+      "table": "address3dI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "'upsert'",
+      "generated": null,
+      "name": "operation",
+      "entityType": "columns",
+      "table": "address3dI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "versionHash",
+      "entityType": "columns",
+      "table": "address3dI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceReleaseId",
+      "entityType": "columns",
+      "table": "address3dI18n"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "true",
+      "generated": null,
+      "name": "isCurrent",
+      "entityType": "columns",
+      "table": "address3dI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "address3dI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "id",
+      "entityType": "columns",
+      "table": "divisionAreas"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": "'overture'",
+      "generated": null,
+      "name": "variant",
+      "entityType": "columns",
+      "table": "divisionAreas"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "bbox",
+      "entityType": "columns",
+      "table": "divisionAreas"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "geometry",
+      "entityType": "columns",
+      "table": "divisionAreas"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sources",
+      "entityType": "columns",
+      "table": "divisionAreas"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "type",
+      "entityType": "columns",
+      "table": "divisionAreas"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "isLand",
+      "entityType": "columns",
+      "table": "divisionAreas"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "isTerritorial",
+      "entityType": "columns",
+      "table": "divisionAreas"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "divisionId",
+      "entityType": "columns",
+      "table": "divisionAreas"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "snapshotId",
+      "entityType": "columns",
+      "table": "divisionAreas"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "'upsert'",
+      "generated": null,
+      "name": "operation",
+      "entityType": "columns",
+      "table": "divisionAreas"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "versionHash",
+      "entityType": "columns",
+      "table": "divisionAreas"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceReleaseId",
+      "entityType": "columns",
+      "table": "divisionAreas"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "true",
+      "generated": null,
+      "name": "isCurrent",
+      "entityType": "columns",
+      "table": "divisionAreas"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "divisionAreas"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "id",
+      "entityType": "columns",
+      "table": "divisionBoundaries"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": "'overture'",
+      "generated": null,
+      "name": "variant",
+      "entityType": "columns",
+      "table": "divisionBoundaries"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "bbox",
+      "entityType": "columns",
+      "table": "divisionBoundaries"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "geometry",
+      "entityType": "columns",
+      "table": "divisionBoundaries"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sources",
+      "entityType": "columns",
+      "table": "divisionBoundaries"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "type",
+      "entityType": "columns",
+      "table": "divisionBoundaries"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "isLand",
+      "entityType": "columns",
+      "table": "divisionBoundaries"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "isTerritorial",
+      "entityType": "columns",
+      "table": "divisionBoundaries"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "leftDivisionId",
+      "entityType": "columns",
+      "table": "divisionBoundaries"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "rightDivisionId",
+      "entityType": "columns",
+      "table": "divisionBoundaries"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "snapshotId",
+      "entityType": "columns",
+      "table": "divisionBoundaries"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "'upsert'",
+      "generated": null,
+      "name": "operation",
+      "entityType": "columns",
+      "table": "divisionBoundaries"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "versionHash",
+      "entityType": "columns",
+      "table": "divisionBoundaries"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceReleaseId",
+      "entityType": "columns",
+      "table": "divisionBoundaries"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "true",
+      "generated": null,
+      "name": "isCurrent",
+      "entityType": "columns",
+      "table": "divisionBoundaries"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "divisionBoundaries"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "id",
+      "entityType": "columns",
+      "table": "divisions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "divisionCode",
+      "entityType": "columns",
+      "table": "divisions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "identifiers",
+      "entityType": "columns",
+      "table": "divisions"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "level",
+      "entityType": "columns",
+      "table": "divisions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "category",
+      "entityType": "columns",
+      "table": "divisions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "class",
+      "entityType": "columns",
+      "table": "divisions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "hierarchies",
+      "entityType": "columns",
+      "table": "divisions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "cartography",
+      "entityType": "columns",
+      "table": "divisions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sources",
+      "entityType": "columns",
+      "table": "divisions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "geometry",
+      "entityType": "columns",
+      "table": "divisions"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "snapshotId",
+      "entityType": "columns",
+      "table": "divisions"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "'upsert'",
+      "generated": null,
+      "name": "operation",
+      "entityType": "columns",
+      "table": "divisions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "versionHash",
+      "entityType": "columns",
+      "table": "divisions"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceReleaseId",
+      "entityType": "columns",
+      "table": "divisions"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "true",
+      "generated": null,
+      "name": "isCurrent",
+      "entityType": "columns",
+      "table": "divisions"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "divisions"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "divisionId",
+      "entityType": "columns",
+      "table": "divisionsI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "locale",
+      "entityType": "columns",
+      "table": "divisionsI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "name",
+      "entityType": "columns",
+      "table": "divisionsI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "nameVariant",
+      "entityType": "columns",
+      "table": "divisionsI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "nameAlts",
+      "entityType": "columns",
+      "table": "divisionsI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "nameRules",
+      "entityType": "columns",
+      "table": "divisionsI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "nameProvenance",
+      "entityType": "columns",
+      "table": "divisionsI18n"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "isLocaleInferred",
+      "entityType": "columns",
+      "table": "divisionsI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "snapshotId",
+      "entityType": "columns",
+      "table": "divisionsI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "'upsert'",
+      "generated": null,
+      "name": "operation",
+      "entityType": "columns",
+      "table": "divisionsI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "versionHash",
+      "entityType": "columns",
+      "table": "divisionsI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceReleaseId",
+      "entityType": "columns",
+      "table": "divisionsI18n"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "true",
+      "generated": null,
+      "name": "isCurrent",
+      "entityType": "columns",
+      "table": "divisionsI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "divisionsI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "id",
+      "entityType": "columns",
+      "table": "places"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "resourceReleaseId",
+      "entityType": "columns",
+      "table": "places"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "addressDependencyHash",
+      "entityType": "columns",
+      "table": "places"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "addressSnapshotId",
+      "entityType": "columns",
+      "table": "places"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "address2dId",
+      "entityType": "columns",
+      "table": "places"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "address3dId",
+      "entityType": "columns",
+      "table": "places"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "address3dUnitId",
+      "entityType": "columns",
+      "table": "places"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "address3dMembership",
+      "entityType": "columns",
+      "table": "places"
+    },
+    {
+      "type": "real",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "lng",
+      "entityType": "columns",
+      "table": "places"
+    },
+    {
+      "type": "real",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "lat",
+      "entityType": "columns",
+      "table": "places"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "bbox",
+      "entityType": "columns",
+      "table": "places"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "operatingStatus",
+      "entityType": "columns",
+      "table": "places"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "basicCategory",
+      "entityType": "columns",
+      "table": "places"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "taxonomyPrimary",
+      "entityType": "columns",
+      "table": "places"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "taxonomyHierarchy",
+      "entityType": "columns",
+      "table": "places"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "taxonomyAlternates",
+      "entityType": "columns",
+      "table": "places"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "wikidataId",
+      "entityType": "columns",
+      "table": "places"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "websites",
+      "entityType": "columns",
+      "table": "places"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "socials",
+      "entityType": "columns",
+      "table": "places"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "emails",
+      "entityType": "columns",
+      "table": "places"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "phones",
+      "entityType": "columns",
+      "table": "places"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "addresses",
+      "entityType": "columns",
+      "table": "places"
+    },
+    {
+      "type": "real",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "confidence",
+      "entityType": "columns",
+      "table": "places"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sources",
+      "entityType": "columns",
+      "table": "places"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "firstSeenMonth",
+      "entityType": "columns",
+      "table": "places"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "lastSeenMonth",
+      "entityType": "columns",
+      "table": "places"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "snapshotId",
+      "entityType": "columns",
+      "table": "places"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "'upsert'",
+      "generated": null,
+      "name": "operation",
+      "entityType": "columns",
+      "table": "places"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "versionHash",
+      "entityType": "columns",
+      "table": "places"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceReleaseId",
+      "entityType": "columns",
+      "table": "places"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "true",
+      "generated": null,
+      "name": "isCurrent",
+      "entityType": "columns",
+      "table": "places"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "places"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "searchDependencyText",
+      "entityType": "columns",
+      "table": "placesI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "placeId",
+      "entityType": "columns",
+      "table": "placesI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "locale",
+      "entityType": "columns",
+      "table": "placesI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "name",
+      "entityType": "columns",
+      "table": "placesI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "nameVariant",
+      "entityType": "columns",
+      "table": "placesI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "nameAlts",
+      "entityType": "columns",
+      "table": "placesI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "brandName",
+      "entityType": "columns",
+      "table": "placesI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "brandNameVariant",
+      "entityType": "columns",
+      "table": "placesI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "brandNameAlts",
+      "entityType": "columns",
+      "table": "placesI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "freeformAddress",
+      "entityType": "columns",
+      "table": "placesI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "accessHint",
+      "entityType": "columns",
+      "table": "placesI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "provenance",
+      "entityType": "columns",
+      "table": "placesI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "snapshotId",
+      "entityType": "columns",
+      "table": "placesI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "'upsert'",
+      "generated": null,
+      "name": "operation",
+      "entityType": "columns",
+      "table": "placesI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "versionHash",
+      "entityType": "columns",
+      "table": "placesI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceReleaseId",
+      "entityType": "columns",
+      "table": "placesI18n"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "true",
+      "generated": null,
+      "name": "isCurrent",
+      "entityType": "columns",
+      "table": "placesI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "placesI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "id",
+      "entityType": "columns",
+      "table": "statsDefinitionSets"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "fieldDefinitionHashes",
+      "entityType": "columns",
+      "table": "statsDefinitionSets"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "datasetCode",
+      "entityType": "columns",
+      "table": "statsFields"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "measureCode",
+      "entityType": "columns",
+      "table": "statsFields"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": "''",
+      "generated": null,
+      "name": "measureVersionHash",
+      "entityType": "columns",
+      "table": "statsFields"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "fieldName",
+      "entityType": "columns",
+      "table": "statsFields"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceField",
+      "entityType": "columns",
+      "table": "statsFields"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "dimensions",
+      "entityType": "columns",
+      "table": "statsFields"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "comparability",
+      "entityType": "columns",
+      "table": "statsFields"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceNullOption",
+      "entityType": "columns",
+      "table": "statsFields"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": "'unreviewed'",
+      "generated": null,
+      "name": "statisticKind",
+      "entityType": "columns",
+      "table": "statsFields"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": "'unreviewed'",
+      "generated": null,
+      "name": "aggregation",
+      "entityType": "columns",
+      "table": "statsFields"
+    },
+    {
+      "type": "real",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "aggregationPercentile",
+      "entityType": "columns",
+      "table": "statsFields"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "periodicity",
+      "entityType": "columns",
+      "table": "statsFields"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "denominatorFieldName",
+      "entityType": "columns",
+      "table": "statsFields"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "valueKind",
+      "entityType": "columns",
+      "table": "statsFields"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "unitCode",
+      "entityType": "columns",
+      "table": "statsFields"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "snapshotId",
+      "entityType": "columns",
+      "table": "statsFields"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "'upsert'",
+      "generated": null,
+      "name": "operation",
+      "entityType": "columns",
+      "table": "statsFields"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "versionHash",
+      "entityType": "columns",
+      "table": "statsFields"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceReleaseId",
+      "entityType": "columns",
+      "table": "statsFields"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "true",
+      "generated": null,
+      "name": "isCurrent",
+      "entityType": "columns",
+      "table": "statsFields"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "statsFields"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "datasetCode",
+      "entityType": "columns",
+      "table": "statsFieldsI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "fieldName",
+      "entityType": "columns",
+      "table": "statsFieldsI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "locale",
+      "entityType": "columns",
+      "table": "statsFieldsI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "name",
+      "entityType": "columns",
+      "table": "statsFieldsI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "description",
+      "entityType": "columns",
+      "table": "statsFieldsI18n"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": "true",
+      "generated": null,
+      "name": "isTranslationVerified",
+      "entityType": "columns",
+      "table": "statsFieldsI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "snapshotId",
+      "entityType": "columns",
+      "table": "statsFieldsI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "'upsert'",
+      "generated": null,
+      "name": "operation",
+      "entityType": "columns",
+      "table": "statsFieldsI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "versionHash",
+      "entityType": "columns",
+      "table": "statsFieldsI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceReleaseId",
+      "entityType": "columns",
+      "table": "statsFieldsI18n"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "true",
+      "generated": null,
+      "name": "isCurrent",
+      "entityType": "columns",
+      "table": "statsFieldsI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "statsFieldsI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "datasetCode",
+      "entityType": "columns",
+      "table": "statsMeasures"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "measureCode",
+      "entityType": "columns",
+      "table": "statsMeasures"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "snapshotId",
+      "entityType": "columns",
+      "table": "statsMeasures"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "'upsert'",
+      "generated": null,
+      "name": "operation",
+      "entityType": "columns",
+      "table": "statsMeasures"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "versionHash",
+      "entityType": "columns",
+      "table": "statsMeasures"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceReleaseId",
+      "entityType": "columns",
+      "table": "statsMeasures"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "true",
+      "generated": null,
+      "name": "isCurrent",
+      "entityType": "columns",
+      "table": "statsMeasures"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "statsMeasures"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "datasetCode",
+      "entityType": "columns",
+      "table": "statsMeasuresI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "measureCode",
+      "entityType": "columns",
+      "table": "statsMeasuresI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "locale",
+      "entityType": "columns",
+      "table": "statsMeasuresI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "name",
+      "entityType": "columns",
+      "table": "statsMeasuresI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "description",
+      "entityType": "columns",
+      "table": "statsMeasuresI18n"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": "true",
+      "generated": null,
+      "name": "isTranslationVerified",
+      "entityType": "columns",
+      "table": "statsMeasuresI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "snapshotId",
+      "entityType": "columns",
+      "table": "statsMeasuresI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "'upsert'",
+      "generated": null,
+      "name": "operation",
+      "entityType": "columns",
+      "table": "statsMeasuresI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "versionHash",
+      "entityType": "columns",
+      "table": "statsMeasuresI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceReleaseId",
+      "entityType": "columns",
+      "table": "statsMeasuresI18n"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "true",
+      "generated": null,
+      "name": "isCurrent",
+      "entityType": "columns",
+      "table": "statsMeasuresI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "statsMeasuresI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "id",
+      "entityType": "columns",
+      "table": "statsRecords"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "datasetCode",
+      "entityType": "columns",
+      "table": "statsRecords"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceReleaseId",
+      "entityType": "columns",
+      "table": "statsRecords"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceFeatureRef",
+      "entityType": "columns",
+      "table": "statsRecords"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "divisionId",
+      "entityType": "columns",
+      "table": "statsRecords"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "referencePeriodCode",
+      "entityType": "columns",
+      "table": "statsRecords"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "referencePeriodStart",
+      "entityType": "columns",
+      "table": "statsRecords"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "referencePeriodEnd",
+      "entityType": "columns",
+      "table": "statsRecords"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "referencePeriodGranularity",
+      "entityType": "columns",
+      "table": "statsRecords"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "referencePeriodEndYear",
+      "entityType": "columns",
+      "table": "statsRecords"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "geography",
+      "entityType": "columns",
+      "table": "statsRecords"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": "'{}'",
+      "generated": null,
+      "name": "fieldSources",
+      "entityType": "columns",
+      "table": "statsRecords"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "definitionSetId",
+      "entityType": "columns",
+      "table": "statsRecords"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "values",
+      "entityType": "columns",
+      "table": "statsRecords"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "snapshotId",
+      "entityType": "columns",
+      "table": "statsRecords"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "'upsert'",
+      "generated": null,
+      "name": "operation",
+      "entityType": "columns",
+      "table": "statsRecords"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "versionHash",
+      "entityType": "columns",
+      "table": "statsRecords"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "true",
+      "generated": null,
+      "name": "isCurrent",
+      "entityType": "columns",
+      "table": "statsRecords"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "statsRecords"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "datasetCode",
+      "entityType": "columns",
+      "table": "statsValuesI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "dimensionCode",
+      "entityType": "columns",
+      "table": "statsValuesI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "valueCode",
+      "entityType": "columns",
+      "table": "statsValuesI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "locale",
+      "entityType": "columns",
+      "table": "statsValuesI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "name",
+      "entityType": "columns",
+      "table": "statsValuesI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "snapshotId",
+      "entityType": "columns",
+      "table": "statsValuesI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "'upsert'",
+      "generated": null,
+      "name": "operation",
+      "entityType": "columns",
+      "table": "statsValuesI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "versionHash",
+      "entityType": "columns",
+      "table": "statsValuesI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceReleaseId",
+      "entityType": "columns",
+      "table": "statsValuesI18n"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "true",
+      "generated": null,
+      "name": "isCurrent",
+      "entityType": "columns",
+      "table": "statsValuesI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "statsValuesI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "streetId",
+      "entityType": "columns",
+      "table": "streetGeometry"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "geometry",
+      "entityType": "columns",
+      "table": "streetGeometry"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "bbox",
+      "entityType": "columns",
+      "table": "streetGeometry"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "snapshotId",
+      "entityType": "columns",
+      "table": "streetGeometry"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "'upsert'",
+      "generated": null,
+      "name": "operation",
+      "entityType": "columns",
+      "table": "streetGeometry"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "versionHash",
+      "entityType": "columns",
+      "table": "streetGeometry"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceReleaseId",
+      "entityType": "columns",
+      "table": "streetGeometry"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "true",
+      "generated": null,
+      "name": "isCurrent",
+      "entityType": "columns",
+      "table": "streetGeometry"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "streetGeometry"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "streetId",
+      "entityType": "columns",
+      "table": "streetChangelog"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "recordKey",
+      "entityType": "columns",
+      "table": "streetChangelog"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "kind",
+      "entityType": "columns",
+      "table": "streetChangelog"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "isPartialNameChange",
+      "entityType": "columns",
+      "table": "streetChangelog"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "gazetteDate",
+      "entityType": "columns",
+      "table": "streetChangelog"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "effectiveDate",
+      "entityType": "columns",
+      "table": "streetChangelog"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceShardId",
+      "entityType": "columns",
+      "table": "streetChangelog"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "noticeRef",
+      "entityType": "columns",
+      "table": "streetChangelog"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "evidenceAssets",
+      "entityType": "columns",
+      "table": "streetChangelog"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "snapshotId",
+      "entityType": "columns",
+      "table": "streetChangelog"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "'upsert'",
+      "generated": null,
+      "name": "operation",
+      "entityType": "columns",
+      "table": "streetChangelog"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "versionHash",
+      "entityType": "columns",
+      "table": "streetChangelog"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceReleaseId",
+      "entityType": "columns",
+      "table": "streetChangelog"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "true",
+      "generated": null,
+      "name": "isCurrent",
+      "entityType": "columns",
+      "table": "streetChangelog"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "streetChangelog"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "nameChangeId",
+      "entityType": "columns",
+      "table": "streetNameChangeStreets"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "streetId",
+      "entityType": "columns",
+      "table": "streetNameChangeStreets"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "role",
+      "entityType": "columns",
+      "table": "streetNameChangeStreets"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "snapshotId",
+      "entityType": "columns",
+      "table": "streetNameChangeStreets"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "'upsert'",
+      "generated": null,
+      "name": "operation",
+      "entityType": "columns",
+      "table": "streetNameChangeStreets"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "versionHash",
+      "entityType": "columns",
+      "table": "streetNameChangeStreets"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceReleaseId",
+      "entityType": "columns",
+      "table": "streetNameChangeStreets"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "true",
+      "generated": null,
+      "name": "isCurrent",
+      "entityType": "columns",
+      "table": "streetNameChangeStreets"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "streetNameChangeStreets"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "id",
+      "entityType": "columns",
+      "table": "streetNameChanges"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "noticeRef",
+      "entityType": "columns",
+      "table": "streetNameChanges"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "intentionNotificationDate",
+      "entityType": "columns",
+      "table": "streetNameChanges"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "nameChangeDate",
+      "entityType": "columns",
+      "table": "streetNameChanges"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "isPartialNameChange",
+      "entityType": "columns",
+      "table": "streetNameChanges"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "status",
+      "entityType": "columns",
+      "table": "streetNameChanges"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "snapshotId",
+      "entityType": "columns",
+      "table": "streetNameChanges"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "'upsert'",
+      "generated": null,
+      "name": "operation",
+      "entityType": "columns",
+      "table": "streetNameChanges"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "versionHash",
+      "entityType": "columns",
+      "table": "streetNameChanges"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceReleaseId",
+      "entityType": "columns",
+      "table": "streetNameChanges"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "true",
+      "generated": null,
+      "name": "isCurrent",
+      "entityType": "columns",
+      "table": "streetNameChanges"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "streetNameChanges"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "id",
+      "entityType": "columns",
+      "table": "streets"
+    },
+    {
+      "type": "integer",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "version",
+      "entityType": "columns",
+      "table": "streets"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "status",
+      "entityType": "columns",
+      "table": "streets"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "deletedAt",
+      "entityType": "columns",
+      "table": "streets"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "districtIds",
+      "entityType": "columns",
+      "table": "streets"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "gazetteDate",
+      "entityType": "columns",
+      "table": "streets"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "yearBuilt",
+      "entityType": "columns",
+      "table": "streets"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "noticeRefs",
+      "entityType": "columns",
+      "table": "streets"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "evidenceAssets",
+      "entityType": "columns",
+      "table": "streets"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sources",
+      "entityType": "columns",
+      "table": "streets"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "snapshotId",
+      "entityType": "columns",
+      "table": "streets"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "'upsert'",
+      "generated": null,
+      "name": "operation",
+      "entityType": "columns",
+      "table": "streets"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "versionHash",
+      "entityType": "columns",
+      "table": "streets"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceReleaseId",
+      "entityType": "columns",
+      "table": "streets"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "true",
+      "generated": null,
+      "name": "isCurrent",
+      "entityType": "columns",
+      "table": "streets"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "streets"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "streetId",
+      "entityType": "columns",
+      "table": "streetsI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "locale",
+      "entityType": "columns",
+      "table": "streetsI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "name",
+      "entityType": "columns",
+      "table": "streetsI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "base",
+      "entityType": "columns",
+      "table": "streetsI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "designator",
+      "entityType": "columns",
+      "table": "streetsI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "directionalPrefix",
+      "entityType": "columns",
+      "table": "streetsI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "directionalSuffix",
+      "entityType": "columns",
+      "table": "streetsI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "normalised",
+      "entityType": "columns",
+      "table": "streetsI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "description",
+      "entityType": "columns",
+      "table": "streetsI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "snapshotId",
+      "entityType": "columns",
+      "table": "streetsI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "'upsert'",
+      "generated": null,
+      "name": "operation",
+      "entityType": "columns",
+      "table": "streetsI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "versionHash",
+      "entityType": "columns",
+      "table": "streetsI18n"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "sourceReleaseId",
+      "entityType": "columns",
+      "table": "streetsI18n"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "true",
+      "generated": null,
+      "name": "isCurrent",
+      "entityType": "columns",
+      "table": "streetsI18n"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      "generated": null,
+      "name": "createdAt",
+      "entityType": "columns",
+      "table": "streetsI18n"
+    },
+    {
+      "columns": ["id", "snapshotId"],
+      "nameExplicit": false,
+      "name": "address2d_pk",
+      "entityType": "pks",
+      "table": "address2d"
+    },
+    {
+      "columns": ["addressId", "snapshotId", "buildingNumber"],
+      "nameExplicit": false,
+      "name": "address2dBuildingNumberLookup_pk",
+      "entityType": "pks",
+      "table": "address2dBuildingNumberLookup"
+    },
+    {
+      "columns": ["addressId", "snapshotId", "locale"],
+      "nameExplicit": false,
+      "name": "address2dI18n_pk",
+      "entityType": "pks",
+      "table": "address2dI18n"
+    },
+    {
+      "columns": ["id", "snapshotId"],
+      "nameExplicit": false,
+      "name": "address3d_pk",
+      "entityType": "pks",
+      "table": "address3d"
+    },
+    {
+      "columns": ["address3dId", "snapshotId", "locale"],
+      "nameExplicit": false,
+      "name": "address3dI18n_pk",
+      "entityType": "pks",
+      "table": "address3dI18n"
+    },
+    {
+      "columns": ["id", "snapshotId"],
+      "nameExplicit": false,
+      "name": "divisionAreas_pk",
+      "entityType": "pks",
+      "table": "divisionAreas"
+    },
+    {
+      "columns": ["id", "snapshotId"],
+      "nameExplicit": false,
+      "name": "divisionBoundaries_pk",
+      "entityType": "pks",
+      "table": "divisionBoundaries"
+    },
+    {
+      "columns": ["id", "snapshotId"],
+      "nameExplicit": false,
+      "name": "divisions_pk",
+      "entityType": "pks",
+      "table": "divisions"
+    },
+    {
+      "columns": ["divisionId", "snapshotId", "locale"],
+      "nameExplicit": false,
+      "name": "divisionsI18n_pk",
+      "entityType": "pks",
+      "table": "divisionsI18n"
+    },
+    {
+      "columns": ["id", "snapshotId"],
+      "nameExplicit": false,
+      "name": "places_pk",
+      "entityType": "pks",
+      "table": "places"
+    },
+    {
+      "columns": ["placeId", "snapshotId", "locale"],
+      "nameExplicit": false,
+      "name": "placesI18n_pk",
+      "entityType": "pks",
+      "table": "placesI18n"
+    },
+    {
+      "columns": ["datasetCode", "fieldName", "snapshotId"],
+      "nameExplicit": false,
+      "name": "statsFields_pk",
+      "entityType": "pks",
+      "table": "statsFields"
+    },
+    {
+      "columns": ["datasetCode", "fieldName", "locale", "snapshotId"],
+      "nameExplicit": false,
+      "name": "statsFieldsI18n_pk",
+      "entityType": "pks",
+      "table": "statsFieldsI18n"
+    },
+    {
+      "columns": ["datasetCode", "measureCode", "snapshotId"],
+      "nameExplicit": false,
+      "name": "statsMeasures_pk",
+      "entityType": "pks",
+      "table": "statsMeasures"
+    },
+    {
+      "columns": ["datasetCode", "measureCode", "locale", "snapshotId"],
+      "nameExplicit": false,
+      "name": "statsMeasuresI18n_pk",
+      "entityType": "pks",
+      "table": "statsMeasuresI18n"
+    },
+    {
+      "columns": ["id", "snapshotId"],
+      "nameExplicit": false,
+      "name": "statsRecords_pk",
+      "entityType": "pks",
+      "table": "statsRecords"
+    },
+    {
+      "columns": ["datasetCode", "dimensionCode", "valueCode", "locale", "snapshotId"],
+      "nameExplicit": false,
+      "name": "statsValuesI18n_pk",
+      "entityType": "pks",
+      "table": "statsValuesI18n"
+    },
+    {
+      "columns": ["streetId", "snapshotId"],
+      "nameExplicit": false,
+      "name": "streetGeometry_pk",
+      "entityType": "pks",
+      "table": "streetGeometry"
+    },
+    {
+      "columns": ["streetId", "recordKey", "snapshotId"],
+      "nameExplicit": false,
+      "name": "streetChangelog_pk",
+      "entityType": "pks",
+      "table": "streetChangelog"
+    },
+    {
+      "columns": ["nameChangeId", "snapshotId", "streetId", "role"],
+      "nameExplicit": false,
+      "name": "streetNameChangeStreets_pk",
+      "entityType": "pks",
+      "table": "streetNameChangeStreets"
+    },
+    {
+      "columns": ["id", "snapshotId"],
+      "nameExplicit": false,
+      "name": "streetNameChanges_pk",
+      "entityType": "pks",
+      "table": "streetNameChanges"
+    },
+    {
+      "columns": ["id", "snapshotId"],
+      "nameExplicit": false,
+      "name": "streets_pk",
+      "entityType": "pks",
+      "table": "streets"
+    },
+    {
+      "columns": ["streetId", "snapshotId", "locale"],
+      "nameExplicit": false,
+      "name": "streetsI18n_pk",
+      "entityType": "pks",
+      "table": "streetsI18n"
+    },
+    {
+      "columns": ["id"],
+      "nameExplicit": false,
+      "name": "statsDefinitionSets_pk",
+      "table": "statsDefinitionSets",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        {
+          "value": "snapshotId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "address2d_history_event_snapshot_idx",
+      "entityType": "indexes",
+      "table": "address2d"
+    },
+    {
+      "columns": [
+        {
+          "value": "id",
+          "isExpression": false
+        },
+        {
+          "value": "isCurrent",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "address2d_current_lookup_idx",
+      "entityType": "indexes",
+      "table": "address2d"
+    },
+    {
+      "columns": [
+        {
+          "value": "sourceReleaseId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "address2d_sourceReleaseId_idx",
+      "entityType": "indexes",
+      "table": "address2d"
+    },
+    {
+      "columns": [
+        {
+          "value": "snapshotId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "address2d_snapshotId_idx",
+      "entityType": "indexes",
+      "table": "address2d"
+    },
+    {
+      "columns": [
+        {
+          "value": "parentAddressId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "address2d_parentAddressId_idx",
+      "entityType": "indexes",
+      "table": "address2d"
+    },
+    {
+      "columns": [
+        {
+          "value": "snapshotId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "address2dBuildingNumberLookup_history_event_snapshot_idx",
+      "entityType": "indexes",
+      "table": "address2dBuildingNumberLookup"
+    },
+    {
+      "columns": [
+        {
+          "value": "snapshotId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "address2dI18n_history_event_snapshot_idx",
+      "entityType": "indexes",
+      "table": "address2dI18n"
+    },
+    {
+      "columns": [
+        {
+          "value": "addressId",
+          "isExpression": false
+        },
+        {
+          "value": "locale",
+          "isExpression": false
+        },
+        {
+          "value": "isCurrent",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "address2dI18n_current_lookup_idx",
+      "entityType": "indexes",
+      "table": "address2dI18n"
+    },
+    {
+      "columns": [
+        {
+          "value": "snapshotId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "address3d_history_event_snapshot_idx",
+      "entityType": "indexes",
+      "table": "address3d"
+    },
+    {
+      "columns": [
+        {
+          "value": "id",
+          "isExpression": false
+        },
+        {
+          "value": "isCurrent",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "address3d_current_lookup_idx",
+      "entityType": "indexes",
+      "table": "address3d"
+    },
+    {
+      "columns": [
+        {
+          "value": "sourceReleaseId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "address3d_sourceReleaseId_idx",
+      "entityType": "indexes",
+      "table": "address3d"
+    },
+    {
+      "columns": [
+        {
+          "value": "snapshotId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "address3d_snapshotId_idx",
+      "entityType": "indexes",
+      "table": "address3d"
+    },
+    {
+      "columns": [
+        {
+          "value": "address2dId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "address3d_address2dId_idx",
+      "entityType": "indexes",
+      "table": "address3d"
+    },
+    {
+      "columns": [
+        {
+          "value": "snapshotId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "address3dI18n_history_event_snapshot_idx",
+      "entityType": "indexes",
+      "table": "address3dI18n"
+    },
+    {
+      "columns": [
+        {
+          "value": "address3dId",
+          "isExpression": false
+        },
+        {
+          "value": "locale",
+          "isExpression": false
+        },
+        {
+          "value": "isCurrent",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "address3dI18n_current_lookup_idx",
+      "entityType": "indexes",
+      "table": "address3dI18n"
+    },
+    {
+      "columns": [
+        {
+          "value": "snapshotId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "divisionAreas_history_event_snapshot_idx",
+      "entityType": "indexes",
+      "table": "divisionAreas"
+    },
+    {
+      "columns": [
+        {
+          "value": "id",
+          "isExpression": false
+        },
+        {
+          "value": "isCurrent",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "divisionAreas_current_lookup_idx",
+      "entityType": "indexes",
+      "table": "divisionAreas"
+    },
+    {
+      "columns": [
+        {
+          "value": "divisionId",
+          "isExpression": false
+        },
+        {
+          "value": "isCurrent",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "divisionAreas_divisionId_idx",
+      "entityType": "indexes",
+      "table": "divisionAreas"
+    },
+    {
+      "columns": [
+        {
+          "value": "sourceReleaseId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "divisionAreas_sourceReleaseId_idx",
+      "entityType": "indexes",
+      "table": "divisionAreas"
+    },
+    {
+      "columns": [
+        {
+          "value": "snapshotId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "divisionAreas_snapshotId_idx",
+      "entityType": "indexes",
+      "table": "divisionAreas"
+    },
+    {
+      "columns": [
+        {
+          "value": "snapshotId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "divisionBoundaries_history_event_snapshot_idx",
+      "entityType": "indexes",
+      "table": "divisionBoundaries"
+    },
+    {
+      "columns": [
+        {
+          "value": "id",
+          "isExpression": false
+        },
+        {
+          "value": "isCurrent",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "divisionBoundaries_current_lookup_idx",
+      "entityType": "indexes",
+      "table": "divisionBoundaries"
+    },
+    {
+      "columns": [
+        {
+          "value": "leftDivisionId",
+          "isExpression": false
+        },
+        {
+          "value": "isCurrent",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "divisionBoundaries_leftDivisionId_idx",
+      "entityType": "indexes",
+      "table": "divisionBoundaries"
+    },
+    {
+      "columns": [
+        {
+          "value": "rightDivisionId",
+          "isExpression": false
+        },
+        {
+          "value": "isCurrent",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "divisionBoundaries_rightDivisionId_idx",
+      "entityType": "indexes",
+      "table": "divisionBoundaries"
+    },
+    {
+      "columns": [
+        {
+          "value": "sourceReleaseId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "divisionBoundaries_sourceReleaseId_idx",
+      "entityType": "indexes",
+      "table": "divisionBoundaries"
+    },
+    {
+      "columns": [
+        {
+          "value": "snapshotId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "divisionBoundaries_snapshotId_idx",
+      "entityType": "indexes",
+      "table": "divisionBoundaries"
+    },
+    {
+      "columns": [
+        {
+          "value": "snapshotId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "divisions_history_event_snapshot_idx",
+      "entityType": "indexes",
+      "table": "divisions"
+    },
+    {
+      "columns": [
+        {
+          "value": "id",
+          "isExpression": false
+        },
+        {
+          "value": "isCurrent",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "divisions_current_lookup_idx",
+      "entityType": "indexes",
+      "table": "divisions"
+    },
+    {
+      "columns": [
+        {
+          "value": "snapshotId",
+          "isExpression": false
+        },
+        {
+          "value": "divisionCode",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "divisions_divisionCode_idx",
+      "entityType": "indexes",
+      "table": "divisions"
+    },
+    {
+      "columns": [
+        {
+          "value": "sourceReleaseId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "divisions_sourceReleaseId_idx",
+      "entityType": "indexes",
+      "table": "divisions"
+    },
+    {
+      "columns": [
+        {
+          "value": "snapshotId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "divisions_snapshotId_idx",
+      "entityType": "indexes",
+      "table": "divisions"
+    },
+    {
+      "columns": [
+        {
+          "value": "snapshotId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "divisionsI18n_history_event_snapshot_idx",
+      "entityType": "indexes",
+      "table": "divisionsI18n"
+    },
+    {
+      "columns": [
+        {
+          "value": "divisionId",
+          "isExpression": false
+        },
+        {
+          "value": "locale",
+          "isExpression": false
+        },
+        {
+          "value": "isCurrent",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "divisionsI18n_current_lookup_idx",
+      "entityType": "indexes",
+      "table": "divisionsI18n"
+    },
+    {
+      "columns": [
+        {
+          "value": "snapshotId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "places_history_event_snapshot_idx",
+      "entityType": "indexes",
+      "table": "places"
+    },
+    {
+      "columns": [
+        {
+          "value": "id",
+          "isExpression": false
+        },
+        {
+          "value": "isCurrent",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "places_current_lookup_idx",
+      "entityType": "indexes",
+      "table": "places"
+    },
+    {
+      "columns": [
+        {
+          "value": "sourceReleaseId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "places_sourceReleaseId_idx",
+      "entityType": "indexes",
+      "table": "places"
+    },
+    {
+      "columns": [
+        {
+          "value": "snapshotId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "places_snapshotId_idx",
+      "entityType": "indexes",
+      "table": "places"
+    },
+    {
+      "columns": [
+        {
+          "value": "snapshotId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "placesI18n_history_event_snapshot_idx",
+      "entityType": "indexes",
+      "table": "placesI18n"
+    },
+    {
+      "columns": [
+        {
+          "value": "placeId",
+          "isExpression": false
+        },
+        {
+          "value": "locale",
+          "isExpression": false
+        },
+        {
+          "value": "isCurrent",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "placesI18n_current_lookup_idx",
+      "entityType": "indexes",
+      "table": "placesI18n"
+    },
+    {
+      "columns": [
+        {
+          "value": "snapshotId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "statsFields_history_event_snapshot_idx",
+      "entityType": "indexes",
+      "table": "statsFields"
+    },
+    {
+      "columns": [
+        {
+          "value": "datasetCode",
+          "isExpression": false
+        },
+        {
+          "value": "fieldName",
+          "isExpression": false
+        },
+        {
+          "value": "isCurrent",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "statsFields_current_lookup_idx",
+      "entityType": "indexes",
+      "table": "statsFields"
+    },
+    {
+      "columns": [
+        {
+          "value": "snapshotId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "statsFieldsI18n_history_event_snapshot_idx",
+      "entityType": "indexes",
+      "table": "statsFieldsI18n"
+    },
+    {
+      "columns": [
+        {
+          "value": "snapshotId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "statsMeasures_history_event_snapshot_idx",
+      "entityType": "indexes",
+      "table": "statsMeasures"
+    },
+    {
+      "columns": [
+        {
+          "value": "datasetCode",
+          "isExpression": false
+        },
+        {
+          "value": "measureCode",
+          "isExpression": false
+        },
+        {
+          "value": "isCurrent",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "statsMeasures_current_lookup_idx",
+      "entityType": "indexes",
+      "table": "statsMeasures"
+    },
+    {
+      "columns": [
+        {
+          "value": "snapshotId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "statsMeasuresI18n_history_event_snapshot_idx",
+      "entityType": "indexes",
+      "table": "statsMeasuresI18n"
+    },
+    {
+      "columns": [
+        {
+          "value": "snapshotId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "statsRecords_history_event_snapshot_idx",
+      "entityType": "indexes",
+      "table": "statsRecords"
+    },
+    {
+      "columns": [
+        {
+          "value": "id",
+          "isExpression": false
+        },
+        {
+          "value": "isCurrent",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "statsRecords_current_lookup_idx",
+      "entityType": "indexes",
+      "table": "statsRecords"
+    },
+    {
+      "columns": [
+        {
+          "value": "sourceReleaseId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "statsRecords_source_release_idx",
+      "entityType": "indexes",
+      "table": "statsRecords"
+    },
+    {
+      "columns": [
+        {
+          "value": "snapshotId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "statsValuesI18n_history_event_snapshot_idx",
+      "entityType": "indexes",
+      "table": "statsValuesI18n"
+    },
+    {
+      "columns": [
+        {
+          "value": "snapshotId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "streetGeometry_history_event_snapshot_idx",
+      "entityType": "indexes",
+      "table": "streetGeometry"
+    },
+    {
+      "columns": [
+        {
+          "value": "streetId",
+          "isExpression": false
+        },
+        {
+          "value": "isCurrent",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "streetGeometry_current_lookup_idx",
+      "entityType": "indexes",
+      "table": "streetGeometry"
+    },
+    {
+      "columns": [
+        {
+          "value": "sourceReleaseId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "streetGeometry_sourceReleaseId_idx",
+      "entityType": "indexes",
+      "table": "streetGeometry"
+    },
+    {
+      "columns": [
+        {
+          "value": "snapshotId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "streetGeometry_snapshotId_idx",
+      "entityType": "indexes",
+      "table": "streetGeometry"
+    },
+    {
+      "columns": [
+        {
+          "value": "snapshotId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "streetChangelog_history_event_snapshot_idx",
+      "entityType": "indexes",
+      "table": "streetChangelog"
+    },
+    {
+      "columns": [
+        {
+          "value": "streetId",
+          "isExpression": false
+        },
+        {
+          "value": "isCurrent",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "streetChangelog_street_current_idx",
+      "entityType": "indexes",
+      "table": "streetChangelog"
+    },
+    {
+      "columns": [
+        {
+          "value": "recordKey",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "streetChangelog_recordKey_idx",
+      "entityType": "indexes",
+      "table": "streetChangelog"
+    },
+    {
+      "columns": [
+        {
+          "value": "snapshotId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "streetChangelog_snapshot_idx",
+      "entityType": "indexes",
+      "table": "streetChangelog"
+    },
+    {
+      "columns": [
+        {
+          "value": "snapshotId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "streetNameChangeStreets_history_event_snapshot_idx",
+      "entityType": "indexes",
+      "table": "streetNameChangeStreets"
+    },
+    {
+      "columns": [
+        {
+          "value": "streetId",
+          "isExpression": false
+        },
+        {
+          "value": "isCurrent",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "streetNameChangeStreets_streetId_idx",
+      "entityType": "indexes",
+      "table": "streetNameChangeStreets"
+    },
+    {
+      "columns": [
+        {
+          "value": "snapshotId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "streetNameChangeStreets_snapshotId_idx",
+      "entityType": "indexes",
+      "table": "streetNameChangeStreets"
+    },
+    {
+      "columns": [
+        {
+          "value": "snapshotId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "streetNameChanges_history_event_snapshot_idx",
+      "entityType": "indexes",
+      "table": "streetNameChanges"
+    },
+    {
+      "columns": [
+        {
+          "value": "id",
+          "isExpression": false
+        },
+        {
+          "value": "isCurrent",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "streetNameChanges_current_lookup_idx",
+      "entityType": "indexes",
+      "table": "streetNameChanges"
+    },
+    {
+      "columns": [
+        {
+          "value": "noticeRef",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "streetNameChanges_noticeRef_idx",
+      "entityType": "indexes",
+      "table": "streetNameChanges"
+    },
+    {
+      "columns": [
+        {
+          "value": "snapshotId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "streetNameChanges_snapshotId_idx",
+      "entityType": "indexes",
+      "table": "streetNameChanges"
+    },
+    {
+      "columns": [
+        {
+          "value": "snapshotId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "streets_history_event_snapshot_idx",
+      "entityType": "indexes",
+      "table": "streets"
+    },
+    {
+      "columns": [
+        {
+          "value": "id",
+          "isExpression": false
+        },
+        {
+          "value": "version",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "streets_id_version_idx",
+      "entityType": "indexes",
+      "table": "streets"
+    },
+    {
+      "columns": [
+        {
+          "value": "id",
+          "isExpression": false
+        },
+        {
+          "value": "isCurrent",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "streets_current_lookup_idx",
+      "entityType": "indexes",
+      "table": "streets"
+    },
+    {
+      "columns": [
+        {
+          "value": "sourceReleaseId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "streets_sourceReleaseId_idx",
+      "entityType": "indexes",
+      "table": "streets"
+    },
+    {
+      "columns": [
+        {
+          "value": "snapshotId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "streets_snapshotId_idx",
+      "entityType": "indexes",
+      "table": "streets"
+    },
+    {
+      "columns": [
+        {
+          "value": "snapshotId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "streetsI18n_history_event_snapshot_idx",
+      "entityType": "indexes",
+      "table": "streetsI18n"
+    },
+    {
+      "columns": [
+        {
+          "value": "streetId",
+          "isExpression": false
+        },
+        {
+          "value": "locale",
+          "isExpression": false
+        },
+        {
+          "value": "isCurrent",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "streetsI18n_current_lookup_idx",
+      "entityType": "indexes",
+      "table": "streetsI18n"
+    },
+    {
+      "value": "(\"operation\" = 'delete' and \"versionHash\" is null) or (\"operation\" = 'upsert' and \"versionHash\" is not null and \"sourceReleaseId\" is not null and \"granularity\" is not null)",
+      "name": "address2d_history_event_check",
+      "entityType": "checks",
+      "table": "address2d"
+    },
+    {
+      "value": "(\"operation\" = 'delete' and \"versionHash\" is null) or (\"operation\" = 'upsert' and \"versionHash\" is not null and \"sourceReleaseId\" is not null and \"evidence\" is not null)",
+      "name": "address2dBuildingNumberLookup_history_event_check",
+      "entityType": "checks",
+      "table": "address2dBuildingNumberLookup"
+    },
+    {
+      "value": "(\"operation\" = 'delete' and \"versionHash\" is null) or (\"operation\" = 'upsert' and \"versionHash\" is not null and \"sourceReleaseId\" is not null and \"formattedAddress\" is not null)",
+      "name": "address2dI18n_history_event_check",
+      "entityType": "checks",
+      "table": "address2dI18n"
+    },
+    {
+      "value": "(\"operation\" = 'delete' and \"versionHash\" is null) or (\"operation\" = 'upsert' and \"versionHash\" is not null and \"sourceReleaseId\" is not null and \"address2dId\" is not null and \"units\" is not null and \"unitCount\" is not null and \"contentHash\" is not null and \"unresolvedSectionIds\" is not null)",
+      "name": "address3d_history_event_check",
+      "entityType": "checks",
+      "table": "address3d"
+    },
+    {
+      "value": "(\"operation\" = 'delete' and \"versionHash\" is null) or (\"operation\" = 'upsert' and \"versionHash\" is not null and \"sourceReleaseId\" is not null and \"units\" is not null)",
+      "name": "address3dI18n_history_event_check",
+      "entityType": "checks",
+      "table": "address3dI18n"
+    },
+    {
+      "value": "(\"operation\" = 'delete' and \"versionHash\" is null) or (\"operation\" = 'upsert' and \"versionHash\" is not null and \"sourceReleaseId\" is not null and \"divisionId\" is not null and \"variant\" is not null and \"type\" is not null)",
+      "name": "divisionAreas_history_event_check",
+      "entityType": "checks",
+      "table": "divisionAreas"
+    },
+    {
+      "value": "(\"operation\" = 'delete' and \"versionHash\" is null) or (\"operation\" = 'upsert' and \"versionHash\" is not null and \"sourceReleaseId\" is not null and \"leftDivisionId\" is not null and \"rightDivisionId\" is not null and \"variant\" is not null and \"type\" is not null)",
+      "name": "divisionBoundaries_history_event_check",
+      "entityType": "checks",
+      "table": "divisionBoundaries"
+    },
+    {
+      "value": "(\"operation\" = 'delete' and \"versionHash\" is null) or (\"operation\" = 'upsert' and \"versionHash\" is not null and \"sourceReleaseId\" is not null and \"class\" is not null and \"hierarchies\" is not null)",
+      "name": "divisions_history_event_check",
+      "entityType": "checks",
+      "table": "divisions"
+    },
+    {
+      "value": "(\"operation\" = 'delete' and \"versionHash\" is null) or (\"operation\" = 'upsert' and \"versionHash\" is not null and \"sourceReleaseId\" is not null and \"isLocaleInferred\" is not null)",
+      "name": "divisionsI18n_history_event_check",
+      "entityType": "checks",
+      "table": "divisionsI18n"
+    },
+    {
+      "value": "(\"operation\" = 'delete' and \"versionHash\" is null) or (\"operation\" = 'upsert' and \"versionHash\" is not null and \"sourceReleaseId\" is not null and \"resourceReleaseId\" is not null and \"lng\" is not null and \"lat\" is not null and \"firstSeenMonth\" is not null and \"lastSeenMonth\" is not null)",
+      "name": "places_history_event_check",
+      "entityType": "checks",
+      "table": "places"
+    },
+    {
+      "value": "(\"operation\" = 'delete' and \"versionHash\" is null) or (\"operation\" = 'upsert' and \"versionHash\" is not null and \"sourceReleaseId\" is not null)",
+      "name": "placesI18n_history_event_check",
+      "entityType": "checks",
+      "table": "placesI18n"
+    },
+    {
+      "value": "(\"operation\" = 'delete' and \"versionHash\" is null) or (\"operation\" = 'upsert' and \"versionHash\" is not null and \"sourceReleaseId\" is not null and \"measureCode\" is not null and \"measureVersionHash\" is not null and \"sourceField\" is not null and \"dimensions\" is not null and \"statisticKind\" is not null and \"aggregation\" is not null and \"valueKind\" is not null and \"unitCode\" is not null)",
+      "name": "statsFields_history_event_check",
+      "entityType": "checks",
+      "table": "statsFields"
+    },
+    {
+      "value": "(\"operation\" = 'delete' and \"versionHash\" is null) or (\"operation\" = 'upsert' and \"versionHash\" is not null and \"sourceReleaseId\" is not null and \"name\" is not null and \"isTranslationVerified\" is not null)",
+      "name": "statsFieldsI18n_history_event_check",
+      "entityType": "checks",
+      "table": "statsFieldsI18n"
+    },
+    {
+      "value": "(\"operation\" = 'delete' and \"versionHash\" is null) or (\"operation\" = 'upsert' and \"versionHash\" is not null and \"sourceReleaseId\" is not null)",
+      "name": "statsMeasures_history_event_check",
+      "entityType": "checks",
+      "table": "statsMeasures"
+    },
+    {
+      "value": "(\"operation\" = 'delete' and \"versionHash\" is null) or (\"operation\" = 'upsert' and \"versionHash\" is not null and \"sourceReleaseId\" is not null and \"name\" is not null and \"isTranslationVerified\" is not null)",
+      "name": "statsMeasuresI18n_history_event_check",
+      "entityType": "checks",
+      "table": "statsMeasuresI18n"
+    },
+    {
+      "value": "(\"operation\" = 'delete' and \"versionHash\" is null) or (\"operation\" = 'upsert' and \"versionHash\" is not null and \"sourceReleaseId\" is not null and \"datasetCode\" is not null and \"sourceFeatureRef\" is not null and \"referencePeriodCode\" is not null and \"referencePeriodGranularity\" is not null and \"referencePeriodEndYear\" is not null and \"geography\" is not null and \"fieldSources\" is not null and \"definitionSetId\" is not null and \"values\" is not null)",
+      "name": "statsRecords_history_event_check",
+      "entityType": "checks",
+      "table": "statsRecords"
+    },
+    {
+      "value": "(\"operation\" = 'delete' and \"versionHash\" is null) or (\"operation\" = 'upsert' and \"versionHash\" is not null and \"sourceReleaseId\" is not null and \"name\" is not null)",
+      "name": "statsValuesI18n_history_event_check",
+      "entityType": "checks",
+      "table": "statsValuesI18n"
+    },
+    {
+      "value": "(\"operation\" = 'delete' and \"versionHash\" is null) or (\"operation\" = 'upsert' and \"versionHash\" is not null and \"sourceReleaseId\" is not null and \"geometry\" is not null and \"bbox\" is not null)",
+      "name": "streetGeometry_history_event_check",
+      "entityType": "checks",
+      "table": "streetGeometry"
+    },
+    {
+      "value": "(\"operation\" = 'delete' and \"versionHash\" is null) or (\"operation\" = 'upsert' and \"versionHash\" is not null and \"sourceReleaseId\" is not null and \"kind\" is not null and \"isPartialNameChange\" is not null)",
+      "name": "streetChangelog_history_event_check",
+      "entityType": "checks",
+      "table": "streetChangelog"
+    },
+    {
+      "value": "(\"operation\" = 'delete' and \"versionHash\" is null) or (\"operation\" = 'upsert' and \"versionHash\" is not null and \"sourceReleaseId\" is not null)",
+      "name": "streetNameChangeStreets_history_event_check",
+      "entityType": "checks",
+      "table": "streetNameChangeStreets"
+    },
+    {
+      "value": "(\"operation\" = 'delete' and \"versionHash\" is null) or (\"operation\" = 'upsert' and \"versionHash\" is not null and \"sourceReleaseId\" is not null and \"noticeRef\" is not null and \"isPartialNameChange\" is not null and \"status\" is not null)",
+      "name": "streetNameChanges_history_event_check",
+      "entityType": "checks",
+      "table": "streetNameChanges"
+    },
+    {
+      "value": "(\"operation\" = 'delete' and \"versionHash\" is null) or (\"operation\" = 'upsert' and \"versionHash\" is not null and \"sourceReleaseId\" is not null and \"version\" is not null and \"status\" is not null)",
+      "name": "streets_history_event_check",
+      "entityType": "checks",
+      "table": "streets"
+    },
+    {
+      "value": "\"version\" > 0",
+      "name": "history_streets_version_positive",
+      "entityType": "checks",
+      "table": "streets"
+    },
+    {
+      "value": "(\"operation\" = 'delete' and \"versionHash\" is null) or (\"operation\" = 'upsert' and \"versionHash\" is not null and \"sourceReleaseId\" is not null and \"name\" is not null)",
+      "name": "streetsI18n_history_event_check",
+      "entityType": "checks",
+      "table": "streetsI18n"
+    },
+    {
+      "definition": "SELECT * FROM (SELECT snapshotId, 'division' AS recordType, \"id\" AS recordId, '' AS locale, versionHash, operation, sourceReleaseId, createdAt FROM \"divisions\"\nUNION ALL\nSELECT snapshotId, 'divisionI18n' AS recordType, \"divisionId\" AS recordId, \"locale\" AS locale, versionHash, operation, sourceReleaseId, createdAt FROM \"divisionsI18n\"\nUNION ALL\nSELECT snapshotId, 'divisionArea' AS recordType, \"id\" AS recordId, '' AS locale, versionHash, operation, sourceReleaseId, createdAt FROM \"divisionAreas\"\nUNION ALL\nSELECT snapshotId, 'divisionBoundary' AS recordType, \"id\" AS recordId, '' AS locale, versionHash, operation, sourceReleaseId, createdAt FROM \"divisionBoundaries\"\nUNION ALL\nSELECT snapshotId, 'address2d' AS recordType, \"id\" AS recordId, '' AS locale, versionHash, operation, sourceReleaseId, createdAt FROM \"address2d\")\nUNION ALL\nSELECT * FROM (SELECT snapshotId, 'address2dI18n' AS recordType, \"addressId\" AS recordId, \"locale\" AS locale, versionHash, operation, sourceReleaseId, createdAt FROM \"address2dI18n\"\nUNION ALL\nSELECT snapshotId, 'address2dBuildingNumberLookup' AS recordType, json_array(\"addressId\", \"buildingNumber\") AS recordId, '' AS locale, versionHash, operation, sourceReleaseId, createdAt FROM \"address2dBuildingNumberLookup\"\nUNION ALL\nSELECT snapshotId, 'address3d' AS recordType, \"id\" AS recordId, '' AS locale, versionHash, operation, sourceReleaseId, createdAt FROM \"address3d\"\nUNION ALL\nSELECT snapshotId, 'address3dI18n' AS recordType, \"address3dId\" AS recordId, \"locale\" AS locale, versionHash, operation, sourceReleaseId, createdAt FROM \"address3dI18n\"\nUNION ALL\nSELECT snapshotId, 'place' AS recordType, \"id\" AS recordId, '' AS locale, versionHash, operation, sourceReleaseId, createdAt FROM \"places\")\nUNION ALL\nSELECT * FROM (SELECT snapshotId, 'placeI18n' AS recordType, \"placeId\" AS recordId, \"locale\" AS locale, versionHash, operation, sourceReleaseId, createdAt FROM \"placesI18n\"\nUNION ALL\nSELECT snapshotId, 'street' AS recordType, \"id\" AS recordId, '' AS locale, versionHash, operation, sourceReleaseId, createdAt FROM \"streets\"\nUNION ALL\nSELECT snapshotId, 'streetI18n' AS recordType, \"streetId\" AS recordId, \"locale\" AS locale, versionHash, operation, sourceReleaseId, createdAt FROM \"streetsI18n\"\nUNION ALL\nSELECT snapshotId, 'streetGeometry' AS recordType, \"streetId\" AS recordId, '' AS locale, versionHash, operation, sourceReleaseId, createdAt FROM \"streetGeometry\"\nUNION ALL\nSELECT snapshotId, 'streetNameChange' AS recordType, \"id\" AS recordId, '' AS locale, versionHash, operation, sourceReleaseId, createdAt FROM \"streetNameChanges\")\nUNION ALL\nSELECT * FROM (SELECT snapshotId, 'streetNameChangeStreet' AS recordType, json_array(\"nameChangeId\", \"streetId\", \"role\") AS recordId, '' AS locale, versionHash, operation, sourceReleaseId, createdAt FROM \"streetNameChangeStreets\"\nUNION ALL\nSELECT snapshotId, 'streetChangelog' AS recordType, json_array(\"streetId\", \"recordKey\") AS recordId, '' AS locale, versionHash, operation, sourceReleaseId, createdAt FROM \"streetChangelog\"\nUNION ALL\nSELECT snapshotId, 'statsRecord' AS recordType, \"id\" AS recordId, '' AS locale, versionHash, operation, sourceReleaseId, createdAt FROM \"statsRecords\"\nUNION ALL\nSELECT snapshotId, 'statsField' AS recordType, json_array(\"datasetCode\", \"fieldName\") AS recordId, '' AS locale, versionHash, operation, sourceReleaseId, createdAt FROM \"statsFields\"\nUNION ALL\nSELECT snapshotId, 'statsFieldI18n' AS recordType, json_array(\"datasetCode\", \"fieldName\") AS recordId, \"locale\" AS locale, versionHash, operation, sourceReleaseId, createdAt FROM \"statsFieldsI18n\")\nUNION ALL\nSELECT * FROM (SELECT snapshotId, 'statsMeasure' AS recordType, json_array(\"datasetCode\", \"measureCode\") AS recordId, '' AS locale, versionHash, operation, sourceReleaseId, createdAt FROM \"statsMeasures\"\nUNION ALL\nSELECT snapshotId, 'statsMeasureI18n' AS recordType, json_array(\"datasetCode\", \"measureCode\") AS recordId, \"locale\" AS locale, versionHash, operation, sourceReleaseId, createdAt FROM \"statsMeasuresI18n\"\nUNION ALL\nSELECT snapshotId, 'statsValueI18n' AS recordType, json_array(\"datasetCode\", \"dimensionCode\", \"valueCode\") AS recordId, \"locale\" AS locale, versionHash, operation, sourceReleaseId, createdAt FROM \"statsValuesI18n\")",
+      "isExisting": false,
+      "error": null,
+      "name": "historyEvents",
+      "entityType": "views"
+    }
+  ],
+  "renames": []
+}

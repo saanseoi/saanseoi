@@ -20,7 +20,6 @@ export {
   placeSearchScopes,
 } from './places'
 export * from './divisionGeometry'
-export * from './divisionStatistics'
 export * from './statistics'
 export * from './publicationState'
 export * from './divisionGeographicCrosswalk'

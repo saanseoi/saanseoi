@@ -216,30 +216,6 @@ export function canonicalDivisionI18nColumns<Required extends boolean>(
 
 export const canonicalDivisionI18n = canonicalDivisionI18nColumns(true)
 
-/**
- * A district-level observation exposed by the Division Statistics API. The
- * source layer includes the publisher's complete raw source record and labels.
- */
-export function canonicalDivisionStatisticColumns<Required extends boolean>(
-  required: Required,
-) {
-  return {
-    id: text('id').notNull(),
-    divisionId: requiredColumn(text('divisionId'), required),
-    districtCode: requiredColumn(text('districtCode'), required),
-    referenceYear: requiredColumn(text('referenceYear'), required),
-    landAreaSqKm: requiredColumn(real('landAreaSqKm'), required),
-    midYearPopulation: requiredColumn(integer('midYearPopulation'), required),
-    midYearPopulationDensityPerSqKm: requiredColumn(
-      integer('midYearPopulationDensityPerSqKm'),
-      required,
-    ),
-    sources: requiredColumn(jsonText('sources'), required),
-  }
-}
-
-export const canonicalDivisionStatistic = canonicalDivisionStatisticColumns(true)
-
 export type CanonicalStatsGeography = {
   /** Disambiguates publisher geography codes that are only unique within a parent. */
   namespace?: string

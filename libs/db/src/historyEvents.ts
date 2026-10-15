@@ -23,7 +23,6 @@ export const historyEventTables = {
     keys: ['nameChangeId', 'streetId', 'role'],
   },
   streetChangelog: { table: 'streetChangelog', keys: ['streetId', 'recordKey'] },
-  divisionStatistic: { table: 'divisionStatistics', keys: ['id'] },
   statsRecord: { table: 'statsRecords', keys: ['id'] },
   statsField: { table: 'statsFields', keys: ['datasetCode', 'fieldName'] },
   statsFieldI18n: {

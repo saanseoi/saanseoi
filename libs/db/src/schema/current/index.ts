@@ -9,7 +9,6 @@ export * from './streetGeometry.types'
 export * from './places'
 export * from './divisionGeometry'
 export * from './divisionGeometry.types'
-export * from './divisionStatistics'
 export * from './statistics'
 export * from './publicationState'
 

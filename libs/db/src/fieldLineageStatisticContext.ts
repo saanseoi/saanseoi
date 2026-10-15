@@ -69,7 +69,7 @@ export function statisticContextSpecification(datasetCode: string, path: string)
       ],
       additionalImplementations: [
         {
-          path: 'libs/core/src/pipeline/services/divisions/divisionStatistics.ts',
+          path: 'libs/core/src/pipeline/services/divisions/districtIdentity.ts',
           symbol: 'createHkgovCenstatdDistrictResolution',
         },
         {
