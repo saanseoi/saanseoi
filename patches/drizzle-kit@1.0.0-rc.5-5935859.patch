@@ -1,8 +1,7 @@
 diff --git a/bin.cjs b/bin.cjs
-index e3dfd40876fb1057be24eb4787b42e5ddf9eb58f..4656b142f785eefb681fa8befaf9f8e4df16e53c 100755
 --- a/bin.cjs
 +++ b/bin.cjs
-@@ -222448,6 +222448,16 @@ var init_connections = __esmMin((() => {
+@@ -152378,6 +152378,16 @@
  				const { drizzle } = await import("drizzle-orm/sqlite-proxy");
  				const { migrate } = await import("drizzle-orm/sqlite-proxy/migrator");
  				const remoteCallback = async (sql, params, method) => {

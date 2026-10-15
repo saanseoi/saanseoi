@@ -23,7 +23,7 @@
   "devDependencies": {
     "@types/bun": "1.4.3",
     "bun-types": "^1.4.3",
-    "drizzle-kit": "1.0.0-rc.4-5d5b77c",
+    "drizzle-kit": "1.0.0-rc.5-5935859",
     "typescript": "^6.0.3",
     "vitest": "^5.0.4",
     "wrangler": "^4.151.0"
@@ -36,7 +36,7 @@
     "@repo/i18n": "workspace:*",
     "@scalar/hono-api-reference": "^0.12.12",
     "@scalar/openapi-to-markdown": "^1.5.4",
-    "drizzle-orm": "^1.0.0-rc.4-5d5b77c",
+    "drizzle-orm": "1.0.0-rc.5-5935859",
     "hono": "^4.13.13",
     "zod": "^4.6.7"
   }

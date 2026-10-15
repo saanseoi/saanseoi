@@ -65,7 +65,7 @@
     "@types/leaflet": "1.9.22",
     "@types/node": "^26.6.5",
     "@vitest/browser-playwright": "^5.0.4",
-    "drizzle-kit": "1.0.0-rc.4-5d5b77c",
+    "drizzle-kit": "1.0.0-rc.5-5935859",
     "playwright": "^1.64.1",
     "svelte": "^5.57.2",
     "svelte-check": "^4.7.6",

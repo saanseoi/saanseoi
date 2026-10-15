@@ -72,7 +72,7 @@
   "dependencies": {
     "@noble/hashes": "2.4.0",
     "@repo/db": "workspace:*",
-    "drizzle-orm": "1.0.0-rc.4-5d5b77c",
+    "drizzle-orm": "1.0.0-rc.5-5935859",
     "hyparquet": "^1.31.4",
     "hyparquet-compressors": "^1.1.2",
     "jsts": "2.12.1"

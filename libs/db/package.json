@@ -124,10 +124,10 @@
   "dependencies": {
     "@clack/prompts": "^1.8.1",
     "@types/bun": "^1.4.3",
-    "drizzle-orm": "1.0.0-rc.4-5d5b77c"
+    "drizzle-orm": "1.0.0-rc.5-5935859"
   },
   "devDependencies": {
-    "drizzle-kit": "1.0.0-rc.4-5d5b77c",
+    "drizzle-kit": "1.0.0-rc.5-5935859",
     "typescript": "^6.0.3"
   }
 }
