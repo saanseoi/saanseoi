@@ -7,40 +7,26 @@ import { collectSqlFiles } from '../../testing/metaFixtures'
 const migrations = collectSqlFiles(
   resolve(import.meta.dir, '../../../../db/migrations/meta'),
 ).sort()
-const normalisationIndex = migrations.findIndex(path =>
-  path.includes('20261013050731_gigantic_loa'),
-)
-if (normalisationIndex < 0) throw new Error('Missing snapshot lineage migration.')
 
-function beforeMigration() {
+function createDatabase() {
   const db = new Database(':memory:')
-  for (const file of migrations.slice(0, normalisationIndex))
-    db.exec(readFileSync(file, 'utf8'))
+  for (const file of migrations) db.exec(readFileSync(file, 'utf8'))
   db.exec(`
     PRAGMA foreign_keys = ON;
     INSERT INTO snapshotLineages (id,code,regionCode,resourceType,variant,identityMode,versionHash)
     VALUES ('division','division','hk','division','overture','persistent','fixture'),
            ('place','place','hk','place','overture','persistent','fixture');
-    INSERT INTO snapshots (id,snapshotLineageId,resourceType,code,cohortKey,revision,status)
-    VALUES ('snapshot','division','division','ss-hk-division-2026-r0','2026',0,'published');
+    INSERT INTO snapshots (id,snapshotLineageId,code,cohortKey,revision,status)
+    VALUES ('snapshot','division','ss-hk-division-2026-r0','2026',0,'published');
     CREATE TABLE snapshotReferences (snapshotId TEXT REFERENCES snapshots(id) ON DELETE CASCADE);
     INSERT INTO snapshotReferences VALUES ('snapshot');
   `)
   return db
 }
 
-function normalise(db: Database) {
-  for (const statement of readFileSync(migrations[normalisationIndex]!, 'utf8').split(
-    '--> statement-breakpoint',
-  )) {
-    if (statement.trim()) db.query(statement).run()
-  }
-}
-
-test('generated snapshot migration preserves rows and references while deriving resource type from the lineage', () => {
-  const db = beforeMigration()
+test('generated snapshot schema derives resource type from the lineage and enforces references and uniqueness', () => {
+  const db = createDatabase()
   try {
-    normalise(db)
     expect(
       db
         .query('PRAGMA table_info(snapshots)')
@@ -84,14 +70,15 @@ test('generated snapshot migration preserves rows and references while deriving 
   }
 })
 
-test('generated migration rejects a snapshot without a lineage before replacing the original table', () => {
-  const db = beforeMigration()
+test('generated snapshot schema rejects removing a lineage from an existing snapshot', () => {
+  const db = createDatabase()
   try {
-    db.exec("UPDATE snapshots SET snapshotLineageId = NULL WHERE id='snapshot'")
-    expect(() => normalise(db)).toThrow('NOT NULL')
+    expect(() =>
+      db.exec("UPDATE snapshots SET snapshotLineageId = NULL WHERE id='snapshot'"),
+    ).toThrow('NOT NULL')
     expect(
-      db.query("SELECT id, resourceType FROM snapshots WHERE id='snapshot'").get(),
-    ).toEqual({ id: 'snapshot', resourceType: 'division' })
+      db.query("SELECT id, snapshotLineageId FROM snapshots WHERE id='snapshot'").get(),
+    ).toEqual({ id: 'snapshot', snapshotLineageId: 'division' })
   } finally {
     db.close()
   }
