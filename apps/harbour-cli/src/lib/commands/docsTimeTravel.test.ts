@@ -24,12 +24,15 @@ test('renders shared time travel sections for versioned API guides', async () =>
         .map(locale => `{{timeTravelSection:${locale}}}`)
         .sort(),
     )
-    for (const key of [
+    const exampleKeys = [
       'timeTravelEffectiveAt',
       'timeTravelKnownAt',
       'timeTravelCatalogRevision',
-    ]) {
-      expect(fixture.frontmatter[key], `${path}: ${key}`).toBeTruthy()
+    ]
+    const hasCheckpointExample = exampleKeys.some(key => fixture.frontmatter[key])
+    if (hasCheckpointExample) {
+      for (const key of exampleKeys)
+        expect(fixture.frontmatter[key], `${path}: ${key}`).toBeTruthy()
     }
     const versionPath = fixture.frontmatter.apiVersion?.match(/-(v\d+(?:\.\d+)*)$/)?.[1]
     expect(versionPath, path).toBeTruthy()
@@ -38,15 +41,35 @@ test('renders shared time travel sections for versioned API guides', async () =>
       body: requireDefined(directives).join('\n'),
     })
     expect(rendered).not.toContain('{{')
-    expect(rendered).toContain(
-      `catalogRevision=${fixture.frontmatter.timeTravelCatalogRevision}&`,
-    )
-    expect(rendered).toContain(`releaseSet=${fixture.frontmatter.apiReleaseSet}`)
-    expect(rendered).toContain(`/${fixture.frontmatter.apiFamily}/${versionPath}?`)
+    if (hasCheckpointExample) {
+      expect(rendered).toContain(
+        `catalogRevision=${fixture.frontmatter.timeTravelCatalogRevision}&`,
+      )
+      expect(rendered).toContain(`releaseSet=${fixture.frontmatter.apiReleaseSet}`)
+      expect(rendered).toContain(`/${fixture.frontmatter.apiFamily}/${versionPath}?`)
+    } else {
+      expect(rendered).toContain('<black>catalogRevision</black>')
+      expect(rendered).toContain('<black>releaseSet</black>')
+      expect(rendered).not.toContain('```url')
+    }
     expect(rendered).toContain('links.permalink')
     guides++
   }
   expect(guides).toBeGreaterThan(0)
+})
+
+test('guides without checkpoint examples explain replay in every locale', async () => {
+  for (const locale of ['en', 'zh-Hant', 'zh-Hans']) {
+    const rendered = await renderMarkdownFixtureBody({
+      body: `{{timeTravelSection:${locale}}}`,
+      frontmatter: {},
+    })
+    for (const selector of ['effectiveAt', 'knownAt', 'catalogRevision', 'releaseSet'])
+      expect(rendered).toContain(`<black>${selector}</black>`)
+    expect(rendered).toContain('links.permalink')
+    expect(rendered).not.toContain('{{')
+    expect(rendered).not.toContain('```url')
+  }
 })
 
 test('frontmatter overrides supply checkpoint examples and missing values fail clearly', async () => {

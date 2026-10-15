@@ -27,7 +27,7 @@ test('all Stats maps select ready SaanSeoi district land polygons and exclude go
       createdAt TEXT NOT NULL DEFAULT '2026-01-01T00:00:00.000Z',
       updatedAt TEXT NOT NULL DEFAULT '2026-01-01T00:00:00.000Z'
     );
-      CREATE TABLE divisionAreas(divisionId, geometry, updatedAt, variant, scopeId, isLand, isTerritorial);
+      CREATE TABLE divisionAreas(id TEXT PRIMARY KEY, divisionId, geometry, updatedAt, variant, scopeId, isLand, isTerritorial);
       CREATE TABLE divisions(id, class, scopeId);
       CREATE TABLE divisionPublicationState(scopeId, snapshotId, status, preparedAt, publicationToken);
       CREATE TABLE divisionAreaPublicationState(scopeId, snapshotId, status, preparedAt, publicationToken);
@@ -40,7 +40,7 @@ test('all Stats maps select ready SaanSeoi district land polygons and exclude go
 ('selected', 'simple', 'published', '2021', '2021'),
 ('full', 'full', 'published', '2026', '2026'),
 ('districts', 'district-lineage', 'published', '2021', '2021');
-      INSERT INTO divisionAreas VALUES ('district','{"type":"Polygon","coordinates":[]}', '2021','saanseoi','stable-scope',1,0), ('district','null','2021','saanseoi','stable-scope',1,1), ('village','null','2021','saanseoi','stable-scope',1,0);
+      INSERT INTO divisionAreas VALUES ('district-land','district','{"type":"Polygon","coordinates":[]}', '2021','saanseoi','stable-scope',1,0), ('district-territorial','district','null','2021','saanseoi','stable-scope',1,1), ('village-land','village','null','2021','saanseoi','stable-scope',1,0);
       INSERT INTO divisions VALUES ('district','district','district-scope'), ('village','village','district-scope');
       INSERT INTO divisionPublicationState VALUES ('district-scope','districts','current','ready','token');
       INSERT INTO divisionAreaPublicationState VALUES ('stable-scope','selected','current','ready','token');

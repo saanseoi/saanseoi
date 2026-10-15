@@ -111,6 +111,40 @@ selector；請保存它，以便日後重播完全相同的結果。`,
 selector；请保存它，以便日后重放完全相同的结果。`,
 } as const
 
+const sectionsWithoutCheckpoint = {
+  en: `Use <black>effectiveAt</black> to select the release effective at an instant, or
+<black>knownAt</black> to select the catalogue checkpoint known at that instant.
+
+To reproduce a response, save <black>links.permalink</black>. It includes the resolved
+<black>catalogRevision</black> and <black>releaseSet</black> selectors. Use the returned
+catalogue revision when pinning this release; checkpoint identifiers come from published
+responses.
+
+<black>catalogRevision</black> takes precedence over <black>knownAt</black>, and
+<black>releaseSet</black> takes precedence over <black>cohort</black> and
+<black>effectiveAt</black>. These selectors apply to collection requests.`,
+  'zh-Hant': `使用 <black>effectiveAt</black> 選取某一時刻生效的發布，或使用
+<black>knownAt</black> 選取該時刻已知的目錄 checkpoint。
+
+要重現回應，請儲存 <black>links.permalink</black>。它包含已解析的
+<black>catalogRevision</black> 及 <black>releaseSet</black> selector。固定此發布時，
+請使用回應傳回的目錄 revision；checkpoint 識別碼來自已發布的回應。
+
+<black>catalogRevision</black> 優先於 <black>knownAt</black>，而
+<black>releaseSet</black> 優先於 <black>cohort</black> 及 <black>effectiveAt</black>。
+這些 selector 適用於 collection 請求。`,
+  'zh-Hans': `使用 <black>effectiveAt</black> 选取某一时刻生效的发布，或使用
+<black>knownAt</black> 选取该时刻已知的目录 checkpoint。
+
+要重现响应，请保存 <black>links.permalink</black>。它包含已解析的
+<black>catalogRevision</black> 及 <black>releaseSet</black> selector。固定此发布时，
+请使用响应返回的目录 revision；checkpoint 标识符来自已发布的响应。
+
+<black>catalogRevision</black> 优先于 <black>knownAt</black>，而
+<black>releaseSet</black> 优先于 <black>cohort</black> 及 <black>effectiveAt</black>。
+这些 selector 适用于 collection 请求。`,
+} as const
+
 export function expandTimeTravelSections(
   markdown: string,
   frontmatter: Record<string, string>,
@@ -118,6 +152,12 @@ export function expandTimeTravelSections(
   return markdown.replace(
     /\{\{timeTravelSection:(en|zh-Hant|zh-Hans)\}\}/g,
     (_tag, locale: keyof typeof sections) => {
+      if (
+        !frontmatter.timeTravelEffectiveAt &&
+        !frontmatter.timeTravelKnownAt &&
+        !frontmatter.timeTravelCatalogRevision
+      )
+        return sectionsWithoutCheckpoint[locale]
       let section: string = sections[locale]
       if (!frontmatter.domainCode)
         section = section.replace(/^ +domain=\{\{ domainCode \}\}&\n/gm, '')
