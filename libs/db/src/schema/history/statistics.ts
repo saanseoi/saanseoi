@@ -11,10 +11,13 @@ import {
 import { historyEventConstraints } from './constraints'
 import { historyStatisticVersioning } from './shared'
 
+const { sourceReleaseId: _producingRelease, ...historyStatsRecordColumns } =
+  canonicalStatsRecordColumns(false)
+
 /** Immutable canonical observations, including superseded publisher revisions. */
 export const statsRecords = sqliteTable(
   'statsRecords',
-  { ...canonicalStatsRecordColumns(false), ...historyStatisticVersioning },
+  { ...historyStatsRecordColumns, ...historyStatisticVersioning },
   table => [
     ...historyEventConstraints(table, [
       'datasetCode',
@@ -29,7 +32,6 @@ export const statsRecords = sqliteTable(
     ]),
     primaryKey({ columns: [table.id, table.snapshotId] }),
     index('statsRecords_current_lookup_idx').on(table.id, table.isCurrent),
-    index('statsRecords_source_release_idx').on(table.sourceReleaseId),
   ],
 )
 

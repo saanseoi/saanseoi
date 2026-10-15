@@ -53,7 +53,7 @@ test('only changed geography packs create history and snapshot changes across re
       'history',
     ]),
   )
-  meta.exec(`CREATE TABLE snapshots(id TEXT PRIMARY KEY, parentSnapshotId TEXT);
+  meta.exec(`CREATE TABLE snapshots(id TEXT PRIMARY KEY, parentSnapshotId TEXT); CREATE TABLE snapshotResourceReleases(snapshotId,resourceReleaseId,role); CREATE TRIGGER fixtureProducer AFTER INSERT ON snapshots BEGIN INSERT INTO snapshotResourceReleases VALUES(NEW.id,NEW.id,'primary'); END;
     CREATE TABLE snapshotShardAssignments(snapshotId TEXT,dataShardId TEXT);
     CREATE TABLE dataShards(id TEXT,bindingName TEXT);
     INSERT INTO snapshots VALUES ('s1',NULL),('s2','s1'),('s3','s2'),('s4','s3'),('s5','s4');`)

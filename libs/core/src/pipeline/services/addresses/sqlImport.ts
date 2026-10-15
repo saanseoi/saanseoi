@@ -601,7 +601,6 @@ export function buildAddressRetirementSqlImportFiles(
   if (options.addressIds.length === 0) return []
   const now = sqlLiteral(message.processingRunStartedAt ?? new Date().toISOString())
   const snapshot = sqlLiteral(options.snapshotId)
-  const release = sqlLiteral(message.resourceReleaseId ?? message.datasetId)
   const scope = sqlLiteral(options.scopeId)
   const historyStatements: string[] = []
   const currentStatements: string[] = []
@@ -609,9 +608,9 @@ export function buildAddressRetirementSqlImportFiles(
   for (let offset = 0; offset < ids.length; offset += 100) {
     const membership = `SELECT value FROM json_each(${sqlLiteral(JSON.stringify(ids.slice(offset, offset + 100)))})`
     historyStatements.push(`INSERT INTO address2d (
-  snapshotId, id, versionHash, operation, sourceReleaseId, createdAt
+  snapshotId, id, versionHash, operation, createdAt
 )
-SELECT ${snapshot}, value, NULL, 'delete', ${release}, ${now}
+SELECT ${snapshot}, value, NULL, 'delete', ${now}
 FROM json_each(${sqlLiteral(JSON.stringify(ids.slice(offset, offset + 100)))}) WHERE 1
 ON CONFLICT(id, snapshotId) DO NOTHING;`)
     currentStatements.push(
@@ -876,18 +875,17 @@ function buildAddressHistoryApplySql(
   snapshotId: string,
 ) {
   const run = sqlLiteral(runId)
-  const resourceReleaseId = sqlLiteral(message.resourceReleaseId ?? message.datasetId)
   const _snapshot = sqlLiteral(snapshotId)
   const _now = sqlLiteral(message.processingRunStartedAt ?? new Date().toISOString())
 
   return `
 INSERT INTO address2d (
-  id, versionHash, sourceReleaseId, snapshotId, isCurrent, streetId,
+  id, versionHash, snapshotId, isCurrent, streetId,
   hamletId, microhoodId, villageId, neighbourhoodId, ruralAreaId, macrohoodId, townId,
   districtId, landformId, areaId, countryId, geometry, identifiers, sources, parentAddressId, granularity, createdAt
 )
 SELECT
-  r.addressId, r.versionHash, ${resourceReleaseId}, r.snapshotId,
+  r.addressId, r.versionHash, r.snapshotId,
   1, r.streetId, r.hamletId, r.microhoodId, r.villageId,
   r.neighbourhoodId, r.ruralAreaId, r.macrohoodId, r.townId, r.districtId, r.landformId, r.areaId, r.countryId,
   r.geometry, r.identifiers, r.sources, r.parentAddressId, r.granularity, r.updatedAt
@@ -896,7 +894,7 @@ WHERE r.runId = ${run}
   AND r.changed = 1
 ON CONFLICT(id, snapshotId) DO NOTHING;
 INSERT INTO address2dI18n (
-  addressId, versionHash, sourceReleaseId, snapshotId,
+  addressId, versionHash, snapshotId,
   isCurrent, locale, meta, formattedAddress, buildingName,
   buildingNumberExpression, buildingNumberFrom, buildingNumberTo, buildingNumberConnector,
   blockExpression, blockType, blockRef, blockTypeBeforeNumber,
@@ -904,7 +902,7 @@ INSERT INTO address2dI18n (
   streetName, createdAt
 )
 SELECT
-  i.addressId, i.versionHash, ${resourceReleaseId}, i.snapshotId, 1,
+  i.addressId, i.versionHash, i.snapshotId, 1,
   i.locale, i.meta, i.formattedAddress, i.buildingName, i.buildingNumberExpression,
   i.buildingNumberFrom, i.buildingNumberTo, i.buildingNumberConnector,
   i.blockExpression, i.blockType, i.blockRef, i.blockTypeBeforeNumber,
@@ -918,13 +916,12 @@ WHERE r.runId = ${run}
   AND r.changed = 1
 ON CONFLICT(addressId, snapshotId, locale) DO NOTHING;
 INSERT INTO address2dBuildingNumberLookup (
-  addressId, versionHash, sourceReleaseId, snapshotId, isCurrent,
+  addressId, versionHash, snapshotId, isCurrent,
   buildingNumber, numericStem, evidence, derivation, createdAt
 )
 SELECT
   lookup.addressId,
   lookup.versionHash,
-  ${resourceReleaseId},
   lookup.snapshotId,
   1,
   lookup.buildingNumber,

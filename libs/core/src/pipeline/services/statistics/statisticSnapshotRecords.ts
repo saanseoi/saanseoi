@@ -11,6 +11,7 @@ import { resolveSnapshotReplayPlan } from '../../../lib/db/metaRegistry'
 import type { HarbourReadableDb } from '../../../lib/db/types'
 import {
   dependentHistoryEvents,
+  snapshotEventProducer,
   historyParentIdentity,
   historyVersionSelection,
 } from '../../db/snapshotReplay'
@@ -21,7 +22,7 @@ export type RetainedStatisticRecord = Omit<
     typeof currentSchema.statsRecords.$inferSelect
   >,
   'definitionSetId'
-> & { fieldDefinitionHashes: Record<string, string> }
+> & { fieldDefinitionHashes: Record<string, string>; sourceReleaseId: string }
 
 export const STATISTIC_RECORD_TYPE = 'statsRecord'
 
@@ -35,12 +36,17 @@ export async function readStatisticSnapshotRecords(
   return readStatisticRecordsForSnapshotPlan(
     historyDbs,
     plan.map(step => step.snapshotId),
+    new Map(plan.map(step => [step.snapshotId, step])),
   )
 }
 
 export async function readStatisticRecordsForSnapshotPlan(
   historyDbs: HarbourReadableDb[],
   snapshotIds: string[],
+  producers: ReadonlyMap<
+    string,
+    import('../../../lib/db/metaRegistry').SnapshotReplayStep
+  >,
 ): Promise<RetainedStatisticRecord[]> {
   const selected = await resolveStatisticEvents(historyDbs, snapshotIds, [
     'statsRecord',
@@ -63,7 +69,17 @@ export async function readStatisticRecordsForSnapshotPlan(
         .all()
       if (rows.length !== versions.slice(offset, offset + 80).length)
         throw new Error('Missing retained Statistics event content.')
-      records.push(...(rows as RetainedStatisticRecord[]))
+      records.push(
+        ...rows.map(row => {
+          const producer = producers.get(row.snapshotId)
+          if (!producer)
+            throw new Error(`Missing Statistics producer for ${row.snapshotId}.`)
+          return {
+            ...row,
+            sourceReleaseId: snapshotEventProducer(producer, row.datasetCode),
+          } as RetainedStatisticRecord
+        }),
+      )
     }
   }
   return records.sort((a, b) => a.id.localeCompare(b.id))
@@ -112,7 +128,7 @@ export async function resolveStatisticEvents(
   }
   const groups = new Map<
     HarbourReadableDb,
-    Array<StatisticEvent & { versionHash: string; sourceReleaseId: string }>
+    Array<StatisticEvent & { versionHash: string }>
   >()
   for (const { db, row, position } of winners.values()) {
     if (!requestedTypes.has(row.recordType)) continue
@@ -132,13 +148,12 @@ export async function resolveStatisticEvents(
         continue
     }
     if (row.operation === 'delete') continue
-    if (row.operation !== 'upsert' || !row.versionHash || !row.sourceReleaseId)
+    if (row.operation !== 'upsert' || !row.versionHash)
       throw new Error(`Invalid Statistics event ${row.recordId}/${row.snapshotId}.`)
     const group = groups.get(db) ?? []
     group.push({
       ...row,
       versionHash: row.versionHash,
-      sourceReleaseId: row.sourceReleaseId,
     })
     groups.set(db, group)
   }

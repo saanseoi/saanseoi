@@ -10,7 +10,7 @@ test('ALS lookup replays inherited names across shards and excludes deleted divi
   const child = new Database(':memory:')
   try {
     meta.exec(`
-      CREATE TABLE snapshots (id TEXT, parentSnapshotId TEXT);
+      CREATE TABLE snapshots (id TEXT, parentSnapshotId TEXT); CREATE TABLE snapshotResourceReleases(snapshotId,resourceReleaseId,role); CREATE TRIGGER fixtureProducer AFTER INSERT ON snapshots BEGIN INSERT INTO snapshotResourceReleases VALUES(NEW.id,'release','primary'); END;
       CREATE TABLE snapshotShardAssignments (snapshotId TEXT, dataShardId TEXT);
       CREATE TABLE dataShards (id TEXT, bindingName TEXT);
       INSERT INTO snapshots VALUES ('parent', NULL), ('child', 'parent');
@@ -19,9 +19,9 @@ test('ALS lookup replays inherited names across shards and excludes deleted divi
     `)
     for (const db of [parent, child])
       db.exec(`
-      CREATE TABLE divisions (id TEXT, level INTEGER, category TEXT, class TEXT, hierarchies TEXT, versionHash TEXT, snapshotId TEXT DEFAULT 'parent', operation TEXT DEFAULT 'upsert', sourceReleaseId TEXT DEFAULT 'release');
-      CREATE TABLE divisionsI18n (divisionId TEXT, locale TEXT, name TEXT, versionHash TEXT, snapshotId TEXT DEFAULT 'parent', operation TEXT DEFAULT 'upsert', sourceReleaseId TEXT DEFAULT 'release');
-      CREATE VIEW historyEvents AS SELECT snapshotId,'division' AS recordType,id AS recordId,'' AS locale,versionHash,operation,sourceReleaseId FROM divisions UNION ALL SELECT snapshotId,'divisionI18n',divisionId,locale,versionHash,operation,sourceReleaseId FROM divisionsI18n;
+      CREATE TABLE divisions (id TEXT, level INTEGER, category TEXT, class TEXT, hierarchies TEXT, versionHash TEXT, snapshotId TEXT DEFAULT 'parent', operation TEXT DEFAULT 'upsert');
+      CREATE TABLE divisionsI18n (divisionId TEXT, locale TEXT, name TEXT, versionHash TEXT, snapshotId TEXT DEFAULT 'parent', operation TEXT DEFAULT 'upsert');
+      CREATE VIEW historyEvents AS SELECT snapshotId,'division' AS recordType,id AS recordId,'' AS locale,versionHash,operation,NULL AS producerDatasetCode FROM divisions UNION ALL SELECT snapshotId,'divisionI18n',divisionId,locale,versionHash,operation,NULL AS producerDatasetCode FROM divisionsI18n;
     `)
     // More than one query batch, including content shared by different record IDs.
     for (let i = 0; i < 90; i++) {

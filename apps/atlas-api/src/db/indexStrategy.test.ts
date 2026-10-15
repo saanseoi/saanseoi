@@ -236,11 +236,11 @@ test('Division replay seeks exact identity/version/locale tuples across batches'
   const sqlite = migratedDatabase('history')
   try {
     const insert = sqlite.prepare(`INSERT INTO divisions
-      (id,versionHash,class,hierarchies,sourceReleaseId,snapshotId,isCurrent)
-      VALUES (?,?,'district','{}','release',?2,0)`)
+      (id,versionHash,class,hierarchies,snapshotId,isCurrent)
+      VALUES (?,?,'district','{}',?2,0)`)
     const insertName = sqlite.prepare(`INSERT INTO divisionsI18n
-      (divisionId,versionHash,locale,name,meta,sourceReleaseId,snapshotId,isCurrent)
-      VALUES (?,?,'en',?,json_object('isLocaleInferred',json(CASE 0 WHEN 1 THEN 'true' ELSE 'false' END)),'release',?2,0)`)
+      (divisionId,versionHash,locale,name,meta,snapshotId,isCurrent)
+      VALUES (?,?,'en',?,json_object('isLocaleInferred',json(CASE 0 WHEN 1 THEN 'true' ELSE 'false' END)),?2,0)`)
     for (let i = 0; i < 300; i++) {
       insert.run(`d${i}`, 'selected')
       insert.run(`d${i}`, 'other')
@@ -262,6 +262,7 @@ test('Division replay seeks exact identity/version/locale tuples across batches'
     })
     const versions = Array.from({ length: 300 }, (_, i) =>
       ['division', 'divisionI18n'].map(recordType => ({
+        sourceReleaseId: 'release',
         recordType,
         recordId: `d${i}`,
         versionHash: 'selected',

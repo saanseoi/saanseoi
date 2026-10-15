@@ -113,7 +113,6 @@ const definitions = (name = 'Population', fieldName = 'population') =>
   })
 const metadata = {
   snapshotId: 'a',
-  sourceReleaseId: 'original-release',
   isCurrent: 0,
   createdAt: timestamp,
   updatedAt: timestamp,
@@ -266,12 +265,17 @@ function fixture() {
       recordId: 'removed',
     }),
   )
-  insertProjectionRow(current, 'statsRecords', { ...pack('stale', 'stale', revised) })
   insertProjectionRow(current, 'statsRecords', {
+    sourceReleaseId: 'current-release',
+    ...pack('stale', 'stale', revised),
+  })
+  insertProjectionRow(current, 'statsRecords', {
+    sourceReleaseId: 'current-release',
     ...pack('other-period', 'untouched', original),
     referencePeriodCode: '2021-Q2',
   })
   insertProjectionRow(current, 'statsRecords', {
+    sourceReleaseId: 'current-release',
     ...pack('other-dataset', 'untouched', original),
     datasetCode: 'another-dataset',
   })
@@ -365,7 +369,7 @@ test('Statistics rollback restores exact inherited packs and immutable dictionar
         )
         .get('inherited'),
     ).toEqual({
-      sourceReleaseId: 'original-release',
+      sourceReleaseId: 'a-release',
       sourceFeatureRef: 'publisher/inherited',
       fieldSources:
         '{"population":{"sourceReleaseId":"original-release","sourceFeatureRef":"publisher/inherited"}}',

@@ -12,7 +12,10 @@ import { decompressJsonBrotli } from '@repo/core/pipeline/services/storage/brotl
 import { currentSchema, historySchema, metaSchema, sourceSchema } from '@repo/db'
 import { drizzle } from 'drizzle-orm/bun-sqlite'
 import { loadMigrationSql } from '../../../../../../libs/core/src/testing/metaFixtures'
-import { insertFixtureSnapshot } from '../../../../../../libs/core/src/testing/snapshotFixtures'
+import {
+  insertFixtureSnapshot as insertSnapshot,
+  insertSnapshotProducerFixture,
+} from '../../../../../../libs/core/src/testing/snapshotFixtures'
 import type { LocalAddressDbContext } from '../../dbCache/localDbCacheTypes'
 import { writeGeometryRows } from './processLocalDivisionGeometrySqlUploadRows'
 
@@ -595,3 +598,16 @@ test('Planning Area ingestion preserves unrelated C&SD HMA history in the shared
     f.close()
   }
 })
+
+function insertFixtureSnapshot(...args: Parameters<typeof insertSnapshot>) {
+  insertSnapshot(...args)
+  const [db, snapshot] = args
+  if (
+    !db
+      .query(
+        "SELECT 1 FROM snapshotResourceReleases WHERE snapshotId=? AND role='primary'",
+      )
+      .get(snapshot.id)
+  )
+    insertSnapshotProducerFixture(db, snapshot.id, String(snapshot.id))
+}

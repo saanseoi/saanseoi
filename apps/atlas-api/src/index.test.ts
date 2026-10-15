@@ -291,13 +291,15 @@ function streetRows(query: string, values: unknown[] = []): unknown[][] {
         'upsert',
         'release-1',
       ],
-    ].filter(
-      row =>
-        values.includes(row[0]) &&
-        (row[0] === 'streetChangelog'
-          ? values[0] === 'street-root'
-          : row[3] === version),
-    )
+    ]
+      .filter(
+        row =>
+          values.includes(row[0]) &&
+          (row[0] === 'streetChangelog'
+            ? values[0] === 'street-root'
+            : row[3] === version),
+      )
+      .map(row => [null, ...row.slice(0, -1)])
   }
   if (query.includes('from "snapshots"')) {
     if (query.includes('parentSnapshotId'))
@@ -336,7 +338,6 @@ function streetRows(query: string, values: unknown[] = []): unknown[][] {
             'street-root',
             'upsert',
             'street-changelog-version-1',
-            'release-1',
             1,
             '2026-07-03T00:00:00.000Z',
             '2026-07-03T00:00:00.000Z',
@@ -354,7 +355,6 @@ function streetRows(query: string, values: unknown[] = []): unknown[][] {
             'future-street-snapshot',
             'upsert',
             'street-changelog-version-3',
-            'release-2',
             1,
             '2026-09-01T00:00:00.000Z',
             '2026-09-01T00:00:00.000Z',
@@ -383,7 +383,6 @@ function streetRows(query: string, values: unknown[] = []): unknown[][] {
           'street-root',
           'upsert',
           'street-version-1',
-          'release-1',
           1,
           '2026-07-03T00:00:00.000Z',
           '2026-07-03T00:00:00.000Z',
@@ -402,7 +401,6 @@ function streetRows(query: string, values: unknown[] = []): unknown[][] {
           'street-snapshot',
           'upsert',
           'street-version-2',
-          'release-1',
           1,
           '2026-08-01T00:00:00.000Z',
           '2026-08-01T00:00:00.000Z',
@@ -421,7 +419,6 @@ function streetRows(query: string, values: unknown[] = []): unknown[][] {
           'future-street-snapshot',
           'upsert',
           'street-version-3',
-          'release-2',
           1,
           '2026-09-01T00:00:00.000Z',
           '2026-09-01T00:00:00.000Z',

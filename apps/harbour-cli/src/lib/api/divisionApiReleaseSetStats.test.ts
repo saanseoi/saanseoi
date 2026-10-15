@@ -174,6 +174,7 @@ test('replay loads inherited content across shards, respects deletes, and reject
   const newer = new Database(':memory:')
   try {
     createTables(meta, [
+      metaSchema.metaSnapshotResourceReleases,
       metaSchema.metaSnapshots,
       metaSchema.metaSnapshotLineages,
       metaSchema.metaDataShards,
@@ -196,10 +197,13 @@ INSERT INTO snapshots (id, snapshotLineageId, parentSnapshotId) VALUES
       INSERT INTO snapshotShardAssignments (snapshotId, dataShardId) VALUES ('root', 'old'), ('leaf', 'new');`)
     older.exec(`INSERT INTO divisions (id, versionHash, class, level) VALUES ('keep', 'v1', 'district', 2), ('remove', 'v2', 'district', 2);
       INSERT INTO divisionsI18n (divisionId, locale, versionHash, name) VALUES ('keep', 'en', 'n1', 'Kept'), ('remove', 'en', 'n2', 'Removed');
-      UPDATE divisions SET snapshotId='root', sourceReleaseId='source';
-      UPDATE divisionsI18n SET snapshotId='root', sourceReleaseId='source' ;`)
+      UPDATE divisions SET snapshotId='root';
+      UPDATE divisionsI18n SET snapshotId='root' ;`)
     newer.exec(
       `INSERT INTO divisions (snapshotId,id,operation) VALUES ('leaf','remove','delete');`,
+    )
+    meta.exec(
+      "INSERT INTO snapshotResourceReleases(snapshotId,resourceReleaseId,role) SELECT id,id,'primary' FROM snapshots",
     )
     const targets = [
       { bindingName: 'old', db: drizzle({ client: older }) },

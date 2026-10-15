@@ -8,7 +8,10 @@ import { compressJsonBrotli } from '@repo/core/pipeline/services/storage/brotliJ
 import { requireDefined } from '@repo/core/requireDefined'
 import { drizzle } from 'drizzle-orm/bun-sqlite'
 import { loadMigrationSql } from '../../../../../../libs/core/src/testing/metaFixtures.ts'
-import { insertFixtureSnapshot } from '../../../../../../libs/core/src/testing/snapshotFixtures'
+import {
+  insertFixtureSnapshot as insertSnapshot,
+  insertSnapshotProducerFixture,
+} from '../../../../../../libs/core/src/testing/snapshotFixtures'
 import type { ResolvedSqlCandidates } from '../local/resolvedSqlPlan.ts'
 import { coalesceDivisionHistory } from './coalesceDivisionHistory.ts'
 
@@ -52,8 +55,8 @@ async function fixture(
       [current, false],
       [history, true],
     ] as const) {
-      db.query(`INSERT INTO divisions(${isHistory ? 'versionHash,sourceReleaseId,isCurrent,' : ''}${isHistory ? 'snapshotId' : 'scopeId'},id,class,geometry,sources,hierarchies,createdAt${isHistory ? '' : ',updatedAt'})
-        VALUES(${isHistory ? "'old-base','release-old',1," : ''}?,?,?,?,?,'{}',?${isHistory ? '' : ',?'})`).run(
+      db.query(`INSERT INTO divisions(${isHistory ? 'versionHash,isCurrent,' : ''}${isHistory ? 'snapshotId' : 'scopeId'},id,class,geometry,sources,hierarchies,createdAt${isHistory ? '' : ',updatedAt'})
+        VALUES(${isHistory ? "'old-base',1," : ''}?,?,?,?,?,'{}',?${isHistory ? '' : ',?'})`).run(
         isHistory ? 'old' : 'scope',
         'district',
         'district',
@@ -68,8 +71,8 @@ async function fixture(
         ['en', 'Original'],
         ['zh-hant', '原文'],
       ])
-        db.query(`INSERT INTO divisionsI18n(${isHistory ? 'versionHash,sourceReleaseId,isCurrent,' : ''}meta,${isHistory ? 'snapshotId' : 'scopeId'},divisionId,locale,name,nameVariant,createdAt${isHistory ? '' : ',updatedAt'})
-          VALUES(${isHistory ? "'old-base','release-old',1," : ''}'{"isLocaleInferred":false}',?,?,?,?,?,?${isHistory ? '' : ',?'})`).run(
+        db.query(`INSERT INTO divisionsI18n(${isHistory ? 'versionHash,isCurrent,' : ''}meta,${isHistory ? 'snapshotId' : 'scopeId'},divisionId,locale,name,nameVariant,createdAt${isHistory ? '' : ',updatedAt'})
+          VALUES(${isHistory ? "'old-base',1," : ''}'{"isLocaleInferred":false}',?,?,?,?,?,?${isHistory ? '' : ',?'})`).run(
           isHistory ? 'old' : 'scope',
           'district',
           requireDefined(locale),
@@ -144,7 +147,7 @@ function stage(candidates: ResolvedSqlCandidates, english = 'Original') {
     current = requireDefined(candidates.DB_CURRENT).db
   next
     .query(
-      "INSERT INTO divisions (versionHash,sourceReleaseId,isCurrent,snapshotId,id,class,geometry,sources,hierarchies,createdAt) VALUES ('whole-candidate','release-next',1,'next','district','district',?,?,'{}','now')",
+      "INSERT INTO divisions (versionHash,isCurrent,snapshotId,id,class,geometry,sources,hierarchies,createdAt) VALUES ('whole-candidate',1,'next','district','district',?,?,'{}','now')",
     )
     .run(
       compressJsonBrotli({ type: 'Point', coordinates: [114, 22] }),
@@ -166,18 +169,20 @@ function stage(candidates: ResolvedSqlCandidates, english = 'Original') {
       .run(requireDefined(name), JSON.stringify([name]), requireDefined(locale))
     next
       .query(
-        "INSERT INTO divisionsI18n (versionHash,sourceReleaseId,isCurrent,meta,snapshotId,divisionId,locale,name,nameVariant,createdAt) VALUES ('whole-candidate','release-next',1,json_object('isLocaleInferred',json(CASE 0 WHEN 1 THEN 'true' ELSE 'false' END)),'next','district',?,?,?,'now')",
+        "INSERT INTO divisionsI18n (versionHash,isCurrent,meta,snapshotId,divisionId,locale,name,nameVariant,createdAt) VALUES ('whole-candidate',1,json_object('isLocaleInferred',json(CASE 0 WHEN 1 THEN 'true' ELSE 'false' END)),'next','district',?,?,?,'now')",
       )
       .run(requireDefined(locale), requireDefined(name), JSON.stringify([name]))
   }
 }
 const plan = [
   {
+    resourceReleaseId: 'release',
     snapshotId: 'old',
     parentSnapshotId: null,
     shards: [{ dataShardId: 'old', bindingName: 'DB_HISTORY_OLD' }],
   },
   {
+    resourceReleaseId: 'release',
     snapshotId: 'next',
     parentSnapshotId: 'old',
     shards: [{ dataShardId: 'next', bindingName: 'DB_HISTORY_NEW' }],
@@ -303,7 +308,7 @@ test('Division component omissions retire the exact older shard and leave anothe
       old = requireDefined(f.candidates.DB_HISTORY_OLD).db
     current.exec("DELETE FROM divisionsI18n WHERE locale='zh-hant'")
     old.exec(
-      "INSERT INTO divisions(id,versionHash,sourceReleaseId,snapshotId,isCurrent,class,hierarchies) VALUES('foreign','foreign','foreign','foreign',1,'district','{}')",
+      "INSERT INTO divisions(id,versionHash,snapshotId,isCurrent,class,hierarchies) VALUES('foreign','foreign','foreign',1,'district','{}')",
     )
     await f.coalesce()
     expect(
@@ -360,7 +365,7 @@ test('Division publication after rollback compares against selected A when C rep
       requireDefined(f.candidates.DB_HISTORY_NEW).db,
     ])
       db.exec(`
-        INSERT INTO divisionsI18n (versionHash,sourceReleaseId,isCurrent,meta,snapshotId,divisionId,locale,name,nameVariant,createdAt) VALUES ('branch-b','release-b',1,json_object('isLocaleInferred',json(CASE 0 WHEN 1 THEN 'true' ELSE 'false' END)),'branch-b','district','en','Revised','["Revised"]','b');
+        INSERT INTO divisionsI18n (versionHash,isCurrent,meta,snapshotId,divisionId,locale,name,nameVariant,createdAt) VALUES ('branch-b',1,json_object('isLocaleInferred',json(CASE 0 WHEN 1 THEN 'true' ELSE 'false' END)),'branch-b','district','en','Revised','["Revised"]','b');
         `)
     for (const db of [
       requireDefined(f.before.DB_HISTORY_OLD),
@@ -428,7 +433,7 @@ test('Division coalescing permits a new locale with no predecessor', () =>
     )
     const next = requireDefined(f.candidates.DB_HISTORY_NEW).db
     next.exec(`
-      INSERT INTO divisionsI18n(snapshotId,divisionId,locale,name,meta,versionHash,sourceReleaseId,isCurrent) VALUES('next','district','fr','District',json_object('isLocaleInferred',json(CASE 0 WHEN 1 THEN 'true' ELSE 'false' END)),'french','release-next',1);
+      INSERT INTO divisionsI18n(snapshotId,divisionId,locale,name,meta,versionHash,isCurrent) VALUES('next','district','fr','District',json_object('isLocaleInferred',json(CASE 0 WHEN 1 THEN 'true' ELSE 'false' END)),'french',1);
       `)
     await f.coalesce()
     expect(next.query('SELECT locale,versionHash FROM historyEvents').all()).toEqual([
@@ -462,3 +467,16 @@ test('historical Division reissue compares against its parent even after a later
         .get()?.name,
     ).toBe('Later')
   }))
+
+function insertFixtureSnapshot(...args: Parameters<typeof insertSnapshot>) {
+  insertSnapshot(...args)
+  const [db, snapshot] = args
+  if (
+    !db
+      .query(
+        "SELECT 1 FROM snapshotResourceReleases WHERE snapshotId=? AND role='primary'",
+      )
+      .get(snapshot.id)
+  )
+    insertSnapshotProducerFixture(db, snapshot.id, String(snapshot.id))
+}

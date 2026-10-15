@@ -656,10 +656,12 @@ from the state before 2006 without pretending that it precedes already published
 Each canonical HISTORY row is an immutable event introducing a component at a snapshot.
 Its primary key is the component identity plus `snapshotId`, including the locale or
 composite identity where applicable. `operation` is `upsert` or `delete`. An upsert
-stores its canonical payload, semantic `versionHash` and `sourceReleaseId`; a deletion
-requires only its identity and snapshot, with a null hash. Unchanged components inherit
-from the selected parent and require no new HISTORY row. Reversions and independent
-branch changes store their own event, even when the content hash matches an older row.
+stores its canonical payload and semantic `versionHash`; META retains the producing
+release on the introducing snapshot. Combined geometry inputs use `producerDatasetCode`,
+while Statistics reuses its existing dataset keys. A deletion requires only its identity
+and snapshot, with a null hash. Unchanged components inherit from the selected parent
+and require no new HISTORY row. Reversions and independent branch changes store their
+own event, even when the content hash matches an older row.
 
 `historyEvents` is a read-only SQL view over inline events. It stores no rows and
 receives no inserts, updates or deletes. There is no second membership write for an

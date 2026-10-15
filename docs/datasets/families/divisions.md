@@ -2235,3 +2235,10 @@ The existing `filter[adminCode]`, `filter[hoodCode]`, `filter[villageCode]` and
 `filter[localityCode]` selectors also use these memberships for HMA and New Town
 collection requests. Supply `geographicReleaseSet` to pin interpretation. Source
 snapshot IDs prevent applying one cohort's or revision's crosswalk to another.
+
+## HISTORY ownership
+
+Canonical events derive their producing release from their introducing snapshot's
+primary inputs. Inherited events retain that original ownership. See
+[HISTORY producer ownership](source-evidence.md#history-producer-ownership) for the
+shared contract and dataset discriminators on combined geometry snapshots.

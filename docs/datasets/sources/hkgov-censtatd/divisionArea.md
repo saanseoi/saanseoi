@@ -525,3 +525,12 @@ Consumers can inspect the measurements through `GET /divisions/v0.2/crosswalk` w
 explicit `sourceReleaseSet` and `geographicReleaseSet`, optionally narrowing by
 `divisionId` or `geographicDivisionId`. Native-domain collection requests also support
 geographic code filters through the same release-pinned memberships.
+
+Canonical HISTORY events follow the shared
+[producer ownership contract](../../families/source-evidence.md#history-producer-ownership).
+The introducing snapshot retains its exact producing inputs; source attribution and
+field-level evidence identify the contributing publisher records.
+
+Combined C&SD geometry snapshots retain `producerDatasetCode` on HISTORY content events
+to distinguish producing datasets. A snapshot cannot select competing releases of the
+same dataset and resource type.

@@ -57,7 +57,6 @@ export async function writeAddressHistoryChunkStage(
   for (const [recordType, changes] of deletions)
     await recordHistoryDeletions(historyRepoDb, {
       snapshotId: versionInsertContext.snapshotId,
-      sourceReleaseId: versionInsertContext.resourceReleaseId,
       recordType,
       operation: 'delete',
       changes,
@@ -238,7 +237,6 @@ export async function buildResolvedAddressChunkArtefact(
           ...lookup,
           versionHash: hash,
           snapshotId: versionInsertContext.snapshotId,
-          sourceReleaseId: versionInsertContext.resourceReleaseId,
           isCurrent: true,
           createdAt: row.base.updatedAt ?? row.base.createdAt!,
         })
@@ -269,7 +267,6 @@ export async function buildResolvedAddressChunkArtefact(
         phaseRef: localised.phaseRef ?? null,
         estateName: localised.estateName ?? null,
         streetName: localised.streetName ?? null,
-        sourceReleaseId: versionInsertContext.resourceReleaseId,
         snapshotId: localised.snapshotId ?? row.base.snapshotId,
         isCurrent: true,
         versionHash: localised.componentHash,

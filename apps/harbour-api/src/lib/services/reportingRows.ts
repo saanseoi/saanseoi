@@ -1,4 +1,4 @@
-import { and, eq, metaSchema } from '@repo/db'
+import { and, eq, metaSchema, sql } from '@repo/db'
 import { inArray } from 'drizzle-orm'
 import { resolveShardForTypeRegionYear } from '@repo/core/db/metaRegistry'
 import { chunkArray, getMaxItemsPerInClause } from '@repo/core/pipeline/utils.ts'
@@ -322,7 +322,44 @@ async function resolveFallbackShardsByRelease(
   )
 }
 
-export async function collectCountRowsByRelease(plans: ReleaseCountPlan[]) {
+export async function collectCountRowsByRelease(
+  plans: ReleaseCountPlan[],
+  metaDb?: HarbourReadableDb,
+) {
+  const needsHistory = plans.some(plan => plan.history?.bindings.length)
+  if (needsHistory && !metaDb)
+    throw new Error('HISTORY release counts require META ownership.')
+  const producers = needsHistory
+    ? await metaDb!
+        .select({
+          datasetCode: metaSchema.metaDatasets.code,
+          snapshotId: metaSchema.metaSnapshotResourceReleases.snapshotId,
+          resourceReleaseId: metaSchema.metaSnapshotResourceReleases.resourceReleaseId,
+        })
+        .from(metaSchema.metaSnapshotResourceReleases)
+        .innerJoin(
+          metaSchema.metaResourceReleaseDetails,
+          eq(
+            metaSchema.metaSnapshotResourceReleases.resourceReleaseId,
+            metaSchema.metaResourceReleaseDetails.id,
+          ),
+        )
+        .innerJoin(
+          metaSchema.metaDatasets,
+          eq(
+            metaSchema.metaDatasets.id,
+            metaSchema.metaResourceReleaseDetails.datasetId,
+          ),
+        )
+        .where(
+          and(
+            eq(metaSchema.metaSnapshotResourceReleases.role, 'primary'),
+            sql`${metaSchema.metaSnapshotResourceReleases.snapshotId} in (select snapshotId from snapshotResourceReleases where role='primary' and resourceReleaseId in (select value from json_each(${JSON.stringify(plans.map(plan => plan.resourceReleaseId))})))`,
+          ),
+        )
+        .all()
+    : []
+
   const countTargets = plans.flatMap(plan =>
     [plan.source, plan.history].filter(Boolean),
   )
@@ -376,9 +413,13 @@ export async function collectCountRowsByRelease(plans: ReleaseCountPlan[]) {
                 sourceVersion,
               })),
             )
-          : await countReleaseRowsByReleaseIds(binding, group.kind, group.spec, [
-              ...group.releaseVersions.keys(),
-            ])
+          : await countReleaseRowsByReleaseIds(
+              binding,
+              group.kind,
+              group.spec,
+              [...group.releaseVersions.keys()],
+              producers,
+            )
 
       for (const [resourceReleaseId, count] of counts) {
         const key = buildReleaseSpecKey(resourceReleaseId, group.kind, group.spec)
@@ -420,13 +461,80 @@ async function countReleaseRowsByReleaseIds(
   kind: 'history' | 'source',
   spec: CountSpec,
   releaseIds: string[],
+  producers: Array<{
+    datasetCode: string
+    snapshotId: string
+    resourceReleaseId: string
+  }>,
 ) {
   if (releaseIds.length === 0) {
     return new Map<string, number>()
   }
 
   const placeholders = releaseIds.map((_, index) => `?${index + 1}`).join(', ')
-  const releaseColumn = kind === 'history' ? 'sourceReleaseId' : 'resourceReleaseId'
+  const releaseColumn = 'resourceReleaseId'
+  if (kind === 'history') {
+    const source = spec.strategy === 'join' ? 'parent' : 'child'
+    const join =
+      spec.strategy === 'join'
+        ? `INNER JOIN ${quoteCount(spec.parentTableName)} parent ON parent.${quoteCount(spec.parentKey)} = child.${quoteCount(spec.relationshipKey)} ${(spec.additionalJoinKeys ?? []).map(key => `AND parent.${quoteCount(key.parentKey)} = child.${quoteCount(key.relationshipKey)}`).join(' ')}`
+        : ''
+    const countsBySnapshot = new Map<string, number>()
+    const owners = new Set<string>()
+    for (const producer of producers) {
+      const identity = JSON.stringify([producer.snapshotId, producer.datasetCode])
+      if (owners.has(identity))
+        throw new Error(`Ambiguous HISTORY producer for ${identity}.`)
+      owners.add(identity)
+      countsBySnapshot.set(
+        producer.snapshotId,
+        (countsBySnapshot.get(producer.snapshotId) ?? 0) + 1,
+      )
+    }
+    const selected = producers
+      .filter(row => releaseIds.includes(row.resourceReleaseId))
+      .map(row => ({ ...row, mixed: countsBySnapshot.get(row.snapshotId)! > 1 }))
+    const geometry = ['divisionAreas', 'divisionBoundaries'].includes(
+      spec.strategy === 'join' ? spec.parentTableName : spec.tableName,
+    )
+    const naturalDataset = spec.tableName.startsWith('stats')
+    const producerColumn = geometry
+      ? 'producerDatasetCode'
+      : naturalDataset
+        ? 'datasetCode'
+        : null
+    const mixed = [
+      ...new Set(selected.filter(row => row.mixed).map(row => row.snapshotId)),
+    ]
+    if (mixed.length && !producerColumn)
+      throw new Error(
+        `Mixed HISTORY ${spec.tableName} requires a dataset discriminator.`,
+      )
+    if (mixed.length && producerColumn) {
+      const invalid = await binding
+        .prepare(
+          `SELECT count(*) AS count FROM ${quoteCount(spec.tableName)} child ${join} WHERE ${source}.snapshotId IN (SELECT value FROM json_each(?)) AND ${source}.operation='upsert' AND NOT EXISTS (SELECT 1 FROM json_each(?) producer WHERE json_extract(producer.value,'$.snapshotId')=${source}.snapshotId AND json_extract(producer.value,'$.datasetCode')=${source}.${producerColumn})`,
+        )
+        .bind(JSON.stringify(mixed), JSON.stringify(producers))
+        .all<{ count: number }>()
+      const rows = Array.isArray(invalid) ? invalid : invalid.results
+      if (Number(rows[0]?.count ?? 0))
+        throw new Error(`Ambiguous HISTORY producer in ${spec.tableName}.`)
+    }
+    const discriminator = producerColumn
+      ? `AND ((${source}.${producerColumn} IS NULL AND json_extract(producer.value,'$.mixed')=0) OR ${source}.${producerColumn} = json_extract(producer.value, '$.datasetCode'))`
+      : ''
+    const result = await binding
+      .prepare(
+        `SELECT json_extract(producer.value, '$.resourceReleaseId') AS resourceReleaseId, COUNT(*) AS count FROM ${quoteCount(spec.tableName)} child ${join} JOIN json_each(?) producer ON ${source}.snapshotId = json_extract(producer.value, '$.snapshotId') ${discriminator} GROUP BY json_extract(producer.value, '$.resourceReleaseId')`,
+      )
+      .bind(JSON.stringify(selected))
+      .all<{ resourceReleaseId: string; count: number }>()
+    const counts = new Map(
+      normaliseCountRows(result).map(row => [row.resourceReleaseId, Number(row.count)]),
+    )
+    return new Map(releaseIds.map(id => [id, counts.get(id) ?? 0]))
+  }
   const joinConditions =
     spec.strategy === 'join'
       ? [
@@ -743,4 +851,8 @@ export function toIsoString(value: Date | number | string | null | undefined) {
   }
 
   return value
+}
+
+function quoteCount(name: string) {
+  return `"${name.replaceAll('"', '""')}"`
 }

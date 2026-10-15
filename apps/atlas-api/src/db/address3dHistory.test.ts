@@ -1,3 +1,4 @@
+import { seedSnapshotProducerFixtures } from '../../../../libs/core/src/testing/snapshotFixtures'
 import { expect, test } from 'bun:test'
 import { Database } from 'bun:sqlite'
 import { resolve } from 'node:path'
@@ -25,13 +26,13 @@ INSERT INTO snapshots(id, snapshotLineageId, code, cohortKey, status, parentSnap
       VALUES ('old','history','hk','2025','preview','old','old','DB_HISTORY_HK_2025','active','old'),
         ('new','history','hk','2026','preview','new','new','DB_HISTORY_HK_2026','active','new');
       INSERT INTO snapshotShardAssignments(snapshotId,dataShardId) VALUES ('one','old'),('two','new');`)
-    earlier.exec(`INSERT INTO address3d(id,address2dId,units,unitCount,contentHash,unresolvedSectionIds,versionHash,sourceReleaseId,snapshotId,isCurrent)
-      VALUES ('collection','building','[]',0,'inventory','[]','base-hash','release-one','one',1);
-      INSERT INTO address3dI18n(address3dId,locale,units,versionHash,sourceReleaseId,snapshotId,isCurrent)
-      VALUES ('collection','en','{"unit":{"unitExpression":"Unit 1","floorExpression":""}}','english-hash','release-one','one',1),
-        ('collection','zh-hant','{"unit":{"unitExpression":"舊室","floorExpression":""}}','old-chinese','release-one','one',0);`)
-    later.exec(`INSERT INTO address3dI18n(address3dId,locale,units,versionHash,sourceReleaseId,snapshotId,isCurrent)
-      VALUES ('collection','zh-hant','{"unit":{"unitExpression":"新室","floorExpression":""}}','chinese-hash','release-two','two',1);`)
+    earlier.exec(`INSERT INTO address3d(id,address2dId,units,unitCount,contentHash,unresolvedSectionIds,versionHash,snapshotId,isCurrent)
+      VALUES ('collection','building','[]',0,'inventory','[]','base-hash','one',1);
+      INSERT INTO address3dI18n(address3dId,locale,units,versionHash,snapshotId,isCurrent)
+      VALUES ('collection','en','{"unit":{"unitExpression":"Unit 1","floorExpression":""}}','english-hash','one',1),
+        ('collection','zh-hant','{"unit":{"unitExpression":"舊室","floorExpression":""}}','old-chinese','one',0);`)
+    later.exec(`INSERT INTO address3dI18n(address3dId,locale,units,versionHash,snapshotId,isCurrent)
+      VALUES ('collection','zh-hant','{"unit":{"unitExpression":"新室","floorExpression":""}}','chinese-hash','two',1);`)
     const args = {
       currentDb: {} as never,
       metaDb: createLocalHarbourDb(meta),
@@ -42,6 +43,7 @@ INSERT INTO snapshots(id, snapshotLineageId, code, cohortKey, status, parentSnap
       snapshotId: 'two',
       collectionId: 'collection',
     }
+    seedSnapshotProducerFixtures(meta)
     const result = await getAddress3dCollection(args)
     expect(result?.collection).toEqual(
       expect.objectContaining({ versionHash: 'base-hash' }),

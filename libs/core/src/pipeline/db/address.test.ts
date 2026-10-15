@@ -16,10 +16,10 @@ test('Address replay uses the chosen ancestor even when a later shard contains a
         ]),
       )
     clients[0]!.exec(
-      "INSERT INTO address2d(id,snapshotId,versionHash,sourceReleaseId,granularity) VALUES ('a','root','h1','release','building')",
+      "INSERT INTO address2d(id,snapshotId,versionHash,granularity) VALUES ('a','root','h1','building')",
     )
     clients[1]!.exec(
-      "INSERT INTO address2d(id,snapshotId,versionHash,sourceReleaseId,granularity) VALUES ('a','other-branch','h2','release','building')",
+      "INSERT INTO address2d(id,snapshotId,versionHash,granularity) VALUES ('a','other-branch','h2','building')",
     )
     const shards = new Map(
       clients.map((client, index) => [
@@ -42,11 +42,13 @@ test('Address replay uses the chosen ancestor even when a later shard contains a
       {
         plan: [
           {
+            resourceReleaseId: 'release',
             snapshotId: 'root',
             parentSnapshotId: null,
             shards: [{ dataShardId: '0', bindingName: '0' }],
           },
           {
+            resourceReleaseId: 'release',
             snapshotId: 'child',
             parentSnapshotId: 'root',
             shards: [{ dataShardId: '1', bindingName: '1' }],

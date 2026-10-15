@@ -69,14 +69,14 @@ export async function resolveValidatedProjectionVersions(input: {
           throw new Error(
             `Snapshot ${step.snapshotId} has an invalid journal operation.`,
           )
-        if (row.operation === 'upsert' && (!row.versionHash || !row.sourceReleaseId))
+        if (row.operation === 'upsert' && !row.versionHash)
           throw new Error(
             `Snapshot ${step.snapshotId} has an incomplete version journal for ${key}.`,
           )
         const assertion = JSON.stringify([
           row.operation,
           row.versionHash,
-          row.sourceReleaseId,
+          step.resourceReleaseId,
         ])
         const previous = observed.get(key)
         if (previous !== undefined && previous !== assertion)
@@ -159,7 +159,10 @@ export async function* readExactProjectionRows(
             `Ambiguous exact history component ${component.table}/${identity}.`,
           )
         found.add(identity)
-        selected.push(row)
+        selected.push({
+          ...row,
+          sourceReleaseId: expected.get(identity)!.sourceReleaseId,
+        })
       }
       if (found.size !== expected.size)
         throw new Error(

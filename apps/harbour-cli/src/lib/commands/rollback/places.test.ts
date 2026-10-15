@@ -4,7 +4,10 @@ import { resolve } from 'node:path'
 import { historyDeletionRow } from '@repo/db'
 import { createLocalHarbourDb } from '../../../../../../libs/core/src/testing/localDb.ts'
 import { loadMigrationSql } from '../../../../../../libs/core/src/testing/metaFixtures.ts'
-import { snapshotFixtureFields } from '../../../../../../libs/core/src/testing/snapshotFixtures'
+import {
+  snapshotFixtureFields,
+  insertSnapshotProducerFixture,
+} from '../../../../../../libs/core/src/testing/snapshotFixtures'
 import { PlaceDependencyView } from '../../pipeline/places/placeDependencyView.ts'
 import { createPlaceSearchDependencies } from '../../pipeline/places/placeSearchDependencies.ts'
 import { restorePlaceDerivedRows } from './places.ts'
@@ -86,6 +89,7 @@ async function fixture() {
       cohortKey: '2026',
       status: 'published',
     })
+    insertSnapshotProducerFixture(meta, id, `release-${id}`)
     insert(meta, 'snapshotShardAssignments', { snapshotId: id, dataShardId: shard })
   }
   const assembly = (id: string, kind: string, selection: Record<string, unknown>) => {
@@ -143,7 +147,6 @@ async function fixture() {
     insert(db, table, {
       [idColumn]: id,
       snapshotId,
-      sourceReleaseId: `release-${snapshotId}`,
       versionHash: hash,
       isCurrent: 1,
       ...values,

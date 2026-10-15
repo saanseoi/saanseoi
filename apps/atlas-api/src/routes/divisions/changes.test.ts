@@ -1,3 +1,4 @@
+import { seedSnapshotProducerFixtures } from '../../../../../libs/core/src/testing/snapshotFixtures'
 import { snapshotFixtureFields } from '../../../../../libs/core/src/testing/snapshotFixtures'
 import { expect, test } from 'bun:test'
 import { Database, type SQLQueryBindings } from 'bun:sqlite'
@@ -162,7 +163,7 @@ function fixture() {
         ...base,
         snapshotId: snapshot,
         versionHash: `${id}-version`,
-        sourceReleaseId: 'source',
+
         isCurrent: 0,
       })
       insert(history, 'divisionsI18n', {
@@ -171,7 +172,7 @@ function fixture() {
         locale: 'en',
         name: label,
         versionHash: `${id}-name`,
-        sourceReleaseId: 'source',
+
         isCurrent: 0,
         createdAt: stamp,
         meta: { isLocaleInferred: false },
@@ -235,6 +236,7 @@ function fixture() {
     await next()
   })
   app.openapiRoutes([divisionChangesRoute, divisionChangeDefinitionRoute])
+  seedSnapshotProducerFixtures(meta)
   return {
     app,
     db,

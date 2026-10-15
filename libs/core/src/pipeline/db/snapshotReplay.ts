@@ -74,16 +74,18 @@ export async function resolveSnapshotVersionState(
   )
 
   for (const step of plan) {
+    if (!step.resourceReleaseId && !step.producerReleases)
+      throw new Error(`Snapshot ${step.snapshotId} is missing its HISTORY producer.`)
     const observed = new Set<string>()
     const stepEvents: Array<{
       row: Pick<
         typeof historySchema.historyEvents.$inferSelect,
+        | 'producerDatasetCode'
         | 'recordType'
         | 'recordId'
         | 'locale'
         | 'versionHash'
         | 'operation'
-        | 'sourceReleaseId'
       >
       shard: ReplayShard
     }> = []
@@ -97,12 +99,12 @@ export async function resolveSnapshotVersionState(
       for (const types of typeBatches) {
         const rows = await shard.db
           .select({
+            producerDatasetCode: historySchema.historyEvents.producerDatasetCode,
             recordType: historySchema.historyEvents.recordType,
             recordId: historySchema.historyEvents.recordId,
             locale: historySchema.historyEvents.locale,
             versionHash: historySchema.historyEvents.versionHash,
             operation: historySchema.historyEvents.operation,
-            sourceReleaseId: historySchema.historyEvents.sourceReleaseId,
           })
           .from(historySchema.historyEvents)
           .where(
@@ -146,14 +148,15 @@ export async function resolveSnapshotVersionState(
       observed.add(key)
       if (row.operation === 'delete') state.delete(key)
       else {
-        if (row.operation !== 'upsert' || !row.versionHash || !row.sourceReleaseId)
+        if (row.operation !== 'upsert' || !row.versionHash)
           throw new Error(
             `Snapshot ${step.snapshotId} has an invalid content event for ${key}.`,
           )
+        const sourceReleaseId = snapshotEventProducer(step, row.producerDatasetCode)
         state.set(key, {
           ...row,
           versionHash: row.versionHash,
-          sourceReleaseId: row.sourceReleaseId,
+          sourceReleaseId,
           snapshotId: step.snapshotId,
           shard,
         })
@@ -233,4 +236,22 @@ export function historyVersionSelection(
     identity.map((_, index) => sql.raw(`json_extract(value, '$[${index}]')`)),
     sql`, `,
   )} from json_each(${JSON.stringify(tuples)})) and ${columns.operation} = 'upsert'`
+}
+
+/** A nullable discriminator is sufficient for snapshots with exactly one producing input. */
+export function snapshotEventProducer(
+  step: Pick<
+    SnapshotReplayStep,
+    'snapshotId' | 'resourceReleaseId' | 'producerReleases'
+  >,
+  producerDatasetCode?: string | null,
+): string {
+  const release = producerDatasetCode
+    ? (step.producerReleases?.[producerDatasetCode] ?? step.resourceReleaseId)
+    : step.resourceReleaseId
+  if (!release)
+    throw new Error(
+      `Snapshot ${step.snapshotId} has no unambiguous HISTORY producer for ${producerDatasetCode ?? 'default'}.`,
+    )
+  return release
 }

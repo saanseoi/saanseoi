@@ -49,7 +49,7 @@ test('audit replays cleaned geometry by its exact content version and owning sha
 ('old', 'geometry', 'base'),
 ('new', 'geometry', 'old');
       INSERT INTO snapshotResourceReleases (snapshotId,resourceReleaseId,role) VALUES
-        ('old','old-release','primary'),('new','lookup-release','lookup');
+        ('base','base-release','primary'),('old','old-release','primary'),('new','new-release','primary'),('new','lookup-release','lookup');
       INSERT INTO dataShards (id,bindingName) VALUES
         ('before','DB_HISTORY_BEFORE'),('after','DB_HISTORY_AFTER');
       INSERT INTO snapshotShardAssignments (snapshotId,dataShardId) VALUES
@@ -74,27 +74,20 @@ test('audit replays cleaned geometry by its exact content version and owning sha
     // A later import reuses this content and changes its cache ownership fields.
     before
       .query(
-        "INSERT INTO divisionAreas (id,versionHash,snapshotId,sourceReleaseId,divisionId,geometry,operation) VALUES (?,?,?,?,?,?,'upsert')",
+        "INSERT INTO divisionAreas (id,versionHash,snapshotId,divisionId,geometry,operation) VALUES (?,?,?,?,?,'upsert')",
       )
-      .run(
-        'area',
-        'v1',
-        'base',
-        'base-release',
-        'division',
-        compressJsonBrotli(geometry),
-      )
+      .run('area', 'v1', 'base', 'division', compressJsonBrotli(geometry))
     const wrongGeometry = JSON.stringify({ type: 'Polygon', coordinates: [] })
     before
       .query(
-        "INSERT INTO divisionAreas (id,versionHash,snapshotId,sourceReleaseId,divisionId,geometry,operation) VALUES (?,?,?,?,?,?,'upsert')",
+        "INSERT INTO divisionAreas (id,versionHash,snapshotId,divisionId,geometry,operation) VALUES (?,?,?,?,?,'upsert')",
       )
-      .run('area', 'v2', 'sibling', 'sibling-release', 'division', wrongGeometry)
+      .run('area', 'v2', 'sibling', 'division', wrongGeometry)
     after
       .query(
-        "INSERT INTO divisionAreas (id,versionHash,snapshotId,sourceReleaseId,divisionId,geometry,operation) VALUES (?,?,?,?,?,?,'upsert')",
+        "INSERT INTO divisionAreas (id,versionHash,snapshotId,divisionId,geometry,operation) VALUES (?,?,?,?,?,'upsert')",
       )
-      .run('area', 'v1', 'sibling', 'sibling-release', 'division', wrongGeometry)
+      .run('area', 'v1', 'sibling', 'division', wrongGeometry)
     const input = {
       resourceReleaseId: 'old-release',
       divisionId: 'division',

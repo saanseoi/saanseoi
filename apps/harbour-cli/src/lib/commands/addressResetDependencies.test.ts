@@ -57,8 +57,8 @@ test('Address full reset protects logical Places history even after current Addr
   const f = fixture()
   try {
     expect(await officialAddressResetDependencyBlockers(f.context, f.owned)).toEqual([])
-    f.history.exec(`INSERT INTO places(id,versionHash,sourceReleaseId,resourceReleaseId,isCurrent,snapshotId,addressSnapshotId,lng,lat,firstSeenMonth,lastSeenMonth)
-      VALUES ('place','hash','place-release','place-release',1,'place-history','address-204',114,22,'2025-01','2025-01')`)
+    f.history.exec(`INSERT INTO places(id,versionHash,resourceReleaseId,isCurrent,snapshotId,addressSnapshotId,geometry,firstSeenMonth,lastSeenMonth)
+      VALUES ('place','hash','place-release',1,'place-history','address-204',json_object('type','Point','coordinates',json_array(114,22)),'2025-01','2025-01')`)
     expect(await officialAddressResetDependencyBlockers(f.context, f.owned)).toEqual([
       'history: Places retain exact official Address dependencies',
     ])

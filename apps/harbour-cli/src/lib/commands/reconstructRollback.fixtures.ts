@@ -248,7 +248,6 @@ export async function fixture(previous = true) {
   if (previous) {
     const envelope = {
       snapshotId: 'snapshot-old',
-      sourceReleaseId: 'release-old',
       isCurrent: 0,
     }
     insert(history, 'divisions', {

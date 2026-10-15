@@ -58,13 +58,18 @@ test('replays sparse revisions and unchanged snapshots independently of mutable 
   try {
     run(
       fixture.history,
-      `INSERT INTO statsRecords (snapshotId, id, datasetCode, sourceReleaseId, sourceFeatureRef, divisionId, referencePeriodCode, referencePeriodGranularity, referencePeriodEndYear, geography, definitionSetId, "values", versionHash, isCurrent, createdAt)
-      SELECT 'correction', id, datasetCode, sourceReleaseId, sourceFeatureRef, divisionId, referencePeriodCode, referencePeriodGranularity, referencePeriodEndYear, geography, definitionSetId, '{"totalPopulation":"250000","femalePopulation":"125000"}', 'correction-hash', 0, createdAt FROM statsRecords WHERE id = ? AND versionHash = 'record-version-hash'`,
+      `INSERT INTO statsRecords (snapshotId, id, datasetCode, sourceFeatureRef, divisionId, referencePeriodCode, referencePeriodGranularity, referencePeriodEndYear, geography, definitionSetId, "values", versionHash, isCurrent, createdAt)
+      SELECT 'correction', id, datasetCode, sourceFeatureRef, divisionId, referencePeriodCode, referencePeriodGranularity, referencePeriodEndYear, geography, definitionSetId, '{"totalPopulation":"250000","femalePopulation":"125000"}', 'correction-hash', 0, createdAt FROM statsRecords WHERE id = ? AND versionHash = 'record-version-hash'`,
       [STATISTIC_ID],
     )
     run(fixture.history, 'UPDATE statsRecords SET isCurrent = 0')
     const selection: StatisticReadSelection = {
       mode: 'history',
+      snapshotProducers: {
+        'snapshot-statistics': 'release-original',
+        correction: 'release-correction',
+        'unchanged-reissue': 'release-unchanged',
+      },
       datasetCodes: [DATASET_CODE],
       snapshotIds: ['snapshot-statistics', 'correction', 'unchanged-reissue'],
       publications: [
@@ -88,6 +93,39 @@ test('replays sparse revisions and unchanged snapshots independently of mutable 
     expect(rows.map(row => row.values)).toEqual([
       { totalPopulation: '250000', femalePopulation: '125000' },
     ])
+    expect(rows[0]?.sourceReleaseId).toBe('release-correction')
+    const combined: StatisticReadSelection = {
+      ...selection,
+      snapshotProducers: {
+        ...selection.snapshotProducers,
+        correction: { [DATASET_CODE]: 'dataset-producer' },
+      },
+    }
+    const combinedRows = await listStatisticRecords([db], {
+      selection: combined,
+      cohortKey: '2021',
+      filters: {},
+      limit: 1,
+      offset: 0,
+    })
+    expect(combinedRows[0]?.sourceReleaseId).toBe('dataset-producer')
+    const ambiguous: StatisticReadSelection = {
+      ...selection,
+      snapshotProducers: {
+        ...selection.snapshotProducers,
+        correction: { unknown: 'other' },
+      },
+    }
+    await expect(
+      listStatisticRecords([db], {
+        selection: ambiguous,
+        cohortKey: '2021',
+        filters: {},
+        limit: 1,
+        offset: 0,
+      }),
+    ).rejects.toThrow('Missing Statistics producer')
+
     expect(
       await listStatisticRecords([db], {
         selection,

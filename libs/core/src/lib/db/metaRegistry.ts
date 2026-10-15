@@ -1,3 +1,5 @@
+export { assertOwnedSnapshotProducers } from './snapshotProducer'
+import { resolveSnapshotHistoryProducers } from './snapshotProducer'
 import { metaSnapshotResourceReleaseDetails } from '@repo/db/metaSchema'
 import { retainSourceReleaseMetadata } from './sourceReleaseMetadata'
 import { retainCompositionAudits } from '../../provenance/compositionAudit'
@@ -6077,7 +6079,7 @@ function buildReleaseSetSnapshotMemberKey(resourceType: string, variant: string)
 }
 
 export async function upsertSnapshotSource(
-  db: HarbourWritableDb,
+  db: HarbourReadableDb & HarbourWritableDb,
   snapshotId: string,
   resourceReleaseId: string,
   role: 'primary' | 'enrichment' | 'fallback' | 'lookup',
@@ -6087,22 +6089,44 @@ export async function upsertSnapshotSource(
     selectionMode?: string | null
   } = {},
 ) {
+  const producerAvailable = sql`not exists (
+    select 1 from snapshotResourceReleases existing
+    join resourceReleaseDetails old on old.id=existing.resourceReleaseId
+    join resourceReleaseDetails incoming on incoming.id=${resourceReleaseId}
+    where existing.snapshotId=${snapshotId} and existing.role='primary'
+      and existing.resourceReleaseId<>${resourceReleaseId}
+      and old.datasetId=incoming.datasetId and old.resourceType=incoming.resourceType
+  )`
   await db
     .insert(metaSnapshotResourceReleases)
-    .values({
-      snapshotId,
-      resourceReleaseId,
-      role,
-      anchorReleaseId: options.anchorReleaseId ?? null,
-      selectedByRule: options.selectedByRule ?? null,
-      selectionMode: options.selectionMode ?? null,
-      createdAt: toIsoTimestamp(),
-    })
+    .select(
+      db
+        .select({
+          snapshotId: sql<string>`${snapshotId}`,
+          resourceReleaseId: metaResourceReleaseDetails.id,
+          role: sql<string>`${role}`,
+          selectedByRule: sql<string | null>`${options.selectedByRule ?? null}`,
+          selectionMode: sql<string | null>`${options.selectionMode ?? null}`,
+          anchorReleaseId: sql<string | null>`${options.anchorReleaseId ?? null}`,
+          createdAt: sql<string>`${toIsoTimestamp()}`,
+        })
+        .from(metaResourceReleaseDetails)
+        .where(
+          and(
+            eq(metaResourceReleaseDetails.id, resourceReleaseId),
+            role === 'primary' ? producerAvailable : undefined,
+          ),
+        ),
+    )
     .onConflictDoUpdate({
       target: [
         metaSnapshotResourceReleases.snapshotId,
         metaSnapshotResourceReleases.resourceReleaseId,
       ],
+      setWhere:
+        role === 'primary'
+          ? producerAvailable
+          : sql`${metaSnapshotResourceReleases.role} <> 'primary'`,
       set: {
         role,
         anchorReleaseId: options.anchorReleaseId ?? null,
@@ -6111,6 +6135,20 @@ export async function upsertSnapshotSource(
       },
     })
     .run()
+  const saved = await db
+    .select({ role: metaSnapshotResourceReleases.role })
+    .from(metaSnapshotResourceReleases)
+    .where(
+      and(
+        eq(metaSnapshotResourceReleases.snapshotId, snapshotId),
+        eq(metaSnapshotResourceReleases.resourceReleaseId, resourceReleaseId),
+      ),
+    )
+    .get()
+  if (saved?.role !== role && !(saved?.role === 'primary' && role !== 'primary'))
+    throw new Error(
+      `Snapshot ${snapshotId} cannot select ${resourceReleaseId}: unknown release or competing HISTORY producer for the same dataset.`,
+    )
 }
 
 /**
@@ -6187,6 +6225,7 @@ export async function recordSnapshotLookupDependency(
     snapshotId: args.snapshotId,
     resourceType: snapshot.resourceType,
     anchorReleaseId: args.anchorReleaseId,
+    allowPlanning: true,
     dependencies: {
       [args.dependencyRole ?? lookupSource.resourceType]: args.lookupSnapshotId,
     },
@@ -6855,6 +6894,8 @@ export async function upsertSnapshotShardAssignment(
 }
 
 export type SnapshotReplayStep = {
+  resourceReleaseId: string | null
+  producerReleases?: Record<string, string>
   snapshotId: string
   parentSnapshotId: string | null
   shards: Array<{
@@ -6945,7 +6986,9 @@ export async function resolveSnapshotReplayPlan(
       )
       .where(eq(metaSnapshotShardAssignments.snapshotId, snapshot.id))
       .all()
+    const producers = await resolveSnapshotHistoryProducers(db, snapshot.id)
     result.push({
+      ...producers,
       snapshotId: snapshot.id,
       parentSnapshotId: snapshot.parentSnapshotId,
       shards,

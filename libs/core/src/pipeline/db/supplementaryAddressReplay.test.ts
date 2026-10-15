@@ -42,6 +42,7 @@ function fixture() {
   }
   const plan = (snapshotId: string): SnapshotReplayStep[] =>
     (snapshotId === 'next' ? ['first', 'next'] : [snapshotId]).map((id, index) => ({
+      resourceReleaseId: 'release',
       snapshotId: id,
       parentSnapshotId: index ? 'first' : null,
       shards: [...shards.keys()].map(bindingName => ({
@@ -62,11 +63,11 @@ function fixture() {
       { plan: plan(snapshot), includeLocales },
     )
   requireDefined(databases[0]).exec(`INSERT INTO address2d
-    (id,sources,versionHash,sourceReleaseId,snapshotId,isCurrent)
-    VALUES('ss-opa-shared',NULL,'base','release-first','first',1);
+    (id,sources,versionHash,snapshotId,isCurrent)
+    VALUES('ss-opa-shared',NULL,'base','first',1);
     INSERT INTO address2dI18n
-    (addressId,locale,formattedAddress,versionHash,sourceReleaseId,snapshotId,isCurrent)
-    VALUES('ss-opa-shared','en','1 Sample Road','english','release-first','first',1);`)
+    (addressId,locale,formattedAddress,versionHash,snapshotId,isCurrent)
+    VALUES('ss-opa-shared','en','1 Sample Road','english','first',1);`)
   return {
     databases,
     shards,
@@ -120,11 +121,11 @@ test('address replay uses indexed exact identities within D1 limits across batch
     for (let index = 0; index < 205; index++) {
       const id = `address-${index}`
       db.query(
-        `INSERT INTO address2d (id,versionHash,sourceReleaseId,snapshotId,isCurrent) VALUES(?, 'shared-base', 'release-batch', 'batch', 1)`,
+        `INSERT INTO address2d (id,versionHash,snapshotId,isCurrent) VALUES(?, 'shared-base', 'batch', 1)`,
       ).run(id)
       for (const locale of ['en', 'zh-Hant']) {
         db.query(
-          `INSERT INTO address2dI18n (addressId,locale,formattedAddress,versionHash,sourceReleaseId,snapshotId,isCurrent) VALUES(?,?,?, 'shared-locale', 'release-batch', 'batch', 1)`,
+          `INSERT INTO address2dI18n (addressId,locale,formattedAddress,versionHash,snapshotId,isCurrent) VALUES(?,?,?, 'shared-locale', 'batch', 1)`,
         ).run(id, locale, `${id}-${locale}`)
       }
     }

@@ -22,7 +22,7 @@ test('historical unit reads replay the selected owner coverage and ignore newer 
           family,
         ]).replaceAll('--> statement-breakpoint', ''),
       )
-    meta.exec(`CREATE TABLE snapshots (id TEXT, parentSnapshotId TEXT);
+    meta.exec(`CREATE TABLE snapshots (id TEXT, parentSnapshotId TEXT); CREATE TABLE snapshotResourceReleases(snapshotId,resourceReleaseId,role); CREATE TRIGGER fixtureProducer AFTER INSERT ON snapshots BEGIN INSERT INTO snapshotResourceReleases VALUES(NEW.id,NEW.id,'primary'); END;
       INSERT INTO snapshots VALUES ('old',NULL),('new','old'),('removed','new');
       CREATE TABLE dataShards (id TEXT,bindingName TEXT);
       INSERT INTO dataShards VALUES ('history','history');

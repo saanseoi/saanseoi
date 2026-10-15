@@ -128,7 +128,7 @@ test('lookup reads the selected immutable version, not a later version or a dele
   const sqlite = new Database(':memory:')
   try {
     sqlite.exec(`CREATE TABLE divisions (id TEXT, versionHash TEXT, identifiers TEXT, snapshotId TEXT, operation TEXT DEFAULT 'upsert', sourceReleaseId TEXT DEFAULT 'source');
-      CREATE VIEW historyEvents AS SELECT snapshotId,'division' AS recordType,id AS recordId,'' AS locale,versionHash,operation,sourceReleaseId FROM divisions;
+      CREATE VIEW historyEvents AS SELECT snapshotId,'division' AS recordType,id AS recordId,'' AS locale,versionHash,operation,NULL AS producerDatasetCode FROM divisions;
       INSERT INTO divisions(id,versionHash,identifiers,snapshotId) VALUES ('d1', 'old', '{"PLAND:TPU":"101"}','base'), ('d1', 'new', '{"PLAND:TPU":"999"}','sibling'), ('deleted', 'gone', '{"PLAND:TPU":"102"}','base');
       INSERT INTO divisions(id,snapshotId,operation) VALUES('deleted','selected','delete');`)
     const db = createLocalHarbourDb(sqlite)
@@ -159,8 +159,16 @@ test('lookup reads the selected immutable version, not a later version or a dele
         resolveSnapshotReplayPlan: async (_db, snapshotId) => {
           expect(snapshotId).toBe('selected')
           return [
-            { snapshotId: 'base', shards: [{ bindingName: 'history' }] },
-            { snapshotId: 'selected', shards: [{ bindingName: 'history' }] },
+            {
+              resourceReleaseId: 'base-release',
+              snapshotId: 'base',
+              shards: [{ bindingName: 'history' }],
+            },
+            {
+              resourceReleaseId: 'selected-release',
+              snapshotId: 'selected',
+              shards: [{ bindingName: 'history' }],
+            },
           ] as never
         },
         resolveSnapshotVersionState: resolver.resolveSnapshotVersionState,

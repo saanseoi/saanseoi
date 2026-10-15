@@ -589,7 +589,6 @@ export async function insertDivisionVersionRows(
       chunk.map(row => ({
         id: row.id,
         versionHash: row.versionHash,
-        sourceReleaseId: context.resourceReleaseId,
         snapshotId: context.snapshotId,
         isCurrent: true,
         level: row.level,
@@ -626,7 +625,6 @@ export async function insertDivisionVersionRows(
         nameAlts: row.nameAlts,
         nameRules: row.nameRules,
         nameVariant: row.nameVariant,
-        sourceReleaseId: context.resourceReleaseId,
         snapshotId: context.snapshotId,
         isCurrent: true,
         versionHash: row.versionHash,
@@ -691,7 +689,6 @@ async function insertDivisionVersionsI18nInChunks(
     nameAlts: string | null
     nameRules: unknown
     nameVariant: unknown
-    sourceReleaseId: string
     snapshotId: string
     isCurrent: boolean
     versionHash: string

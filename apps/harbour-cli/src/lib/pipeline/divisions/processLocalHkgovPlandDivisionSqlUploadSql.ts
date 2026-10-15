@@ -233,7 +233,6 @@ async function buildPlandHistorySql(
     'meta',
     'versionHash',
     'operation',
-    'sourceReleaseId',
     'snapshotId',
     'isCurrent',
     'createdAt',

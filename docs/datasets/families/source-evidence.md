@@ -43,6 +43,34 @@ Address3D current materialisation removes only omitted collections and writes on
 changed inventories or localisations. Publisher source validity is independent of
 canonical membership.
 
+## HISTORY producer ownership
+
+A HISTORY row is an event introduced by its `snapshotId`. META
+`snapshotResourceReleases` identifies the snapshot's primary producing inputs and their
+exact resource releases. Each dataset and resource type has at most one producing
+release within a snapshot. Registration checks this in the insertion statement; assembly
+and replay reject ambiguous ownership. Enrichment and lookup roles describe input
+relationships, rather than permanent roles on canonical records.
+
+HISTORY payloads and the `historyEvents` view omit `sourceReleaseId`. Replay derives the
+producing release from the introducing snapshot, including for inherited rows. CURRENT
+projections and API provenance retain their required release references. Field-specific
+source references and publisher attribution remain independent of producing ownership.
+Deletion events need record identity and snapshot membership, without a release owner.
+
+C&SD companion geometry can combine primary inputs from several datasets. Its HISTORY
+`divisionAreas` and `divisionBoundaries` rows retain `producerDatasetCode` to
+distinguish those inputs. Other geometry producers leave this discriminator null. A
+mixed snapshot requires a recognised dataset on every content event; replay never
+selects an arbitrary input. The discriminator belongs to HISTORY ownership, rather than
+CURRENT geometry or public identifiers. Statistics reuses its existing `datasetCode`
+keys for the same ownership resolution, without an additional stored discriminator.
+
+Before applying the ownership migration to a populated shard, verify the retained
+introducing-snapshot/input mapping. Mixed snapshots need their dataset discriminators
+retained from the existing ownership evidence before removing release columns. Apply all
+preceding schema and data prerequisites before this migration.
+
 ## Managed source manifests
 
 Retained source objects and their manifests are separate immutable R2 objects registered

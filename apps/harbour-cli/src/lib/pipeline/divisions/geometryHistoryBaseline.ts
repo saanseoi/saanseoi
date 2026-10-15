@@ -74,7 +74,7 @@ export async function validateGeometryHistoryBaseline(
       for (const row of rows) {
         const {
           versionHash,
-          sourceReleaseId: _release,
+          producerDatasetCode: _producer,
           isCurrent: _current,
           operation: _operation,
           ...canonical

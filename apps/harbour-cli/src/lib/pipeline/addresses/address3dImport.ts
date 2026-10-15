@@ -289,7 +289,7 @@ const insert = (
 export function collectionStatements(
   collection: Collection,
   snapshotId: string,
-  resourceReleaseId: string,
+  _resourceReleaseId: string,
   now: string,
   currentSnapshotId = snapshotId,
 ) {
@@ -314,7 +314,6 @@ export function collectionStatements(
     ...base,
     sources,
     versionHash,
-    sourceReleaseId: resourceReleaseId,
     snapshotId,
     isCurrent: 1,
     createdAt: now,
@@ -364,7 +363,6 @@ export function collectionStatements(
           ...fields,
           snapshotId,
           versionHash: localeVersionHash,
-          sourceReleaseId: resourceReleaseId,
           isCurrent: 1,
         },
         'ON CONFLICT(address3dId,snapshotId,locale) DO NOTHING',
@@ -377,7 +375,7 @@ export function collectionStatements(
 
 function deletionStatement(
   snapshotId: string,
-  sourceReleaseId: string,
+  _sourceReleaseId: string,
   recordType: string,
   recordId: string,
   locale: string,
@@ -387,7 +385,7 @@ function deletionStatement(
   return {
     sql: historyDeletionSql({
       snapshotId,
-      sourceReleaseId,
+
       recordType,
       recordId,
       locale,

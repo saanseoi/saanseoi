@@ -419,18 +419,28 @@ async function loadStreetChangelogRows(refs: StreetReplayRef[]) {
   type Content = HistoryContent<
     typeof historySchema.streetChangelog.$inferSelect,
     typeof currentSchema.streetChangelog.$inferSelect
-  >
+  > & { sourceReleaseId: string }
   const rows: Content[] = []
   for (const shardRefs of groupResolvedVersionsByShard(refs as never).values()) {
     const first = shardRefs[0]
     if (!first) continue
     for (const batch of chunkArray(shardRefs, 256)) {
       rows.push(
-        ...((await first.shard.db
-          .select()
-          .from(historySchema.streetChangelog)
-          .where(historyVersionSelection(historySchema.streetChangelog, batch))
-          .all()) as Content[]),
+        ...((
+          await first.shard.db
+            .select()
+            .from(historySchema.streetChangelog)
+            .where(historyVersionSelection(historySchema.streetChangelog, batch))
+            .all()
+        ).map(row => ({
+          ...row,
+          sourceReleaseId: batch.find(
+            ref =>
+              ref.recordId === row.recordKey ||
+              (ref.recordId === JSON.stringify([row.streetId, row.recordKey]) &&
+                ref.snapshotId === row.snapshotId),
+          )!.sourceReleaseId,
+        })) as Content[]),
       )
     }
   }

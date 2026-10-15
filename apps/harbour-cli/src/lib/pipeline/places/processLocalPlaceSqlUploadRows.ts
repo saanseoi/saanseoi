@@ -104,7 +104,6 @@ export async function buildPlaceSql(
       locale: state.row.locale,
       versionHash: null,
       operation: 'delete',
-      sourceReleaseId: input.message.resourceReleaseId,
       createdAt: now,
     })
   }
@@ -284,7 +283,6 @@ export async function buildPlaceSql(
               accessHint: localised.accessHint ?? null,
               searchDependencyText,
               versionHash: i18nVersionHash,
-              sourceReleaseId: input.message.resourceReleaseId,
               snapshotId: input.snapshots.snapshotId,
               isCurrent: 1,
               createdAt: now,
@@ -340,7 +338,6 @@ export async function buildPlaceSql(
             firstSeenMonth,
             lastSeenMonth: place.lastSeenMonth,
             versionHash: row.versionHash,
-            sourceReleaseId: input.message.resourceReleaseId,
             snapshotId: input.snapshots.snapshotId,
             isCurrent: 1,
             createdAt: now,
@@ -367,7 +364,6 @@ export async function buildPlaceSql(
         locale: '',
         versionHash: null,
         operation: 'delete',
-        sourceReleaseId: input.message.resourceReleaseId,
         createdAt: now,
       })
     }

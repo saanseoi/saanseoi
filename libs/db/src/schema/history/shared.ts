@@ -8,7 +8,6 @@ export const historyVersioning = {
     .notNull()
     .default('upsert'),
   versionHash: text('versionHash'),
-  sourceReleaseId: text('sourceReleaseId'),
   // Operational hint only. Membership always follows snapshot ancestry.
   isCurrent: integer('isCurrent', { mode: 'boolean' }).notNull().default(true),
   createdAt: defaultIsoTimestamp('createdAt').notNull(),

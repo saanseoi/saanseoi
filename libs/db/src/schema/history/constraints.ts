@@ -7,7 +7,7 @@ export function historyEventConstraints(
   requiredPayload: string[] = [],
 ) {
   const name = getTableName(getColumnTable(columns.snapshotId!))
-  const required = ['versionHash', 'sourceReleaseId', ...requiredPayload].map(key => {
+  const required = ['versionHash', ...requiredPayload].map(key => {
     if (!columns[key]) throw new Error(`Unknown required HISTORY column ${name}.${key}`)
     return sql`${columns[key]} is not null`
   })

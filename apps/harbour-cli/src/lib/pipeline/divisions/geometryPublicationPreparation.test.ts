@@ -80,7 +80,7 @@ function fixture() {
       cohortKey TEXT,
       status TEXT,
       revision INTEGER
-    );
+    ); CREATE TABLE snapshotResourceReleases(snapshotId,resourceReleaseId,role); CREATE TRIGGER fixtureProducer AFTER INSERT ON snapshots BEGIN INSERT INTO snapshotResourceReleases VALUES(NEW.id,NEW.id,'primary'); END;
     CREATE TABLE dataShards(id TEXT PRIMARY KEY,bindingName TEXT);
     CREATE TABLE snapshotShardAssignments(snapshotId TEXT,dataShardId TEXT);
     INSERT INTO dataShards VALUES('history','DB_HISTORY');

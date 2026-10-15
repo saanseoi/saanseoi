@@ -14,7 +14,7 @@ test('dictionary references reuse an ancestor while excluding sibling metadata a
       ]),
     )
     sqlite.exec(
-      `INSERT INTO statsFieldsI18n(datasetCode,fieldName,locale,snapshotId,versionHash,sourceReleaseId,name) VALUES('dataset','field','en','root','hash','original','Field'),('dataset','field','en','sibling','hash','sibling-release','Field');`,
+      `INSERT INTO statsFieldsI18n(datasetCode,fieldName,locale,snapshotId,versionHash,name) VALUES('dataset','field','en','root','hash','Field'),('dataset','field','en','sibling','hash','Field');`,
     )
     const refs = Array.from({ length: 300 }, () => ({
       datasetCode: 'dataset',
@@ -28,7 +28,7 @@ test('dictionary references reuse an ancestor while excluding sibling metadata a
       refs,
     )
     expect(rows).toHaveLength(1)
-    expect(rows[0]).toMatchObject({ snapshotId: 'root', sourceReleaseId: 'original' })
+    expect(rows[0]).toMatchObject({ snapshotId: 'root' })
   } finally {
     sqlite.close()
   }

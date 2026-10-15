@@ -48,7 +48,7 @@ test('inline events inherit on branches and preserve deletion and restoration wi
   const { client, db } = fixture()
   try {
     const insert = client.query(
-      `INSERT INTO divisions(id,snapshotId,operation,versionHash,sourceReleaseId,class,hierarchies) VALUES ('a',?,'upsert',?,'release','district','{}')`,
+      `INSERT INTO divisions(id,snapshotId,operation,versionHash,class,hierarchies) VALUES ('a',?,'upsert',?,'district','{}')`,
     )
     insert.run('root', 'h1')
     insert.run('changed', 'h2')
@@ -71,6 +71,7 @@ test('inline events inherit on branches and preserve deletion and restoration wi
       const ancestors = []
       for (let node: string | null = id; node; node = parents[node]!)
         ancestors.unshift({
+          resourceReleaseId: 'release',
           snapshotId: node,
           parentSnapshotId: parents[node]!,
           shards: [{ bindingName: 'history', dataShardId: 'history' }],
@@ -103,7 +104,7 @@ test('inline events inherit on branches and preserve deletion and restoration wi
     ).toEqual({ n: 2 })
     expect(() =>
       client.exec(
-        "INSERT INTO divisions(id,snapshotId,versionHash,sourceReleaseId) VALUES ('broken','root','hash','release')",
+        "INSERT INTO divisions(id,snapshotId,versionHash) VALUES ('broken','root','hash')",
       ),
     ).toThrow()
   } finally {
@@ -114,8 +115,8 @@ test('inline events inherit on branches and preserve deletion and restoration wi
 test('base deletion prevents inherited locales returning after a restoration', async () => {
   const { client, db } = fixture()
   try {
-    client.exec(`INSERT INTO divisions(id,snapshotId,versionHash,sourceReleaseId,class,hierarchies) VALUES ('a','root','h','release','district','{"full":[]}'),('a','restored','h','release','district','{"full":[]}');
-      INSERT INTO divisionsI18n(divisionId,snapshotId,locale,versionHash,sourceReleaseId,name,meta) VALUES ('a','root','en','n','release','Original',json_object('isLocaleInferred',json(CASE 0 WHEN 1 THEN 'true' ELSE 'false' END)));`)
+    client.exec(`INSERT INTO divisions(id,snapshotId,versionHash,class,hierarchies) VALUES ('a','root','h','district','{"full":[]}'),('a','restored','h','district','{"full":[]}');
+      INSERT INTO divisionsI18n(divisionId,snapshotId,locale,versionHash,name,meta) VALUES ('a','root','en','n','Original',json_object('isLocaleInferred',json(CASE 0 WHEN 1 THEN 'true' ELSE 'false' END)));`)
     client.exec(
       historyDeletionSql({
         recordType: 'division',
@@ -124,6 +125,7 @@ test('base deletion prevents inherited locales returning after a restoration', a
       }),
     )
     const step = (snapshotId: string, parentSnapshotId: string | null) => ({
+      resourceReleaseId: 'release',
       snapshotId,
       parentSnapshotId,
       shards: [{ bindingName: 'history', dataShardId: 'history' }],
@@ -144,6 +146,21 @@ test('base deletion prevents inherited locales returning after a restoration', a
     expect(client.query('SELECT count(*) AS n FROM divisionsI18n').get()).toEqual({
       n: 1,
     })
+  } finally {
+    client.close()
+  }
+})
+
+test('all canonical HISTORY payloads omit release ownership columns', () => {
+  const { client } = fixture()
+  try {
+    for (const { table } of Object.values(historyEventTables)) {
+      const columns = client
+        .query<{ name: string }, []>(`PRAGMA table_info("${table}")`)
+        .all()
+        .map(row => row.name)
+      expect(columns, table).not.toContain('sourceReleaseId')
+    }
   } finally {
     client.close()
   }

@@ -95,6 +95,17 @@ export async function recordEffectiveSnapshotAssembly(
     throw new Error(
       `Cannot record an assembly without selected sources: ${args.snapshotId}.`,
     )
+  const primary = sources.filter(source => source.role === 'primary')
+  if (!args.allowPlanning && sources.length && !primary.length)
+    throw new Error(`Snapshot ${args.snapshotId} requires a HISTORY producer.`)
+  const primaryDatasets = new Set<string>()
+  for (const source of primary) {
+    if (primaryDatasets.has(source.datasetId))
+      throw new Error(
+        `Snapshot ${args.snapshotId} selects multiple producing releases for dataset ${source.datasetId}.`,
+      )
+    primaryDatasets.add(source.datasetId)
+  }
   const inputs = new Map<
     string,
     {
@@ -178,12 +189,12 @@ export async function recordEffectiveSnapshotAssembly(
       .run()
   }
   await recordSnapshotDependencies(db, args.snapshotId, args.dependencies ?? {})
-  const primary = sources.find(source => source.role === 'primary')
+  const primarySource = sources.find(source => source.role === 'primary')
   const values = {
     snapshotRecipeId: assemblyId,
     anchorReleaseId:
-      primary?.anchorReleaseId ??
-      primary?.sourceReleaseId ??
+      primarySource?.anchorReleaseId ??
+      primarySource?.sourceReleaseId ??
       args.anchorReleaseId ??
       null,
     updatedAt: now,

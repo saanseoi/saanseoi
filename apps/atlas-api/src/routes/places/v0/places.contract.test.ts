@@ -1,3 +1,4 @@
+import { seedSnapshotProducerFixtures } from '../../../../../../libs/core/src/testing/snapshotFixtures'
 import { insertFixtureSnapshot } from '../../../../../../libs/core/src/testing/snapshotFixtures'
 import { describe, expect, test } from 'bun:test'
 import { Database, type SQLQueryBindings } from 'bun:sqlite'
@@ -349,13 +350,12 @@ function seedCurrent(sqlite: Database) {
 function seedHistory(sqlite: Database) {
   run(
     sqlite,
-    `INSERT INTO divisions (id,level,class,versionHash,sourceReleaseId,snapshotId,isCurrent,createdAt,hierarchies) VALUES (?, ?, ?, ?, ?, ?, ?, ?, '{"administrative":[],"locality":[],"landform":[],"full":[]}')`,
+    `INSERT INTO divisions (id,level,class,versionHash,snapshotId,isCurrent,createdAt,hierarchies) VALUES (?, ?, ?, ?, ?, ?, ?, '{"administrative":[],"locality":[],"landform":[],"full":[]}')`,
     [
       'division-central',
       2,
       'district',
       'division-central-v1',
-      'release-overture-2026-08-19',
       DIVISION_SNAPSHOT,
       1,
       PUBLISHED_AT,
@@ -363,14 +363,13 @@ function seedHistory(sqlite: Database) {
   )
   run(
     sqlite,
-    `INSERT INTO divisionsI18n (divisionId,locale,name,meta,versionHash,sourceReleaseId,snapshotId,isCurrent,createdAt) VALUES (?, ?, ?,json_object('isLocaleInferred',json(CASE ? WHEN 1 THEN 'true' ELSE 'false' END)), ?, ?, ?, ?, ?)`,
+    `INSERT INTO divisionsI18n (divisionId,locale,name,meta,versionHash,snapshotId,isCurrent,createdAt) VALUES (?, ?, ?,json_object('isLocaleInferred',json(CASE ? WHEN 1 THEN 'true' ELSE 'false' END)), ?, ?, ?, ?)`,
     [
       'division-central',
       'en',
       'Central and Western',
       0,
       'division-central-en-v1',
-      'release-overture-2026-08-19',
       DIVISION_SNAPSHOT,
       1,
       PUBLISHED_AT,
@@ -386,7 +385,7 @@ function seedHistory(sqlite: Database) {
     const i18nHash = `${id}-en-v1`
     run(
       sqlite,
-      `INSERT INTO address2d (id,granularity,districtId,geometry,identifiers,sources,versionHash,sourceReleaseId,snapshotId,isCurrent,createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO address2d (id,granularity,districtId,geometry,identifiers,sources,versionHash,snapshotId,isCurrent,createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         addressId,
         'building',
@@ -395,7 +394,6 @@ function seedHistory(sqlite: Database) {
         '{}',
         '{}',
         `${addressId}-v1`,
-        'release-overture-2026-08-19',
         ADDRESS_SNAPSHOT,
         1,
         PUBLISHED_AT,
@@ -403,7 +401,7 @@ function seedHistory(sqlite: Database) {
     )
     run(
       sqlite,
-      'INSERT INTO places (id,resourceReleaseId,addressSnapshotId,address2dId,geometry,bbox,operatingStatus,basicCategory,taxonomyPrimary,taxonomyHierarchy,taxonomyAlternates,websites,confidence,sources,firstSeenMonth,lastSeenMonth,versionHash,sourceReleaseId,snapshotId,isCurrent,createdAt) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
+      'INSERT INTO places (id,resourceReleaseId,addressSnapshotId,address2dId,geometry,bbox,operatingStatus,basicCategory,taxonomyPrimary,taxonomyHierarchy,taxonomyAlternates,websites,confidence,sources,firstSeenMonth,lastSeenMonth,versionHash,snapshotId,isCurrent,createdAt) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
       [
         id,
         'release-overture-2026-08-19',
@@ -422,7 +420,6 @@ function seedHistory(sqlite: Database) {
         '2026-08',
         '2026-08',
         placeHash,
-        'release-overture-2026-08-19',
         PLACE_SNAPSHOT,
         1,
         PUBLISHED_AT,
@@ -430,7 +427,7 @@ function seedHistory(sqlite: Database) {
     )
     run(
       sqlite,
-      `INSERT INTO placesI18n (placeId,locale,name,freeformAddress,meta,versionHash,sourceReleaseId,snapshotId,isCurrent,createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO placesI18n (placeId,locale,name,freeformAddress,meta,versionHash,snapshotId,isCurrent,createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         id,
         'en',
@@ -438,7 +435,6 @@ function seedHistory(sqlite: Database) {
         'Central, Hong Kong',
         '{"isLocaleInferred":false}',
         i18nHash,
-        'release-overture-2026-08-19',
         PLACE_SNAPSHOT,
         1,
         PUBLISHED_AT,
@@ -490,6 +486,7 @@ function createFixtureEnvironment(
         },
       } as unknown as D1Database)
     : createMockD1(historySqlite)
+  seedSnapshotProducerFixtures(metaSqlite)
   return {
     currentSqlite,
     env: {

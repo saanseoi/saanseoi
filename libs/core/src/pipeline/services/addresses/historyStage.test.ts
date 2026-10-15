@@ -84,6 +84,9 @@ test('ALS history preserves distinct source owners at one street address and exa
       .query(`INSERT INTO snapshots(id, snapshotLineageId, code, cohortKey, status)
       SELECT 'parent', snapshotLineageId, 'parent', '2024-06-30.0', 'published' FROM snapshots WHERE id = ?`)
       .run(context.snapshotId)
+    sqlite.exec(
+      "INSERT INTO snapshotResourceReleases(snapshotId,resourceReleaseId,role) SELECT 'parent',resourceReleaseId,'primary' FROM snapshotResourceReleases WHERE snapshotId <> 'parent' AND role='primary' LIMIT 1",
+    )
     sqlite
       .query('UPDATE snapshots SET parentSnapshotId = ? WHERE id = ?')
       .run('parent', context.snapshotId)
@@ -101,7 +104,6 @@ test('ALS history preserves distinct source owners at one street address and exa
           id,
           snapshotId: 'parent',
           versionHash: 'old',
-          sourceReleaseId: 'previous',
         } as never)
         .run()
       for (const localised of rows[0]!.i18n) {
@@ -112,7 +114,6 @@ test('ALS history preserves distinct source owners at one street address and exa
             addressId: id,
             snapshotId: 'parent',
             versionHash: 'old',
-            sourceReleaseId: 'previous',
           } as never)
           .run()
       }

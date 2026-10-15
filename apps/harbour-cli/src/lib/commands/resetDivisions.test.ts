@@ -183,24 +183,20 @@ describe('all-divisions reset', () => {
       insert(db, 'divisions', {
         id: 'd',
         snapshotId: 'division',
-        ...(db === current ? {} : { sourceReleaseId: 'division', versionHash: 'v' }),
+        ...(db === current ? {} : { versionHash: 'v' }),
       })
       insert(db, 'divisionAreas', {
         id: 'a',
         divisionId: 'd',
         snapshotId: 'divisionArea',
-        ...(db === current
-          ? {}
-          : { sourceReleaseId: 'divisionArea', versionHash: 'v' }),
+        ...(db === current ? {} : { versionHash: 'v' }),
       })
       insert(db, 'divisionBoundaries', {
         id: 'b',
         leftDivisionId: 'd',
         rightDivisionId: 'd',
         snapshotId: 'divisionBoundary',
-        ...(db === current
-          ? {}
-          : { sourceReleaseId: 'divisionBoundary', versionHash: 'v' }),
+        ...(db === current ? {} : { versionHash: 'v' }),
       })
     }
     insert(source, 'overtureDivisions', {

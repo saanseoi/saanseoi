@@ -805,3 +805,8 @@ Canonical locale rows store metadata in `meta`. See the shared
 [localisation metadata contract](../../i18n-metadata.md) for field origins, locale
 inference and verification. Source evidence remains separate from the canonical metadata
 projection.
+
+Canonical HISTORY events follow the shared
+[producer ownership contract](../../families/source-evidence.md#history-producer-ownership).
+The introducing snapshot retains its exact producing inputs; source attribution and
+field-level evidence identify the contributing publisher records.

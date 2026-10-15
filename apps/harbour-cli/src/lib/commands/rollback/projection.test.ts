@@ -6,7 +6,10 @@ import { join } from 'node:path'
 import { historyDeletionSql } from '@repo/db'
 import { createLocalHarbourDb } from '../../../../../../libs/core/src/testing/localDb.ts'
 import { loadMigrationSql } from '../../../../../../libs/core/src/testing/metaFixtures.ts'
-import { snapshotFixtureFields } from '../../../../../../libs/core/src/testing/snapshotFixtures'
+import {
+  snapshotFixtureFields,
+  insertSnapshotProducerFixture,
+} from '../../../../../../libs/core/src/testing/snapshotFixtures'
 import { type ProjectionResourceType, restoreSnapshotProjection } from './projection.ts'
 
 const migrations = join(import.meta.dir, '../../../../../../libs/db/migrations')
@@ -62,6 +65,7 @@ function fixture(resourceType: ProjectionResourceType = 'division') {
       status: 'published',
       parentSnapshotId: parent,
     })
+  for (const id of ['a', 'b']) insertSnapshotProducerFixture(meta, id, `${id}-source`)
   for (const id of ['first', 'second'])
     insert(meta, 'dataShards', {
       id,
@@ -113,7 +117,6 @@ function historyRow(
       : {}),
     ...(table === 'address2dI18n' ? { formattedAddress: 'Building 5A-5C' } : {}),
     snapshotId,
-    sourceReleaseId: `${snapshotId}-source`,
     isCurrent: 0,
     createdAt: '2026-01-01',
     updatedAt: '2026-01-01',
@@ -396,6 +399,9 @@ test('ALS rollback requires acknowledged exact canonical membership, including e
       code: 'release',
       status: 'current',
     })
+    f.meta.exec(
+      "DELETE FROM snapshotResourceReleases WHERE snapshotId='b' AND role='primary'",
+    )
     insert(f.meta, 'snapshotResourceReleases', {
       snapshotId: 'b',
       resourceReleaseId: 'release',

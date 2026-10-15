@@ -408,6 +408,7 @@ export function buildDivisionGeometryHashInput(
     createdAt: undefined,
     snapshotId: undefined,
     scopeId: undefined,
+    producerDatasetCode: undefined,
     updatedAt: undefined,
   }
 }

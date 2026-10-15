@@ -16,7 +16,6 @@ export const divisions = sqliteTable(
     }),
     index('divisions_current_lookup_idx').on(table.id, table.isCurrent),
     index('divisions_divisionCode_idx').on(table.snapshotId, table.divisionCode),
-    index('divisions_sourceReleaseId_idx').on(table.sourceReleaseId),
     index('divisions_snapshotId_idx').on(table.snapshotId),
   ],
 )

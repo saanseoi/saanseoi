@@ -300,7 +300,7 @@ async function listReleaseRowCounts(
   }
 
   const plans = await buildReleaseCountPlans(db, bindings, environment, releases)
-  const countsByReleaseSpec = await collectCountRowsByRelease(plans)
+  const countsByReleaseSpec = await collectCountRowsByRelease(plans, db)
 
   return new Map(
     plans.map(plan => [

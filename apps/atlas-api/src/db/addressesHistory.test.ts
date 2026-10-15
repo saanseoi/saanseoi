@@ -1,3 +1,4 @@
+import { seedSnapshotProducerFixtures } from '../../../../libs/core/src/testing/snapshotFixtures'
 import { expect, test } from 'bun:test'
 import { Database } from 'bun:sqlite'
 import { resolve } from 'node:path'
@@ -48,22 +49,19 @@ INSERT INTO snapshots (id, snapshotLineageId, code, cohortKey, status, createdAt
     `)
     history.exec(`
       INSERT INTO address2d (
-        id, granularity, parentAddressId, countryId, districtId, landformId, geometry, identifiers, sources, versionHash,
-        sourceReleaseId, snapshotId, isCurrent, createdAt
+        id, granularity, parentAddressId, countryId, districtId, landformId, geometry, identifiers, sources, versionHash, snapshotId, isCurrent, createdAt
       ) VALUES (
         'historic-address', 'building', 'historic-complex', 'hk', 'district-central', 'hong-kong-island-landform', '{"type":"Point","coordinates":[114.1,22.3]}',
         '{"source":"historic"}',
-        '{"hkgov-dpo":[{"record_id":"historic"}]}', 'historic-address-v1',
-        'historic-release', 'address-snapshot-2025', 0, '${TIMESTAMP}'
+        '{"hkgov-dpo":[{"record_id":"historic"}]}', 'historic-address-v1', 'address-snapshot-2025', 0, '${TIMESTAMP}'
       );
-      INSERT INTO address2d (id, granularity, versionHash, sourceReleaseId, snapshotId, isCurrent)
-      VALUES ('historic-address', 'unit', 'historic-address-v2', 'later-release', 'later-snapshot', 1);
-      INSERT INTO address2dI18n (addressId,locale,formattedAddress,buildingName,versionHash,sourceReleaseId,snapshotId,isCurrent,createdAt) VALUES ('historic-address', 'en', '1 Historic Road', 'Historic House', 'historic-address-en-v1',
-         'historic-release', 'address-snapshot-2025', 0, '${TIMESTAMP}'),
-('historic-address', 'zh-Hant', '歷史道1號', '歷史大廈', 'historic-address-zh-hant-v1',
-         'historic-release', 'address-snapshot-2025', 0, '${TIMESTAMP}');
+      INSERT INTO address2d (id, granularity, versionHash, snapshotId, isCurrent)
+      VALUES ('historic-address', 'unit', 'historic-address-v2', 'later-snapshot', 1);
+      INSERT INTO address2dI18n (addressId,locale,formattedAddress,buildingName,versionHash,snapshotId,isCurrent,createdAt) VALUES ('historic-address', 'en', '1 Historic Road', 'Historic House', 'historic-address-en-v1', 'address-snapshot-2025', 0, '${TIMESTAMP}'),
+('historic-address', 'zh-Hant', '歷史道1號', '歷史大廈', 'historic-address-zh-hant-v1', 'address-snapshot-2025', 0, '${TIMESTAMP}');
     `)
 
+    seedSnapshotProducerFixtures(meta)
     const records = await listReplayedAddressRecords({
       divisionSnapshotId: 'division-snapshot-2025',
       historyDbsByBinding: {
@@ -169,8 +167,8 @@ INSERT INTO snapshots (id, snapshotLineageId, code, cohortKey, status, createdAt
     // content for these rows, so loading locales outside the page would fail.
     history.exec(`
       WITH RECURSIVE n(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM n WHERE x<250)
-      INSERT INTO address2d (id, granularity, countryId, versionHash, sourceReleaseId, snapshotId, isCurrent)
-      SELECT printf('z%03d',x), 'building', 'hk', printf('z%03d-v1',x), 'historic-release', 'address-snapshot-2025', 0 FROM n;
+      INSERT INTO address2d (id, granularity, countryId, versionHash, snapshotId, isCurrent)
+      SELECT printf('z%03d',x), 'building', 'hk', printf('z%03d-v1',x), 'address-snapshot-2025', 0 FROM n;
     `)
     const lookup = {
       divisionSnapshotId: 'division-snapshot-2025',
@@ -247,12 +245,13 @@ INSERT INTO snapshots (id, snapshotLineageId, code, cohortKey, status, parentSna
       INSERT INTO snapshotShardAssignments (snapshotId, dataShardId) VALUES ('child', 'history-2025');
     `)
     history.exec(`
-      INSERT INTO address2d (id, granularity, countryId, versionHash, sourceReleaseId, snapshotId, isCurrent)
-      VALUES ('z001', 'unit', 'mo', 'z001-v2', 'later-release', 'child', 1);
+      INSERT INTO address2d (id, granularity, countryId, versionHash, snapshotId, isCurrent)
+      VALUES ('z001', 'unit', 'mo', 'z001-v2', 'child', 1);
     `)
     history.exec(
       "INSERT INTO address2d(snapshotId,id,operation) VALUES ('child','historic-address','delete')",
     )
+    seedSnapshotProducerFixtures(meta)
     const child = await listReplayedAddressPage({
       ...lookup,
       snapshotIds: ['child'],

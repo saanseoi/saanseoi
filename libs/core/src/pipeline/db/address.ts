@@ -1,3 +1,4 @@
+import { snapshotEventProducer } from './snapshotReplay'
 import { currentSchema, getTableColumns, historySchema } from '@repo/db'
 import type {
   AddressI18nPayload,
@@ -981,7 +982,6 @@ export async function insertAddressVersionRows(
   >,
   i18nRows: Array<
     AddressI18nPayload & {
-      sourceReleaseId: string
       snapshotId: string
       isCurrent: boolean
       versionHash: string
@@ -1006,7 +1006,6 @@ export async function insertAddressVersionRows(
           chunk.map(row => ({
             id: row.id,
             versionHash: row.versionHash,
-            sourceReleaseId: context.resourceReleaseId,
             snapshotId: context.snapshotId,
             isCurrent: true,
             streetId: row.streetId,
@@ -1046,7 +1045,6 @@ async function insertAddressBuildingNumberLookupVersionsInChunks(
   db: HarbourWritableDb,
   rows: Array<
     ReturnType<typeof buildAddressBuildingNumberLookupRows>[number] & {
-      sourceReleaseId: string
       snapshotId: string
       isCurrent: boolean
       versionHash: string
@@ -1127,7 +1125,6 @@ async function insertAddressVersionsI18nInChunks(
   db: HarbourWritableDb,
   rows: Array<
     AddressI18nPayload & {
-      sourceReleaseId: string
       snapshotId: string
       isCurrent: boolean
       versionHash: string
@@ -1171,7 +1168,13 @@ export async function getAddressVersionMapForSnapshotDbs(
   )
   const versions: ResolvedSnapshotVersion[] = [...groups].flatMap(
     ([db, events], index) =>
-      events.map(event => ({ ...event, shard: { bindingName: String(index), db } })),
+      events.map(event => ({
+        ...event,
+        sourceReleaseId: snapshotEventProducer(
+          plan.find(step => step.snapshotId === event.snapshotId)!,
+        ),
+        shard: { bindingName: String(index), db },
+      })),
   )
   return buildAddressVersionSnapshotMapFromRows(
     await loadReplayedAddressBaseRows(

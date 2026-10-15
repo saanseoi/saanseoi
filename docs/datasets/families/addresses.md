@@ -1640,3 +1640,10 @@ Locale values carry the shared [localisation metadata](../i18n-metadata.md) cont
 `meta.isLocaleInferred` records language assignment, while `meta.fields` records each
 field's origin, optional human verification and optional translator identity. Metadata
 participates in canonical content hashes and retained locale revisions.
+
+## HISTORY ownership
+
+Canonical events derive their producing release from their introducing snapshot's
+primary inputs. Inherited events retain that original ownership. See
+[HISTORY producer ownership](source-evidence.md#history-producer-ownership) for the
+shared contract and dataset discriminators on combined geometry snapshots.

@@ -242,7 +242,6 @@ export async function closeDivisionHistoryComponents(input: {
   for (const recordType of ['division', 'divisionI18n'] as const)
     await recordHistoryDeletions(input.activeDb, {
       snapshotId: input.snapshotId,
-      sourceReleaseId: input.sourceReleaseId,
       recordType,
       operation: 'delete',
       changes: input.components

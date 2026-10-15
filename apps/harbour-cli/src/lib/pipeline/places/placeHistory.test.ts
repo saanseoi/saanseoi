@@ -119,6 +119,7 @@ function fixture() {
       getDatabase(databases, name).exec(statements.join('\n'))
     if (sql.changes.length) getDatabase(databases, binding).exec(sql.changes.join('\n'))
     plan.push({
+      resourceReleaseId: 'release',
       snapshotId,
       parentSnapshotId: plan.at(-1)?.snapshotId ?? null,
       shards: [{ dataShardId: binding, bindingName: binding }],
@@ -377,7 +378,7 @@ test('base edits retain locale versions and retirement excludes another current 
       "INSERT INTO places(scopeId,id,resourceReleaseId,geometry,firstSeenMonth,createdAt,updatedAt) VALUES('another-scope','foreign','foreign',json_object('type','Point','coordinates',json_array(114,22)),'2025','original','original')",
     )
     old.exec(
-      "INSERT INTO places (id,resourceReleaseId,geometry,firstSeenMonth,lastSeenMonth,versionHash,sourceReleaseId,snapshotId,isCurrent,createdAt) VALUES ('foreign','foreign',json_object('type','Point','coordinates',json_array(114,22)),'2025','2025','foreign','foreign','foreign',1,'original')",
+      "INSERT INTO places (id,resourceReleaseId,geometry,firstSeenMonth,lastSeenMonth,versionHash,snapshotId,isCurrent,createdAt) VALUES ('foreign','foreign',json_object('type','Point','coordinates',json_array(114,22)),'2025','2025','foreign','foreign',1,'original')",
     )
     row.place.operatingStatus = 'temporarily_closed'
     row.versionHash = await hashPlaceMaterialisation(row.place, {

@@ -1,3 +1,4 @@
+import { seedSnapshotProducerFixtures } from '../../../../../libs/core/src/testing/snapshotFixtures'
 import { Database, type SQLQueryBindings } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { resolve } from 'node:path'
@@ -263,6 +264,7 @@ async function fixture(
     ATLAS_BASE_URL: 'http://localhost',
     PRODUCT_USAGE: { writeDataPoint() {} },
   } as unknown as AppBindings
+  seedSnapshotProducerFixtures(meta)
   return {
     retireOldAddress() {
       current.exec(
@@ -271,10 +273,10 @@ async function fixture(
       meta.exec(
         `INSERT INTO snapshotShardAssignments (snapshotId,dataShardId) VALUES ('addresses-2025-01-01.0-snapshot','history');`,
       )
-      history.exec(`INSERT INTO address2d (id,granularity,geometry,versionHash,sourceReleaseId,snapshotId,isCurrent)
-        VALUES ('historic-address','building','{"type":"Point","coordinates":[114,22]}','base-hash','source','addresses-2025-01-01.0-snapshot',0);
-        INSERT INTO address2dI18n (addressId,locale,formattedAddress,versionHash,sourceReleaseId,snapshotId,isCurrent)
-        VALUES ('historic-address','en','Historic Harbour','name-hash','source','addresses-2025-01-01.0-snapshot',0);`)
+      history.exec(`INSERT INTO address2d (id,granularity,geometry,versionHash,snapshotId,isCurrent)
+        VALUES ('historic-address','building','{"type":"Point","coordinates":[114,22]}','base-hash','addresses-2025-01-01.0-snapshot',0);
+        INSERT INTO address2dI18n (addressId,locale,formattedAddress,versionHash,snapshotId,isCurrent)
+        VALUES ('historic-address','en','Historic Harbour','name-hash','addresses-2025-01-01.0-snapshot',0);`)
     },
     removeHistory() {
       meta.exec('DELETE FROM snapshotShardAssignments')

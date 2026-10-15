@@ -57,6 +57,7 @@ for (const sourceKind of ['overture', 'saanseoi'] as const)
       const source = new Database(files.DB_SOURCE)
       const meta = new Database(files.DB_META)
       meta.exec(`CREATE TABLE snapshots(id TEXT PRIMARY KEY,parentSnapshotId TEXT);
+ CREATE TABLE snapshotResourceReleases(snapshotId TEXT,resourceReleaseId TEXT,role TEXT); CREATE TRIGGER fixtureProducer AFTER INSERT ON snapshots BEGIN INSERT INTO snapshotResourceReleases VALUES(NEW.id,NEW.id,'primary'); END;
       CREATE TABLE dataShards(id TEXT PRIMARY KEY,bindingName TEXT);
       CREATE TABLE snapshotShardAssignments(snapshotId TEXT,dataShardId TEXT);
       INSERT INTO snapshots VALUES('old',NULL);
@@ -196,7 +197,7 @@ for (const sourceKind of ['overture', 'saanseoi'] as const)
         expect(
           history
             .query(
-              "SELECT count(*) AS n FROM divisionAreas WHERE sourceReleaseId='old' AND isCurrent=1",
+              "SELECT count(*) AS n FROM divisionAreas WHERE snapshotId='old' AND isCurrent=1",
             )
             .get(),
         ).toEqual({ n: 2 })

@@ -329,7 +329,7 @@ const currentRecordsTableSql = `
 const historyRecordsTableSql = `
   CREATE TABLE statsDefinitionSets(id TEXT PRIMARY KEY, fieldDefinitionHashes TEXT NOT NULL);
   CREATE TABLE statsRecords (
-    id TEXT NOT NULL, datasetCode TEXT NOT NULL, sourceReleaseId TEXT NOT NULL,
+    id TEXT NOT NULL, datasetCode TEXT NOT NULL,
     sourceFeatureRef TEXT NOT NULL, divisionId TEXT, referencePeriodCode TEXT NOT NULL,
     referencePeriodStart TEXT, referencePeriodEnd TEXT,
     referencePeriodGranularity TEXT NOT NULL, referencePeriodEndYear TEXT NOT NULL,

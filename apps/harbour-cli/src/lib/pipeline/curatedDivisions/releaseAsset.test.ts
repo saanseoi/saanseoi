@@ -49,7 +49,7 @@ test('archive preserves geometry and provenance and is stable across snapshot re
         createdAt: 'today',
         updatedAt: 'today',
         versionHash: 'history-hash',
-        sourceReleaseId: 'upstream',
+
         validFromRelease: 'old',
         validToRelease: null,
         isCurrent: true,

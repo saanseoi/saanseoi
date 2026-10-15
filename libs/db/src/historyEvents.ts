@@ -74,7 +74,14 @@ export function historyEventsSqlForTables(tables?: ReadonlySet<string>) {
     .filter(([, definition]) => !tables || tables.has(definition.table))
     .map(([type, definition]) => {
       const locale = 'locale' in definition ? `"${definition.locale}"` : "''"
-      return `SELECT snapshotId, '${type}' AS recordType, ${historyRecordIdSql(definition)} AS recordId, ${locale} AS locale, versionHash, operation, sourceReleaseId, createdAt FROM "${definition.table}"`
+      const producer = ['divisionAreas', 'divisionBoundaries'].includes(
+        definition.table,
+      )
+        ? 'producerDatasetCode'
+        : definition.table.startsWith('stats')
+          ? 'datasetCode'
+          : 'NULL'
+      return `SELECT snapshotId, '${type}' AS recordType, ${historyRecordIdSql(definition)} AS recordId, ${locale} AS locale, versionHash, operation, createdAt, ${producer} AS producerDatasetCode FROM "${definition.table}"`
     })
   // workerd limits each compound SELECT to five terms, including stored views.
   // Group the branches so every compound remains within that limit.
@@ -95,7 +102,6 @@ export type HistoryDeletion = {
   recordId: string
   locale?: string
   snapshotId: string
-  sourceReleaseId?: string | null
   createdAt?: string
 }
 
@@ -118,7 +124,6 @@ export function historyDeletionRow(input: HistoryDeletion) {
       snapshotId: input.snapshotId,
       operation: 'delete',
       versionHash: null,
-      sourceReleaseId: input.sourceReleaseId ?? null,
       isCurrent: 0,
       createdAt: input.createdAt ?? now,
     },

@@ -69,6 +69,14 @@ export async function resolveStatisticReadSelection(
   )
   return {
     mode: 'history',
+    snapshotProducers: Object.fromEntries(
+      plans.flatMap(plan =>
+        plan.map(step => [
+          step.snapshotId,
+          step.resourceReleaseId ?? step.producerReleases!,
+        ]),
+      ),
+    ),
     publications: selected.publications,
     datasetCodes: selected.datasetCodes,
     snapshotIds: [...new Set(plans.flatMap(plan => plan.map(step => step.snapshotId)))],

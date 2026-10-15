@@ -1,3 +1,4 @@
+import { assertOwnedSnapshotProducers } from '@repo/core/db/metaRegistry'
 import { existsSync, readFileSync } from 'node:fs'
 import { mkdir, readFile, rm, writeFile } from 'node:fs/promises'
 import { dirname, resolve } from 'node:path'
@@ -804,6 +805,11 @@ async function assertPlacesResetStillSafe(
       'Refusing reset: Places snapshots no longer exactly match the initialisation manifest.',
     )
 
+  await assertOwnedSnapshotProducers(
+    context.metaDb as unknown as HarbourReadableDb,
+    owned.snapshotIds,
+    owned.releaseIds,
+  )
   await assertPlacesCurrentResetOwnership(
     context.currentDb as unknown as HarbourReadableDb,
     owned,
@@ -813,12 +819,7 @@ async function assertPlacesResetStillSafe(
     const unexpectedHistory = await (target.db as HarbourReadableDb)
       .select({ snapshotId: historySchema.places.snapshotId })
       .from(historySchema.places)
-      .where(
-        or(
-          not(inArray(historySchema.places.snapshotId, owned.placeSnapshotIds)),
-          not(inArray(historySchema.places.sourceReleaseId, owned.placeReleaseIds)),
-        ),
-      )
+      .where(or(not(inArray(historySchema.places.snapshotId, owned.placeSnapshotIds))))
       .limit(1)
       .get()
     if (unexpectedHistory)
@@ -836,10 +837,7 @@ async function assertPlacesResetStillSafe(
         .where(
           and(
             like(addressId, 'opa-%'),
-            or(
-              not(inArray(table.snapshotId, owned.addressSnapshotIds)),
-              not(inArray(table.sourceReleaseId, owned.addressReleaseIds)),
-            ),
+            or(not(inArray(table.snapshotId, owned.addressSnapshotIds))),
           ),
         )
         .limit(1)
@@ -997,7 +995,6 @@ async function writePlacesManifest(path: string, manifest: PlacesInitManifest) {
 export function buildPlacesResetSql(owned: OwnedPlaces) {
   const releaseIds = sqlList(owned.releaseIds)
   const snapshots = sqlList(owned.snapshotIds)
-  const addressReleases = sqlList(owned.addressReleaseIds)
   const addressSnapshots = sqlList(owned.addressSnapshotIds)
   const placeReleases = sqlList(owned.placeReleaseIds)
   const placeSnapshots = sqlList(owned.placeSnapshotIds)
@@ -1027,11 +1024,11 @@ export function buildPlacesResetSql(owned: OwnedPlaces) {
     ),
   ].join('\n')
   const historySql = [
-    `DELETE FROM placesI18n WHERE snapshotId IN (${placeSnapshots}) OR sourceReleaseId IN (${placeReleases});`,
-    `DELETE FROM places WHERE snapshotId IN (${placeSnapshots}) OR sourceReleaseId IN (${placeReleases});`,
-    `DELETE FROM address2dBuildingNumberLookup WHERE snapshotId IN (${addressSnapshots}) OR sourceReleaseId IN (${addressReleases});`,
-    `DELETE FROM address2dI18n WHERE snapshotId IN (${addressSnapshots}) OR sourceReleaseId IN (${addressReleases});`,
-    `DELETE FROM address2d WHERE snapshotId IN (${addressSnapshots}) OR sourceReleaseId IN (${addressReleases});`,
+    `DELETE FROM placesI18n WHERE snapshotId IN (${placeSnapshots});`,
+    `DELETE FROM places WHERE snapshotId IN (${placeSnapshots});`,
+    `DELETE FROM address2dBuildingNumberLookup WHERE snapshotId IN (${addressSnapshots});`,
+    `DELETE FROM address2dI18n WHERE snapshotId IN (${addressSnapshots});`,
+    `DELETE FROM address2d WHERE snapshotId IN (${addressSnapshots});`,
   ].join('\n')
   const sourceSql = `DELETE FROM overturePlaces WHERE resourceReleaseId IN (${placeReleases});`
   const metaSql = [

@@ -479,7 +479,7 @@ export async function syncCurrentStreetChangelog(
 export async function insertHistoryRows(
   db: HarbourWritableDb,
   snapshotId: string,
-  resourceReleaseId: string,
+  _resourceReleaseId: string,
   records: PreparedMaterialisedStreet[],
   now: string,
   previous: PreparedMaterialisedStreet[] = [],
@@ -509,7 +509,6 @@ export async function insertHistoryRows(
           createdAt: now,
           isCurrent: true,
           snapshotId,
-          sourceReleaseId: record.status === 'deleted' ? null : resourceReleaseId,
           operation:
             record.status === 'deleted' ? ('delete' as const) : ('upsert' as const),
           versionHash: record.status === 'deleted' ? null : record.versionHash,
@@ -525,7 +524,7 @@ export async function insertHistoryRows(
 export async function insertHistoryI18nRows(
   db: HarbourWritableDb,
   snapshotId: string,
-  resourceReleaseId: string,
+  _resourceReleaseId: string,
   records: PreparedMaterialisedStreet[],
   now: string,
   previous: Array<{
@@ -555,7 +554,6 @@ export async function insertHistoryI18nRows(
             name: item.name,
             normalised: normaliseStreetName(item.name),
             snapshotId,
-            sourceReleaseId: resourceReleaseId,
             streetId: record.id,
             versionHash: await createHash({
               name: item.name,
@@ -598,7 +596,6 @@ export async function insertHistoryI18nRows(
           name: item.name,
           description: item.description,
           versionHash: null,
-          sourceReleaseId: resourceReleaseId,
           createdAt: now,
         })),
       ),
@@ -608,7 +605,6 @@ export async function insertHistoryI18nRows(
   }
   await recordHistoryDeletions(db, {
     snapshotId,
-    sourceReleaseId: resourceReleaseId,
     recordType: 'streetI18n',
     operation: 'delete',
     changes: omitted.map(row => ({ recordId: row.streetId, locale: row.locale })),
@@ -650,7 +646,6 @@ export async function insertHistoryStreetChangelog(
           noticeRef: entry.noticeRef,
           snapshotId,
           recordKey: entry.recordKey,
-          sourceReleaseId: entry.sourceReleaseId,
           sourceShardId: entry.sourceShardId,
           streetId: entry.streetId,
           versionHash: entry.versionHash,

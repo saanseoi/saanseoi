@@ -1,3 +1,4 @@
+import { snapshotEventProducer } from '@repo/core/pipeline/db/snapshotReplay.ts'
 import { resolveSnapshotReplayPlan } from '@repo/core/db/metaRegistry'
 import type { HarbourReadableDb } from '@repo/core/db/types'
 import { statisticDefinitionHashesSql } from '@repo/db'
@@ -29,7 +30,10 @@ type VersionChange = {
   versionHash: string | null
   operation: 'upsert' | 'delete'
 }
-type SelectedChange = VersionChange & { binding: StatisticsD1Database }
+type SelectedChange = VersionChange & {
+  binding: StatisticsD1Database
+  sourceReleaseId: string
+}
 type FieldReference = { datasetCode: string; fieldName: string; versionHash: string }
 type MeasureReference = {
   datasetCode: string
@@ -112,7 +116,11 @@ export async function promotePublishedStatisticsTarget(
         .bind(step.snapshotId, 'statsRecord')
         .all<VersionChange>()
       for (const change of result.results) {
-        changes.set(change.recordId, { ...change, binding })
+        changes.set(change.recordId, {
+          ...change,
+          binding,
+          sourceReleaseId: snapshotEventProducer(step, target.datasetCode),
+        })
       }
     }
   }
@@ -214,11 +222,16 @@ export async function promotePublishedStatisticsTarget(
           `Missing retained statistic versions for snapshot ${target.snapshotId}.`,
         )
       }
-      const rows = result.results.filter(
-        row =>
-          row.datasetCode === target.datasetCode &&
-          row.referencePeriodCode === target.referencePeriodCode,
-      )
+      const rows = result.results
+        .map<StoredRow>(row => ({
+          ...row,
+          sourceReleaseId: changes.get(String(row.id))!.sourceReleaseId,
+        }))
+        .filter(
+          row =>
+            row.datasetCode === target.datasetCode &&
+            row.referencePeriodCode === target.referencePeriodCode,
+        )
       await copyReferencedDictionaries(
         [
           ...new Set(plan.flatMap(step => step.shards.map(shard => shard.bindingName))),

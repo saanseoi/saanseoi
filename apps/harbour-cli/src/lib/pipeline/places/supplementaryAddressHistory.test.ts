@@ -14,7 +14,8 @@ test.each(['scope-a', 'scope-b'] as const)(
   async firstOwner => {
     const meta = new Database(':memory:')
     meta.exec(
-      `CREATE TABLE snapshots(id PRIMARY KEY,parentSnapshotId); CREATE TABLE dataShards(id PRIMARY KEY,bindingName); CREATE TABLE snapshotShardAssignments(snapshotId,dataShardId); INSERT INTO dataShards VALUES('DB_HISTORY_HK_2025','DB_HISTORY_HK_2025'),('DB_HISTORY_HK_2026','DB_HISTORY_HK_2026');`,
+      `CREATE TABLE snapshots(id PRIMARY KEY,parentSnapshotId);
+ CREATE TABLE snapshotResourceReleases(snapshotId TEXT,resourceReleaseId TEXT,role TEXT); CREATE TRIGGER fixtureProducer AFTER INSERT ON snapshots BEGIN INSERT INTO snapshotResourceReleases VALUES(NEW.id,NEW.id,'primary'); END; CREATE TABLE dataShards(id PRIMARY KEY,bindingName); CREATE TABLE snapshotShardAssignments(snapshotId,dataShardId); INSERT INTO dataShards VALUES('DB_HISTORY_HK_2025','DB_HISTORY_HK_2025'),('DB_HISTORY_HK_2026','DB_HISTORY_HK_2026');`,
     )
     const current = new Database(':memory:')
     const old = new Database(':memory:')

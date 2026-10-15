@@ -221,12 +221,7 @@ export function buildStatsResetSql(plan: StatsResetPlan) {
         `DELETE FROM ${row.family}PublicationState WHERE scopeId = ${literal(String(row.scopeId))} AND snapshotId = ${literal(String(row.snapshotId))} AND publicationToken = ${literal(String(row.publicationToken))} AND preparedAt IS NOT NULL;`,
     ),
   ].join('\n')
-  const historySql = [
-    canonicalSql,
-    ...GEOMETRY_TABLES.flatMap(table =>
-      deleteIds(table, 'sourceReleaseId', releaseIds),
-    ),
-  ].join('\n')
+  const historySql = canonicalSql
   const sourceSql = [
     ...SOURCE_TABLES.flatMap(table =>
       deleteIds(table, 'resourceReleaseId', releaseIds),

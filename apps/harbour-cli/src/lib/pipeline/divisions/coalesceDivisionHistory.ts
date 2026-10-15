@@ -279,7 +279,7 @@ export async function coalesceDivisionHistory(input: {
                 recordType: policy.recordType,
                 recordId: String(row[policy.id]),
                 locale: policy.table === 'divisionsI18n' ? String(row.locale) : '',
-                sourceReleaseId: receipt.publicationToken,
+
                 createdAt: receipt.updatedAt,
               }),
             )

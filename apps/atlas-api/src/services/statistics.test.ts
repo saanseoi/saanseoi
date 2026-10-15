@@ -135,7 +135,7 @@ function dependencies() {
   return {
     isStatisticPublicationReady: async () => true,
     resolveSnapshotReplayPlan: async (_db: unknown, snapshotId: string) => [
-      { snapshotId, parentSnapshotId: null, shards: [] },
+      { resourceReleaseId: 'release', snapshotId, parentSnapshotId: null, shards: [] },
     ],
     resolveApiReleaseSetSnapshotsForRequest: async (
       _db: unknown,
@@ -296,6 +296,7 @@ function geometryReplayFixture() {
     ...statisticGeometryDependencies,
     resolveSnapshotReplayPlan: async (_db: unknown, selectedId: string) => [
       {
+        resourceReleaseId: 'release',
         snapshotId: selectedId,
         parentSnapshotId: null,
         shards:
@@ -361,7 +362,14 @@ describe('Statistics service', () => {
     fixture.mocks.resolveSnapshotReplayPlan = async (_db, snapshotId) => {
       if (snapshotId === 'snapshot-areas-censtatd-2021')
         throw new Error('A materialised sparse snapshot must not replay geometry.')
-      return [{ snapshotId, parentSnapshotId: null, shards: [] }]
+      return [
+        {
+          resourceReleaseId: 'release',
+          snapshotId,
+          parentSnapshotId: null,
+          shards: [],
+        },
+      ]
     }
     try {
       const result = await listStatistics(fixture.args)

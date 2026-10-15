@@ -74,6 +74,7 @@ function fixture(kind: DivisionGeometryKind) {
       ]),
     )
   meta.exec(`CREATE TABLE snapshots(id TEXT PRIMARY KEY,parentSnapshotId TEXT);
+ CREATE TABLE snapshotResourceReleases(snapshotId TEXT,resourceReleaseId TEXT,role TEXT); CREATE TRIGGER fixtureProducer AFTER INSERT ON snapshots BEGIN INSERT INTO snapshotResourceReleases VALUES(NEW.id,NEW.id,'primary'); END;
     CREATE TABLE dataShards(id TEXT PRIMARY KEY,bindingName TEXT);
     CREATE TABLE snapshotShardAssignments(snapshotId TEXT,dataShardId TEXT);
     INSERT INTO dataShards VALUES('old','DB_HISTORY_2025'),('next','DB_HISTORY_2026');`)

@@ -49,7 +49,7 @@ export function closeResolvedAddressHistory(input: {
           recordType: prior.recordType,
           recordId: prior.recordId,
           locale: prior.locale,
-          sourceReleaseId: input.resourceReleaseId,
+
           createdAt: input.now,
         }),
       )

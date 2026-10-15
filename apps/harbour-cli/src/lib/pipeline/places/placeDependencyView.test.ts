@@ -8,7 +8,10 @@ import { buildPlaceSearchSyncSql } from '@repo/core/pipeline/services/places/sea
 import { currentSchema } from '@repo/db'
 import { createLocalHarbourDb } from '../../../../../../libs/core/src/testing/localDb.ts'
 import { loadMigrationSql } from '../../../../../../libs/core/src/testing/metaFixtures.ts'
-import { snapshotFixtureFields } from '../../../../../../libs/core/src/testing/snapshotFixtures'
+import {
+  snapshotFixtureFields,
+  insertSnapshotProducerFixture,
+} from '../../../../../../libs/core/src/testing/snapshotFixtures'
 import {
   getPlaceCurrent,
   listPlaceDivisions,
@@ -54,6 +57,7 @@ const insert = (db: Database, table: string, row: Record<string, unknown>) => {
       value != null && typeof value === 'object' ? JSON.stringify(value) : value,
     ) as never[]),
   )
+  if (table === 'snapshots') insertSnapshotProducerFixture(db, String(row.id))
 }
 
 test('empty exact Address dependencies resolve from metadata and reject missing or substituted Division selections', async () => {
@@ -267,7 +271,6 @@ test('exact historical Place dependencies replay independent locale shards and s
         ...(locale ? { locale } : {}),
         snapshotId,
         versionHash: hash,
-        sourceReleaseId: 'release',
         isCurrent: 1,
       })
     }

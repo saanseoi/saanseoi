@@ -24,8 +24,8 @@ test('retirements batch historical writes and preserve locale tombstones across 
         ),
       )
     }
-    old.exec(`INSERT INTO address2d(id,versionHash,sourceReleaseId,snapshotId,isCurrent) VALUES('retired','base','first','previous',1);
-      INSERT INTO address2dI18n(addressId,locale,formattedAddress,versionHash,sourceReleaseId,snapshotId,isCurrent) VALUES('retired','zh-Hant','Address','text','first','previous',1);`)
+    old.exec(`INSERT INTO address2d(id,versionHash,snapshotId,isCurrent) VALUES('retired','base','previous',1);
+      INSERT INTO address2dI18n(addressId,locale,formattedAddress,versionHash,snapshotId,isCurrent) VALUES('retired','zh-Hant','Address','text','previous',1);`)
     for (const db of [old, history]) {
       const query = db.query.bind(db)
       db.query = ((sql: string) => {

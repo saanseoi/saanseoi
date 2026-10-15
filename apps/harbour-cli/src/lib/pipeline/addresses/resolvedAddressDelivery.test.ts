@@ -279,6 +279,7 @@ test('combined Address planning seals only final changes and rejects incomplete 
         await resolveSnapshotVersionState(
           [
             {
+              resourceReleaseId: 'release',
               snapshotId: 'snapshot',
               parentSnapshotId: null,
               shards: [{ dataShardId: 'history', bindingName: 'DB_HISTORY_HK_2026' }],
@@ -324,6 +325,7 @@ test('combined Address planning seals only final changes and rejects incomplete 
       snapshotId: 'snapshot2',
       parentReplayPlan: [
         {
+          resourceReleaseId: 'release',
           snapshotId: 'snapshot',
           parentSnapshotId: null,
           shards: [{ bindingName: 'DB_HISTORY_HK_2026' }],

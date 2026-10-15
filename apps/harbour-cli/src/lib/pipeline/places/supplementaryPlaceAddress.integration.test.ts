@@ -43,7 +43,7 @@ test('published supplementary retry recovers revocations from immutable history'
       )
     first.exec(`INSERT INTO address2d(snapshotId,id,operation) VALUES
       ('published-snapshot','ss-opa-stale-a','delete'),('other-snapshot','ss-opa-other','delete');
-      INSERT INTO address2d(snapshotId,id,operation,versionHash,granularity,sourceReleaseId) VALUES('published-snapshot','ss-opa-current','upsert','hash','building','source');`)
+      INSERT INTO address2d(snapshotId,id,operation,versionHash,granularity) VALUES('published-snapshot','ss-opa-current','upsert','hash','building');`)
     second.exec(`INSERT INTO address2d(snapshotId,id,operation) VALUES('published-snapshot','ss-opa-stale-b','delete');
       INSERT INTO address2dI18n(snapshotId,addressId,locale,operation) VALUES('published-snapshot','ss-opa-locale','en','delete');`)
     expect(
@@ -729,12 +729,12 @@ INSERT INTO snapshots(id, code, cohortKey, status, snapshotLineageId) VALUES
     // Another lineage owns these active components. Withdrawing this scope must
     // leave their current flags and immutable payloads intact.
     historyNext.exec(`
-      INSERT INTO address2d(id,versionHash,snapshotId,sourceReleaseId,isCurrent,granularity)
-        VALUES('ss-opa-other-lineage','other-base','other-snapshot','other-release',1,'building');
-      INSERT INTO address2dI18n(addressId,versionHash,locale,formattedAddress,snapshotId,sourceReleaseId,isCurrent)
-        VALUES('ss-opa-other-lineage','other-locale','en','Another address','other-snapshot','other-release',1);
-      INSERT INTO address2dBuildingNumberLookup(addressId,versionHash,buildingNumber,numericStem,evidence,snapshotId,sourceReleaseId,isCurrent)
-        VALUES('ss-opa-other-lineage','other-lookup','2',2,'source_endpoint','other-snapshot','other-release',1);
+      INSERT INTO address2d(id,versionHash,snapshotId,isCurrent,granularity)
+        VALUES('ss-opa-other-lineage','other-base','other-snapshot',1,'building');
+      INSERT INTO address2dI18n(addressId,versionHash,locale,formattedAddress,snapshotId,isCurrent)
+        VALUES('ss-opa-other-lineage','other-locale','en','Another address','other-snapshot',1);
+      INSERT INTO address2dBuildingNumberLookup(addressId,versionHash,buildingNumber,numericStem,evidence,snapshotId,isCurrent)
+        VALUES('ss-opa-other-lineage','other-lookup','2',2,'source_endpoint','other-snapshot',1);
     `)
     const foreignComponents = () =>
       ['address2d', 'address2dI18n', 'address2dBuildingNumberLookup'].map(table =>

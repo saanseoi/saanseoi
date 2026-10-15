@@ -61,12 +61,12 @@ INSERT INTO resourceReleases(id,sourceReleaseId,code,resourceType,status) VALUES
         VALUES('lineage','latest','current','latest-release','ready');
       INSERT INTO divisions(scopeId,id,class,hierarchies)
         VALUES('lineage','current-only','district','{"full":[],"administrative":[],"locality":[]}');`)
-    history2025.exec(`INSERT INTO divisions(id,versionHash,snapshotId,sourceReleaseId,isCurrent,class,hierarchies)
-        VALUES('hong-kong-island','v1','early','release-2025',0,'district','{"full":[],"administrative":[],"locality":[]}');
+    history2025.exec(`INSERT INTO divisions(id,versionHash,snapshotId,isCurrent,class,hierarchies)
+        VALUES('hong-kong-island','v1','early',0,'district','{"full":[],"administrative":[],"locality":[]}');
       `)
-    history2026.exec(`INSERT INTO divisions(id,versionHash,snapshotId,sourceReleaseId,isCurrent,class,hierarchies) VALUES
-        ('kowloon','v1','complete','release-2026-01',0,'district','{"full":[],"administrative":[],"locality":[]}'),
-        ('new-territories','v1','complete','release-2026-01',0,'district','{"full":[],"administrative":[],"locality":[]}');
+    history2026.exec(`INSERT INTO divisions(id,versionHash,snapshotId,isCurrent,class,hierarchies) VALUES
+        ('kowloon','v1','complete',0,'district','{"full":[],"administrative":[],"locality":[]}'),
+        ('new-territories','v1','complete',0,'district','{"full":[],"administrative":[],"locality":[]}');
       `)
 
     const plan: GeometryUploadPlan = {

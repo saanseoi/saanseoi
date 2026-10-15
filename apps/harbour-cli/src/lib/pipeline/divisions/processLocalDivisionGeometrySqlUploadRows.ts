@@ -233,7 +233,7 @@ export async function writeGeometryRows(
   if (!version.skipCanonicalMaterialisation) {
     await recordHistoryDeletions(context.historyDb as unknown as HarbourWritableDb, {
       snapshotId: version.snapshotId,
-      sourceReleaseId: version.resourceReleaseId,
+
       recordType: resourceType,
       operation: 'delete',
       changes: removedHistoryIds.map(recordId => ({ recordId })),
@@ -365,7 +365,8 @@ export async function writeGeometryRows(
           row.canonical.id,
         ),
         versionHash: requireGeometryHash(historyHashes, row.canonical.id),
-        sourceReleaseId: version.resourceReleaseId,
+        producerDatasetCode:
+          version.source === 'hkgov-censtatd' ? version.datasetCode : null,
         snapshotId: version.snapshotId,
         isCurrent: true,
         createdAt: now,

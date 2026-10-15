@@ -657,3 +657,8 @@ Authored island-group unions and geometry partitions retain their concrete SaanS
 dataset and record references in canonical `sources`. Construction metadata does not
 suppress attribution; method-only evidence without a dataset and selection-only
 references do not establish authorship.
+
+Canonical HISTORY events follow the shared
+[producer ownership contract](../../families/source-evidence.md#history-producer-ownership).
+The introducing snapshot retains its exact producing inputs; source attribution and
+field-level evidence identify the contributing publisher records.

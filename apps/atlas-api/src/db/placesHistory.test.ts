@@ -1,3 +1,4 @@
+import { seedSnapshotProducerFixtures } from '../../../../libs/core/src/testing/snapshotFixtures'
 import { insertFixtureSnapshot } from '../../../../libs/core/src/testing/snapshotFixtures'
 import { expect, test } from 'bun:test'
 import { Database, type SQLQueryBindings } from 'bun:sqlite'
@@ -88,7 +89,7 @@ test('replays Place text and spatial divisions from the selected version without
 
     run(
       history,
-      `INSERT INTO address2d (id,granularity,countryId,districtId,geometry,identifiers,sources,versionHash,sourceReleaseId,snapshotId,isCurrent,createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO address2d (id,granularity,countryId,districtId,geometry,identifiers,sources,versionHash,snapshotId,isCurrent,createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         'address-old',
         'building',
@@ -98,7 +99,6 @@ test('replays Place text and spatial divisions from the selected version without
         '{}',
         '{}',
         'address-old-hash',
-        'release-old',
         'address-snapshot-old',
         1,
         TIMESTAMP,
@@ -114,14 +114,14 @@ test('replays Place text and spatial divisions from the selected version without
     ]) {
       run(
         history,
-        "INSERT INTO divisions(id,class,hierarchies,versionHash,sourceReleaseId,snapshotId,isCurrent,createdAt) VALUES(?,?,'{}',?,?,?,1,?)",
-        [id!, kind!, id!, 'release-old', 'division-snapshot-old', TIMESTAMP],
+        "INSERT INTO divisions(id,class,hierarchies,versionHash,snapshotId,isCurrent,createdAt) VALUES(?,?,'{}',?,?,1,?)",
+        [id!, kind!, id!, 'division-snapshot-old', TIMESTAMP],
       )
     }
     for (const versionHash of ['place-old-hash', 'place-new-hash']) {
       run(
         history,
-        'INSERT INTO places (id,resourceReleaseId,addressSnapshotId,address2dId,geometry,bbox,basicCategory,sources,firstSeenMonth,lastSeenMonth,versionHash,sourceReleaseId,snapshotId,isCurrent,createdAt) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
+        'INSERT INTO places (id,resourceReleaseId,addressSnapshotId,address2dId,geometry,bbox,basicCategory,sources,firstSeenMonth,lastSeenMonth,versionHash,snapshotId,isCurrent,createdAt) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
         [
           'place-1',
           versionHash === 'place-old-hash' ? 'release-old' : 'release-new',
@@ -146,7 +146,6 @@ test('replays Place text and spatial divisions from the selected version without
           '2025-09',
           '2026-09',
           versionHash,
-          versionHash === 'place-old-hash' ? 'release-old' : 'release-new',
           versionHash === 'place-old-hash'
             ? 'place-snapshot-old'
             : 'place-snapshot-new',
@@ -157,7 +156,7 @@ test('replays Place text and spatial divisions from the selected version without
     }
     run(
       history,
-      `INSERT INTO placesI18n (placeId,locale,name,freeformAddress,meta,versionHash,sourceReleaseId,snapshotId,isCurrent,createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO placesI18n (placeId,locale,name,freeformAddress,meta,versionHash,snapshotId,isCurrent,createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         'place-1',
         'en',
@@ -165,7 +164,6 @@ test('replays Place text and spatial divisions from the selected version without
         'Old Address Text',
         '{"isLocaleInferred":false}',
         'place-old-en-hash',
-        'release-old',
         'place-snapshot-old',
         1,
         TIMESTAMP,
@@ -173,7 +171,7 @@ test('replays Place text and spatial divisions from the selected version without
     )
     run(
       history,
-      `INSERT INTO placesI18n (placeId,locale,name,freeformAddress,meta,versionHash,sourceReleaseId,snapshotId,isCurrent,createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO placesI18n (placeId,locale,name,freeformAddress,meta,versionHash,snapshotId,isCurrent,createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         'place-1',
         'en',
@@ -181,7 +179,6 @@ test('replays Place text and spatial divisions from the selected version without
         'Current Address Text',
         '{"isLocaleInferred":false}',
         'place-new-en-hash',
-        'release-new',
         'place-snapshot-new',
         0,
         TIMESTAMP,
@@ -192,7 +189,7 @@ test('replays Place text and spatial divisions from the selected version without
       const versionHash = `${id}-v1`
       run(
         history,
-        'INSERT INTO places (id,resourceReleaseId,geometry,firstSeenMonth,lastSeenMonth,versionHash,sourceReleaseId,snapshotId,isCurrent,createdAt) VALUES (?,?,?,?,?,?,?,?,?,?)',
+        'INSERT INTO places (id,resourceReleaseId,geometry,firstSeenMonth,lastSeenMonth,versionHash,snapshotId,isCurrent,createdAt) VALUES (?,?,?,?,?,?,?,?,?)',
         [
           id,
           'release-old',
@@ -200,7 +197,6 @@ test('replays Place text and spatial divisions from the selected version without
           '2025-09',
           '2025-09',
           versionHash,
-          'release-old',
           'place-snapshot-old',
           1,
           TIMESTAMP,
@@ -208,6 +204,7 @@ test('replays Place text and spatial divisions from the selected version without
       )
     }
 
+    seedSnapshotProducerFixtures(meta)
     const records = await listReplayedPlaceRecords({
       divisionSnapshotId: 'division-snapshot-old',
       historyDbsByBinding: {
@@ -326,7 +323,7 @@ test('historical Places resolve independently inherited locales across years and
     for (const id of ['place', 'same-hash-neighbour'])
       run(
         old,
-        'INSERT INTO places (id,resourceReleaseId,geometry,firstSeenMonth,lastSeenMonth,versionHash,sourceReleaseId,snapshotId,isCurrent,createdAt) VALUES (?,?,?,?,?,?,?,?,?,?)',
+        'INSERT INTO places (id,resourceReleaseId,geometry,firstSeenMonth,lastSeenMonth,versionHash,snapshotId,isCurrent,createdAt) VALUES (?,?,?,?,?,?,?,?,?)',
         [
           id,
           'source-base',
@@ -334,7 +331,6 @@ test('historical Places resolve independently inherited locales across years and
           '2025-01',
           '2025-01',
           'base-content',
-          'source-base',
           id === 'place' ? 'base' : 'unselected',
           1,
           TIMESTAMP,
@@ -348,13 +344,12 @@ test('historical Places resolve independently inherited locales across years and
       for (const id of ['place', 'same-hash-neighbour'])
         run(
           db,
-          'INSERT INTO placesI18n (placeId,locale,name,versionHash,sourceReleaseId,snapshotId,isCurrent,createdAt) VALUES (?,?,?,?,?,?,?,?)',
+          'INSERT INTO placesI18n (placeId,locale,name,versionHash,snapshotId,isCurrent,createdAt) VALUES (?,?,?,?,?,?,?)',
           [
             id,
             locale,
             id === 'place' ? name : 'Wrong neighbour',
             hash,
-            'source-base',
             id === 'place' ? (db === next ? 'edited' : 'base') : 'unselected',
             1,
             TIMESTAMP,
@@ -368,6 +363,7 @@ test('historical Places resolve independently inherited locales across years and
       next,
       "INSERT INTO placesI18n(placeId,locale,snapshotId,operation) VALUES('place','zh-hant','removed','delete')",
     )
+    seedSnapshotProducerFixtures(meta)
     const read = (snapshotId: string) =>
       listReplayedPlaceRecords({
         divisionSnapshotId: 'unused',

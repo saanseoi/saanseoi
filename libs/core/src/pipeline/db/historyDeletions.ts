@@ -13,7 +13,6 @@ export async function recordHistoryDeletions(
   db: HarbourWritableDb,
   args: {
     snapshotId: string
-    sourceReleaseId?: string | null
     recordType: string
     operation: 'delete'
     changes: Array<{ recordId: string; locale?: string }>
@@ -54,7 +53,6 @@ export async function recordHistoryDeletions(
             snapshotId: args.snapshotId,
             operation: 'delete',
             versionHash: null,
-            sourceReleaseId: args.sourceReleaseId ?? null,
             isCurrent: false,
             createdAt: now,
           }

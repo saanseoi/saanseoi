@@ -11,13 +11,14 @@ export const divisionAreas = sqliteTable(
     ...canonicalDivisionGeometryColumns(false),
     divisionId: text('divisionId'),
     ...historyVersioning,
+    // Required only when one snapshot combines canonical rows from several datasets.
+    producerDatasetCode: text('producerDatasetCode'),
   },
   table => [
     ...historyEventConstraints(table, ['divisionId', 'variant', 'type']),
     primaryKey({ columns: [table.id, table.snapshotId] }),
     index('divisionAreas_current_lookup_idx').on(table.id, table.isCurrent),
     index('divisionAreas_divisionId_idx').on(table.divisionId, table.isCurrent),
-    index('divisionAreas_sourceReleaseId_idx').on(table.sourceReleaseId),
     index('divisionAreas_snapshotId_idx').on(table.snapshotId),
   ],
 )
@@ -29,6 +30,8 @@ export const divisionBoundaries = sqliteTable(
     leftDivisionId: text('leftDivisionId'),
     rightDivisionId: text('rightDivisionId'),
     ...historyVersioning,
+    // Required only when one snapshot combines canonical rows from several datasets.
+    producerDatasetCode: text('producerDatasetCode'),
   },
   table => [
     ...historyEventConstraints(table, [
@@ -47,7 +50,6 @@ export const divisionBoundaries = sqliteTable(
       table.rightDivisionId,
       table.isCurrent,
     ),
-    index('divisionBoundaries_sourceReleaseId_idx').on(table.sourceReleaseId),
     index('divisionBoundaries_snapshotId_idx').on(table.snapshotId),
   ],
 )

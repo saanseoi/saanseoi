@@ -260,3 +260,8 @@ only. See [storage timestamp ownership](../../pipeline.md#storage-timestamp-owne
 The prepared PRC country record carries code `PRC`, Wikidata `Q148`, Overture
 country-record attribution and country cartography. A representative Point `[103, 35]`
 fills missing geometry using reviewed canonical anchor metadata.
+
+Canonical HISTORY events follow the shared
+[producer ownership contract](../../families/source-evidence.md#history-producer-ownership).
+The introducing snapshot retains its exact producing inputs; source attribution and
+field-level evidence identify the contributing publisher records.

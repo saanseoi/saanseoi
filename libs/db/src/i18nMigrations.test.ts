@@ -39,7 +39,7 @@ test.each(['current', 'history'])(
       if (family === 'history') {
         expect(() =>
           db.exec(
-            "INSERT INTO divisionsI18n(divisionId,locale,snapshotId,operation,versionHash,sourceReleaseId,meta) VALUES('a','en','bad','upsert','v','release',NULL)",
+            "INSERT INTO divisionsI18n(divisionId,locale,snapshotId,operation,versionHash,meta) VALUES('a','en','bad','upsert','v',NULL)",
           ),
         ).toThrow()
         db.exec(

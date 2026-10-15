@@ -151,7 +151,7 @@ export async function replaceCurrentI18n(
 export async function insertHistoryRows(
   db: HarbourWritableDb,
   snapshotId: string,
-  resourceReleaseId: string,
+  _resourceReleaseId: string,
   _cohortKey: string,
   records: PreparedDivision[],
   compressedGeometryByDivisionId: CompressedPlanningDivisionGeometry,
@@ -170,7 +170,6 @@ export async function insertHistoryRows(
             record.base.id,
           ),
           versionHash: record.versionHash,
-          sourceReleaseId: resourceReleaseId,
           snapshotId,
           isCurrent: true,
           createdAt: now,
@@ -188,7 +187,7 @@ export async function insertHistoryRows(
 export async function insertHistoryI18nRows(
   db: HarbourWritableDb,
   snapshotId: string,
-  resourceReleaseId: string,
+  _resourceReleaseId: string,
   _cohortKey: string,
   records: PreparedDivision[],
   now: string,
@@ -203,7 +202,6 @@ export async function insertHistoryI18nRows(
       nameAlts: null,
       nameRules: null,
       versionHash: record.versionHash,
-      sourceReleaseId: resourceReleaseId,
       snapshotId,
       isCurrent: true,
       createdAt: now,

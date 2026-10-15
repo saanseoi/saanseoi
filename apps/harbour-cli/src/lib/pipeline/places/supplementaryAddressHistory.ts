@@ -91,7 +91,6 @@ export async function materialiseSupplementaryAddressHistory(input: {
             ...row,
             snapshotId: input.snapshotId,
             operation: 'upsert',
-            sourceReleaseId: input.resourceReleaseId,
             isCurrent: 1,
             ...timestamp,
           },
@@ -111,7 +110,7 @@ export async function materialiseSupplementaryAddressHistory(input: {
           recordType: policy.table,
           recordId: prior.recordId,
           locale: prior.locale,
-          sourceReleaseId: input.resourceReleaseId,
+
           ...timestamp,
         }),
       )
@@ -123,7 +122,7 @@ export async function materialiseSupplementaryAddressHistory(input: {
         snapshotId: input.snapshotId,
         recordType: 'address2d',
         recordId: id,
-        sourceReleaseId: input.resourceReleaseId,
+
         ...timestamp,
       }),
     )

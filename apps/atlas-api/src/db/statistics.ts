@@ -35,6 +35,7 @@ const D1_QUERY_BATCH_SIZE = 30
 export type StatisticDatabase = CurrentDatabase | HistoryDatabase
 export type StatisticReadSelection = {
   mode: 'current' | 'history'
+  snapshotProducers?: Record<string, string | Record<string, string>>
   datasetCodes: string[]
   /** Root-to-leaf snapshot ancestry. Descendants supply only changed versions. */
   snapshotIds: string[]
@@ -43,6 +44,25 @@ export type StatisticReadSelection = {
     referencePeriodCode: string
     snapshotId: string
   }>
+}
+
+/** Derived provenance is selected without asking a HISTORY shard for META columns. */
+function statisticProducerColumn(selection: StatisticReadSelection) {
+  if (selection.mode === 'current') return statsRecords.sourceReleaseId
+  const producers = selection.snapshotProducers
+  if (!producers || selection.snapshotIds.some(id => !producers[id]))
+    throw new Error(
+      'Historical Statistics require the producer of every introducing snapshot.',
+    )
+  return sql<string>`case json_type(${JSON.stringify(producers)}, '$.' || json_quote(${historySchema.statsRecords.snapshotId})) when 'text' then json_extract(${JSON.stringify(producers)}, '$.' || json_quote(${historySchema.statsRecords.snapshotId})) else json_extract(${JSON.stringify(producers)}, '$.' || json_quote(${historySchema.statsRecords.snapshotId}) || '.' || json_quote(${statsRecords.datasetCode})) end`.as(
+    'sourceReleaseId',
+  )
+}
+function statisticRecordColumns(selection: StatisticReadSelection) {
+  return {
+    ...getTableColumns(statsRecords),
+    sourceReleaseId: statisticProducerColumn(selection),
+  }
 }
 
 export type StatisticFilters = {
@@ -222,7 +242,7 @@ export async function listStatisticRecords(
       dbs.map(db =>
         db
           .select({
-            ...getTableColumns(statsRecords),
+            ...statisticRecordColumns(lookup.selection),
             fieldDefinitionHashes: statisticDefinitionHashes.as(
               'fieldDefinitionHashes',
             ),
@@ -268,7 +288,7 @@ export async function listStatisticRecordsForGeography(
           .select({
             id: statsRecords.id,
             datasetCode: statsRecords.datasetCode,
-            sourceReleaseId: statsRecords.sourceReleaseId,
+            sourceReleaseId: statisticProducerColumn(lookup.selection),
             sourceFeatureRef: statsRecords.sourceFeatureRef,
             divisionId: statsRecords.divisionId,
             referencePeriodCode: statsRecords.referencePeriodCode,
@@ -335,7 +355,7 @@ export async function getStatisticRecord(
     dbs.map(db =>
       db
         .select({
-          ...getTableColumns(statsRecords),
+          ...statisticRecordColumns(lookup.selection),
           fieldDefinitionHashes: statisticDefinitionHashes.as('fieldDefinitionHashes'),
         })
         .from(statsRecords)
@@ -579,7 +599,18 @@ async function prepareHistorySelection(
   const groups = await resolveStatisticEvents(dbs as never, selection.snapshotIds, [
     'statsRecord',
   ])
-  historySelections.set(selection, [...groups.values()].flat())
+  const events = [...groups.values()].flat()
+  for (const event of events) {
+    const producer = selection.snapshotProducers?.[event.snapshotId]
+    if (
+      !producer ||
+      (typeof producer !== 'string' && !producer[event.producerDatasetCode ?? ''])
+    )
+      throw new Error(
+        `Missing Statistics producer for ${event.snapshotId}/${event.producerDatasetCode ?? 'default'}.`,
+      )
+  }
+  historySelections.set(selection, events)
 }
 
 async function historicalDictionaryMetadata(
@@ -596,7 +627,7 @@ async function historicalDictionaryMetadata(
         dbs.map(db =>
           db
             .select({
-              ...getTableColumns(statsRecords),
+              ...statisticRecordColumns(lookup.selection),
               fieldDefinitionHashes: statisticDefinitionHashes.as(
                 'fieldDefinitionHashes',
               ),

@@ -1,3 +1,4 @@
+import { seedSnapshotProducerFixtures } from '../../../../../libs/core/src/testing/snapshotFixtures'
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { resolve } from 'node:path'
@@ -133,6 +134,7 @@ INSERT INTO snapshots(id, snapshotLineageId, code, cohortKey, status, parentSnap
         ('new','history','hk','2026','preview','new','new','DB_HISTORY_HK_2026','active','new');
       INSERT INTO snapshotShardAssignments(snapshotId,dataShardId)
       VALUES ('one','old'),('two','new'),('three','new');`)
+    seedSnapshotProducerFixtures(meta)
     const eventWriter = (db: Database, snapshotId: string) => ({
       run(
         type: string,
@@ -152,7 +154,6 @@ INSERT INTO snapshots(id, snapshotLineageId, code, cohortKey, status, parentSnap
           snapshotId,
           versionHash: hash,
           operation,
-          sourceReleaseId: `release-${snapshotId}`,
         }
         if (localized) row.locale = locale
         if (operation === 'upsert') {

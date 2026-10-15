@@ -10,6 +10,7 @@ from pathlib import Path
 import sqlite3
 import re
 
+from history_producer_upgrade import MIGRATION as HISTORY_PRODUCER_MIGRATION, upgrade as upgrade_history_producers
 from inline_history_upgrade import MIGRATION as INLINE_HISTORY_MIGRATION, upgrade as upgrade_inline_history
 
 
@@ -127,6 +128,8 @@ def migrate(database_path, migrations_dir, backup_dir, table='d1_migrations', me
                 print(f'Applying {name}', flush=True)
                 if name == INLINE_HISTORY_MIGRATION:
                     upgrade_inline_history(db, path.read_text(), statements, metadata)
+                elif name == HISTORY_PRODUCER_MIGRATION:
+                    upgrade_history_producers(db, path.read_text(), statements, metadata)
                 else:
                     for statement in statements(path.read_text()):
                         db.execute(statement)

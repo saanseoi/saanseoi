@@ -22,7 +22,6 @@ export const places = sqliteTable(
       columns: [table.id, table.snapshotId],
     }),
     index('places_current_lookup_idx').on(table.id, table.isCurrent),
-    index('places_sourceReleaseId_idx').on(table.sourceReleaseId),
     index('places_snapshotId_idx').on(table.snapshotId),
   ],
 )

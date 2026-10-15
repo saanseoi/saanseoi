@@ -35,21 +35,21 @@ async function fixture(
         INSERT INTO address2dBuildingNumberLookup(scopeId,addressId,buildingNumber,numericStem,evidence,derivation) VALUES('scope','a','1',1,'source_endpoint','single');`)
       if (binding === oldBinding)
         db.exec(`
-        INSERT INTO address2d(id,versionHash,snapshotId,sourceReleaseId,granularity,isCurrent) VALUES('a','v1','one','r1','building',1);
-        INSERT INTO address2dI18n(addressId,versionHash,locale,formattedAddress,sourceReleaseId,snapshotId,isCurrent) VALUES('a','v1','en','First','r1','one',1),('a','v1','zh-hant','中文','r1','one',1);
-        INSERT INTO address2dBuildingNumberLookup(addressId,versionHash,snapshotId,sourceReleaseId,buildingNumber,numericStem,evidence,derivation,isCurrent) VALUES('a','v1','one','r1','1',1,'source_endpoint','single',1);
+        INSERT INTO address2d(id,versionHash,snapshotId,granularity,isCurrent) VALUES('a','v1','one','building',1);
+        INSERT INTO address2dI18n(addressId,versionHash,locale,formattedAddress,snapshotId,isCurrent) VALUES('a','v1','en','First','one',1),('a','v1','zh-hant','中文','one',1);
+        INSERT INTO address2dBuildingNumberLookup(addressId,versionHash,snapshotId,buildingNumber,numericStem,evidence,derivation,isCurrent) VALUES('a','v1','one','1',1,'source_endpoint','single',1);
 `)
       if (binding === nextBinding)
         db.exec(`
-        INSERT INTO address2d(id,versionHash,snapshotId,sourceReleaseId,granularity,isCurrent) VALUES('other','other-version','other-snapshot','other-release','building',1);
-        INSERT INTO address2dI18n (addressId,versionHash,locale,formattedAddress,sourceReleaseId,snapshotId,isCurrent,createdAt) VALUES ('a','returning','en','Second','retained-release','retained-snapshot',0,'retained-created');`)
+        INSERT INTO address2d(id,versionHash,snapshotId,granularity,isCurrent) VALUES('other','other-version','other-snapshot','building',1);
+        INSERT INTO address2dI18n (addressId,versionHash,locale,formattedAddress,snapshotId,isCurrent,createdAt) VALUES ('a','returning','en','Second','retained-snapshot',0,'retained-created');`)
       if (multipleLookups && binding === 'DB_CURRENT')
         db.exec(
           "INSERT INTO address2dBuildingNumberLookup(scopeId,addressId,buildingNumber,numericStem,evidence,derivation) VALUES('scope','a','2',2,'source_endpoint','single')",
         )
       if (multipleLookups && binding === oldBinding)
         db.exec(
-          "INSERT INTO address2dBuildingNumberLookup(addressId,versionHash,snapshotId,sourceReleaseId,buildingNumber,numericStem,evidence,derivation,isCurrent) VALUES('a','v1','one','r1','2',2,'source_endpoint','single',1)",
+          "INSERT INTO address2dBuildingNumberLookup(addressId,versionHash,snapshotId,buildingNumber,numericStem,evidence,derivation,isCurrent) VALUES('a','v1','one','2',2,'source_endpoint','single',1)",
         )
       db.close()
       const candidate = join(directory, `${binding}-candidate.sqlite`)
@@ -72,13 +72,14 @@ async function fixture(
         { recordType: 'address2dBuildingNumberLookup', locale: '' },
       ].map(row => ({
         ...row,
+        sourceReleaseId: 'release',
         recordId:
           row.recordType === 'address2dBuildingNumberLookup'
             ? JSON.stringify(['a', '1'])
             : 'a',
         versionHash: 'v1',
         snapshotId: 'one',
-        sourceReleaseId: 'r1',
+
         shard: { bindingName: oldBinding, db: {} as never },
       })),
     })
@@ -95,12 +96,12 @@ function stage(
 ) {
   const db = input.candidates[nextBinding]!.db
   db.query(
-    `INSERT INTO address2d(id,versionHash,snapshotId,sourceReleaseId,granularity,isCurrent) VALUES('a','v2','two','r2',?,1)`,
+    `INSERT INTO address2d(id,versionHash,snapshotId,granularity,isCurrent) VALUES('a','v2','two',?,1)`,
   ).run(granularity)
-  db.exec(`INSERT INTO address2dI18n(addressId,versionHash,locale,formattedAddress,sourceReleaseId,snapshotId,isCurrent) VALUES('a','v2','en','Second','r2','two',1),('a','v2','zh-hant','中文','r2','two',1);
+  db.exec(`INSERT INTO address2dI18n(addressId,versionHash,locale,formattedAddress,snapshotId,isCurrent) VALUES('a','v2','en','Second','two',1),('a','v2','zh-hant','中文','two',1);
     `)
   db.query(
-    `INSERT INTO address2dBuildingNumberLookup(addressId,versionHash,snapshotId,sourceReleaseId,buildingNumber,numericStem,evidence,derivation,isCurrent) VALUES('a','v2','two','r2',?,?,'source_endpoint','single',1)`,
+    `INSERT INTO address2dBuildingNumberLookup(addressId,versionHash,snapshotId,buildingNumber,numericStem,evidence,derivation,isCurrent) VALUES('a','v2','two',?,?,'source_endpoint','single',1)`,
   ).run(number, Number(number))
 }
 

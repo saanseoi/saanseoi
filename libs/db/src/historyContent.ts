@@ -5,6 +5,5 @@ export type HistoryContent<History, Canonical> = Omit<
 > &
   Pick<Canonical, Extract<keyof Canonical, keyof History>> & {
     versionHash: string
-    sourceReleaseId: string
     operation: 'upsert'
   }

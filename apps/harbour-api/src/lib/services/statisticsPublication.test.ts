@@ -30,6 +30,8 @@ function fixture() {
       snapshotLineageId TEXT NOT NULL,
       parentSnapshotId TEXT
     );
+    CREATE TABLE snapshotResourceReleases(snapshotId TEXT,resourceReleaseId TEXT,role TEXT);
+    CREATE TRIGGER fixtureProducer AFTER INSERT ON snapshots BEGIN INSERT INTO snapshotResourceReleases VALUES(NEW.id, CASE WHEN NEW.parentSnapshotId IS NULL THEN 'base' ELSE NEW.id END,'primary'); END;
     CREATE TABLE dataShards (id TEXT PRIMARY KEY, bindingName TEXT);
     CREATE TABLE snapshotShardAssignments (snapshotId TEXT, dataShardId TEXT);
     INSERT INTO dataShards VALUES ('history', 'DB_HISTORY_HK_BEFORE');
@@ -359,7 +361,7 @@ describe('packed statistic publication', () => {
       CREATE TABLE apiReleaseSets (id TEXT, cohortKey TEXT, domainCode TEXT, regionCode TEXT, revision INTEGER);
       CREATE TABLE apiVersionReleaseSets (apiReleaseSetId TEXT, apiVersionId TEXT, status TEXT);
       CREATE TABLE apiReleaseSetSnapshots (apiReleaseSetId TEXT, snapshotId TEXT);
-      CREATE TABLE snapshotResourceReleases (snapshotId TEXT, resourceReleaseId TEXT DEFAULT 'release', role TEXT);
+      CREATE TABLE IF NOT EXISTS snapshotResourceReleases (snapshotId TEXT, resourceReleaseId TEXT DEFAULT 'release', role TEXT);
 CREATE TABLE resourceReleases(id TEXT,sourceReleaseId TEXT);
 CREATE TABLE sourceReleases(id TEXT PRIMARY KEY,datasetId TEXT);
 CREATE VIEW resourceReleaseDetails AS SELECT r.*,s.datasetId FROM resourceReleases r JOIN sourceReleases s ON s.id=r.sourceReleaseId;
@@ -372,7 +374,7 @@ INSERT INTO resourceReleases VALUES ('release','source');
       INSERT INTO apiReleaseSets VALUES ('published', '${period}', 'government', 'hk', 0);
       INSERT INTO apiVersionReleaseSets VALUES ('published', 'stats', 'draft');
       INSERT INTO apiReleaseSetSnapshots VALUES ('published', 'base');
-      INSERT INTO snapshotResourceReleases(snapshotId,role) VALUES ('base', 'primary');
+      DELETE FROM snapshotResourceReleases WHERE snapshotId='base'; INSERT INTO snapshotResourceReleases(snapshotId,resourceReleaseId,role) VALUES ('base','release','primary');
     `)
     await f.finalise()
     expect(f.writes()).toEqual([])
@@ -415,7 +417,7 @@ INSERT INTO resourceReleases VALUES ('release','source');
       snapshotLineageId TEXT NOT NULL,
       cohortKey TEXT
     );
-      CREATE TABLE snapshotResourceReleases (snapshotId TEXT, resourceReleaseId TEXT DEFAULT 'release', role TEXT);
+      CREATE TABLE IF NOT EXISTS snapshotResourceReleases (snapshotId TEXT, resourceReleaseId TEXT DEFAULT 'release', role TEXT);
 CREATE TABLE resourceReleases(id TEXT,sourceReleaseId TEXT);
 CREATE TABLE sourceReleases(id TEXT PRIMARY KEY,datasetId TEXT);
 CREATE VIEW resourceReleaseDetails AS SELECT r.*,s.datasetId FROM resourceReleases r JOIN sourceReleases s ON s.id=r.sourceReleaseId;

@@ -4,11 +4,12 @@ import type { StatisticsStatsData } from './statisticsApiReleaseSetStats'
 
 type RecordRow = StatisticsStatsData['records'][number]
 const record = (overrides: Partial<RecordRow> = {}): RecordRow => ({
+  sourceReleaseId: 'release',
   id: '2025-record',
   snapshotId: 'snapshot',
   operation: 'upsert',
   datasetCode: 'population',
-  sourceReleaseId: 'source-2025',
+
   sourceFeatureRef: 'publisher/2025/feature:23',
   divisionId: 'division-one',
   referencePeriodCode: '2025',

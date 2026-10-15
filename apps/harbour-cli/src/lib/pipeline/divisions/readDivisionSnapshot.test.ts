@@ -19,19 +19,19 @@ test('geometry dependency reads use current scope or replay old Division members
         family,
       ]),
     )
-  meta.exec(`CREATE TABLE snapshots(id PRIMARY KEY,parentSnapshotId); INSERT INTO snapshots VALUES('parent',NULL),('old','parent'),('latest','old');
+  meta.exec(`CREATE TABLE snapshots(id PRIMARY KEY,parentSnapshotId); CREATE TABLE snapshotResourceReleases(snapshotId,resourceReleaseId,role); CREATE TRIGGER fixtureProducer AFTER INSERT ON snapshots BEGIN INSERT INTO snapshotResourceReleases VALUES(NEW.id,NEW.id,'primary'); END;  INSERT INTO snapshots VALUES('parent',NULL),('old','parent'),('latest','old');
     CREATE TABLE snapshotShardAssignments(snapshotId,dataShardId); INSERT INTO snapshotShardAssignments VALUES('parent','history'),('old','history');
     CREATE TABLE dataShards(id PRIMARY KEY,bindingName); INSERT INTO dataShards VALUES('history','DB_HISTORY');`)
   current.exec(`INSERT INTO divisionPublicationState(scopeId,snapshotId,status,publicationToken,preparedAt) VALUES('lineage','latest','current','token','ready');
     INSERT INTO divisions(scopeId,id,class,hierarchies) VALUES('lineage','latest-only','district','{"full":[],"administrative":[],"locality":[]}');`)
-  history.exec(`INSERT INTO divisions(id,versionHash,snapshotId,sourceReleaseId,isCurrent,class,hierarchies) VALUES
-    ('inherited','v1','parent','r1',0,'district','{"full":[],"administrative":[],"locality":[]}'),
-    ('revised','v1','parent','r1',0,'district','{"full":[],"administrative":[],"locality":[]}'),
-    ('revised','v2','old','r2',0,'city','{"full":[],"administrative":[],"locality":[]}'),
-    ('removed','v1','parent','r1',0,'district','{"full":[],"administrative":[],"locality":[]}');
+  history.exec(`INSERT INTO divisions(id,versionHash,snapshotId,isCurrent,class,hierarchies) VALUES
+    ('inherited','v1','parent',0,'district','{"full":[],"administrative":[],"locality":[]}'),
+    ('revised','v1','parent',0,'district','{"full":[],"administrative":[],"locality":[]}'),
+    ('revised','v2','old',0,'city','{"full":[],"administrative":[],"locality":[]}'),
+    ('removed','v1','parent',0,'district','{"full":[],"administrative":[],"locality":[]}');
     INSERT INTO divisions(id,snapshotId,operation) VALUES('removed','old','delete');
-    INSERT INTO divisions(id,versionHash,snapshotId,sourceReleaseId,class,hierarchies) VALUES('inherited','v1','sibling','sibling-release','district','{}');
-    INSERT INTO divisionsI18n(divisionId,locale,snapshotId,versionHash,sourceReleaseId,name,meta) VALUES('inherited','en','parent','name','r1','District',json_object('isLocaleInferred',json(CASE 0 WHEN 1 THEN 'true' ELSE 'false' END))),('inherited','en','sibling','name','sibling-release','District',json_object('isLocaleInferred',json(CASE 0 WHEN 1 THEN 'true' ELSE 'false' END)));`)
+    INSERT INTO divisions(id,versionHash,snapshotId,class,hierarchies) VALUES('inherited','v1','sibling','district','{}');
+    INSERT INTO divisionsI18n(divisionId,locale,snapshotId,versionHash,name,meta) VALUES('inherited','en','parent','name','District',json_object('isLocaleInferred',json(CASE 0 WHEN 1 THEN 'true' ELSE 'false' END))),('inherited','en','sibling','name','District',json_object('isLocaleInferred',json(CASE 0 WHEN 1 THEN 'true' ELSE 'false' END)));`)
   const args = [
     drizzle({ client: current, schema: currentSchema }) as never,
     drizzle({ client: meta, schema: metaSchema }) as never,

@@ -21,12 +21,12 @@ test('geometry replay selects introducing snapshots across shards even when a si
     current.exec(
       'CREATE TABLE divisionAreaPublicationState(scopeId,snapshotId,status,publicationToken,preparedAt,createdAt,updatedAt)',
     )
-    meta.exec(`CREATE TABLE snapshots(id,parentSnapshotId,status,snapshotLineageId); INSERT INTO snapshots VALUES('root',NULL,'published','lineage'),('child','root','published','lineage');
+    meta.exec(`CREATE TABLE snapshots(id,parentSnapshotId,status,snapshotLineageId); CREATE TABLE snapshotResourceReleases(snapshotId,resourceReleaseId,role); CREATE TRIGGER fixtureProducer AFTER INSERT ON snapshots BEGIN INSERT INTO snapshotResourceReleases VALUES(NEW.id,NEW.id,'primary'); END;  INSERT INTO snapshots VALUES('root',NULL,'published','lineage'),('child','root','published','lineage');
       CREATE TABLE snapshotLineages(id,resourceType); INSERT INTO snapshotLineages VALUES('lineage','divisionArea');
       CREATE TABLE dataShards(id,bindingName); INSERT INTO dataShards VALUES('old','old'),('new','new');
       CREATE TABLE snapshotShardAssignments(snapshotId,dataShardId); INSERT INTO snapshotShardAssignments VALUES('root','old'),('child','new');`)
     history.exec(
-      `INSERT INTO divisionAreas(id,snapshotId,versionHash,sourceReleaseId,divisionId,variant,type) VALUES('area','root','same','release','division','default','Polygon'),('area','sibling','same','sibling-release','division','default','Polygon');`,
+      `INSERT INTO divisionAreas(id,snapshotId,versionHash,divisionId,variant,type) VALUES('area','root','same','division','default','Polygon'),('area','sibling','same','division','default','Polygon');`,
     )
     const rows = await readGeometrySnapshot(
       {
@@ -44,7 +44,6 @@ test('geometry replay selects introducing snapshots across shards even when a si
     expect(rows[0]).toMatchObject({
       id: 'area',
       snapshotId: 'root',
-      sourceReleaseId: 'release',
     })
   } finally {
     current.close()

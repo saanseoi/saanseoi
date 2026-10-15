@@ -66,7 +66,7 @@ test('counts dataset-qualified fields, literal availability and localisation wit
     labels: [
       {
         snapshotId: 'snapshot',
-        sourceReleaseId: 'release',
+
         operation: 'upsert',
         isCurrent: true,
         createdAt: '',
@@ -169,18 +169,21 @@ INSERT INTO snapshots (id, snapshotLineageId, parentSnapshotId) VALUES
       INSERT INTO snapshotResourceReleases (snapshotId,resourceReleaseId,role) VALUES ('reissue','new-source','primary');`)
     history.exec(`INSERT INTO statsDefinitionSets (id,fieldDefinitionHashes) VALUES
       ('definitions-f1','{"population":"f1"}'),('definitions-f2','{"population":"f2"}'),('definitions-empty','{}');
-      INSERT INTO statsRecords (id,datasetCode,sourceReleaseId,referencePeriodCode,"values",geography,isCurrent,versionHash,definitionSetId,fieldSources) VALUES
-      ('yes','a','old-source','2025','{"population":"1"}','{"kind":"district","code":"one"}',0,'v1','definitions-f1','{}'),
-      ('yes','a','later-source','2025','{"population":"2"}','{"kind":"district","code":"one"}',1,'v2','definitions-f2','{}'),
-      ('wrong-period','a','old-source','2024','{}','{}',1,'v3','definitions-empty','{}'),
-      ('unselected','a','new-source','2025','{}','{}',1,'v4','definitions-empty','{}');
+      INSERT INTO statsRecords (id,datasetCode,referencePeriodCode,"values",geography,isCurrent,versionHash,definitionSetId,fieldSources) VALUES
+      ('yes','a','2025','{"population":"1"}','{"kind":"district","code":"one"}',0,'v1','definitions-f1','{}'),
+      ('yes','a','2025','{"population":"2"}','{"kind":"district","code":"one"}',1,'v2','definitions-f2','{}'),
+      ('wrong-period','a','2024','{}','{}',1,'v3','definitions-empty','{}'),
+      ('unselected','a','2025','{}','{}',1,'v4','definitions-empty','{}');
 
-      INSERT INTO statsFields (datasetCode,fieldName,sourceReleaseId,isCurrent,versionHash) VALUES
-        ('a','population','old-source',0,'f1'),('a','population','later-source',1,'f2');
-      INSERT INTO statsFieldsI18n (datasetCode,fieldName,sourceReleaseId,isCurrent,versionHash,locale,name) VALUES
-        ('a','population','old-source',0,'f1','en','Frozen definition'),('a','population','later-source',1,'f2','en','Latest definition');`)
+      INSERT INTO statsFields (datasetCode,fieldName,isCurrent,versionHash) VALUES
+        ('a','population',0,'f1'),('a','population',1,'f2');
+      INSERT INTO statsFieldsI18n (datasetCode,fieldName,isCurrent,versionHash,locale,name) VALUES
+        ('a','population',0,'f1','en','Frozen definition'),('a','population',1,'f2','en','Latest definition');`)
     history.exec(
       "UPDATE statsRecords SET snapshotId=CASE WHEN versionHash IN ('v1','v3') THEN 'base' ELSE 'other' END; UPDATE statsFields SET snapshotId=CASE WHEN versionHash='f1' THEN 'base' ELSE 'other' END; UPDATE statsFieldsI18n SET snapshotId=CASE WHEN versionHash='f1' THEN 'base' ELSE 'other' END;",
+    )
+    meta.exec(
+      "INSERT INTO snapshotResourceReleases(snapshotId,resourceReleaseId,role) VALUES('base','old-source','primary')",
     )
     const targets = [{ bindingName: 'history', db: drizzle({ client: history }) }]
     const data = await readStatisticsStatsData(
@@ -200,7 +203,7 @@ INSERT INTO snapshots (id, snapshotLineageId, parentSnapshotId) VALUES
       }),
     ).rejects.toThrow('No retained')
     history.exec(
-      `INSERT INTO statsRecords(snapshotId,id,versionHash,sourceReleaseId,operation) VALUES ('base','yes','conflict','source','upsert')`,
+      `INSERT INTO statsRecords(snapshotId,id,versionHash,operation) VALUES ('base','yes','conflict','upsert')`,
     )
     await expect(
       readStatisticsStatsData(drizzle({ client: meta }) as never, targets, {

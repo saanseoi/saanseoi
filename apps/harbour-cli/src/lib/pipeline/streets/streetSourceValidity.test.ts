@@ -207,7 +207,7 @@ test('deleted Street lifecycle state survives snapshot replay for restoration', 
         'history',
       ]),
     )
-    meta.exec(`CREATE TABLE snapshots(id,parentSnapshotId); INSERT INTO snapshots VALUES('root',NULL),('deleted','root'),('inherited','deleted'),('sibling','root');
+    meta.exec(`CREATE TABLE snapshots(id,parentSnapshotId); CREATE TABLE snapshotResourceReleases(snapshotId,resourceReleaseId,role); CREATE TRIGGER fixtureProducer AFTER INSERT ON snapshots BEGIN INSERT INTO snapshotResourceReleases VALUES(NEW.id,NEW.id,'primary'); END;  INSERT INTO snapshots VALUES('root',NULL),('deleted','root'),('inherited','deleted'),('sibling','root');
       CREATE TABLE dataShards(id,bindingName); INSERT INTO dataShards VALUES('h','history');
       CREATE TABLE snapshotShardAssignments(snapshotId,dataShardId); INSERT INTO snapshotShardAssignments VALUES('root','h'),('deleted','h'),('inherited','h'),('sibling','h');`)
     const db = drizzle({ client: sqlite }) as never

@@ -1,3 +1,5 @@
+import type { HarbourReadableDb } from '@repo/core/db/types'
+import { assertOwnedSnapshotProducers } from '@repo/core/db/metaRegistry'
 import { existsSync, readFileSync } from 'node:fs'
 import { copyFile, mkdir, readFile, rm, stat, writeFile } from 'node:fs/promises'
 import { dirname, resolve } from 'node:path'
@@ -858,6 +860,11 @@ async function assertResetStillSafe(
     throw new Error(
       'Refusing reset: address snapshots no longer exactly match this initialisation manifest.',
     )
+  await assertOwnedSnapshotProducers(
+    context.metaDb as unknown as HarbourReadableDb,
+    owned.snapshotIds,
+    owned.releaseIds,
+  )
   const addressScopeIds = new Set(snapshots.map(row => row.scopeId))
   const currentScopes = await context.currentDb
     .selectDistinct({ snapshotId: currentSchema.address2d.scopeId })
@@ -892,12 +899,7 @@ async function assertResetStillSafe(
     const unexpectedHistory = await (target.db as typeof context.historyDb)
       .select({ snapshotId: historySchema.address2d.snapshotId })
       .from(historySchema.address2d)
-      .where(
-        or(
-          not(inArray(historySchema.address2d.snapshotId, owned.snapshotIds)),
-          not(inArray(historySchema.address2d.sourceReleaseId, owned.releaseIds)),
-        ),
-      )
+      .where(or(not(inArray(historySchema.address2d.snapshotId, owned.snapshotIds))))
       .limit(1)
       .get()
     if (unexpectedHistory)
@@ -1056,7 +1058,7 @@ async function buildResetSql(
     apiSets = sqlList(owned.apiReleaseSetIds),
     assets = sqlList(owned.assetIds.map(asset => asset.id))
   const sourceSql = `DELETE FROM hkgovAlsAddresses2d WHERE resourceReleaseId IN (${ids});`
-  const historySql = `DELETE FROM address2dBuildingNumberLookup WHERE sourceReleaseId IN (${ids}) OR snapshotId IN (${snapshots});\nDELETE FROM address2dI18n WHERE sourceReleaseId IN (${ids}) OR snapshotId IN (${snapshots});\nDELETE FROM address2d WHERE sourceReleaseId IN (${ids}) OR snapshotId IN (${snapshots});`
+  const historySql = `DELETE FROM address2dBuildingNumberLookup WHERE snapshotId IN (${snapshots});\nDELETE FROM address2dI18n WHERE snapshotId IN (${snapshots});\nDELETE FROM address2d WHERE snapshotId IN (${snapshots});`
   const scopeIds: string[] = []
   for (const ids of chunkArray(owned.snapshotIds, getMaxItemsPerInClause())) {
     const rows = await context.metaDb

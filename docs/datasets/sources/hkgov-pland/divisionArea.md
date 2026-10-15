@@ -610,3 +610,8 @@ New Town backfill and fresh initialisation cover 2006, 2011, 2016 and 2021. Each
 passes through canonical hierarchy inference before hashing and is included in crosswalk
 generation. The pinned administrative geometry is a common reference for spatial
 comparison; it does not assert historical district boundaries.
+
+Canonical HISTORY events follow the shared
+[producer ownership contract](../../families/source-evidence.md#history-producer-ownership).
+The introducing snapshot retains its exact producing inputs; source attribution and
+field-level evidence identify the contributing publisher records.

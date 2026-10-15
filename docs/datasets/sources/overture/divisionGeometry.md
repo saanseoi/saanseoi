@@ -477,3 +477,8 @@ canonical metadata. Canonical materialisation supplies `PRC`, Wikidata `Q148`, t
 Overture country record reference and country cartography. An authored representative
 Point `[103, 35]` fills absent native geometry; it is not asserted as an
 Overture-supplied geometry.
+
+Canonical HISTORY events follow the shared
+[producer ownership contract](../../families/source-evidence.md#history-producer-ownership).
+The introducing snapshot retains its exact producing inputs; source attribution and
+field-level evidence identify the contributing publisher records.

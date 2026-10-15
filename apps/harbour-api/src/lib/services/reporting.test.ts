@@ -1,3 +1,4 @@
+import { insertFixtureSnapshot } from '../../../../../libs/core/src/testing/snapshotFixtures'
 import { mkdtemp, rm } from 'node:fs/promises'
 import { join, resolve } from 'node:path'
 import { tmpdir } from 'node:os'
@@ -353,7 +354,7 @@ INSERT INTO resourceReleases (id, sourceReleaseId, code, resourceType, status, r
       seedHistoryRows(
         historySqlite,
         'release-dr-hk-hkgov-dpo-address-2026-06-25.0',
-        'release-set-2',
+        'release-dr-hk-hkgov-dpo-address-2026-06-25.0',
         'address-2',
         'address3d-2',
       )
@@ -483,6 +484,18 @@ INSERT INTO resourceReleases (id, sourceReleaseId, code, resourceType, status, r
       'shard-history-hk-2026-preview'
     );
   `)
+  insertFixtureSnapshot(sqlite, {
+    id: resourceReleaseId,
+    code: resourceReleaseId,
+    resourceType: 'address',
+    cohortKey: '2026-06',
+    status: 'draft',
+  })
+  sqlite
+    .query(
+      "INSERT INTO snapshotResourceReleases(snapshotId,resourceReleaseId,role) VALUES(?,?,'primary')",
+    )
+    .run(resourceReleaseId, resourceReleaseId)
 }
 
 function seedProcessingRun(sqlite: SQLiteDatabase) {
@@ -548,15 +561,14 @@ function seedSourceRows(
 function seedHistoryRows(
   sqlite: SQLiteDatabase,
   resourceReleaseId = 'release-dr-hk-hkgov-dpo-address-2026-06-24.0',
-  snapshotId = 'snapshot-1',
+  snapshotId = resourceReleaseId,
   addressId = 'address-1',
   address3dId = 'address3d-1',
 ) {
   sqlite.exec(`
-    INSERT INTO address2d (id,versionHash,sourceReleaseId,snapshotId,isCurrent,streetId,hamletId,microhoodId,villageId,neighbourhoodId,macrohoodId,townId,districtId,areaId,countryId,geometry,identifiers,sources,createdAt) VALUES (
+    INSERT INTO address2d (id,versionHash,snapshotId,isCurrent,streetId,hamletId,microhoodId,villageId,neighbourhoodId,macrohoodId,townId,districtId,areaId,countryId,geometry,identifiers,sources,createdAt) VALUES (
       '${addressId}',
       'address-2d-version-1',
-      '${resourceReleaseId}',
       '${snapshotId}',
       1,
       null,
@@ -574,13 +586,12 @@ function seedHistoryRows(
       null,
       '2026-06-24T12:00:00.000Z');
 
-    INSERT INTO address2dI18n (addressId,versionHash,sourceReleaseId,snapshotId,isCurrent,locale,formattedAddress,buildingName,buildingNumberExpression,buildingNumberFrom,buildingNumberTo,buildingNumberConnector,blockExpression,blockType,blockRef,blockTypeBeforeNumber,phaseExpression,phaseName,phaseRef,estateName,streetName,createdAt) VALUES ('${addressId}', 'address-2d-version-1', '${resourceReleaseId}', '${snapshotId}', 1, 'en', '1 Example Road', null, null, null, null, null, null, null, null, null, null, null, null, null, 'Example Road', '2026-06-24T12:00:00.000Z'),
-('${addressId}', 'address-2d-version-1', '${resourceReleaseId}', '${snapshotId}', 1, 'zhHant', '示例路1號', null, null, null, null, null, null, null, null, null, null, null, null, null, '示例路', '2026-06-24T12:00:00.000Z');
+    INSERT INTO address2dI18n (addressId,versionHash,snapshotId,isCurrent,locale,formattedAddress,buildingName,buildingNumberExpression,buildingNumberFrom,buildingNumberTo,buildingNumberConnector,blockExpression,blockType,blockRef,blockTypeBeforeNumber,phaseExpression,phaseName,phaseRef,estateName,streetName,createdAt) VALUES ('${addressId}', 'address-2d-version-1', '${snapshotId}', 1, 'en', '1 Example Road', null, null, null, null, null, null, null, null, null, null, null, null, null, 'Example Road', '2026-06-24T12:00:00.000Z'),
+('${addressId}', 'address-2d-version-1', '${snapshotId}', 1, 'zhHant', '示例路1號', null, null, null, null, null, null, null, null, null, null, null, null, null, '示例路', '2026-06-24T12:00:00.000Z');
 
-    INSERT INTO address3d (id,versionHash,sourceReleaseId,snapshotId,isCurrent,address2dId,units,unitCount,contentHash,unresolvedSectionIds,sources,createdAt) VALUES (
+    INSERT INTO address3d (id,versionHash,snapshotId,isCurrent,address2dId,units,unitCount,contentHash,unresolvedSectionIds,sources,createdAt) VALUES (
       '${address3dId}',
       'address-3d-version-1',
-      '${resourceReleaseId}',
       '${snapshotId}',
       1,
       '${addressId}',
@@ -591,10 +602,9 @@ function seedHistoryRows(
       null,
       '2026-06-24T12:00:00.000Z');
 
-    INSERT INTO address3dI18n (address3dId,versionHash,sourceReleaseId,snapshotId,isCurrent,locale,units,createdAt) VALUES (
+    INSERT INTO address3dI18n (address3dId,versionHash,snapshotId,isCurrent,locale,units,createdAt) VALUES (
       '${address3dId}',
       'address-3d-version-1',
-      '${resourceReleaseId}',
       '${snapshotId}',
       1,
       'en',

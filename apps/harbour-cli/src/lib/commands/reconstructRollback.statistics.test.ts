@@ -1,3 +1,4 @@
+import { seedSnapshotProducerFixtures } from '../../../../../libs/core/src/testing/snapshotFixtures'
 import { Database, type SQLQueryBindings } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { mkdtemp, readFile, rm } from 'node:fs/promises'
@@ -127,7 +128,6 @@ const dictionaryTables = [
 ] as const
 const historyEnvelope = {
   snapshotId: 'snapshot-old',
-  sourceReleaseId: 'release-old',
   isCurrent: 0,
   createdAt: timestamp,
   updatedAt: timestamp,
@@ -393,7 +393,10 @@ async function fixture(previous = true) {
       datasetCode: 'ds-other',
     },
   ])
-    insertProjectionRow(current, 'statsRecords', row)
+    insertProjectionRow(current, 'statsRecords', {
+      ...row,
+      sourceReleaseId: 'release-old',
+    })
   insert(source, 'hkgovCenstatdGeometry', {
     id: 'geometry',
     sourceGeometry: '{}',
@@ -472,6 +475,7 @@ async function fixture(previous = true) {
         'SELECT rowid,* FROM statsPublicationState WHERE datasetCode<>? OR referencePeriodCode<>? ORDER BY datasetCode,referencePeriodCode',
       )
       .all(datasetCode, period)
+  seedSnapshotProducerFixtures(meta)
   return {
     root,
     files,

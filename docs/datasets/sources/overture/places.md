@@ -871,3 +871,8 @@ base versions carry the selected set into the same shard. Rollback delivers the 
 sets and validates each locale against its own historical base. Fresh and incremental
 FTS use locale-row `searchDependencyText`. No mutable Division serving scope substitutes
 for the selected historical revision.
+
+Canonical HISTORY events follow the shared
+[producer ownership contract](../../families/source-evidence.md#history-producer-ownership).
+The introducing snapshot retains its exact producing inputs; source attribution and
+field-level evidence identify the contributing publisher records.

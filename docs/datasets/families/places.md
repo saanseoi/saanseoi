@@ -798,3 +798,10 @@ region-wide selection. Direct Division-ID filters select supported memberships.
 
 Migration validation uses isolated fresh databases. Populated database conversion,
 backfill, reingestion and publication require separate operational authorisation.
+
+## HISTORY ownership
+
+Canonical events derive their producing release from their introducing snapshot's
+primary inputs. Inherited events retain that original ownership. See
+[HISTORY producer ownership](source-evidence.md#history-producer-ownership) for the
+shared contract and dataset discriminators on combined geometry snapshots.

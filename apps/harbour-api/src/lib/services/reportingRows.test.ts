@@ -168,3 +168,77 @@ test('SaanSeoi release reports count inherited assertions by release validity', 
     source.database.close()
   }
 })
+
+test('mixed geometry release counts follow dataset ownership and reject ambiguous content', async () => {
+  const { resolve } = await import('node:path')
+  const { createLocalHarbourDb } = await import('@repo/core/testing/localDb')
+  const { loadMigrationSql } = await import(
+    '../../../../../libs/core/src/testing/metaFixtures'
+  )
+  const { insertFixtureSnapshot, insertSnapshotProducerFixture } = await import(
+    '../../../../../libs/core/src/testing/snapshotFixtures'
+  )
+  const { upsertSnapshotSource } = await import('@repo/core/db/metaRegistry')
+  const meta = new Database(':memory:')
+  const history = sourceDatabase([])
+  try {
+    meta.exec(
+      loadMigrationSql(resolve(import.meta.dir, '../../../../../libs/db/migrations'), [
+        'meta',
+      ]),
+    )
+    for (const id of ['mixed', 'other'])
+      insertFixtureSnapshot(meta, {
+        id,
+        code: id,
+        resourceType: 'divisionArea',
+        cohortKey: '2026',
+        status: 'draft',
+      })
+    insertSnapshotProducerFixture(meta, 'mixed', 'release-a')
+    insertSnapshotProducerFixture(meta, 'other', 'release-b')
+    meta.exec(`INSERT INTO datasets(id,code,publisherId,regionCode,releaseType,releaseFrequency,theme,versionHash) VALUES('second','second','fixture-producer','hk','static','monthly','divisions','second');
+      UPDATE sourceReleases SET datasetId='second' WHERE id='source-release-b';`)
+    const db = createLocalHarbourDb(meta)
+    await upsertSnapshotSource(db, 'mixed', 'release-b', 'primary')
+    history.database.exec(`CREATE TABLE divisionAreas(id,snapshotId,producerDatasetCode,operation);
+      INSERT INTO divisionAreas VALUES ('a','mixed','fixture-producer-divisionArea','upsert'),('b','mixed','second','upsert'),('c','mixed','second','upsert');`)
+    const plans = ['release-a', 'release-b'].map(resourceReleaseId => ({
+      resourceReleaseId,
+      source: null,
+      history: {
+        bindings: [history.binding],
+        kind: 'history' as const,
+        resourceReleaseId,
+        sourceVersion: '2026',
+        specs: [
+          {
+            strategy: 'direct' as const,
+            label: 'geometry',
+            tableName: 'divisionAreas',
+          },
+        ],
+      },
+    }))
+    const counts = await collectCountRowsByRelease(plans, db)
+    expect(
+      plans.map(plan => buildReportRowCounts(plan.history, counts)[0]?.rowCount),
+    ).toEqual([1, 2])
+    // A filtered report still needs the other inputs to establish whether ownership is mixed.
+    expect(
+      buildReportRowCounts(
+        plans[0]!.history,
+        await collectCountRowsByRelease(plans.slice(0, 1), db),
+      )[0]?.rowCount,
+    ).toBe(1)
+    history.database.exec(
+      "INSERT INTO divisionAreas VALUES('unknown','mixed',NULL,'upsert')",
+    )
+    await expect(collectCountRowsByRelease(plans, db)).rejects.toThrow(
+      'Ambiguous HISTORY producer',
+    )
+  } finally {
+    meta.close()
+    history.database.close()
+  }
+})

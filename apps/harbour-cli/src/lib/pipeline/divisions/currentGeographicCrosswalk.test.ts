@@ -2,7 +2,10 @@ import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { drizzle } from 'drizzle-orm/bun-sqlite'
 import { resolve } from 'node:path'
-import { insertFixtureSnapshot } from '../../../../../../libs/core/src/testing/snapshotFixtures'
+import {
+  insertFixtureSnapshot as insertSnapshot,
+  insertSnapshotProducerFixture,
+} from '../../../../../../libs/core/src/testing/snapshotFixtures'
 import { currentSchema, historySchema, metaSchema } from '@repo/db'
 import { compressJsonBrotli } from '@repo/core/pipeline/services/storage/brotliJson'
 import { loadMigrationSql } from '../../../../../../libs/core/src/testing/metaFixtures'
@@ -150,7 +153,6 @@ test('historical crosswalk inputs replay inherited rows and deletions without bo
           class: 'planning-newtown',
           hierarchies: { full: [] },
           versionHash: id,
-          sourceReleaseId: 'release',
         })
         .run()
       await historyDb
@@ -163,7 +165,6 @@ test('historical crosswalk inputs replay inherited rows and deletions without bo
           type: 'land',
           geometry: polygon,
           versionHash: id,
-          sourceReleaseId: 'release',
         })
         .run()
     }
@@ -202,3 +203,8 @@ test('historical crosswalk inputs replay inherited rows and deletions without bo
     history.close()
   }
 })
+
+function insertFixtureSnapshot(...args: Parameters<typeof insertSnapshot>) {
+  insertSnapshot(...args)
+  insertSnapshotProducerFixture(args[0], args[1].id)
+}

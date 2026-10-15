@@ -42,3 +42,53 @@ export function insertFixtureSnapshot(
     `INSERT ${ignoreConflict ? 'OR IGNORE ' : ''}INTO snapshots (${entries.map(([key]) => `"${key}"`).join(',')}) VALUES (${entries.map(() => '?').join(',')})`,
   ).run(...entries.map(([, value]) => value))
 }
+
+/** Seed a real primary input for isolated HISTORY replay fixtures. */
+export function insertSnapshotProducerFixture(
+  db: Database,
+  snapshotId: string,
+  resourceReleaseId = `producer-${snapshotId}`,
+) {
+  const snapshot = db
+    .query<{ resourceType: string }, [string]>(
+      `SELECT l.resourceType FROM snapshots s JOIN snapshotLineages l ON l.id=s.snapshotLineageId WHERE s.id=?`,
+    )
+    .get(snapshotId)
+  if (!snapshot) throw new Error(`Missing fixture snapshot ${snapshotId}.`)
+  const datasetId = `fixture-producer-${snapshot.resourceType}`
+  db.query(
+    `INSERT OR IGNORE INTO publishers(id,code,versionHash) VALUES('fixture-producer','fixture-producer','fixture')`,
+  ).run()
+  db.query(
+    `INSERT OR IGNORE INTO datasets(id,code,publisherId,regionCode,releaseType,releaseFrequency,theme,versionHash) VALUES(?,?,'fixture-producer','hk','static','monthly','divisions','fixture')`,
+  ).run(datasetId, datasetId)
+  db.query(
+    `INSERT OR IGNORE INTO sourceReleases(id,datasetId,code,sourceVersion,cohortKey,status) VALUES(?,?,?,?,'2026','current')`,
+  ).run(
+    `source-${resourceReleaseId}`,
+    datasetId,
+    `source-${resourceReleaseId}`,
+    resourceReleaseId,
+  )
+  db.query(
+    `INSERT OR IGNORE INTO resourceReleases(id,sourceReleaseId,code,resourceType,status) VALUES(?,?,?,?,'current')`,
+  ).run(
+    resourceReleaseId,
+    `source-${resourceReleaseId}`,
+    resourceReleaseId,
+    snapshot.resourceType,
+  )
+  db.query(
+    `INSERT INTO snapshotResourceReleases(snapshotId,resourceReleaseId,role) VALUES(?,?,'primary')`,
+  ).run(snapshotId, resourceReleaseId)
+}
+
+/** Complete migrated replay fixtures that omit a producing input for an ancestor. */
+export function seedSnapshotProducerFixtures(db: Database) {
+  const snapshots = db
+    .query<{ id: string }, []>(`SELECT id FROM snapshots s WHERE NOT EXISTS (
+    SELECT 1 FROM snapshotResourceReleases p WHERE p.snapshotId=s.id AND p.role='primary'
+  )`)
+    .all()
+  for (const { id } of snapshots) insertSnapshotProducerFixture(db, id)
+}

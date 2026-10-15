@@ -27,7 +27,7 @@ describe('resolveSnapshotVersionState', () => {
           id: 'kowloon',
           versionHash: 'kowloon-v1',
           operation: 'upsert',
-          sourceReleaseId: 'parent-release',
+
           createdAt: '2026-05-20T00:00:00.000Z',
         },
         {
@@ -37,7 +37,7 @@ describe('resolveSnapshotVersionState', () => {
           id: 'district-a',
           versionHash: 'district-a-v1',
           operation: 'upsert',
-          sourceReleaseId: 'parent-release',
+
           createdAt: '2026-05-20T00:00:00.000Z',
         },
         {
@@ -47,7 +47,7 @@ describe('resolveSnapshotVersionState', () => {
           id: 'district-a',
           versionHash: 'district-a-v2',
           operation: 'upsert',
-          sourceReleaseId: 'target-release',
+
           createdAt: '2026-06-17T00:00:00.000Z',
         },
       ])
@@ -56,11 +56,13 @@ describe('resolveSnapshotVersionState', () => {
     const state = await resolveSnapshotVersionState(
       [
         {
+          resourceReleaseId: 'parent-release',
           snapshotId: 'parent-snapshot',
           parentSnapshotId: null,
           shards: [{ dataShardId: 'history', bindingName: 'history' }],
         },
         {
+          resourceReleaseId: 'target-release',
           snapshotId: 'target-snapshot',
           parentSnapshotId: 'parent-snapshot',
           shards: [{ dataShardId: 'history', bindingName: 'history' }],
@@ -75,14 +77,23 @@ describe('resolveSnapshotVersionState', () => {
       'district-a-v2',
     )
 
+    expect(state.get('division\u0000kowloon\u0000')?.sourceReleaseId).toBe(
+      'parent-release',
+    )
+    expect(state.get('division\u0000district-a\u0000')?.sourceReleaseId).toBe(
+      'target-release',
+    )
+
     const selected = await resolveSnapshotVersionState(
       [
         {
+          resourceReleaseId: 'parent-release',
           snapshotId: 'parent-snapshot',
           parentSnapshotId: null,
           shards: [{ dataShardId: 'history', bindingName: 'history' }],
         },
         {
+          resourceReleaseId: 'target-release',
           snapshotId: 'target-snapshot',
           parentSnapshotId: 'parent-snapshot',
           shards: [{ dataShardId: 'history', bindingName: 'history' }],
@@ -106,11 +117,12 @@ test('parent-ID selection includes composite components and honours parent delet
         'history',
       ]),
     )
-    sqlite.exec(`INSERT INTO address2d(id,snapshotId,versionHash,sourceReleaseId,granularity) VALUES('address','root','base','release','building');
-      INSERT INTO address2dBuildingNumberLookup(addressId,buildingNumber,snapshotId,versionHash,sourceReleaseId,evidence) VALUES('address','12','root','lookup','release','source_endpoint');
+    sqlite.exec(`INSERT INTO address2d(id,snapshotId,versionHash,granularity) VALUES('address','root','base','building');
+      INSERT INTO address2dBuildingNumberLookup(addressId,buildingNumber,snapshotId,versionHash,evidence) VALUES('address','12','root','lookup','source_endpoint');
       INSERT INTO address2d(id,snapshotId,operation) VALUES('address','deleted','delete');`)
     const db = drizzle({ client: sqlite, schema: historySchema })
     const step = (snapshotId: string, parentSnapshotId: string | null) => ({
+      resourceReleaseId: 'release',
       snapshotId,
       parentSnapshotId,
       shards: [{ dataShardId: 'h', bindingName: 'h' }],
@@ -148,13 +160,13 @@ test('bulk parent withdrawals clear locales and composite children without reviv
       ]),
     )
     const parent = sqlite.query(
-      "INSERT INTO address2d(id,snapshotId,versionHash,sourceReleaseId,granularity) VALUES(?,'root','base','release','building')",
+      "INSERT INTO address2d(id,snapshotId,versionHash,granularity) VALUES(?,'root','base','building')",
     )
     const locale = sqlite.query(
-      "INSERT INTO address2dI18n(addressId,locale,snapshotId,versionHash,sourceReleaseId,formattedAddress) VALUES(?,'en','root','locale','release','12 Example Road')",
+      "INSERT INTO address2dI18n(addressId,locale,snapshotId,versionHash,formattedAddress) VALUES(?,'en','root','locale','12 Example Road')",
     )
     const lookup = sqlite.query(
-      "INSERT INTO address2dBuildingNumberLookup(addressId,buildingNumber,snapshotId,versionHash,sourceReleaseId,evidence) VALUES(?,'12','root','lookup','release','source_endpoint')",
+      "INSERT INTO address2dBuildingNumberLookup(addressId,buildingNumber,snapshotId,versionHash,evidence) VALUES(?,'12','root','lookup','source_endpoint')",
     )
     const deletion = sqlite.query(
       "INSERT INTO address2d(id,snapshotId,operation) VALUES(?,'deleted','delete')",
@@ -168,12 +180,13 @@ test('bulk parent withdrawals clear locales and composite children without reviv
         if (index < 1000) deletion.run(id)
       }
       sqlite.exec(
-        "INSERT INTO address2d(id,snapshotId,versionHash,sourceReleaseId,granularity) VALUES('address-0','restored','base','release','building'); INSERT INTO address2dI18n(addressId,locale,snapshotId,versionHash,sourceReleaseId,formattedAddress) VALUES('address-0','zh-hant','restored','fresh','release','新地址')",
+        "INSERT INTO address2d(id,snapshotId,versionHash,granularity) VALUES('address-0','restored','base','building'); INSERT INTO address2dI18n(addressId,locale,snapshotId,versionHash,formattedAddress) VALUES('address-0','zh-hant','restored','fresh','新地址')",
       )
     })()
     const db = drizzle({ client: sqlite, schema: historySchema })
     const state = await resolveSnapshotVersionState(
       ['root', 'deleted', 'restored'].map((snapshotId, index, ids) => ({
+        resourceReleaseId: 'release',
         snapshotId,
         parentSnapshotId: index ? ids[index - 1]! : null,
         shards: [{ dataShardId: 'h', bindingName: 'h' }],
@@ -194,6 +207,86 @@ test('bulk parent withdrawals clear locales and composite children without reviv
     expect(
       state.has('address2dBuildingNumberLookup\u0000["address-1999","12"]\u0000'),
     ).toBe(true)
+  } finally {
+    sqlite.close()
+  }
+})
+
+test('mixed geometry snapshots resolve dataset owners and reject an unspecified or unknown producer', async () => {
+  const sqlite = new Database(':memory:')
+  try {
+    sqlite.exec(
+      loadMigrationSql(resolve(import.meta.dir, '../../../../db/migrations'), [
+        'history',
+      ]),
+    )
+    sqlite.exec(`INSERT INTO divisionAreas(id,snapshotId,divisionId,variant,type,versionHash,producerDatasetCode) VALUES
+      ('a','mixed','division','censtatd','land','a1','dataset-a'),
+      ('b','mixed','division','censtatd','land','b1','dataset-b');`)
+    const db = drizzle({ client: sqlite }) as never
+    const shards = new Map([['history', { bindingName: 'history', db }]])
+    const plan = [
+      {
+        snapshotId: 'mixed',
+        parentSnapshotId: null,
+        resourceReleaseId: null,
+        producerReleases: { 'dataset-a': 'release-a', 'dataset-b': 'release-b' },
+        shards: [{ dataShardId: 'history', bindingName: 'history' }],
+      },
+    ]
+    const state = await resolveSnapshotVersionState(plan, shards, ['divisionArea'])
+    expect([...state.values()].map(row => [row.recordId, row.sourceReleaseId])).toEqual(
+      [
+        ['a', 'release-a'],
+        ['b', 'release-b'],
+      ],
+    )
+    sqlite.exec(
+      `INSERT INTO divisionAreas(id,snapshotId,divisionId,variant,type,versionHash) VALUES('unspecified','mixed','division','censtatd','land','u1');`,
+    )
+    await expect(
+      resolveSnapshotVersionState(plan, shards, ['divisionArea']),
+    ).rejects.toThrow('unambiguous HISTORY producer')
+    sqlite.exec(
+      `UPDATE divisionAreas SET producerDatasetCode='unknown' WHERE id='unspecified';`,
+    )
+    await expect(
+      resolveSnapshotVersionState(plan, shards, ['divisionArea']),
+    ).rejects.toThrow('unknown')
+  } finally {
+    sqlite.close()
+  }
+})
+
+test('Statistics use their existing dataset identity to resolve combined producers', async () => {
+  const sqlite = new Database(':memory:')
+  try {
+    sqlite.exec(
+      loadMigrationSql(resolve(import.meta.dir, '../../../../db/migrations'), [
+        'history',
+      ]),
+    )
+    sqlite.exec(
+      `INSERT INTO statsMeasures(datasetCode,measureCode,snapshotId,versionHash) VALUES ('a','count','mixed','a1'),('b','count','mixed','b1');`,
+    )
+    const db = drizzle({ client: sqlite }) as never
+    const state = await resolveSnapshotVersionState(
+      [
+        {
+          snapshotId: 'mixed',
+          parentSnapshotId: null,
+          resourceReleaseId: null,
+          producerReleases: { a: 'release-a', b: 'release-b' },
+          shards: [{ dataShardId: 'history', bindingName: 'history' }],
+        },
+      ],
+      new Map([['history', { bindingName: 'history', db }]]),
+      ['statsMeasure'],
+    )
+    expect([...state.values()].map(row => row.sourceReleaseId)).toEqual([
+      'release-a',
+      'release-b',
+    ])
   } finally {
     sqlite.close()
   }

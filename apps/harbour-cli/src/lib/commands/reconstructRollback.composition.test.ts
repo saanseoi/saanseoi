@@ -109,7 +109,6 @@ async function composedFixture() {
     f.current.exec(statement)
   const envelope = {
     snapshotId: 'address-a-old',
-    sourceReleaseId: 'release-address-old',
     isCurrent: 0,
   }
   insert(f.history, 'address2d', {

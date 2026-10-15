@@ -37,6 +37,7 @@ const step = (
   parent: string | null,
   bindingName: string,
 ): SnapshotReplayStep => ({
+  resourceReleaseId: 'release',
   snapshotId: id,
   parentSnapshotId: parent,
   shards: [{ dataShardId: bindingName, bindingName }],
@@ -280,11 +281,8 @@ test('core Division writes inherit unchanged base/locales and close only changed
       }),
     ).toEqual({ current: 1, old: 0, new: 1 })
     expect(
-      data
-        .client('old')
-        .query('SELECT isCurrent,sourceReleaseId,createdAt FROM divisions')
-        .get(),
-    ).toEqual({ isCurrent: 1, sourceReleaseId: 'release-first', createdAt: timestamp })
+      data.client('old').query('SELECT isCurrent,createdAt FROM divisions').get(),
+    ).toEqual({ isCurrent: 1, createdAt: timestamp })
     expect(
       data
         .client('old')
@@ -409,21 +407,18 @@ test('locale/base omissions are sparse and reappearance preserves original compo
       }),
     ).toEqual({ current: 3, old: 0, new: 3 })
     expect(
-      data
-        .client('new')
-        .query('SELECT sourceReleaseId,snapshotId,isCurrent FROM divisions')
-        .get(),
-    ).toEqual({ sourceReleaseId: 'release-first', snapshotId: 'first', isCurrent: 1 })
+      data.client('new').query('SELECT snapshotId,isCurrent FROM divisions').get(),
+    ).toEqual({ snapshotId: 'first', isCurrent: 1 })
     expect(
       data
         .client('new')
         .query(
-          "SELECT sourceReleaseId,snapshotId,isCurrent FROM divisionsI18n WHERE snapshotId='first'",
+          "SELECT snapshotId,isCurrent FROM divisionsI18n WHERE snapshotId='first'",
         )
         .all(),
     ).toEqual([
-      { sourceReleaseId: 'release-first', snapshotId: 'first', isCurrent: 1 },
-      { sourceReleaseId: 'release-first', snapshotId: 'first', isCurrent: 1 },
+      { snapshotId: 'first', isCurrent: 1 },
+      { snapshotId: 'first', isCurrent: 1 },
     ])
     const final = await data.parent([...empty, step('reappeared', 'empty', 'new')])
     expect(final.components.size).toBe(3)
@@ -478,7 +473,6 @@ test('parent replay rejects unavailable content, ambiguous journals, and incompl
         id: 'a',
         versionHash: 'ambiguous',
         operation: 'upsert',
-        sourceReleaseId: 'other',
       })
       .run()
     await expect(
@@ -511,7 +505,7 @@ test('bounded exact closures leave unrelated branches and locale components unto
       ...base('division-0'),
       class: 'city',
       versionHash: 'unrelated',
-      sourceReleaseId: 'unrelated',
+
       snapshotId: 'another-branch',
       isCurrent: true,
     }

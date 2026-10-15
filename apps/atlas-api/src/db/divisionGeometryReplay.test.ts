@@ -34,7 +34,7 @@ function createDb(history = false) {
       bbox TEXT, geometry BLOB, sources TEXT, type TEXT,
       isLand INTEGER, isTerritorial INTEGER, createdAt TEXT, updatedAt TEXT,
       ${kind === 'divisionAreas' ? 'divisionId TEXT' : 'leftDivisionId TEXT, rightDivisionId TEXT'}
-      ${history ? ", operation TEXT DEFAULT 'upsert', versionHash TEXT, sourceReleaseId TEXT, isCurrent INTEGER" : ''}
+      ${history ? ", operation TEXT DEFAULT 'upsert', versionHash TEXT, producerDatasetCode TEXT, isCurrent INTEGER" : ''}
     )`)
   }
   if (!history) {
@@ -49,7 +49,7 @@ function createDb(history = false) {
   }
   if (history)
     sqlite.exec(
-      `CREATE VIEW historyEvents AS SELECT snapshotId,'divisionArea' AS recordType,id AS recordId,'' AS locale,versionHash,operation,sourceReleaseId,createdAt FROM divisionAreas UNION ALL SELECT snapshotId,'divisionBoundary',id,'',versionHash,operation,sourceReleaseId,createdAt FROM divisionBoundaries`,
+      `CREATE VIEW historyEvents AS SELECT snapshotId,'divisionArea' AS recordType,id AS recordId,'' AS locale,versionHash,operation,createdAt,producerDatasetCode FROM divisionAreas UNION ALL SELECT snapshotId,'divisionBoundary',id,'',versionHash,operation,createdAt,producerDatasetCode FROM divisionBoundaries`,
     )
   const db = drizzle({
     client: sqlite,
@@ -130,7 +130,7 @@ function createFixture() {
         ...row,
         snapshotId: `${kind === 'divisionArea' ? 'area' : 'boundary'}-${owner === root ? 'root' : 'leaf'}`,
         versionHash: hash,
-        sourceReleaseId: 'source',
+
         isCurrent: false,
       } as never)
       .run()
@@ -171,11 +171,13 @@ function createFixture() {
       `${kind}-leaf`,
       [
         {
+          resourceReleaseId: 'release',
           snapshotId: `${kind}-root`,
           parentSnapshotId: null,
           shards: [{ dataShardId: 'root', bindingName: 'DB_HISTORY_HK_2025' }],
         },
         {
+          resourceReleaseId: 'release',
           snapshotId: `${kind}-leaf`,
           parentSnapshotId: `${kind}-root`,
           shards: [{ dataShardId: 'leaf', bindingName: 'DB_HISTORY_HK_2026' }],
@@ -449,11 +451,12 @@ test('batches immutable geometry tuples within D1 limits for large selections', 
     const versions: ResolvedSnapshotVersion[] = Array.from(
       { length: 120 },
       (_, index) => ({
+        sourceReleaseId: 'release',
         recordType: 'divisionBoundary',
         recordId: `boundary-${index}`,
         locale: '',
         versionHash: `hash-${index}`,
-        sourceReleaseId: 'source',
+
         snapshotId: 'snapshot',
         shard: { bindingName: 'history', db: fixture.db as never },
       }),
