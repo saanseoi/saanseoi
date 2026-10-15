@@ -4,6 +4,8 @@ import {
   commitPencilRegions,
 } from '../src/local-review/division-areas/pencilRegions'
 import type { Polygon } from 'geojson'
+import type { PencilBoundary } from '../src/local-review/division-areas/pencilRegions'
+import reviewFixture from './fixtures/pencilReviewBoundaries.json'
 const original: Polygon = {
   type: 'Polygon',
   coordinates: [
@@ -128,22 +130,7 @@ it('expands the real Ma On Shan browser stroke', async () => {
       : result.geometry!.coordinates.flat(2)
   for (const intersection of result.intersections)
     expect(points).toContainEqual(intersection)
-  const inventory = read('../../../.local/division-review/editor.json').inventory
-  const reference = read('../src/local-review/division-areas/reference-areas.json')
-  const ids = new Set(
-    inventory.divisions.filter((d: any) => d.level === 3).map((d: any) => d.id),
-  )
-  const records = new Map<string, any>(
-    reference.features.map((f: any) => [f.properties.divisionId, f]),
-  )
-  for (const f of seed.features) records.set(f.properties.divisionId, f)
-  const boundaries = [...records.values()]
-    .filter(f => ids.has(f.properties.divisionId))
-    .map(f => ({
-      id: f.properties.divisionId,
-      name: f.properties.divisionId,
-      geometry: f.geometry,
-    }))
+  const boundaries = reviewFixture.boundaries as PencilBoundary[]
   const regions: Polygon[] =
     result.geometry!.type === 'Polygon'
       ? [result.geometry!]

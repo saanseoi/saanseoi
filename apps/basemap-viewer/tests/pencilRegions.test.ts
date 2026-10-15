@@ -6,6 +6,8 @@ import {
 } from '../src/local-review/division-areas/pencilRegions'
 import { pencilPolygon } from '../src/local-review/division-areas/pencilGeometry'
 import type { Polygon } from 'geojson'
+import type { PencilBoundary } from '../src/local-review/division-areas/pencilRegions'
+import reviewFixture from './fixtures/pencilReviewBoundaries.json'
 const box: Polygon = {
   type: 'Polygon',
   coordinates: [
@@ -123,27 +125,7 @@ it('saves the retained browser crossing among real review boundaries', async () 
   const read = (path: string) =>
     JSON.parse(readFileSync(new URL(path, import.meta.url), 'utf8'))
   const input = read('./pencilBrowserStroke.json')
-  const inventory = read('../../../.local/division-review/editor.json').inventory
-  const reference = read('../src/local-review/division-areas/reference-areas.json')
-  const estimatedAreas = read(
-    '../../../fixtures/meta/curations/saanseoi-division/division-geometry.json',
-  )
-  const ids = new Set(
-    inventory.divisions
-      .filter((d: { level: number }) => d.level === 3)
-      .map((d: { id: string }) => d.id),
-  )
-  const records = new Map<string, any>(
-    reference.features.map((f: any) => [f.properties.divisionId, f]),
-  )
-  for (const f of estimatedAreas.features) records.set(f.properties.divisionId, f)
-  const boundaries = [...records.values()]
-    .filter(f => ids.has(f.properties.divisionId))
-    .map(f => ({
-      id: f.properties.divisionId,
-      name: f.properties.name ?? f.properties.divisionId,
-      geometry: f.geometry,
-    }))
+  const boundaries = reviewFixture.boundaries as PencilBoundary[]
   const before = structuredClone(boundaries)
   const result = calculatePencilRegions(
     input.features.map((f: any) => f.geometry.coordinates),

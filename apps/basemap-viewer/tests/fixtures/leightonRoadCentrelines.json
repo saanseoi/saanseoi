@@ -1,0 +1,525 @@
+{
+  "type": "FeatureCollection",
+  "purpose": "Frozen road-centreline features intersecting the Leighton Road regression extent [114.1845, 22.2766, 114.1859, 22.2777]. Extracted from the local review road-centrelines GeoJSON without simplifying coordinates.",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [114.1848883, 22.2782077],
+          [114.1849103, 22.2781552],
+          [114.1851961, 22.2774931],
+          [114.1852573, 22.2773514]
+        ]
+      },
+      "properties": {
+        "carriageway": "single",
+        "highway": "tertiary",
+        "lanes": "1",
+        "name": "\u958b\u5e73\u9053 Hoi Ping Road",
+        "name:en": "Hoi Ping Road",
+        "name:zh": "\u958b\u5e73\u9053",
+        "oneway": "yes",
+        "sidewalk": "both",
+        "surface": "concrete"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [114.1852815, 22.2783584],
+          [114.1853085, 22.2782969],
+          [114.1855673, 22.2776974],
+          [114.1855923, 22.2776396],
+          [114.1856666, 22.2774684],
+          [114.1856752, 22.2774474],
+          [114.1856939, 22.2774042]
+        ]
+      },
+      "properties": {
+        "carriageway": "single",
+        "highway": "unclassified",
+        "lanes": "1",
+        "name": "\u65b0\u5be7\u9053 Sunning Road",
+        "name:en": "Sunning Road",
+        "name:zh": "\u65b0\u5be7\u9053",
+        "oneway": "yes",
+        "sidewalk": "both",
+        "surface": "concrete",
+        "usage": "local"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [114.184019, 22.2777231],
+          [114.1841458, 22.2776648],
+          [114.1845355, 22.2774586],
+          [114.1846048, 22.2774219]
+        ]
+      },
+      "properties": {
+        "highway": "secondary",
+        "lanes": "2",
+        "lanes:backward": "1",
+        "lanes:forward": "1",
+        "lit": "yes",
+        "name": "\u79ae\u9813\u9053 Leighton Road",
+        "name:en": "Leighton Road",
+        "name:zh": "\u79ae\u9813\u9053",
+        "sidewalk": "both",
+        "surface": "asphalt"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [114.1847984, 22.2773195],
+          [114.184938, 22.2772469],
+          [114.1850664, 22.2771848]
+        ]
+      },
+      "properties": {
+        "highway": "secondary",
+        "lanes": "3",
+        "lanes:backward": "1",
+        "lanes:forward": "2",
+        "name": "\u79ae\u9813\u9053 Leighton Road",
+        "name:en": "Leighton Road",
+        "name:zh": "\u79ae\u9813\u9053",
+        "surface": "asphalt"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [114.1844958, 22.2780704],
+          [114.1845183, 22.2780155],
+          [114.1846944, 22.277578]
+        ]
+      },
+      "properties": {
+        "carriageway": "single",
+        "highway": "unclassified",
+        "lit": "yes",
+        "name": "\u65b0\u6703\u9053 Sun Wui Road",
+        "name:en": "Sun Wui Road",
+        "name:zh": "\u65b0\u6703\u9053",
+        "oneway": "yes",
+        "sidewalk": "both",
+        "surface": "concrete"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [114.1856939, 22.2774042],
+          [114.1857753, 22.27749],
+          [114.1860679, 22.2777983]
+        ]
+      },
+      "properties": {
+        "highway": "secondary",
+        "lanes": "4",
+        "lanes:backward": "2",
+        "lanes:forward": "2",
+        "name": "\u79ae\u9813\u9053 Leighton Road",
+        "name:en": "Leighton Road",
+        "name:zh": "\u79ae\u9813\u9053",
+        "oneway": "no",
+        "surface": "asphalt"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [114.1853495, 22.2771378],
+          [114.1854174, 22.277165],
+          [114.1854416, 22.2771747],
+          [114.1854712, 22.2771865],
+          [114.1855024, 22.2772052],
+          [114.1856939, 22.2774042]
+        ]
+      },
+      "properties": {
+        "highway": "secondary",
+        "lanes": "4",
+        "name": "\u79ae\u9813\u9053 Leighton Road",
+        "name:en": "Leighton Road",
+        "name:zh": "\u79ae\u9813\u9053",
+        "surface": "asphalt",
+        "turn:lanes:backward": "left;through|through"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [114.1854106, 22.2762434],
+          [114.185407, 22.2763564],
+          [114.1854062, 22.2763834],
+          [114.1853945, 22.2764569],
+          [114.1853714, 22.2765367],
+          [114.1853096, 22.2767888]
+        ]
+      },
+      "properties": {
+        "highway": "tertiary",
+        "lanes": "2",
+        "lanes:backward": "1",
+        "lanes:forward": "1",
+        "name": "\u52a0\u8def\u9023\u5c71\u9053 Caroline Hill Road",
+        "name:en": "Caroline Hill Road",
+        "name:zh": "\u52a0\u8def\u9023\u5c71\u9053",
+        "surface": "asphalt"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [114.1852595, 22.2769462],
+          [114.1852773, 22.2769901],
+          [114.1852777, 22.2770259],
+          [114.1852845, 22.2771302]
+        ]
+      },
+      "properties": {
+        "highway": "tertiary",
+        "lanes": "1",
+        "name": "\u52a0\u8def\u9023\u5c71\u9053 Caroline Hill Road",
+        "name:en": "Caroline Hill Road",
+        "name:zh": "\u52a0\u8def\u9023\u5c71\u9053",
+        "oneway": "yes",
+        "surface": "asphalt",
+        "turn": "right"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [114.1852595, 22.2769462],
+          [114.1852128, 22.2769944],
+          [114.1851915, 22.2770301],
+          [114.1851341, 22.2771106],
+          [114.1850664, 22.2771848]
+        ]
+      },
+      "properties": {
+        "highway": "secondary_link",
+        "lanes": "1",
+        "name": "\u52a0\u8def\u9023\u5c71\u9053 Caroline Hill Road",
+        "name:en": "Caroline Hill Road",
+        "name:zh": "\u52a0\u8def\u9023\u5c71\u9053",
+        "oneway": "yes",
+        "surface": "asphalt",
+        "turn": "left"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [114.1850664, 22.2771848],
+          [114.1851854, 22.2771446],
+          [114.1852145, 22.2771348],
+          [114.1852845, 22.2771302]
+        ]
+      },
+      "properties": {
+        "highway": "secondary",
+        "lanes": "4",
+        "lanes:backward": "2",
+        "lanes:forward": "2",
+        "name": "\u79ae\u9813\u9053 Leighton Road",
+        "name:en": "Leighton Road",
+        "name:zh": "\u79ae\u9813\u9053",
+        "surface": "asphalt",
+        "turn:lanes:forward": "through|through"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [114.1838628, 22.2773625],
+          [114.1838798, 22.2773553],
+          [114.1845152, 22.2770852]
+        ]
+      },
+      "properties": {
+        "highway": "service",
+        "surface": "asphalt"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [114.184938, 22.2772469],
+          [114.1849305, 22.2772323],
+          [114.1849236, 22.2772189],
+          [114.1849128, 22.2771969],
+          [114.1848669, 22.2771083],
+          [114.184821, 22.2770077],
+          [114.1848222, 22.2769078],
+          [114.184878, 22.2768034],
+          [114.1849427, 22.2767339]
+        ]
+      },
+      "properties": {
+        "highway": "service",
+        "surface": "asphalt"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [114.1853714, 22.2765367],
+          [114.1853278, 22.2765249],
+          [114.185307, 22.2765191],
+          [114.185265, 22.2765118],
+          [114.1852132, 22.276522],
+          [114.1851474, 22.2765466],
+          [114.1850648, 22.2765956],
+          [114.1849427, 22.2767339]
+        ]
+      },
+      "properties": {
+        "highway": "service",
+        "surface": "asphalt"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [114.1853495, 22.2771378],
+          [114.185335, 22.2770342],
+          [114.1853317, 22.2770103],
+          [114.1853178, 22.2769039],
+          [114.1853096, 22.2767888]
+        ]
+      },
+      "properties": {
+        "highway": "tertiary",
+        "lanes": "1",
+        "name": "\u52a0\u8def\u9023\u5c71\u9053 Caroline Hill Road",
+        "name:en": "Caroline Hill Road",
+        "name:zh": "\u52a0\u8def\u9023\u5c71\u9053",
+        "oneway": "yes",
+        "surface": "asphalt"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [[114.1852845, 22.2771302], [114.1853495, 22.2771378]]
+      },
+      "properties": {
+        "highway": "secondary",
+        "lanes": "4",
+        "name": "\u79ae\u9813\u9053 Leighton Road",
+        "name:en": "Leighton Road",
+        "name:zh": "\u79ae\u9813\u9053",
+        "surface": "asphalt"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [114.1849252, 22.2749631],
+          [114.1849744, 22.2750127],
+          [114.1849758, 22.2751145],
+          [114.1849503, 22.2752094],
+          [114.1847947, 22.2754061],
+          [114.1847223, 22.2755216],
+          [114.1846169, 22.2757374],
+          [114.18452, 22.275965],
+          [114.1844378, 22.2761307],
+          [114.1843687, 22.2762006],
+          [114.1842876, 22.2762538],
+          [114.1840273, 22.276393],
+          [114.1839277, 22.2764758],
+          [114.1837992, 22.2766275]
+        ]
+      },
+      "properties": {
+        "access": "private",
+        "highway": "service",
+        "lanes": "2",
+        "service": "driveway",
+        "surface": "asphalt"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [114.1846944, 22.277578],
+          [114.184765, 22.2774025],
+          [114.1847984, 22.2773195]
+        ]
+      },
+      "properties": {
+        "carriageway": "single",
+        "highway": "unclassified",
+        "name": "\u65b0\u6703\u9053 Sun Wui Road",
+        "name:en": "Sun Wui Road",
+        "name:zh": "\u65b0\u6703\u9053",
+        "oneway": "yes",
+        "sidewalk": "both",
+        "surface": "concrete"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [[114.1853407, 22.2775811], [114.1853539, 22.2775515]]
+      },
+      "properties": {
+        "highway": "service",
+        "lanes": "2",
+        "ownership": "private"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [114.1852567, 22.2775155],
+          [114.1853539, 22.2775515],
+          [114.1855201, 22.2776129]
+        ]
+      },
+      "properties": {
+        "covered": "yes",
+        "highway": "service",
+        "lanes": "1",
+        "oneway": "yes",
+        "ownership": "private"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [114.1852573, 22.2773514],
+          [114.1852908, 22.2772737],
+          [114.1853102, 22.2772289],
+          [114.1853495, 22.2771378]
+        ]
+      },
+      "properties": {
+        "carriageway": "single",
+        "highway": "tertiary",
+        "lanes": "2",
+        "name": "\u958b\u5e73\u9053 Hoi Ping Road",
+        "name:en": "Hoi Ping Road",
+        "name:zh": "\u958b\u5e73\u9053",
+        "oneway": "yes",
+        "parking:both": "no",
+        "parking:both:restriction": "no_stopping",
+        "sidewalk": "both",
+        "surface": "concrete",
+        "turn:lanes": "through|right"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [[114.1846048, 22.2774219], [114.1847984, 22.2773195]]
+      },
+      "properties": {
+        "highway": "secondary",
+        "lanes": "2",
+        "lanes:backward": "1",
+        "lanes:forward": "1",
+        "name": "\u79ae\u9813\u9053 Leighton Road",
+        "name:en": "Leighton Road",
+        "name:zh": "\u79ae\u9813\u9053",
+        "surface": "asphalt"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [[114.1853096, 22.2767888], [114.1852595, 22.2769462]]
+      },
+      "properties": {
+        "highway": "tertiary",
+        "lanes": "2",
+        "name": "\u52a0\u8def\u9023\u5c71\u9053 Caroline Hill Road",
+        "name:en": "Caroline Hill Road",
+        "name:zh": "\u52a0\u8def\u9023\u5c71\u9053",
+        "oneway": "yes",
+        "surface": "asphalt",
+        "turn:lanes": "left|right"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [114.1855201, 22.2776129],
+          [114.1855555, 22.277626],
+          [114.1855923, 22.2776396]
+        ]
+      },
+      "properties": {
+        "highway": "service",
+        "lanes": "1",
+        "oneway": "yes"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [114.1851961, 22.2774931],
+          [114.1852234, 22.2775032],
+          [114.1852567, 22.2775155]
+        ]
+      },
+      "properties": {
+        "highway": "service",
+        "lanes": "1",
+        "oneway": "yes"
+      }
+    }
+  ]
+}

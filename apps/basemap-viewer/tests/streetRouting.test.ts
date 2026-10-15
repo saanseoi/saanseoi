@@ -11,10 +11,7 @@ describe('Leighton Road pencil regression', () => {
   it('retains the bend between Caroline Hill Road and Hoi Ping Road', () => {
     const roads = JSON.parse(
       readFileSync(
-        new URL(
-          '../src/local-review/division-areas/road-centrelines.geojson',
-          import.meta.url,
-        ),
+        new URL('./fixtures/leightonRoadCentrelines.json', import.meta.url),
         'utf8',
       ),
     )
