@@ -1037,6 +1037,48 @@ for (const [family, datasetCode, tableName, resourceType] of [
   })
 }
 
+test('HyD source schemas declare rounded measurement precision without changing other types', async () => {
+  const datasetCode = 'ds-hk-hkgov-hyd-sensitive-street'
+  const sourceReleaseCode = 'dr-hk-hkgov-hyd-sensitive-street-2025-Q1'
+  const schema = await getSourceRecordSchema({
+    family: 'streets',
+    sourceReleaseCode,
+    env: {
+      DB_SOURCE_HK_2026: sourceDatabase(
+        [
+          {
+            name: 'shapeLength',
+            type: 'real',
+            occurrences: 1,
+            total: 1,
+            hasExcessPrecision: 0,
+          },
+          {
+            name: 'shapeArea',
+            type: 'real',
+            occurrences: 1,
+            total: 1,
+            hasExcessPrecision: 1,
+          },
+          { name: 'lvl', type: 'integer', occurrences: 1, total: 1 },
+          { name: 'stEngnm', type: 'text', occurrences: 1, total: 1 },
+        ],
+        'hkgovHydSensitiveStreets',
+        '2025-Q1',
+      ),
+    } as never,
+    metaDb: metaDatabase({ datasetCode, sourceReleaseCode, sourceVersion: '2025-Q1' }),
+  })
+  expect(schema?.properties.shapeLength).toMatchObject({
+    type: 'number',
+    multipleOf: 0.01,
+  })
+  // Retained releases that still contain unrounded values must not claim this constraint.
+  expect(schema?.properties.shapeArea).toEqual({ type: 'number', nullable: false })
+  expect(schema?.properties.lvl).toEqual({ type: 'integer', nullable: false })
+  expect(schema?.properties.stEngnm).toEqual({ type: 'string', nullable: false })
+})
+
 test('SaanSeoi Areas schema describes every retained field and preserves flag types', async () => {
   const sourceReleaseCode = 'dr-hk-saanseoi-division-2026-07-22.0'
   const fields = [

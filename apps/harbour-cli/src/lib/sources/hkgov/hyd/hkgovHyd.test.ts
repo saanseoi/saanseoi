@@ -51,8 +51,8 @@ describe('TD pedestrian street native FileGDB intake', () => {
         endTime: undefined,
         objectId: 44,
         region: 'HK',
-        shapeArea: 2706.6111331315583,
-        shapeLength: 656.3103296592857,
+        shapeArea: 2706.61,
+        shapeLength: 656.31,
         startTime: undefined,
       },
       type: 'Feature',
@@ -122,6 +122,8 @@ describe('HyD native FileGDB street intake', () => {
         lvl: 0,
         sectBtwn: 'FULL LENGTH',
         stEngnm: "NEW HIRAM'S HIGHWAY",
+        shapeLength: 2887.73,
+        shapeArea: 11068.3,
       }),
     )
     expect(strategicStreets.features).toHaveLength(159)
@@ -133,6 +135,8 @@ describe('HyD native FileGDB street intake', () => {
         lvl: -1,
         sectBtwn: 'FULL LENGTH',
         stEngnm: 'TSEUNG KWAN O TUNNEL',
+        shapeLength: 3487.88,
+        shapeArea: 12441.37,
       }),
     )
   })

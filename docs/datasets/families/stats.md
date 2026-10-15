@@ -440,6 +440,12 @@ decimal places; archived inputs and geometry coordinates retain their full preci
 See the
 [C&SD property mapping](../sources/hkgov-censtatd/divisionStatistics.md#retained-property-mapping).
 
+C&SD statistical source measures use JSON numbers in their published units and decimal
+precision across census geography, population/household, living-quarters and density
+datasets. Geography codes and reference periods remain text. Suppression markers and
+missing values retain their source representation; the source schema reports the
+observed numeric and text types separately.
+
 The C&SD subdivided-units district source is one logical dataset with distinct 2016
 By-census and 2021 Census releases. Each release retains its own CSDI source and
 statistical-geography cohort.

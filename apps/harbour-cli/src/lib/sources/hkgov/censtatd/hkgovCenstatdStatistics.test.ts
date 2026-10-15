@@ -170,6 +170,20 @@ describe('C&SD native statistics archives', () => {
         metadata: await parquetMetadataAsync(file),
       })
       expect(rows).toHaveLength(entry.rowCount)
+      const measure = entry.datasetCode.endsWith('permanent-living-quarters')
+        ? 'QTR_ALL'
+        : entry.datasetCode.endsWith('permanent-living-quarters-district')
+          ? 'LQ'
+          : entry.datasetCode.endsWith('population-households-district')
+            ? 'dh'
+            : entry.datasetCode.endsWith('subdivided-units-district')
+              ? 'sdu_pop'
+              : 't_pop'
+      for (const row of rows) {
+        const value = JSON.parse(String(row.properties))[measure]
+        if (value === '**') continue
+        expect(typeof value).toBe('number')
+      }
       if (entry.datasetCode.endsWith('subdivided-units-district')) {
         for (const row of rows) {
           const properties = JSON.parse(String(row.properties))

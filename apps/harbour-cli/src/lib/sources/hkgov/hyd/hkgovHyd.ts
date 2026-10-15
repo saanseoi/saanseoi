@@ -1,5 +1,6 @@
 import { requireDefined } from '@repo/core/requireDefined'
 import { retainSourceProperties } from '@repo/core/pipeline/services/sources/retainedProperties'
+import { normaliseHkgovMeasurement } from '@repo/core/pipeline/services/sources/hkgovNumericProperties.ts'
 import { createRequire } from 'node:module'
 
 import { unzipSafeArchive } from '../../zipArchive.ts'
@@ -193,13 +194,21 @@ export async function readHkgovHydStreetArchive(
       if (level === undefined) {
         throw new Error(`HyD ${kind} feature ${index + 1} has an invalid LVL.`)
       }
+      const retainedProperties = retainSourceProperties(properties) as Record<
+        string,
+        unknown
+      >
+      for (const field of ['shapeArea', 'shapeLength']) {
+        const rounded = normaliseHkgovMeasurement(retainedProperties[field])
+        if (rounded !== undefined) retainedProperties[field] = rounded
+      }
       return {
         type: 'Feature' as const,
         geometry: candidate.geometry,
-        properties: retainSourceProperties({
-          ...properties,
-          LVL: level === 0xffffffff ? -1 : level,
-        }) as Record<string, unknown>,
+        properties: {
+          ...retainedProperties,
+          lvl: level === 0xffffffff ? -1 : level,
+        },
       }
     }),
   }
@@ -250,8 +259,8 @@ function validatePedestrianLayer(
         endTime: optionalString(properties.End_Time),
         objectId,
         region: optionalString(properties.Region),
-        shapeArea: optionalFiniteNumber(properties.SHAPE_Area),
-        shapeLength: optionalFiniteNumber(properties.SHAPE_Length),
+        shapeArea: normaliseHkgovMeasurement(properties.SHAPE_Area),
+        shapeLength: normaliseHkgovMeasurement(properties.SHAPE_Length),
         startTime: optionalString(properties.Start_Time),
       },
     }
@@ -431,10 +440,6 @@ function optionalString(value: unknown) {
   return new TextDecoder().decode(
     Uint8Array.from(value, character => character.charCodeAt(0)),
   )
-}
-
-function optionalFiniteNumber(value: unknown) {
-  return typeof value === 'number' && Number.isFinite(value) ? value : undefined
 }
 
 function optionalInteger(value: unknown) {

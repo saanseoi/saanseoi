@@ -44,11 +44,15 @@ table each for name plates, sensitive streets, strategic streets, and pedestrian
 streets. Pedestrian descriptions remain alongside their publisher source record as
 `descriptionEn`, `descriptionZhHant`, and `descriptionZhHans`. Retained publisher
 attributes use the shared camelCase source-property convention, including `objectId`,
-`startTime`, `endTime`, `shapeArea`, and `shapeLength`; values remain unchanged. The
-mirrored archive object key and SHA-256 are included in every source record's
-provenance. The local source DB cache is updated before the same SQL is imported to
-preview or production D1; the archive is never reloaded from managed storage during
-intake.
+`startTime`, `endTime`, `shapeArea`, and `shapeLength`. Sensitive, strategic and TD
+pedestrian street area and boundary-length attributes are JSON numbers rounded to two
+decimal places in the publisher's coordinate system. Their public source schema declares
+`multipleOf: 0.01` when all stored measurements satisfy this precision. Geometry
+coordinates and archived publisher bytes retain their full precision. Existing stored
+releases require reingestion to apply this precision. The mirrored archive object key
+and SHA-256 are included in every source record's provenance. The local source DB cache
+is updated before the same SQL is imported to preview or production D1; the archive is
+never reloaded from managed storage during intake.
 
 Identical assertions repeated within an archive share one stored source-record version.
 Distinct assertions with the same `SNP_ID` remain separate versions; intake does not

@@ -673,12 +673,28 @@ replaced.
 
 ## Retained property mapping
 
+The census building-group, housing-market-area, major-housing-estate and New Town
+layers, district population/household, district living-quarters, district density and
+area living-quarters layers parse numeric statistical attributes as JSON numbers. Whole
+values serialise as integers; decimal measures retain their published precision and
+units, including percentages and counts published in thousands. Geography codes, names
+and reference-period fields remain text, including leading zeroes. Suppression markers,
+empty strings and XML nil objects retain their source representation. Values outside the
+finite-number or safe-integer range are rejected.
+
 The `DC_16BC_SDU` and `DC_21C_SDU` GML adapters parse `dc`, `OBJECTID` and the `sdu_dh`,
 `sdu_n`, `sdu_oq` and `sdu_pop` counts as JSON integers. Fractional or unsafe integer
 values are rejected. Publisher `SHAPE_Length` and `SHAPE_Area` attributes are stored as
 JSON numbers rounded to two decimal places. Empty values, suppression markers and XML
 nil values retain their source representation. Native geometry coordinates and archived
 publisher bytes retain their full precision.
+
+The public source schema inventories persisted JSON types. Numeric observations appear
+as `integer` or `number`; fields containing both numeric observations and suppression
+text expose both types. Area and length attributes declare `multipleOf: 0.01` only when
+all stored numeric observations satisfy two-decimal precision across the release's
+shards. Reingestion is required to populate this contract for an existing stored
+release.
 
 Source persistence converts publisher property keys to camelCase and rejects collisions.
 Canonical preparation and curation use the original publisher keys; field provenance

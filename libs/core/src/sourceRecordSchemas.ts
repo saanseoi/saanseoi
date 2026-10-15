@@ -30,6 +30,7 @@ export type SourceRecordSchemaDefinition = {
   minimum?: number
   minItems?: number
   minLength?: number
+  multipleOf?: number
   pattern?: string
   properties?: Record<string, SourceRecordSchemaDefinition>
   required?: string[]

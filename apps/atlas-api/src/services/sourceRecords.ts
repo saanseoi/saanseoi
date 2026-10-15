@@ -1,4 +1,5 @@
 import { rvdSourceFields } from '@repo/core/rvdSourceSchema'
+import { hkgovNumericSourceField } from '@repo/core/pipeline/services/sources/hkgovNumericProperties.ts'
 import { landsdPlaceNameSourceFields } from '@repo/core/landsdPlaceNameSourceSchema'
 import { camelCaseFieldName, camelCaseJson } from '@repo/core/jsonKeys'
 import { saanseoiDivisionSourceFields } from './saanseoiDivisionSourceSchema'
@@ -603,6 +604,8 @@ export async function getSourceRecordSchema(args: {
       WHERE ${sourceReleaseCondition(entry, 'record.')}
     )
     SELECT field.key AS name, field.type AS type, COUNT(field.key) AS occurrences,
+      MAX(CASE WHEN field.type IN ('integer', 'real')
+        AND field.value != ROUND(field.value, 2) THEN 1 ELSE 0 END) AS hasExcessPrecision,
       (SELECT COUNT(*) FROM records) AS total
     FROM records AS record LEFT JOIN json_each(record.properties) AS field ON true
     GROUP BY field.key, field.type
@@ -615,12 +618,14 @@ export async function getSourceRecordSchema(args: {
           type: string
           occurrences: number
           total: number
+          hasExcessPrecision: number
         }>(),
       )
     }),
   )
   const fields = new Map<string, Set<string>>()
   const occurrences = new Map<string, number>()
+  const nonRoundedFields = new Set<string>()
   const total = results.reduce(
     (sum, result) => sum + (result.results[0]?.total ?? 0),
     0,
@@ -641,6 +646,7 @@ export async function getSourceRecordSchema(args: {
       ? camelCaseFieldName(field.name)
       : field.name
     occurrences.set(name, (occurrences.get(name) ?? 0) + field.occurrences)
+    if (field.hasExcessPrecision !== 0) nonRoundedFields.add(name)
     const values = fields.get(name) ?? new Set<string>()
     values.add(types[field.type] ?? field.type)
     fields.set(name, values)
@@ -670,6 +676,12 @@ export async function getSourceRecordSchema(args: {
                   : undefined
         const definitions = nonNull.map(type => ({
           type,
+          ...hkgovNumericSourceField(
+            resolved.release.datasetCode,
+            name,
+            type,
+            !nonRoundedFields.has(name),
+          ),
           ...(type === 'object' ? { additionalProperties: true } : {}),
           ...(type === 'array' ? { items: {} } : {}),
           ...(contract?.type === type ? contract : {}),

@@ -154,7 +154,7 @@ function text(value: unknown, field: string, index: number) {
 }
 
 function number(value: unknown, field: string, index: number) {
-  const parsed = Number(text(value, field, index))
+  const parsed = typeof value === 'number' ? value : Number(text(value, field, index))
   if (!Number.isFinite(parsed))
     throw new Error(`C&SD Density row ${index + 1} has invalid ${field}.`)
   return parsed

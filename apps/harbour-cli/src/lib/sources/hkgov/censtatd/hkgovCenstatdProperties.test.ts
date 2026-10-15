@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import { parseCsdiGml } from './hkgovCenstatdStatistics'
+import { normaliseCenstatdProperty } from './hkgovCenstatdProperties'
 
 const dataset = 'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district'
 
@@ -66,5 +67,49 @@ describe('C&SD subdivided-unit numeric properties', () => {
         'must be a safe integer',
       )
     }
+  })
+})
+
+describe('C&SD statistical numeric properties', () => {
+  for (const layer of [
+    'BG_21C',
+    'HMA_21C',
+    'MHE_21C',
+    'NewTown_21C',
+    'DC_GHS',
+    'DCD_LQ_Q32023',
+    'Density_2022',
+    'Density_2024',
+    'AREA_LQ_2023',
+  ]) {
+    test(`${layer} parses measures without changing codes, periods or missing values`, () => {
+      for (const field of ['t_pop', 'LQ', 'dh', 'POPN_D']) {
+        expect(normaliseCenstatdProperty(layer, field, '1331.00000000')).toBe(1331)
+      }
+      for (const field of [
+        'bg',
+        'hma',
+        'estate',
+        'newtown',
+        'DC',
+        'YEAR',
+        'QUARTER',
+        'PERIOD',
+        'dc_eng',
+      ]) {
+        expect(normaliseCenstatdProperty(layer, field, '001')).toBe('001')
+      }
+      expect(normaliseCenstatdProperty(layer, 't_ma', '46.712345')).toBe(46.712345)
+      expect(normaliseCenstatdProperty(layer, 't_pop', '**')).toBe('**')
+      expect(normaliseCenstatdProperty(layer, 't_pop', '')).toBe('')
+      const nil = { '@_xsi:nil': 'true' }
+      expect(normaliseCenstatdProperty(layer, 't_pop', nil)).toBe(nil)
+    })
+  }
+  test('leaves other datasets alone and rejects unsafe numeric values', () => {
+    expect(normaliseCenstatdProperty('Other', 't_pop', '1331.000')).toBe('1331.000')
+    expect(() => normaliseCenstatdProperty('DC_GHS', 'dh', '9007199254740993')).toThrow(
+      'safe integer',
+    )
   })
 })

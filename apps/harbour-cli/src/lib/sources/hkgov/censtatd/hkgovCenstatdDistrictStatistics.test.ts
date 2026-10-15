@@ -41,6 +41,13 @@ describe('C&SD district land-area statistics', () => {
       district_code: BigInt(11),
       mid_year_population: BigInt(2500),
     })
+    expect(JSON.parse(String(rows[0]?.properties))).toMatchObject({
+      DC: '11',
+      PERIOD: '2022',
+      LA: 1.5,
+      MYPOPN_LAND: 2.5,
+      POPN_D: 3,
+    })
     expect(JSON.parse(String(rows[0]?.sources))).toEqual([
       {
         dataset: 'hkgov-censtatd',

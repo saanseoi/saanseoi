@@ -25,7 +25,7 @@ describe('normaliseHkgovCenstatdStatistics', () => {
           dc_chi: '中西區',
           dc_class: 'A',
           dc_eng: 'Central and Western',
-          my_lp: '243300',
+          my_lp: 243300,
           year: '2016',
         },
         sourceFeatureRef: 'DC_GHS:11-2016',

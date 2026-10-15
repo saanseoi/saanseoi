@@ -64,12 +64,14 @@ the [assembly provenance contract](../pipeline.md#snapshot-assembly-provenance).
 
 Native feature source tables retain publisher attributes in `properties`, native
 geometry separately, and identity, release history and provenance in the source
-envelope. Retained source-property keys use the shared camelCase convention while
-publisher values remain unchanged. TD's layer kind identifies the source collection.
-Names, descriptions, coordinates and classifications are not duplicated as extracted
-source columns. PDF baseline and notice records retain structured extracted evidence
-because these publishers supply documents, not feature-property objects; notice
-applications retain the audit decision separately from canonical street state.
+envelope. Retained source-property keys use the shared camelCase convention while HyD
+sensitive/strategic and TD pedestrian street area and length attributes use two decimal
+places, with `multipleOf: 0.01` in the inferred source schema. Geometry coordinates
+retain their full precision. TD's layer kind identifies the source collection. Names,
+descriptions, coordinates and classifications are not duplicated as extracted source
+columns. PDF baseline and notice records retain structured extracted evidence because
+these publishers supply documents, not feature-property objects; notice applications
+retain the audit decision separately from canonical street state.
 
 The Streets family publishes persistent logical street identities. Its first release is
 the current Lands Department gazetted street-name register: one active street per
