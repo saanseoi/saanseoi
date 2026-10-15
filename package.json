@@ -140,7 +140,7 @@
     "cf-typegen": "bun run --workspaces --if-present cf-typegen"
   },
   "dependencies": {
-    "@inlang/paraglide-js": "^2.27.0",
+    "@inlang/paraglide-js": "^2.28.0",
     "bits-ui": "^2.19.5",
     "bun-types": "^1.4.3",
     "drizzle-orm": "1.0.0-rc.4-5d5b77c",
@@ -151,10 +151,10 @@
     "@changesets/cli": "^3.0.3",
     "@commitlint/cli": "^21.2.3",
     "@commitlint/config-conventional": "^21.2.3",
-    "@iconify-json/simple-icons": "^1.2.99",
+    "@iconify-json/simple-icons": "^1.2.100",
     "@iconify/svelte": "^5.2.2",
     "@tailwindcss/upgrade": "^4.3.3",
-    "@types/bun": "1.4.2",
+    "@types/bun": "1.4.3",
     "branch-name-lint": "^3.0.1",
     "comment-json": "^5.0.0",
     "drizzle-kit": "1.0.0-rc.4-5d5b77c",
@@ -162,8 +162,8 @@
     "husky": "^9.1.7",
     "prettier": "^3.9.10",
     "tailwindcss-animate": "^1.0.7",
-    "turbo": "^2.11.7",
-    "wrangler": "^4.149.0"
+    "turbo": "^2.11.8",
+    "wrangler": "^4.151.0"
   },
   "peerDependencies": {
     "typescript": "^6.0.3"

@@ -73,14 +73,14 @@
     "@noble/hashes": "2.4.0",
     "@repo/db": "workspace:*",
     "drizzle-orm": "1.0.0-rc.4-5d5b77c",
-    "hyparquet": "^1.31.3",
+    "hyparquet": "^1.31.4",
     "hyparquet-compressors": "^1.1.2",
     "jsts": "2.12.1"
   },
   "devDependencies": {
-    "@types/bun": "1.4.2",
+    "@types/bun": "1.4.3",
     "bun-types": "^1.4.3",
     "typescript": "^6.0.3",
-    "vitest": "^5.0.3"
+    "vitest": "^5.0.4"
   }
 }
