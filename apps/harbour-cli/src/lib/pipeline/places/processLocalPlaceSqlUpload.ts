@@ -72,6 +72,7 @@ import {
   upsertPlaceMetadata,
 } from './processLocalPlaceSqlUploadMetadata.ts'
 import { prepareSupplementaryAddresses } from './processLocalPlaceSqlUploadSupplementary.ts'
+import { retainPlaceSourceAudit } from './placeSourceAudit'
 import { buildPlaceReleaseStatsRowsFromAccumulator } from './processLocalPlaceSqlUploadStatistics.ts'
 import { getPreparedPublication } from '../local/snapshotPublication.ts'
 import { PlaceDependencyView } from './placeDependencyView.ts'
@@ -508,6 +509,26 @@ export async function processLocalPlaceSqlUpload(
           releaseCode,
         ),
       stagedEnrichedPlaces.stats.localisedRows,
+    )
+    await runPlaceProgressPhase(
+      progress,
+      'Retain',
+      'Places source ingestion provenance',
+      () =>
+        deliverProducerAudit({
+          target,
+          directory: resolve(releaseRoot, `source-provenance-${resourceReleaseId}`),
+          identity: JSON.stringify({
+            source: sqlDelivery.inputs.enrichedSha256,
+            retainedCount: stagedEnrichedPlaces.processedRows,
+          }),
+          retain: store =>
+            retainPlaceSourceAudit(store, {
+              resourceReleaseId,
+              datasetCode,
+              retainedCount: stagedEnrichedPlaces.processedRows,
+            }),
+        }),
     )
     await runPlaceProgressPhase(
       progress,

@@ -113,6 +113,11 @@ they do not select an identity or block ingestion. Publication requires the comp
 supplementary snapshot dependency. Completed audit delivery retries reuse retained
 objects. See the [processing provenance contract](../processing-provenance.md).
 
+Overture Places also registers an ingestion manifest owned by the resource release for
+the source-release Audit tab. It records the shared publisher SOURCE retention rule,
+retained assertion count and source payload validation guard. Delivery runs after SQL
+import and before publication, independently of the snapshot assembly audit.
+
 Enrichment staging writes complete JSONL rows and syncs the temporary output before
 replacement. Failed enrichment preserves the completed output, and interrupted or
 misaligned resolution streams are closed. Snapshot IDs alone are not enrichment cache

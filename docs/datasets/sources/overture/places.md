@@ -16,6 +16,15 @@ source object through `sourceAssetId`.
 Processing retains shared rule definitions and curation application counts under the
 [shared processing contract](../../pipeline.md#processing-stages-and-retained-evidence).
 
+The source-release Audit tab reads a resource-release-owned ingestion manifest. After
+SQL import and before publication, Places retains `retain-overture-source` with the
+number of included publisher records represented in SOURCE and the publisher attribution
+and property-key validation guard. Counts include unchanged assertions reused from
+earlier releases; excluded and unnormalisable records are outside this retained count.
+Normalisation, country selection, identity resolution and Address analysis belong to the
+separate snapshot assembly audit. Source audit delivery has its own retained receipt, so
+assembly receipt reuse cannot skip it.
+
 Place construction records its concrete resource releases in `snapshotResourceReleases`,
 its effective recipe through `snapshotAssemblies` and `snapshotRecipes`, and exact
 Address, Division, DivisionArea and supplementary Address selections in
