@@ -37,6 +37,17 @@ metadata_id="$(bun -e '
 ' "$wrangler_config" "$wrangler_env")"
 metadata_path="$(bash "$script_dir/lib/resolve-local-d1-sqlite-path.sh" "$metadata_id")"
 
+history_args=()
+while IFS= read -r history_id; do
+  history_path="$(bash "$script_dir/lib/resolve-local-d1-sqlite-path.sh" "$history_id")"
+  history_args+=(--history "$history_path")
+done < <(bun -e '
+  const config = JSON.parse(require("node:fs").readFileSync(process.argv[1], "utf8"));
+  for (const entry of config.env[process.argv[2]].d1_databases)
+    if (entry.binding.startsWith("DB_HISTORY_"))
+      console.log(entry.preview_database_id ?? entry.database_id ?? entry.binding);
+' "$wrangler_config" "$wrangler_env")
+
 run_migration() {
   local binding_name="$1"
   local database_name="$2"
@@ -58,7 +69,7 @@ run_migration() {
   IFS=$'\t' read -r local_id migrations_dir migrations_table <<< "$target_fields"
   sqlite_path="$(bash "$script_dir/lib/resolve-local-d1-sqlite-path.sh" "$local_id")" || return
   python3 "$script_dir/migrate-local-sqlite.py" "$sqlite_path" "$migrations_dir" \
-    "$(dirname "$persist_dir")/migration-backups" --table "$migrations_table" --metadata "$metadata_path"
+    "$(dirname "$persist_dir")/migration-backups" --table "$migrations_table" --metadata "$metadata_path" "${history_args[@]}"
 }
 
 if [[ "${#database_names[@]}" -eq 1 ]]; then

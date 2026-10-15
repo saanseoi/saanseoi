@@ -12,6 +12,7 @@ import re
 
 from history_producer_upgrade import MIGRATION as HISTORY_PRODUCER_MIGRATION, upgrade as upgrade_history_producers
 from inline_history_upgrade import MIGRATION as INLINE_HISTORY_MIGRATION, upgrade as upgrade_inline_history
+from place_storage_upgrade import MIGRATIONS as PLACE_STORAGE_MIGRATIONS, upgrade as upgrade_place_storage
 
 
 def quote(identifier):
@@ -88,7 +89,7 @@ def baseline_adoption(db, path):
         expected.close()
 
 
-def migrate(database_path, migrations_dir, backup_dir, table='d1_migrations', metadata=None):
+def migrate(database_path, migrations_dir, backup_dir, table='d1_migrations', metadata=None, history_databases=()):
     database_path = Path(database_path)
     database_path.parent.mkdir(parents=True, exist_ok=True)
     db = sqlite3.connect(database_path, timeout=30, isolation_level=None)
@@ -130,6 +131,8 @@ def migrate(database_path, migrations_dir, backup_dir, table='d1_migrations', me
                     upgrade_inline_history(db, path.read_text(), statements, metadata)
                 elif name == HISTORY_PRODUCER_MIGRATION:
                     upgrade_history_producers(db, path.read_text(), statements, metadata)
+                elif name in PLACE_STORAGE_MIGRATIONS:
+                    upgrade_place_storage(db, name, path.read_text(), statements, metadata, history_databases)
                 else:
                     for statement in statements(path.read_text()):
                         db.execute(statement)
@@ -154,5 +157,6 @@ if __name__ == '__main__':
     parser.add_argument('backups')
     parser.add_argument('--table', default='d1_migrations')
     parser.add_argument('--metadata', help='Local META SQLite path for verified HISTORY ownership')
+    parser.add_argument('--history', action='append', default=[], help='Local HISTORY SQLite path for retained Place Division revisions')
     args = parser.parse_args()
-    migrate(args.database, args.migrations, args.backups, args.table, args.metadata)
+    migrate(args.database, args.migrations, args.backups, args.table, args.metadata, args.history)
