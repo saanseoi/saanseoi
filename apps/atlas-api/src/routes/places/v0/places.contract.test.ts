@@ -6,6 +6,7 @@ import { resolve } from 'node:path'
 import { loadMigrationSql } from '../../../../../../libs/core/src/testing/metaFixtures'
 import type { AppBindings } from '../../../types'
 import app from '../../../index'
+import { PlaceIdentifiersSchema } from '../../../schema/places'
 
 const REPO_ROOT = resolve(import.meta.dir, '../../../../../../')
 const MIGRATIONS_DIR = resolve(REPO_ROOT, 'libs/db/migrations')
@@ -861,6 +862,30 @@ test('Place current responses derive last seen month from publication without re
     expect(
       fixture.currentSqlite.query('SELECT rowid,* FROM places ORDER BY id').all(),
     ).toEqual(stored)
+  } finally {
+    fixture.close()
+  }
+})
+
+test('Place API returns a scalar Wikidata brand identifier', async () => {
+  const fixture = createFixtureEnvironment({ rejectHistory: true })
+  try {
+    fixture.currentSqlite
+      .query('UPDATE places SET identifiers=? WHERE id=?')
+      .run(JSON.stringify({ wikidata: { brandId: 'Q123' } }), 'place-ramen')
+    const response = await app.fetch(
+      new Request('http://localhost/places/v0.1?profile=full'),
+      fixture.env,
+    )
+    expect(response.status).toBe(200)
+    const body = (await response.json()) as {
+      data: Array<{ id: string; attributes: { identifiers: unknown } }>
+    }
+    const identifiers = body.data.find(row => row.id === 'place-ramen')?.attributes
+      .identifiers
+    expect(PlaceIdentifiersSchema.parse(identifiers)).toEqual({
+      wikidata: { brandId: 'Q123' },
+    })
   } finally {
     fixture.close()
   }

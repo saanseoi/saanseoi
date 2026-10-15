@@ -2,6 +2,7 @@ import { readFixtureLineage } from './controlFixtures.fixtures'
 import { expect, test } from 'bun:test'
 import { join } from 'node:path'
 import addressFixtureOfficialLineage from '../../../../../fixtures/meta/apiFields/api-addresses-v0.1@saanseoi-v1.json'
+import { placeDivisionFieldNames } from '@repo/db'
 import { requireDefined } from '../../../../../libs/core/src/requireDefined'
 import placeFixtureLineage from '../../../../../fixtures/meta/apiFields/api-places-v0.1@overture-v1.json'
 import { insertFixtureRelease } from '../../../../../libs/core/src/testing/metaFixtures'
@@ -485,6 +486,31 @@ test('requires retained processing audits for Addresses and Places before publis
       code: string
       role: string
     }>
+
+    if (datasetType === 'place') {
+      const divisionDataset = sqlite
+        .query<{ id: string }, []>(
+          "SELECT id FROM datasets WHERE code='ds-hk-overture-division'",
+        )
+        .get()!
+      const divisionScopes = new Set(
+        lineage!.sourceSchemas
+          .filter(scope => scope.sourceDatasetId === divisionDataset.id)
+          .map(scope => scope.scopeId),
+      )
+      expect(divisionScopes.size).toBeGreaterThan(0)
+      for (const name of placeDivisionFieldNames) {
+        const field = lineage!.fields.find(
+          field => field.apiField === `attributes.${name}`,
+        )!
+        expect(field, name).toBeDefined()
+        expect(field.completeness, name).toBe('complete')
+        const mapping = placeFixtureLineage.fields.find(
+          field => field.apiField === `attributes.${name}`,
+        )!
+        expect(mapping.sourceDatasetCode, name).toBe('ds-hk-overture-division')
+      }
+    }
 
     sqlite.close()
 
