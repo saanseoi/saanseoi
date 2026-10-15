@@ -443,6 +443,38 @@ Save these links for reproducible comparisons. If the exact retained definition 
 unavailable, the endpoint returns an explicit error rather than substituting the current
 definition.
 
+## Geographic crosswalks
+
+Use `GET /divisions/v0.2/crosswalk` to inspect polygon overlaps between this SaanSeoi
+geographic edition and a published Planning Unit (TPU), Housing Market Area or New Town
+release. Both release selectors are required:
+
+```url
+/divisions/v0.2/crosswalk?
+  sourceReleaseSet=data-hk-divisions-2021--hkgov-censtatd-hma&
+  geographicReleaseSet={{ apiReleaseSet }}&
+  page[limit]=100
+```
+
+`divisionId` filters the source Division; `geographicDivisionId` filters the SaanSeoi
+Division. `page[limit]` accepts 1–1000 (default 100); `page[offset]` selects the offset.
+Results are ordered by source ID and geographic ID, with `links.next` for continuation
+and `meta.total` for the filtered total.
+
+Each membership exposes `overlapSquareMetres`, `sourceFraction`, `fullyContained`, and
+both geometry hashes. `meta.crosswalk` pins the source and geographic release sets,
+Division and DivisionArea snapshot IDs, policy and content hash. The fraction measures
+overlap against the whole source polygon; it is not a population weight. Boundary-only
+contacts and numerical slivers (at most 1 m² or 1e-8 of source area) are excluded. The
+5% covered-area rule used for inferred administrative hierarchy paths does not limit
+crosswalk memberships. Geographic Divisions without polygons have no spatial membership.
+
+For native-domain collection requests, geographic code filters use these overlaps; pass
+`geographicReleaseSet={{ apiReleaseSet }}` to pin their interpretation. The crosswalk
+endpoint returns `503` when the requested pair is not prepared, `409` for an ambiguous
+policy selection, and `200` with an empty `data` array when a ready pair has no
+memberships matching the optional ID filters.
+
 ## Recover from Failure
 
 The API returns a number of error codes. Here is how to recover from each one:
@@ -851,6 +883,26 @@ URL，指向 <black>GET
 定義；新增沒有 <black>before</black>
 定義。保存連結可重現比較。若確切的保留定義不可用，端點會明確回傳錯誤，不會代入目前定義。
 
+## 地理對照表
+
+使用 `GET /divisions/v0.2/crosswalk`
+查閱本山水地理版本與已發布的規劃單位（TPU）、房屋市場區或新市鎮版本之間的多邊形重疊。必須同時提供
+`sourceReleaseSet` 及 `geographicReleaseSet={{ apiReleaseSet }}`。
+
+`divisionId` 篩選來源區劃；`geographicDivisionId` 篩選山水區劃。`page[limit]`
+為 1–1000，預設 100；`page[offset]`
+指定偏移量。結果按來源 ID 及地理 ID 排序，`links.next` 提供下一頁，`meta.total`
+提供篩選後的總數。
+
+每項關係提供 `overlapSquareMetres`、`sourceFraction`、`fullyContained`
+及雙方幾何雜湊。`meta.crosswalk` 固定雙方發布集、Division 及 DivisionArea snapshot
+ID、規則及內容雜湊。比例以完整來源多邊形面積為分母，並非人口權重。只接觸邊界或不超過 1 平方米或來源面積 1e-8 的微小重疊不計入。推算行政階層所用的已覆蓋面積百分之五門檻不限制對照表關係。沒有多邊形的地理區劃沒有空間對應關係。
+
+原生 domain 的集合請求亦可使用地理代碼篩選，並以
+`geographicReleaseSet={{ apiReleaseSet }}` 固定解讀版本。對照表尚未準備好時回傳
+`503`，規則選擇不明確時回傳 `409`；已準備好的版本配對若沒有符合 ID 篩選的關係，則回傳
+`200` 及空的 `data` 陣列。
+
 ## 從失敗中復原
 
 API 會傳回多種錯誤碼。以下說明各種情況的復原方法：
@@ -1253,6 +1305,26 @@ URL，指向 <black>GET
 及 inventory。响应包含属性，以及可用的权威归属多边形。删除没有 <black>after</black>
 定义；新增没有 <black>before</black>
 定义。保存链接可重现比较。若确切的保留定义不可用，端点会明确返回错误，不会代入当前定义。
+
+## 地理对照表
+
+使用 `GET /divisions/v0.2/crosswalk`
+查阅本山水地理版本与已发布的规划单位（TPU）、房屋市场区或新市镇版本之间的多边形重叠。必须同时提供
+`sourceReleaseSet` 及 `geographicReleaseSet={{ apiReleaseSet }}`。
+
+`divisionId` 筛选来源区划；`geographicDivisionId` 筛选山水区划。`page[limit]`
+为 1–1000，默认 100；`page[offset]`
+指定偏移量。结果按来源 ID 及地理 ID 排序，`links.next` 提供下一页，`meta.total`
+提供筛选后的总数。
+
+每项关系提供 `overlapSquareMetres`、`sourceFraction`、`fullyContained`
+及双方几何哈希。`meta.crosswalk` 固定双方发布集、Division 及 DivisionArea snapshot
+ID、规则及内容哈希。比例以完整来源多边形面积为分母，并非人口权重。只接触边界或不超过 1 平方米或来源面积 1e-8 的微小重叠不计入。推算行政层级所用的已覆盖面积百分之五门槛不限制对照表关系。没有多边形的地理区划没有空间对应关系。
+
+原生 domain 的集合请求亦可使用地理代码筛选，并以
+`geographicReleaseSet={{ apiReleaseSet }}` 固定解读版本。对照表尚未准备好时返回
+`503`，规则选择不明确时返回 `409`；已准备好的版本配对若没有符合 ID 筛选的关系，则返回
+`200` 及空的 `data` 数组。
 
 ## 从失败中恢复
 

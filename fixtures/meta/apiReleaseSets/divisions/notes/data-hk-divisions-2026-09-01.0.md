@@ -43,6 +43,14 @@ domainCode: "geographic"
 - <orange>Geometry</orange> Drawing `DivisionAreas` for each of the SaanSeoi Divisions.
   This first release offers coverage for all of Hong Kong Island and Kowloon, while
   leaving the New Territories for future releases.
+- <orange>Crosswalks</orange> `GET /divisions/v0.2/crosswalk` exposes release-pinned
+  polygon overlaps between this SaanSeoi geographic edition and published TPU, Housing
+  Market Area and New Town cohorts, including New Towns for 2006, 2011, 2016 and 2021.
+  Results include overlap area, whole-source-area fraction, containment, geometry hashes
+  and exact snapshot pins, with pagination and filtering in either direction.
+  Native-domain geographic code filters use the same memberships. Crosswalks retain
+  overlaps below the separate 5% hierarchy threshold; fractions are not population
+  weights.
 
 ## Revision log
 
@@ -103,6 +111,9 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
   <black>landform</black>（地貌）祖先關係。
 - <orange>幾何</orange> 為各個 SaanSeoi 區劃繪製
   `DivisionAreas`。首版涵蓋整個香港島及九龍，新界則留待日後版本處理。
+- <orange>對照表</orange> `GET /divisions/v0.2/crosswalk`
+  提供本山水地理版本與已發布 TPU、房屋市場區及新市鎮 cohort 之間的固定版本多邊形重疊，包括 2006、2011、2016 及 2021 年新市鎮。結果包含重疊面積、完整來源面積比例、包含關係、幾何雜湊及精確 snapshot
+  ID，並支援分頁及雙向篩選。原生 domain 的地理代碼篩選使用相同關係。對照表保留低於獨立階層百分之五門檻的重疊；比例並非人口權重。
 
 ## 修訂紀錄
 
@@ -155,6 +166,9 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
   <black>landform</black>（地貌）祖先关系。
 - <orange>几何</orange> 为各个 SaanSeoi 区划绘制
   `DivisionAreas`。首版涵盖整个香港岛及九龙，新界则留待日后版本处理。
+- <orange>对照表</orange> `GET /divisions/v0.2/crosswalk`
+  提供本山水地理版本与已发布 TPU、房屋市场区及新市镇 cohort 之间的固定版本多边形重叠，包括 2006、2011、2016 及 2021 年新市镇。结果包含重叠面积、完整来源面积比例、包含关系、几何哈希及精确 snapshot
+  ID，并支持分页及双向筛选。原生 domain 的地理代码筛选使用相同关系。对照表保留低于独立层级百分之五门槛的重叠；比例并非人口权重。
 
 ## 修订记录
 

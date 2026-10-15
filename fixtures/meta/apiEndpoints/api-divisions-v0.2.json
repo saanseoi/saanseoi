@@ -35,7 +35,12 @@
       "method": "GET",
       "path": "/divisions/v0.2/search",
       "operationId": "searchDivisionsV02"
+    },
+    {
+      "method": "GET",
+      "path": "/divisions/v0.2/crosswalk",
+      "operationId": "listDivisionGeographicCrosswalkV02"
     }
   ],
-  "versionHash": "sha256:76365fc73dad688be53857a6311a91815e4cfa59b28e547b412929d136845d29"
+  "versionHash": "sha256:5ba006ee80f8adba30123aa935ccf65ab3b5ff12369772c36d2802877f01bf19"
 }
