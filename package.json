@@ -119,6 +119,7 @@
     "test:run": "turbo run test",
     "test:watch": "turbo run test:watch",
     "test:coverage": "turbo run test:coverage",
+    "review:ingestion": "bun run --cwd ./apps/ingestion-review dev",
     "review:release-tabs": "bun run --cwd ./apps/atlas-app review:release-tabs",
     "build": "turbo run build --filter=atlas-api --filter=atlas-app --filter=basemap-tiles --filter=basemap-viewer --filter=harbour-api --filter=harbour-workers",
     "build:preview": "turbo run build:preview --filter=atlas-api --filter=atlas-app --filter=basemap-viewer --filter=harbour-api --filter=harbour-workers",

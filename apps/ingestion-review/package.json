@@ -1,0 +1,20 @@
+{
+  "name": "ingestion-review",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "bun --bun ../../node_modules/vite/bin/vite.js --host 127.0.0.1 --port 5185 --strictPort",
+    "check": "svelte-check --tsconfig ./tsconfig.json",
+    "test": "bun test ./server.test.ts ./signoffs.test.ts"
+  },
+  "dependencies": {
+    "svelte": "^5.57.2"
+  },
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "^7.3.1",
+    "@tailwindcss/vite": "^4.3.3",
+    "vite": "^8.3.4",
+    "svelte-check": "^4.7.6",
+    "typescript": "^6.0.3"
+  }
+}
