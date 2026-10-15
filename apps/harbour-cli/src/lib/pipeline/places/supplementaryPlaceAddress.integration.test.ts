@@ -1,3 +1,4 @@
+import { defineRelations } from 'drizzle-orm'
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises'
@@ -49,7 +50,7 @@ test('published supplementary retry recovers revocations from immutable history'
     expect(
       await collectPublishedSupplementaryRevocations(
         [first, second].map((db, index) => ({
-          db: drizzle({ client: db, schema: historySchema }),
+          db: drizzle({ client: db, relations: defineRelations(historySchema) }),
           bindingName: `DB_HISTORY_${index}`,
           databaseId: null,
           databaseName: `history-${index}`,
@@ -144,7 +145,10 @@ test('supplementary editions reuse cross-year components, replay immutable prove
       regionCode: 'hk',
       sourceReleaseId: resourceReleaseId,
     })
-    const currentDb = drizzle({ client: current, schema: currentSchema })
+    const currentDb = drizzle({
+      client: current,
+      relations: defineRelations(currentSchema),
+    })
     meta.exec(`
       INSERT INTO snapshotLineages(id,code,regionCode,resourceType,identityMode,versionHash)
       VALUES ('division','division-dependency','hk','division','persistent','fixture');
@@ -256,11 +260,14 @@ INSERT INTO snapshots(id, code, cohortKey, status, snapshotLineageId) VALUES
         currentDb,
         historyTargets: [
           {
-            db: drizzle({ client: history, schema: historySchema }),
+            db: drizzle({ client: history, relations: defineRelations(historySchema) }),
             bindingName: 'DB_HISTORY_HK_2025',
           },
           {
-            db: drizzle({ client: historyNext, schema: historySchema }),
+            db: drizzle({
+              client: historyNext,
+              relations: defineRelations(historySchema),
+            }),
             bindingName: 'DB_HISTORY_HK_2026',
           },
         ],

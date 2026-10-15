@@ -1,3 +1,4 @@
+import { defineRelations } from 'drizzle-orm'
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { mkdtemp, rm } from 'node:fs/promises'
@@ -36,7 +37,7 @@ test('Street native delivery preserves unchanged current rows and only writes ch
   const current = databases.DB_CURRENT!
   const directories: string[] = []
   const context = {
-    currentDb: drizzle({ client: current, schema: currentSchema }),
+    currentDb: drizzle({ client: current, relations: defineRelations(currentSchema) }),
     metaDb: drizzle({ client: databases.DB_META! }),
     historyDb: drizzle({ client: databases.DB_HISTORY! }),
     sourceDb: drizzle({ client: databases.DB_SOURCE! }),

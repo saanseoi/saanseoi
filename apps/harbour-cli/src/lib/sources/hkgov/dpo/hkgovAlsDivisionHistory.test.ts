@@ -1,3 +1,4 @@
+import { defineRelations } from 'drizzle-orm'
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { historySchema, metaSchema } from '@repo/db'
@@ -46,19 +47,25 @@ test('ALS lookup replays inherited names across shards and excludes deleted divi
         'old',
         {
           bindingName: 'old',
-          db: drizzle({ client: parent, schema: historySchema }) as never,
+          db: drizzle({
+            client: parent,
+            relations: defineRelations(historySchema),
+          }) as never,
         },
       ],
       [
         'new',
         {
           bindingName: 'new',
-          db: drizzle({ client: child, schema: historySchema }) as never,
+          db: drizzle({
+            client: child,
+            relations: defineRelations(historySchema),
+          }) as never,
         },
       ],
     ])
     const rows = await loadAlsDivisionHistory(
-      drizzle({ client: meta, schema: metaSchema }) as never,
+      drizzle({ client: meta, relations: defineRelations(metaSchema) }) as never,
       'child',
       shards,
     )

@@ -1,7 +1,7 @@
 diff --git a/bin.cjs b/bin.cjs
 --- a/bin.cjs
 +++ b/bin.cjs
-@@ -152378,6 +152378,16 @@
+@@ -152342,6 +152342,16 @@
  				const { drizzle } = await import("drizzle-orm/sqlite-proxy");
  				const { migrate } = await import("drizzle-orm/sqlite-proxy/migrator");
  				const remoteCallback = async (sql, params, method) => {

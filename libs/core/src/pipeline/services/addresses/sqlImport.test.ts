@@ -1,3 +1,4 @@
+import { defineRelations } from 'drizzle-orm'
 import { describe, expect, test } from 'bun:test'
 import { Database } from 'bun:sqlite'
 import { drizzle } from 'drizzle-orm/bun-sqlite'
@@ -138,7 +139,7 @@ INSERT INTO snapshots(id, snapshotLineageId, code, cohortKey, status) VALUES
 
     let metadataSql = ''
     const result = await writeAddressReleaseMetaSqlFile(
-      drizzle({ client: source, schema: metaSchema }) as never,
+      drizzle({ client: source, relations: defineRelations(metaSchema) }) as never,
       {
         async put(_key: string, value: string) {
           metadataSql = value

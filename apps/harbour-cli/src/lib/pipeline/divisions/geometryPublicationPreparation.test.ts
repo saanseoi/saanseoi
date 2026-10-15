@@ -1,3 +1,4 @@
+import { defineRelations } from 'drizzle-orm'
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { join } from 'node:path'
@@ -91,14 +92,17 @@ INSERT OR IGNORE INTO snapshotLineages (id,code,resourceType,regionCode,variant,
 UPDATE snapshotLineages SET resourceType='divisionArea' WHERE id='lineage' AND resourceType IS NULL;
 INSERT INTO snapshots (id, parentSnapshotId, snapshotLineageId, cohortKey, status, revision) VALUES
 ('parent', NULL, 'lineage', '2021', 'published', 1);`)
-  const historyDb = drizzle({ client: history, schema: historySchema })
+  const historyDb = drizzle({
+    client: history,
+    relations: defineRelations(historySchema),
+  })
   const context = {
-    currentDb: drizzle({ client: current, schema: currentSchema }),
+    currentDb: drizzle({ client: current, relations: defineRelations(currentSchema) }),
     historyDb,
     historyTargets: [{ bindingName: 'DB_HISTORY', db: historyDb }],
     historyBinding: createLocalExecBinding(history, 'DB_HISTORY'),
     metaDb: drizzle({ client: meta }),
-    sourceDb: drizzle({ client: source, schema: sourceSchema }),
+    sourceDb: drizzle({ client: source, relations: defineRelations(sourceSchema) }),
   } as unknown as LocalAddressDbContext
   return {
     current,

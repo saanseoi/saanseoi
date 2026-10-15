@@ -1,3 +1,4 @@
+import { defineRelations } from 'drizzle-orm'
 import { requireDefined } from '../../../requireDefined'
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
@@ -74,7 +75,7 @@ test('ALS history preserves distinct source owners at one street address and exa
         ]),
       },
     } as AddressPipelineMessage
-    const metaDb = drizzle({ client: sqlite, schema: metaSchema })
+    const metaDb = drizzle({ client: sqlite, relations: defineRelations(metaSchema) })
     const context = await prepareAddressVersionInsertContext(
       metaDb as never,
       message,
@@ -95,7 +96,10 @@ test('ALS history preserves distinct source owners at one street address and exa
         'history',
       ]),
     )
-    const historyDb = drizzle({ client: history, schema: historySchema })
+    const historyDb = drizzle({
+      client: history,
+      relations: defineRelations(historySchema),
+    })
     for (const id of ['reviewed-owner', 'unrelated-owner']) {
       historyDb
         .insert(historySchema.address2d)

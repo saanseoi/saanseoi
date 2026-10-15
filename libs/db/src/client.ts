@@ -1,3 +1,4 @@
+import { defineRelations } from 'drizzle-orm'
 import { drizzle } from 'drizzle-orm/d1'
 
 import * as currentSchema from './schema/current'
@@ -10,7 +11,7 @@ const createBoundDb = <TSchema extends Record<string, unknown>>(
   boundSchema: TSchema,
 ) =>
   drizzle(binding, {
-    schema: boundSchema,
+    relations: defineRelations(boundSchema),
   })
 
 export const createDb = (binding: D1Database) => createBoundDb(binding, metaSchema)

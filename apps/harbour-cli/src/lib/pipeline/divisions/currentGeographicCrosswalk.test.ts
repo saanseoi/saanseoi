@@ -1,3 +1,4 @@
+import { defineRelations } from 'drizzle-orm'
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { drizzle } from 'drizzle-orm/bun-sqlite'
@@ -49,7 +50,7 @@ function fixture() {
   return {
     sqlite,
     context: {
-      currentDb: drizzle({ client: sqlite, schema: currentSchema }),
+      currentDb: drizzle({ client: sqlite, relations: defineRelations(currentSchema) }),
     } as unknown as Parameters<typeof loadCrosswalkDivisions>[0],
   }
 }
@@ -143,7 +144,10 @@ test('historical crosswalk inputs replay inherited rows and deletions without bo
           .run(id!, 'history')
       }
     }
-    const historyDb = drizzle({ client: history, schema: historySchema })
+    const historyDb = drizzle({
+      client: history,
+      relations: defineRelations(historySchema),
+    })
     for (const id of ['inherited', 'deleted']) {
       await historyDb
         .insert(historySchema.divisions)
@@ -181,7 +185,7 @@ test('historical crosswalk inputs replay inherited rows and deletions without bo
     )
     const context = {
       ...f.context,
-      metaDb: drizzle({ client: meta, schema: metaSchema }),
+      metaDb: drizzle({ client: meta, relations: defineRelations(metaSchema) }),
       historyTargets: [{ bindingName: 'history', db: historyDb }],
     } as unknown as Parameters<typeof loadCrosswalkDivisions>[0]
     const result = await loadCrosswalkDivisions(

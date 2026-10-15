@@ -1,3 +1,4 @@
+import { defineRelations } from 'drizzle-orm'
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { join } from 'node:path'
@@ -35,7 +36,7 @@ test('releases and datasets own statistics while reusing geometry, including rep
   db.exec('PRAGMA foreign_keys=ON')
   const readable = drizzle({
     client: db,
-    schema: sourceSchema,
+    relations: defineRelations(sourceSchema),
   }) as unknown as HarbourReadableDb
   const write = (
     release: string,

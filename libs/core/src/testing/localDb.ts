@@ -1,3 +1,4 @@
+import { defineRelations } from 'drizzle-orm'
 import { existsSync, globSync } from 'node:fs'
 import { resolve } from 'node:path'
 
@@ -15,7 +16,7 @@ const DEFAULT_LOCAL_D1_GLOB = resolve(
 export function createLocalHarbourDb(sqlite: SQLiteDatabase) {
   const db = drizzle({
     client: sqlite,
-    schema,
+    relations: defineRelations(schema),
   })
 
   return db as typeof db & HarbourReadableDb & HarbourWritableDb

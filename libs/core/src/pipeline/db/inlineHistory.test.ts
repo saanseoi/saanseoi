@@ -1,3 +1,4 @@
+import { defineRelations } from 'drizzle-orm'
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { resolve } from 'node:path'
@@ -13,7 +14,7 @@ function fixture() {
       'history',
     ]),
   )
-  return { client, db: drizzle({ client, schema: historySchema }) }
+  return { client, db: drizzle({ client, relations: defineRelations(historySchema) }) }
 }
 
 test('every canonical HISTORY table accepts an identity-only deletion event', () => {

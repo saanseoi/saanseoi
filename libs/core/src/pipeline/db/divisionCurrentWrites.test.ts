@@ -1,3 +1,4 @@
+import { defineRelations } from 'drizzle-orm'
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { join } from 'node:path'
@@ -18,7 +19,7 @@ test('Division current writes insert, change and remove only the affected rows w
     loadMigrationSql(join(import.meta.dir, '../../../../db/migrations'), ['current']),
   )
   client.exec('PRAGMA foreign_keys=ON')
-  const db = drizzle({ client, schema: currentSchema })
+  const db = drizzle({ client, relations: defineRelations(currentSchema) })
   const scope = 'lineage'
   const timestamp = '2025-01-01T00:00:00Z'
   const base = (id: string): DivisionBaseRecord => ({

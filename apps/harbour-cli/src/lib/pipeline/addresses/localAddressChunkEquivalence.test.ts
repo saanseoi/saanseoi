@@ -1,3 +1,4 @@
+import { defineRelations } from 'drizzle-orm'
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { mkdtemp, rm } from 'node:fs/promises'
@@ -103,7 +104,7 @@ test('chunk memory and retained JSON produce identical history and current SQL f
     ]) {
       await writeJsonArtefact(bucket, 'normalised', artefact)
       const next = await writeAddressHistorySqlChunkStage(
-        drizzle({ client: sqlite, schema: metaSchema }) as never,
+        drizzle({ client: sqlite, relations: defineRelations(metaSchema) }) as never,
         {} as never,
         bucket,
         message,

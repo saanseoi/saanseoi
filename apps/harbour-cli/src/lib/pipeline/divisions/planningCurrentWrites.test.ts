@@ -1,3 +1,4 @@
+import { defineRelations } from 'drizzle-orm'
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { join } from 'node:path'
@@ -55,7 +56,7 @@ test('independent Planning cohorts replace current membership without a history 
       'current',
     ]),
   )
-  const db = drizzle({ client: sqlite, schema: currentSchema })
+  const db = drizzle({ client: sqlite, relations: defineRelations(currentSchema) })
   const publish = async (scope: string, records: PreparedDivision[]) => {
     await replaceCurrentSnapshot(
       db as never,
@@ -116,7 +117,7 @@ test('Planning canonical reuse and local/remote current delivery skip an unchang
       CREATE TRIGGER names_write AFTER INSERT ON divisionsI18n BEGIN INSERT INTO writes VALUES('insert-locale',NEW.divisionId); END;
       CREATE TRIGGER names_update AFTER UPDATE ON divisionsI18n BEGIN INSERT INTO writes VALUES('update-locale',NEW.divisionId); END;`)
   }
-  const db = drizzle({ client: mirror, schema: currentSchema })
+  const db = drizzle({ client: mirror, relations: defineRelations(currentSchema) })
   const first = make('first')
   first.versionHash = await createHash({
     base: first.base,

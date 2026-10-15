@@ -1,3 +1,4 @@
+import { defineRelations } from 'drizzle-orm'
 import { Database } from 'bun:sqlite'
 import { describe, expect, test } from 'bun:test'
 import { resolve } from 'node:path'
@@ -16,7 +17,7 @@ describe('resolveSnapshotVersionState', () => {
       ]),
     )
 
-    const db = drizzle({ client: sqlite, schema: historySchema })
+    const db = drizzle({ client: sqlite, relations: defineRelations(historySchema) })
     await db
       .insert(historySchema.divisions)
       .values([
@@ -120,7 +121,7 @@ test('parent-ID selection includes composite components and honours parent delet
     sqlite.exec(`INSERT INTO address2d(id,snapshotId,versionHash,granularity) VALUES('address','root','base','building');
       INSERT INTO address2dBuildingNumberLookup(addressId,buildingNumber,snapshotId,versionHash,evidence) VALUES('address','12','root','lookup','source_endpoint');
       INSERT INTO address2d(id,snapshotId,operation) VALUES('address','deleted','delete');`)
-    const db = drizzle({ client: sqlite, schema: historySchema })
+    const db = drizzle({ client: sqlite, relations: defineRelations(historySchema) })
     const step = (snapshotId: string, parentSnapshotId: string | null) => ({
       resourceReleaseId: 'release',
       snapshotId,
@@ -183,7 +184,7 @@ test('bulk parent withdrawals clear locales and composite children without reviv
         "INSERT INTO address2d(id,snapshotId,versionHash,granularity) VALUES('address-0','restored','base','building'); INSERT INTO address2dI18n(addressId,locale,snapshotId,versionHash,formattedAddress) VALUES('address-0','zh-hant','restored','fresh','新地址')",
       )
     })()
-    const db = drizzle({ client: sqlite, schema: historySchema })
+    const db = drizzle({ client: sqlite, relations: defineRelations(historySchema) })
     const state = await resolveSnapshotVersionState(
       ['root', 'deleted', 'restored'].map((snapshotId, index, ids) => ({
         resourceReleaseId: 'release',

@@ -1,3 +1,4 @@
+import { defineRelations } from 'drizzle-orm'
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { join } from 'node:path'
@@ -30,14 +31,20 @@ for (const sourceName of ['overture', 'hkgov-censtatd'] as const)
       CREATE TABLE dataShards(id TEXT PRIMARY KEY,bindingName TEXT);
       CREATE TABLE snapshotShardAssignments(snapshotId TEXT,dataShardId TEXT);
       INSERT INTO dataShards VALUES('history','DB_HISTORY');`)
-    const historyDb = drizzle({ client: history, schema: historySchema })
+    const historyDb = drizzle({
+      client: history,
+      relations: defineRelations(historySchema),
+    })
     const context = {
-      currentDb: drizzle({ client: current, schema: currentSchema }),
+      currentDb: drizzle({
+        client: current,
+        relations: defineRelations(currentSchema),
+      }),
       historyDb,
       historyTargets: [{ bindingName: 'DB_HISTORY', db: historyDb }],
       historyBinding: createLocalExecBinding(history, 'DB_HISTORY'),
       metaDb: drizzle({ client: meta }),
-      sourceDb: drizzle({ client: source, schema: sourceSchema }),
+      sourceDb: drizzle({ client: source, relations: defineRelations(sourceSchema) }),
     } as unknown as LocalAddressDbContext
     current.exec(`CREATE TABLE writes(operation TEXT,id TEXT);
     CREATE TRIGGER writes_insert AFTER INSERT ON divisionAreas BEGIN INSERT INTO writes VALUES('insert',NEW.id); END;

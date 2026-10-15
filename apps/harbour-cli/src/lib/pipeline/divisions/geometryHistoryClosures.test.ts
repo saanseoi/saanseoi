@@ -1,3 +1,4 @@
+import { defineRelations } from 'drizzle-orm'
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { join } from 'node:path'
@@ -56,7 +57,7 @@ function fixture(resourceType: ResourceType) {
     bindingName: `DB_HISTORY_HK_${year}`,
     databaseId: `history-${year}`,
     databaseName: `history-${year}`,
-    db: drizzle({ client: db, schema: historySchema }),
+    db: drizzle({ client: db, relations: defineRelations(historySchema) }),
     year,
   }))
   const history = (year = '2026') => {
@@ -86,11 +87,14 @@ function fixture(resourceType: ResourceType) {
     const target = historyTargets.find(value => value.year === year)
     if (!target) throw new Error(`Missing geometry history target for ${year}`)
     return {
-      currentDb: drizzle({ client: current, schema: currentSchema }),
-      sourceDb: drizzle({ client: source, schema: sourceSchema }),
+      currentDb: drizzle({
+        client: current,
+        relations: defineRelations(currentSchema),
+      }),
+      sourceDb: drizzle({ client: source, relations: defineRelations(sourceSchema) }),
       historyDb: target.db,
       historyTargets,
-      metaDb: drizzle({ client: meta, schema: metaSchema }),
+      metaDb: drizzle({ client: meta, relations: defineRelations(metaSchema) }),
     } as unknown as LocalAddressDbContext
   }
   const row = (id: string, edge = 115, scope: Scope = exact) => {

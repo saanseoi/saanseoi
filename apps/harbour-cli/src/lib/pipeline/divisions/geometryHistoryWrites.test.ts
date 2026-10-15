@@ -1,3 +1,4 @@
+import { defineRelations } from 'drizzle-orm'
 import { Database, type SQLQueryBindings } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { join } from 'node:path'
@@ -83,12 +84,12 @@ function fixture(kind: DivisionGeometryKind) {
     [next, '2026'],
   ].map(([db, year]) => ({
     bindingName: `DB_HISTORY_${year}`,
-    db: drizzle({ client: db as Database, schema: historySchema }),
+    db: drizzle({ client: db as Database, relations: defineRelations(historySchema) }),
     year,
   }))
   const context = {
-    currentDb: drizzle({ client: current, schema: currentSchema }),
-    sourceDb: drizzle({ client: source, schema: sourceSchema }),
+    currentDb: drizzle({ client: current, relations: defineRelations(currentSchema) }),
+    sourceDb: drizzle({ client: source, relations: defineRelations(sourceSchema) }),
     metaDb: drizzle({ client: meta }),
     historyTargets,
   } as unknown as LocalAddressDbContext

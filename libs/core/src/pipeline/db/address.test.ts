@@ -1,3 +1,4 @@
+import { defineRelations } from 'drizzle-orm'
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { resolve } from 'node:path'
@@ -26,7 +27,7 @@ test('Address replay uses the chosen ancestor even when a later shard contains a
         String(index),
         {
           bindingName: String(index),
-          db: drizzle({ client, schema: historySchema }) as never,
+          db: drizzle({ client, relations: defineRelations(historySchema) }) as never,
         },
       ]),
     )

@@ -1,3 +1,4 @@
+import { defineRelations } from 'drizzle-orm'
 import { mkdir, readFile, writeFile, readdir, rm } from 'node:fs/promises'
 import { dirname, resolve } from 'node:path'
 import { Database as SQLiteDatabase } from 'bun:sqlite'
@@ -554,7 +555,7 @@ export async function openSqliteDbWithRetry<TSchema extends Record<string, unkno
       return {
         db: drizzle({
           client: sqlite,
-          schema,
+          relations: defineRelations(schema),
         }),
         sqlite,
       }

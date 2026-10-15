@@ -1,5 +1,5 @@
 import { getTableColumns } from 'drizzle-orm'
-import { getViewConfig, SQLiteSyncDialect } from 'drizzle-orm/sqlite-core'
+import { getViewConfig, SQLiteDialect } from 'drizzle-orm/sqlite-core'
 import {
   metaResourceReleases,
   metaResourceReleaseDetails,
@@ -17,7 +17,7 @@ export function releaseFixtureSchemaSql() {
     return `CREATE TABLE ${name} (${columns.join(', ')});`
   })
   const query = getViewConfig(metaResourceReleaseDetails).query!
-  const view = new SQLiteSyncDialect().sqlToQuery(query).sql
+  const view = new SQLiteDialect().sqlToQuery(query).sql
   const membershipView =
     'SELECT m.*, r.datasetId FROM snapshotResourceReleases m JOIN resourceReleaseDetails r ON r.id = m.resourceReleaseId'
   return `${tables.join('\n')}\nCREATE VIEW resourceReleaseDetails AS ${view};\nCREATE VIEW snapshotResourceReleaseDetails AS ${membershipView};`

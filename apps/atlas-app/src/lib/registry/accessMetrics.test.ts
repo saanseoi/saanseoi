@@ -1,3 +1,4 @@
+import { defineRelations } from 'drizzle-orm'
 import { Database } from 'bun:sqlite'
 import { describe, expect, test } from 'bun:test'
 import { drizzle } from 'drizzle-orm/bun-sqlite'
@@ -29,7 +30,7 @@ describe('getRegistryAccessMetricsBatch', () => {
         ('daily', 'source_release', 'shared-id', '{"requests":99}', '2026-09-01', '2026-09-01', '2026-09-01');
     `)
 
-    const db = drizzle({ client: sqlite, schema })
+    const db = drizzle({ client: sqlite, relations: defineRelations(schema) })
     const results = await getRegistryAccessMetricsBatch(db as never, [
       { scope: 'api_release_set', entityId: 'shared-id' },
       { scope: 'source_release', entityId: 'missing-id' },

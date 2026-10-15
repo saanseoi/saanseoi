@@ -1,3 +1,4 @@
+import { defineRelations } from 'drizzle-orm'
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { join } from 'node:path'
@@ -32,7 +33,7 @@ function database(family: 'source' | 'history' | 'current') {
 test('curated division SOURCE preserves names and source fields through replay, change and removal', async () => {
   const db = database('source')
   db.exec(loadMigrationSql(migrations, ['history']))
-  const sourceDb = drizzle({ client: db, schema: sourceSchema })
+  const sourceDb = drizzle({ client: db, relations: defineRelations(sourceSchema) })
   const original = {
     id: 'division',
     class: 'island_group',
@@ -151,9 +152,9 @@ test('curated areas write their own SOURCE before the publication receipt comple
     history = database('history'),
     current = database('current')
   const context = {
-    currentDb: drizzle({ client: current, schema: currentSchema }),
-    historyDb: drizzle({ client: history, schema: historySchema }),
-    sourceDb: drizzle({ client: source, schema: sourceSchema }),
+    currentDb: drizzle({ client: current, relations: defineRelations(currentSchema) }),
+    historyDb: drizzle({ client: history, relations: defineRelations(historySchema) }),
+    sourceDb: drizzle({ client: source, relations: defineRelations(sourceSchema) }),
   } as unknown as LocalAddressDbContext
   const geometry = {
     type: 'Polygon',

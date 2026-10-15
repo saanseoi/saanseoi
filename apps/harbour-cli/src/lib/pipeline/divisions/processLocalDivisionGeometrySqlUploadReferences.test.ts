@@ -1,3 +1,4 @@
+import { defineRelations } from 'drizzle-orm'
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { join } from 'node:path'
@@ -111,15 +112,21 @@ INSERT INTO resourceReleases(id,sourceReleaseId,code,resourceType,status) VALUES
       if (!row) throw new Error(`Invalid geometry fixture: ${id}`)
       return row
     })
-    const currentDb = drizzle({ client: current, schema: currentSchema })
-    const metaDb = drizzle({ client: meta, schema: metaSchema })
+    const currentDb = drizzle({
+      client: current,
+      relations: defineRelations(currentSchema),
+    })
+    const metaDb = drizzle({ client: meta, relations: defineRelations(metaSchema) })
     const historyTargets = [
       { bindingName: 'DB_HISTORY_HK_BEFORE', db: before },
       { bindingName: 'DB_HISTORY_HK_2025', db: history2025 },
       { bindingName: 'DB_HISTORY_HK_2026', db: history2026 },
     ].map(target => ({
       bindingName: target.bindingName,
-      db: drizzle({ client: target.db, schema: historySchema }) as never,
+      db: drizzle({
+        client: target.db,
+        relations: defineRelations(historySchema),
+      }) as never,
     }))
     const changesBefore = current.query('SELECT total_changes() AS count').get()
     await expect(
@@ -246,8 +253,14 @@ test('fresh Planning area publication retains cell evidence in current and histo
     if (!row) throw new Error('Expected a Planning area.')
     await writeGeometryRows(
       {
-        currentDb: drizzle({ client: current, schema: currentSchema }),
-        historyDb: drizzle({ client: history, schema: historySchema }),
+        currentDb: drizzle({
+          client: current,
+          relations: defineRelations(currentSchema),
+        }),
+        historyDb: drizzle({
+          client: history,
+          relations: defineRelations(historySchema),
+        }),
       } as never,
       'divisionArea',
       [row],

@@ -1,3 +1,4 @@
+import { defineRelations } from 'drizzle-orm'
 import { resolve } from 'node:path'
 import { mkdir, writeFile } from 'node:fs/promises'
 import { drizzle } from 'drizzle-orm/bun-sqlite'
@@ -139,7 +140,7 @@ export async function prepareReconstructedRollback(input: {
       const selection = resolveRollbackSelection(meta, input.resourceReleaseId)
       const metaDb = drizzle({
         client: meta,
-        schema: metaSchema,
+        relations: defineRelations(metaSchema),
       }) as unknown as HarbourReadableDb
       const historyTargets = input.context.historyTargets.map(target => ({
         bindingName: target.bindingName,

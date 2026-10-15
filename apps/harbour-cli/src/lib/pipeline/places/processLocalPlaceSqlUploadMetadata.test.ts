@@ -1,3 +1,4 @@
+import { defineRelations } from 'drizzle-orm'
 import { Database } from 'bun:sqlite'
 import { drizzle } from 'drizzle-orm/bun-sqlite'
 import { expect, test } from 'bun:test'
@@ -33,7 +34,7 @@ INSERT INTO resourceReleases (id, sourceReleaseId, code, resourceType, status) V
 
     const metaDb = drizzle({
       client: database,
-      schema: metaSchema,
+      relations: defineRelations(metaSchema),
     }) as unknown as HarbourReadableDb & HarbourWritableDb
     await assignPlaceSourceShards(metaDb, 'place-release', 'preview', [
       'DB_SOURCE_HK_2025',

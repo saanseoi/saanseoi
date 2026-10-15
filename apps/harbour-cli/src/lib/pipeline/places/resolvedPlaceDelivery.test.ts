@@ -1,3 +1,4 @@
+import { defineRelations } from 'drizzle-orm'
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { mkdtemp, rm } from 'node:fs/promises'
@@ -61,20 +62,20 @@ async function setup() {
   const meta = clients.DB_META
   if (!current || !history || !source || !meta) throw new Error('Missing test database')
   const context = {
-    currentDb: drizzle({ client: current, schema: currentSchema }),
-    historyDb: drizzle({ client: history, schema: historySchema }),
-    sourceDb: drizzle({ client: source, schema: sourceSchema }),
-    metaDb: drizzle({ client: meta, schema: metaSchema }),
+    currentDb: drizzle({ client: current, relations: defineRelations(currentSchema) }),
+    historyDb: drizzle({ client: history, relations: defineRelations(historySchema) }),
+    sourceDb: drizzle({ client: source, relations: defineRelations(sourceSchema) }),
+    metaDb: drizzle({ client: meta, relations: defineRelations(metaSchema) }),
     historyTargets: [
       {
         bindingName: 'DB_HISTORY_HK_2025',
-        db: drizzle({ client: history, schema: historySchema }),
+        db: drizzle({ client: history, relations: defineRelations(historySchema) }),
       },
     ],
     sourceTargets: [
       {
         bindingName: 'DB_SOURCE_HK_2025',
-        db: drizzle({ client: source, schema: sourceSchema }),
+        db: drizzle({ client: source, relations: defineRelations(sourceSchema) }),
       },
     ],
     state: {
@@ -371,20 +372,26 @@ with patch.object(bootstrap, 'CONFIG', config):
         throw new Error('Incomplete bootstrapped mirror')
       const context = {
         ...f.context,
-        currentDb: drizzle({ client: current, schema: currentSchema }),
-        historyDb: drizzle({ client: history, schema: historySchema }),
-        sourceDb: drizzle({ client: source, schema: sourceSchema }),
-        metaDb: drizzle({ client: meta, schema: metaSchema }),
+        currentDb: drizzle({
+          client: current,
+          relations: defineRelations(currentSchema),
+        }),
+        historyDb: drizzle({
+          client: history,
+          relations: defineRelations(historySchema),
+        }),
+        sourceDb: drizzle({ client: source, relations: defineRelations(sourceSchema) }),
+        metaDb: drizzle({ client: meta, relations: defineRelations(metaSchema) }),
         historyTargets: [
           {
             bindingName: 'DB_HISTORY_HK_2025',
-            db: drizzle({ client: history, schema: historySchema }),
+            db: drizzle({ client: history, relations: defineRelations(historySchema) }),
           },
         ],
         sourceTargets: [
           {
             bindingName: 'DB_SOURCE_HK_2025',
-            db: drizzle({ client: source, schema: sourceSchema }),
+            db: drizzle({ client: source, relations: defineRelations(sourceSchema) }),
           },
         ],
         state: { ...f.context.state, ...state, dbCacheDir: mirrorRoot },

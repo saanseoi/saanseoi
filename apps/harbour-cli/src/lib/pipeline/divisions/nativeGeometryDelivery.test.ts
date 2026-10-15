@@ -1,3 +1,4 @@
+import { defineRelations } from 'drizzle-orm'
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { mkdtemp, rm } from 'node:fs/promises'
@@ -66,13 +67,19 @@ for (const sourceKind of ['overture', 'saanseoi'] as const)
       const sourceTable =
         sourceKind === 'saanseoi' ? 'ssDivisionArea' : 'overtureDivisionAreas'
       const resourceReleaseId = `native-geometry-test-${crypto.randomUUID()}`
-      const historyDb = drizzle({ client: history, schema: historySchema })
+      const historyDb = drizzle({
+        client: history,
+        relations: defineRelations(historySchema),
+      })
       const context = {
-        currentDb: drizzle({ client: current, schema: currentSchema }),
+        currentDb: drizzle({
+          client: current,
+          relations: defineRelations(currentSchema),
+        }),
         historyDb,
         historyTargets: [{ bindingName: 'DB_HISTORY', db: historyDb }],
         metaDb: drizzle({ client: meta }),
-        sourceDb: drizzle({ client: source, schema: sourceSchema }),
+        sourceDb: drizzle({ client: source, relations: defineRelations(sourceSchema) }),
         currentBinding: createLocalExecBinding(current, 'DB_CURRENT'),
         historyBinding: createLocalExecBinding(history, 'DB_HISTORY'),
         sourceBinding: createLocalExecBinding(source, 'DB_SOURCE'),
@@ -382,9 +389,15 @@ test('canonical replacement retains only real publisher geometry and resolves it
     const canonical = makeRow('district-union', 116)
     await writeGeometryRows(
       {
-        currentDb: drizzle({ client: current, schema: currentSchema }),
-        historyDb: drizzle({ client: history, schema: historySchema }),
-        sourceDb: drizzle({ client: source, schema: sourceSchema }),
+        currentDb: drizzle({
+          client: current,
+          relations: defineRelations(currentSchema),
+        }),
+        historyDb: drizzle({
+          client: history,
+          relations: defineRelations(historySchema),
+        }),
+        sourceDb: drizzle({ client: source, relations: defineRelations(sourceSchema) }),
       } as unknown as LocalAddressDbContext,
       'divisionArea',
       [canonical],

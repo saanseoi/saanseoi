@@ -1,3 +1,4 @@
+import { defineRelations } from 'drizzle-orm'
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { drizzle } from 'drizzle-orm/bun-sqlite'
@@ -47,8 +48,14 @@ INSERT INTO snapshots (id, snapshotLineageId, status, cohortKey, revision) VALUE
       INSERT INTO divisions VALUES ('division-scope','hk',0,'land','country',NULL),('division-scope','central',2,'land','district',NULL);
       INSERT INTO divisionsI18n VALUES ('division-scope','hk','en','China'),('division-scope','central','en','Central and Western');`)
     const options = {
-      currentDb: drizzle({ client: current, schema: currentSchema }) as never,
-      metaDb: drizzle({ client: meta, schema: metaSchema }) as never,
+      currentDb: drizzle({
+        client: current,
+        relations: defineRelations(currentSchema),
+      }) as never,
+      metaDb: drizzle({
+        client: meta,
+        relations: defineRelations(metaSchema),
+      }) as never,
       cohortKey: '2026-09',
       environment: 'dev' as const,
     }

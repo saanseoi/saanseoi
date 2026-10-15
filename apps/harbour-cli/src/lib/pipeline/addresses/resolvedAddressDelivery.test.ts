@@ -1,3 +1,4 @@
+import { defineRelations } from 'drizzle-orm'
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { mkdtemp, rm, writeFile } from 'node:fs/promises'
@@ -62,7 +63,7 @@ test('combined Address planning seals only final changes and rejects incomplete 
     const source = opened.DB_SOURCE_HK_2026!
     const meta = drizzle({
       client: opened.DB_META!,
-      schema: metaSchema,
+      relations: defineRelations(metaSchema),
     }) as unknown as MetaDatabase
     const shards = getTableConfig(metaSchema.metaDataShards)
     opened.DB_META!.exec(
@@ -76,9 +77,15 @@ test('combined Address planning seals only final changes and rejects incomplete 
       historyBinding: createLocalExecBinding(history, 'DB_HISTORY_HK_2026'),
       sourceBinding: createLocalExecBinding(source, 'DB_SOURCE_HK_2026'),
       metaDb: meta,
-      currentDb: drizzle({ client: current, schema: currentSchema }),
-      historyDb: drizzle({ client: history, schema: historySchema }),
-      sourceDb: drizzle({ client: source, schema: sourceSchema }),
+      currentDb: drizzle({
+        client: current,
+        relations: defineRelations(currentSchema),
+      }),
+      historyDb: drizzle({
+        client: history,
+        relations: defineRelations(historySchema),
+      }),
+      sourceDb: drizzle({ client: source, relations: defineRelations(sourceSchema) }),
       state: {
         files,
         bindings,

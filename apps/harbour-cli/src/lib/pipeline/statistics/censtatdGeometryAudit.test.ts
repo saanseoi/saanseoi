@@ -1,3 +1,4 @@
+import { defineRelations } from 'drizzle-orm'
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { mkdtemp, rm } from 'node:fs/promises'
@@ -32,7 +33,7 @@ test('ingestion audit seals distinct new/reused geometry counts before writes an
   sqlite.exec('CREATE TABLE hkgovCenstatdGeometry (id TEXT PRIMARY KEY)')
   const db = drizzle({
     client: sqlite,
-    schema: sourceSchema,
+    relations: defineRelations(sourceSchema),
   }) as unknown as HarbourReadableDb
   const existing = polygon(1)
   const fresh = polygon(3)
@@ -97,7 +98,7 @@ test('geometry lookup batches large cohorts and empty input is not applicable', 
   sqlite.exec('CREATE TABLE hkgovCenstatdGeometry (id TEXT PRIMARY KEY)')
   const db = drizzle({
     client: sqlite,
-    schema: sourceSchema,
+    relations: defineRelations(sourceSchema),
   }) as unknown as HarbourReadableDb
   const rows = Array.from({ length: 191 }, (_, i) => ({ sourceGeometry: polygon(i) }))
   for (const row of rows)

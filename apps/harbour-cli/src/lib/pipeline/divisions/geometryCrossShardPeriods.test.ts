@@ -1,3 +1,4 @@
+import { defineRelations } from 'drizzle-orm'
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { mkdtemp, rm } from 'node:fs/promises'
@@ -40,7 +41,10 @@ test('year rollover closes changed and removed source periods and retains unchan
         ),
       )
     }
-    const historyDb = drizzle({ client: dbs.DB_HISTORY!, schema: historySchema })
+    const historyDb = drizzle({
+      client: dbs.DB_HISTORY!,
+      relations: defineRelations(historySchema),
+    })
     const sources = [2025, 2026].map(year => ({
       bindingName: `DB_SOURCE_${year}`,
       year: String(year),
@@ -48,7 +52,10 @@ test('year rollover closes changed and removed source periods and retains unchan
     }))
     const context = (index: number) =>
       ({
-        currentDb: drizzle({ client: dbs.DB_CURRENT!, schema: currentSchema }),
+        currentDb: drizzle({
+          client: dbs.DB_CURRENT!,
+          relations: defineRelations(currentSchema),
+        }),
         historyDb,
         historyTargets: [{ bindingName: 'DB_HISTORY', db: historyDb }],
         metaDb: drizzle({ client: dbs.DB_META! }),

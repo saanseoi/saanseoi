@@ -1,3 +1,4 @@
+import { defineRelations } from 'drizzle-orm'
 import { Database } from 'bun:sqlite'
 import { drizzle } from 'drizzle-orm/bun-sqlite'
 import { currentSchema, eq, metaSchema } from '@repo/db'
@@ -78,7 +79,10 @@ export async function readDivisionBaseline(
       deferForeignKeyValidation: true,
     })
     return await getDivisionVersionMapForSnapshot(
-      drizzle({ client: candidate, schema: currentSchema }) as never,
+      drizzle({
+        client: candidate,
+        relations: defineRelations(currentSchema),
+      }) as never,
       snapshotId,
       options,
       ownerShardKeys,

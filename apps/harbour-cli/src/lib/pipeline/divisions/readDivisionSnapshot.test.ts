@@ -1,3 +1,4 @@
+import { defineRelations } from 'drizzle-orm'
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { join } from 'node:path'
@@ -33,8 +34,8 @@ test('geometry dependency reads use current scope or replay old Division members
     INSERT INTO divisions(id,versionHash,snapshotId,class,hierarchies) VALUES('inherited','v1','sibling','district','{}');
     INSERT INTO divisionsI18n(divisionId,locale,snapshotId,versionHash,name,meta) VALUES('inherited','en','parent','name','District',json_object('isLocaleInferred',json(CASE 0 WHEN 1 THEN 'true' ELSE 'false' END))),('inherited','en','sibling','name','District',json_object('isLocaleInferred',json(CASE 0 WHEN 1 THEN 'true' ELSE 'false' END)));`)
   const args = [
-    drizzle({ client: current, schema: currentSchema }) as never,
-    drizzle({ client: meta, schema: metaSchema }) as never,
+    drizzle({ client: current, relations: defineRelations(currentSchema) }) as never,
+    drizzle({ client: meta, relations: defineRelations(metaSchema) }) as never,
   ] as const
   try {
     const before = current.query('SELECT total_changes() AS n').get()
@@ -44,7 +45,10 @@ test('geometry dependency reads use current scope or replay old Division members
     const result = await readDivisionSnapshot(...args, 'old', [
       {
         bindingName: 'DB_HISTORY',
-        db: drizzle({ client: history, schema: historySchema }) as never,
+        db: drizzle({
+          client: history,
+          relations: defineRelations(historySchema),
+        }) as never,
       },
     ])
     expect(
