@@ -83,6 +83,7 @@ test('native Statistics source delivery resumes without regenerating SQL or writ
         () => {
           generated++
           return {
+            history: [],
             source: ['UPDATE counter SET n=n+1;', 'UPDATE counter SET n=n+2;'],
           }
         },

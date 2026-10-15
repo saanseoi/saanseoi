@@ -1076,7 +1076,7 @@
     "apps/harbour-cli/src/lib/pipeline/statistics/censtatdDistrictBridge.ts#resolveCenstatdDistrictBridgeCohort": {
       "path": "apps/harbour-cli/src/lib/pipeline/statistics/censtatdDistrictBridge.ts",
       "symbol": "resolveCenstatdDistrictBridgeCohort",
-      "sourceHash": "sha256:4f1660fde631177f44da9f73e188a7ddde921ee7a5f468e1abd8416742821140",
+      "sourceHash": "sha256:58ed255656c4c8a861e6a529e799b52dc989fef4548cafdde4282df781bcec0a",
       "dependencies": [
         {
           "path": "apps/harbour-cli/src/lib/identityCurations.ts",
@@ -1086,12 +1086,12 @@
         {
           "path": "apps/harbour-cli/src/lib/pipeline/statistics/censtatdDistrictBridge.ts",
           "symbol": "createHkgovCenstatdNewTownResolution",
-          "sourceHash": "sha256:4f1660fde631177f44da9f73e188a7ddde921ee7a5f468e1abd8416742821140"
+          "sourceHash": "sha256:58ed255656c4c8a861e6a529e799b52dc989fef4548cafdde4282df781bcec0a"
         },
         {
-          "path": "libs/core/src/pipeline/services/divisions/divisionStatistics.ts",
+          "path": "libs/core/src/pipeline/services/divisions/districtIdentity.ts",
           "symbol": "createHkgovCenstatdDistrictResolution",
-          "sourceHash": "sha256:bba664b0652f6e0ed4dd340052aefb4374e91aa03c36ce27ad19a2bb6a97d3c5"
+          "sourceHash": "sha256:9e19c866f4a390b7f4e3c3f24287fae45b9ba31e0bc1f04db0715ebdacaeaee5"
         }
       ]
     },
