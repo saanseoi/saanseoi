@@ -2,7 +2,7 @@
 createdAt: "2026-08-20T00:00:00.000Z"
 updatedAt: "2026-08-25T00:00:00.000Z"
 apiFamily: "divisions"
-apiVersion: "api-divisions-v0.1"
+apiVersion: "api-divisions-v0.2"
 apiReleaseSet: "data-hk-divisions-2021--hkgov-pland-new-town"
 regionCode: "hk"
 cohortKey: "2021"
@@ -19,7 +19,11 @@ domainCode: "hkgov-pland-new-town"
 ## Revision log
 
 - `r{{ revision }}` adds <black>division</black> and <black>division-area</black> from
-  the source release.
+  the source release. It includes inferred HKSAR → Area → District ancestry, with one
+  path for every district covering at least 5% of the covered source area. Field
+  provenance records the inference policy and pinned reference geometry. Spatial
+  crosswalks expose polygon overlaps with published SaanSeoi geographic editions
+  independently of the hierarchy threshold.
 
 ## Release scope
 
@@ -50,7 +54,7 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 ## 修訂紀錄
 
 - `r{{ revision }}` 從來源發布加入 <black>division</black> 及
-  <black>division-area</black>。
+  <black>division-area</black>，並包含推算的香港特別行政區 → 地域 → 區議會分區階層；每個佔已覆蓋來源面積至少百分之五的分區均有獨立路徑。欄位溯源記錄推算規則及固定版本參考幾何。空間對照表獨立於階層門檻，提供與已發布山水地理版本的多邊形重疊資料。
 
 ## 發布範圍
 
@@ -79,7 +83,7 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 ## 修订记录
 
 - `r{{ revision }}` 从源发布加入 <black>division</black> 及
-  <black>division-area</black>。
+  <black>division-area</black>，并包含推算的香港特别行政区 → 地域 → 区议会分区层级；每个占已覆盖来源面积至少百分之五的分区均有独立路径。字段溯源记录推算规则及固定版本参考几何。空间对照表独立于层级门槛，提供与已发布山水地理版本的多边形重叠数据。
 
 ## 发布范围
 
