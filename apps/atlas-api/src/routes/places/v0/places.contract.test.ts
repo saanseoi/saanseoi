@@ -628,7 +628,16 @@ describe('Places collection through the Worker route', () => {
       }
       for (const [path, expected] of [
         ['/places/v0.1/search?q=sushi', { results: [] }],
-        ['/places/v0.1/by-cell/9/89283470cdbffff?', { places: [] }],
+        [
+          '/places/v0.1/by-cell/9/89283470cdbffff?',
+          {
+            places: [],
+            links: {
+              self: 'http://localhost/places/v0.1/by-cell/9/89283470cdbffff?region=mo&limit=50&offset=0',
+            },
+            meta: { page: { limit: 50, offset: 0, hasMore: false } },
+          },
+        ],
         ['/addresses/v0.1/source-releases?', { sourceReleases: [] }],
         ['/divisions/v0.1/source-releases?', { sourceReleases: [] }],
         ['/stats/v0.1/source-releases?', { sourceReleases: [] }],
@@ -751,6 +760,72 @@ describe('Places collection through the Worker route', () => {
       fixture.close()
     }
   })
+})
+
+test('Place cell pagination visits every Place in stable order on both API paths', async () => {
+  const fixture = createFixtureEnvironment({ rejectHistory: true })
+  try {
+    fixture.currentSqlite.exec(`INSERT INTO placesCells(scopeId,id,h3Level,h3Cell)
+      SELECT scopeId,id,9,'891f1d48803ffff' FROM places;
+      INSERT INTO placesCells(scopeId,id,h3Level,h3Cell)
+      SELECT scopeId,id,7,'871f1d488ffffff' FROM places;`)
+    for (const version of ['v0', 'v0.1']) {
+      const first = await app.fetch(
+        new Request(
+          `http://localhost/places/${version}/by-cell/9/891f1d48803ffff?region=hk&limit=1`,
+        ),
+        fixture.env,
+      )
+      expect(first.status).toBe(200)
+      const page = (await first.json()) as {
+        places: { placeId: string; geometry: unknown }[]
+        links: { self: string; next?: string }
+        meta: { page: { limit: number; offset: number; hasMore: boolean } }
+      }
+      expect(page.places.map(place => place.placeId)).toEqual(['place-cafe'])
+      expect(page.places[0]?.geometry).toEqual({
+        type: 'Point',
+        coordinates: [114.156, 22.286],
+      })
+      expect(page.meta.page).toEqual({ limit: 1, offset: 0, hasMore: true })
+      expect(page.links.next).toBe(
+        `http://localhost/places/v0.1/by-cell/9/891f1d48803ffff?region=hk&limit=1&offset=1`,
+      )
+      const second = await app.fetch(new Request(page.links.next!), fixture.env)
+      expect(second.status).toBe(200)
+      const final = (await second.json()) as { links: { next?: string } }
+      expect(final).toMatchObject({
+        places: [{ placeId: 'place-ramen' }],
+        meta: { page: { limit: 1, offset: 1, hasMore: false } },
+      })
+      expect(final.links.next).toBeUndefined()
+      const empty = await app.fetch(
+        new Request(
+          `http://localhost/places/${version}/by-cell/9/891f1d48803ffff?limit=1&offset=2`,
+        ),
+        fixture.env,
+      )
+      const emptyPage = (await empty.json()) as {
+        places: unknown[]
+        links: { next?: string }
+        meta: unknown
+      }
+      expect(emptyPage.places).toEqual([])
+      expect(emptyPage.links.next).toBeUndefined()
+      expect(emptyPage.meta).toEqual({ page: { limit: 1, offset: 2, hasMore: false } })
+    }
+    for (const offset of ['-1', '0.5', 'no', '9007199254740992']) {
+      const response = await app.fetch(
+        new Request(
+          `http://localhost/places/v0.1/by-cell/9/891f1d48803ffff?offset=${offset}`,
+        ),
+        fixture.env,
+      )
+      expect(response.status).toBe(422)
+    }
+  } finally {
+    fixture.close()
+  }
 })
 
 test('Place current endpoints reject incomplete publications while preserving empty ready selections', async () => {

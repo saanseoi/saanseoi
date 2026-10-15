@@ -42,6 +42,7 @@ type H3Lookup = {
   h3Level: number
   h3Cell: string
   limit?: number
+  offset?: number
 }
 
 type FtsLookup = {
@@ -217,7 +218,8 @@ export async function listPlaceDivisions(db: CurrentDatabase, lookup: I18nLookup
 }
 
 export async function listPlacesByH3Cell(db: CurrentDatabase, lookup: H3Lookup) {
-  return db
+  const limit = Math.min(lookup.limit ?? 50, MAX_PLACE_RESULTS)
+  const rows = await db
     .select({
       placeId: places.id,
       resourceReleaseId: places.resourceReleaseId,
@@ -244,8 +246,11 @@ export async function listPlacesByH3Cell(db: CurrentDatabase, lookup: H3Lookup) 
         placeGeographicCondition(),
       ),
     )
-    .limit(Math.min(lookup.limit ?? 50, MAX_PLACE_RESULTS))
+    .orderBy(asc(places.id))
+    .limit(limit + 1)
+    .offset(lookup.offset ?? 0)
     .all()
+  return { places: rows.slice(0, limit), hasMore: rows.length > limit }
 }
 
 export async function searchPlacesFts(db: CurrentDatabase, lookup: FtsLookup) {

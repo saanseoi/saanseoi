@@ -17,6 +17,7 @@ const joinInstructions = (sections: string[]) =>
     'When inspecting Place provenance, attributes.resourceReleaseId identifies the processed resource release; snapshotId identifies the canonical snapshot.',
     'Treat data[].id as an opaque canonical SaanSeoi Place ID, not an Overture/GERS lookup key. Publisher IDs and identity decisions belong to source provenance. An observation arriving or disappearing does not by itself prove a business opened or closed.',
     'For Places pagination, follow links.next until it is absent. Historical snapshots expose meta.page.hasMore instead of an exact meta.page.total; do not require a total to load subsequent pages.',
+    'The Places H3-cell endpoint also supports pagination: use limit (default 50, maximum 100) and offset (default 0), and follow links.next until absent. Its places array is ordered by Place ID and meta.page.hasMore indicates continuation. It uses the latest active snapshot for each page; use the collection with a pinned release for reproducible exports.',
   ]
     .map(section => section.trim())
     .join('\n\n')

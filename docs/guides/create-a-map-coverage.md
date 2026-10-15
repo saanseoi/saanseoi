@@ -75,6 +75,12 @@ needed.
 | SaanSeoi urban-density example | Tutorial-sized browser calculation for Hong Kong, Kowloon and the New Territories; sourced from District geometry, precision-snapped z14 basemap MVT land-use coverage and C&amp;SD population data | Verify the published Statistics collection, its download/API contract, the documented MVT approximation and the region/District grouping before marking fully available |
 | Planned sushi Places example   | Use the paginated Places collection with `profile=map` and category filters; use search only to discover an appropriate category term                                                               | Verify the published Places snapshot, category vocabulary, pagination and profile contracts, and public-key flow before adding it to the tutorial                       |
 
+The Places pagination contract covers both the collection and H3-cell endpoint. H3
+requests use `limit` and `offset`, return an ordered `places` array and
+`meta.page.hasMore`, and expose `links.next` until the final page. The tutorial hand-off
+includes this contract; the planned sushi example continues to use the release-pinned
+collection because H3 pages use the latest active snapshot.
+
 ## Review checklist
 
 - Verify every manual snippet against the pinned package version and current Bun setup.

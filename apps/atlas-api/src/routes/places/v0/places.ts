@@ -426,7 +426,13 @@ async function handlePlaceDetail(
 
 async function handlePlacesByCell(
   c: Context<AppEnv>,
-  args: { region: 'hk' | 'mo'; h3Level: string; h3Cell: string; limit?: number },
+  args: {
+    region: 'hk' | 'mo'
+    h3Level: string
+    h3Cell: string
+    limit?: number
+    offset?: number
+  },
 ) {
   const h3Level = Number(args.h3Level)
   if (!Number.isInteger(h3Level)) {
@@ -440,8 +446,29 @@ async function handlePlacesByCell(
     )
   }
 
+  const limit = args.limit ?? 50
+  const offset = args.offset ?? 0
+  const respond = (page: Awaited<ReturnType<typeof listPlacesByH3Cell>>) => {
+    const self = sanitiseResponseUrl(c.req.url)
+    self.searchParams.set('limit', String(limit))
+    self.searchParams.set('offset', String(offset))
+    const next = new URL(self)
+    next.searchParams.set('offset', String(offset + limit))
+    return c.json(
+      {
+        places: page.places.map(place => toPlaceApiRecord(place)),
+        links: {
+          self: self.toString(),
+          ...(page.hasMore ? { next: next.toString() } : {}),
+        },
+        meta: { page: { limit, offset, hasMore: page.hasMore } },
+      },
+      200,
+    )
+  }
   const activeSnapshot = await activePlaceSnapshot(c, args.region)
-  if (!activeSnapshot && args.region === 'mo') return c.json({ places: [] }, 200)
+  if (!activeSnapshot && args.region === 'mo')
+    return respond({ places: [], hasMore: false })
   if (!activeSnapshot) {
     return c.json(
       {
@@ -473,15 +500,16 @@ async function handlePlacesByCell(
       token,
       async () => {
         await setActiveSnapshotAttribution(c, activeSnapshot.snapshotId)
-        const places = await runWithD1ReadRetry(() =>
+        const page = await runWithD1ReadRetry(() =>
           listPlacesByH3Cell(c.var.currentDb, {
             snapshotId: activeSnapshot.snapshotId,
             h3Level,
             h3Cell: args.h3Cell,
-            limit: args.limit,
+            limit,
+            offset,
           }),
         )
-        return c.json({ places: places.map(place => toPlaceApiRecord(place)) }, 200)
+        return respond(page)
       },
     )) ?? notReady()
   )
@@ -592,6 +620,7 @@ export const placeRoutes = [
           ...params,
           region: resolveDataRegion(query.region),
           limit: query.limit,
+          offset: query.offset,
         })
       },
     }),

@@ -450,11 +450,29 @@ export const PlacesByCellQuerySchema = z
     ...geographicCodeQueryShape,
     region: RegionFilterSchema,
     limit: z.coerce.number().int().min(1).max(MAX_PLACE_RESULTS).optional(),
+    offset: z.coerce
+      .number()
+      .int()
+      .min(0)
+      .max(Number.MAX_SAFE_INTEGER)
+      .optional()
+      .openapi({
+        description:
+          'Number of Places to skip in Place ID order. Follow links.next to retrieve subsequent pages.',
+      }),
   })
   .openapi('PlacesByCellQuery')
 
 export const PlacesByCellResponseSchema = z
   .object({
+    links: z.object({ self: z.string(), next: z.string().optional() }),
+    meta: z.object({
+      page: z.object({
+        limit: z.number().int(),
+        offset: z.number().int(),
+        hasMore: z.boolean(),
+      }),
+    }),
     places: z.array(
       z
         .object({

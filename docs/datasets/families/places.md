@@ -74,6 +74,13 @@ replay bounded batches until the requested page and one further match are found.
 `meta.page` provides `hasMore` instead of an exact `total`; clients follow `links.next`
 until it is absent. Filters apply before selecting page members.
 
+The current H3-cell endpoint supports `limit` (default 50, maximum 100) and `offset`
+(default 0). It orders Places by ID, applies geographic filters before pagination and
+returns `meta.page.hasMore` and `links.next`. Clients follow that link until absent; no
+exact total is calculated. Each request uses the latest active snapshot, so a
+publication between pages can change membership. Use the release-pinned collection for
+reproducible exports.
+
 Source Place records retain publisher attributes in `properties`, alongside source
 identity, original `sourceGeometry`, `sources` and release history. Normalised
 coordinates, names, taxonomy, contact details and addresses belong to canonical
