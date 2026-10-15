@@ -113,7 +113,8 @@ async function loadMore(count: number) {
       selectedSampleIds = null
       sampleCount = 0
       view = 'distinct'
-      total = recordCount
+      // A stored zero can precede populated serving data; confirm it with the API.
+      total = recordCount !== null && recordCount > 0 ? recordCount : null
       loadedReleaseSet = target
     }
 
