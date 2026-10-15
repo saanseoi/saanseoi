@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:220cd12e0bcc7c715dfba5508570fbb27351fb559206e2ac7bb1adab814d3abf",
+  "versionHash": "sha256:e67fb56eb681b32fe8828356bd5619d31b178aaf32622156d3b1b62bc7246135",
   "apiVersion": "api-places-v0.1",
   "domainCode": "overture",
   "mappingVersion": 1,
@@ -664,20 +664,6 @@
         {
           "origin": "registry",
           "fieldPath": "materialisation.createdAt"
-        }
-      ],
-      "resolverCode": "lookup_registry",
-      "contributionType": "resolver-input",
-      "priority": 0,
-      "confidence": 1
-    },
-    {
-      "apiField": "attributes.updatedAt",
-      "sourceDatasetCode": "ds-hk-overture-place",
-      "inputs": [
-        {
-          "origin": "registry",
-          "fieldPath": "materialisation.updatedAt"
         }
       ],
       "resolverCode": "lookup_registry",

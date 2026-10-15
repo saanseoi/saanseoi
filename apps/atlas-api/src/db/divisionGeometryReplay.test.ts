@@ -92,7 +92,6 @@ function createFixture() {
     isLand: true,
     isTerritorial: false,
     createdAt: '2026-01-01',
-    updatedAt: '2026-01-01',
   }
   const area = {
     ...common,
@@ -282,7 +281,6 @@ const divisionRecord: DivisionRecord = {
     cartography: null,
     sources: null,
     createdAt: '2026-01-01',
-    updatedAt: '2026-01-01',
   },
   i18n: {
     en: {

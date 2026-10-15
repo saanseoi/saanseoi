@@ -27,7 +27,7 @@ export function placeMutationTables(binding: string): NetTablePolicy[] {
           : []
   return names.map(name => ({
     name,
-    ignoredColumns: (binding.startsWith('DB_HISTORY_')
+    ignoredColumns: (binding === 'DB_CURRENT' || binding.startsWith('DB_HISTORY_')
       ? ['createdAt']
       : ['createdAt', 'updatedAt']
     ).filter(() => !['placesCells', 'placeDivisionDefinitions'].includes(name)),

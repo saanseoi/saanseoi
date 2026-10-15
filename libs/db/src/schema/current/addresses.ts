@@ -15,7 +15,7 @@ import {
   canonicalAddress2dI18n,
   canonicalAddress3d,
   canonicalAddress3dI18n,
-  timestamps,
+  createdAtTimestamp,
 } from '../shared'
 import { divisions } from './divisions'
 import { streets } from './streets'
@@ -36,7 +36,7 @@ export const address2d = sqliteTable(
     divisionSnapshotId: text('divisionSnapshotId').notNull(),
     streetSnapshotId: text('streetSnapshotId'),
     ...canonicalAddress2d,
-    ...timestamps,
+    ...createdAtTimestamp,
   },
   table => [
     primaryKey({
@@ -150,7 +150,7 @@ export const address2dI18n = sqliteTable(
   {
     scopeId: text('scopeId').notNull(),
     ...canonicalAddress2dI18n,
-    ...timestamps,
+    ...createdAtTimestamp,
   },
   table => [
     primaryKey({
@@ -170,7 +170,7 @@ export const address2dBuildingNumberLookup = sqliteTable(
   {
     scopeId: text('scopeId').notNull(),
     ...canonicalAddress2dBuildingNumberLookup,
-    ...timestamps,
+    ...createdAtTimestamp,
   },
   table => [
     primaryKey({
@@ -221,7 +221,7 @@ export const address3d = sqliteTable(
   {
     scopeId: text('scopeId').notNull(),
     ...canonicalAddress3d,
-    ...timestamps,
+    ...createdAtTimestamp,
   },
   table => [
     primaryKey({
@@ -241,7 +241,7 @@ export const address3dI18n = sqliteTable(
   {
     scopeId: text('scopeId').notNull(),
     ...canonicalAddress3dI18n,
-    ...timestamps,
+    ...createdAtTimestamp,
   },
   table => [
     primaryKey({

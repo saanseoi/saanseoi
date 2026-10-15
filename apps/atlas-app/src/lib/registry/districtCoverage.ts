@@ -50,7 +50,6 @@ export async function readDistrictCoverageAreas(
     .select({
       divisionId: divisionAreas.divisionId,
       geometry: divisionAreas.geometry,
-      updatedAt: divisionAreas.updatedAt,
       variant: divisionAreas.variant,
     })
     .from(divisionAreas)
@@ -72,6 +71,6 @@ export async function readDistrictCoverageAreas(
         eq(divisionAreas.isTerritorial, false),
       ),
     )
-    .orderBy(desc(divisionAreas.updatedAt))
+    .orderBy(divisionAreas.divisionId, divisionAreas.variant, divisionAreas.id)
     .all()
 }

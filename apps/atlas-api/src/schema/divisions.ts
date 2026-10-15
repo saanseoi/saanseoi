@@ -272,12 +272,6 @@ const DivisionAttributesSchema = z
       .openapi({
         description: openApiText('openapi_divisions_created_at_field_description'),
       }),
-    updatedAt: z
-      .string()
-      .optional()
-      .openapi({
-        description: openApiText('openapi_divisions_updated_at_field_description'),
-      }),
   })
   .openapi('DivisionAttributes')
 

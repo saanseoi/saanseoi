@@ -222,7 +222,6 @@ export async function buildPlaceSql(
       sources: unchanged ? (previous.row.sources ?? resolvedSources) : resolvedSources,
       firstSeenMonth,
       createdAt: now,
-      updatedAt: now,
     })
     const projectedCells =
       row.projection?.cells ??
@@ -271,7 +270,6 @@ export async function buildPlaceSql(
         meta: localised.meta,
         searchDependencyText,
         createdAt: now,
-        updatedAt: now,
       })
       if (previousLocale?.row.versionHash !== i18nVersionHash) {
         historyStatements(input.activeHistoryBindingName).push(

@@ -221,7 +221,6 @@ type StatisticResourcePayload = {
     fieldSources?: StatisticRecord['fieldSources']
     fieldDefinitionHashes: StatisticRecord['fieldDefinitionHashes']
     createdAt?: string
-    updatedAt?: string
   }
   relationships: {
     division: {
@@ -406,7 +405,6 @@ function createStatisticResource(args: {
             sourceFeatureRef: args.record.sourceFeatureRef,
             fieldSources: args.record.fieldSources,
             createdAt: args.record.createdAt,
-            updatedAt: args.record.updatedAt,
           }
         : {}),
     },

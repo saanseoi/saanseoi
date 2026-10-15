@@ -120,7 +120,7 @@ type AddressResourcePayload = {
     snapshotId?: string
     geometry?: AddressPointGeometry | null
     createdAt?: string
-    updatedAt?: string
+
     identifiers?: CanonicalIdentifiers | null
     sources?: unknown
     i18n?: Record<string, AddressLocaleValue>
@@ -581,7 +581,6 @@ function createAddressResource(args: {
 
   if (args.routeState.profile !== 'compact') {
     attributes.createdAt = address.createdAt
-    attributes.updatedAt = address.updatedAt
   }
 
   if (isMapAddressProfile(args.routeState.profile)) {

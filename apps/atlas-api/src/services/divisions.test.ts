@@ -107,7 +107,6 @@ const baseRecord: DivisionRecord = {
       },
     ],
     createdAt: '2026-06-17T00:00:00.000Z',
-    updatedAt: '2026-06-18T00:00:00.000Z',
   },
   i18n: {
     en: {
@@ -141,7 +140,6 @@ const includedRecordsById: Record<string, DivisionRecord> = {
       cartography: null,
       sources: null,
       createdAt: '2026-06-17T00:00:00.000Z',
-      updatedAt: '2026-06-18T00:00:00.000Z',
     },
     i18n: {
       'zh-hant': {
@@ -163,7 +161,6 @@ const includedRecordsById: Record<string, DivisionRecord> = {
       cartography: null,
       sources: null,
       createdAt: '2026-06-17T00:00:00.000Z',
-      updatedAt: '2026-06-18T00:00:00.000Z',
     },
     i18n: {
       en: {
@@ -185,7 +182,6 @@ const includedRecordsById: Record<string, DivisionRecord> = {
       cartography: null,
       sources: null,
       createdAt: '2026-06-17T00:00:00.000Z',
-      updatedAt: '2026-06-18T00:00:00.000Z',
     },
     i18n: {
       'zh-hant': {
@@ -620,7 +616,6 @@ describe('division services', () => {
           hierarchies,
           identifiers: { wikidata: { id: 'Q123456' } },
           createdAt: '2026-06-17T00:00:00.000Z',
-          updatedAt: '2026-06-18T00:00:00.000Z',
         })
         expect(resource.attributes.geometry).toBeUndefined()
         expect(resource.attributes.cartography).toBeUndefined()
@@ -635,7 +630,7 @@ describe('division services', () => {
           hierarchies,
           identifiers: { wikidata: { id: 'Q123456' } },
           createdAt: '2026-06-17T00:00:00.000Z',
-          updatedAt: '2026-06-18T00:00:00.000Z',
+
           geometry: {
             type: 'Point',
             coordinates: [114.2262, 22.2788],
@@ -664,7 +659,6 @@ describe('division services', () => {
           },
           identifiers: { wikidata: { id: 'Q123456' } },
           createdAt: '2026-06-17T00:00:00.000Z',
-          updatedAt: '2026-06-18T00:00:00.000Z',
           sources: [
             {
               publisher: 'overture',

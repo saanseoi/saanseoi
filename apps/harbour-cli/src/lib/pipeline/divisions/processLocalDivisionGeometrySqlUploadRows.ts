@@ -335,7 +335,6 @@ export async function writeGeometryRows(
       geometry: requireMaterialisedGeometry(materialisedGeometryById, row.canonical.id),
       scopeId: scopeId,
       createdAt: now,
-      updatedAt: now,
     }))) {
       currentRowsById.set(row.id, row)
     }
@@ -450,7 +449,6 @@ export async function writeGeometryRows(
           sources: sql`excluded.sources`,
           type: sql`excluded.type`,
           variant: sql`excluded.variant`,
-          updatedAt: now,
         },
         setWhere: currentRowChangedSql(
           resourceType === 'divisionArea' ? 'divisionAreas' : 'divisionBoundaries',

@@ -242,13 +242,6 @@ const PlaceI18nSchema = z
         description: openApiText('openapi_places_created_at_description'),
         examples: ['2026-09-05T10:35:34.430Z'],
       }),
-    updatedAt: z
-      .string()
-      .optional()
-      .openapi({
-        description: openApiText('openapi_places_updated_at_description'),
-        examples: ['2026-09-05T11:26:14.710Z'],
-      }),
   })
   .openapi('PlaceI18n', {
     description: openApiText('openapi_places_i18n_description'),
@@ -343,12 +336,6 @@ const PlaceSchema = z
       .optional()
       .openapi({
         description: openApiText('openapi_places_created_at_description'),
-      }),
-    updatedAt: z
-      .string()
-      .optional()
-      .openapi({
-        description: openApiText('openapi_places_updated_at_description'),
       }),
   })
   .openapi('Place', {
@@ -698,13 +685,6 @@ const PlaceCollectionAttributesSchema = z
       .openapi({
         description: openApiText('openapi_places_created_at_description'),
         examples: ['2026-09-05T10:35:34.430Z'],
-      }),
-    updatedAt: z
-      .string()
-      .optional()
-      .openapi({
-        description: openApiText('openapi_places_updated_at_description'),
-        examples: ['2026-09-05T11:26:14.710Z'],
       }),
     geometry: PlaceGeometrySchema.optional().openapi({
       description: openApiText('openapi_places_geometry_field_description'),

@@ -172,7 +172,6 @@ test('Division schema and full responses use the reviewed attribute order', () =
     'sources',
     'snapshotId',
     'createdAt',
-    'updatedAt',
   ]
   expect(Object.keys(DivisionResourceSchema.shape.attributes.shape)).toEqual(expected)
   const record = division('example')

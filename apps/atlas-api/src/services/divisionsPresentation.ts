@@ -105,7 +105,7 @@ type DivisionResourcePayload = {
     geometry?: DivisionGeometry | null
     cartography?: JsonObject | null
     createdAt?: string
-    updatedAt?: string
+
     sources?: SourcesPayload | null
     identifiers?: DivisionIdentifiers | null
     variant?: string
@@ -461,7 +461,7 @@ export function createDivisionResource(args: {
         }
       : {}),
     ...(isDefaultDivisionProfile(routeState.profile)
-      ? { createdAt: division.createdAt, updatedAt: division.updatedAt }
+      ? { createdAt: division.createdAt }
       : {}),
   }
 

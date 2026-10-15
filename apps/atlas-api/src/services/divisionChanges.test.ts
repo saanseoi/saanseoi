@@ -115,7 +115,6 @@ test('release, row timestamps, geometry IDs and object/alternative ordering alon
   Object.assign(next.division, {
     snapshotId: 'new-snapshot',
     createdAt: 'new-created',
-    updatedAt: 'new-updated',
   })
   next.division.hierarchies.full.reverse()
   const body = successful(

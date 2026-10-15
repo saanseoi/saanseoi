@@ -261,13 +261,6 @@ const StatisticResourceSchema = z
             description: openApiText('openapi_statistics_created_at_description'),
             examples: ['2026-09-05T10:35:34.430Z'],
           }),
-        updatedAt: z
-          .string()
-          .optional()
-          .openapi({
-            description: openApiText('openapi_statistics_updated_at_description'),
-            examples: ['2026-09-05T11:26:14.710Z'],
-          }),
       })
       .openapi({
         description: openApiText('openapi_statistics_attributes_description'),

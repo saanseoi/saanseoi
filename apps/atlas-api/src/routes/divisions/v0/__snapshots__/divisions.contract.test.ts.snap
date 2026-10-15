@@ -30,7 +30,6 @@ exports[`Divisions API responses through the Worker route default list through a
           },
           "identifiers": null,
           "level": 0,
-          "updatedAt": "2025-09-24T00:00:00.000Z",
         },
         "id": "division-country-cn",
         "links": {
@@ -81,7 +80,6 @@ exports[`Divisions API responses through the Worker route default list through a
           },
           "identifiers": null,
           "level": 0,
-          "updatedAt": "2025-09-24T00:00:00.000Z",
         },
         "id": "division-hk-sar",
         "links": {
@@ -142,7 +140,6 @@ exports[`Divisions API responses through the Worker route default list through a
           },
           "identifiers": null,
           "level": 2,
-          "updatedAt": "2025-09-24T00:00:00.000Z",
         },
         "id": "division-east",
         "links": {
@@ -213,7 +210,6 @@ exports[`Divisions API responses through the Worker route default list through a
           },
           "identifiers": null,
           "level": 3,
-          "updatedAt": "2025-09-24T00:00:00.000Z",
         },
         "id": "division-a-kung-ngam",
         "links": {
@@ -297,7 +293,6 @@ exports[`Divisions API responses through the Worker route current alias and map 
           },
           "identifiers": null,
           "level": 0,
-          "updatedAt": "2025-09-24T00:00:00.000Z",
         },
         "id": "division-country-cn",
         "links": {
@@ -358,7 +353,6 @@ exports[`Divisions API responses through the Worker route current alias and map 
           },
           "identifiers": null,
           "level": 0,
-          "updatedAt": "2025-09-24T00:00:00.000Z",
         },
         "id": "division-hk-sar",
         "links": {
@@ -429,7 +423,6 @@ exports[`Divisions API responses through the Worker route current alias and map 
           },
           "identifiers": null,
           "level": 2,
-          "updatedAt": "2025-09-24T00:00:00.000Z",
         },
         "id": "division-east",
         "links": {
@@ -510,7 +503,6 @@ exports[`Divisions API responses through the Worker route current alias and map 
           },
           "identifiers": null,
           "level": 3,
-          "updatedAt": "2025-09-24T00:00:00.000Z",
         },
         "id": "division-a-kung-ngam",
         "links": {
@@ -584,7 +576,6 @@ exports[`Divisions API responses through the Worker route areas and boundaries t
           },
           "identifiers": null,
           "level": 0,
-          "updatedAt": "2025-09-24T00:00:00.000Z",
         },
         "id": "division-country-cn",
         "links": {
@@ -635,7 +626,6 @@ exports[`Divisions API responses through the Worker route areas and boundaries t
           },
           "identifiers": null,
           "level": 0,
-          "updatedAt": "2025-09-24T00:00:00.000Z",
         },
         "id": "division-hk-sar",
         "links": {
@@ -705,7 +695,6 @@ exports[`Divisions API responses through the Worker route areas and boundaries t
           },
           "identifiers": null,
           "level": 2,
-          "updatedAt": "2025-09-24T00:00:00.000Z",
         },
         "id": "division-east",
         "links": {
@@ -793,7 +782,6 @@ exports[`Divisions API responses through the Worker route areas and boundaries t
           },
           "identifiers": null,
           "level": 3,
-          "updatedAt": "2025-09-24T00:00:00.000Z",
         },
         "id": "division-a-kung-ngam",
         "links": {
@@ -980,7 +968,6 @@ exports[`Divisions API responses through the Worker route detail and hierarchy t
             },
           ],
         },
-        "updatedAt": "2025-09-24T00:00:00.000Z",
       },
       "id": "division-a-kung-ngam",
       "links": {
@@ -1040,7 +1027,6 @@ exports[`Divisions API responses through the Worker route detail and hierarchy t
               },
             ],
           },
-          "updatedAt": "2025-09-24T00:00:00.000Z",
         },
         "id": "division-country-cn",
         "links": {
@@ -1115,7 +1101,6 @@ exports[`Divisions API responses through the Worker route detail and hierarchy t
               },
             ],
           },
-          "updatedAt": "2025-09-24T00:00:00.000Z",
         },
         "id": "division-hk-sar",
         "links": {
@@ -1200,7 +1185,6 @@ exports[`Divisions API responses through the Worker route detail and hierarchy t
               },
             ],
           },
-          "updatedAt": "2025-09-24T00:00:00.000Z",
         },
         "id": "division-east",
         "links": {
@@ -1268,7 +1252,6 @@ exports[`Divisions API responses through the Worker route planning domain throug
           },
           "identifiers": null,
           "level": 0,
-          "updatedAt": "2025-09-24T00:00:00.000Z",
         },
         "id": "division-country-cn",
         "links": {
@@ -1319,7 +1302,6 @@ exports[`Divisions API responses through the Worker route planning domain throug
           },
           "identifiers": null,
           "level": 0,
-          "updatedAt": "2025-09-24T00:00:00.000Z",
         },
         "id": "division-hk-sar",
         "links": {
@@ -1380,7 +1362,6 @@ exports[`Divisions API responses through the Worker route planning domain throug
           },
           "identifiers": null,
           "level": 2,
-          "updatedAt": "2025-09-24T00:00:00.000Z",
         },
         "id": "division-east",
         "links": {
@@ -1451,7 +1432,6 @@ exports[`Divisions API responses through the Worker route planning domain throug
           },
           "identifiers": null,
           "level": 3,
-          "updatedAt": "2025-09-24T00:00:00.000Z",
         },
         "id": "division-a-kung-ngam",
         "links": {
@@ -1561,7 +1541,6 @@ exports[`Divisions API responses through the Worker route filters and pagination
           },
           "identifiers": null,
           "level": 3,
-          "updatedAt": "2025-09-24T00:00:00.000Z",
         },
         "id": "division-a-kung-ngam",
         "links": {

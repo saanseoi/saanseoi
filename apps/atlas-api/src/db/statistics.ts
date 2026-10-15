@@ -89,7 +89,6 @@ export type StatisticRecord = {
   fieldDefinitionHashes: Record<string, string>
   versionHash: string
   createdAt: string
-  updatedAt: string
 }
 
 export type StatisticFieldDefinition = {
@@ -301,7 +300,6 @@ export async function listStatisticRecordsForGeography(
             fieldDefinitionHash: sql<string>`json_extract(${statisticDefinitionHashes}, '$.' || ${lookup.fieldName})`,
             versionHash: statsRecords.versionHash,
             createdAt: statsRecords.createdAt,
-            updatedAt: statsRecords.updatedAt,
           })
           .from(statsRecords)
           .where(statisticConditions(lookup.selection, lookup))

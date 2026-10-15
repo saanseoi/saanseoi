@@ -1,4 +1,4 @@
-import { and, currentSchema, desc, inArray } from '@repo/db'
+import { and, currentSchema, desc, eq, inArray } from '@repo/db'
 import { query } from '$app/server'
 import { z } from 'zod'
 
@@ -21,7 +21,7 @@ const UNOFFICIAL_DISTRICT_IDS = new Set([
 export const getDistrictCoverageMapData = query(
   districtMapLocaleSchema,
   async locale => {
-    const { divisionsI18n } = currentSchema
+    const { divisionsI18n, divisionPublicationState } = currentSchema
     const i18nLocale = locale.toLowerCase()
     const rows = await readDistrictCoverageAreas(getMetaDb(), getCurrentDb())
 
@@ -40,13 +40,17 @@ export const getDistrictCoverageMapData = query(
             name: divisionsI18n.name,
           })
           .from(divisionsI18n)
+          .innerJoin(
+            divisionPublicationState,
+            eq(divisionsI18n.scopeId, divisionPublicationState.scopeId),
+          )
           .where(
             and(
               inArray(divisionsI18n.locale, [i18nLocale, 'en']),
               inArray(divisionsI18n.divisionId, districtIds),
             ),
           )
-          .orderBy(desc(divisionsI18n.updatedAt))
+          .orderBy(desc(divisionPublicationState.updatedAt))
           .all()
       : []
     const nameByLocale = new Map<string, Map<string, string>>()
@@ -83,7 +87,7 @@ export const getDistrictGeometryNames = query(
     if (!ids.length) return []
 
     const i18nLocale = locale.toLowerCase()
-    const { divisionsI18n } = currentSchema
+    const { divisionsI18n, divisionPublicationState } = currentSchema
     const rows = (
       await Promise.all(
         Array.from(
@@ -94,9 +98,12 @@ export const getDistrictGeometryNames = query(
                 divisionId: divisionsI18n.divisionId,
                 locale: divisionsI18n.locale,
                 name: divisionsI18n.name,
-                updatedAt: divisionsI18n.updatedAt,
               })
               .from(divisionsI18n)
+              .innerJoin(
+                divisionPublicationState,
+                eq(divisionsI18n.scopeId, divisionPublicationState.scopeId),
+              )
               .where(
                 and(
                   inArray(divisionsI18n.locale, [i18nLocale, 'en']),
@@ -109,7 +116,7 @@ export const getDistrictGeometryNames = query(
                   ),
                 ),
               )
-              .orderBy(desc(divisionsI18n.updatedAt))
+              .orderBy(desc(divisionPublicationState.updatedAt))
               .all(),
         ),
       )

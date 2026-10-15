@@ -36,12 +36,10 @@ test('current address reads project every dedicated division ID as a relationshi
       INSERT INTO address2d (
         scopeId, divisionSnapshotId, id, granularity, countryId, landformId,
         areaId, districtId, townId, ruralAreaId, macrohoodId, neighbourhoodId, microhoodId,
-        villageId, hamletId, createdAt, updatedAt
-      ) VALUES (
+        villageId, hamletId, createdAt) VALUES (
         'address-scope', 'division-scope', 'address-1', 'building', 'country-1',
         'island-1', 'area-1', 'district-1', 'town-1', 'rural-area-1', 'macrohood-1',
-        'neighbourhood-1', 'microhood-1', 'village-1', 'hamlet-1', 'now', 'now'
-      );
+        'neighbourhood-1', 'microhood-1', 'village-1', 'hamlet-1', 'now');
     `)
 
     const records = await listAddressRecordsCurrent(

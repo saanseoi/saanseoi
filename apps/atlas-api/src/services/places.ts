@@ -248,7 +248,6 @@ function createPlaceResource(args: {
       firstSeenMonth: place.firstSeenMonth,
       lastSeenMonth: place.lastSeenMonth,
       createdAt: place.createdAt,
-      updatedAt: place.updatedAt,
     })
   }
 

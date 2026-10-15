@@ -292,12 +292,6 @@ const AddressAttributesSchema = z
       .openapi({
         description: openApiText('openapi_addresses_created_at_description'),
       }),
-    updatedAt: z
-      .string()
-      .optional()
-      .openapi({
-        description: openApiText('openapi_addresses_updated_at_description'),
-      }),
     identifiers: IdentifiersSchema.nullable()
       .optional()
       .openapi({

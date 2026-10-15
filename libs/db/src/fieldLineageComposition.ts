@@ -71,7 +71,7 @@ export function compileResponseField(args: {
             'attributes.hierarchies',
             'attributes.divisionCode',
             'attributes.createdAt',
-            'attributes.updatedAt',
+
             'attributes.geometry',
             'attributes.cartography',
             'attributes.snapshotId',
@@ -278,7 +278,7 @@ export function compileResponseField(args: {
         'firstSeenMonth',
         'lastSeenMonth',
         'createdAt',
-        'updatedAt',
+
         'i18n',
         'relationships.address',
         'relationships.divisions',
@@ -321,7 +321,7 @@ export function compileResponseField(args: {
       'firstSeenMonth',
       'lastSeenMonth',
       'createdAt',
-      'updatedAt',
+
       'taxonomy.hierarchy',
       'taxonomy.alternates',
     ]
@@ -393,7 +393,7 @@ export function compileResponseField(args: {
         'granularity',
         'address3dCoverage',
         'createdAt',
-        'updatedAt',
+
         'geometry',
         'snapshotId',
         'identifiers',

@@ -245,29 +245,21 @@ function seedCurrent(sqlite: Database) {
   run(
     sqlite,
     `INSERT INTO divisions
-      (scopeId, id, level, class, createdAt, updatedAt, hierarchies)
-      VALUES (?, ?, ?, ?, ?, ?, '{"administrative":[],"locality":[],"landform":[],"full":[]}')`,
-    [
-      `scope:${DIVISION_SNAPSHOT}`,
-      'division-central',
-      2,
-      'district',
-      PUBLISHED_AT,
-      PUBLISHED_AT,
-    ],
+      (scopeId, id, level, class, createdAt, hierarchies)
+      VALUES (?, ?, ?, ?, ?, '{"administrative":[],"locality":[],"landform":[],"full":[]}')`,
+    [`scope:${DIVISION_SNAPSHOT}`, 'division-central', 2, 'district', PUBLISHED_AT],
   )
   run(
     sqlite,
     `INSERT INTO divisionsI18n
-      (scopeId, divisionId, locale, name,meta, createdAt, updatedAt)
-      VALUES (?, ?, ?, ?,json_object('isLocaleInferred',json(CASE ? WHEN 1 THEN 'true' ELSE 'false' END)), ?, ?)`,
+      (scopeId, divisionId, locale, name,meta, createdAt)
+      VALUES (?, ?, ?, ?,json_object('isLocaleInferred',json(CASE ? WHEN 1 THEN 'true' ELSE 'false' END)), ?)`,
     [
       `scope:${DIVISION_SNAPSHOT}`,
       'division-central',
       'en',
       'Central and Western',
       0,
-      PUBLISHED_AT,
       PUBLISHED_AT,
     ],
   )
@@ -299,7 +291,7 @@ function seedCurrent(sqlite: Database) {
   for (const place of places) {
     run(
       sqlite,
-      'INSERT INTO places (scopeId,id,resourceReleaseId,geometry,bbox,operatingStatus,basicCategory,taxonomyPrimary,taxonomyHierarchy,taxonomyAlternates,websites,confidence,sources,firstSeenMonth,createdAt,updatedAt) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
+      'INSERT INTO places (scopeId,id,resourceReleaseId,geometry,bbox,operatingStatus,basicCategory,taxonomyPrimary,taxonomyHierarchy,taxonomyAlternates,websites,confidence,sources,firstSeenMonth,createdAt) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
       [
         `scope:${PLACE_SNAPSHOT}`,
         place.id,
@@ -319,14 +311,13 @@ function seedCurrent(sqlite: Database) {
         json({ overture: [{ dataset: 'overture', record_id: place.id }] }),
         '2026-08',
         PUBLISHED_AT,
-        PUBLISHED_AT,
       ],
     )
     run(
       sqlite,
       `INSERT INTO placesI18n
-        (scopeId, placeId, locale, name, brandName, freeformAddress, meta, createdAt, updatedAt)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        (scopeId, placeId, locale, name, brandName, freeformAddress, meta, createdAt)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         `scope:${PLACE_SNAPSHOT}`,
         place.id,
@@ -335,7 +326,6 @@ function seedCurrent(sqlite: Database) {
         null,
         'Central, Hong Kong',
         json({ isMachineTranslated: [], isHumanVerified: [], isLocaleInferred: false }),
-        PUBLISHED_AT,
         PUBLISHED_AT,
       ],
     )

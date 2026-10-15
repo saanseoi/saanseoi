@@ -12,7 +12,7 @@ import { sql } from 'drizzle-orm'
 import {
   canonicalPlace,
   canonicalPlaceI18n,
-  timestamps,
+  createdAtTimestamp,
   placeDivisionFieldNames,
 } from '../shared'
 
@@ -21,7 +21,7 @@ export const places = sqliteTable(
   {
     scopeId: text('scopeId').notNull(),
     ...canonicalPlace,
-    ...timestamps,
+    ...createdAtTimestamp,
   },
   table => [
     primaryKey({
@@ -55,7 +55,7 @@ export const placesI18n = sqliteTable(
   {
     scopeId: text('scopeId').notNull(),
     ...canonicalPlaceI18n,
-    ...timestamps,
+    ...createdAtTimestamp,
   },
   table => [
     primaryKey({

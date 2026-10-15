@@ -102,7 +102,6 @@ export type PlaceRecord = {
     firstSeenMonth: string
     lastSeenMonth: string
     createdAt: string
-    updatedAt: string
   }
   i18n: Record<string, PlaceLocaleValue>
   divisionIds: string[]
@@ -511,7 +510,7 @@ export async function listPlaceRecordsCurrent(
       firstSeenMonth: places.firstSeenMonth,
       lastSeenMonth: sql<string>`''`,
       createdAt: places.createdAt,
-      updatedAt: places.updatedAt,
+
       i18n,
       divisionIds,
       ...Object.fromEntries(

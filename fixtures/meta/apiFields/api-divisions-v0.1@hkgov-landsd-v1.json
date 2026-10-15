@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:89d2e6910ddfbdde53cb5c812f27e8a7c764c4cb64b025ad509ee28121bd9955",
+  "versionHash": "sha256:3b84f3f84843c3fc2e6380c86ececdd8426916b819baa8aec6316794ea013a7a",
   "apiVersion": "api-divisions-v0.1",
   "domainCode": "hkgov-landsd",
   "mappingVersion": 1,
@@ -268,20 +268,6 @@
         },
         {
           "apiField": "attributes.createdAt",
-          "sourceDatasetCode": "ds-hk-hkgov-landsd-division",
-          "resolverCode": "direct_copy",
-          "contributionType": "primary",
-          "priority": 0,
-          "confidence": 1,
-          "inputs": [
-            {
-              "origin": "registry",
-              "fieldPath": "selectedSnapshot"
-            }
-          ]
-        },
-        {
-          "apiField": "attributes.updatedAt",
           "sourceDatasetCode": "ds-hk-hkgov-landsd-division",
           "resolverCode": "direct_copy",
           "contributionType": "primary",

@@ -6,7 +6,7 @@ import {
   text,
   integer,
 } from 'drizzle-orm/sqlite-core'
-import { timestamps } from '../shared'
+import { createdAtTimestamp } from '../shared'
 
 /** Immutable spatial interpretations, retained independently of CURRENT promotion. */
 export const divisionGeographicCrosswalks = sqliteTable(
@@ -23,7 +23,7 @@ export const divisionGeographicCrosswalks = sqliteTable(
     sourceCohort: text('sourceCohort').notNull(),
     policy: text('policy').notNull(),
     contentHash: text('contentHash').notNull(),
-    ...timestamps,
+    ...createdAtTimestamp,
   },
   table => [
     index('divisionGeographicCrosswalks_selection_idx').on(

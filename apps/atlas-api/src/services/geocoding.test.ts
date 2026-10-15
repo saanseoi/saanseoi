@@ -50,7 +50,6 @@ const address = (
     villageId: null,
     hamletId: null,
     createdAt: '',
-    updatedAt: '',
   },
   i18n: {
     en: {

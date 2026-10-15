@@ -8,14 +8,14 @@ import {
   text,
 } from 'drizzle-orm/sqlite-core'
 
-import { canonicalStreet, canonicalStreetI18n, timestamps } from '../shared'
+import { canonicalStreet, canonicalStreetI18n, createdAtTimestamp } from '../shared'
 
 export const streets = sqliteTable(
   'streets',
   {
     scopeId: text('scopeId').notNull(),
     ...canonicalStreet,
-    ...timestamps,
+    ...createdAtTimestamp,
   },
   table => [
     primaryKey({
@@ -30,7 +30,7 @@ export const streetsI18n = sqliteTable(
   {
     scopeId: text('scopeId').notNull(),
     ...canonicalStreetI18n,
-    ...timestamps,
+    ...createdAtTimestamp,
   },
   table => [
     primaryKey({

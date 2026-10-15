@@ -394,8 +394,8 @@ function seedCurrent(sqlite: Database) {
         sqlite,
         `INSERT INTO divisions
           (scopeId, id, identifiers, level, category, class, geometry,
-           hierarchies, cartography, sources, createdAt, updatedAt)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+           hierarchies, cartography, sources, createdAt)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           `scope:${snapshotId}`,
           division.id,
@@ -438,7 +438,6 @@ function seedCurrent(sqlite: Database) {
           json({ kind: 'label-center' }),
           json(sources),
           timestamp,
-          timestamp,
         ],
       )
 
@@ -446,8 +445,8 @@ function seedCurrent(sqlite: Database) {
         run(
           sqlite,
           `INSERT INTO divisionsI18n
-            (scopeId, divisionId, locale, name, nameVariant, nameAlts, nameRules,meta, createdAt, updatedAt)
-            VALUES (?, ?, ?, ?, ?, ?, ?,json_object('isLocaleInferred',json(CASE ? WHEN 1 THEN 'true' ELSE 'false' END)), ?, ?)`,
+            (scopeId, divisionId, locale, name, nameVariant, nameAlts, nameRules,meta, createdAt)
+            VALUES (?, ?, ?, ?, ?, ?, ?,json_object('isLocaleInferred',json(CASE ? WHEN 1 THEN 'true' ELSE 'false' END)), ?)`,
           [
             `scope:${snapshotId}`,
             division.id,
@@ -457,7 +456,6 @@ function seedCurrent(sqlite: Database) {
             null,
             null,
             0,
-            timestamp,
             timestamp,
           ],
         )
@@ -494,8 +492,8 @@ function seedCurrent(sqlite: Database) {
       sqlite,
       `INSERT INTO divisionAreas
         (scopeId, id, variant, bbox, geometry, sources, type, isLand, isTerritorial,
-         divisionId, createdAt, updatedAt)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+         divisionId, createdAt)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         `scope:${row.snapshotId}`,
         row.id,
@@ -510,7 +508,6 @@ function seedCurrent(sqlite: Database) {
         0,
         row.divisionId,
         timestamp,
-        timestamp,
       ],
     )
   }
@@ -518,8 +515,8 @@ function seedCurrent(sqlite: Database) {
     sqlite,
     `INSERT INTO divisionBoundaries
       (scopeId, id, variant, bbox, geometry, sources, type, isLand, isTerritorial,
-       leftDivisionId, rightDivisionId, createdAt, updatedAt)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       leftDivisionId, rightDivisionId, createdAt)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       'scope:snapshot-overture-2025-boundary-overture',
       'boundary-overture-division-east',
@@ -542,7 +539,6 @@ function seedCurrent(sqlite: Database) {
       0,
       'division-east',
       'division-hk-sar',
-      timestamp,
       timestamp,
     ],
   )

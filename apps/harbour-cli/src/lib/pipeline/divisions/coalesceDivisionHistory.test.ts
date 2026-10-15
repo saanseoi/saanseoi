@@ -55,8 +55,8 @@ async function fixture(
       [current, false],
       [history, true],
     ] as const) {
-      db.query(`INSERT INTO divisions(${isHistory ? 'versionHash,isCurrent,' : ''}${isHistory ? 'snapshotId' : 'scopeId'},id,class,geometry,sources,hierarchies,createdAt${isHistory ? '' : ',updatedAt'})
-        VALUES(${isHistory ? "'old-base',1," : ''}?,?,?,?,?,'{}',?${isHistory ? '' : ',?'})`).run(
+      db.query(`INSERT INTO divisions(${isHistory ? 'versionHash,isCurrent,' : ''}${isHistory ? 'snapshotId' : 'scopeId'},id,class,geometry,sources,hierarchies,createdAt)
+        VALUES(${isHistory ? "'old-base',1," : ''}?,?,?,?,?,'{}',?)`).run(
         isHistory ? 'old' : 'scope',
         'district',
         'district',
@@ -65,21 +65,19 @@ async function fixture(
           hkgovPland: { sourceRecordId: 'source', sourceVersion: '2025' },
         }),
         'original',
-        ...(!isHistory ? ['original'] : []),
       )
       for (const [locale, name] of [
         ['en', 'Original'],
         ['zh-hant', '原文'],
       ])
-        db.query(`INSERT INTO divisionsI18n(${isHistory ? 'versionHash,isCurrent,' : ''}meta,${isHistory ? 'snapshotId' : 'scopeId'},divisionId,locale,name,nameVariant,createdAt${isHistory ? '' : ',updatedAt'})
-          VALUES(${isHistory ? "'old-base',1," : ''}'{"isLocaleInferred":false}',?,?,?,?,?,?${isHistory ? '' : ',?'})`).run(
+        db.query(`INSERT INTO divisionsI18n(${isHistory ? 'versionHash,isCurrent,' : ''}meta,${isHistory ? 'snapshotId' : 'scopeId'},divisionId,locale,name,nameVariant,createdAt)
+          VALUES(${isHistory ? "'old-base',1," : ''}'{"isLocaleInferred":false}',?,?,?,?,?,?)`).run(
           isHistory ? 'old' : 'scope',
           'district',
           requireDefined(locale),
           requireDefined(name),
           JSON.stringify([name]),
           'original',
-          ...(!isHistory ? ['original'] : []),
         )
     }
     for (const [snapshot, parent, binding] of [

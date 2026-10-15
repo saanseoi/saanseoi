@@ -61,7 +61,6 @@ export type AddressRecord = {
     villageId: string | null
     hamletId: string | null
     createdAt: string
-    updatedAt: string
   }
   i18n: Record<string, AddressLocaleValue>
 }
@@ -141,7 +140,7 @@ type AddressRow = {
   villageId: string | null
   hamletId: string | null
   createdAt: string
-  updatedAt: string
+
   i18n: string
 }
 
@@ -247,7 +246,6 @@ function mapAddressRow(row: AddressRow): AddressRecord {
       villageId: row.villageId,
       hamletId: row.hamletId,
       createdAt: row.createdAt,
-      updatedAt: row.updatedAt,
     },
     i18n: parseI18n(row.i18n),
   }
@@ -388,7 +386,7 @@ export async function getAddressRecordCurrent(
       villageId: address2d.villageId,
       hamletId: address2d.hamletId,
       createdAt: address2d.createdAt,
-      updatedAt: address2d.updatedAt,
+
       i18n,
     })
     .from(address2d)
@@ -443,7 +441,7 @@ export async function listAddressRecordsCurrent(
       villageId: address2d.villageId,
       hamletId: address2d.hamletId,
       createdAt: address2d.createdAt,
-      updatedAt: address2d.updatedAt,
+
       i18n,
     })
     .from(address2d)
@@ -502,7 +500,7 @@ export async function listAddressRecordsCurrentByIds(
       villageId: address2d.villageId,
       hamletId: address2d.hamletId,
       createdAt: address2d.createdAt,
-      updatedAt: address2d.updatedAt,
+
       i18n,
     })
     .from(address2d)

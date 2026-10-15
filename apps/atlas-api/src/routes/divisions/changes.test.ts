@@ -178,7 +178,7 @@ function fixture() {
         meta: { isLocaleInferred: false },
       })
     } else {
-      insert(current, 'divisions', { ...base, scopeId: snapshot, updatedAt: stamp })
+      insert(current, 'divisions', { ...base, scopeId: snapshot })
       insert(current, 'divisionsI18n', {
         scopeId: snapshot,
         divisionId: id,

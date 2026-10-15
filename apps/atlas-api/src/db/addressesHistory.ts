@@ -129,7 +129,6 @@ export async function listReplayedAddressRecords(args: {
         villageId: version.base.villageId,
         hamletId: version.base.hamletId,
         createdAt: version.base.createdAt,
-        updatedAt: version.base.createdAt,
       },
       i18n: Object.fromEntries(
         version.localisedRows.flatMap(value =>

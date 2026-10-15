@@ -284,7 +284,6 @@ export async function replaceCurrentStreetRows(
           version: record.version,
           yearBuilt: null,
           createdAt: now,
-          updatedAt: now,
         })),
       )
       .onConflictDoUpdate({
@@ -297,7 +296,6 @@ export async function replaceCurrentStreetRows(
           status: sql`excluded.status`,
           version: sql`excluded.version`,
           yearBuilt: sql`excluded.yearBuilt`,
-          updatedAt: sql`excluded.updatedAt`,
         },
         setWhere: currentRowChangedSql('streets', [
           'deletedAt',
@@ -361,7 +359,6 @@ export async function replaceCurrentStreetI18nRows(
         normalised: normaliseStreetName(item.name),
         scopeId: snapshotId,
         streetId: record.id,
-        updatedAt: now,
       })),
     )
   for (const rowsChunk of chunkArray(rows, 6)) {
@@ -383,7 +380,6 @@ export async function replaceCurrentStreetI18nRows(
           directionalSuffix: sql`excluded.directionalSuffix`,
           name: sql`excluded.name`,
           normalised: sql`excluded.normalised`,
-          updatedAt: sql`excluded.updatedAt`,
         },
         setWhere: currentRowChangedSql('streetsI18n', [
           'meta',
@@ -441,7 +437,6 @@ export async function syncCurrentStreetChangelog(
           sourceReleaseId: entry.sourceReleaseId,
           sourceShardId: entry.sourceShardId,
           streetId: entry.streetId,
-          updatedAt: now,
         })),
       )
       .onConflictDoUpdate({
@@ -459,7 +454,6 @@ export async function syncCurrentStreetChangelog(
           noticeRef: sql`excluded.noticeRef`,
           sourceReleaseId: sql`excluded.sourceReleaseId`,
           sourceShardId: sql`excluded.sourceShardId`,
-          updatedAt: now,
         },
         setWhere: currentRowChangedSql('streetChangelog', [
           'evidenceAssets',

@@ -156,7 +156,6 @@ export class PlaceDependencyView {
       publicationToken: `dependency:${snapshotId}`,
       preparedAt: 'dependency',
       createdAt: 'dependency',
-      updatedAt: 'dependency',
     })
   }
 

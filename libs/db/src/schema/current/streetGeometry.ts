@@ -1,6 +1,6 @@
 import { index, primaryKey, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 
-import { jsonText, timestamps } from '../shared'
+import { jsonText, createdAtTimestamp } from '../shared'
 
 /** Stable, per-street geometry aggregated from intact LandsD source segments. */
 export const streetGeometry = sqliteTable(
@@ -11,7 +11,7 @@ export const streetGeometry = sqliteTable(
     sourceReleaseId: text('sourceReleaseId').notNull(),
     geometry: jsonText('geometry').notNull(),
     bbox: jsonText('bbox').notNull(),
-    ...timestamps,
+    ...createdAtTimestamp,
   },
   table => [
     primaryKey({ columns: [table.scopeId, table.streetId] }),

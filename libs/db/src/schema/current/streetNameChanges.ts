@@ -12,7 +12,7 @@ import {
   streetChangelogKinds,
   streetNameChangeStatuses,
   streetNameChangeStreetRoles,
-  timestamps,
+  createdAtTimestamp,
   type StreetEvidenceAsset,
 } from '../shared'
 import { streets } from './streets'
@@ -34,7 +34,7 @@ export const streetNameChanges = sqliteTable(
       mode: 'boolean',
     }).notNull(),
     status: text('status', { enum: streetNameChangeStatuses }).notNull(),
-    ...timestamps,
+    ...createdAtTimestamp,
   },
   table => [
     primaryKey({ columns: [table.scopeId, table.id] }),
@@ -90,7 +90,7 @@ export const streetChangelog = sqliteTable(
     sourceReleaseId: text('sourceReleaseId'),
     noticeRef: text('noticeRef'),
     evidenceAssets: jsonText<StreetEvidenceAsset[]>('evidenceAssets'),
-    ...timestamps,
+    ...createdAtTimestamp,
   },
   table => [
     primaryKey({ columns: [table.scopeId, table.recordKey, table.streetId] }),

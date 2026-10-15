@@ -61,7 +61,6 @@ export type DivisionRecord = {
     cartography: typeof divisions.$inferSelect.cartography
     sources: typeof divisions.$inferSelect.sources
     createdAt: string
-    updatedAt: string
   }
   i18n: Record<string, DivisionLocaleValue>
 }
@@ -114,7 +113,7 @@ type DivisionRow = {
   cartography: typeof divisions.$inferSelect.cartography
   sources: typeof divisions.$inferSelect.sources
   createdAt: string
-  updatedAt: string
+
   i18n: string
 }
 
@@ -358,7 +357,6 @@ function mapDivisionRow(row: DivisionRow): DivisionRecord {
       cartography: row.cartography,
       sources: row.sources,
       createdAt: row.createdAt,
-      updatedAt: row.updatedAt,
     },
     i18n: Object.fromEntries(
       Object.entries(rawI18n).map(([locale, value]) => [
@@ -441,7 +439,7 @@ export async function listReplayedDivisionRecords(
                   cartography: historyDivisions.cartography,
                   sources: historyDivisions.sources,
                   createdAt: historyDivisions.createdAt,
-                  updatedAt: historyDivisions.createdAt,
+
                   versionHash: historyDivisions.versionHash,
                 })
                 .from(historyDivisions)
@@ -603,7 +601,7 @@ export async function listDivisionRecordsCurrent(
       cartography: divisions.cartography,
       sources: divisions.sources,
       createdAt: divisions.createdAt,
-      updatedAt: divisions.updatedAt,
+
       i18n,
     })
     .from(pagedDivisions)
@@ -667,7 +665,7 @@ export async function listDivisionRecordsCurrentByIds(
             cartography: divisions.cartography,
             sources: divisions.sources,
             createdAt: divisions.createdAt,
-            updatedAt: divisions.updatedAt,
+
             i18n,
           })
           .from(divisions)

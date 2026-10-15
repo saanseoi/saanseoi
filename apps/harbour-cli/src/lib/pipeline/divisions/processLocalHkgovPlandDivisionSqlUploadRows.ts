@@ -63,7 +63,6 @@ export async function replaceCurrentSnapshot(
           record.base.id,
         ),
         createdAt: now,
-        updatedAt: now,
       })),
     )
     processedRecords += chunk.length
@@ -140,7 +139,7 @@ export async function replaceCurrentI18n(
       nameAlts: null,
       nameRules: null,
       createdAt: now,
-      updatedAt: now,
+
       meta: { isLocaleInferred: false },
     })),
   )

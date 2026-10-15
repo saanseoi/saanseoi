@@ -141,8 +141,13 @@ export const primaryUuid = (name: string) =>
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID())
 
-export const timestamps = {
+/** Creation time for projected content; mutation timing belongs to publication state. */
+export const createdAtTimestamp = {
   createdAt: defaultIsoTimestamp('createdAt').notNull(),
+}
+
+export const timestamps = {
+  ...createdAtTimestamp,
   updatedAt: defaultIsoTimestamp('updatedAt')
     .$onUpdate(() => /* @__PURE__ */ toIsoTimestamp())
     .notNull(),

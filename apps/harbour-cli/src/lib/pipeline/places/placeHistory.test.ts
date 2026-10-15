@@ -214,17 +214,15 @@ test('attribution observation refreshes inherit history and retain the introduci
     }
     await refresh('2025-01')
     await f.run([row])
-    const before = f.current
-      .query('SELECT sources, createdAt, updatedAt FROM places')
-      .get()
+    const before = f.current.query('SELECT sources, createdAt FROM places').get()
     await refresh('2025-02')
     const repeated = await f.run([row], 'new', 'source-next')
     expect(repeated.historySqlByBinding.size).toBe(0)
     expect(repeated.sourceSqlByBinding.size).toBe(0)
     expect(repeated.changes).toEqual([])
-    expect(
-      f.current.query('SELECT sources, createdAt, updatedAt FROM places').get(),
-    ).toEqual(before)
+    expect(f.current.query('SELECT sources, createdAt FROM places').get()).toEqual(
+      before,
+    )
     expect(
       getDatabase(f.databases, 'old').query('SELECT count(*) AS n FROM places').get(),
     ).toEqual({ n: 1 })
@@ -375,7 +373,7 @@ test('base edits retain locale versions and retirement excludes another current 
     await f.run([row])
     const old = getDatabase(f.databases, 'old')
     f.current.exec(
-      "INSERT INTO places(scopeId,id,resourceReleaseId,geometry,firstSeenMonth,createdAt,updatedAt) VALUES('another-scope','foreign','foreign',json_object('type','Point','coordinates',json_array(114,22)),'2025','original','original')",
+      "INSERT INTO places(scopeId,id,resourceReleaseId,geometry,firstSeenMonth,createdAt) VALUES('another-scope','foreign','foreign',json_object('type','Point','coordinates',json_array(114,22)),'2025','original')",
     )
     old.exec(
       "INSERT INTO places (id,resourceReleaseId,geometry,firstSeenMonth,lastSeenMonth,versionHash,snapshotId,isCurrent,createdAt) VALUES ('foreign','foreign',json_object('type','Point','coordinates',json_array(114,22)),'2025','2025','foreign','foreign',1,'original')",

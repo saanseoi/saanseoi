@@ -19,7 +19,6 @@ export function division(
       cartography: null,
       sources: null,
       createdAt: '',
-      updatedAt: '',
     },
     i18n: {
       en: {

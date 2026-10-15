@@ -47,9 +47,10 @@ export function addressMutationTables(binding: string): NetTablePolicy[] {
     name,
     ...(!['addressPublicationState'].includes(name)
       ? {
-          ignoredColumns: binding.startsWith('DB_HISTORY_')
-            ? ['createdAt']
-            : ['createdAt', 'updatedAt'],
+          ignoredColumns:
+            binding === 'DB_CURRENT' || binding.startsWith('DB_HISTORY_')
+              ? ['createdAt']
+              : ['createdAt', 'updatedAt'],
         }
       : {}),
     ...(binding === 'DB_CURRENT' && ['address3d', 'address3dI18n'].includes(name)

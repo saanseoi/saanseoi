@@ -500,7 +500,6 @@ export async function buildDivisionSqlState(
                 dimension: 'type',
                 dimensionValue: type,
                 createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
               })),
             ...buildChurnStatsRows(
               message.source === 'overture'

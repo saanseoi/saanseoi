@@ -6,7 +6,7 @@ import {
   text,
 } from 'drizzle-orm/sqlite-core'
 
-import { canonicalDivision, canonicalDivisionI18n, timestamps } from '../shared'
+import { canonicalDivision, canonicalDivisionI18n, createdAtTimestamp } from '../shared'
 
 /** Latest published snapshot per region/domain/lineage search scope. */
 export const divisionSearchScopes = sqliteTable('divisionSearchScopes', {
@@ -19,7 +19,7 @@ export const divisions = sqliteTable(
   {
     scopeId: text('scopeId').notNull(),
     ...canonicalDivision,
-    ...timestamps,
+    ...createdAtTimestamp,
   },
   table => [
     primaryKey({
@@ -40,7 +40,7 @@ export const divisionsI18n = sqliteTable(
   {
     scopeId: text('scopeId').notNull(),
     ...canonicalDivisionI18n,
-    ...timestamps,
+    ...createdAtTimestamp,
   },
   table => [
     primaryKey({

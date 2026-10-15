@@ -8,7 +8,7 @@ import {
   canonicalStatsMeasureI18n,
   canonicalStatsRecord,
   canonicalStatsValueI18n,
-  timestamps,
+  createdAtTimestamp,
   defaultIsoTimestamp,
 } from '../shared'
 
@@ -19,7 +19,7 @@ const definitionVersion = { versionHash: text('versionHash').notNull().default('
 /** Latest published values for every retained reference period. */
 export const statsRecords = sqliteTable(
   'statsRecords',
-  { ...canonicalStatsRecord, ...definitionVersion, ...timestamps },
+  { ...canonicalStatsRecord, ...definitionVersion, ...createdAtTimestamp },
   table => [
     primaryKey({ columns: [table.id] }),
     index('statsRecords_dataset_period_idx').on(

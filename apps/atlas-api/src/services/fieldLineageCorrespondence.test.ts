@@ -75,7 +75,7 @@ test('Division field emission agrees with actual response profiles', () => {
       'category',
       'hierarchies',
       'createdAt',
-      'updatedAt',
+
       'geometry',
       'cartography',
       'snapshotId',

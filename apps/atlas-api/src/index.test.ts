@@ -2365,7 +2365,7 @@ describe('atlas-api', () => {
       'firstSeenMonth',
       'lastSeenMonth',
       'createdAt',
-      'updatedAt',
+
       'snapshotId',
       'resourceReleaseId',
       'addressSnapshotId',
@@ -2518,7 +2518,6 @@ describe('atlas-api', () => {
       'sourceReleaseId',
       'sourceFeatureRef',
       'createdAt',
-      'updatedAt',
     ]) {
       expect(
         statisticAttributes?.properties?.[field]?.description ??

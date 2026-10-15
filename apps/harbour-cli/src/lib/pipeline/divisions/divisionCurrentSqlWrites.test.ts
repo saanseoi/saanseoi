@@ -38,7 +38,6 @@ test('Division SQL delivers only changed current records and localisations acros
       category: 'administrative',
       hierarchies: { full: [], administrative: [], locality: [], landform: [] },
       createdAt: '2025-01-01',
-      updatedAt: '2025-01-01',
     },
     canonicalI18n: [
       {

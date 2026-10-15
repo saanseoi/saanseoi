@@ -66,8 +66,7 @@ function sortedSet<T>(values: T[]) {
     .map(([, value]) => value)
 }
 function attributes(record: DivisionRecord) {
-  const { snapshotId, id, createdAt, updatedAt, hierarchies, ...content } =
-    record.division
+  const { snapshotId, id, createdAt, hierarchies, ...content } = record.division
   return {
     ...content,
     divisionCode: content.divisionCode ?? null,

@@ -137,7 +137,6 @@ export async function materialiseSupplementaryAddressHistory(input: {
           ...row.current,
           scopeId: input.scopeId,
           ...timestamp,
-          updatedAt: input.now,
         }),
       )
       for (const value of row.i18n)
@@ -146,7 +145,6 @@ export async function materialiseSupplementaryAddressHistory(input: {
             ...value,
             scopeId: input.scopeId,
             ...timestamp,
-            updatedAt: input.now,
           }),
         )
       for (const { versionHash: _versionHash, ...lookup } of row.lookups)
@@ -155,7 +153,6 @@ export async function materialiseSupplementaryAddressHistory(input: {
             ...lookup,
             scopeId: input.scopeId,
             ...timestamp,
-            updatedAt: input.now,
           }),
         )
     }

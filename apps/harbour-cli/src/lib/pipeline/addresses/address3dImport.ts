@@ -323,13 +323,12 @@ export function collectionStatements(
     sources,
     scopeId: currentSnapshotId,
     createdAt: now,
-    updatedAt: now,
   }
   const currentStatements = [
     insert(
       'address3d',
       current,
-      `ON CONFLICT(scopeId,id) DO UPDATE SET address2dId=excluded.address2dId, units=excluded.units, unitCount=excluded.unitCount, contentHash=excluded.contentHash, unresolvedSectionIds=excluded.unresolvedSectionIds, sources=excluded.sources, updatedAt=excluded.updatedAt WHERE address3d.address2dId IS NOT excluded.address2dId OR address3d.units IS NOT excluded.units OR address3d.unitCount IS NOT excluded.unitCount OR address3d.contentHash IS NOT excluded.contentHash OR address3d.unresolvedSectionIds IS NOT excluded.unresolvedSectionIds OR address3d.sources IS NOT excluded.sources`,
+      `ON CONFLICT(scopeId,id) DO UPDATE SET address2dId=excluded.address2dId, units=excluded.units, unitCount=excluded.unitCount, contentHash=excluded.contentHash, unresolvedSectionIds=excluded.unresolvedSectionIds, sources=excluded.sources WHERE address3d.address2dId IS NOT excluded.address2dId OR address3d.units IS NOT excluded.units OR address3d.unitCount IS NOT excluded.unitCount OR address3d.contentHash IS NOT excluded.contentHash OR address3d.unresolvedSectionIds IS NOT excluded.unresolvedSectionIds OR address3d.sources IS NOT excluded.sources`,
     ),
   ]
   const historyStatements = [
@@ -352,8 +351,8 @@ export function collectionStatements(
     currentStatements.push(
       insert(
         'address3dI18n',
-        { ...fields, updatedAt: now, scopeId: currentSnapshotId },
-        'ON CONFLICT(scopeId,address3dId,locale) DO UPDATE SET meta=excluded.meta,units=excluded.units,updatedAt=excluded.updatedAt WHERE address3dI18n.meta IS NOT excluded.meta OR address3dI18n.units IS NOT excluded.units',
+        { ...fields, scopeId: currentSnapshotId },
+        'ON CONFLICT(scopeId,address3dId,locale) DO UPDATE SET meta=excluded.meta,units=excluded.units WHERE address3dI18n.meta IS NOT excluded.meta OR address3dI18n.units IS NOT excluded.units',
       ),
     )
     historyStatements.push(

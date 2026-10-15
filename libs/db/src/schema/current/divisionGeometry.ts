@@ -1,6 +1,6 @@
 import { index, primaryKey, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 
-import { canonicalDivisionGeometry, timestamps } from '../shared'
+import { canonicalDivisionGeometry, createdAtTimestamp } from '../shared'
 
 export const divisionAreas = sqliteTable(
   'divisionAreas',
@@ -8,7 +8,7 @@ export const divisionAreas = sqliteTable(
     scopeId: text('scopeId').notNull(),
     divisionId: text('divisionId').notNull(),
     ...canonicalDivisionGeometry,
-    ...timestamps,
+    ...createdAtTimestamp,
   },
   table => [
     primaryKey({ columns: [table.scopeId, table.id] }),
@@ -24,7 +24,7 @@ export const divisionBoundaries = sqliteTable(
     leftDivisionId: text('leftDivisionId').notNull(),
     rightDivisionId: text('rightDivisionId').notNull(),
     ...canonicalDivisionGeometry,
-    ...timestamps,
+    ...createdAtTimestamp,
   },
   table => [
     primaryKey({ columns: [table.scopeId, table.id] }),

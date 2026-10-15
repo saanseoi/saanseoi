@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:370b7bc1f022798575ab72958ad0e8199594eba9ad9cf71681b5da7fc007b32c",
+  "versionHash": "sha256:ac51f87051f50ca9bb881f1e4f8d285e2c24d209fb2f4ef741fe287567c47f38",
   "apiVersion": "api-divisions-v0.1",
   "domainCode": "hkgov-censtatd-hma",
   "mappingVersion": 1,
@@ -276,20 +276,6 @@
         },
         {
           "apiField": "attributes.createdAt",
-          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups",
-          "resolverCode": "direct_copy",
-          "contributionType": "primary",
-          "priority": 0,
-          "confidence": 1,
-          "inputs": [
-            {
-              "origin": "registry",
-              "fieldPath": "selectedSnapshot"
-            }
-          ]
-        },
-        {
-          "apiField": "attributes.updatedAt",
           "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups",
           "resolverCode": "direct_copy",
           "contributionType": "primary",

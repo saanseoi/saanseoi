@@ -169,7 +169,7 @@ export async function buildDivisionHistorySqlFile(
         cartography: jsonText(record.base.cartography),
         sources: jsonText(record.base.sources),
         geometry: jsonText(record.base.geometry),
-        createdAt: record.base.updatedAt ?? record.base.createdAt,
+        createdAt: record.base.createdAt,
       })
       i18nRows.push(
         ...(await Promise.all(
@@ -183,7 +183,7 @@ export async function buildDivisionHistorySqlFile(
             nameVariant: jsonText(localised.nameVariant),
             nameAlts: localised.nameAlts ?? null,
             nameRules: jsonText(localised.nameRules),
-            createdAt: record.base.updatedAt,
+            createdAt: record.base.createdAt,
             meta: jsonText(localised.meta),
           })),
         )),
@@ -303,7 +303,6 @@ export async function buildDivisionCurrentSqlFile(
           sources: jsonText(record.base.sources),
           geometry: jsonText(record.base.geometry),
           createdAt: record.base.createdAt,
-          updatedAt: record.base.updatedAt,
         })
       }
 
@@ -326,8 +325,8 @@ export async function buildDivisionCurrentSqlFile(
             nameVariant: jsonText(localised.nameVariant),
             nameAlts: localised.nameAlts ?? null,
             nameRules: jsonText(localised.nameRules),
-            createdAt: record.base.updatedAt,
-            updatedAt: record.base.updatedAt,
+            createdAt: record.base.createdAt,
+
             meta: jsonText(localised.meta),
           })),
       )
@@ -351,7 +350,6 @@ export async function buildDivisionCurrentSqlFile(
         'sources',
         'geometry',
         'createdAt',
-        'updatedAt',
       ],
       baseRows,
       {
@@ -365,8 +363,7 @@ ON CONFLICT(scopeId, id) DO UPDATE SET
   hierarchies = excluded.hierarchies,
   cartography = excluded.cartography,
   sources = excluded.sources,
-  geometry = excluded.geometry,
-  updatedAt = excluded.updatedAt`.trim(),
+  geometry = excluded.geometry`.trim(),
       },
     ),
     ...removedI18nStatements,
@@ -382,7 +379,6 @@ ON CONFLICT(scopeId, id) DO UPDATE SET
         'nameRules',
         'meta',
         'createdAt',
-        'updatedAt',
       ],
       i18nRows,
       {
@@ -392,8 +388,7 @@ ON CONFLICT(scopeId, divisionId, locale) DO UPDATE SET
   nameVariant = excluded.nameVariant,
   nameAlts = excluded.nameAlts,
   nameRules = excluded.nameRules,
-  meta = excluded.meta,
-  updatedAt = excluded.updatedAt
+  meta = excluded.meta
 WHERE divisionsI18n.name IS NOT excluded.name
   OR divisionsI18n.nameVariant IS NOT excluded.nameVariant
   OR divisionsI18n.nameAlts IS NOT excluded.nameAlts
