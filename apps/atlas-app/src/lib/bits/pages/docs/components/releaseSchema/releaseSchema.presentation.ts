@@ -345,3 +345,20 @@ export function getOrderedSchemaProperties(schema: OpenApiSchema) {
     ([left], [right]) => rank(left) - rank(right),
   )
 }
+
+/** Field-specific meaning takes precedence over an inherited type description. */
+export function getSchemaDescription(
+  schema: OpenApiSchema,
+  displaySchema: OpenApiSchema,
+) {
+  const own = [
+    schema.description,
+    ...getSchemaComposition(schema).map(member => member.description),
+  ].filter((value): value is string => Boolean(value))
+  const descriptions = own.length
+    ? own
+    : [displaySchema.description, getScalarArrayChain(displaySchema)?.description]
+  return [
+    ...new Set(descriptions.filter((value): value is string => Boolean(value))),
+  ].join(' ')
+}

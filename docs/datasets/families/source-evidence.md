@@ -95,6 +95,14 @@ retain those bodies as managed sidecars and establish their source links before 
 the migration, or use a separately authorised rebuild. Schema migration alone does not
 copy database JSON into R2.
 
+## Local SOURCE conversion
+
+Data-conversion scripts use the table names declared at their generated migration
+boundary. Migration receipts identify completed conversions independently of subsequent
+table renames. C&SD geometry conversion preserves release-owned assertions and
+derivative geometry links within one transaction; orphan references reject the
+conversion without discarding retained publisher evidence.
+
 ## Shared Statistics definition selections
 
 `statsRecords.definitionSetId` references the immutable field-definition map in

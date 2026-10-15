@@ -61,6 +61,20 @@ describe.each(locales)('source schema descriptions in %s', locale => {
           )
   })
 
+  test('defines population and household district identifiers and names', () => {
+    for (const version of ['2024', '2026-Q2']) {
+      const release = `dr-hk-hkgov-censtatd-division-statistic-population-households-district-${version}`
+      for (const field of ['dc', 'dcClass', 'dcEn', 'dcZhHant', 'year'])
+        verify(
+          { description: sourceRecordFieldDescription(release, field, locale) },
+          locale,
+          `${release}.${field}`,
+        )
+      expect(sourceRecordFieldDescription(release, 'dcClass', locale)).toContain('A')
+      expect(sourceRecordFieldDescription(release, 'dcClass', locale)).toContain('T')
+    }
+  })
+
   test('defines all six district living-quarters fields', () => {
     const release =
       'dr-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district-2023-H2'

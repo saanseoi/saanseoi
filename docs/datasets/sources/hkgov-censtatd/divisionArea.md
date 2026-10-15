@@ -475,6 +475,11 @@ Geometry reuse compares canonical materialisations within the same cohort, regio
 variant. Simplified derivatives identify shared geometry and the complete transform
 context.
 
+Local geometry conversion follows the table declarations in its generated SOURCE
+migration. Its receipt remains authoritative across subsequent table renames. Conversion
+retains every release assertion, shared native geometry and derivative output; missing
+publisher references abort the transaction.
+
 ## Source record ID composition
 
 Each C&SD dataset fixture declares its source record identity. Native feature attributes

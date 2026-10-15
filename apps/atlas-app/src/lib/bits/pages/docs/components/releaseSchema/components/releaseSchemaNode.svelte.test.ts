@@ -252,3 +252,28 @@ test('distinguishes allowed values from illustrative examples', async () => {
     .element(screen.getByText('"HKSAR", "CW", "SYP"', { exact: false }))
     .toBeVisible()
 })
+
+test('shows a geographic field meaning without inherited identifier constraints', async () => {
+  const screen = await render(ReleaseSchemaNode, {
+    name: 'districtId',
+    schema: {
+      description: 'Identifier of the district associated with the place.',
+      allOf: [{ $ref: '#/components/schemas/Id' }],
+    },
+    schemas: {
+      Id: {
+        type: 'string',
+        description: 'A unique identifier with no whitespace characters.',
+        pattern: '^\\S+$',
+        minLength: 1,
+      },
+    },
+  })
+  await expect
+    .element(screen.getByText('Identifier of the district associated with the place.'))
+    .toBeVisible()
+  await expect
+    .element(screen.getByText('A unique identifier with no whitespace characters.'))
+    .not.toBeInTheDocument()
+  await expect.element(screen.getByText('Pattern · min length: 1')).toBeVisible()
+})

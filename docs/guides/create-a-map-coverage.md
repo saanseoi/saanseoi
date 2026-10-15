@@ -7,6 +7,10 @@ solely because it compiles or an LLM generated the wording.
 
 ## Objective coverage
 
+The hand-over instructions explain Places geographic references as Division IDs,
+distinguishing broad areas and districts, settlement and neighbourhood scales, and
+physical island landforms.
+
 Places geometry and bbox use the canonical GeoJSON Point and four-number bounds
 contracts. The hand-over instructions distinguish brand Wikidata identity from venue
 identity and explain observation months. They identify snapshot and resource-release

@@ -2,6 +2,7 @@ import { describe, expect, test } from 'bun:test'
 
 import {
   getOrderedSchemaProperties,
+  getSchemaDescription,
   getSchemaDataArrayEnvelope,
   getOpenApiSchemaForFamily,
   getProfileSchema,
@@ -281,4 +282,30 @@ test('schema properties put timestamps last without changing other field order',
     'geometry',
     'sources',
   ])
+})
+
+test('field meanings override generic referenced-type prose', () => {
+  const id = {
+    type: 'string',
+    description: 'A unique identifier with no whitespace characters.',
+    pattern: '^\\S+$',
+    minLength: 1,
+  }
+  const meaning = 'Identifier of the district associated with the place.'
+  expect(
+    getSchemaDescription(
+      { description: meaning, allOf: [{ $ref: '#/components/schemas/Id' }] },
+      id,
+    ),
+  ).toBe(meaning)
+  expect(
+    getSchemaDescription(
+      { allOf: [{ $ref: '#/components/schemas/Id' }, { description: meaning }] },
+      id,
+    ),
+  ).toBe(meaning)
+  expect(getSchemaDescription({ $ref: '#/components/schemas/Id' }, id)).toBe(
+    id.description,
+  )
+  expect(id.pattern).toBe('^\\S+$')
 })

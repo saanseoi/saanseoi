@@ -1,8 +1,8 @@
 {
   "dc": {
-    "en": "Publisher District Council district code.",
-    "zh-hant": "發布者的區議會分區代碼。",
-    "zh-hans": "发布者的区议会分区代码。"
+    "en": "C&SD numeric code identifying the District Council district, retained as text.",
+    "zh-hant": "政府統計處用於識別區議會分區的數字代碼，以文字保留。",
+    "zh-hans": "政府统计处用于识别区议会分区的数字代码，以文字保留。"
   },
   "dcEn": {
     "en": "District Council district name in English.",
@@ -15,9 +15,9 @@
     "zh-hans": "区议会分区的繁体中文名称。"
   },
   "dcClass": {
-    "en": "Publisher classification of the District Council district.",
-    "zh-hant": "發布者的區議會分區分類。",
-    "zh-hans": "发布者的区议会分区分类。"
+    "en": "Stable C&SD letter code identifying the District Council district: A–T, excluding I and O.",
+    "zh-hant": "政府統計處用於識別區議會分區的固定字母代碼：A 至 T，不包括 I 及 O。",
+    "zh-hans": "政府统计处用于识别区议会分区的固定字母代码：A 至 T，不包括 I 及 O。"
   },
   "year": {
     "en": "Calendar year of the publisher’s statistical reference period, retained as text.",

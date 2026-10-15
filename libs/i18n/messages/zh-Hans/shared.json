@@ -3251,5 +3251,16 @@
   "openapi_source_contributions_description": "此来源记录提供的字段或用途，例如 identity、names 或 geometry。",
   "openapi_identifier_publisher_description": "发布者代码是分配标识符的机构或项目所使用的固定命名空间。例如 hkgov-landsd = 香港地政总署；overture = Overture Maps；saanseoi = SaanSeoi。每个发布者对象按标识符类型存储其值。",
   "openapi_identifier_type_description": "标识符类型以 camelCase 表示发布者的标识字段。例如 hkgov-landsd.geoNameId 是地政总署地名标识符，如 \"001\"；overture.divisionId 是 Overture 分区 ID；saanseoi.sourceId 标识编订记录。单一值表示一个标识符；数组表示同一类型的多个标识符。",
-  "openapi_divisions_i18n_locale_description": "语言区域键标识名称所用的语言及书写系统（如有指定）。en 表示英文；zh-hant 表示繁体中文；zh-hans 表示简体中文。API 响应键使用小写。locales 查询参数选择所需语言；每个语言对象包含该语言的名称及命名数据。"
+  "openapi_divisions_i18n_locale_description": "语言区域键标识名称所用的语言及书写系统（如有指定）。en 表示英文；zh-hant 表示繁体中文；zh-hans 表示简体中文。API 响应键使用小写。locales 查询参数选择所需语言；每个语言对象包含该语言的名称及命名数据。",
+  "openapi_places_country_id_description": "与此地点相关的国家区划标识符。",
+  "openapi_places_area_id_description": "与此地点相关的大区标识符，例如香港岛、九龙或新界。",
+  "openapi_places_district_id_description": "与此地点相关的地区标识符，例如沙田或元朗。",
+  "openapi_places_town_id_description": "与此地点相关的市镇标识符；市镇是地区内的城市聚落。",
+  "openapi_places_rural_area_id_description": "与此地点相关的乡郊地区标识符；这类具名乡郊区域可包含村落及小村落。",
+  "openapi_places_macrohood_id_description": "与此地点相关的大社区标识符；大社区是聚落内较大范围的社区。",
+  "openapi_places_neighbourhood_id_description": "与此地点相关的社区标识符；社区是聚落内具名的地方区域。",
+  "openapi_places_village_id_description": "与此地点相关的村落标识符；村落是具名的乡郊聚落。",
+  "openapi_places_microhood_id_description": "与此地点相关的小社区标识符；小社区是社区内较小范围的地方区域。",
+  "openapi_places_hamlet_id_description": "与此地点相关的小村落标识符；小村落是规模较小的乡郊聚落。",
+  "openapi_places_landform_id_description": "与此地点相关的岛屿地形标识符，可代表主要岛屿、次要岛屿或小岛。此字段表示实际岛屿地形，而非行政区域。"
 }

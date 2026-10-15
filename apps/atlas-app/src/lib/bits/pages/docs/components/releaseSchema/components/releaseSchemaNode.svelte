@@ -5,6 +5,7 @@ import { prefersReducedMotion } from 'svelte/motion'
 import { fade } from 'svelte/transition'
 import {
   getOrderedSchemaProperties,
+  getSchemaDescription,
   getSchemaComposition,
   getExpandableSchemaComposition,
   getSchemaTypeLabel,
@@ -95,17 +96,8 @@ let detailLabels = $derived([
     ? [`max length: ${displaySchema.maxLength}`]
     : []),
 ])
-let description = $derived(
-  [
-    schema.description,
-    ...directComposition.map(member => member.description),
-    displaySchema.description,
-    scalarArrayChain?.description,
-  ]
-    .filter((value): value is string => Boolean(value))
-    .filter((value, index, descriptions) => descriptions.indexOf(value) === index)
-    .join(' '),
-)
+let description = $derived(getSchemaDescription(schema, displaySchema))
+
 let hasChildren = $derived(
   !isCyclicReference &&
     Boolean(

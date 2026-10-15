@@ -25,9 +25,14 @@ for (const [family, schema] of Object.entries({ meta, current, history, source }
           readFileSync(resolve(root, migration, 'snapshot.json'), 'utf8'),
         ) as { id: string; prevIds: string[] }
         if (previousSnapshotId)
-          expect(snapshot.prevIds, `${family}/${migration}`).toEqual([
+          // Drizzle can retain additional parents when merging snapshots.
+          expect(snapshot.prevIds, `${family}/${migration}`).toContain(
             previousSnapshotId,
-          ])
+          )
+        expect(new Set(snapshot.prevIds).size, `${family}/${migration}`).toBe(
+          snapshot.prevIds.length,
+        )
+        expect(snapshot.prevIds, `${family}/${migration}`).not.toContain(snapshot.id)
         previousSnapshotId = snapshot.id
         db.exec(readFileSync(resolve(root, migration, 'migration.sql'), 'utf8'))
       }

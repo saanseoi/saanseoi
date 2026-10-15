@@ -3248,5 +3248,16 @@
   "openapi_source_contributions_description": "The fields or roles contributed by this source record, such as identity, names or geometry.",
   "openapi_identifier_publisher_description": "A publisher code is the stable namespace of the organisation or project that assigns an identifier. Examples: hkgov-landsd = Hong Kong Lands Department; overture = Overture Maps; saanseoi = SaanSeoi. Each publisher object maps identifier types to their values.",
   "openapi_identifier_type_description": "An identifier type names the publisher's identifier field, written in camelCase. For example, hkgov-landsd.geoNameId is a Lands Department place-name identifier such as \"001\"; overture.divisionId is an Overture division ID; saanseoi.sourceId identifies an authored record. A scalar is one identifier; an array contains multiple identifiers of the same type.",
-  "openapi_divisions_i18n_locale_description": "A locale key identifies the language and, where specified, the writing system of these names. en means English; zh-hant means Traditional Chinese; zh-hans means Simplified Chinese. API response keys use lower case. The locales query parameter selects the requested languages; each locale object contains names and naming data for that language."
+  "openapi_divisions_i18n_locale_description": "A locale key identifies the language and, where specified, the writing system of these names. en means English; zh-hant means Traditional Chinese; zh-hans means Simplified Chinese. API response keys use lower case. The locales query parameter selects the requested languages; each locale object contains names and naming data for that language.",
+  "openapi_places_country_id_description": "Identifier of the country division associated with the place.",
+  "openapi_places_area_id_description": "Identifier of the broad geographic area associated with the place, such as Hong Kong Island, Kowloon or the New Territories.",
+  "openapi_places_district_id_description": "Identifier of the district associated with the place, such as Sha Tin or Yuen Long.",
+  "openapi_places_town_id_description": "Identifier of the town associated with the place: an urban settlement within a district.",
+  "openapi_places_rural_area_id_description": "Identifier of the rural area associated with the place: a named countryside area that may include villages and hamlets.",
+  "openapi_places_macrohood_id_description": "Identifier of the macrohood associated with the place: a larger neighbourhood area within a settlement.",
+  "openapi_places_neighbourhood_id_description": "Identifier of the neighbourhood associated with the place: a named local area within a settlement.",
+  "openapi_places_village_id_description": "Identifier of the village associated with the place: a named rural settlement.",
+  "openapi_places_microhood_id_description": "Identifier of the microhood associated with the place: a small local area within a neighbourhood.",
+  "openapi_places_hamlet_id_description": "Identifier of the hamlet associated with the place: a small rural settlement.",
+  "openapi_places_landform_id_description": "Identifier of the island landform associated with the place: a major island, minor island or islet. This describes the physical island rather than an administrative area."
 }
