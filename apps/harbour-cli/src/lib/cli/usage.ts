@@ -42,7 +42,7 @@ export function printUsage() {
   saanseoi reset:stats [--target local|preview|production] [--dry-run] [--yes] [--keep-cache]
   saanseoi reset:addresses:official [--target local|preview|production] [--dry-run] [--yes] [--keep-cache] [--discard-abandoned-staged] [--discard-changed-docs] [--adopt-failed]
   saanseoi reset:places:overture [--target local|preview|production] [--dry-run] [--yes] [--keep-cache]
-  saanseoi update [--target local|preview|production] [--api-family|--scope all|addresses|divisions|places|stats|streets] [--dataset CODE[,CODE...]] [--with-dependencies] [--release-notes-url URL] [--download] [--check-now] [--force-download] [--force-upload] [--no-upload] [--defer-stats-release-set] [--include-geography] [--yes]
+  saanseoi update [--target local|preview|production] [--api-family|--scope all|addresses|divisions|places|stats] [--dataset CODE[,CODE...]] [--with-dependencies] [--release-notes-url URL] [--download] [--check-now] [--force-download] [--force-upload] [--no-upload] [--defer-stats-release-set] [--include-geography] [--yes]
     --dataset selects exactly the named datasets; add --with-dependencies to include composition providers.
   saanseoi cleanup:snapshots [--target local|preview|production] [--resource-type ${resourceTypes.join('|')}] [--snapshot <snapshot-id>[,<snapshot-id>...]] [--delay-seconds 30] [--dry-run] [--yes]
   saanseoi release-sets:reconcile [--target local|preview|production] [--api-family FAMILY] [--region hk|mo]

@@ -10,8 +10,10 @@ import {
   normaliseDatasetVersion,
   readLatestLocalSourceVersion,
 } from './sourceUpdatesVersions.ts'
+import { applySkippedRelease, assertSkippedReleases } from './sourceUpdatesSkips.ts'
 import { lookupOverture } from './sourceUpdatesOverture.ts'
 import { lookupDataGovHk } from './sourceUpdatesDataGovHk.ts'
+import { lookupReviewedReleases } from './sourceUpdatesReviewed'
 import { lookupLandsdStreet } from './sourceUpdatesStreets.ts'
 
 export async function lookupDatasetUpdates(
@@ -55,6 +57,7 @@ export async function lookupDatasetUpdates(
   }
 
   try {
+    assertSkippedReleases(dataset)
     const targetVersion = targetVersions?.get(dataset.code)
     const targetBaseline =
       targetVersion === undefined
@@ -80,7 +83,7 @@ export async function lookupDatasetUpdates(
     })
     const checkedAt = new Date().toISOString()
     return (Array.isArray(result) ? result : [result]).map(update => ({
-      ...update,
+      ...applySkippedRelease(update),
       sourceKey: update.sourceKey ?? dataset.code,
       checkedAt: update.status === 'skipped' ? update.checkedAt : checkedAt,
     }))
@@ -150,6 +153,8 @@ export function requireSingleResourceType(dataset: DatasetFixture) {
 }
 
 function resolveLookupAdapter(dataset: DatasetFixture): LookupAdapter | undefined {
+  if (['ds-hk-protomaps-island', 'ds-hk-hkgov-rvd-division'].includes(dataset.code))
+    return lookupReviewedReleases
   if (dataset.publisherCode === 'overture') return lookupOverture
   if (dataset.publisherCode === 'hkgov-dpo') return lookupDataGovHk
   if (isCsdiDataset(dataset)) return lookupCsdi

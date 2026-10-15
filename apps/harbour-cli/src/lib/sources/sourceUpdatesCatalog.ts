@@ -1,3 +1,4 @@
+import { assertSkippedReleases } from './sourceUpdatesSkips.ts'
 import { assertSourceRecordIdentity } from '@repo/core/sourceRecordIdentity'
 import { readFile, readdir } from 'node:fs/promises'
 import { resolve } from 'node:path'
@@ -8,6 +9,7 @@ import type {
   CompositionMemberReference,
   DatasetFixture,
 } from './sourceUpdatesTypes.ts'
+import reviewInputs from '../../../../../fixtures/meta/datasetInputs/saanseoi-division-review.json'
 import { API_COMPOSITION_ROOT, DATASET_ROOT } from './sourceUpdatesConfig.ts'
 
 export async function loadDatasetFixtures(
@@ -24,6 +26,7 @@ export async function loadDatasetFixtures(
     ) as Omit<DatasetFixture, 'type'>
     if (datasetCodes && !datasetCodes.has(sourceFixture.code)) continue
 
+    assertSkippedReleases(sourceFixture as DatasetFixture)
     if (sourceFixture.sourceRecordIdentity)
       assertSourceRecordIdentity(sourceFixture.sourceRecordIdentity)
     const resourceTypes = sourceFixture.resourceTypes ?? []
@@ -42,7 +45,7 @@ export async function loadDatasetFixtures(
 }
 
 /**
- * Reads the currently declared materialisation edges from API compositions.
+ * Reads current composition edges and the exact reviewed Division ingredient edges.
  * Dataset fixtures intentionally remain source-discovery metadata: they do
  * not define what other data must be loaded before they are processed.
  */
@@ -80,6 +83,21 @@ export async function loadCurrentCompositionIngestDependencies(): Promise<
     }
   }
 
+  const datasets = await loadDatasetFixtures()
+  for (const pin of reviewInputs.sourceReleases) {
+    const provider = datasets.find(dataset => dataset.code === pin.datasetCode)
+    if (!provider)
+      throw new Error(`Missing curated ingredient dataset ${pin.datasetCode}.`)
+    dependencies.push({
+      compositionCode: 'saanseoi-division-review',
+      domainCode: 'geographic',
+      consumer: { resourceType: 'division', variant: 'saanseoi' },
+      provider: {
+        resourceType: pin.resourceType,
+        variant: provider.sourceVariant ?? provider.publisherCode,
+      },
+    })
+  }
   return dependencies
 }
 

@@ -145,7 +145,7 @@ test('uses sourceVariant as the subtype when the dataset code omits its resource
   ).toBe('LandsD ∷ Street ∷ Road Centreline')
 })
 
-test('selects an API family without prompting', async () => {
+test('rejects the paused Streets family without prompting', async () => {
   const datasets = [
     {
       code: 'ds-hk-hkgov-landsd-road-centreline',
@@ -162,7 +162,7 @@ test('selects an API family without prompting', async () => {
       { command: 'update', positionals: [], options: { 'api-family': 'streets' } },
       datasets,
     ),
-  ).resolves.toBe('streets')
+  ).rejects.toThrow('Streets updates are paused')
 })
 
 test('uses explicit update flags instead of ambiguous --force', () => {
@@ -252,6 +252,10 @@ test('keeps an explicit C&SD dataset selection exact unless dependencies are req
   expect(exact.map(dataset => dataset.code)).toEqual([area.code])
   const expanded = selectUpdateDatasets(datasets, [area], dependencies, true)
   expect(expanded.map(dataset => dataset.code)).toEqual([
+    'ds-hk-hkgov-landsd-division',
+    'ds-hk-hkgov-rvd-division',
+    'ds-hk-overture-division',
+    'ds-hk-protomaps-island',
     'ds-hk-saanseoi-division',
     area.code,
   ])
@@ -282,7 +286,7 @@ test('Overture groups its inventory and geometry consumers in one source dataset
   expect(ordered.map(dataset => dataset.code)).toEqual(['ds-hk-overture-division'])
 })
 
-test('accepts --scope as an alias for --api-family', async () => {
+test('applies the Streets pause to the --scope alias', async () => {
   const datasets = [
     {
       code: 'ds-hk-hkgov-landsd-road-centreline',
@@ -299,7 +303,7 @@ test('accepts --scope as an alias for --api-family', async () => {
       { command: 'update', positionals: [], options: { scope: 'streets' } },
       datasets,
     ),
-  ).resolves.toBe('streets')
+  ).rejects.toThrow('Streets updates are paused')
 })
 
 test('rejects overlapping dataset and API-family selectors', async () => {
@@ -915,4 +919,38 @@ test('metadata review remains pending when declined or non-interactive', async (
     false,
   )
   expect(await resolveMetadataReview(false, async () => true)).toBe('reviewed')
+})
+
+test('all-family selection excludes Streets and orders selected providers before consumers', async () => {
+  const datasets = await loadDatasetFixtures()
+  const ordered = selectUpdateDatasets(
+    datasets,
+    datasets,
+    await loadCurrentCompositionIngestDependencies(),
+    false,
+  )
+  expect(ordered.some(dataset => dataset.theme === 'streets')).toBe(false)
+  const codes = ordered.map(dataset => dataset.code)
+  expect(codes.indexOf('ds-hk-overture-division')).toBeLessThan(
+    codes.indexOf('ds-hk-hkgov-dpo-address'),
+  )
+  expect(codes.indexOf('ds-hk-hkgov-dpo-address')).toBeLessThan(
+    codes.indexOf('ds-hk-overture-place'),
+  )
+  expect(codes.indexOf('ds-hk-protomaps-island')).toBeLessThan(
+    codes.indexOf('ds-hk-saanseoi-division'),
+  )
+  expect(codes.indexOf('ds-hk-saanseoi-division')).toBeLessThan(
+    codes.indexOf('ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters'),
+  )
+})
+
+test('rejects an explicit Streets dataset even in a mixed selection', async () => {
+  await expect(
+    resolveApiFamilySelection(
+      { command: 'update', positionals: [], options: {} },
+      await loadDatasetFixtures(),
+      new Set(['ds-hk-overture-place', 'ds-hk-hkgov-landsd-street']),
+    ),
+  ).rejects.toThrow('Streets updates are paused')
 })

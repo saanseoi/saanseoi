@@ -53,7 +53,8 @@ export function targetVersionsFromReport(
       Partial<Pick<ReleaseReportRow, 'resourceType' | 'hasStatisticsSnapshot'>>
   >,
 ) {
-  if (dataset.theme === 'stats') {
+  const publishedRowsByType = rows.filter(row => isPublishedTargetRelease(row.status))
+  if (dataset.theme === 'stats' || (dataset.resourceTypes?.length ?? 0) > 1) {
     const requiredTypes = dataset.resourceTypes ?? ['divisionStatistic']
     const completeVersions = new Set(
       rows
@@ -78,6 +79,14 @@ export function targetVersionsFromReport(
         row.resourceType === 'divisionStatistic' || row.hasStatisticsSnapshot === true,
     )
   const targetVersions = new Map<string, string | null>()
+  for (const row of publishedRowsByType) {
+    if (row.resourceType) {
+      targetVersions.set(
+        `${row.sourceVersion}:${row.resourceType}`,
+        normaliseDatasetVersion(dataset, row.sourceVersion),
+      )
+    }
+  }
   const releases = dataset.releases?.length ? dataset.releases : [undefined]
   const publishedRows = rows.filter(row => isPublishedTargetRelease(row.status))
   const targetHasNoReleases = publishedRows.length === 0

@@ -16,6 +16,8 @@ import {
   REPO_ROOT,
 } from './sourceUpdatesConfig.ts'
 
+import { applySkippedRelease, skippedReleaseReason } from './sourceUpdatesSkips.ts'
+
 const overtureDownloadJobs = new Map<string, Promise<string>>()
 
 export async function lookupOverture({
@@ -37,7 +39,12 @@ export async function lookupOverture({
     dataset.releasePolicy?.archives.operation === 'overture-release-catalog'
       ? await listOverturistReleaseVersions()
       : []
-  const version = s3Versions[0] ?? payload.latest
+  const versions = [...new Set([payload.latest, ...s3Versions])].sort((a, b) =>
+    compareVersions(b, a),
+  )
+  const version =
+    versions.find(candidate => !skippedReleaseReason(dataset, candidate)) ??
+    versions[0]!
   // The Places processor materialises its supplementary Address output from
   // the same retained Place input; there is no separate upstream Address file.
   const resourceTypes = dataset.code.endsWith('-overture-place')
@@ -49,8 +56,12 @@ export async function lookupOverture({
     const latestUpdate = createOvertureUpdate({
       dataset,
       version,
-      localVersion: targetHasNoRelease ? undefined : localVersion,
-      previous: targetHasNoRelease ? undefined : previous,
+      localVersion: targetVersions
+        ? ((resourceType === 'place'
+            ? targetVersions.get(version)
+            : targetVersions.get(`${version}:${resourceType}`)) ?? undefined)
+        : localVersion,
+      previous: targetVersions ? undefined : previous,
       outputFileName,
       resourceType,
       sourceUrl,
@@ -59,23 +70,24 @@ export async function lookupOverture({
       return [latestUpdate]
     return [
       latestUpdate,
-      ...s3Versions
+      ...versions
         .filter(candidate => candidate !== version)
         .map(archiveVersion =>
           createOvertureUpdate({
             dataset,
             version: archiveVersion,
-            localVersion: targetHasNoRelease
-              ? undefined
-              : (targetVersions?.get(archiveVersion) ??
-                previous?.sourceChecks?.[`${archiveVersion}:${resourceType}`]?.version),
-            previous: targetHasNoRelease
+            localVersion: targetVersions
+              ? (targetVersions.get(`${archiveVersion}:${resourceType}`) ?? undefined)
+              : previous?.sourceChecks?.[`${archiveVersion}:${resourceType}`]?.version,
+            previous: targetVersions
               ? undefined
               : previous?.sourceChecks?.[`${archiveVersion}:${resourceType}`],
             outputFileName,
             resourceType,
             sourceUrl,
-            phase: 'archives',
+            phase: skippedReleaseReason(dataset, archiveVersion)
+              ? undefined
+              : 'archives',
           }),
         ),
     ]
@@ -111,13 +123,13 @@ function createOvertureUpdate({
     outputFileName,
   )
   const releaseCatalogUrl = `https://stac.overturemaps.org/${encodeURIComponent(version)}/catalog.json`
-  return {
+  return applySkippedRelease({
+    sourceKey: `${version}:${resourceType}`,
+    targetSourceKey: resourceType === 'place' ? version : `${version}:${resourceType}`,
     ...(phase
       ? {
           deferStateUntilProcessed: true,
           phase,
-          sourceKey: `${version}:${resourceType}`,
-          targetSourceKey: version,
         }
       : {}),
     dataset,
@@ -142,6 +154,8 @@ function createOvertureUpdate({
           upload: {
             positionals: [],
             options: {
+              'dataset-code': dataset.code,
+              'cohort-key': version,
               region: dataset.regionCode,
               source: 'overture',
               'source-version': version,
@@ -153,7 +167,7 @@ function createOvertureUpdate({
     message: phase
       ? `Overturist downloaded an archived Hong Kong ${dataset.theme} release.`
       : `Overturist downloaded the Hong Kong ${dataset.theme} release.`,
-  } satisfies DatasetUpdate
+  } satisfies DatasetUpdate)
 }
 
 export function buildOverturistCommand(version: string, theme: string) {

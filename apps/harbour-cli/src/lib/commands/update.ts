@@ -71,7 +71,7 @@ export async function runUpdateCommand(
   }))
   const requestedDatasets = requested
     ? datasets.filter(dataset => requested.has(dataset.code))
-    : datasets
+    : datasets.filter(dataset => dataset.theme !== 'streets')
   if (requestedDatasets.length === 0) throw new Error('No matching datasets found.')
 
   const selectedFamily = await resolveApiFamilySelection(args, datasets, requested)
@@ -97,7 +97,7 @@ export async function runUpdateCommand(
   const selectedDatasets = selectUpdateDatasets(
     datasets,
     selectedFamilyDatasets,
-    includeDependencies ? await loadCurrentCompositionIngestDependencies() : [],
+    await loadCurrentCompositionIngestDependencies(),
     includeDependencies,
   )
 
@@ -143,6 +143,11 @@ export async function runUpdateCommand(
   const planned: PlannedDatasetUpdates[] = []
 
   for (const dataset of selectedDatasets) {
+    if (dataset.code === 'ds-hk-saanseoi-division') {
+      const row = new UpdateRow(dataset)
+      row.skipped('monthly release production is not wired up yet')
+      continue
+    }
     let targetVersionLookup: TargetVersionLookup
     try {
       targetVersionLookup = {
@@ -161,13 +166,20 @@ export async function runUpdateCommand(
       }
       const row = new UpdateRow(dataset)
       row.skipped('target release report unavailable')
+      errors.push(`${dataset.code}: target release report unavailable.`)
       continue
     }
 
     const targetVersions = targetVersionLookup.versions
 
     const duePhases = getDueUpdatePhases(dataset, state[dataset.code], {
-      force: forceCheck,
+      force:
+        forceCheck ||
+        targetVersions.get(dataset.code) === null ||
+        (dataset.releases ?? []).some(
+          release =>
+            release.sourceVersion && targetVersions.get(release.sourceVersion) === null,
+        ),
       hasTargetRelease: [...targetVersions.values()].some(version => version !== null),
     })
     if (duePhases.length === 0) {
@@ -186,12 +198,15 @@ export async function runUpdateCommand(
     )
     const selectedVersions = new Set(
       selectInitialisationVersions(
-        discoveredUpdates.filter(update => update.version),
+        discoveredUpdates.filter(
+          update => update.version && update.status !== 'skipped',
+        ),
         update => update.version!,
       ),
     )
     const updates = discoveredUpdates.filter(
-      update => !update.version || selectedVersions.has(update),
+      update =>
+        update.status === 'skipped' || !update.version || selectedVersions.has(update),
     )
     for (const update of updates) {
       const sourceKey = update.sourceKey ?? dataset.code
@@ -242,44 +257,48 @@ export async function runUpdateCommand(
   // Archive evidence must be mirrored before a correction or a new release is
   // considered for ingestion, so every later action has its publisher bytes
   // available for review and reproducibility.
-  for (const phase of ['archives', 'revisions', 'new-releases'] as const) {
-    const phasePlans = planned
-      .map(plan => ({
-        ...plan,
-        updates:
-          nestedInitialisation &&
-          plan.updates.every(
-            update => update.status === 'current' || update.status === 'skipped',
-          )
-            ? phase === 'archives'
-              ? plan.updates
-              : []
-            : plan.updates.filter(update => updateBelongsToPhase(update, plan, phase)),
-      }))
-      .filter(plan => plan.updates.length > 0)
+  for (const datasetPlan of planned) {
+    for (const phase of ['archives', 'revisions', 'new-releases'] as const) {
+      const phasePlans = [datasetPlan]
+        .map(plan => ({
+          ...plan,
+          updates:
+            nestedInitialisation &&
+            plan.updates.every(
+              update => update.status === 'current' || update.status === 'skipped',
+            )
+              ? phase === 'archives'
+                ? plan.updates
+                : []
+              : plan.updates.filter(update =>
+                  updateBelongsToPhase(update, plan, phase),
+                ),
+        }))
+        .filter(plan => plan.updates.length > 0)
 
-    if (phasePlans.length === 0) {
-      continue
-    }
-    if (!nestedInitialisation) logPhaseHeading(phase)
-    for (const plan of phasePlans) {
-      await processPlannedUpdates(plan, {
-        added,
-        errors,
-        deferStatsReleaseSet,
-        includeGeography,
-        forceDownload,
-        forceUpload,
-        continueUpload,
-        printUsage,
-        releaseNotesDatasetCode,
-        releaseNotesUrl,
-        shouldDownload,
-        skipPrompts,
-        skipUpload,
-        state,
-        target,
-      })
+      if (phasePlans.length === 0) {
+        continue
+      }
+      if (!nestedInitialisation) logPhaseHeading(phase)
+      for (const plan of phasePlans) {
+        await processPlannedUpdates(plan, {
+          added,
+          errors,
+          deferStatsReleaseSet,
+          includeGeography,
+          forceDownload,
+          forceUpload,
+          continueUpload,
+          printUsage,
+          releaseNotesDatasetCode,
+          releaseNotesUrl,
+          shouldDownload,
+          skipPrompts,
+          skipUpload,
+          state,
+          target,
+        })
+      }
     }
   }
 
@@ -476,6 +495,11 @@ async function processPlannedUpdates(
       plan.targetVersions.get(update.targetSourceKey ?? plan.dataset.code)
     update.targetVersion = targetVersion
     try {
+      if (update.status === 'skipped' && update.version && update.message) {
+        row.skippedRelease(update)
+        renderedUpdates.add(update)
+        continue
+      }
       const result = await processUpdate(update, {
         forceDownload: options.forceDownload,
         forceUpload: options.forceUpload,
@@ -617,6 +641,17 @@ export async function resolveApiFamilySelection(
   if (requested && selected !== undefined) {
     throw new Error('Use either --dataset or --api-family to select updates, not both.')
   }
+  if (selected === 'streets') {
+    throw new Error('Streets updates are paused; select another API family.')
+  }
+  if (
+    requested &&
+    datasets.some(dataset => requested.has(dataset.code) && dataset.theme === 'streets')
+  ) {
+    throw new Error(
+      'Streets updates are paused; remove Streets datasets from --dataset.',
+    )
+  }
   if (requested) return 'all'
 
   if (selected === undefined) return askApiFamily(datasets)
@@ -651,19 +686,28 @@ export function selectUpdateDatasets(
   dependencies: readonly CompositionIngestDependency[],
   includeDependencies: boolean,
 ) {
+  const available = allDatasets.filter(dataset => dataset.theme !== 'streets')
+  const selected = selectedDatasets.filter(dataset => dataset.theme !== 'streets')
+  const ordered = orderDatasetsByCompositionDependencies(
+    available,
+    selected,
+    dependencies,
+  )
   return includeDependencies
-    ? orderDatasetsByCompositionDependencies(
-        allDatasets,
-        selectedDatasets,
-        dependencies,
+    ? ordered
+    : ordered.filter(dataset =>
+        selected.some(candidate => candidate.code === dataset.code),
       )
-    : [...selectedDatasets]
 }
 
 async function askApiFamily(datasets: readonly DatasetFixture[]) {
-  const families = [...new Set(datasets.map(dataset => dataset.theme))].sort(
-    (left, right) => familyLabel(left).localeCompare(familyLabel(right)),
-  )
+  const families = [
+    ...new Set(
+      datasets
+        .filter(dataset => dataset.theme !== 'streets')
+        .map(dataset => dataset.theme),
+    ),
+  ].sort((left, right) => familyLabel(left).localeCompare(familyLabel(right)))
   const options = ['all', ...families].map(value => ({
     label: colorFamilyOption(value === 'all' ? 'ALL' : familyLabel(value), value),
     value,
