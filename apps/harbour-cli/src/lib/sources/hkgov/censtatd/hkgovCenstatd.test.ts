@@ -319,7 +319,7 @@ describe('C&SD district GML preparation', () => {
           dc_chi: '地區1',
           dc_class: 'A',
           dc_eng: 'District 1',
-          sdu_pop: '0',
+          sdu_pop: 0,
         },
         sources: [
           {

@@ -673,6 +673,13 @@ replaced.
 
 ## Retained property mapping
 
+The `DC_16BC_SDU` and `DC_21C_SDU` GML adapters parse `dc`, `OBJECTID` and the `sdu_dh`,
+`sdu_n`, `sdu_oq` and `sdu_pop` counts as JSON integers. Fractional or unsafe integer
+values are rejected. Publisher `SHAPE_Length` and `SHAPE_Area` attributes are stored as
+JSON numbers rounded to two decimal places. Empty values, suppression markers and XML
+nil values retain their source representation. Native geometry coordinates and archived
+publisher bytes retain their full precision.
+
 Source persistence converts publisher property keys to camelCase and rejects collisions.
 Canonical preparation and curation use the original publisher keys; field provenance
 pairs each original path with the retained key. Population/household periods use `year`,

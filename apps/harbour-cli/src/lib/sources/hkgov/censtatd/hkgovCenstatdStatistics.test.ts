@@ -170,6 +170,16 @@ describe('C&SD native statistics archives', () => {
         metadata: await parquetMetadataAsync(file),
       })
       expect(rows).toHaveLength(entry.rowCount)
+      if (entry.datasetCode.endsWith('subdivided-units-district')) {
+        for (const row of rows) {
+          const properties = JSON.parse(String(row.properties))
+          for (const field of ['dc', 'sdu_dh', 'sdu_n', 'sdu_oq', 'sdu_pop']) {
+            // The 2016 archive suppresses several district counts.
+            if (entry.sourceVersion === '2016' && properties[field] === '**') continue
+            expect(Number.isSafeInteger(properties[field])).toBe(true)
+          }
+        }
+      }
       expect(rows[0]).toMatchObject({
         dataset_code: entry.datasetCode,
         reference_period_code: expectedFirstReferencePeriod(

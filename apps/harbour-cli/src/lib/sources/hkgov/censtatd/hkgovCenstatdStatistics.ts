@@ -14,6 +14,7 @@ import {
 import { parseStatisticsReferencePeriod } from '@repo/core/pipeline/services/statistics/statisticsReferencePeriod'
 
 import { parseHkgovCenstatdDistrictGml } from './hkgovCenstatdGml.ts'
+import { normaliseCenstatdProperty } from './hkgovCenstatdProperties.ts'
 
 // Shared with the Planning adapters: IDs are stable canonical identities, not
 // release or geometry hashes. C&SD's native feature codes are the identifier.
@@ -519,7 +520,7 @@ export function parseCsdiGml(
         ['SHAPE', 'geometryProperty', 'boundedBy'].includes(name)
       )
         continue
-      properties[name] = value
+      properties[name] = normaliseCenstatdProperty(layerName, name, value)
     }
     const publisherFeatureId =
       feature['@_gml:id'] ?? feature['@_id'] ?? feature['@_fid'] ?? String(index + 1)

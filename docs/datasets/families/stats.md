@@ -434,6 +434,12 @@ accepted branch, so an archived publication cannot override a catalogue rollback
 Earlier snapshot history remains available, and bootstrap remains idempotent for an
 already published cohort.
 
+The C&SD subdivided-units district source stores counts and numeric district/object
+identifiers as JSON integers. Its publisher area and boundary-length attributes use two
+decimal places; archived inputs and geometry coordinates retain their full precision.
+See the
+[C&SD property mapping](../sources/hkgov-censtatd/divisionStatistics.md#retained-property-mapping).
+
 The C&SD subdivided-units district source is one logical dataset with distinct 2016
 By-census and 2021 Census releases. Each release retains its own CSDI source and
 statistical-geography cohort.
