@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:bf71356d39c827256cc9c05f1f5406b29100581d5be6a88458e57caa3ba215b1",
+  "versionHash": "sha256:abe09aae52d7fdaf9cb2d3383112fec345ae83b784601063e5b0fa444931b490",
   "publisherCode": "hkgov-rvd",
   "code": "ds-hk-hkgov-rvd-division",
   "regionCode": "hk",
@@ -15,7 +15,7 @@
   "sourceUrl": "https://www.rvd.gov.hk/doc/tc/hkpr15/06.pdf",
   "schemaURL": null,
   "updatePolicy": {
-    "allowUpdates": false
+    "allowUpdates": true
   },
   "releasePolicy": {
     "series": "rolling",
@@ -23,7 +23,8 @@
     "revisionScope": "none",
     "checks": {
       "newReleases": {
-        "trigger": "never"
+        "trigger": "periodic",
+        "frequency": "monthly"
       },
       "revisions": {
         "trigger": "never"

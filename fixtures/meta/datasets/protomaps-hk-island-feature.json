@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:42d45da7fc77f34aceeb9772d096ee36097baadec122a6d3e326f75cada1a49f",
+  "versionHash": "sha256:713782d85f750bf5de1d0eeebd4ad7962f51554b3a550690eb2cb4072a8147cc",
   "publisherCode": "protomaps",
   "code": "ds-hk-protomaps-island",
   "regionCode": "hk",
@@ -17,7 +17,7 @@
   "sourceUrl": "https://tiles.saanseoi.hk/releases/hk/2026-09-01.json",
   "schemaURL": null,
   "updatePolicy": {
-    "allowUpdates": false
+    "allowUpdates": true
   },
   "releasePolicy": {
     "series": "rolling",
@@ -25,7 +25,8 @@
     "revisionScope": "none",
     "checks": {
       "newReleases": {
-        "trigger": "never"
+        "trigger": "periodic",
+        "frequency": "monthly"
       },
       "revisions": {
         "trigger": "never"
@@ -48,6 +49,11 @@
       "sourceVersion": "2026-09-01.0",
       "releaseDate": "2026-09-01",
       "sourceUrl": "https://tiles.saanseoi.hk/releases/hk/2026-09-01.json"
+    },
+    {
+      "sourceVersion": "2026-10-01.0",
+      "releaseDate": "2026-10-01",
+      "sourceUrl": "https://tiles.saanseoi.hk/releases/hk/2026-10-01.json"
     }
   ],
   "category": "terrain",
