@@ -31,6 +31,11 @@ export type ApiReleaseSnapshot = {
 }
 
 export type ApiRelease = {
+  primaryResourceStatistics?: {
+    sourceCode: string
+    releaseCode: string
+    stats: NonNullable<ApiRelease['stats']>
+  }
   apiReleaseSetSnapshots?: ApiReleaseSnapshot[]
   id: string
   apiVersionId: string

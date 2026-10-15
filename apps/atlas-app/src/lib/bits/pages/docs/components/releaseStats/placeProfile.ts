@@ -7,8 +7,16 @@ export function createPlaceProfile(
   copy: ReleaseStatsCopy,
 ) {
   const claimed = new Set<ReleaseStat>()
+  const percentageLabel = (value: number) =>
+    value > 0 && value < 0.1
+      ? `<${formatReleaseStat(locale, 0.1, 'percentage')}`
+      : formatReleaseStat(locale, value, 'percentage')
   const format = (row?: ReleaseStat) =>
-    row ? formatReleaseStat(locale, row.value, row.unit ?? row.measure) : '—'
+    row
+      ? (row.unit ?? row.measure) === 'percentage'
+        ? percentageLabel(row.value)
+        : formatReleaseStat(locale, row.value, row.unit ?? row.measure)
+      : '—'
   const take = (category: string, dimension?: string, dimensionValue?: string) => {
     const row = stats.find(
       row =>
@@ -19,6 +27,9 @@ export function createPlaceProfile(
     if (row) claimed.add(row)
     return row
   }
+  const total = stats.find(
+    row => row.category === 'records' && row.measure === 'count' && !row.dimension,
+  )?.value
   const metrics = [
     ['reference_name_count', 'reference_name_coverage', 'Reference names'],
     [
@@ -32,13 +43,22 @@ export function createPlaceProfile(
     ['localised_rows', '', 'Localised entries'],
   ].flatMap(([category, coverage, label]) => {
     const count = take(category)
-    const percentage = coverage ? take(coverage, 'field', 'referenceName') : undefined
+    const percentage = coverage
+      ? (take(coverage) ?? take(coverage, 'field', 'referenceName'))
+      : undefined
+    const coverageValue =
+      percentage?.value ??
+      (count && total && ['localised_records', 'address_links'].includes(category)
+        ? (count.value / total) * 100
+        : undefined)
     return count || percentage
       ? [
           {
             label,
             value: format(count),
-            coverage: percentage ? format(percentage) : undefined,
+            coverage:
+              coverageValue === undefined ? undefined : percentageLabel(coverageValue),
+            coverageValue,
           },
         ]
       : []
@@ -70,7 +90,7 @@ export function createPlaceProfile(
             ? stats.find(
                 row =>
                   row.category === 'reference_name_coverage' &&
-                  row.dimension === 'field',
+                  (!row.dimension || row.dimension === 'field'),
               )
             : undefined
         return {
@@ -108,6 +128,14 @@ export function createPlaceProfile(
             coverage: coverage?.value ?? 0,
             coverageLabel: format(coverage),
             count: format(get('value_count')),
+            segments: (
+              [
+                ['provided', 'provided_coverage'],
+                ['inferred', 'inferred_coverage'],
+                ['ai-translated', 'ai_translated_coverage'],
+                ['human-translated', 'human_translated_coverage'],
+              ] as const
+            ).map(([tone, suffix]) => ({ tone, value: get(suffix)?.value ?? 0 })),
             provided: format(get('provided_coverage')),
             inferred: format(get('inferred_coverage')),
             ai: format(get('ai_translated_coverage')),
@@ -130,8 +158,58 @@ export function createPlaceProfile(
       claimed.add(row)
       return { label: copy.localeName(row.dimensionValue ?? ''), value: format(row) }
     })
+  const coverageLabels: Record<string, string> = {
+    basicCategory: 'Basic category',
+    taxonomyPrimary: 'Detailed category',
+    operatingStatus: 'Operating status',
+    website: 'Website',
+    social: 'Social profile',
+    email: 'Email',
+    phone: 'Phone',
+    anyContact: 'Any contact detail',
+    brandIdentity: 'Brand Wikidata identity',
+    publisherAddress: 'Publisher address text',
+    linkedAddress: 'Linked address',
+    linkedAddress3d: 'Linked 3D address',
+    division: 'Any Division link',
+    area: 'Area assignment',
+    district: 'District assignment',
+    confidence: 'Publisher confidence',
+  }
+  const availability = [
+    ...new Set(
+      stats
+        .filter(
+          row => row.category === 'completeness' && row.dimension === 'placeField',
+        )
+        .map(row => row.dimensionValue),
+    ),
+  ]
+    .filter((field): field is string => Boolean(field))
+    .map(field => {
+      const get = (measure: string) => {
+        const row = stats.find(
+          row =>
+            row.category === 'completeness' &&
+            row.dimension === 'placeField' &&
+            row.dimensionValue === field &&
+            row.measure === measure,
+        )
+        if (row) claimed.add(row)
+        return row
+      }
+      const coverage = get('coverage')
+      return {
+        code: field,
+        label: coverageLabels[field] ?? copy.statLabel(field),
+        coverage: coverage?.value ?? 0,
+        coverageLabel: format(coverage),
+        count: format(get('count')),
+        missing: format(get('missing_count')),
+      }
+    })
   return {
-    profile: { metrics, fields, locales },
+    profile: { metrics, fields, locales, availability },
     remainingStats: stats.filter(row => !claimed.has(row)),
   }
 }

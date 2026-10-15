@@ -3,6 +3,11 @@ import {
   type PlaceLocalisationStatistics,
 } from '@repo/core/pipeline/services/places/place'
 import type { ReleaseScopedStatsRow } from '@repo/db/metaSchema'
+import {
+  addPlaceCoverage,
+  buildPlaceCoverageStatsRows,
+  createPlaceCoverageAccumulator,
+} from '@repo/core/pipeline/services/places/placeCoverageStats.ts'
 import type {
   EnrichedPlace,
   PlaceReleaseStatsAccumulator,
@@ -18,6 +23,7 @@ export function buildPlaceReleaseStatsRows(
 
 export function createPlaceReleaseStatsAccumulator(): PlaceReleaseStatsAccumulator {
   return {
+    coverage: createPlaceCoverageAccumulator(),
     addressLinkedRows: 0,
     divisionLinkedRows: 0,
     localeCounts: new Map(),
@@ -38,6 +44,13 @@ export function addPlaceReleaseStats(
   enriched: EnrichedPlace,
 ) {
   accumulator.processedRows += 1
+  addPlaceCoverage(accumulator.coverage, {
+    ...enriched.place,
+    ...enriched.divisionReferences,
+    address2dId: enriched.address2dId,
+    address3dId: enriched.address3dId,
+    divisionLinked: enriched.divisionIds.length > 0,
+  })
   if (enriched.address2dId || enriched.address3dId) accumulator.addressLinkedRows += 1
   accumulator.divisionLinkedRows += enriched.divisionIds.length
   if (enriched.place.i18n.length) accumulator.localisedPlaceCount += 1
@@ -86,15 +99,18 @@ export function buildPlaceReleaseStatsRowsFromAccumulator(
     ),
     totalPlaces: accumulator.processedRows,
   }
-  return buildPlaceReleaseStatsRowsFromValues({
-    addressLinkedRows: accumulator.addressLinkedRows,
-    divisionLinkedRows: accumulator.divisionLinkedRows,
-    localeCounts: accumulator.localeCounts,
-    localisedPlaceCount: accumulator.localisedPlaceCount,
-    localisedRows: accumulator.localisedRows,
-    localisationStats,
-    processedRows: accumulator.processedRows,
-  })
+  return [
+    ...buildPlaceReleaseStatsRowsFromValues({
+      addressLinkedRows: accumulator.addressLinkedRows,
+      divisionLinkedRows: accumulator.divisionLinkedRows,
+      localeCounts: accumulator.localeCounts,
+      localisedPlaceCount: accumulator.localisedPlaceCount,
+      localisedRows: accumulator.localisedRows,
+      localisationStats,
+      processedRows: accumulator.processedRows,
+    }),
+    ...buildPlaceCoverageStatsRows(accumulator.coverage),
+  ]
 }
 
 function buildPlaceReleaseStatsRowsFromValues(input: {

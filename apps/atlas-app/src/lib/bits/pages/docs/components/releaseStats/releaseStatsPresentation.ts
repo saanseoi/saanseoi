@@ -180,6 +180,8 @@ export function createReleaseStatsPresentation({
   if (places) {
     if (places.profile.metrics.length)
       addHeading('stats-place-overview', 'Place coverage')
+    if (places.profile.availability.length)
+      addHeading('stats-place-availability', 'Field coverage')
     if (places.profile.fields.length)
       addHeading('stats-place-languages', 'Language coverage')
   }

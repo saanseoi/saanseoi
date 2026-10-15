@@ -893,8 +893,11 @@ $effect(() => {
               <ReleaseStatsRoot
                 resourceType={api.familyType === 'stats'
                   ? 'divisionStatistic'
-                  : undefined}
-                stats={release.stats}
+                  : api.familyType === 'places'
+                    ? 'place'
+                    : undefined}
+                stats={release.primaryResourceStatistics?.stats ?? release.stats}
+                statisticsSource={release.primaryResourceStatistics}
                 {districtAreas}
                 {locale}
                 presentation={statsPresentation}

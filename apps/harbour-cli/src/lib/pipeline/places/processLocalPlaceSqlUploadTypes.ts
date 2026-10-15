@@ -140,6 +140,7 @@ export type StagedEnrichedPlaces = {
 }
 
 export type PlaceReleaseStatsAccumulator = {
+  coverage: import('@repo/core/pipeline/services/places/placeCoverageStats.ts').PlaceCoverageAccumulator
   addressLinkedRows: number
   divisionLinkedRows: number
   localeCounts: Map<string, number>

@@ -810,3 +810,33 @@ Canonical events derive their producing release from their introducing snapshot'
 primary inputs. Inherited events retain that original ownership. See
 [HISTORY producer ownership](source-evidence.md#history-producer-ownership) for the
 shared contract and dataset discriminators on combined geometry snapshots.
+
+## Release coverage statistics
+
+Place source resources and published API release sets record the same coverage
+semantics. API counts resolve the selected logical snapshot through its complete
+`placePublicationState` receipt before reading the physical CURRENT scope. A missing
+receipt fails calculation rather than producing an empty summary.
+
+- `records/count` by `basicCategory`, `taxonomyPrimary` and `operatingStatus` forms
+  three independent distributions. Each Place contributes once to each distribution;
+  `unspecified` includes missing values. Categories describe the canonical projection.
+- `records/count` by `district` counts each Place once under its resolved scalar
+  `districtId`. Membership uses the prepared Point and pinned Division/DivisionArea
+  dependencies, including accepted Address fallback. Ambiguous peers remain unassigned;
+  ancestor evidence and multiple Division links do not multiply district counts.
+- `completeness` by `placeField` stores `count`, `missing_count` and `coverage` for
+  basic/detailed category, operating status, publisher confidence, website, social
+  profile, email, phone, any contact detail, brand Wikidata identity, publisher address
+  text, linked Address, linked 3D Address, any Division link, Area and District.
+  Percentages use all Places in the resource or selected API scope. Each field counts a
+  Place once; fields overlap and must not be added together. Empty contact strings and
+  containers do not count as coverage. A confidence of zero is an available value.
+
+District assignment coverage reports the gap between the mapped count and all Places.
+Missing optional fields indicate availability rather than data errors. Publisher address
+text is independent of a resolved Address link, and brand identity describes an
+identified brand rather than an individually identified venue. Existing name,
+localisation provenance and change statistics accompany these dimensions. The Stats view
+uses category bars, the shared district map and field-coverage widgets; detailed
+category lists expose their remaining rows on expansion.

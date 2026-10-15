@@ -25,11 +25,14 @@ let {
       >
         {labels.dataset}
       </p>
-      <h2 class="mt-1 font-mono text-title-lg font-bold tabular-nums text-primary">
-        {overview.recordCount} {labels.records}
+      <h2 class="mt-1 font-mono text-headline-lg font-bold tabular-nums text-primary">
+        {overview.recordCount}
+        <span class="text-label-md font-medium text-foreground-alt"
+          >{labels.records}</span
+        >
       </h2>
     </div>
-    {#if overview.churn}
+    {#if overview.churn && !overview.churn.unavailable}
       <span class="ml-auto"
         ><InfoTooltip
           label={labels.changeSummary}
@@ -42,12 +45,7 @@ let {
       >
     {/if}
   </div>
-  {#if overview.churn}
-    {#if overview.churn.unavailable}
-      <p class="px-5 py-3 text-caption text-foreground-alt">
-        Change counts are not available for this release.
-      </p>
-    {/if}
+  {#if overview.churn && !overview.churn.unavailable}
     <div class="grid grid-cols-2 gap-px bg-data-outline-variant/60 sm:grid-cols-4">
       {#each overview.churn.metrics as measure}
         <ChurnMetric
@@ -61,5 +59,9 @@ let {
         />
       {/each}
     </div>
+  {:else}
+    <p class="px-5 py-3 text-caption text-foreground-alt">
+      Change counts are not available for this release.
+    </p>
   {/if}</Section
 >

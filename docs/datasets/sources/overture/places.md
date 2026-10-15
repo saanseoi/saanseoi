@@ -886,3 +886,25 @@ Canonical HISTORY events follow the shared
 [producer ownership contract](../../families/source-evidence.md#history-producer-ownership).
 The introducing snapshot retains its exact producing inputs; source attribution and
 field-level evidence identify the contributing publisher records.
+
+## Coverage statistics
+
+Prepared Place resources accumulate category, operating-status, geographic and optional
+field coverage while streaming the enriched canonical rows. The same coverage builder
+serves API publication. Counts describe retained Places after exclusions and
+preparation, including effective geometry and resolved scalar Division references; raw
+source rows, alternate categories and association evidence do not add extra Places.
+
+`basicCategory` and `taxonomyPrimary` remain separate distributions. The basic category
+is the canonical normalisation result, including the documented primary-category
+fallback when the publisher omits its basic category. Missing categories and status
+values appear as `unspecified`. District spread uses the resolved `districtId` once per
+Place, while missing district coverage remains explicit.
+
+Contact and brand coverage uses canonical websites, social profiles, emails, phones and
+`identifiers.wikidata.brandId`. Publisher address text and resolved Address links are
+measured separately. See
+[Place release coverage statistics](../../families/places.md#release-coverage-statistics)
+for the complete dimensions, denominators and missing-value semantics. These metrics are
+calculated during ingestion and API publication, including a fresh database reset and
+initialisation; they do not require a separate backfill step.

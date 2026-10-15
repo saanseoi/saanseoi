@@ -235,6 +235,51 @@ id TEXT PRIMARY KEY,
 }
 
 describe('listRegistryReleases', () => {
+  test('exposes exact primary Place resource stats separately from API stats and lookup resources', async () => {
+    const { sqlite, db } = createRegistryReleasesDb()
+    try {
+      sqlite.exec(`
+        ALTER TABLE stats ADD COLUMN resourceReleaseId TEXT;
+        ALTER TABLE stats ADD COLUMN createdAt TEXT;
+        ALTER TABLE stats ADD COLUMN updatedAt TEXT;
+        INSERT INTO apiVersions (id, code, familyType) VALUES ('places', 'api-places-v0.1', 'places');
+        INSERT INTO apiReleaseSets (id, apiVersionId, code, regionCode, domainCode, cohortKey, revision, schemaVersion, rulesetVersion, status, versionHash, createdAt, updatedAt)
+          VALUES ('api-release', 'places', 'data-hk-places-2026-09-23.0', 'hk', 'overture', '2026-09-23.0', 0, 'v1', 'v1', 'current', 'hash', '2026-09-23', '2026-09-23');
+        INSERT INTO snapshotLineages (id, code, resourceType) VALUES ('lineage', 'lineage', 'place');
+        INSERT INTO snapshots (id, snapshotLineageId, code, cohortKey, status, createdAt, updatedAt)
+          VALUES ('snapshot', 'lineage', 'snapshot', '2026-09-23.0', 'published', '2026-09-23', '2026-09-23');
+        INSERT INTO apiReleaseSetSnapshots (apiReleaseSetId, snapshotId, role, isRequired, createdAt)
+          VALUES ('api-release', 'snapshot', 'primary', 1, '2026-09-23');
+        INSERT INTO publishers (id, code) VALUES ('publisher', 'overture');
+        INSERT INTO datasets (id, publisherId, code, resourceTypes) VALUES ('dataset', 'publisher', 'places', '["place"]');
+        INSERT INTO sourceReleases (id, datasetId, code) VALUES ('source', 'dataset', 'source-release');
+        INSERT INTO resourceReleases (id, sourceReleaseId, code, resourceType, status) VALUES
+          ('primary-resource', 'source', 'primary-release', 'place', 'current'),
+          ('lookup-resource', 'source', 'lookup-release', 'address', 'current');
+        INSERT INTO snapshotResourceReleases (snapshotId, resourceReleaseId, role) VALUES
+          ('snapshot', 'primary-resource', 'primary'), ('snapshot', 'lookup-resource', 'lookup');
+        INSERT INTO stats (id, apiReleaseSetId, resourceReleaseId, category, measure, unit, value) VALUES
+          ('api-count', 'api-release', NULL, 'records', 'count', 'count', 0),
+          ('resource-count', NULL, 'primary-resource', 'records', 'count', 'count', 139522),
+          ('lookup-count', NULL, 'lookup-resource', 'records', 'count', 'count', 999999);
+      `)
+      const [release] = await listRegistryReleases(db as never)
+      expect(release?.stats.map(row => row.value)).toEqual([0])
+      expect(release?.primaryResourceStatistics).toMatchObject({
+        sourceCode: 'places',
+        releaseCode: 'primary-release',
+        stats: [expect.objectContaining({ value: 139522 })],
+      })
+      sqlite.exec(
+        "UPDATE snapshotResourceReleases SET role = 'primary' WHERE resourceReleaseId = 'lookup-resource'",
+      )
+      const [ambiguous] = await listRegistryReleases(db as never)
+      expect(ambiguous?.primaryResourceStatistics).toBeUndefined()
+    } finally {
+      sqlite.close()
+    }
+  })
+
   test('keeps the latest release current in each domain', async () => {
     const { sqlite, db } = createRegistryReleasesDb()
 

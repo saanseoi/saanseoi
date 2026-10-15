@@ -1,5 +1,11 @@
 import { placeDivisionFieldNames } from '@repo/db'
 import {
+  addPlaceCoverage,
+  buildPlaceCoverageStatsRows,
+  createPlaceCoverageAccumulator,
+} from '@repo/core/pipeline/services/places/placeCoverageStats.ts'
+import { resolvePreparedPublicationScope } from '@repo/core/pipeline/services/publication/execute.ts'
+import {
   buildStatisticsApiStats,
   listStatisticsStatsReleases,
 } from './statisticsApiReleaseSetStats'
@@ -412,28 +418,55 @@ function countDistinctAddressComponent(column: unknown) {
   return sql<number>`count(distinct case when ${column} is not null then ${currentSchema.address2dI18n.addressId} end)`
 }
 
-async function buildPlaceStatsRows(
+export async function buildPlaceStatsRows(
   db: HarbourReadableDb,
   snapshotId: string,
   localeConflictsByPlace: Map<string, PlaceLocaleConflict[]> = new Map(),
 ): Promise<ApiReleaseSetScopedStatsRow[]> {
+  const scopeId = await resolvePreparedPublicationScope(
+    db,
+    'placePublicationState',
+    snapshotId,
+  )
   const [placeRows, i18nRows, addressLinkedCount, divisionLinkCount, localeCounts] =
     await Promise.all([
       db
-        .select({ id: currentSchema.places.id })
+        .select({
+          id: currentSchema.places.id,
+          basicCategory: currentSchema.places.basicCategory,
+          taxonomyPrimary: currentSchema.places.taxonomyPrimary,
+          operatingStatus: currentSchema.places.operatingStatus,
+          websites: currentSchema.places.websites,
+          socials: currentSchema.places.socials,
+          emails: currentSchema.places.emails,
+          phones: currentSchema.places.phones,
+          addresses: currentSchema.places.addresses,
+          identifiers: currentSchema.places.identifiers,
+          confidence: currentSchema.places.confidence,
+          divisionLinked: sql<number>`(${sql.join(
+            placeDivisionFieldNames.map(
+              field => sql`(${currentSchema.places[field]} is not null)`,
+            ),
+            sql` + `,
+          )}) > 0`,
+          address2dId: currentSchema.places.address2dId,
+          address3dId: currentSchema.places.address3dId,
+          districtId: currentSchema.places.districtId,
+          areaId: currentSchema.places.areaId,
+        })
         .from(currentSchema.places)
-        .where(eq(currentSchema.places.scopeId, snapshotId))
+        .where(eq(currentSchema.places.scopeId, scopeId))
         .all(),
       db
         .select()
         .from(currentSchema.placesI18n)
-        .where(eq(currentSchema.placesI18n.scopeId, snapshotId))
+        .where(eq(currentSchema.placesI18n.scopeId, scopeId))
         .all(),
       countWhere(
         db,
         currentSchema.places,
         and(
-          eq(currentSchema.places.scopeId, snapshotId),
+          eq(currentSchema.places.scopeId, scopeId),
           sql`${currentSchema.places.address2dId} IS NOT NULL OR ${currentSchema.places.address3dId} IS NOT NULL`,
         ),
       ),
@@ -448,19 +481,26 @@ async function buildPlaceStatsRows(
             )}),0)`,
           })
           .from(currentSchema.places)
-          .where(eq(currentSchema.places.scopeId, snapshotId))
+          .where(eq(currentSchema.places.scopeId, scopeId))
           .get(),
       ).then(row => Number(row?.count ?? 0)),
       countGrouped(
         db,
         currentSchema.placesI18n,
         currentSchema.placesI18n.scopeId,
-        snapshotId,
+        scopeId,
         currentSchema.placesI18n.locale,
       ),
     ])
 
   const timestamp = new Date().toISOString()
+  const coverage = createPlaceCoverageAccumulator()
+  for (const place of placeRows) {
+    addPlaceCoverage(coverage, {
+      ...place,
+      divisionLinked: Boolean(place.divisionLinked),
+    })
+  }
   const typedPlaceRows = placeRows as Array<{ id: string }>
   const typedI18nRows = i18nRows as Array<{
     placeId: string
@@ -505,6 +545,7 @@ async function buildPlaceStatsRows(
     place => (i18nByPlace.get(place.id)?.length ?? 0) > 0,
   ).length
   const rows: ApiReleaseSetScopedStatsRow[] = [
+    ...buildPlaceCoverageStatsRows(coverage, timestamp),
     placeStatsRow('records', 'count', 'count', placeCount, timestamp),
     placeStatsRow(
       'localised_records',

@@ -19,6 +19,31 @@ const legend = $derived([
   { label: labels.unchanged, tone: 'bg-data-neutral' },
 ])
 </script>
+{#snippet chart(
+  rows: typeof distribution.rows,
+)}
+  <div
+    class="grid grid-cols-[minmax(0,1fr)_minmax(40px,2fr)_max-content] gap-x-3 gap-y-3 px-5 py-5"
+  >
+    {#each rows as row}
+      <div class="col-span-3 grid grid-cols-subgrid items-center">
+        <p class="font-body text-label-md font-semibold text-primary wrap-break-word">
+          {row.label}
+        </p>
+        <DistributionBar
+          {row}
+          maxVolume={distribution.maxVolume}
+          ariaLabel={`${row.label}: ${row.count} ${distribution.valueLabel}`}
+        />
+        <p
+          class="font-mono text-right text-label-md font-bold tabular-nums text-primary"
+        >
+          {row.count}
+        </p>
+      </div>
+    {/each}
+  </div>
+{/snippet}
 <Section id={distribution.id}
   ><Header
     eyebrow={distribution.showChangeLegend
@@ -35,23 +60,16 @@ const legend = $derived([
       {/if}
     </div></Header
   >
-  <div
-    class="grid grid-cols-[max-content_minmax(0,1fr)_max-content] gap-x-3 gap-y-3 px-5 py-5"
-  >
-    {#each distribution.rows as row}
-      <div class="col-span-3 grid grid-cols-subgrid items-center">
-        <p class="font-body text-label-md font-semibold text-primary">{row.label}</p>
-        <DistributionBar
-          {row}
-          maxVolume={distribution.maxVolume}
-          ariaLabel={`${row.label}: ${row.count} ${distribution.valueLabel}`}
-        />
-        <p
-          class="font-mono text-right text-label-md font-bold tabular-nums text-primary"
-        >
-          {row.count}
-        </p>
-      </div>
-    {/each}
-  </div></Section
->
+
+  {@render chart(distribution.rows.slice(0, 12))}
+  {#if distribution.rows.length > 12}
+    <details class="border-t border-data-outline-variant/60">
+      <summary
+        class="cursor-pointer px-5 py-4 text-label-md font-semibold text-data-primary focus-visible:outline-2 focus-visible:outline-data-primary"
+      >
+        Show {distribution.rows.length - 12} more
+      </summary>
+      {@render chart(distribution.rows.slice(12))}
+    </details>
+  {/if}
+</Section>

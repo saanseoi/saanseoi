@@ -1023,7 +1023,7 @@ test('Places consolidates localised metrics, retains zero coverage and leaves un
     ],
   })
   expect(model.overview?.recordCount).toBe('100')
-  expect(model.placeProfile?.metrics[0]).toEqual({
+  expect(model.placeProfile?.metrics[0]).toMatchObject({
     label: 'Reference names',
     value: '100',
     coverage: '100%',
@@ -1093,4 +1093,121 @@ test('a first Places release uses an all-added baseline', () => {
   expect(model.overview?.churn?.metrics.map(measure => measure.formattedValue)).toEqual(
     ['100', '0', '0', '0'],
   )
+})
+
+test('Places claims unscoped reference coverage alongside counts and keeps genuine zero percentages', () => {
+  const model = createReleaseStatsPresentation({
+    resourceType: 'place',
+    locale: 'en',
+    copy,
+    stats: [
+      { category: 'records', measure: 'count', value: 200 },
+      { category: 'reference_name_count', measure: 'count', value: 150 },
+      {
+        category: 'reference_name_coverage',
+        measure: 'coverage',
+        unit: 'percentage',
+        value: 75,
+      },
+      { category: 'bilingual_reference_name_count', measure: 'count', value: 0 },
+      {
+        category: 'bilingual_reference_name_coverage',
+        measure: 'coverage',
+        unit: 'percentage',
+        value: 0,
+      },
+      { category: 'address_links', measure: 'count', value: 50 },
+    ],
+  })
+  expect(model.overview?.recordCount).toBe('200')
+  expect(model.placeProfile?.metrics).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({
+        label: 'Reference names',
+        value: '150',
+        coverage: '75%',
+        coverageValue: 75,
+      }),
+      expect.objectContaining({
+        label: 'Bilingual reference names',
+        value: '0',
+        coverage: '0%',
+        coverageValue: 0,
+      }),
+      expect.objectContaining({
+        label: 'Places with linked addresses',
+        value: '50',
+        coverage: '25%',
+        coverageValue: 25,
+      }),
+    ]),
+  )
+  expect(model.genericGroups).toEqual([])
+})
+
+test('Places retains category distributions and the district map while consuming field coverage', () => {
+  const model = createReleaseStatsPresentation({
+    resourceType: 'place',
+    locale: 'en',
+    copy,
+    stats: [
+      { category: 'records', measure: 'count', value: 10 },
+      {
+        category: 'records',
+        measure: 'count',
+        dimension: 'basicCategory',
+        dimensionValue: 'food_service',
+        value: 7,
+      },
+      {
+        category: 'records',
+        measure: 'count',
+        dimension: 'basicCategory',
+        dimensionValue: 'unspecified',
+        value: 3,
+      },
+      {
+        category: 'records',
+        measure: 'count',
+        dimension: 'district',
+        dimensionValue: 'district-a',
+        value: 8,
+      },
+      ...[
+        ['count', 8],
+        ['missing_count', 2],
+        ['coverage', 80],
+      ].map(([measure, value]) => ({
+        category: 'completeness',
+        measure: String(measure),
+        unit: measure === 'coverage' ? 'percentage' : 'count',
+        dimension: 'placeField',
+        dimensionValue: 'district',
+        value: Number(value),
+      })),
+    ],
+    districtAreas: [
+      {
+        divisionId: 'district-a',
+        name: 'District A',
+        geometry: { type: 'Polygon', coordinates: [] },
+      },
+    ],
+  })
+  expect(model.districtDistribution?.values).toEqual([{ id: 'district-a', value: 8 }])
+  expect(
+    model.recordDistributions
+      .find(row => row.dimension === 'basicCategory')
+      ?.rows.map(row => row.total),
+  ).toEqual([7, 3])
+  expect(model.placeProfile?.availability).toEqual([
+    expect.objectContaining({
+      code: 'district',
+      count: '8',
+      missing: '2',
+      coverageLabel: '80%',
+    }),
+  ])
+  expect(model.headings.map(row => row.id)).toContain('stats-place-availability')
+  expect(model.genericGroups).toEqual([])
 })

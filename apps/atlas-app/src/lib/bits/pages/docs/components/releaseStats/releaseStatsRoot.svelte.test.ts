@@ -182,3 +182,82 @@ test('labels the Lok Ma Chau Loop as an unofficial district', async () => {
     .toBeVisible()
   await expect.element(screen.getByText('Unofficial')).toBeVisible()
 })
+
+test('Places shows category bars and optional-field coverage with counts and missing values', async () => {
+  const screen = await render(ReleaseStatsRootTestHarness, {
+    resourceType: 'place',
+    stats: [
+      { category: 'records', measure: 'count', value: 10 },
+      {
+        category: 'records',
+        measure: 'count',
+        value: 6,
+        dimension: 'basicCategory',
+        dimensionValue: 'food_service',
+      },
+      {
+        category: 'records',
+        measure: 'count',
+        value: 4,
+        dimension: 'basicCategory',
+        dimensionValue: 'unspecified',
+      },
+      {
+        category: 'completeness',
+        measure: 'count',
+        value: 6,
+        dimension: 'placeField',
+        dimensionValue: 'website',
+      },
+      {
+        category: 'completeness',
+        measure: 'missing_count',
+        value: 4,
+        dimension: 'placeField',
+        dimensionValue: 'website',
+      },
+      {
+        category: 'completeness',
+        measure: 'coverage',
+        unit: 'percentage',
+        value: 60,
+        dimension: 'placeField',
+        dimensionValue: 'website',
+      },
+    ],
+  })
+  await expect
+    .element(screen.getByRole('heading', { name: 'Field coverage' }))
+    .toBeVisible()
+  await expect
+    .element(screen.getByRole('img', { name: 'Website: 6 places, 60%; 4 missing' }))
+    .toBeVisible()
+  await expect
+    .element(screen.getByRole('heading', { name: 'basicCategory' }))
+    .toBeVisible()
+  await expect.element(screen.getByText('food_service', { exact: true })).toBeVisible()
+  await expect
+    .element(screen.getByRole('heading', { name: 'placeField' }))
+    .not.toBeInTheDocument()
+})
+
+test('long Place category distributions keep remaining categories expandable', async () => {
+  const screen = await render(ReleaseStatsRootTestHarness, {
+    resourceType: 'place',
+    stats: [
+      { category: 'records', measure: 'count', value: 105 },
+      ...Array.from({ length: 14 }, (_, index) => ({
+        category: 'records',
+        measure: 'count',
+        value: 14 - index,
+        dimension: 'basicCategory',
+        dimensionValue: `category${index}`,
+      })),
+    ],
+  })
+  await expect
+    .element(screen.getByText('category13', { exact: true }))
+    .not.toBeVisible()
+  await screen.getByText('Show 2 more', { exact: true }).click()
+  await expect.element(screen.getByText('category13', { exact: true })).toBeVisible()
+})

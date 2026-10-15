@@ -442,6 +442,18 @@ export async function listRegistryReleases(
       .where(inArray(metaSnapshotResourceReleaseDetails.snapshotId, ids))
       .all(),
   )
+  const primaryPlaceResources = releaseSnapshots
+    .filter(row => row.role === 'primary' && row.snapshot.resourceType === 'place')
+    .flatMap(row =>
+      snapshotResourceReleases.filter(
+        resource =>
+          resource.snapshotId === row.snapshotId && resource.role === 'primary',
+      ),
+    )
+  const primaryPlaceStats = await queryInBatches(
+    [...new Set(primaryPlaceResources.map(resource => resource.resourceReleaseId))],
+    ids => db.select().from(stats).where(inArray(stats.resourceReleaseId, ids)).all(),
+  )
   const snapshotPolicies = await queryInBatches(snapshotIds, ids =>
     db
       .select({
@@ -584,6 +596,26 @@ export async function listRegistryReleases(
       displayStatus,
       ingestedAt: ingestedAt ?? null,
       stats: apiReleaseSetStats.filter(stat => stat.apiReleaseSetId === release.id),
+      primaryResourceStatistics: (() => {
+        const resources = primaryPlaceResources.filter(resource =>
+          snapshots.some(snapshot => snapshot.snapshotId === resource.snapshotId),
+        )
+        const resourceIds = [
+          ...new Set(resources.map(resource => resource.resourceReleaseId)),
+        ]
+        if (resourceIds.length !== 1) return undefined
+        const resource = sourceReleases.find(source => source.id === resourceIds[0])
+        const rows = primaryPlaceStats.filter(
+          stat => stat.resourceReleaseId === resourceIds[0],
+        )
+        return resource && rows.length
+          ? {
+              sourceCode: resource.datasetCode,
+              releaseCode: resource.code,
+              stats: rows,
+            }
+          : undefined
+      })(),
       bulkActions,
       apiReleaseSetSnapshots: snapshots.map(snapshot => ({
         ...snapshot,

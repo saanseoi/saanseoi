@@ -2,6 +2,7 @@
 import type { PlaceProfile } from '../placeProfile'
 import Section from './releaseStatsSection.svelte'
 import Header from './releaseStatsSectionHeader.svelte'
+import CoverageBar from './releaseStatsCoverageBar.svelte'
 let { profile }: { profile: PlaceProfile } = $props()
 let selected = $state('')
 let field = $derived(
@@ -10,21 +11,15 @@ let field = $derived(
 let chartRows = $derived(
   field
     ? [
-        field.any,
-        ...['en', 'zh-hant', 'zh-hans'].map(
-          locale =>
-            field.rows.find(row => row.locale === locale) ?? {
-              code: locale,
-              label: {
-                en: 'English',
-                'zh-hant': 'Traditional Chinese',
-                'zh-hans': 'Simplified Chinese',
-              }[locale],
-              coverage: 0,
-              coverageLabel: '—',
-              count: '—',
-            },
-        ),
+        ...(field.any.available
+          ? [
+              {
+                ...field.any,
+                segments: [{ tone: 'total' as const, value: field.any.coverage }],
+              },
+            ]
+          : []),
+        ...field.rows,
       ]
     : [],
 )
@@ -53,40 +48,59 @@ let chartRows = $derived(
         Coverage as a percentage of all places
       </p>
     </div>
-    <div class="px-5 py-4">
-      <div
-        class="grid grid-cols-[minmax(0,1fr)_minmax(60px,1fr)_auto] items-center gap-x-4 gap-y-4 sm:grid-cols-[minmax(0,1fr)_minmax(80px,2fr)_auto_auto]"
+    <div class="px-5 py-5">
+      <dl
+        class="grid grid-cols-[minmax(0,1fr)_minmax(80px,2fr)] items-center gap-x-4 gap-y-5 sm:grid-cols-[minmax(0,1fr)_minmax(80px,2fr)_auto]"
       >
         <span class="text-caption text-foreground-alt">Language</span>
-        <span class="col-span-2 text-right text-caption text-foreground-alt"
-          >Coverage</span
-        >
+        <span class="text-caption text-foreground-alt">Coverage</span>
         <span class="hidden text-right text-caption text-foreground-alt sm:block"
           >Values</span
         >
         {#each chartRows as row}
-          <span class="text-label-md font-semibold text-primary">{row.label}</span>
-          <div
-            class="h-3 overflow-hidden bg-data-outline-variant/30"
-            aria-hidden="true"
+          <dt class="text-label-md font-semibold text-primary">
+            {row.label}
+            <span
+              class="mt-1 block font-mono text-caption font-normal tabular-nums text-foreground-alt sm:hidden"
+              >{row.count}
+              values</span
+            >
+          </dt>
+          <dd>
+            <CoverageBar
+              coverage={row.coverage}
+              segments={row.segments}
+              label={row.coverageLabel}
+              ariaLabel={`${row.label}: ${row.coverageLabel}, ${row.count} values`}
+            />
+          </dd>
+          <dd
+            class="hidden text-right font-mono text-label-md tabular-nums text-primary sm:block"
           >
-            <div
-              class="h-full bg-data-success"
-              style:width={`${Math.max(0, Math.min(100, row.coverage))}%`}
-            ></div>
-          </div>
-          <span class="font-mono text-label-md tabular-nums text-primary"
-            >{row.coverageLabel}</span
-          >
-          <span
-            class="hidden text-right font-mono text-label-md tabular-nums text-foreground-alt sm:block"
-            >{row.count}</span
-          >
+            {row.count}
+          </dd>
         {/each}
-      </div>
+      </dl>
+      <ul
+        class="mt-5 flex flex-wrap gap-x-4 gap-y-2 text-caption text-foreground-alt"
+        aria-label="Language provenance legend"
+      >
+        {#each [
+          { label: 'Provided', tone: 'bg-data-success' },
+          { label: 'Inferred', tone: 'bg-data-inferred' },
+          { label: 'AI translated', tone: 'bg-data-ai-translated' },
+          { label: 'Human translated', tone: 'bg-data-human-translated' },
+        ] as item}
+          <li class="inline-flex items-center gap-1.5">
+            <span class={`size-2 rounded-full ${item.tone}`}></span>{item.label}
+          </li>
+        {/each}
+      </ul>
     </div>
     <p class="px-5 pb-4 text-caption text-foreground-alt">
-      Any counts each place once across all languages.
+      {#if field.any.available}
+        Any counts each place once across all languages.
+      {/if}
       {#if !field.any.available}
         Combined coverage is not recorded for this field; — means unavailable.
       {/if}

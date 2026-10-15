@@ -9,12 +9,14 @@ import type {
 } from './releaseStats.types'
 
 type Props = {
+  resourceType?: string
   stats?: ReleaseStat[]
   districtAreas?: ReleaseStatsDistrictArea[]
   districtNames?: ReleaseStatsDistrictName[]
   measures?: ReleaseStatsMeasure[]
 }
 let {
+  resourceType,
   stats = [],
   districtAreas = [],
   districtNames = [],
@@ -81,6 +83,7 @@ const presentation: ReleaseStatsCopy = {
 </script>
 
 <Root
+  {resourceType}
   {stats}
   {districtAreas}
   {districtNames}
