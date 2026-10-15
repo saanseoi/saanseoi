@@ -6,7 +6,6 @@ import { seedFixtureCatalog } from '../../core/src/testing/metaFixtures'
 import { createLocalHarbourDb } from '../../core/src/testing/localDb'
 import { retainSourceReleaseMetadata } from '../../core/src/lib/db/sourceReleaseMetadata'
 
-const migration = '20261013050731_gigantic_loa'
 const directory = resolve(import.meta.dir, '../migrations/meta')
 const sourceMetadata = {
   datasetId: 'overture-hk-division',
@@ -19,24 +18,21 @@ const sourceMetadata = {
 
 function fixture() {
   const db = new Database(':memory:')
-  for (const entry of readdirSync(directory)
-    .filter(name => name < migration)
-    .sort())
+  for (const entry of readdirSync(directory).sort())
     db.exec(readFileSync(resolve(directory, entry, 'migration.sql'), 'utf8'))
   seedFixtureCatalog(db)
   db.exec(`
     INSERT INTO sourceReleases(id,datasetId,code,sourceVersion,sourceSchemaVersion,publicationDate,cohortKey,status)
     VALUES('source','overture-hk-division','source-code','2026-09-23.0','2.0.0','2026-09-23','2026-09-23.0','current');
-    INSERT INTO resourceReleases(id,sourceReleaseId,datasetId,code,resourceType,sourceVersion,sourceSchemaVersion,publicationDate,cohortKey,status)
-    VALUES('division','source','overture-hk-division','division-code','division','2026-09-23.0','2.0.0','2026-09-23','2026-09-23.0','current'),
-          ('area','source','overture-hk-division','area-code','divisionArea','2026-09-23.0','2.0.0','2026-09-23','2026-09-23.0','processing');
+    INSERT INTO resourceReleases(id,sourceReleaseId,code,resourceType,status)
+    VALUES('division','source','division-code','division','current'),
+          ('area','source','area-code','divisionArea','processing');
   `)
-  db.exec(readFileSync(resolve(directory, migration, 'migration.sql'), 'utf8'))
   db.exec('PRAGMA foreign_keys=ON')
   return db
 }
 
-test('migration retains resource identity and lifecycle while source metadata has one owner', () => {
+test('resource identity and lifecycle are independent of source-owned metadata', () => {
   const db = fixture()
   try {
     const columns = db.query('PRAGMA table_info(resourceReleases)').all() as {
@@ -87,9 +83,7 @@ test('migration retains resource identity and lifecycle while source metadata ha
       ),
     ).toThrow()
     expect(() =>
-      db.exec(
-        "UPDATE resourceReleases SET datasetId='overture-hk-divisionArea' WHERE id='area'",
-      ),
+      db.exec("UPDATE resourceReleases SET sourceReleaseId='missing' WHERE id='area'"),
     ).toThrow('FOREIGN KEY')
     expect(() =>
       db.exec("UPDATE resourceReleases SET resourceType='division' WHERE id='area'"),

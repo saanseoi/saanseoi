@@ -1,1 +1,0 @@
-ALTER TABLE `hkgovCenstatdDivisionAreaDerivatives` RENAME TO `hkgovCenstatdStatisticsGeometryDerivatives`;

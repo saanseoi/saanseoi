@@ -1,1 +1,0 @@
-ALTER TABLE `snapshotAssemblies` DROP COLUMN `status`;
