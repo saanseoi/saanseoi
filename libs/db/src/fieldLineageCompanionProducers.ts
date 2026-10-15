@@ -62,10 +62,16 @@ export function companionProducer(
     selectedDivisions: {
       role: 'division',
       collection: 'divisions',
-      fields:
-        family === 'place' ? 'id,class,hierarchies' : 'id,class,level,hierarchies,i18n',
+      fields: 'id,class,level,hierarchies,i18n',
       file: 'processLocalPlaceSqlUploadPreparation.ts',
       symbol: 'stageEnrichedPlaces',
+    },
+    selectedDivisionNames: {
+      role: 'division',
+      collection: 'divisionsI18n',
+      fields: 'divisionId,locale,name',
+      file: 'placeSearchDependencies.ts',
+      symbol: 'createPlaceSearchDependencies',
     },
     selectedDivisionAreas: {
       role: 'divisionArea',
@@ -230,7 +236,7 @@ export function companionProducer(
         symbol: 'stageEnrichedPlaces',
       },
       expression:
-        '{divisionSnapshotId: dependencySelection.division, divisionAreaSnapshotId: dependencySelection.divisionArea, evidence: divisionMembership.evidence}',
+        '{divisionSnapshotId: dependencySelection.division, divisionAreaSnapshotId: dependencySelection.divisionArea, evidence: divisionMembership.evidence.filter(row => Object.values(divisionMembership.references).includes(row.divisionId))}',
     }
   if (path === 'divisionMaps')
     return {

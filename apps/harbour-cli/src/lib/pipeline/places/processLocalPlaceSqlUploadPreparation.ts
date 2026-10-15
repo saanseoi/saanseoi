@@ -1,3 +1,4 @@
+import { supportedPlaceMembership } from './placeDivisionDefinitions'
 import {
   readSnapshotDependencies,
   recordSnapshotDependencies,
@@ -465,17 +466,22 @@ export async function stageEnrichedPlaces(
             const effectiveLat = resolution.lat ?? place.lat
             const geometryOverridden =
               effectiveLng !== place.lng || effectiveLat !== place.lat
-            const association = membership.resolve({
-              lng: effectiveLng,
-              lat: effectiveLat,
-              fallback: address,
-              fallbackMethod: 'address',
-            })
+            const association = supportedPlaceMembership(
+              membership.resolve({
+                lng: effectiveLng,
+                lat: effectiveLat,
+                fallback: address,
+                fallbackMethod: 'address',
+              }),
+            )
+            const divisionReferences = association.references
             const referencedDivisionIds = association.divisionIds
             const divisionAssociation = {
               divisionSnapshotId: snapshots.divisionSnapshotId,
               divisionAreaSnapshotId,
-              evidence: association.evidence,
+              evidence: association.evidence.filter(row =>
+                referencedDivisionIds.includes(row.divisionId),
+              ),
             }
             const {
               firstSeenMonth: _first,
@@ -520,6 +526,7 @@ export async function stageEnrichedPlaces(
                 address3dId: unitReference?.address3dId ?? null,
                 address3dUnitId: unitReference?.address3dUnitId ?? null,
                 address3dMembership: unitReference?.address3dMembership ?? null,
+                divisionReferences,
                 divisionIds: [...new Set(referencedDivisionIds)],
                 divisionAssociation,
                 ...dependencies,
@@ -528,7 +535,8 @@ export async function stageEnrichedPlaces(
                   divisionSnapshotId: snapshots.divisionSnapshotId,
                   addressId,
                   divisionIds: referencedDivisionIds,
-                  divisionAssociation,
+                  divisionReferences,
+                  divisionDefinitions: dependencies.divisionDefinitions,
                   addressDependencyHash: dependencies.addressDependencyHash,
                   effectiveLng,
                   effectiveLat,
@@ -562,7 +570,7 @@ export async function stageEnrichedPlaces(
     db: currentDb,
     identity: sha256(
       JSON.stringify({
-        contract: ['places-enrichment-v4-spatial-divisions', recordCache?.contract],
+        contract: ['places-enrichment-v5-scalar-divisions', recordCache?.contract],
         places: await deliveryFileSha256(sourcePath),
         resolutions: await deliveryFileSha256(supplementary.resolutionPath),
         snapshots,

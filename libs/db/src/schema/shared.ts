@@ -621,6 +621,46 @@ export function canonicalAddress3dColumns<Required extends boolean>(
 
 export const canonicalAddress3d = canonicalAddress3dColumns(true)
 
+export const placeDivisionFieldNames = [
+  'countryId',
+  'areaId',
+  'districtId',
+  'townId',
+  'ruralAreaId',
+  'macrohoodId',
+  'neighbourhoodId',
+  'villageId',
+  'microhoodId',
+  'hamletId',
+  'landformId',
+] as const
+
+export type PlaceDivisionField = (typeof placeDivisionFieldNames)[number]
+export type PlaceDivisionDefinitionSet = Record<
+  string,
+  {
+    divisionSnapshotId: string
+    level: number | null
+    locales: { locale: string; name: string | null }[]
+  }
+>
+
+export function placeDivisionColumns() {
+  return {
+    countryId: text('countryId'),
+    areaId: text('areaId'),
+    districtId: text('districtId'),
+    townId: text('townId'),
+    ruralAreaId: text('ruralAreaId'),
+    macrohoodId: text('macrohoodId'),
+    neighbourhoodId: text('neighbourhoodId'),
+    villageId: text('villageId'),
+    microhoodId: text('microhoodId'),
+    hamletId: text('hamletId'),
+    landformId: text('landformId'),
+  }
+}
+
 export function canonicalPlaceColumns<Required extends boolean>(required: Required) {
   return {
     id: text('id').notNull(),
@@ -634,6 +674,8 @@ export function canonicalPlaceColumns<Required extends boolean>(required: Requir
     address3dMembership: text('address3dMembership', {
       enum: ['established', 'unresolved'],
     }),
+    ...placeDivisionColumns(),
+    divisionDefinitionSetId: text('divisionDefinitionSetId'),
     geometry: requiredColumn(
       jsonText<{ type: 'Point'; coordinates: [number, number] }>('geometry'),
       required,

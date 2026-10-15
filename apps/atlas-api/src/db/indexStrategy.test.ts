@@ -1,3 +1,4 @@
+import { placeDivisionFieldNames } from '@repo/db'
 import { Database, type SQLQueryBindings } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { readdirSync, readFileSync } from 'node:fs'
@@ -191,12 +192,8 @@ test('Place division filtering uses the reverse index and preserves scope, count
              ('scope','b','release',json_object('type','Point','coordinates',json_array(114,22)),'2026-01','shop'),
              ('scope','c','release',json_object('type','Point','coordinates',json_array(114,22)),'2026-01','shop'),
              ('other','a','release',json_object('type','Point','coordinates',json_array(114,22)),'2026-01','shop');
-      INSERT INTO placeDivisionDefinitions(divisionSnapshotId,divisionId,definition) VALUES('divisions','target','{}'),('divisions','elsewhere','{}');
-      INSERT INTO placesDivision(placeScopeId,placeId,divisionSnapshotId,divisionId)
-      VALUES ('scope','a','divisions','target'),
-             ('scope','c','divisions','target'),
-             ('scope','b','divisions','elsewhere'),
-             ('other','a','divisions','target');
+      UPDATE places SET districtId=CASE WHEN id='b' THEN 'elsewhere' ELSE 'target' END;
+
     `)
     const plans: string[] = []
     const db = drizzle({
@@ -226,10 +223,9 @@ test('Place division filtering uses the reverse index and preserves scope, count
       await countPlaceRecordsCurrent(db as never, { ...lookup, divisionId: 'missing' }),
     ).toBe(0)
     for (const queryPlan of plans) {
-      expect(queryPlan).toContain(
-        'COVERING INDEX placesDivision_scope_division_place_idx',
-      )
-      expect(queryPlan).not.toContain('SCAN placesDivision')
+      for (const field of placeDivisionFieldNames)
+        expect(queryPlan).toContain(`COVERING INDEX places_${field}_id_idx`)
+      expect(queryPlan).not.toContain('SCAN places')
     }
   } finally {
     sqlite.close()

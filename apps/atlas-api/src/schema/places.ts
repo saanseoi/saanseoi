@@ -277,6 +277,17 @@ const PlaceSchema = z
         description: openApiText('openapi_places_address_snapshot_id_description'),
         examples: ['c241e1ea-8d63-5bc4-88b9-e031d5be05d5', null],
       }),
+    countryId: IdSchema.nullable().optional(),
+    areaId: IdSchema.nullable().optional(),
+    districtId: IdSchema.nullable().optional(),
+    townId: IdSchema.nullable().optional(),
+    ruralAreaId: IdSchema.nullable().optional(),
+    macrohoodId: IdSchema.nullable().optional(),
+    neighbourhoodId: IdSchema.nullable().optional(),
+    villageId: IdSchema.nullable().optional(),
+    microhoodId: IdSchema.nullable().optional(),
+    hamletId: IdSchema.nullable().optional(),
+    landformId: IdSchema.nullable().optional(),
     address2dId: z
       .string()
       .nullable()
@@ -723,6 +734,17 @@ const PlaceCollectionAttributesSchema = z
         description: openApiText('openapi_places_address_snapshot_id_description'),
         examples: ['c241e1ea-8d63-5bc4-88b9-e031d5be05d5', null],
       }),
+    countryId: IdSchema.nullable().optional(),
+    areaId: IdSchema.nullable().optional(),
+    districtId: IdSchema.nullable().optional(),
+    townId: IdSchema.nullable().optional(),
+    ruralAreaId: IdSchema.nullable().optional(),
+    macrohoodId: IdSchema.nullable().optional(),
+    neighbourhoodId: IdSchema.nullable().optional(),
+    villageId: IdSchema.nullable().optional(),
+    microhoodId: IdSchema.nullable().optional(),
+    hamletId: IdSchema.nullable().optional(),
+    landformId: IdSchema.nullable().optional(),
     address2dId: IdSchema.nullable()
       .optional()
       .openapi({

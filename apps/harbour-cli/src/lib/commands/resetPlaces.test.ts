@@ -78,12 +78,11 @@ function createPlacesResetCurrentDb() {
       )
       .run(scope)
     sqlite.exec(
-      "INSERT OR IGNORE INTO placeDivisionDefinitions VALUES('division-scope','division','{}')",
+      "INSERT OR IGNORE INTO placeDivisionDefinitions(id,definition) VALUES('set','{}')",
     )
     sqlite
-      .query(`INSERT INTO placesDivision(placeScopeId,placeId,divisionSnapshotId,divisionId)
-      VALUES(?,'place','division-scope','division')`)
-      .run(scope)
+      .query('UPDATE places SET divisionDefinitionSetId=? WHERE scopeId=?')
+      .run('set', scope)
   }
   return { db: createLocalHarbourDb(sqlite), sqlite }
 }
@@ -222,7 +221,7 @@ describe('Overture Places initialisation ownership', () => {
           { scopeId: 'unrelated-place-lineage' },
         ])
       expect(
-        current.sqlite.query('SELECT placeScopeId FROM placesDivision').all(),
+        current.sqlite.query('SELECT scopeId AS placeScopeId FROM places').all(),
       ).toEqual([{ placeScopeId: 'unrelated-place-lineage' }])
       for (const table of ['addressPublicationState', 'addressSearchScopes'])
         expect(

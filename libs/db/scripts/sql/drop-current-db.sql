@@ -36,7 +36,6 @@ DROP TABLE IF EXISTS `placesFts_content`;
 DROP TABLE IF EXISTS `placesFts_docsize`;
 DROP TABLE IF EXISTS `placesFts_config`;
 DROP TABLE IF EXISTS `placesI18n`;
-DROP TABLE IF EXISTS `placesDivision`;
 DROP TABLE IF EXISTS `placeDivisionDefinitions`;
 DROP TABLE IF EXISTS `placesCells`;
 DROP TABLE IF EXISTS `places`;

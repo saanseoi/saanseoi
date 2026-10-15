@@ -74,7 +74,6 @@ export function resolveCacheTablesForBinding(
         'placePublicationState',
         'placesI18n',
         'placeDivisionDefinitions',
-        'placesDivision',
         'placesCells',
       ]
     }
@@ -125,7 +124,6 @@ export function resolveCacheTablesForBinding(
       'placePublicationState',
       'placesI18n',
       'placeDivisionDefinitions',
-      'placesDivision',
       'placesCells',
       'addressPublicationState',
       'address2d',
@@ -191,6 +189,7 @@ export function resolveCacheTablesForBinding(
         'address3dI18n',
         'places',
         'placesI18n',
+        'placeDivisionDefinitions',
         'address2d',
         'address2dI18n',
         'address2dBuildingNumberLookup',
@@ -225,6 +224,7 @@ export function resolveCacheTablesForBinding(
       'address2d',
       'places',
       'placesI18n',
+      'placeDivisionDefinitions',
       'address2dI18n',
       'address2dBuildingNumberLookup',
       'address3d',

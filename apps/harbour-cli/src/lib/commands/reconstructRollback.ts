@@ -56,13 +56,7 @@ const familyTables: Record<RollbackResourceType, string[]> = {
     'address3d',
     'address3dI18n',
   ],
-  place: [
-    'places',
-    'placesI18n',
-    'placesCells',
-    'placeDivisionDefinitions',
-    'placesDivision',
-  ],
+  place: ['places', 'placesI18n', 'placesCells', 'placeDivisionDefinitions'],
   street: [
     'streets',
     'streetsI18n',
@@ -88,11 +82,7 @@ const familyForTable = (table: string): RollbackResourceType => {
   throw new Error(`Unknown rollback table ${table}.`)
 }
 const scopeColumn = (table: string) =>
-  table === 'placesDivision'
-    ? 'placeScopeId'
-    : table === 'streetsAddress'
-      ? 'streetScopeId'
-      : 'scopeId'
+  table === 'streetsAddress' ? 'streetScopeId' : 'scopeId'
 
 /** Current-only reconstruction preserves retained evidence and emits keyed row differences. */
 export async function prepareReconstructedRollback(input: {

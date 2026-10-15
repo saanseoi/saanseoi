@@ -436,16 +436,19 @@ describe('all-statistics reset', () => {
     const { meta, current, context } = setup()
     meta.exec("UPDATE datasets SET theme='stats'")
     insert(current, 'places', { id: 'p', snapshotId: 'place-scope' })
-    insert(current, 'placesDivision', {
-      placeScopeId: 'place-scope',
-      placeId: 'p',
-      divisionSnapshotId: 'divisionArea',
-      divisionId: 'd',
+    insert(current, 'placeDivisionDefinitions', {
+      id: 'retained-set',
       definition: JSON.stringify({
-        level: 1,
-        locales: [{ locale: 'en', name: 'Retained' }],
+        d: {
+          divisionSnapshotId: 'divisionArea',
+          level: 1,
+          locales: [{ locale: 'en', name: 'Retained' }],
+        },
       }),
     })
+    current.exec(
+      "UPDATE places SET districtId='d',divisionDefinitionSetId='retained-set'",
+    )
     expect(await statsResetBlockers(context)).toContain(
       'Places reference contributed divisions',
     )

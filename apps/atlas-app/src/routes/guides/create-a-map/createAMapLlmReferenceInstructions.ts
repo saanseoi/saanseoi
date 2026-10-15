@@ -655,6 +655,12 @@ identifies the brand; do not treat it as a venue Wikidata identity. lastSeenMont
 observation month of the selected completed publication. updatedAt records content
 materialisation, rather than publisher modification time.
 
+Places relationships include supported country, area, district, locality, hood and
+landform IDs. SAR, city and island-group ancestors are excluded. Full profiles expose
+nullable scalar IDs from countryId through hamletId and landformId. Geographic code
+filters resolve through supported descendants; filter[adminCode]=HKSAR selects the
+whole region. include=divisions uses exact retained definition revisions.
+
 ## Places discovery
 
 Places text search uses the latest published regional release. Search results include

@@ -66,9 +66,6 @@ describe('draft release purge SQL', () => {
       sql.current.indexOf(placesDelete),
     )
     expect(sql.current).toContain(
-      "DELETE FROM placesDivision WHERE placeScopeId IN (SELECT scopeId FROM placePublicationState WHERE snapshotId = 'places-snapshot-new');",
-    )
-    expect(sql.current).toContain(
       "DELETE FROM placeSearchScopes WHERE snapshotId = 'places-snapshot-new';",
     )
     expect(sql.history).toContain(

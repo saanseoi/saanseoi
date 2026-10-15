@@ -368,6 +368,7 @@ test('Places retain historical Division definitions and only update links when t
   try {
     const row = await place()
     row.divisionIds = ['district']
+    row.divisionReferences = { districtId: 'district' }
     row.divisionDefinitions = {
       district: {
         level: 3,
@@ -378,7 +379,7 @@ test('Places retain historical Division definitions and only update links when t
       },
     }
     f.current.exec(
-      "PRAGMA foreign_keys=ON; CREATE TABLE divisionLinkWrites(operation TEXT); CREATE TRIGGER divisionLinkUpdated AFTER UPDATE ON placesDivision BEGIN INSERT INTO divisionLinkWrites VALUES('update'); END; CREATE TRIGGER divisionLinkDeleted AFTER DELETE ON placesDivision BEGIN INSERT INTO divisionLinkWrites VALUES('delete'); END",
+      "PRAGMA foreign_keys=ON; CREATE TABLE divisionLinkWrites(operation TEXT); CREATE TRIGGER divisionLinkUpdated AFTER UPDATE OF divisionDefinitionSetId ON places WHEN old.divisionDefinitionSetId IS NOT new.divisionDefinitionSetId BEGIN INSERT INTO divisionLinkWrites VALUES('update'); END; CREATE TRIGGER divisionLinkDeleted AFTER DELETE ON places BEGIN INSERT INTO divisionLinkWrites VALUES('delete'); END",
     )
     // No current Division row or publication receipt exists for this exact old revision.
     await f.run([row])
@@ -388,24 +389,35 @@ test('Places retain historical Division definitions and only update links when t
     const same = await f.run([row], 'old', 'source', 'division-b')
     expect(same.historySqlByBinding.size).toBe(0)
     expect(
-      f.current.query('SELECT divisionSnapshotId FROM placesDivision').get(),
+      f.current
+        .query(
+          "SELECT json_extract(d.definition,'$.district.divisionSnapshotId') divisionSnapshotId FROM places p JOIN placeDivisionDefinitions d ON d.id=p.divisionDefinitionSetId",
+        )
+        .get(),
     ).toEqual({ divisionSnapshotId: 'division-a' })
     expect(f.current.query('SELECT * FROM divisionLinkWrites').all()).toEqual([])
     const revisedDistrict = district.locales.find(locale => locale.locale === 'en')
     if (!revisedDistrict) throw new Error('English district locale missing')
     revisedDistrict.name = 'Revised district'
+    row.versionHash = 'revised-definition'
     await f.run([row], 'old', 'source', 'division-b')
     expect(
-      f.current.query('SELECT divisionSnapshotId FROM placesDivision').get(),
+      f.current
+        .query(
+          "SELECT json_extract(d.definition,'$.district.divisionSnapshotId') divisionSnapshotId FROM places p JOIN placeDivisionDefinitions d ON d.id=p.divisionDefinitionSetId",
+        )
+        .get(),
     ).toEqual({ divisionSnapshotId: 'division-b' })
     expect(f.current.query('SELECT * FROM divisionLinkWrites').all()).toEqual([
       { operation: 'update' },
     ])
     row.divisionIds = []
+    row.divisionReferences = {}
+    row.versionHash = 'removed-membership'
     await f.run([row])
     expect(f.current.query('SELECT * FROM divisionLinkWrites').all()).toEqual([
       { operation: 'update' },
-      { operation: 'delete' },
+      { operation: 'update' },
     ])
   } finally {
     f.close()
@@ -417,7 +429,7 @@ test('forward Places ingest after rollback compares the restored predecessor and
   try {
     const row = await place()
     await f.run([row])
-    const tables = ['places', 'placesI18n', 'placesCells', 'placesDivision']
+    const tables = ['placeDivisionDefinitions', 'places', 'placesI18n', 'placesCells']
     const restoredRows = new Map(
       tables.map(table => [
         table,
@@ -536,6 +548,7 @@ test('spatial membership evidence leaves public Places and is referenced by the 
   try {
     const row = await place()
     row.divisionIds = ['town']
+    row.divisionReferences = { townId: 'town' }
     row.divisionDefinitions = {
       town: { level: 3, locales: [{ locale: 'en', name: 'Town' }] },
     }

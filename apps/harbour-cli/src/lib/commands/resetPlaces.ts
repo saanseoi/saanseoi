@@ -1008,7 +1008,6 @@ export function buildPlacesResetSql(owned: OwnedPlaces) {
   const addressScopes = `SELECT scopeId FROM addressPublicationState WHERE snapshotId IN (${addressSnapshots})`
   const currentSql = [
     `DELETE FROM placesCells WHERE scopeId IN (${placeScopes});`,
-    `DELETE FROM placesDivision WHERE placeScopeId IN (${placeScopes});`,
     `DELETE FROM placesI18n WHERE scopeId IN (${placeScopes});`,
     `DELETE FROM places WHERE scopeId IN (${placeScopes});`,
     `DELETE FROM address2dBuildingNumberLookup WHERE scopeId IN (${addressScopes});`,

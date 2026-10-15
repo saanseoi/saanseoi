@@ -149,19 +149,18 @@ test.each(['obsolete', 'scope'])(
         )
         .run(logicalSnapshotId)
       const definition = JSON.stringify({
-        level: 1,
-        locales: [{ locale: 'en', name: 'Retained division' }],
+        division: {
+          divisionSnapshotId: logicalSnapshotId,
+          level: 1,
+          locales: [{ locale: 'en', name: 'Retained division' }],
+        },
       })
       f.sqlite
-        .query(
-          "INSERT INTO placeDivisionDefinitions(divisionSnapshotId,divisionId,definition) VALUES (?,'division',?)",
-        )
-        .run(logicalSnapshotId, definition)
-      f.sqlite
-        .query(
-          "INSERT INTO placesDivision(placeScopeId,placeId,divisionSnapshotId,divisionId) VALUES ('dependent','place',?,'division')",
-        )
-        .run(logicalSnapshotId)
+        .query('INSERT INTO placeDivisionDefinitions(id,definition) VALUES (?,?)')
+        .run('set', definition)
+      f.sqlite.exec(
+        "UPDATE places SET districtId='division',divisionDefinitionSetId='set'",
+      )
       for (const family of ['address', 'division'] as const)
         expect(await f.clean(family)).toBe(true)
       expect(f.sqlite.query('SELECT addressSnapshotId FROM places').get()).toEqual({
@@ -170,7 +169,7 @@ test.each(['obsolete', 'scope'])(
       expect(
         f.sqlite
           .query(
-            'SELECT p.divisionSnapshotId,d.definition FROM placesDivision p JOIN placeDivisionDefinitions d USING(divisionSnapshotId,divisionId)',
+            "SELECT json_extract(d.definition,'$.division.divisionSnapshotId') divisionSnapshotId,d.definition FROM places p JOIN placeDivisionDefinitions d ON d.id=p.divisionDefinitionSetId",
           )
           .get(),
       ).toEqual({ divisionSnapshotId: logicalSnapshotId, definition })

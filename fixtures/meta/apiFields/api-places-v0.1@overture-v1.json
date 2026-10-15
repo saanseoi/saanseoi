@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:bd8009d388df971716a6c8bc6c914bb78214bf8f81b459d9fd6aed02846840e2",
+  "versionHash": "sha256:7bb14ca5c750be49c9a96fe64b021343fb038600d0a471eeef203e587f99446b",
   "apiVersion": "api-places-v0.1",
   "domainCode": "overture",
   "mappingVersion": 1,
@@ -808,6 +808,160 @@
         {
           "origin": "curation",
           "fieldPath": "overturePlaceAddress.address3dMembership"
+        }
+      ],
+      "resolverCode": "lookup_fk",
+      "contributionType": "resolver-input",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "attributes.countryId",
+      "sourceDatasetCode": "ds-hk-overture-place",
+      "inputs": [
+        {
+          "origin": "registry",
+          "fieldPath": "selectedDivisionSnapshot"
+        }
+      ],
+      "resolverCode": "lookup_fk",
+      "contributionType": "resolver-input",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "attributes.areaId",
+      "sourceDatasetCode": "ds-hk-overture-place",
+      "inputs": [
+        {
+          "origin": "registry",
+          "fieldPath": "selectedDivisionSnapshot"
+        }
+      ],
+      "resolverCode": "lookup_fk",
+      "contributionType": "resolver-input",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "attributes.districtId",
+      "sourceDatasetCode": "ds-hk-overture-place",
+      "inputs": [
+        {
+          "origin": "registry",
+          "fieldPath": "selectedDivisionSnapshot"
+        }
+      ],
+      "resolverCode": "lookup_fk",
+      "contributionType": "resolver-input",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "attributes.townId",
+      "sourceDatasetCode": "ds-hk-overture-place",
+      "inputs": [
+        {
+          "origin": "registry",
+          "fieldPath": "selectedDivisionSnapshot"
+        }
+      ],
+      "resolverCode": "lookup_fk",
+      "contributionType": "resolver-input",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "attributes.ruralAreaId",
+      "sourceDatasetCode": "ds-hk-overture-place",
+      "inputs": [
+        {
+          "origin": "registry",
+          "fieldPath": "selectedDivisionSnapshot"
+        }
+      ],
+      "resolverCode": "lookup_fk",
+      "contributionType": "resolver-input",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "attributes.macrohoodId",
+      "sourceDatasetCode": "ds-hk-overture-place",
+      "inputs": [
+        {
+          "origin": "registry",
+          "fieldPath": "selectedDivisionSnapshot"
+        }
+      ],
+      "resolverCode": "lookup_fk",
+      "contributionType": "resolver-input",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "attributes.neighbourhoodId",
+      "sourceDatasetCode": "ds-hk-overture-place",
+      "inputs": [
+        {
+          "origin": "registry",
+          "fieldPath": "selectedDivisionSnapshot"
+        }
+      ],
+      "resolverCode": "lookup_fk",
+      "contributionType": "resolver-input",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "attributes.villageId",
+      "sourceDatasetCode": "ds-hk-overture-place",
+      "inputs": [
+        {
+          "origin": "registry",
+          "fieldPath": "selectedDivisionSnapshot"
+        }
+      ],
+      "resolverCode": "lookup_fk",
+      "contributionType": "resolver-input",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "attributes.microhoodId",
+      "sourceDatasetCode": "ds-hk-overture-place",
+      "inputs": [
+        {
+          "origin": "registry",
+          "fieldPath": "selectedDivisionSnapshot"
+        }
+      ],
+      "resolverCode": "lookup_fk",
+      "contributionType": "resolver-input",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "attributes.hamletId",
+      "sourceDatasetCode": "ds-hk-overture-place",
+      "inputs": [
+        {
+          "origin": "registry",
+          "fieldPath": "selectedDivisionSnapshot"
+        }
+      ],
+      "resolverCode": "lookup_fk",
+      "contributionType": "resolver-input",
+      "priority": 0,
+      "confidence": 1
+    },
+    {
+      "apiField": "attributes.landformId",
+      "sourceDatasetCode": "ds-hk-overture-place",
+      "inputs": [
+        {
+          "origin": "registry",
+          "fieldPath": "selectedDivisionSnapshot"
         }
       ],
       "resolverCode": "lookup_fk",

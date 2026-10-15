@@ -1,4 +1,3 @@
-import { getTableColumns } from '@repo/db'
 import type { SnapshotReplayStep } from '@repo/core/db/metaRegistry'
 import type { HarbourReadableDb } from '@repo/core/db/types'
 import {
@@ -148,35 +147,25 @@ export async function loadCurrentPlaceHistory(
     throw new Error(
       'Missing exact Place predecessor content: locale membership differs from its serving scope.',
     )
-  const links = await ownership.currentDb
+  const definitions = await ownership.currentDb
     .select({
-      ...getTableColumns(currentSchema.placesDivision),
+      placeId: currentSchema.places.id,
       definition: currentSchema.placeDivisionDefinitions.definition,
     })
-    .from(currentSchema.placesDivision)
+    .from(currentSchema.places)
     .innerJoin(
       currentSchema.placeDivisionDefinitions,
-      and(
-        eq(
-          currentSchema.placesDivision.divisionSnapshotId,
-          currentSchema.placeDivisionDefinitions.divisionSnapshotId,
-        ),
-        eq(
-          currentSchema.placesDivision.divisionId,
-          currentSchema.placeDivisionDefinitions.divisionId,
-        ),
+      eq(
+        currentSchema.places.divisionDefinitionSetId,
+        currentSchema.placeDivisionDefinitions.id,
       ),
     )
-    .where(eq(currentSchema.placesDivision.placeScopeId, ownership.scopeId))
+    .where(eq(currentSchema.places.scopeId, ownership.scopeId))
     .all()
-  for (const link of links) {
-    const state = states.get(String(link.placeId))
-    if (!state)
-      throw new Error(
-        `Current Place Division link without a base: ${link.placeId}/${link.divisionId}.`,
-      )
-    state.divisionLinks ??= []
-    state.divisionLinks.push(link)
+  for (const row of definitions) {
+    const state = states.get(row.placeId)
+    if (!state) throw new Error(`Place definitions without base ${row.placeId}.`)
+    state.divisionDefinitions = row.definition
   }
   return [...states.values()]
 }

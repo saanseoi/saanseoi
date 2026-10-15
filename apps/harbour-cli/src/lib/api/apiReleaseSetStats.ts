@@ -1,3 +1,4 @@
+import { placeDivisionFieldNames } from '@repo/db'
 import {
   buildStatisticsApiStats,
   listStatisticsStatsReleases,
@@ -436,12 +437,20 @@ async function buildPlaceStatsRows(
           sql`${currentSchema.places.address2dId} IS NOT NULL OR ${currentSchema.places.address3dId} IS NOT NULL`,
         ),
       ),
-      countRows(
-        db,
-        currentSchema.placesDivision,
-        currentSchema.placesDivision.placeScopeId,
-        snapshotId,
-      ),
+      Promise.resolve(
+        db
+          .select({
+            count: sql<number>`coalesce(sum(${sql.join(
+              placeDivisionFieldNames.map(
+                field => sql`(${currentSchema.places[field]} is not null)`,
+              ),
+              sql` + `,
+            )}),0)`,
+          })
+          .from(currentSchema.places)
+          .where(eq(currentSchema.places.scopeId, snapshotId))
+          .get(),
+      ).then(row => Number(row?.count ?? 0)),
       countGrouped(
         db,
         currentSchema.placesI18n,

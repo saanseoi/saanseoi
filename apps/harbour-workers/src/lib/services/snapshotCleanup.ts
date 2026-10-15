@@ -173,7 +173,6 @@ export async function cleanupSnapshotByResourceType(
   const owned = {
     place: [
       [c.placesCells, c.placesCells.scopeId],
-      [c.placesDivision, c.placesDivision.placeScopeId],
       [c.placesI18n, c.placesI18n.scopeId],
       [c.places, c.places.scopeId],
     ],

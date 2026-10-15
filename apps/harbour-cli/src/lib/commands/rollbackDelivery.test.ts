@@ -286,3 +286,160 @@ test('sealed rollback reconciles lost local progress from receipts without repea
     await f.close()
   }
 })
+
+test('Places rollback delivers shared definitions before scalars and resumes interrupted or unacknowledged payloads', async () => {
+  const { preparePlaceDivisionDefinitions } = await import(
+    '../pipeline/places/placeDivisionDefinitions'
+  )
+  const { buildPlaceSearchSyncSql } = await import(
+    '@repo/core/pipeline/services/places/searchIndex'
+  )
+  const f = await fixture()
+  try {
+    const definitions = (id: string) =>
+      preparePlaceDivisionDefinitions(
+        { districtId: id },
+        { [id]: { level: 2, locales: [{ locale: 'en', name: id }] } },
+        id,
+      )
+    const newer = definitions('new-district'),
+      older = definitions('old-district')
+    f.current
+      .query('INSERT INTO placeDivisionDefinitions(id,definition) VALUES (?,?)')
+      .run(newer.id, JSON.stringify(newer.definition))
+    for (const scope of ['place-scope', 'other-place']) {
+      f.current
+        .query(
+          "INSERT INTO places(scopeId,id,resourceReleaseId,geometry,firstSeenMonth,districtId,divisionDefinitionSetId) VALUES(?,'p','release','{}','2026-01','new-district',?)",
+        )
+        .run(scope, newer.id)
+      f.current
+        .query(
+          "INSERT INTO placesI18n(scopeId,placeId,locale,name,searchDependencyText) VALUES(?,'p','en','Place',?)",
+        )
+        .run(
+          scope,
+          JSON.stringify({
+            addressSnapshotId: null,
+            addressText: '',
+            divisionText: 'new-district',
+            streetText: '',
+          }),
+        )
+      f.current
+        .query(
+          "INSERT INTO placePublicationState(scopeId,snapshotId,status,publicationToken,preparedAt) VALUES(?,?,'current','original','ready')",
+        )
+        .run(scope, scope)
+    }
+    f.current.exec(
+      buildPlaceSearchSyncSql([
+        { scopeId: 'places-search', snapshotId: 'place-scope' },
+        { scopeId: 'other-places-search', snapshotId: 'other-place' },
+      ]).join(';'),
+    )
+    const unrelated = f.current
+      .query("SELECT rowid,* FROM places WHERE scopeId='other-place'")
+      .get()
+    const unrelatedFts = f.current
+      .query("SELECT rowid,* FROM placeSearchFts WHERE scopeId='other-places-search'")
+      .all()
+    const claim: RollbackClaim = {
+      table: 'placePublicationState',
+      scopeId: 'place-scope',
+      previous: { snapshotId: 'place-scope', publicationToken: 'original' },
+      snapshotId: 'place-old',
+      publicationToken: 'rollback-place',
+    }
+    const directory = join(f.root, 'places-plan')
+    const plan = await prepareNativeSqlDelivery({
+      directory,
+      ownershipDirectory: f.root,
+      files: f.files,
+      resourceReleaseId: 'release',
+      phase: 'rollback-reconstruction',
+      inputs: { family: 'place' },
+      generate: append =>
+        captureRollbackDelivery({
+          context: f.context,
+          append,
+          tables: [
+            { name: 'placeDivisionDefinitions', ignoredColumns: [] },
+            ...['places', 'placesI18n'].map(name => ({
+              name,
+              ignoredColumns: ['createdAt', 'updatedAt'],
+              rowScope: { column: 'scopeId', values: ['place-scope'] },
+            })),
+          ],
+          prepare: async candidate => {
+            candidate
+              .query('INSERT INTO placeDivisionDefinitions(id,definition) VALUES (?,?)')
+              .run(older.id, JSON.stringify(older.definition))
+            candidate
+              .query(
+                "UPDATE places SET districtId='old-district',divisionDefinitionSetId=? WHERE scopeId='place-scope'",
+              )
+              .run(older.id)
+            candidate.exec(
+              "UPDATE placesI18n SET searchDependencyText=json_set(searchDependencyText,'$.divisionText','old-district') WHERE scopeId='place-scope'",
+            )
+            return {
+              claims: [claim],
+              metadataGuard: { sql: 'SELECT 1', params: [] },
+              metadata: [
+                {
+                  sql: "UPDATE resourceReleases SET status='revoked' WHERE id='release'",
+                  params: [],
+                },
+              ],
+              terminal: {
+                operation: 'rollback',
+                resourceReleaseId: 'release',
+                catalogId: 'catalog',
+                apiVersionId: 'api',
+                regionCode: 'hk',
+                claims: [claim],
+              },
+            }
+          },
+        }),
+    })
+    await expect(
+      runNativeSqlDelivery(directory, {
+        files: f.files,
+        onProgress: completed => {
+          if (completed === 2) throw new Error('interrupted Places rollback')
+        },
+      }),
+    ).rejects.toThrow('interrupted Places rollback')
+    await runNativeSqlDelivery(directory, { files: f.files })
+    expect(
+      f.current
+        .query(
+          "SELECT districtId,divisionDefinitionSetId FROM places WHERE scopeId='place-scope'",
+        )
+        .get(),
+    ).toEqual({ districtId: 'old-district', divisionDefinitionSetId: older.id })
+    expect(f.current.query('PRAGMA foreign_key_check').all()).toEqual([])
+    expect(
+      f.current.query("SELECT rowid,* FROM places WHERE scopeId='other-place'").get(),
+    ).toEqual(unrelated)
+    expect(
+      f.current
+        .query("SELECT rowid,* FROM placeSearchFts WHERE scopeId='other-places-search'")
+        .all(),
+    ).toEqual(unrelatedFts)
+    const documents = f.current
+      .query('SELECT rowid,* FROM placeSearchFts ORDER BY rowid')
+      .all()
+    const progress = await readDeliveryProgress(directory, plan)
+    progress.local = {}
+    await writeFile(join(directory, 'progress.json'), JSON.stringify(progress))
+    await runNativeSqlDelivery(directory, { files: f.files })
+    expect(
+      f.current.query('SELECT rowid,* FROM placeSearchFts ORDER BY rowid').all(),
+    ).toEqual(documents)
+  } finally {
+    await f.close()
+  }
+})

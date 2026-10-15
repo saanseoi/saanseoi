@@ -163,7 +163,7 @@ export async function statsResetBlockers(context: ResetReadContext) {
     await check(
       context.currentBinding,
       'Places reference contributed divisions',
-      `SELECT 1 FROM placesDivision WHERE divisionSnapshotId IN (${ids}) LIMIT 1`,
+      `SELECT 1 FROM places p JOIN placeDivisionDefinitions d ON d.id=p.divisionDefinitionSetId, json_each(d.definition) ref WHERE json_extract(ref.value, '$.divisionSnapshotId') IN (${ids}) LIMIT 1`,
     )
   }
   if (plan.dependencies.publications.some(row => row.preparedAt === null))

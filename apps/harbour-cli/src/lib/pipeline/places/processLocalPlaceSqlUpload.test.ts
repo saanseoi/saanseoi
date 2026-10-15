@@ -1,3 +1,4 @@
+import { placeDivisionFieldNames } from '@repo/db'
 import { Database } from 'bun:sqlite'
 import { describe, expect, test } from 'bun:test'
 import { normaliseOverturePlace } from '@repo/core/pipeline/services/places/place'
@@ -171,11 +172,12 @@ describe('Places SQL materialisation', () => {
         brandNameVariant TEXT, brandNameAlts TEXT, freeformAddress TEXT, accessHint TEXT,
         meta TEXT, searchDependencyText TEXT, createdAt TEXT, updatedAt TEXT
       );
-      CREATE TABLE placeDivisionDefinitions(divisionSnapshotId TEXT,divisionId TEXT,definition TEXT,PRIMARY KEY(divisionSnapshotId,divisionId));
-      CREATE TABLE placesDivision (placeScopeId TEXT, placeId TEXT);
+      CREATE TABLE placeDivisionDefinitions(id TEXT PRIMARY KEY,definition TEXT);
       CREATE TABLE placesCells (scopeId TEXT, id TEXT, h3Level INTEGER, h3Cell TEXT);
     `)
 
+    for (const field of [...placeDivisionFieldNames, 'divisionDefinitionSetId'])
+      sqlite.exec(`ALTER TABLE places ADD "${field}" TEXT`)
     const history = new Database(':memory:')
     history.exec(`
 
@@ -200,6 +202,12 @@ describe('Places SQL materialisation', () => {
       ALTER TABLE placesI18n ADD operation TEXT DEFAULT 'upsert';
       CREATE VIEW historyEvents AS SELECT snapshotId,'place' AS recordType,id AS recordId,'' AS locale,versionHash,operation,sourceReleaseId FROM places UNION ALL SELECT snapshotId,'placeI18n',placeId,locale,versionHash,operation,sourceReleaseId FROM placesI18n;
     `)
+
+    history.exec(
+      'CREATE TABLE placeDivisionDefinitions(id TEXT PRIMARY KEY,definition TEXT)',
+    )
+    for (const field of [...placeDivisionFieldNames, 'divisionDefinitionSetId'])
+      history.exec(`ALTER TABLE places ADD "${field}" TEXT`)
 
     const result = await buildPlaceSql({
       referenceScopes: new Map([['supplementary-snapshot', 'supplementary-lineage']]),

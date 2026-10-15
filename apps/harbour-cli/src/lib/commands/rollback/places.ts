@@ -1,3 +1,5 @@
+import { placeDivisionFieldNames, type PlaceDivisionDefinitionSet } from '@repo/db'
+import { preparePlaceDivisionDefinitions } from '../../pipeline/places/placeDivisionDefinitions'
 import type { Database } from 'bun:sqlite'
 import {
   resolveSnapshotReplayPlan,
@@ -17,10 +19,14 @@ import { PLACE_H3_LEVELS } from '../../pipeline/places/processLocalPlaceSqlUploa
 import {
   type PlaceDivisionLink,
   restorePlaceDivisionLinks,
+  readRetainedPlaceDefinitionSet,
 } from './placeDivisionLinks.ts'
 import { resolveValidatedProjectionVersions } from './projectionReplay.ts'
 
-export type PlaceRollbackBase = {
+export type PlaceRollbackBase = Partial<
+  Record<import('@repo/db').PlaceDivisionField, string | null>
+> & {
+  divisionDefinitionSetId?: string | null
   id: string
   lng: number
   lat: number
@@ -45,7 +51,7 @@ export async function restorePlaceDerivedRows(input: Input) {
     (
       input.current
         .query(
-          "SELECT id,json_extract(geometry, '$.coordinates[0]') lng,json_extract(geometry, '$.coordinates[1]') lat,addressSnapshotId,addressDependencyHash,address2dId,address3dId,address3dUnitId FROM places WHERE scopeId=?",
+          "SELECT *,json_extract(geometry, '$.coordinates[0]') lng,json_extract(geometry, '$.coordinates[1]') lat,addressSnapshotId,addressDependencyHash,address2dId,address3dId,address3dUnitId FROM places WHERE scopeId=?",
         )
         .all(input.scopeId) as PlaceRollbackBase[]
     ).map(row => [row.id, row]),
@@ -130,42 +136,65 @@ export async function restorePlaceDerivedRows(input: Input) {
       view,
       dependencies,
     )
+    const linksByPlace = new Map<string, PlaceDivisionLink[]>()
+    for (const link of links.values()) {
+      const entries = linksByPlace.get(link.placeId) ?? []
+      entries.push(link)
+      linksByPlace.set(link.placeId, entries)
+    }
     input.current.transaction(() => {
-      input.current
-        .query('DELETE FROM placesDivision WHERE placeScopeId=?')
-        .run(input.scopeId)
       input.current.query('DELETE FROM placesCells WHERE scopeId=?').run(input.scopeId)
-      const insertLink = input.current.query(
-        'INSERT INTO placesDivision(placeScopeId,placeId,divisionSnapshotId,divisionId) VALUES (?,?,?,?)',
-      )
-      const insertDefinition = input.current.query(
-        'INSERT INTO placeDivisionDefinitions(divisionSnapshotId,divisionId,definition) VALUES (?,?,?) ON CONFLICT DO NOTHING',
-      )
-      for (const link of links.values()) {
-        insertDefinition.run(
-          link.divisionSnapshotId,
-          link.divisionId,
-          JSON.stringify(link.definition),
+      for (const base of bases.values()) {
+        const entries = linksByPlace.get(base.id) ?? []
+        const definition: PlaceDivisionDefinitionSet = Object.fromEntries(
+          entries.map(link => [
+            link.divisionId,
+            { divisionSnapshotId: link.divisionSnapshotId, ...link.definition },
+          ]),
         )
-        const retained = input.current
-          .query<{ definition: string }, [string, string]>(
-            'SELECT definition FROM placeDivisionDefinitions WHERE divisionSnapshotId=? AND divisionId=?',
+        const references = Object.fromEntries(
+          entries.flatMap(link => (link.field ? [[link.field, link.divisionId]] : [])),
+        )
+        if (!base.divisionDefinitionSetId || entries.some(link => link.field)) {
+          const prepared = preparePlaceDivisionDefinitions(
+            references,
+            definition,
+            '',
+            definition,
           )
-          .get(link.divisionSnapshotId, link.divisionId)
-        if (
-          !retained ||
-          canonicalPlaceJson(JSON.parse(retained.definition)) !==
-            canonicalPlaceJson(link.definition)
-        )
-          throw new Error(
-            `Conflicting exact Place Division definition ${link.divisionSnapshotId}/${link.divisionId}.`,
+          base.divisionDefinitionSetId = prepared.id
+          Object.assign(base, prepared.scalars)
+        }
+        if (base.divisionDefinitionSetId) {
+          input.current
+            .query(
+              'INSERT INTO placeDivisionDefinitions(id,definition) VALUES (?,?) ON CONFLICT DO NOTHING',
+            )
+            .run(base.divisionDefinitionSetId, canonicalPlaceJson(definition))
+          const stored = input.current
+            .query<{ definition: string }, [string]>(
+              'SELECT definition FROM placeDivisionDefinitions WHERE id=?',
+            )
+            .get(base.divisionDefinitionSetId)
+          if (
+            !stored ||
+            canonicalPlaceJson(JSON.parse(stored.definition)) !==
+              canonicalPlaceJson(definition)
           )
-        insertLink.run(
-          input.scopeId,
-          link.placeId,
-          link.divisionSnapshotId,
-          link.divisionId,
-        )
+            throw new Error(
+              `Conflicting exact Place Division definition set ${base.divisionDefinitionSetId}.`,
+            )
+          input.current
+            .query(
+              `UPDATE places SET divisionDefinitionSetId=?,${placeDivisionFieldNames.map(field => `"${field}"=?`).join(',')} WHERE scopeId=? AND id=?`,
+            )
+            .run(
+              base.divisionDefinitionSetId,
+              ...placeDivisionFieldNames.map(field => base[field] ?? null),
+              input.scopeId,
+              base.id,
+            )
+        }
       }
       const insertCell = input.current.query(
         'INSERT INTO placesCells(scopeId,id,h3Level,h3Cell) VALUES (?,?,?,?)',
@@ -208,6 +237,7 @@ async function validateLocaleDependencies(
     group.push(link)
     linksByPlace.set(link.placeId, group)
   }
+  const definitionSets = new Map<string, PlaceDivisionDefinitionSet>()
   for (const locale of locales) {
     const key = `placeI18n\u0000${locale.placeId}\u0000${locale.locale}`
     const version = versions.get(key)
@@ -311,8 +341,19 @@ async function validateLocaleDependencies(
         locales: [locale.locale],
       })
     ).searchDependencies[locale.locale]
-    const names = (linksByPlace.get(locale.placeId) ?? []).flatMap(link =>
-      link.definition.locales
+    if (
+      base.divisionDefinitionSetId &&
+      !definitionSets.has(base.divisionDefinitionSetId)
+    )
+      definitionSets.set(
+        base.divisionDefinitionSetId,
+        await readRetainedPlaceDefinitionSet(shards, base.divisionDefinitionSetId),
+      )
+    const originalDefinitions = base.divisionDefinitionSetId
+      ? Object.values(definitionSets.get(base.divisionDefinitionSetId)!)
+      : (linksByPlace.get(locale.placeId) ?? []).map(link => link.definition)
+    const names = originalDefinitions.flatMap(definition =>
+      definition.locales
         .filter(value => value.locale.toLowerCase() === locale.locale.toLowerCase())
         .map(value => value.name ?? ''),
     )

@@ -1,3 +1,4 @@
+import { placeDivisionFieldNames } from './schema/shared'
 import catalogue from '../../../fixtures/meta/fieldLineage/operations.json'
 import type { Condition, Node, Operation } from './fieldLineageTypes'
 
@@ -266,6 +267,7 @@ export function compileResponseField(args: {
         'address3dId',
         'address3dUnitId',
         'address3dMembership',
+        ...placeDivisionFieldNames,
         'identifiers',
         'identifiers.wikidata.brandId.id',
         'websites',
@@ -298,6 +300,7 @@ export function compileResponseField(args: {
     )
       return unknown(`No reviewed Place projection for ${apiField}.`)
     const full = [
+      ...placeDivisionFieldNames,
       'snapshotId',
       'resourceReleaseId',
       'addressSnapshotId',

@@ -20,7 +20,6 @@ test('Places search uses retained exact dependency text for fresh and incrementa
       CREATE TABLE address3dI18n(scopeId, address3dId, locale, units);
       CREATE TABLE streetsAddress(addressSnapshotId, addressId, streetSnapshotId, streetId);
       CREATE TABLE streetsI18n(scopeId, streetId, locale, name);
-      CREATE TABLE placesDivision(placeScopeId, placeId, divisionSnapshotId, divisionId);
       CREATE TABLE divisionsI18n(scopeId, divisionId, locale, name);
       INSERT INTO places VALUES ('place-scope', 'shop', 'address-scope', 'building', 'collection', 'chosen', '', '', '');
       INSERT INTO placesI18n VALUES ('place-scope', 'shop', 'en', 'Shop', '', '', '', '{"addressSnapshotId":"a","addressText":"Main Street Unit 12 Floor 3","divisionText":"","streetText":"Main Street"}');

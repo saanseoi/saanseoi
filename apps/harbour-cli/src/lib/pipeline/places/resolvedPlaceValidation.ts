@@ -1,3 +1,4 @@
+import { placeDivisionFieldNames } from '@repo/db'
 import type { Database } from 'bun:sqlite'
 import { latLngToCell } from 'h3-js'
 import { PLACE_H3_LEVELS } from './processLocalPlaceSqlUploadConfig.ts'
@@ -81,15 +82,33 @@ export async function validateResolvedPlaces(
     }
     if (count !== totalRows)
       throw new Error('Places staged membership differs from its declared row count.')
+    const actualDivisions = `SELECT p.scopeId,p.id AS placeId,entry.key AS divisionId, json_object('level',json_extract(entry.value,'$.level'),'locales',json_extract(entry.value,'$.locales')) AS definition FROM places p JOIN placeDivisionDefinitions d ON d.id=p.divisionDefinitionSetId, json_each(d.definition) entry`
+    for await (const row of readStagedJsonLines<EnrichedPlace>(path)) {
+      const actual = db
+        .query<Record<string, string | null>, [string, string]>(
+          'SELECT * FROM places WHERE scopeId=? AND id=?',
+        )
+        .get(scopeId, row.place.id)
+      if (
+        !actual ||
+        placeDivisionFieldNames.some(
+          field =>
+            (actual[field] ?? null) !== (row.divisionReferences?.[field] ?? null),
+        )
+      )
+        throw new Error(
+          `Places exact membership validation failed: scalar Divisions differ for ${row.place.id}.`,
+        )
+    }
     for (const [table, expected, columns, scopeColumn] of [
       ['places', 'expectedPlaces', 'id', 'scopeId'],
       ['placesI18n', 'expectedPlaceLocales', 'placeId,locale', 'scopeId'],
       ['placesCells', 'expectedPlaceCells', 'id,h3Level,h3Cell', 'scopeId'],
       [
-        'placesDivision',
+        `(${actualDivisions})`,
         'expectedPlaceDivisions',
         'placeId,divisionId',
-        'placeScopeId',
+        'scopeId',
       ],
     ]) {
       const actual = `SELECT ${columns} FROM ${table} WHERE ${scopeColumn}=?`
@@ -133,8 +152,8 @@ export async function validateResolvedPlaces(
       )
     if (
       db
-        .query(`SELECT 1 FROM placesDivision p JOIN placeDivisionDefinitions d ON d.divisionSnapshotId=p.divisionSnapshotId AND d.divisionId=p.divisionId JOIN expectedPlaceDivisions e ON p.placeId=e.placeId AND p.divisionId=e.divisionId
-      WHERE p.placeScopeId=? AND d.definition IS NOT e.definition LIMIT 1`)
+        .query(`SELECT 1 FROM (${actualDivisions}) p JOIN expectedPlaceDivisions e ON p.placeId=e.placeId AND p.divisionId=e.divisionId
+      WHERE p.scopeId=? AND p.definition IS NOT e.definition LIMIT 1`)
         .get(scopeId)
     )
       throw new Error(

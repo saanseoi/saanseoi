@@ -1,3 +1,9 @@
+import { createHash } from 'node:crypto'
+import {
+  placeDivisionFieldNames,
+  historySchema,
+  type PlaceDivisionDefinitionSet,
+} from '@repo/db'
 import type { SnapshotReplayStep } from '@repo/core/db/metaRegistry'
 import type { HarbourReadableDb } from '@repo/core/db/types'
 import { readSnapshotDependencies } from '@repo/core/pipeline/db/snapshotDependencies'
@@ -18,6 +24,7 @@ import { readExactProjectionRows } from './projectionReplay'
 
 export type PlaceDivisionLink = {
   placeId: string
+  field?: import('@repo/db').PlaceDivisionField
   divisionId: string
   divisionSnapshotId: string
   definition: {
@@ -33,7 +40,74 @@ export async function restorePlaceDivisionLinks(
   shards: ReadonlyMap<string, ReplayShard>,
   wanted: ReadonlyMap<string, PlaceRollbackBase>,
   view: PlaceDependencyView,
-) {
+): Promise<Map<string, PlaceDivisionLink>> {
+  const finalState = await resolveSnapshotVersionState(
+    plan,
+    shards,
+    ['place'],
+    [...wanted.keys()],
+  )
+  const retainedBases: PlaceRollbackBase[] = []
+  for await (const rows of readExactProjectionRows(
+    { recordType: 'place', table: 'places', id: 'id' },
+    finalState.values(),
+  ))
+    retainedBases.push(...(rows as unknown as PlaceRollbackBase[]))
+  const scalarIds = new Set(
+    retainedBases.filter(row => row.divisionDefinitionSetId).map(row => row.id),
+  )
+  if (scalarIds.size && scalarIds.size < retainedBases.length) {
+    const modern = await restorePlaceDivisionLinks(
+      input,
+      plan,
+      shards,
+      new Map([...wanted].filter(([id]) => scalarIds.has(id))),
+      view,
+    )
+    const older = await restorePlaceDivisionLinks(
+      input,
+      plan,
+      shards,
+      new Map([...wanted].filter(([id]) => !scalarIds.has(id))),
+      view,
+    )
+    return new Map([...modern, ...older])
+  }
+  if (retainedBases.every(row => row.divisionDefinitionSetId)) {
+    const links = new Map<string, PlaceDivisionLink>()
+    const sets = new Map<string, PlaceDivisionDefinitionSet>()
+    for (const base of retainedBases) {
+      const serving = wanted.get(base.id)
+      if (
+        !serving ||
+        serving.divisionDefinitionSetId !== base.divisionDefinitionSetId ||
+        placeDivisionFieldNames.some(field => serving[field] !== base[field])
+      )
+        throw new Error(`Place scalar references differ from exact history ${base.id}.`)
+      const setId = base.divisionDefinitionSetId!
+      if (!sets.has(setId))
+        sets.set(setId, await readRetainedPlaceDefinitionSet(shards, setId))
+      const definition = sets.get(setId)!
+      const ids = new Set(
+        placeDivisionFieldNames.flatMap(field => (base[field] ? [base[field]!] : [])),
+      )
+      if (
+        ids.size !== Object.keys(definition).length ||
+        Object.keys(definition).some(id => !ids.has(id))
+      )
+        throw new Error(
+          `Place scalar memberships differ from retained definitions ${base.id}.`,
+        )
+      for (const [divisionId, entry] of Object.entries(definition))
+        links.set(JSON.stringify([base.id, divisionId]), {
+          placeId: base.id,
+          divisionId,
+          divisionSnapshotId: entry.divisionSnapshotId,
+          definition: { level: entry.level, locales: entry.locales },
+        })
+    }
+    return links
+  }
   let links = new Map<string, PlaceDivisionLink>()
   const indices = new Map<string, Promise<Awaited<ReturnType<typeof loadIndex>>>>()
   for (let index = 0; index < plan.length; index++) {
@@ -108,7 +182,9 @@ export async function restorePlaceDivisionLinks(
             fallback: address,
             fallbackMethod: 'address',
           })
-          for (const divisionId of association.divisionIds) {
+          for (const divisionId of Object.values(association.references).filter(
+            (id): id is string => typeof id === 'string',
+          )) {
             const definition = definitions.get(divisionId)
             if (!definition)
               throw new Error(
@@ -118,6 +194,9 @@ export async function restorePlaceDivisionLinks(
             const previous = links.get(key)
             next.set(key, {
               placeId: base.id,
+              field: Object.entries(association.references).find(
+                ([, id]) => id === divisionId,
+              )?.[0] as import('@repo/db').PlaceDivisionField,
               divisionId,
               definition,
               divisionSnapshotId:
@@ -173,4 +252,28 @@ async function loadIndex(
   for (const definition of definitions.values())
     definition.locales.sort((a, b) => a.locale.localeCompare(b.locale))
   return { membership: createDivisionMembership(divisions, areas), definitions }
+}
+
+/** Read immutable shared evidence from every retained shard, rejecting conflicting copies. */
+export async function readRetainedPlaceDefinitionSet(
+  shards: ReadonlyMap<string, ReplayShard>,
+  id: string | null,
+): Promise<PlaceDivisionDefinitionSet> {
+  if (!id) return {}
+  let retained: PlaceDivisionDefinitionSet | undefined
+  for (const shard of shards.values()) {
+    const row = await shard.db
+      .select()
+      .from(historySchema.placeDivisionDefinitions)
+      .where(eq(historySchema.placeDivisionDefinitions.id, id))
+      .get()
+    if (!row) continue
+    if (retained && canonicalPlaceJson(retained) !== canonicalPlaceJson(row.definition))
+      throw new Error(`Conflicting retained Place definition set ${id}.`)
+    retained = row.definition as PlaceDivisionDefinitionSet
+  }
+  if (!retained) throw new Error(`Missing retained Place definition set ${id}.`)
+  if (createHash('sha256').update(canonicalPlaceJson(retained)).digest('hex') !== id)
+    throw new Error(`Invalid retained Place definition set content address ${id}.`)
+  return retained
 }

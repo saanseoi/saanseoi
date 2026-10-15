@@ -457,3 +457,91 @@ test('identity preparation refuses a changed publication predecessor before capt
     ).rejects.toThrow('Place identity predecessor changed')
     expect(writes).toBe(0)
   }))
+
+test('scalar definition edits mutate only their selected Places and search documents', () =>
+  fixture(async f => {
+    const { buildPlaceSearchSyncSql } = await import(
+      '@repo/core/pipeline/services/places/searchIndex'
+    )
+    const a = structuredClone(f.row)
+    const b = structuredClone(f.row)
+    b.place.id = 'neighbour'
+    b.place.raw.id = 'neighbour'
+    const prepare = async (row: EnrichedPlace, id: string, name: string) => {
+      row.divisionReferences = { districtId: id }
+      row.divisionIds = [id]
+      row.divisionDefinitions = {
+        [id]: { level: 2, locales: [{ locale: 'en', name }] },
+      }
+      row.searchDependencies = Object.fromEntries(
+        row.place.i18n.map(locale => [
+          locale.locale,
+          {
+            addressSnapshotId: null,
+            addressText: '',
+            streetText: '',
+            divisionText: locale.locale === 'en' ? name : '',
+          },
+        ]),
+      )
+      row.versionHash = await hashPlaceMaterialisation(row.place, {
+        addressSnapshotId: '',
+        divisionSnapshotId: 'division',
+        addressId: null,
+        divisionIds: row.divisionIds,
+        divisionReferences: row.divisionReferences,
+        divisionDefinitions: row.divisionDefinitions,
+      })
+    }
+    await prepare(a, 'selected', 'Selected district')
+    await prepare(b, 'unrelated', 'Other district')
+    ;(await f.run(1, [a, b])).execute()
+    const sync = (revision: number) => {
+      f.current.exec("UPDATE placePublicationState SET status='current'")
+      f.current.exec(
+        buildPlaceSearchSyncSql([
+          { scopeId: 'search', snapshotId: `revision-${revision}` },
+        ]).join(';'),
+      )
+    }
+    sync(1)
+    const neighbour = f.current
+      .query("SELECT rowid,* FROM places WHERE id='neighbour'")
+      .get()
+    const docs = f.current
+      .query('SELECT rowid,* FROM placeSearchFts ORDER BY rowid')
+      .all()
+    a.place.lastSeenMonth = '2025-02'
+    b.place.lastSeenMonth = '2025-02'
+    const reissue = await f.run(2, [a, b])
+    expect(reissue.mutationSummary.statements).toBe(0)
+    reissue.execute()
+    sync(2)
+    expect(
+      f.current.query('SELECT rowid,* FROM placeSearchFts ORDER BY rowid').all(),
+    ).toEqual(docs)
+    await prepare(a, 'selected', 'Revised district')
+    const edited = await f.run(3, [a, b])
+    expect(edited.mutationSummary.tables.DB_CURRENT?.places?.updated).toBe(1)
+    expect(edited.mutationSummary.tables.DB_CURRENT?.placesI18n?.updated).toBe(1)
+    expect(edited.mutationSummary.tables.DB_HISTORY_HK_2025?.places?.inserted).toBe(1)
+    edited.execute()
+    sync(3)
+    expect(
+      f.current.query("SELECT rowid,* FROM places WHERE id='neighbour'").get(),
+    ).toEqual(neighbour)
+    expect(
+      f.current
+        .query(
+          "SELECT divisionText FROM placeSearchFts WHERE placeId='place' AND locale='en'",
+        )
+        .get(),
+    ).toEqual({ divisionText: 'Revised district' })
+    expect(
+      f.current
+        .query(
+          "SELECT rowid,* FROM placeSearchFts WHERE placeId='neighbour' ORDER BY rowid",
+        )
+        .all(),
+    ).toEqual(docs.filter(row => (row as { placeId: string }).placeId === 'neighbour'))
+  }))

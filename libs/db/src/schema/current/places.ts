@@ -9,7 +9,12 @@ import {
 } from 'drizzle-orm/sqlite-core'
 import { sql } from 'drizzle-orm'
 
-import { canonicalPlace, canonicalPlaceI18n, timestamps } from '../shared'
+import {
+  canonicalPlace,
+  canonicalPlaceI18n,
+  timestamps,
+  placeDivisionFieldNames,
+} from '../shared'
 
 export const places = sqliteTable(
   'places',
@@ -30,6 +35,13 @@ export const places = sqliteTable(
     check(
       'places_address3d_unit_reference_chk',
       sql`(${table.address3dId} IS NULL AND ${table.address3dUnitId} IS NULL AND ${table.address3dMembership} IS NULL) OR (${table.address3dId} IS NOT NULL AND ${table.address3dUnitId} IS NOT NULL AND ${table.address3dMembership} IS NOT NULL AND ${table.address2dId} IS NOT NULL)`,
+    ),
+    foreignKey({
+      columns: [table.divisionDefinitionSetId],
+      foreignColumns: [placeDivisionDefinitions.id],
+    }),
+    ...placeDivisionFieldNames.map(field =>
+      index(`places_${field}_id_idx`).on(table.scopeId, table[field], table.id),
     ),
     index('places_resourceReleaseId_idx').on(table.resourceReleaseId),
     index('places_category_id_idx').on(table.scopeId, table.basicCategory, table.id),
@@ -58,54 +70,13 @@ export const placesI18n = sqliteTable(
   ],
 )
 
-/** Immutable shared definitions selected by logical Division revision and identity. */
-export const placeDivisionDefinitions = sqliteTable(
-  'placeDivisionDefinitions',
-  {
-    divisionSnapshotId: text('divisionSnapshotId').notNull(),
-    divisionId: text('divisionId').notNull(),
-    /** Retained exact dependency; independent of mutable Division serving scopes. */
-    definition: text('definition', { mode: 'json' })
-      .$type<{
-        level: number | null
-        locales: { locale: string; name: string | null }[]
-      }>()
-      .notNull(),
-  },
-  table => [primaryKey({ columns: [table.divisionSnapshotId, table.divisionId] })],
-)
-
-export const placesDivision = sqliteTable(
-  'placesDivision',
-  {
-    placeScopeId: text('placeScopeId').notNull(),
-    placeId: text('placeId').notNull(),
-    divisionSnapshotId: text('divisionSnapshotId').notNull(),
-    divisionId: text('divisionId').notNull(),
-  },
-  table => [
-    primaryKey({
-      columns: [table.placeScopeId, table.placeId, table.divisionId],
-    }),
-    foreignKey({
-      columns: [table.placeScopeId, table.placeId],
-      foreignColumns: [places.scopeId, places.id],
-      name: 'placesDivision_placeScopeId_placeId_places_fk',
-    }).onDelete('cascade'),
-    foreignKey({
-      columns: [table.divisionSnapshotId, table.divisionId],
-      foreignColumns: [
-        placeDivisionDefinitions.divisionSnapshotId,
-        placeDivisionDefinitions.divisionId,
-      ],
-    }),
-    index('placesDivision_scope_division_place_idx').on(
-      table.placeScopeId,
-      table.divisionId,
-      table.placeId,
-    ),
-  ],
-)
+/** Content-addressed exact dependency sets, shared across Places and retained scopes. */
+export const placeDivisionDefinitions = sqliteTable('placeDivisionDefinitions', {
+  id: text('id').primaryKey().notNull(),
+  definition: text('definition', { mode: 'json' })
+    .$type<import('../shared').PlaceDivisionDefinitionSet>()
+    .notNull(),
+})
 
 export const placesCells = sqliteTable(
   'placesCells',

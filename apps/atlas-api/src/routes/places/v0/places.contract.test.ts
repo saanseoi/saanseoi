@@ -337,29 +337,11 @@ function seedCurrent(sqlite: Database) {
         PUBLISHED_AT,
       ],
     )
-    run(
-      sqlite,
-      'INSERT OR IGNORE INTO placeDivisionDefinitions(divisionSnapshotId,divisionId,definition) VALUES (?,?,?)',
-      [
-        DIVISION_SNAPSHOT,
-        'division-central',
-        JSON.stringify({
-          level: 2,
-          locales: [
-            {
-              meta: { isLocaleInferred: false },
-              locale: 'en',
-              name: 'Central and Western',
-            },
-          ],
-        }),
-      ],
-    )
-    run(
-      sqlite,
-      'INSERT INTO placesDivision(placeScopeId,placeId,divisionSnapshotId,divisionId) VALUES (?,?,?,?)',
-      [`scope:${PLACE_SNAPSHOT}`, place.id, DIVISION_SNAPSHOT, 'division-central'],
-    )
+    run(sqlite, 'UPDATE places SET districtId=? WHERE scopeId=? AND id=?', [
+      'division-central',
+      `scope:${PLACE_SNAPSHOT}`,
+      place.id,
+    ])
   }
 }
 
@@ -802,7 +784,7 @@ test('Place current endpoints reject incomplete publications while preserving em
       expect(await response.json()).toMatchObject({ error: 'snapshot_not_ready' })
     }
     fixture.currentSqlite.exec(
-      "UPDATE placePublicationState SET status='current'; DELETE FROM placesDivision; DELETE FROM placesI18n; DELETE FROM places",
+      "UPDATE placePublicationState SET status='current'; DELETE FROM placesI18n; DELETE FROM places",
     )
     const empty = await app.fetch(
       new Request('http://localhost/places/v0.1'),

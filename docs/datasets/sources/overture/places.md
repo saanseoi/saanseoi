@@ -444,14 +444,15 @@ matched against the DivisionArea snapshot pinned by the selected ALS release. Co
 Address references supplement missing polygons, including village and hamlet names.
 Geometry does not rewrite the supplementary Address's fields.
 
-The final materialisation writes `placesDivision` from these resolved spatial and
-inherited memberships, including Places without an Address. It retains canonical
-ancestors and individual islands separately from locality levels. Overlapping peers and
-shared boundaries do not arbitrarily select a division. Preparation artefacts and
-processing audits retain membership methods. META pins the Division and DivisionArea
-inputs. Rollback reconstructs membership with the ingestion rules from historical Place
-coordinates and Address references, without selecting newer geometry or reading mutable
-serving scopes.
+The final materialisation writes supported nullable scalar Division references from
+these spatial and inherited memberships, including Places without an Address. It retains
+supported canonical ancestors and the most-specific unambiguous landform. SAR, city and
+island-group ancestors are excluded from Place relationships and newly prepared search
+text. Overlapping peers and shared boundaries do not arbitrarily select a division.
+Preparation artefacts and processing audits retain membership methods. META pins the
+Division and DivisionArea inputs. Rollback reconstructs membership with the ingestion
+rules from historical Place coordinates and Address references, without selecting newer
+geometry or reading mutable serving scopes.
 
 ### Required ingestion order
 
@@ -464,7 +465,8 @@ serving scopes.
    Overture Places supplementary Address source snapshot and record it as a Places
    release dependency.
 4. Resolve each Place against the union of the selected official and supplementary
-   Address members, then materialise Place, PlaceI18n, H3, and `placesDivision` rows.
+   Address members, then materialise Place scalars, PlaceI18n, H3 and shared definition
+   sets.
 5. Refuse publication if a review-required candidate lacks a curation decision, if the
    supplementary source snapshot is missing, or if a Place/Address link cannot be
    reproduced from the recorded source release, checked-in decisions, generated entry
@@ -585,9 +587,9 @@ the source record.
 stored as a synthetic locale and is not counted as locale coverage.
 
 Each canonical place receives H3 cells at resolutions 5, 7, and 9. The H3 index supports
-the Places `by-cell` API. Cells and `placesDivision` links share the Place lineage's
-stable current scope and retain unchanged rows across publications. Division links use
-the pinned Division scope and spatial membership, supplemented by compatible Address
+the Places `by-cell` API. Cells and scalar memberships share the Place lineage's stable
+current scope and retain unchanged rows across publications. Division links use the
+pinned Division scope and spatial membership, supplemented by compatible Address
 references where polygons are missing. Search finalisation runs after the selected Place
 and dependency publications are ready and updates only changed FTS content plus the
 logical snapshot mapping.
@@ -856,3 +858,11 @@ Complete publications establish the current observation month without rewriting
 unchanged serving rows. Immutable content versions retain their recorded observation
 month. Exact Division names and levels are shared by logical revision and identity;
 Place links retain that revision independently of the live Division scope.
+
+Exact Division names and levels use shared content-addressed `placeDivisionDefinitions`
+sets. Each member retains its logical revision independently, reusing equivalent
+predecessor definitions. The Place base stores `divisionDefinitionSetId`; new HISTORY
+base versions carry the selected set into the same shard. Rollback delivers the shared
+sets and validates each locale against its own historical base. Fresh and incremental
+FTS use locale-row `searchDependencyText`. No mutable Division serving scope substitutes
+for the selected historical revision.

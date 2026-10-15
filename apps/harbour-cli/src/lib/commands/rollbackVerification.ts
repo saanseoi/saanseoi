@@ -74,13 +74,7 @@ async function countCurrentRollbackRows(
     total += await countRows(
       db,
       table,
-      sql.raw(
-        currentRollbackPredicateSql(
-          tableName,
-          tableName === 'placesDivision' ? 'placeScopeId' : 'snapshotId',
-          input.snapshotId,
-        ),
-      ),
+      sql.raw(currentRollbackPredicateSql(tableName, 'snapshotId', input.snapshotId)),
     )
   }
 
@@ -356,8 +350,6 @@ function resolveCurrentTable(tableName: string) {
       return currentSchema.places
     case 'placesI18n':
       return currentSchema.placesI18n
-    case 'placesDivision':
-      return currentSchema.placesDivision
     case 'placesCells':
       return currentSchema.placesCells
     case 'placeSearchScopes':
@@ -569,13 +561,7 @@ async function countPurgeCurrentRows(
     total += await countRows(
       db,
       table,
-      sql.raw(
-        currentRollbackPredicateSql(
-          tableName,
-          tableName === 'placesDivision' ? 'placeScopeId' : 'snapshotId',
-          input.snapshotId,
-        ),
-      ),
+      sql.raw(currentRollbackPredicateSql(tableName, 'snapshotId', input.snapshotId)),
     )
   }
 

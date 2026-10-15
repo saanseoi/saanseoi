@@ -133,8 +133,18 @@ export function placePreparedSpecification(path: string) {
         ],
         steps: [
           'Use effective coordinates after address resolution, with accepted Address Division references as fallback.',
-          'Deduplicate resulting divisionIds and retain association evidence with both selected Division and DivisionArea snapshot IDs.',
+          'Use divisionMembership.references for country, area, district, town, rural area, hood, village, hamlet and most-specific unambiguous landform. Filter association evidence and search text to those IDs; omit SAR, city and island-group ancestors.',
         ],
+      }
+    case 'divisionDefinitions':
+      return {
+        inputs: ['divisionMembership', 'selectedDivisions', 'selectedDivisionNames'],
+        implementation: {
+          path: 'apps/harbour-cli/src/lib/pipeline/places/placeSearchDependencies.ts',
+          symbol: 'createPlaceSearchDependencies',
+        },
+        expression:
+          'Exact selected levels and locale names for supported scalar IDs only.',
       }
     case 'previousIdentity':
       return {
@@ -167,14 +177,14 @@ export function placePreparedSpecification(path: string) {
           'unitReference',
           'divisionMembership',
           'addressDependencyHash',
-          'divisionAssociation',
+          'divisionDefinitions',
         ],
         implementation: { path: normalisation, symbol: 'hashPlaceMaterialisation' },
         expression: 'createHash(canonicalBaseContent)',
         steps: [
           'Hash id, effective coordinates, publisher bbox, operatingStatus, basicCategory, taxonomyPrimary/Hierarchy/Alternates, identifiers, websites, socials, emails, phones, addresses and confidence.',
           'Include retained Place identity evidence so source-ID transitions and the latest matching inputs survive historical replay.',
-          'Include addressDependencyHash, address2dId, all three nullable Address3D references, sorted unique divisionIds and divisionAssociation when present.',
+          'Include addressDependencyHash, address2dId, all three nullable Address3D references, supported scalar Division references and their exact selected names and levels. Equivalent revision reissues reuse independent definition pointers.',
           'Localised fields, first/last seen months, source payload, publication snapshot IDs and timestamps are not independent base-content hash fields. Locales have separate content hashes.',
         ],
       }

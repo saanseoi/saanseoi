@@ -105,6 +105,19 @@ test('replays Place text and spatial divisions from the selected version without
       ],
     )
 
+    for (const [id, kind] of [
+      ['division-country-old', 'country'],
+      ['division-district-old', 'district'],
+      ['excluded-sar', 'region'],
+      ['excluded-city', 'city'],
+      ['excluded-group', 'island_group'],
+    ]) {
+      run(
+        history,
+        "INSERT INTO divisions(id,class,hierarchies,versionHash,sourceReleaseId,snapshotId,isCurrent,createdAt) VALUES(?,?,'{}',?,?,?,1,?)",
+        [id!, kind!, id!, 'release-old', 'division-snapshot-old', TIMESTAMP],
+      )
+    }
     for (const versionHash of ['place-old-hash', 'place-new-hash']) {
       run(
         history,
@@ -123,6 +136,9 @@ test('replays Place text and spatial divisions from the selected version without
               divisionAreaSnapshotId: 'area-old',
               evidence: [
                 { divisionId: 'division-country-old', method: 'ancestry' },
+                { divisionId: 'excluded-sar', method: 'ancestry' },
+                { divisionId: 'excluded-city', method: 'ancestry' },
+                { divisionId: 'excluded-group', method: 'ancestry' },
                 { divisionId: 'division-district-old', method: 'geometry' },
               ],
             },

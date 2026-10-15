@@ -2,9 +2,9 @@
 
 The `place` resource is the canonical API representation of an Overture point of
 interest. Its snapshot stores the point, publisher categories and contact data,
-localised names, and an optional ALS address link. `placesDivision` and `placesCells`
-are current-storage materialisations: they are rebuildable projections for the active
-Place snapshot, not historical tables.
+localised names and an optional ALS address link. Supported nullable scalar Division IDs
+are canonical base content in CURRENT and HISTORY. `placesCells` is a current-only
+spatial projection.
 
 Place snapshots are immutable once published. A later Overture release creates a new
 snapshot and only creates history versions for changed place content, localisation, or
@@ -19,18 +19,14 @@ projection exposes only the trust-oriented provenance flags. Dataset-scoped tran
 fixtures are optional and never translate brands. `referenceName` is derived at response
 time and is not a synthetic locale or stable ID.
 
-The current `placesDivision` projection is derived from the accepted ALS address row's
-`divisionSnapshotId` and division IDs. It must never be used to answer a historical
-Place query. Historical traversal is instead:
-
-```text
-historical Place -> recorded address snapshot and address ID
-                 -> historical address entry -> division IDs
-```
-
-This keeps each historical release tied to the address snapshot selected by its
-reference policy. A newer address snapshot is used only when that adoption is explicitly
-recorded in a later Place revision.
+Place scalar memberships resolve from the effective point and pinned DivisionArea
+polygons, with compatible Address fallback. SAR, city and island-group ancestors are
+excluded. Exact levels, locale names and independently inherited logical revision
+pointers use shared content-addressed `placeDivisionDefinitions` sets, selected by
+`divisionDefinitionSetId`. New base versions retain their set in the HISTORY shard.
+Historical reads and rollback use this evidence independently of live serving scopes.
+Locale search text retains its own original dependency versions for fresh and
+incremental FTS.
 
 ## ZH-HANT
 
