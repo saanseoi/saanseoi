@@ -8,6 +8,8 @@ if test "$saanseoi_init_continue" -eq 1
     set continue_args --continue
 end
 
+# Backfill all four cohorts; canonical preparation infers administrative ancestry
+# from pinned reference archives independently of cohort and publication order.
 init_run_step bun run --silent dataops -- hkgov-pland:backfill --kind new-town --target $saanseoi_init_target $continue_args
 if init_domain_has_pending_releases new-town 2006 2011 2016 2021
     init_publish_docs

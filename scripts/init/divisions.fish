@@ -124,4 +124,6 @@ end
 init_reconcile_draft_release_sets ./bin/saanseoi release-sets:reconcile \
     --target $saanseoi_init_target --api-family divisions --region hk
 
+init_run_step ./bin/saanseoi divisions:crosswalk --target $saanseoi_init_target
+
 init_publish_docs
