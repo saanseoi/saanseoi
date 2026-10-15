@@ -50,7 +50,6 @@ function fixture(snapshotId: string, changed = true): ResolvedAddressChunkArtefa
           divisionSnapshotId: 'division',
           granularity: 'building',
           createdAt: now,
-          updatedAt: now,
         } as ResolvedAddressChunkArtefact['rows'][number]['base'],
         i18n: [
           {
@@ -61,7 +60,6 @@ function fixture(snapshotId: string, changed = true): ResolvedAddressChunkArtefa
             formattedAddress: 'Harbour Road',
             buildingNumberFrom: '1',
             createdAt: now,
-            updatedAt: now,
           },
         ],
       },
@@ -98,8 +96,8 @@ test('current writes retain a stable key and leave unchanged content and compone
     // A changed version can still have identical components; those stay open too.
     apply(fixture('three', true))
     expect(db.query('SELECT * FROM writeAudit').all()).toEqual([])
-    expect(db.query('SELECT scopeId, updatedAt FROM address2d').all()).toEqual([
-      { scopeId: 'lineage', updatedAt: '2026-09-01T00:00:00.000Z' },
+    expect(db.query('SELECT scopeId, createdAt FROM address2d').all()).toEqual([
+      { scopeId: 'lineage', createdAt: '2026-09-01T00:00:00.000Z' },
     ])
     const changed = fixture('four')
     changed.rows[0]!.base.granularity = 'complex'

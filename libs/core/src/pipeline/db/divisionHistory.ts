@@ -69,7 +69,7 @@ export async function planDivisionHistoryChanges(input: {
   const currentChanged = input.previous?.churnHash !== input.churnHash
   const baseRows: Parameters<typeof insertDivisionVersionRows>[2] = []
   const i18nRows: Parameters<typeof insertDivisionVersionRows>[3] = []
-  const timestamp = input.base.updatedAt ?? new Date().toISOString()
+  const timestamp = input.base.createdAt ?? new Date().toISOString()
   const closures: Array<DivisionHistoryComponent & { omitted?: boolean }> = []
   if (!currentChanged)
     return { baseChanged, currentChanged, baseRows, i18nRows, closures }
@@ -242,6 +242,7 @@ export async function closeDivisionHistoryComponents(input: {
   for (const recordType of ['division', 'divisionI18n'] as const)
     await recordHistoryDeletions(input.activeDb, {
       snapshotId: input.snapshotId,
+
       recordType,
       operation: 'delete',
       changes: input.components

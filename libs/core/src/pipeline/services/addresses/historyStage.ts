@@ -151,7 +151,6 @@ export async function buildResolvedAddressChunkArtefact(
       id: addressId,
       snapshotId: versionInsertContext.snapshotId,
       createdAt: now,
-      updatedAt: now,
     }
     const i18n = dedupeAddressI18nRows(
       row.i18n.map(localised => ({
@@ -159,7 +158,6 @@ export async function buildResolvedAddressChunkArtefact(
         addressId,
         snapshotId: versionInsertContext.snapshotId,
         createdAt: now,
-        updatedAt: now,
       })),
       addressId,
     )
@@ -238,7 +236,7 @@ export async function buildResolvedAddressChunkArtefact(
           versionHash: hash,
           snapshotId: versionInsertContext.snapshotId,
           isCurrent: true,
-          createdAt: row.base.updatedAt ?? row.base.createdAt!,
+          createdAt: row.base.createdAt!,
         })
     }
     for (const before of oldLookups.values())
@@ -270,11 +268,7 @@ export async function buildResolvedAddressChunkArtefact(
         snapshotId: localised.snapshotId ?? row.base.snapshotId,
         isCurrent: true,
         versionHash: localised.componentHash,
-        createdAt:
-          localised.updatedAt ??
-          row.base.updatedAt ??
-          localised.createdAt ??
-          row.base.createdAt,
+        createdAt: localised.createdAt ?? localised.createdAt ?? row.base.createdAt,
       })),
     )
   }

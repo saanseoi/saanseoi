@@ -170,7 +170,6 @@ function sqlLiteral(value: string) {
 export function buildAlignAddressCurrentDivisionSnapshotSql(
   snapshotId: string,
   divisionSnapshotId: string,
-  updatedAtSql = "datetime('now')",
 ) {
   const assignments = ADDRESS_DIVISION_REFERENCE_COLUMNS.map(
     column => `  ${column} = CASE
@@ -189,8 +188,7 @@ export function buildAlignAddressCurrentDivisionSnapshotSql(
 UPDATE address2d
 SET
   divisionSnapshotId = ${sqlLiteral(divisionSnapshotId)},
-${assignments.join(',\n')},
-  updatedAt = ${updatedAtSql}
+${assignments.join(',\n')}
 WHERE scopeId = ${sqlLiteral(snapshotId)}
   AND divisionSnapshotId IS NOT ${sqlLiteral(divisionSnapshotId)};
 `.trim()
@@ -607,7 +605,6 @@ export async function cloneAddressCurrentSnapshot(
             granularity: currentSchema.address2d.granularity,
             geometry: currentSchema.address2d.geometry,
             createdAt: sql<string>`${clonedAt}`,
-            updatedAt: sql<string>`${clonedAt}`,
           })
           .from(currentSchema.address2d)
           .where(eq(currentSchema.address2d.scopeId, fromSnapshotId)),
@@ -644,7 +641,6 @@ export async function cloneAddressCurrentSnapshot(
             estateName: currentSchema.address2dI18n.estateName,
             streetName: currentSchema.address2dI18n.streetName,
             createdAt: sql<string>`${clonedAt}`,
-            updatedAt: sql<string>`${clonedAt}`,
           })
           .from(currentSchema.address2dI18n)
           .where(eq(currentSchema.address2dI18n.scopeId, fromSnapshotId)),
@@ -666,7 +662,6 @@ export async function cloneAddressCurrentSnapshot(
             evidence: currentSchema.address2dBuildingNumberLookup.evidence,
             derivation: currentSchema.address2dBuildingNumberLookup.derivation,
             createdAt: sql<string>`${clonedAt}`,
-            updatedAt: sql<string>`${clonedAt}`,
           })
           .from(currentSchema.address2dBuildingNumberLookup)
           .where(
@@ -678,35 +673,6 @@ export async function cloneAddressCurrentSnapshot(
   )
 }
 
-export async function touchAddressCurrentRows(
-  db: HarbourWritableDb,
-  snapshotId: string,
-  addressIds: string[],
-  updatedAt: string,
-) {
-  if (addressIds.length === 0) {
-    return
-  }
-
-  for (const chunk of chunkArray(
-    [...new Set(addressIds)],
-    getMaxItemsPerInClause(1, 2),
-  )) {
-    await runWithWriteRetry(() =>
-      db
-        .update(currentSchema.address2d)
-        .set({ updatedAt })
-        .where(
-          and(
-            eq(currentSchema.address2d.scopeId, snapshotId),
-            inArray(currentSchema.address2d.id, chunk),
-          ),
-        )
-        .run(),
-    )
-  }
-}
-
 export async function alignAddressCurrentDivisionSnapshot(
   db: HarbourWritableDb,
   snapshotId: string,
@@ -715,11 +681,7 @@ export async function alignAddressCurrentDivisionSnapshot(
   await runRawSql(
     db,
     sql.raw(
-      buildAlignAddressCurrentDivisionSnapshotSql(
-        snapshotId,
-        divisionSnapshotId,
-        sqlLiteral(new Date().toISOString()),
-      ),
+      buildAlignAddressCurrentDivisionSnapshotSql(snapshotId, divisionSnapshotId),
     ),
   )
 }
@@ -776,7 +738,6 @@ export async function upsertAddressCurrentStates(
             sources: excluded('sources'),
             parentAddressId: excluded('parentAddressId'),
             granularity: excluded('granularity'),
-            updatedAt: excluded('updatedAt'),
           },
         })
         .run(),
@@ -840,7 +801,6 @@ export async function replaceAddressCurrentBuildingNumberLookups(
     ...row,
     snapshotId,
     createdAt: timestamp,
-    updatedAt: timestamp,
   }))
   for (const chunk of chunkArray(
     rows,
@@ -908,14 +868,12 @@ export async function materialiseReplayedAddressCurrentSnapshot(
     hamletId: resolveReplayedDivisionReference(base.hamletId, divisionIds),
     microhoodId: resolveReplayedDivisionReference(base.microhoodId, divisionIds),
     createdAt: materialisedAt,
-    updatedAt: materialisedAt,
   }))
   const i18nRows: NewAddressI18nRow[] = rows.flatMap(version =>
     version.localisedRows.map(row => ({
       ...row,
       scopeId: snapshotId,
       createdAt: materialisedAt,
-      updatedAt: materialisedAt,
     })),
   )
 
@@ -1025,7 +983,7 @@ export async function insertAddressVersionRows(
             sources: row.sources,
             parentAddressId: row.parentAddressId,
             granularity: row.granularity,
-            createdAt: row.updatedAt ?? row.createdAt,
+            createdAt: row.createdAt,
           })),
         )
         .onConflictDoNothing({
@@ -1113,7 +1071,6 @@ async function insertAddressI18nInChunks(
             phaseRef: excluded('phaseRef'),
             estateName: excluded('estateName'),
             streetName: excluded('streetName'),
-            updatedAt: excluded('updatedAt'),
           },
         })
         .run(),

@@ -230,7 +230,6 @@ describe('address SQL import staging cleanup', () => {
               id: 'address',
               snapshotId: 'address-revision',
               createdAt: '2026-09-12',
-              updatedAt: '2026-09-12',
             },
           },
         ],

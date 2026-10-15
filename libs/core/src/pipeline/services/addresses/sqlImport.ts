@@ -412,7 +412,7 @@ export function buildAddressHistorySqlImportFile(
         parentAddressId: row.base.parentAddressId,
         granularity: row.base.granularity,
         createdAt: row.base.createdAt,
-        updatedAt: row.base.updatedAt,
+        updatedAt: row.base.createdAt,
       })),
       options.maxStatementBytes,
     ),
@@ -443,7 +443,7 @@ export function buildAddressHistorySqlImportFile(
           estateName: localised.estateName,
           streetName: localised.streetName,
           createdAt: localised.createdAt,
-          updatedAt: localised.updatedAt,
+          updatedAt: localised.createdAt,
         })),
       ),
       options.maxStatementBytes,
@@ -506,7 +506,7 @@ export function buildAddressCurrentSqlImportFile(
         parentAddressId: row.base.parentAddressId,
         granularity: row.base.granularity,
         createdAt: row.base.createdAt,
-        updatedAt: row.base.updatedAt,
+        updatedAt: row.base.createdAt,
       })),
       options.maxStatementBytes,
       {
@@ -540,7 +540,7 @@ export function buildAddressCurrentSqlImportFile(
           estateName: localised.estateName,
           streetName: localised.streetName,
           createdAt: localised.createdAt,
-          updatedAt: localised.updatedAt,
+          updatedAt: localised.createdAt,
         })),
       ),
       options.maxStatementBytes,
@@ -817,7 +817,7 @@ function buildResolvedBuildingLookupInsertRows(
       evidence: lookup.evidence,
       derivation: lookup.derivation,
       createdAt: row.base.createdAt,
-      updatedAt: row.base.updatedAt,
+      updatedAt: row.base.createdAt,
     })),
   )
 }
@@ -947,13 +947,13 @@ function buildAddressCurrentApplySql(runId: string) {
 INSERT INTO address2d (
   scopeId, id, geometry, divisionSnapshotId, countryId, landformId, areaId,
   districtId, townId, ruralAreaId, macrohoodId, villageId, neighbourhoodId, hamletId,
-  microhoodId, streetSnapshotId, streetId, identifiers, sources, parentAddressId, granularity, createdAt, updatedAt
+  microhoodId, streetSnapshotId, streetId, identifiers, sources, parentAddressId, granularity, createdAt
 )
 SELECT
   r.snapshotId, r.addressId, r.geometry, r.divisionSnapshotId, r.countryId,
   r.landformId, r.areaId, r.districtId, r.townId, r.ruralAreaId, r.macrohoodId, r.villageId, r.neighbourhoodId,
   r.hamletId, r.microhoodId, r.streetSnapshotId, r.streetId, r.identifiers,
-  r.sources, r.parentAddressId, r.granularity, r.createdAt, r.updatedAt
+  r.sources, r.parentAddressId, r.granularity, r.createdAt
 FROM ${RESOLVED_ROWS_TABLE} r
 WHERE r.runId = ${run}
   AND r.changed = 1
@@ -976,8 +976,7 @@ ON CONFLICT(scopeId, id) DO UPDATE SET
   identifiers = excluded.identifiers,
   sources = excluded.sources,
   parentAddressId = excluded.parentAddressId,
-  granularity = excluded.granularity,
-  updatedAt = excluded.updatedAt
+  granularity = excluded.granularity
 WHERE address2d.divisionSnapshotId IS NOT excluded.divisionSnapshotId
   OR address2d.streetSnapshotId IS NOT excluded.streetSnapshotId
   OR address2d.streetId IS NOT excluded.streetId
@@ -1013,14 +1012,14 @@ INSERT INTO address2dI18n (
   buildingNumberExpression, buildingNumberFrom, buildingNumberTo, buildingNumberConnector,
   blockExpression, blockType, blockRef, blockTypeBeforeNumber,
   phaseExpression, phaseName, phaseRef, estateName,
-  streetName, createdAt, updatedAt
+  streetName, createdAt
 )
 SELECT
   i.snapshotId, i.addressId, i.locale, i.meta, i.formattedAddress, i.buildingName,
   i.buildingNumberExpression, i.buildingNumberFrom, i.buildingNumberTo,
   i.buildingNumberConnector, i.blockExpression, i.blockType, i.blockRef,
   i.blockTypeBeforeNumber, i.phaseExpression, i.phaseName, i.phaseRef,
-  i.estateName, i.streetName, i.createdAt, i.updatedAt
+  i.estateName, i.streetName, i.createdAt
 FROM ${RESOLVED_I18N_TABLE} i
 WHERE i.runId = ${run}
   AND EXISTS (
@@ -1043,8 +1042,7 @@ ON CONFLICT(scopeId, addressId, locale) DO UPDATE SET
   phaseName = excluded.phaseName,
   phaseRef = excluded.phaseRef,
   estateName = excluded.estateName,
-  streetName = excluded.streetName,
-  updatedAt = excluded.updatedAt
+  streetName = excluded.streetName
 WHERE address2dI18n.meta IS NOT excluded.meta
   OR address2dI18n.formattedAddress IS NOT excluded.formattedAddress
   OR address2dI18n.buildingName IS NOT excluded.buildingName
@@ -1074,7 +1072,7 @@ WHERE EXISTS (
     AND lookup.buildingNumber = address2dBuildingNumberLookup.buildingNumber
 );
 INSERT INTO address2dBuildingNumberLookup (
-  scopeId, addressId, buildingNumber, numericStem, evidence, derivation, createdAt, updatedAt
+  scopeId, addressId, buildingNumber, numericStem, evidence, derivation, createdAt
 )
 SELECT
   lookup.snapshotId,
@@ -1083,8 +1081,7 @@ SELECT
   lookup.numericStem,
   lookup.evidence,
   lookup.derivation,
-  lookup.createdAt,
-  lookup.updatedAt
+  lookup.createdAt
 FROM ${RESOLVED_BUILDING_LOOKUPS_TABLE} lookup
 WHERE lookup.runId = ${run}
   AND EXISTS (
@@ -1094,8 +1091,7 @@ WHERE lookup.runId = ${run}
 ON CONFLICT(scopeId, addressId, buildingNumber) DO UPDATE SET
   numericStem = excluded.numericStem,
   evidence = excluded.evidence,
-  derivation = excluded.derivation,
-  updatedAt = excluded.updatedAt
+  derivation = excluded.derivation
 WHERE address2dBuildingNumberLookup.numericStem IS NOT excluded.numericStem
   OR address2dBuildingNumberLookup.evidence IS NOT excluded.evidence
   OR address2dBuildingNumberLookup.derivation IS NOT excluded.derivation;

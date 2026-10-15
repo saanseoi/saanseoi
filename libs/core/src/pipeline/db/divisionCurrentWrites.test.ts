@@ -28,14 +28,12 @@ test('Division current writes insert, change and remove only the affected rows w
     category: 'administrative',
     hierarchies: { full: [], administrative: [], locality: [], landform: [] },
     createdAt: timestamp,
-    updatedAt: timestamp,
   })
   const locale = (divisionId: string, language: string): DivisionI18nRecord => ({
     divisionId,
     locale: language,
     name: `${divisionId}-${language}`,
     createdAt: timestamp,
-    updatedAt: timestamp,
     meta: { isLocaleInferred: false, fields: { name: { origin: 'provided' } } },
   })
   const changes = () =>
@@ -58,8 +56,8 @@ test('Division current writes insert, change and remove only the affected rows w
     const reissue = '2026-01-01T00:00:00Z'
     expect(
       await write(
-        rows.map(row => ({ ...row, createdAt: reissue, updatedAt: reissue })),
-        localised.map(row => ({ ...row, createdAt: reissue, updatedAt: reissue })),
+        rows.map(row => ({ ...row, createdAt: reissue })),
+        localised.map(row => ({ ...row, createdAt: reissue })),
       ),
     ).toBe(0)
     expect(
@@ -70,29 +68,21 @@ test('Division current writes insert, change and remove only the affected rows w
             divisionCode: 'revised-code',
             class: 'city',
             category: 'locality',
-            updatedAt: reissue,
           },
           rows[1]!,
         ],
-        [
-          localised[0]!,
-          { ...localised[1]!, name: 'Revised name', updatedAt: reissue },
-          localised[2]!,
-        ],
+        [localised[0]!, { ...localised[1]!, name: 'Revised name' }, localised[2]!],
       ),
     ).toBe(2)
     expect(
       client
-        .query(
-          'SELECT class,category,divisionCode,createdAt,updatedAt FROM divisions WHERE id=?',
-        )
+        .query('SELECT class,category,divisionCode,createdAt FROM divisions WHERE id=?')
         .get('a'),
     ).toEqual({
       class: 'city',
       category: 'locality',
       divisionCode: 'revised-code',
       createdAt: timestamp,
-      updatedAt: reissue,
     })
     const beforeLocaleRemoval = changes()
     await replaceDivisionCurrentI18n(db as never, scope, ['a'], [localised[0]!])

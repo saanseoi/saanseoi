@@ -712,7 +712,7 @@ export async function processDivisionDataset(
       const current = currentRows.get(normalised.base.id)
       const currentChanged = current?.churnHash !== churnHash
       const baseChanged = current?.versionHash !== versionHash
-      const currentDivisionI18nNow = normalised.base.updatedAt
+      const currentDivisionI18nNow = normalised.base.createdAt
 
       logDivisionTrace(traceDivisionIds, normalised.base.id, {
         baseChanged,
@@ -737,7 +737,6 @@ export async function processDivisionDataset(
         ...storedCanonicalI18n.map(row => ({
           ...row,
           createdAt: currentDivisionI18nNow,
-          updatedAt: currentDivisionI18nNow,
         })),
       )
 
@@ -1320,7 +1319,6 @@ function normaliseDivisionRowInternal(
             },
           ]
         : (countryAnchor?.sources ?? normaliseOvertureSources(row.sources)),
-      updatedAt: now,
     } satisfies Omit<NewDivisionRow, 'scopeId'>,
     i18n,
     overtureHongKongDivisionClassificationCorrection,
@@ -1576,7 +1574,6 @@ function normaliseHkgovCenstatdStatisticDivisionRow(
       }),
       class: type,
       category: geographicDivisionClassification(type)?.category ?? null,
-      updatedAt: now,
     } satisfies Omit<NewDivisionRow, 'scopeId'>,
     i18n: normaliseDivisionI18n(id, names, branchCounts),
     overtureHongKongDivisionClassificationCorrection: null,

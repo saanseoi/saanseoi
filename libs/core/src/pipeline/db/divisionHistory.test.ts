@@ -54,7 +54,6 @@ const base = (id = 'a'): DivisionBaseRecord => ({
   identifiers: { wikidata: { id: 'Q123' } },
   sources: { overture: [{ dataset: 'publisher', sourceVersion: '2025' }] },
   createdAt: timestamp,
-  updatedAt: timestamp,
 })
 const locale = (language: string, id = 'a'): DivisionI18nPayload => ({
   divisionId: id,
@@ -152,7 +151,7 @@ function fixture() {
         snapshotId: input.snapshotId,
         sourceReleaseId: `release-${input.snapshotId}`,
         components: delta.closures,
-        timestamp: row.base.updatedAt ?? updated,
+        timestamp: row.base.createdAt ?? updated,
       })
       if (delta.currentChanged) {
         if (delta.baseChanged)
@@ -164,7 +163,6 @@ function fixture() {
           localised.map(item => ({
             ...item,
             createdAt: row.base.createdAt,
-            updatedAt: row.base.updatedAt,
           })),
         )
       }
@@ -241,7 +239,7 @@ test('core Division writes inherit unchanged base/locales and close only changed
       base: {
         ...initial.base,
         createdAt: updated,
-        updatedAt: updated,
+
         sources: { overture: [{ dataset: 'publisher', sourceVersion: '2026' }] },
       },
       i18n: [...initial.i18n].reverse(),
@@ -255,8 +253,8 @@ test('core Division writes inherit unchanged base/locales and close only changed
       }),
     ).toEqual({ current: 0, old: 0, new: 0 })
     expect(
-      data.client('current').query('SELECT updatedAt,sources FROM divisions').get(),
-    ).toEqual({ updatedAt: timestamp, sources: JSON.stringify(initial.base.sources) })
+      data.client('current').query('SELECT createdAt,sources FROM divisions').get(),
+    ).toEqual({ createdAt: timestamp, sources: JSON.stringify(initial.base.sources) })
     const same = [...first, step('same', 'first', 'new')]
     const translated = {
       ...reissued,
@@ -313,7 +311,7 @@ test('core Division writes inherit unchanged base/locales and close only changed
       ...translated,
       base: {
         ...translated.base,
-        createdAt: timestamp,
+        createdAt: updated,
         identifiers: { publisher: 'revised' },
       },
     }
@@ -370,7 +368,7 @@ test('locale/base omissions are sparse and reappearance preserves original compo
       rows: [row],
     })
     const first = [step('first', null, 'new')]
-    const kept = { base: { ...row.base, updatedAt: updated }, i18n: [locale('en')] }
+    const kept = { base: { ...row.base, createdAt: updated }, i18n: [locale('en')] }
     expect(
       await data.write({
         plan: first,
@@ -403,7 +401,7 @@ test('locale/base omissions are sparse and reappearance preserves original compo
         plan: empty,
         snapshotId: 'reappeared',
         binding: 'new',
-        rows: [{ ...row, base: { ...row.base, updatedAt: updated } }],
+        rows: [{ ...row, base: { ...row.base, createdAt: updated } }],
       }),
     ).toEqual({ current: 3, old: 0, new: 3 })
     expect(
@@ -560,7 +558,6 @@ test('locale content identity includes name provenance independently of base fie
     buildDivisionBaseHashInput({
       ...base(),
       sources: { overture: [{ dataset: 'publisher', sourceVersion: '2026' }] },
-      updatedAt: updated,
     }),
   )
 })

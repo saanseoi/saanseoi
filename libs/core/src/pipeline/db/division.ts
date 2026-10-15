@@ -466,7 +466,6 @@ export async function upsertDivisionCurrentStates(
               category: excluded('category'),
               class: excluded('class'),
               sources: excluded('sources'),
-              updatedAt: excluded('updatedAt'),
             },
             setWhere: currentRowChangedSql('divisions', divisionPayloadColumns),
           }),
@@ -600,7 +599,7 @@ export async function insertDivisionVersionRows(
         identifiers: row.identifiers,
         cartography: row.cartography,
         sources: row.sources,
-        createdAt: row.updatedAt ?? row.createdAt,
+        createdAt: row.createdAt,
       })),
     )
 
@@ -665,7 +664,7 @@ async function insertDivisionsI18nInChunks(
               nameVariant: excluded('nameVariant'),
               nameAlts: excluded('nameAlts'),
               nameRules: excluded('nameRules'),
-              updatedAt: excluded('updatedAt'),
+
               meta: excluded('meta'),
             },
             setWhere: currentRowChangedSql('divisionsI18n', divisionI18nPayloadColumns),

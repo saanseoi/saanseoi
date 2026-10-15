@@ -59,7 +59,6 @@ export function normaliseCuratedDivision(row: Record<string, unknown>) {
       sources: curatedRecordSources(base.sources, String(record.id)),
       divisionCode: base.divisionCode ?? null,
       createdAt: now,
-      updatedAt: now,
     } as Omit<NewDivisionRow, 'scopeId'> & {
       level: number | null
       geometry: GeoJsonGeometry | null

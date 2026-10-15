@@ -20,7 +20,7 @@ test('native canonical processing moves Wikidata into identifiers and hashes tha
   })
   expect(row.base).not.toHaveProperty('wikidata')
   expect(buildDivisionBaseHashInput(row.base)).not.toHaveProperty('wikidata')
-  const { createdAt, updatedAt, ...base } = row.base
+  const { createdAt, ...base } = row.base
   const curated = { ...base, names: { en: { name: 'Test Village' } } }
   expect(
     normaliseCuratedDivision({ id: base.id, record: curated }).base.identifiers,
