@@ -149,7 +149,6 @@ export function resolveCacheTablesForBinding(
   if (/^DB_HISTORY_[A-Z]{2}_(?:\d{4}|BEFORE)$/.test(bindingName)) {
     if (cacheTableProfile === 'divisionStatistic') {
       return [
-        'divisionStatistics',
         'statsDefinitionSets',
         'statsRecords',
         'statsFields',
@@ -231,7 +230,6 @@ export function resolveCacheTablesForBinding(
       'address3dI18n',
       'divisionAreas',
       'divisionBoundaries',
-      'divisionStatistics',
       'statsDefinitionSets',
       'statsRecords',
       'statsFields',

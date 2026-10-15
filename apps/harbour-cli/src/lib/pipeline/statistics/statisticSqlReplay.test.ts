@@ -37,25 +37,6 @@ function sourceRow(sourceRecordId: string) {
   }
 }
 
-function historyRow(id: string) {
-  return {
-    snapshotId: 'snapshot',
-    createdAt: '2026-08-16T00:00:00.000Z',
-    districtCode: '1',
-    divisionId: 'district-1',
-    id,
-    isCurrent: true,
-    landAreaSqKm: 1,
-    midYearPopulation: 1,
-    midYearPopulationDensityPerSqKm: 1,
-    referenceYear: '2022',
-    sourceReleaseId: resourceReleaseId,
-    sources: [{ dataset: 'C&SD' }],
-    updatedAt: '2026-08-16T00:00:00.000Z',
-    versionHash: `history-${id}`,
-  }
-}
-
 describe('buildStatisticSqlBatches', () => {
   for (const table of ['hkgovCenstatdStatistics'] as const)
     test(`retains version-only validity across source revisions: ${table}`, () => {
@@ -141,12 +122,8 @@ describe('buildStatisticSqlBatches', () => {
     }
   })
 
-  test('creates deterministic source/history upserts that restore a failed release safely', () => {
+  test('creates deterministic source upserts that restore a failed release safely', () => {
     const batches = buildStatisticSqlBatches({
-      history: {
-        rows: [historyRow('stat-2'), historyRow('stat-1')],
-        table: 'divisionStatistics',
-      },
       sourceVersion,
       resourceReleaseId,
       source: {
@@ -156,24 +133,17 @@ describe('buildStatisticSqlBatches', () => {
     })
 
     expect(batches.source).toHaveLength(1)
-    expect(batches.history).toHaveLength(1)
     const [sourceSql] = batches.source
-    const [historySql] = batches.history
-    if (!sourceSql || !historySql) throw new Error('Expected replay SQL batches.')
+    if (!sourceSql) throw new Error('Expected replay SQL batches.')
     expect(sourceSql).toContain('UPDATE "hkgovCenstatdStatistics" SET "isCurrent" = 0')
     expect(sourceSql).toContain(
       'ON CONFLICT ("datasetCode", "resourceReleaseId", "sourceRecordId", "versionHash") DO UPDATE SET',
     )
-    expect(historySql).toContain('ON CONFLICT ("id", "snapshotId") DO NOTHING')
     expect(sourceSql.indexOf("'district-1'")).toBeLessThan(
       sourceSql.indexOf("'district-2'"),
     )
     expect(
       buildStatisticSqlBatches({
-        history: {
-          rows: [historyRow('stat-1'), historyRow('stat-2')],
-          table: 'divisionStatistics',
-        },
         sourceVersion,
         resourceReleaseId,
         source: {
@@ -186,7 +156,6 @@ describe('buildStatisticSqlBatches', () => {
 
   test('can be applied again after a failed release without duplicating versions', () => {
     const batches = buildStatisticSqlBatches({
-      history: { rows: [historyRow('stat-1')], table: 'divisionStatistics' },
       sourceVersion,
       resourceReleaseId,
       source: {
@@ -202,28 +171,16 @@ describe('buildStatisticSqlBatches', () => {
         validFromRelease TEXT, validToRelease TEXT, version INTEGER, versionHash TEXT,
         PRIMARY KEY (datasetCode, resourceReleaseId, sourceRecordId, versionHash)
       );
-      CREATE TABLE divisionStatistics (
-        createdAt TEXT, districtCode TEXT, divisionId TEXT, id TEXT, isCurrent INTEGER,
-        landAreaSqKm REAL, midYearPopulation INTEGER,
-        midYearPopulationDensityPerSqKm INTEGER, referenceYear TEXT,
-        sourceReleaseId TEXT, sources TEXT, updatedAt TEXT, versionHash TEXT,
-        snapshotId TEXT, PRIMARY KEY (id, snapshotId)
-      );
     `)
 
-    for (const sql of [...batches.source, ...batches.history]) sqlite.exec(sql)
-    for (const sql of [...batches.source, ...batches.history]) sqlite.exec(sql)
+    for (const sql of batches.source) sqlite.exec(sql)
+    for (const sql of batches.source) sqlite.exec(sql)
 
     expect(
       sqlite
         .query(
           'SELECT COUNT(*) AS count FROM hkgovCenstatdStatistics WHERE isCurrent = 1',
         )
-        .get(),
-    ).toEqual({ count: 1 })
-    expect(
-      sqlite
-        .query('SELECT COUNT(*) AS count FROM divisionStatistics WHERE isCurrent = 1')
         .get(),
     ).toEqual({ count: 1 })
     sqlite.close()
@@ -264,13 +221,12 @@ describe('replayStatisticSqlBatches', () => {
           { remote: true, environment: 'production' },
           context,
           '2022',
-          { source: ['SELECT 1;', 'SELECT 2;'], history: ['SELECT 3;'] },
+          { source: ['SELECT 1;', 'SELECT 2;'] },
           { importOptions: { accountId: 'fixture', apiToken: 'fixture' } },
         ),
     )
     expect(captured).toEqual([
       { databaseId: 'source-d1', sql: 'SELECT 1;\nSELECT 2;\n' },
-      { databaseId: 'history-d1', sql: 'SELECT 3;\n' },
     ])
   })
   test('checks remote prerequisites before mutating the local cache', async () => {
@@ -280,7 +236,7 @@ describe('replayStatisticSqlBatches', () => {
         { environment: 'preview', remote: true },
         { historyTargets: [], sourceTargets: [] } as never,
         '2022',
-        { history: [], source: ['SELECT 1;'] },
+        { source: ['SELECT 1;'] },
         {
           executeSql: async target => {
             calls.push(target.name)
@@ -330,9 +286,8 @@ describe('replayStatisticSqlBatches', () => {
     ])
   })
 
-  test('replays identical batches locally before source then history D1 imports', async () => {
+  test('replays identical batches locally before source D1 imports', async () => {
     const batches = buildStatisticSqlBatches({
-      history: { rows: [historyRow('stat-1')], table: 'divisionStatistics' },
       sourceVersion,
       resourceReleaseId,
       source: {
@@ -389,27 +344,19 @@ describe('replayStatisticSqlBatches', () => {
 
     expect(calls.map(call => [call.isLocal, call.name, call.databaseId])).toEqual([
       [true, 'source', null],
-      [true, 'history', null],
       [false, 'source', 'source-d1'],
-      [false, 'history', 'history-d1'],
     ])
-    expect(calls[0]?.sql).toBe(calls[2]?.sql)
-    expect(calls[1]?.sql).toBe(calls[3]?.sql)
+    expect(calls[0]?.sql).toBe(calls[1]?.sql)
     expect(progress).toEqual([
-      'local-replay:0/4',
-      'local-replay:1/4',
-      'local-replay:1/4',
-      'local-replay:2/4',
-      'remote-source-replay:2/4',
-      'remote-source-replay:3/4',
-      'remote-history-replay:3/4',
-      'remote-history-replay:4/4',
+      'local-replay:0/2',
+      'local-replay:1/2',
+      'remote-source-replay:1/2',
+      'remote-source-replay:2/2',
     ])
   })
 
-  test('stops before history import when remote source replay fails', async () => {
+  test('propagates a remote source replay failure', async () => {
     const batches = buildStatisticSqlBatches({
-      history: { rows: [historyRow('stat-1')], table: 'divisionStatistics' },
       sourceVersion,
       resourceReleaseId,
       source: {
@@ -453,6 +400,6 @@ describe('replayStatisticSqlBatches', () => {
       ),
     ).rejects.toThrow('remote source import failed')
 
-    expect(calls).toEqual(['local:source', 'local:history', 'remote:source'])
+    expect(calls).toEqual(['local:source', 'remote:source'])
   })
 })

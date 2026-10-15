@@ -1,13 +1,8 @@
-import { resolveSnapshotReplayPlan } from '@repo/core/db/metaRegistry'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import { replaceDatasetStatsAndReturnRows } from '@repo/core/pipeline/db/stats'
 import type { HarbourClient } from '@repo/core/pipeline/harbourClient'
 import { readParquetObjectsInBatches } from '@repo/core/pipeline/parquetR2'
 import type { DatasetProcessingStats } from '@repo/core/pipeline/processingRunStats'
-import {
-  buildHkgovCenstatdDistrictStatisticHistoryRecord,
-  type ResolvedHkgovCenstatdDistrict,
-} from '@repo/core/pipeline/services/divisions/divisionStatistics'
 import {
   buildCenstatdReleaseStats,
   buildCenstatdStructuralChurnStats,
@@ -15,7 +10,6 @@ import {
 } from '@repo/core/pipeline/services/metrics/censtatdReleaseStats'
 import { censtatdGeometryRow } from '@repo/core/pipeline/services/sources/censtatdGeometry'
 import { nativeSourcePayloadHashInput } from '@repo/core/pipeline/services/sources/sourcePayload'
-import { resolveStatisticEvents } from '@repo/core/pipeline/services/statistics/statisticSnapshotRecords'
 import { createHash, stableJsonStringify } from '@repo/core/pipeline/utils'
 import { registerRule, ruleDeclarationFromFixture } from '@repo/core/provenance'
 import { asyncBufferFromFile } from 'hyparquet/src/node.js'
@@ -134,25 +128,9 @@ type SourceStatisticRow = {
   versionHash: string
 }
 
-type HistoryStatisticRow = {
-  createdAt: string
-  districtCode: string
-  divisionId: string
-  id: string
-  isCurrent: boolean
-  landAreaSqKm: number
-  midYearPopulation: number
-  midYearPopulationDensityPerSqKm: number
-  referenceYear: string
-  sourceReleaseId: string
-  sources: unknown
-  updatedAt: string
-  versionHash: string
-}
-
 /**
  * Persists raw C&SD source records, then publishes their canonical
- * Division Statistics history observations. Source rows never contain a
+ * standard Statistics observations and history events. Source rows never contain a
  * canonical district code or division ID.
  */
 export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
@@ -292,18 +270,12 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
       )
     }
     assertUniqueDistrictAssertions(sourceRows)
-    const historyRows = await runStatisticProgressStep(
-      progress,
-      { action: 'Normalise', count: sourceRows.length, subject: 'records' },
-      () =>
-        Promise.all(
-          sourceRows.map(row =>
-            normaliseHistoryRow(row, resolutionBySourceDistrictCode, resourceReleaseId),
-          ),
-        ),
-    )
     const canonicalInput = sourceRows.map(row => {
       const resolution = resolutionBySourceDistrictCode.get(row.districtCode)
+      if (!resolution)
+        throw new Error(
+          `No reviewed canonical district identity for C&SD districtCode=${row.districtCode}.`,
+        )
       return {
         datasetCode: plan.datasetCode,
         divisionId: resolution?.divisionId ?? null,
@@ -356,7 +328,6 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
     progress.message(formatCenstatdGeometryReuse(geometryAudit))
     const batches = () =>
       buildStatisticSqlBatches({
-        history: { rows: districtHistoryEvents, table: 'divisionStatistics' },
         sourceVersion: plan.sourceVersion,
         resourceReleaseId,
         source: {
@@ -388,41 +359,6 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
       resourceReleaseId,
       target,
     })
-    const districtHistoryEvents: Record<string, unknown>[] = []
-    for (const snapshot of snapshots) {
-      const parentPlan = snapshot.parentSnapshotId
-        ? await resolveSnapshotReplayPlan(metaDb, snapshot.parentSnapshotId)
-        : []
-      const priorGroups = await resolveStatisticEvents(
-        historyDbs,
-        parentPlan.map(step => step.snapshotId),
-        ['divisionStatistic'],
-      )
-      const previous = new Map(
-        [...priorGroups.values()].flat().map(row => [row.recordId, row.versionHash]),
-      )
-      const incoming = historyRows.filter(
-        row => row.referenceYear === snapshot.cohortKey,
-      )
-      for (const row of incoming) {
-        if (previous.get(row.id) !== row.versionHash)
-          districtHistoryEvents.push({
-            ...row,
-            snapshotId: snapshot.id,
-            operation: 'upsert',
-          })
-      }
-      const present = new Set(incoming.map(row => row.id))
-      for (const id of previous.keys())
-        if (!present.has(id))
-          districtHistoryEvents.push({
-            id,
-            snapshotId: snapshot.id,
-            operation: 'delete',
-            versionHash: null,
-            sourceReleaseId: resourceReleaseId,
-          })
-    }
     if (snapshots[0])
       failureAuditScope = { stage: 'assembly', ownerId: snapshots[0].id }
     const canonicalPlan = await planCanonicalStatistics({
@@ -529,7 +465,7 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
         resourceType: plan.resourceType,
         sourceRows: plan.rowCount,
         processedRows: sourceRows.length,
-        historyRows: historyRows.length,
+        historyRows: canonicalPlan.changedRecords.length,
         statsRows: materialisedStats.length,
       } satisfies DatasetProcessingStats & Record<string, unknown>,
       releaseCode,
@@ -752,42 +688,6 @@ async function normaliseSourceRowInternal(
     versionHash: await createHash(
       stableJsonStringify(nativeSourcePayloadHashInput(payload)),
     ),
-  }
-}
-
-async function normaliseHistoryRow(
-  source: SourceStatisticRow,
-  resolutionBySourceDistrictCode: ReadonlyMap<number, ResolvedHkgovCenstatdDistrict>,
-  sourceReleaseId: string,
-): Promise<HistoryStatisticRow> {
-  const resolved = resolutionBySourceDistrictCode.get(source.districtCode)
-  if (!resolved) {
-    throw new Error(
-      `No reviewed canonical district identity for C&SD districtCode=${source.districtCode}.`,
-    )
-  }
-  const payload = buildHkgovCenstatdDistrictStatisticHistoryRecord(
-    {
-      districtCode: source.districtCode,
-      id: source.sourceRecordId,
-      landAreaSqKm: source.landAreaSqKm,
-      midYearPopulation: source.midYearPopulation,
-      midYearPopulationDensityPerSqKm: source.midYearPopulationDensityPerSqKm,
-      nameEn: source.districtEn,
-      nameZhHant: source.districtZhHant,
-      referenceYear: source.referencePeriodCode,
-      sources: source.sources,
-    },
-    resolved,
-  )
-  const now = new Date().toISOString()
-  return {
-    ...payload,
-    createdAt: now,
-    isCurrent: true,
-    sourceReleaseId,
-    updatedAt: now,
-    versionHash: await createHash(stableJsonStringify(payload)),
   }
 }
 

@@ -46,6 +46,19 @@ describe('initialisation commands', () => {
     ])
   })
 
+  test('prepares the crosswalk after complete Division release-set reconciliation', () => {
+    const source = readFileSync(
+      resolve(repoRoot, 'scripts/init/divisions.fish'),
+      'utf8',
+    )
+    expect(
+      source.indexOf('divisions:crosswalk --target $saanseoi_init_target'),
+    ).toBeGreaterThan(source.indexOf('init_reconcile_draft_release_sets'))
+    expect(
+      source.indexOf('divisions:crosswalk --target $saanseoi_init_target'),
+    ).toBeLessThan(source.lastIndexOf('init_publish_docs'))
+  })
+
   test('maps each supported family and domain to a dedicated script', () => {
     expect(resolveInitialisationCommand('init')).toEqual({
       script: 'scripts/init/all.fish',

@@ -257,7 +257,7 @@ test('failed cleanup rolls back companion deletions and preserves its receipt', 
   }
 })
 
-test('snapshot-owned statistic links remain protected by retained period publication state', async () => {
+test('statistic packs remain protected by retained period publication state', async () => {
   const f = fixture()
   try {
     f.sqlite.exec(
@@ -270,7 +270,7 @@ test('snapshot-owned statistic links remain protected by retained period publica
       f.queries
         .filter(query => query.startsWith('delete from'))
         .map(query => query.match(/^delete from "([^"]+)"/)?.[1]),
-    ).toEqual(['divisionStatistics'])
+    ).toEqual([])
   } finally {
     f.sqlite.close()
   }

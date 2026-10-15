@@ -66,6 +66,12 @@ describe('Planning Department New Town source identifiers', () => {
           input.features.length,
         )
         for (const [index, division] of divisions.entries()) {
+          // Every init cohort receives inferred ancestry during canonical preparation.
+          expect(division.base.hierarchies.administrative?.length ?? 0).toBeGreaterThan(
+            0,
+          )
+          for (const path of division.base.hierarchies.administrative ?? [])
+            expect(path.map(entry => entry.class)).toEqual(['sar', 'area', 'district'])
           const sourceRecordId = division.newTown?.sourceRecordId
           const properties = input.features[index]?.properties
           if (!properties) throw new Error('Missing publisher feature.')

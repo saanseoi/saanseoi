@@ -3,6 +3,7 @@ import { initialApiEndpoints } from '@repo/db/registry'
 import { placeRoutes } from '../routes/places/v0/places'
 import { streetRoutes } from '../routes/streets/v0/streets'
 import { divisionRoutes } from '../routes/divisions/v0/divisions'
+import { divisionGeographicCrosswalkRoute } from '../routes/divisions/v0/crosswalk'
 import { divisionInventoriesRoute } from '../routes/divisions/v0/inventories'
 import {
   divisionChangeDefinitionV02Route,
@@ -22,6 +23,7 @@ test('Places, Streets and Divisions endpoint fixtures match registered route pat
         divisionChangesV02Route,
         divisionChangeDefinitionV02Route,
         divisionInventoriesRoute,
+        divisionGeographicCrosswalkRoute,
         ...geocodingRoutes.filter(({ route }) =>
           route.path.startsWith('/divisions/v0.2/'),
         ),

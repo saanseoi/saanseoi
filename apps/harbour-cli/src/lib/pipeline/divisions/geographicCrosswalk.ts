@@ -1,6 +1,7 @@
 import { stableJsonStringify } from '@repo/core/pipeline/utils'
 import { createHash } from 'node:crypto'
 import proj4 from 'proj4'
+import GeoJSONWriter from 'jsts/org/locationtech/jts/io/GeoJSONWriter.js'
 import GeoJSONReader from 'jsts/org/locationtech/jts/io/GeoJSONReader.js'
 import GeometryFactory from 'jsts/org/locationtech/jts/geom/GeometryFactory.js'
 import IsValidOp from 'jsts/org/locationtech/jts/operation/valid/IsValidOp.js'
@@ -14,7 +15,7 @@ import {
 
 const hkGrid =
   '+proj=tmerc +lat_0=22.3121333333333 +lon_0=114.178555555556 +k=1 +x_0=836694.05 +y_0=819069.8 +ellps=intl +towgs84=-162.619,-276.959,-161.764,0.067753,-2.243648,-1.158828,-1.094246 +units=m +no_defs'
-export const geographicCrosswalkPolicy = 'hk-grid-overlap-v1:min-1m2:min-fraction-1e-8'
+export const geographicCrosswalkPolicy = 'hk-grid-overlap-v2:min-1m2:min-fraction-1e-8'
 export type CrosswalkDivision = { id: string; areas: ContainmentArea[] }
 export type CrosswalkSelection = {
   geographicReleaseSet: string
@@ -45,6 +46,17 @@ export function buildGeographicCrosswalk(
     typeof coordinates[0] === 'number'
       ? proj4('EPSG:4326', hkGrid, coordinates.slice(0, 2))
       : coordinates.map(project)
+  const writer = new GeoJSONWriter()
+  const metricArea = (geometry: any): number => {
+    const value = writer.write(geometry)
+    if (value.type === 'GeometryCollection')
+      return geometry.getNumGeometries() === 0
+        ? 0
+        : Array.from({ length: geometry.getNumGeometries() }, (_, i) =>
+            metricArea(geometry.getGeometryN(i)),
+          ).reduce((a, b) => a + b, 0)
+    return reader.read({ ...value, coordinates: project(value.coordinates) }).getArea()
+  }
   function prepare(row: CrosswalkDivision) {
     if (!row.areas.length) throw Error(`No polygon for crosswalk division ${row.id}`)
     const original = UnaryUnionOp.union(
@@ -52,23 +64,14 @@ export function buildGeographicCrosswalk(
     )
     if (!IsValidOp.isValid(original))
       throw Error(`Invalid WGS84 crosswalk polygon ${row.id}`)
-    const parts = row.areas.map(area => ({
-      ...area,
-      coordinates: project(area.coordinates),
-    }))
-    if (parts.some(area => !IsValidOp.isValid(reader.read(area))))
-      throw Error(`Invalid crosswalk polygon ${row.id}`)
-    const geometry = UnaryUnionOp.union(
-      reader.read({ type: 'GeometryCollection', geometries: parts }),
-    )
-    if (!IsValidOp.isValid(geometry) || geometry.isEmpty() || geometry.getArea() <= 0)
-      throw Error(`Invalid crosswalk union ${row.id}`)
+    const area = metricArea(original)
+    if (original.isEmpty() || !Number.isFinite(area) || area <= 0)
+      throw Error(`Invalid crosswalk area ${row.id}`)
     return {
       id: row.id,
-      geometry,
       original,
       hash: containmentGeometryHash(row.areas),
-      area: geometry.getArea() as number,
+      area,
     }
   }
   const sorted = (rows: CrosswalkDivision[]) => {
@@ -90,9 +93,9 @@ export function buildGeographicCrosswalk(
   for (const source of sourcePolygons)
     for (const target of targetPolygons) {
       if (
-        !source.geometry
+        !source.original
           .getEnvelopeInternal()
-          .intersects(target.geometry.getEnvelopeInternal())
+          .intersects(target.original.getEnvelopeInternal())
       )
         continue
       const fullyContained = RelateOp.covers(target.original, source.original)
@@ -103,7 +106,7 @@ export function buildGeographicCrosswalk(
         continue
       const overlap = fullyContained
         ? source.area
-        : OverlayOp.intersection(source.geometry, target.geometry).getArea()
+        : metricArea(OverlayOp.intersection(source.original, target.original))
       const fraction = Math.min(1, overlap / source.area)
       if (overlap <= 1 || fraction <= 1e-8) continue
       memberships.push({

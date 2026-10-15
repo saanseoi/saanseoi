@@ -65,7 +65,6 @@ const CANONICAL_TABLES = [
   'statsRecords',
   'statsFields',
   'statsMeasures',
-  'divisionStatistics',
 ]
 const SOURCE_TABLES = ['hkgovCenstatdStatistics']
 const GEOMETRY_TABLES = [

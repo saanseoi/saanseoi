@@ -24,10 +24,6 @@ const SQL_STATEMENT_BYTE_LIMIT = 96 * 1024
 type StatisticRow = object
 
 export type StatisticSqlReplayInput = {
-  history?: {
-    rows: StatisticRow[]
-    table: 'divisionStatistics'
-  }
   sourceVersion: string
   resourceReleaseId: string
   source: {
@@ -38,13 +34,12 @@ export type StatisticSqlReplayInput = {
 }
 
 export type StatisticSqlBatches = {
-  history: string[]
   source: string[]
 }
 
 export type StatisticSqlReplayProgress = {
   completedBatches: number
-  phase: 'local-replay' | 'remote-history-replay' | 'remote-source-replay'
+  phase: 'local-replay' | 'remote-source-replay'
   totalBatches: number
 }
 
@@ -56,7 +51,7 @@ export type StatisticSqlReplayOptions = {
 }
 
 /**
- * Builds the source/history mutations once, so local SQLite and remote D1
+ * Builds the source mutations once, so local SQLite and remote D1
  * receive byte-for-byte identical, idempotent batches.
  */
 export function buildStatisticSqlBatches(
@@ -88,13 +83,7 @@ export function buildStatisticSqlBatches(
     ),
   ]
 
-  const historyRows = sortRows(input.history?.rows ?? [], 'id')
-  const historyStatements = input.history
-    ? buildUpsertStatements(input.history.table, historyRows, ['id', 'snapshotId'], [])
-    : []
-
   return {
-    history: chunkSql(historyStatements),
     source: chunkSql(sourceStatements),
   }
 }
@@ -122,15 +111,12 @@ export function buildCenstatdGeometryStatements(
 }
 
 /**
- * Replays source and history mutations into the local cache first. Preview
+ * Replays source mutations into the local cache first. Preview
  * and production then import those exact batches into their owning D1 shards.
  */
 export async function replayStatisticSqlBatches(
   target: UploadTarget,
-  context: Pick<
-    LocalAddressDbContext,
-    'historyBinding' | 'historyTargets' | 'sourceBinding' | 'sourceTargets'
-  >,
+  context: Pick<LocalAddressDbContext, 'sourceBinding' | 'sourceTargets'>,
   shardYear: string,
   input:
     | StatisticSqlBatches
@@ -149,19 +135,14 @@ export async function replayStatisticSqlBatches(
   const batches = typeof input === 'function' ? await input() : input
   const execute = options.executeSql ?? executeSqlText
   const remoteReplay = target.remote
-    ? resolveRemoteReplay(target, context, shardYear, batches, options)
+    ? resolveRemoteReplay(target, context, shardYear, options)
     : null
   const localSourceTarget: SqlImportTargetContext = {
     binding: context.sourceBinding,
     databaseId: null,
     name: 'source',
   }
-  const localHistoryTarget: SqlImportTargetContext = {
-    binding: context.historyBinding,
-    databaseId: null,
-    name: 'history',
-  }
-  const localBatchCount = batches.source.length + batches.history.length
+  const localBatchCount = batches.source.length
   const totalBatchCount = remoteReplay ? localBatchCount * 2 : localBatchCount
 
   await replayBatches(
@@ -174,17 +155,6 @@ export async function replayStatisticSqlBatches(
     0,
     totalBatchCount,
   )
-  await replayBatches(
-    execute,
-    localHistoryTarget,
-    batches.history,
-    { isLocal: true },
-    'local-replay',
-    options.onProgress,
-    batches.source.length,
-    totalBatchCount,
-  )
-
   if (!remoteReplay) return
 
   await replayBatches(
@@ -201,27 +171,12 @@ export async function replayStatisticSqlBatches(
     localBatchCount,
     totalBatchCount,
   )
-  await replayBatches(
-    execute,
-    { databaseId: remoteReplay.historyDatabaseId ?? null, name: 'history' },
-    batches.history,
-    {
-      accountId: remoteReplay.accountId,
-      apiToken: remoteReplay.apiToken,
-      isLocal: false,
-    },
-    'remote-history-replay',
-    options.onProgress,
-    localBatchCount + batches.source.length,
-    totalBatchCount,
-  )
 }
 
 function resolveRemoteReplay(
   target: UploadTarget,
-  context: Pick<LocalAddressDbContext, 'historyTargets' | 'sourceTargets'>,
+  context: Pick<LocalAddressDbContext, 'sourceTargets'>,
   shardYear: string,
-  batches: StatisticSqlBatches,
   options: StatisticSqlReplayOptions,
 ) {
   const accountId =
@@ -231,17 +186,12 @@ function resolveRemoteReplay(
   const sourceDatabaseId = context.sourceTargets.find(
     item => item.bindingName === resolveShardBindingName('source', 'HK', shardYear),
   )?.databaseId
-  const historyDatabaseId = context.historyTargets.find(
-    item => item.bindingName === resolveShardBindingName('history', 'HK', shardYear),
-  )?.databaseId
   assertRemoteReplayPrerequisites({
     accountId,
     apiToken,
-    historyDatabaseId,
-    requireHistoryDatabaseId: batches.history.length > 0,
     sourceDatabaseId,
   })
-  return { accountId, apiToken, historyDatabaseId, sourceDatabaseId }
+  return { accountId, apiToken, sourceDatabaseId }
 }
 
 function buildCloseSourceStatements(
@@ -352,17 +302,12 @@ async function replayBatches(
 function assertRemoteReplayPrerequisites(options: {
   accountId?: string
   apiToken?: string
-  historyDatabaseId?: string | null
-  requireHistoryDatabaseId: boolean
   sourceDatabaseId?: string | null
 }) {
   const missing = [
     !options.accountId?.trim() && 'CLOUDFLARE_ACCOUNT_ID',
     !options.apiToken?.trim() && 'CLOUDFLARE_D1_TOKEN',
     !options.sourceDatabaseId?.trim() && 'source.databaseId',
-    options.requireHistoryDatabaseId &&
-      !options.historyDatabaseId?.trim() &&
-      'history.databaseId',
   ].filter((value): value is string => Boolean(value))
   if (missing.length === 0) return
   throw new Error(

@@ -88,10 +88,8 @@ export async function cleanupSnapshotByResourceType(
   candidate: SnapshotCleanupCandidate,
 ) {
   if (candidate.resourceType === 'divisionStatistic') {
-    // These snapshot-owned links are separate from the retained statsRecords packs.
+    // Statistic packs are retained by dataset and period, independently of snapshot cleanup.
     const publication = currentSchema.statsPublicationState
-    const unselected = sql`NOT EXISTS (SELECT 1 FROM ${publication}
-      WHERE ${publication.snapshotId} = ${candidate.snapshotId})`
     if (
       await db
         .select({ id: publication.snapshotId })
@@ -101,15 +99,6 @@ export async function cleanupSnapshotByResourceType(
         .get()
     )
       return false
-    await db
-      .delete(currentSchema.divisionStatistics)
-      .where(
-        and(
-          eq(currentSchema.divisionStatistics.snapshotId, candidate.snapshotId),
-          unselected,
-        ),
-      )
-      .run()
     return true
   }
   const publication = {

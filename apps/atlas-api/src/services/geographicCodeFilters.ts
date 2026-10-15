@@ -1,5 +1,5 @@
 import { resolveApiReleaseSetSnapshotsForRequest } from '@repo/core/db/metaRegistry'
-import { and, eq, sql, currentSchema } from '@repo/db'
+import { and, eq, currentSchema } from '@repo/db'
 import type { MiddlewareHandler } from 'hono'
 import type { AppEnv } from '../types'
 import { listDivisions } from './divisions'
@@ -75,7 +75,11 @@ export function createGeographicCodeFilterMiddleware(
       url.searchParams.has(`filter[${key}]`),
     )
     if (!supplied.length) return next()
-    if (/\/(?:sources|source-releases|inventories|registry)(?:\/|$)/.test(url.pathname))
+    if (
+      /\/(?:sources|source-releases|inventories|registry|crosswalk)(?:\/|$)/.test(
+        url.pathname,
+      )
+    )
       return c.json(
         {
           error: 'unsupported_geographic_filter',
@@ -164,19 +168,18 @@ export function createGeographicCodeFilterMiddleware(
         422,
       )
     }
-    const targetClasses = Object.entries(geographicCodeClasses).flatMap(
-      ([key, classes]) => {
-        const code = (query as Record<string, unknown>)[`filter[${key}]`]
-        if (!code || (key === 'adminCode' && code === 'HKSAR')) return []
-        return [
-          rows.find(
-            row =>
-              row.attributes.divisionCode === code &&
-              (classes as readonly string[]).includes(row.attributes.class),
-          )!.attributes.class,
-        ]
-      },
-    )
+    const targets = Object.entries(geographicCodeClasses).flatMap(([key, classes]) => {
+      const code = (query as Record<string, unknown>)[`filter[${key}]`]
+      if (!code || (key === 'adminCode' && code === 'HKSAR')) return []
+      return [
+        rows.find(
+          row =>
+            row.attributes.divisionCode === code &&
+            (classes as readonly string[]).includes(row.attributes.class),
+        )!,
+      ]
+    })
+    const targetClasses = targets.map(row => row.attributes.class)
     const {
       divisionGeographicCrosswalks: crosswalks,
       divisionGeographicMemberships: memberships,
@@ -188,12 +191,21 @@ export function createGeographicCodeFilterMiddleware(
           .where(eq(crosswalks.geographicReleaseSet, releaseSet!))
           .all()
       : []
-    if (groups.length && url.searchParams.get('domain') === 'hkgov-pland-pu') {
+    const sourceDomain = url.searchParams.get('domain')
+    if (
+      groups.length &&
+      sourceDomain &&
+      ['hkgov-pland-pu', 'hkgov-censtatd-hma', 'hkgov-pland-new-town'].includes(
+        sourceDomain,
+      )
+    ) {
       const planning = await resolveApiReleaseSetSnapshotsForRequest(
         c.var.metaDb as never,
         'division',
         {
-          domainCode: 'hkgov-pland-pu',
+          domainCode: sourceDomain,
+          apiVersion: 'api-divisions-v0.2',
+          cohortKey: url.searchParams.get('cohort') ?? undefined,
           regionCode: 'hk',
           releaseSet: url.searchParams.get('releaseSet') ?? undefined,
           effectiveAt: url.searchParams.get('effectiveAt') ?? undefined,
@@ -214,7 +226,7 @@ export function createGeographicCodeFilterMiddleware(
           {
             error: 'geographic_crosswalk_not_ready',
             message:
-              'The selected planning and geographic releases have no prepared spatial crosswalk.',
+              'The selected source and geographic releases have no prepared spatial crosswalk.',
           },
           503,
         )
@@ -240,7 +252,7 @@ export function createGeographicCodeFilterMiddleware(
         503,
       )
     const crosswalkGroups = await Promise.all(
-      groups.map(group =>
+      groups.map((_, index) =>
         c.var.currentDb
           .select({
             id: memberships.divisionId,
@@ -253,7 +265,7 @@ export function createGeographicCodeFilterMiddleware(
           .where(
             and(
               eq(crosswalks.geographicReleaseSet, releaseSet!),
-              sql`${memberships.geographicDivisionId} in (select value from json_each(${JSON.stringify([...group])}))`,
+              eq(memberships.geographicDivisionId, targets[index]!.id),
             ),
           )
           .all(),

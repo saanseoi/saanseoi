@@ -155,11 +155,6 @@ export async function divisionResetBlockers(context: ResetReadContext) {
     )
     await check(
       binding,
-      `${label}: division statistics reference divisions`,
-      'SELECT 1 FROM divisionStatistics LIMIT 1',
-    )
-    await check(
-      binding,
       `${label}: statistics reference divisions or geometry companions`,
       "SELECT 1 FROM statsRecords WHERE divisionId IS NOT NULL OR json_extract(geography, '$.areaCompanion') IS NOT NULL LIMIT 1",
     )

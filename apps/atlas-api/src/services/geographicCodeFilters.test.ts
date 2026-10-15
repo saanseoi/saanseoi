@@ -139,3 +139,54 @@ test('explicit district membership takes precedence over a shared hood', () => {
     },
   )
 })
+
+test('spatial filters use the selected district polygon rather than a cross-boundary descendant', async () => {
+  const { Hono } = await import('hono')
+  const { fixtureEnv } = await import('../routes/statistics/v0/statisticsFixtures')
+  const { createGeographicCodeFilterMiddleware } = await import(
+    './geographicCodeFilters'
+  )
+  const f = fixtureEnv()
+  try {
+    f.current.exec(`INSERT INTO divisionGeographicCrosswalks
+      (id,geographicReleaseSet,geographicSnapshotId,geographicAreaSnapshotId,sourceReleaseSet,sourceSnapshotId,sourceAreaSnapshotId,sourceDomain,sourceCohort,policy,contentHash)
+      VALUES ('crosswalk','geo','geo-snapshot','geo-areas','hma','hma-snapshot','hma-areas','hkgov-censtatd-hma','2021','policy','hash');
+      INSERT INTO divisionGeographicMemberships
+      (crosswalkId,divisionId,geographicDivisionId,sourceGeometryHash,geographicGeometryHash,overlapSquareMetres,sourceFraction,fullyContained)
+      VALUES ('crosswalk','hood-only','hood','hash','hash',100,1,0),('crosswalk','district-link','district','hash','hash',100,1,0);`)
+    const app = new Hono<import('../types').AppEnv>()
+    app.use('*', async (c, next) => {
+      c.set(
+        'currentDb',
+        drizzle({
+          client: f.current,
+        }) as unknown as import('../types').AppEnv['Variables']['currentDb'],
+      )
+      await next()
+    })
+    app.use(
+      '*',
+      createGeographicCodeFilterMiddleware((async () => ({
+        status: 200,
+        body: { data: rows, meta: { apiReleaseSet: 'geo' } },
+      })) as never),
+    )
+    app.get('/places/v0', c =>
+      c.json({
+        hood: matchesGeographicMembership(['hood-only'], {
+          snapshotId: 'hma-snapshot',
+        }),
+        district: matchesGeographicMembership(['district-link'], {
+          snapshotId: 'hma-snapshot',
+        }),
+      }),
+    )
+    const response = await app.request(
+      'http://localhost/places/v0?filter[adminCode]=CW',
+    )
+    expect(response.status).toBe(200)
+    expect(await response.json()).toEqual({ hood: false, district: true })
+  } finally {
+    f.close()
+  }
+})

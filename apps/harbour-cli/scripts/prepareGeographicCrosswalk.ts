@@ -6,12 +6,21 @@ import {
   geographicCrosswalkStatements,
   type CrosswalkDivision,
 } from '../src/lib/pipeline/divisions/geographicCrosswalk'
-const [origin, geographicReleaseSet, sourceReleaseSet, directory] =
-  process.argv.slice(2)
+import { crosswalkSourceDomains } from '../src/lib/pipeline/divisions/currentGeographicCrosswalk'
+const [
+  origin,
+  geographicReleaseSet,
+  sourceReleaseSet,
+  directory,
+  sourceDomain = 'hkgov-pland-pu',
+] = process.argv.slice(2)
 if (!origin || !geographicReleaseSet || !sourceReleaseSet || !directory)
   throw Error(
-    'Usage: bun prepareGeographicCrosswalk.ts <api-origin> <geographic-release-set> <planning-release-set> <output-directory>',
+    'Usage: bun prepareGeographicCrosswalk.ts <api-origin> <geographic-release-set> <source-release-set> <output-directory> [hkgov-pland-pu|hkgov-censtatd-hma|hkgov-pland-new-town]',
   )
+
+if (!Object.hasOwn(crosswalkSourceDomains, sourceDomain))
+  throw Error(`Unsupported crosswalk source domain: ${sourceDomain}`)
 
 async function load(
   domain: string,
@@ -66,11 +75,14 @@ async function load(
     polygons.set(a.divisionId, [...(polygons.get(a.divisionId) ?? []), a.geometry])
   }
   const selected = [...divisions.values()].filter(
-    row => domain === 'geographic' || row.attributes.class === 'planning-tpu',
+    row =>
+      domain === 'geographic' ||
+      row.attributes.class ===
+        crosswalkSourceDomains[domain as keyof typeof crosswalkSourceDomains],
   )
   const missing = selected.filter(row => !polygons.has(row.id)).map(row => row.id)
   if (domain !== 'geographic' && missing.length)
-    throw Error(`${missing.length} TPUs lack polygons`)
+    throw Error(`${missing.length} ${domain} divisions lack polygons`)
   const rows: CrosswalkDivision[] = selected
     .filter(row => polygons.has(row.id))
     .map(row => ({ id: row.id, areas: polygons.get(row.id)! }))
@@ -84,7 +96,7 @@ async function load(
   }
 }
 const geographic = await load('geographic', geographicReleaseSet, 'v0.2', 'saanseoi')
-const source = await load('hkgov-pland-pu', sourceReleaseSet, 'v0.1', 'hkgov-pland-pu')
+const source = await load(sourceDomain, sourceReleaseSet, 'v0.2', sourceDomain)
 const result = buildGeographicCrosswalk(
   {
     geographicReleaseSet: geographic.meta.apiReleaseSet,
@@ -93,7 +105,7 @@ const result = buildGeographicCrosswalk(
     sourceReleaseSet: source.meta.apiReleaseSet,
     sourceSnapshotId: source.snapshotId,
     sourceAreaSnapshotId: source.areaSnapshotId,
-    sourceDomain: 'hkgov-pland-pu',
+    sourceDomain,
     sourceCohort: source.meta.cohort,
   },
   source.rows,

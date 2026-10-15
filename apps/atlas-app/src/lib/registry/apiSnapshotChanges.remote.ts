@@ -17,7 +17,7 @@ const tables = {
   division: [historySchema.divisions, historySchema.divisionsI18n, 'divisionId'],
   divisionArea: [historySchema.divisionAreas],
   divisionBoundary: [historySchema.divisionBoundaries],
-  divisionStatistic: [historySchema.divisionStatistics],
+  divisionStatistic: [historySchema.statsRecords],
   place: [historySchema.places, historySchema.placesI18n, 'placeId'],
   street: [historySchema.streets, historySchema.streetsI18n, 'streetId'],
   address2d: [historySchema.address2d, historySchema.address2dI18n, 'addressId'],

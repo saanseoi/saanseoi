@@ -32,6 +32,7 @@ import {
   divisionChangeDefinitionV02Route,
   divisionChangesV02Route,
 } from './routes/divisions/changes'
+import { divisionGeographicCrosswalkRoute } from './routes/divisions/v0/crosswalk'
 import { divisionInventoriesRoute } from './routes/divisions/v0/inventories'
 import { geocodingJsonApiErrors } from './routes/geocoding/jsonApiErrors'
 import { apiVersionLifecycleMiddleware } from './services/apiVersionLifecycle'
@@ -780,6 +781,7 @@ app.openapiRoutes([
   ...registryRoutes,
   ...identityBridgeRoutes,
   ...sourceRoutes,
+  divisionGeographicCrosswalkRoute,
   divisionInventoriesRoute,
   divisionChangesV02Route,
   divisionChangeDefinitionV02Route,

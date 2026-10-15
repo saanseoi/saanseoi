@@ -71,10 +71,7 @@ export function familyMutationTargets(
           : binding === 'DB_META'
             ? []
             : binding.startsWith('DB_HISTORY')
-              ? [
-                  ...current[family].filter(name => name !== 'streetsAddress'),
-                  ...(family === 'statistics' ? ['divisionStatistics'] : []),
-                ]
+              ? [...current[family].filter(name => name !== 'streetsAddress')]
               : binding.startsWith('DB_SOURCE')
                 ? sources[family]
                 : []

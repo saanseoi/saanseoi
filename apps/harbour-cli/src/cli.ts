@@ -1,3 +1,4 @@
+import { runGeographicCrosswalkCommand } from './lib/commands/geographicCrosswalk'
 import { disposeRemoteR2 } from './lib/storage/remoteR2.ts'
 import { runStatisticsApiStatsBackfillCommand } from './lib/commands/statsBackfillStatisticsApi.ts'
 import { cancel } from '@clack/prompts'
@@ -224,6 +225,9 @@ async function main() {
       return
     case 'version:doctor':
       await runVersionDoctorCommand()
+      return
+    case 'divisions:crosswalk':
+      await runGeographicCrosswalkCommand(args, target)
       return
     case 'upload':
       await runUploadCommand(args, target, {
