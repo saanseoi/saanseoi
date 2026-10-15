@@ -19,6 +19,7 @@ import Node from '#lib/bits/pages/docs/components/releaseSchema/components/relea
 import type { OpenApiSchema } from '#lib/bits/pages/docs/components/releaseSchema/releaseSchema.types.js'
 import type { ReleaseStatsMeasure } from '#lib/bits/pages/docs/components/releaseStats/releaseStats.types.js'
 import { sourceRecordFieldDescription } from './sourceRecordFieldDescriptions'
+import { describeSourceSchema } from './sourceSchemaDescriptions'
 
 type Props = {
   measures?: ReleaseStatsMeasure[]
@@ -86,7 +87,12 @@ function sourceFieldSchema(
   sourceSchema: SourceRecordSchema,
   field: SourceRecordSchemaField,
 ): SourceRecordSchemaDefinition {
-  const definition = resolveOvertureSourceRecordFieldDefinition(sourceSchema, field)
+  const definition = describeSourceSchema(
+    resolveOvertureSourceRecordFieldDefinition(sourceSchema, field) ??
+      ({} as SourceRecordSchemaDefinition),
+    getLocale(),
+    field.name,
+  )
   const type = field.type
   const sourceTypeDescription = m.source_record_schema_field_type({ type })
 
@@ -174,8 +180,7 @@ let recordSchema = $derived.by((): OpenApiSchema | null => {
     : retainedSchema
       ? {
           ...retainedSchema,
-          description:
-            retainedSchema.description ?? m.source_record_schema_retained_description(),
+          description: m.source_record_schema_retained_description(),
         }
       : {
           additionalProperties: true,
@@ -209,7 +214,11 @@ let recordSchema = $derived.by((): OpenApiSchema | null => {
             return [field, { ...schema, ...definition }]
         }
         const measure = measuresByField.get(field)
-        const description = sourceRecordFieldDescription(sourceReleaseCode, field)
+        const description = sourceRecordFieldDescription(
+          sourceReleaseCode,
+          field,
+          getLocale(),
+        )
         if (description) return [field, { ...schema, description }]
         if (!measure) {
           return [field, schema]
@@ -234,43 +243,46 @@ let recordSchema = $derived.by((): OpenApiSchema | null => {
     )
   }
 
-  return {
-    description: m.source_record_schema_record_description(),
-    properties: {
-      sourceRecordId: {
-        description: m.source_record_schema_source_record_id_description(),
-        type: 'string',
-      },
-      ...(family === 'streets'
-        ? {
-            resourceType: {
-              description: m.source_record_schema_resource_type_description(),
-              type: 'string',
-            },
-            variant: {
-              description: m.source_record_schema_variant_description(),
-              type: 'string',
-            },
-          }
-        : {}),
+  return describeSourceSchema(
+    {
+      description: m.source_record_schema_record_description(),
       properties: {
-        ...properties,
-        nullable: true,
-        description: Object.keys(properties.properties ?? {}).length
-          ? properties.description
-          : m.source_record_schema_unavailable(),
+        sourceRecordId: {
+          description: m.source_record_schema_source_record_id_description(),
+          type: 'string',
+        },
+        ...(family === 'streets'
+          ? {
+              resourceType: {
+                description: m.source_record_schema_resource_type_description(),
+                type: 'string',
+              },
+              variant: {
+                description: m.source_record_schema_variant_description(),
+                type: 'string',
+              },
+            }
+          : {}),
+        properties: {
+          ...properties,
+          nullable: true,
+          description: Object.keys(properties.properties ?? {}).length
+            ? properties.description
+            : m.source_record_schema_unavailable(),
+        },
+        geometry: {
+          description: m.source_record_schema_geometry_description(),
+          type: 'object',
+        },
       },
-      geometry: {
-        description: m.source_record_schema_geometry_description(),
-        type: 'object',
-      },
+      required:
+        family === 'streets'
+          ? ['sourceRecordId', 'resourceType', 'variant', 'properties']
+          : ['sourceRecordId', 'properties'],
+      type: 'object',
     },
-    required:
-      family === 'streets'
-        ? ['sourceRecordId', 'resourceType', 'variant', 'properties']
-        : ['sourceRecordId', 'properties'],
-    type: 'object',
-  }
+    getLocale(),
+  )
 })
 
 function setExpandedNodeState(path: string, expanded: boolean) {

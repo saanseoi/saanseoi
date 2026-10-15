@@ -1,0 +1,382 @@
+{
+  "dc": {
+    "en": "Publisher District Council district code.",
+    "zh-hant": "發布者的區議會分區代碼。",
+    "zh-hans": "发布者的区议会分区代码。"
+  },
+  "dcEn": {
+    "en": "District Council district name in English.",
+    "zh-hant": "區議會分區的英文名稱。",
+    "zh-hans": "区议会分区的英文名称。"
+  },
+  "dcZhHant": {
+    "en": "District Council district name in Traditional Chinese.",
+    "zh-hant": "區議會分區的繁體中文名稱。",
+    "zh-hans": "区议会分区的繁体中文名称。"
+  },
+  "dcClass": {
+    "en": "Publisher classification of the District Council district.",
+    "zh-hant": "發布者的區議會分區分類。",
+    "zh-hans": "发布者的区议会分区分类。"
+  },
+  "year": {
+    "en": "Calendar year of the publisher’s statistical reference period, retained as text.",
+    "zh-hant": "發布者統計參考時期的曆年，以文字保留。",
+    "zh-hans": "发布者统计参考时期的历年，以文字保留。"
+  },
+  "quarter": {
+    "en": "Quarter of the publisher’s statistical reference period, retained as text. Together with year, identifies the reference period.",
+    "zh-hant": "發布者統計參考時期的季度，以文字保留。與 year 共同識別參考時期。",
+    "zh-hans": "发布者统计参考时期的季度，以文字保留。与 year 共同识别参考时期。"
+  },
+  "period": {
+    "en": "Publisher statistical reference period, retained as text.",
+    "zh-hant": "發布者的統計參考時期，以文字保留。",
+    "zh-hans": "发布者的统计参考时期，以文字保留。"
+  },
+  "lq": {
+    "en": "Number of permanent living quarters in the District Council district for the stated year and quarter. Unit: living quarter.",
+    "zh-hant": "所述年份及季度的區議會分區永久性居住屋宇單位數目。單位：居住屋宇單位。",
+    "zh-hans": "所述年份及季度的区议会分区永久性居住屋宇单位数目。单位：居住屋宇单位。"
+  },
+  "gmlId": {
+    "en": "Feature identifier in the publisher’s GML source.",
+    "zh-hant": "發布者 GML 來源中的地物識別碼。",
+    "zh-hans": "发布者 GML 来源中的地物识别码。"
+  },
+  "estate": {
+    "en": "Publisher major housing estate code.",
+    "zh-hant": "發布者的主要屋苑代碼。",
+    "zh-hans": "发布者的主要屋苑代码。"
+  },
+  "estateEn": {
+    "en": "Major housing estate name in English.",
+    "zh-hant": "主要屋苑的英文名稱。",
+    "zh-hans": "主要屋苑的英文名称。"
+  },
+  "estateZhHant": {
+    "en": "Major housing estate name in Traditional Chinese.",
+    "zh-hant": "主要屋苑的繁體中文名稱。",
+    "zh-hans": "主要屋苑的繁体中文名称。"
+  },
+  "newtown": {
+    "en": "Publisher New Town code.",
+    "zh-hant": "發布者的新市鎮代碼。",
+    "zh-hans": "发布者的新市镇代码。"
+  },
+  "newtownEn": {
+    "en": "New Town name in English.",
+    "zh-hant": "新市鎮的英文名稱。",
+    "zh-hans": "新市镇的英文名称。"
+  },
+  "newtownZhHant": {
+    "en": "New Town name in Traditional Chinese.",
+    "zh-hant": "新市鎮的繁體中文名稱。",
+    "zh-hans": "新市镇的繁体中文名称。"
+  },
+  "confidence": {
+    "en": "Confidence in the attributed source value, from 0 to 1.",
+    "zh-hant": "對所歸屬來源值的置信度，介乎 0 至 1。",
+    "zh-hans": "对所归属来源值的置信度，介乎 0 至 1。"
+  },
+  "dataset": {
+    "en": "Code of the contributing dataset.",
+    "zh-hant": "貢獻資料集的代碼。",
+    "zh-hans": "贡献资料集的代码。"
+  },
+  "property": {
+    "en": "JSON Pointer identifying the property to which the source attribution applies.",
+    "zh-hant": "識別來源歸屬所適用屬性的 JSON Pointer。",
+    "zh-hans": "识别来源归属所适用属性的 JSON Pointer。"
+  },
+  "updateTime": {
+    "en": "Time when the contributing source record was last updated.",
+    "zh-hant": "貢獻來源記錄的最後更新時間。",
+    "zh-hans": "贡献来源记录的最后更新时间。"
+  },
+  "license": {
+    "en": "Licence for the contributed source data.",
+    "zh-hant": "所貢獻來源資料的授權。",
+    "zh-hans": "所贡献来源资料的授权。"
+  },
+  "xmin": {
+    "en": "Western longitude of the bounding box.",
+    "zh-hant": "邊界框西端的經度。",
+    "zh-hans": "边界框西端的经度。"
+  },
+  "xmax": {
+    "en": "Eastern longitude of the bounding box.",
+    "zh-hant": "邊界框東端的經度。",
+    "zh-hans": "边界框东端的经度。"
+  },
+  "ymin": {
+    "en": "Southern latitude of the bounding box.",
+    "zh-hant": "邊界框南端的緯度。",
+    "zh-hans": "边界框南端的纬度。"
+  },
+  "ymax": {
+    "en": "Northern latitude of the bounding box.",
+    "zh-hant": "邊界框北端的緯度。",
+    "zh-hans": "边界框北端的纬度。"
+  },
+  "wikidata": {
+    "en": "Wikidata entity identifier, beginning with Q.",
+    "zh-hant": "以 Q 開首的維基數據實體識別碼。",
+    "zh-hans": "以 Q 开首的维基数据实体识别码。"
+  },
+  "maxZoom": {
+    "en": "Maximum display zoom level.",
+    "zh-hant": "顯示的最大縮放級別。",
+    "zh-hans": "显示的最大缩放级别。"
+  },
+  "minZoom": {
+    "en": "Minimum display zoom level.",
+    "zh-hant": "顯示的最小縮放級別。",
+    "zh-hans": "显示的最小缩放级别。"
+  },
+  "prominence": {
+    "en": "Relative cartographic prominence of the division.",
+    "zh-hant": "區劃在地圖上的相對顯著程度。",
+    "zh-hans": "区划在地图上的相对显著程度。"
+  },
+  "sortKey": {
+    "en": "Sort order used when drawing the feature.",
+    "zh-hant": "繪製地物時使用的排序值。",
+    "zh-hans": "绘制地物时使用的排序值。"
+  },
+  "language": {
+    "en": "IETF BCP 47 language tag for the name.",
+    "zh-hant": "名稱的 IETF BCP 47 語言標籤。",
+    "zh-hans": "名称的 IETF BCP 47 语言标签。"
+  },
+  "value": {
+    "en": "Name text to which the name rule applies.",
+    "zh-hant": "名稱規則所適用的名稱文字。",
+    "zh-hans": "名称规则所适用的名称文字。"
+  },
+  "variant": {
+    "en": "Name variant classification, such as official, alternate or short.",
+    "zh-hant": "名稱變體分類，例如官方名稱、別名或簡稱。",
+    "zh-hans": "名称变体分类，例如官方名称、别名或简称。"
+  },
+  "countries": {
+    "en": "Country codes to which this political perspective applies.",
+    "zh-hant": "此政治立場所適用的國家代碼。",
+    "zh-hans": "此政治立场所适用的国家代码。"
+  },
+  "mode": {
+    "en": "Whether the listed countries accept or dispute the division.",
+    "zh-hant": "所列國家是否接受此區劃或對其提出爭議。",
+    "zh-hans": "所列国家是否接受此区划或对其提出争议。"
+  },
+  "drivingSide": {
+    "en": "Side of the road on which traffic drives: left or right.",
+    "zh-hant": "道路行車方向：左側或右側。",
+    "zh-hans": "道路行车方向：左侧或右侧。"
+  },
+  "theme": {
+    "en": "Overture theme containing this feature.",
+    "zh-hant": "包含此地物的 Overture 主題。",
+    "zh-hans": "包含此地物的 Overture 主题。"
+  },
+  "type": {
+    "en": "Feature type within the Overture theme.",
+    "zh-hant": "Overture 主題內的地物類型。",
+    "zh-hans": "Overture 主题内的地物类型。"
+  },
+  "name": {
+    "en": "Display name of the division in this hierarchy.",
+    "zh-hant": "此層級中的區劃顯示名稱。",
+    "zh-hans": "此层级中的区划显示名称。"
+  },
+  "class": {
+    "en": "Publisher classification of the feature.",
+    "zh-hant": "發布者的地物分類。",
+    "zh-hans": "发布者的地物分类。"
+  },
+  "meta": {
+    "en": "Provenance and verification metadata for names in this locale.",
+    "zh-hant": "此語言地區名稱的來源及核實中繼資料。",
+    "zh-hans": "此语言地区名称的来源及核实中继资料。"
+  },
+  "isLocaleInferred": {
+    "en": "Whether the locale was inferred rather than explicitly supplied by the source.",
+    "zh-hant": "語言地區是否經推斷而非由來源明確提供。",
+    "zh-hans": "语言地区是否经推断而非由来源明确提供。"
+  },
+  "fields": {
+    "en": "Provenance and verification metadata keyed by localised field name.",
+    "zh-hant": "以本地化欄位名稱為鍵的來源及核實中繼資料。",
+    "zh-hans": "以本地化栏位名称为键的来源及核实中继资料。"
+  },
+  "origin": {
+    "en": "Origin of the localised value, such as a source value or an AI translation.",
+    "zh-hant": "本地化值的來源，例如來源值或人工智能翻譯。",
+    "zh-hans": "本地化值的来源，例如来源值或人工智能翻译。"
+  },
+  "isHumanVerified": {
+    "en": "Whether a person has verified the localised value.",
+    "zh-hant": "本地化值是否已由人員核實。",
+    "zh-hans": "本地化值是否已由人员核实。"
+  },
+  "translatorId": {
+    "en": "Identifier of the person or system that translated the value.",
+    "zh-hant": "翻譯此值的人員或系統識別碼。",
+    "zh-hans": "翻译此值的人员或系统识别码。"
+  },
+  "nameAlts": {
+    "en": "Alternative names in this locale, stored as text or a list.",
+    "zh-hant": "此語言地區的其他名稱，以文字或清單儲存。",
+    "zh-hans": "此语言地区的其他名称，以文字或清单储存。"
+  },
+  "address3d": {
+    "en": "Publisher 3D address text.",
+    "zh-hant": "發布者的三維地址文字。",
+    "zh-hans": "发布者的三维地址文字。"
+  },
+  "blockDescriptor": {
+    "en": "Publisher block descriptor, such as block or tower.",
+    "zh-hant": "發布者的座數描述，例如座或大廈。",
+    "zh-hans": "发布者的座数描述，例如座或大厦。"
+  },
+  "blockDescriptorPrecedenceIndicator": {
+    "en": "Publisher indicator controlling whether the block descriptor precedes the block number.",
+    "zh-hant": "發布者指示座數描述是否置於座號之前的標記。",
+    "zh-hans": "发布者指示座数描述是否置于座号之前的标记。"
+  },
+  "blockNo": {
+    "en": "Publisher block number.",
+    "zh-hant": "發布者的座號。",
+    "zh-hans": "发布者的座号。"
+  },
+  "buildingName": {
+    "en": "Publisher building name.",
+    "zh-hant": "發布者的大廈名稱。",
+    "zh-hans": "发布者的大厦名称。"
+  },
+  "district": {
+    "en": "Publisher district name.",
+    "zh-hant": "發布者的地區名稱。",
+    "zh-hans": "发布者的地区名称。"
+  },
+  "estateName": {
+    "en": "Publisher estate name.",
+    "zh-hant": "發布者的屋苑名稱。",
+    "zh-hans": "发布者的屋苑名称。"
+  },
+  "phaseName": {
+    "en": "Publisher development phase name.",
+    "zh-hant": "發布者的發展期數名稱。",
+    "zh-hans": "发布者的发展期数名称。"
+  },
+  "phaseNo": {
+    "en": "Publisher development phase number.",
+    "zh-hant": "發布者的發展期數編號。",
+    "zh-hans": "发布者的发展期数编号。"
+  },
+  "region": {
+    "en": "Publisher broad region name.",
+    "zh-hant": "發布者的大區名稱。",
+    "zh-hans": "发布者的大区名称。"
+  },
+  "streetLocationName": {
+    "en": "Publisher street-location qualifier.",
+    "zh-hant": "發布者的街道位置限定名稱。",
+    "zh-hans": "发布者的街道位置限定名称。"
+  },
+  "streetName": {
+    "en": "Publisher street name.",
+    "zh-hant": "發布者的街道名稱。",
+    "zh-hans": "发布者的街道名称。"
+  },
+  "streetNumberFrom": {
+    "en": "First number of the publisher street-number range.",
+    "zh-hant": "發布者街道門牌號碼範圍的起號。",
+    "zh-hans": "发布者街道门牌号码范围的起号。"
+  },
+  "streetNumberTo": {
+    "en": "Last number of the publisher street-number range.",
+    "zh-hant": "發布者街道門牌號碼範圍的訖號。",
+    "zh-hans": "发布者街道门牌号码范围的讫号。"
+  },
+  "villageLocationName": {
+    "en": "Publisher village-location qualifier.",
+    "zh-hant": "發布者的鄉村位置限定名稱。",
+    "zh-hans": "发布者的乡村位置限定名称。"
+  },
+  "villageName": {
+    "en": "Publisher village name.",
+    "zh-hant": "發布者的鄉村名稱。",
+    "zh-hans": "发布者的乡村名称。"
+  },
+  "villageNumberFrom": {
+    "en": "First number of the publisher village-number range.",
+    "zh-hant": "發布者鄉村門牌號碼範圍的起號。",
+    "zh-hans": "发布者乡村门牌号码范围的起号。"
+  },
+  "villageNumberTo": {
+    "en": "Last number of the publisher village-number range.",
+    "zh-hant": "發布者鄉村門牌號碼範圍的訖號。",
+    "zh-hans": "发布者乡村门牌号码范围的讫号。"
+  },
+  "easting": {
+    "en": "Easting in metres in the publisher’s Hong Kong 1980 Grid coordinate system (EPSG:2326).",
+    "zh-hant": "發布者香港 1980 方格網坐標系統（EPSG:2326）的東向坐標，以米為單位。",
+    "zh-hans": "发布者香港 1980 方格网坐标系统（EPSG:2326）的东向坐标，以米为单位。"
+  },
+  "northing": {
+    "en": "Northing in metres in the publisher’s Hong Kong 1980 Grid coordinate system (EPSG:2326).",
+    "zh-hant": "發布者香港 1980 方格網坐標系統（EPSG:2326）的北向坐標，以米為單位。",
+    "zh-hans": "发布者香港 1980 方格网坐标系统（EPSG:2326）的北向坐标，以米为单位。"
+  },
+  "geoAddress": {
+    "en": "Publisher geographic address identifier.",
+    "zh-hant": "發布者的地理地址識別碼。",
+    "zh-hans": "发布者的地理地址识别码。"
+  },
+  "hkgovCsuId": {
+    "en": "Publisher Common Spatial Unit identifier for the address.",
+    "zh-hant": "發布者為地址編配的共用空間單元識別碼。",
+    "zh-hans": "发布者为地址编配的共用空间单元识别码。"
+  },
+  "startTime": {
+    "en": "Publisher start time for the pedestrian-street restriction.",
+    "zh-hant": "發布者提供的行人專用街道限制開始時間。",
+    "zh-hans": "发布者提供的行人专用街道限制开始时间。"
+  },
+  "endTime": {
+    "en": "Publisher end time for the pedestrian-street restriction.",
+    "zh-hant": "發布者提供的行人專用街道限制結束時間。",
+    "zh-hans": "发布者提供的行人专用街道限制结束时间。"
+  },
+  "objectId": {
+    "en": "Publisher feature object identifier.",
+    "zh-hant": "發布者的地物物件識別碼。",
+    "zh-hans": "发布者的地物物件识别码。"
+  },
+  "shapeArea": {
+    "en": "Area calculated in the publisher’s source coordinate system.",
+    "zh-hant": "以發布者來源坐標系統計算的面積。",
+    "zh-hans": "以发布者来源坐标系统计算的面积。"
+  },
+  "shapeLength": {
+    "en": "Boundary length calculated in the publisher’s source coordinate system.",
+    "zh-hant": "以發布者來源坐標系統計算的邊界長度。",
+    "zh-hans": "以发布者来源坐标系统计算的边界长度。"
+  },
+  "descriptionEn": {
+    "en": "Publisher description in English.",
+    "zh-hant": "發布者的英文描述。",
+    "zh-hans": "发布者的英文描述。"
+  },
+  "descriptionZhHant": {
+    "en": "Publisher description in Traditional Chinese.",
+    "zh-hant": "發布者的繁體中文描述。",
+    "zh-hans": "发布者的繁体中文描述。"
+  },
+  "descriptionZhHans": {
+    "en": "Publisher description in Simplified Chinese.",
+    "zh-hant": "發布者的簡體中文描述。",
+    "zh-hans": "发布者的简体中文描述。"
+  }
+}

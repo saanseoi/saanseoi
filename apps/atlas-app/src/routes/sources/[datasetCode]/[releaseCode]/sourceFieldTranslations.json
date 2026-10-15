@@ -1,0 +1,952 @@
+{
+  "Primary planning unit code. Identifies the primary planning unit containing this source cell.": {
+    "en": "Primary planning unit code. Identifies the primary planning unit containing this source cell.",
+    "zh-hant": "大規劃統計區代碼，識別包含此來源單元的大規劃統計區。",
+    "zh-hans": "大规划统计区代码，识别包含此来源单元的大规划统计区。"
+  },
+  "Secondary planning unit code. Identifies the secondary planning unit within the primary planning unit containing this source cell.": {
+    "en": "Secondary planning unit code. Identifies the secondary planning unit within the primary planning unit containing this source cell.",
+    "zh-hant": "次規劃統計區代碼，識別此來源單元所屬大規劃統計區內的次規劃統計區。",
+    "zh-hans": "次规划统计区代码，识别此来源单元所属大规划统计区内的次规划统计区。"
+  },
+  "Tertiary planning unit code. Identifies the tertiary planning unit within the secondary planning unit containing this source cell.": {
+    "en": "Tertiary planning unit code. Identifies the tertiary planning unit within the secondary planning unit containing this source cell.",
+    "zh-hant": "小規劃統計區代碼，識別此來源單元所屬次規劃統計區內的小規劃統計區。",
+    "zh-hans": "小规划统计区代码，识别此来源单元所属次规划统计区内的小规划统计区。"
+  },
+  "Subunit code. Identifies the subunit within the tertiary planning unit containing this source cell.": {
+    "en": "Subunit code. Identifies the subunit within the tertiary planning unit containing this source cell.",
+    "zh-hant": "小合併組代碼，識別此來源單元所屬小規劃統計區內的小合併組。",
+    "zh-hans": "小合并组代码，识别此来源单元所属小规划统计区内的小合并组。"
+  },
+  "Subunit or village cluster code within the tertiary planning unit containing this source cell.": {
+    "en": "Subunit or village cluster code within the tertiary planning unit containing this source cell.",
+    "zh-hant": "此來源單元所屬小規劃統計區內的小合併組或村落組代碼。",
+    "zh-hans": "此来源单元所属小规划统计区内的小合并组或村落组代码。"
+  },
+  "Publisher building group code.": {
+    "en": "Publisher building group code.",
+    "zh-hant": "發布者的樓宇組別代碼。",
+    "zh-hans": "发布者的楼宇组别代码。"
+  },
+  "Building group name in Traditional Chinese.": {
+    "en": "Building group name in Traditional Chinese.",
+    "zh-hant": "樓宇組別的繁體中文名稱。",
+    "zh-hans": "楼宇组别的繁体中文名称。"
+  },
+  "Building group name in English.": {
+    "en": "Building group name in English.",
+    "zh-hant": "樓宇組別的英文名稱。",
+    "zh-hans": "楼宇组别的英文名称。"
+  },
+  "Building group indicator: B represents building groups; O represents records of other buildings in the area.": {
+    "en": "Building group indicator: B represents building groups; O represents records of other buildings in the area.",
+    "zh-hant": "樓宇組別指標：B 代表樓宇組別；O 代表區內其他樓宇的記錄。",
+    "zh-hans": "楼宇组别指标：B 代表楼宇组别；O 代表区内其他楼宇的记录。"
+  },
+  "Publisher housing market area code.": {
+    "en": "Publisher housing market area code.",
+    "zh-hant": "發布者的房屋市場地區代碼。",
+    "zh-hans": "发布者的房屋市场地区代码。"
+  },
+  "Housing market area name in Traditional Chinese.": {
+    "en": "Housing market area name in Traditional Chinese.",
+    "zh-hant": "房屋市場地區的繁體中文名稱。",
+    "zh-hans": "房屋市场地区的繁体中文名称。"
+  },
+  "Housing market area name in English.": {
+    "en": "Housing market area name in English.",
+    "zh-hant": "房屋市場地區的英文名稱。",
+    "zh-hans": "房屋市场地区的英文名称。"
+  },
+  "Publisher feature object identifier.": {
+    "en": "Publisher feature object identifier.",
+    "zh-hant": "發布者的地物物件識別碼。",
+    "zh-hans": "发布者的地物物件识别码。"
+  },
+  "Area calculated in the publisher’s source coordinate system.": {
+    "en": "Area calculated in the publisher’s source coordinate system.",
+    "zh-hant": "以發布者來源坐標系統計算的面積。",
+    "zh-hans": "以发布者来源坐标系统计算的面积。"
+  },
+  "Boundary length calculated in the publisher’s source coordinate system.": {
+    "en": "Boundary length calculated in the publisher’s source coordinate system.",
+    "zh-hant": "以發布者來源坐標系統計算的邊界長度。",
+    "zh-hans": "以发布者来源坐标系统计算的边界长度。"
+  },
+  "Publisher District Council district code.": {
+    "en": "Publisher District Council district code.",
+    "zh-hant": "發布者的區議會分區代碼。",
+    "zh-hans": "发布者的区议会分区代码。"
+  },
+  "District Council district name in Traditional Chinese.": {
+    "en": "District Council district name in Traditional Chinese.",
+    "zh-hant": "區議會分區的繁體中文名稱。",
+    "zh-hans": "区议会分区的繁体中文名称。"
+  },
+  "Publisher classification of the District Council district.": {
+    "en": "Publisher classification of the District Council district.",
+    "zh-hant": "發布者的區議會分區分類。",
+    "zh-hans": "发布者的区议会分区分类。"
+  },
+  "District Council district name in English.": {
+    "en": "District Council district name in English.",
+    "zh-hant": "區議會分區的英文名稱。",
+    "zh-hans": "区议会分区的英文名称。"
+  },
+  "Number of domestic households living in subdivided units.": {
+    "en": "Number of domestic households living in subdivided units.",
+    "zh-hant": "居於分間樓宇單位的家庭住戶數目。",
+    "zh-hans": "居于分间楼宇单位的家庭住户数目。"
+  },
+  "Number of occupied subdivided units.": {
+    "en": "Number of occupied subdivided units.",
+    "zh-hant": "有人居住的分間樓宇單位數目。",
+    "zh-hans": "有人居住的分间楼宇单位数目。"
+  },
+  "Number of occupied quarters with subdivided units.": {
+    "en": "Number of occupied quarters with subdivided units.",
+    "zh-hant": "有分間樓宇單位且有人居住的屋宇單位數目。",
+    "zh-hans": "有分间楼宇单位且有人居住的屋宇单位数目。"
+  },
+  "Number of persons living in subdivided units.": {
+    "en": "Number of persons living in subdivided units.",
+    "zh-hant": "居於分間樓宇單位的人數。",
+    "zh-hans": "居于分间楼宇单位的人数。"
+  },
+  "Geographic area name in Traditional Chinese.": {
+    "en": "Geographic area name in Traditional Chinese.",
+    "zh-hant": "地理區域的繁體中文名稱。",
+    "zh-hans": "地理区域的繁体中文名称。"
+  },
+  "Geographic area name in English: Hong Kong Island, Kowloon or New Territories.": {
+    "en": "Geographic area name in English: Hong Kong Island, Kowloon or New Territories.",
+    "zh-hant": "地理區域的英文名稱：香港島、九龍或新界。",
+    "zh-hans": "地理区域的英文名称：香港岛、九龙或新界。"
+  },
+  "Publisher reference period for the living-quarters figures, retained as text.": {
+    "en": "Publisher reference period for the living-quarters figures, retained as text.",
+    "zh-hant": "發布者的居住屋宇單位統計參考時期，以文字保留。",
+    "zh-hans": "发布者的居住屋宇单位统计参考时期，以文字保留。"
+  },
+  "Total permanent living quarters across public rental housing, subsidised sale flats and private housing in the area.": {
+    "en": "Total permanent living quarters across public rental housing, subsidised sale flats and private housing in the area.",
+    "zh-hant": "區內公營租住房屋、資助出售單位及私人房屋的永久性居住屋宇單位總數。",
+    "zh-hans": "区内公营租住房屋、资助出售单位及私人房屋的永久性居住屋宇单位总数。"
+  },
+  "Permanent living quarters in public rental housing in the area.": {
+    "en": "Permanent living quarters in public rental housing in the area.",
+    "zh-hant": "區內公營租住房屋的永久性居住屋宇單位數目。",
+    "zh-hans": "区内公营租住房屋的永久性居住屋宇单位数目。"
+  },
+  "Public rental housing quarters provided by the Hong Kong Housing Authority.": {
+    "en": "Public rental housing quarters provided by the Hong Kong Housing Authority.",
+    "zh-hant": "香港房屋委員會提供的公營租住房屋單位。",
+    "zh-hans": "香港房屋委员会提供的公营租住房屋单位。"
+  },
+  "Public rental housing quarters provided by the Hong Kong Housing Society.": {
+    "en": "Public rental housing quarters provided by the Hong Kong Housing Society.",
+    "zh-hant": "香港房屋協會提供的公營租住房屋單位。",
+    "zh-hans": "香港房屋协会提供的公营租住房屋单位。"
+  },
+  "Permanent living quarters classified as subsidised sale flats in the area.": {
+    "en": "Permanent living quarters classified as subsidised sale flats in the area.",
+    "zh-hant": "區內列為資助出售單位的永久性居住屋宇單位。",
+    "zh-hans": "区内列为资助出售单位的永久性居住屋宇单位。"
+  },
+  "Subsidised sale flats provided by the Hong Kong Housing Authority.": {
+    "en": "Subsidised sale flats provided by the Hong Kong Housing Authority.",
+    "zh-hant": "香港房屋委員會提供的資助出售單位。",
+    "zh-hans": "香港房屋委员会提供的资助出售单位。"
+  },
+  "Subsidised sale flats provided by the Hong Kong Housing Society.": {
+    "en": "Subsidised sale flats provided by the Hong Kong Housing Society.",
+    "zh-hant": "香港房屋協會提供的資助出售單位。",
+    "zh-hans": "香港房屋协会提供的资助出售单位。"
+  },
+  "Subsidised sale flats provided by the Urban Renewal Authority.": {
+    "en": "Subsidised sale flats provided by the Urban Renewal Authority.",
+    "zh-hant": "市區重建局提供的資助出售單位。",
+    "zh-hans": "市区重建局提供的资助出售单位。"
+  },
+  "Permanent living quarters classified as private housing in the area.": {
+    "en": "Permanent living quarters classified as private housing in the area.",
+    "zh-hant": "區內列為私人房屋的永久性居住屋宇單位。",
+    "zh-hans": "区内列为私人房屋的永久性居住屋宇单位。"
+  },
+  "Private housing quarters classified as private residential flats.": {
+    "en": "Private housing quarters classified as private residential flats.",
+    "zh-hant": "列為私人住宅樓宇單位的私人房屋單位。",
+    "zh-hans": "列为私人住宅楼宇单位的私人房屋单位。"
+  },
+  "Private housing quarters classified as villas, bungalows or modern village houses.": {
+    "en": "Private housing quarters classified as villas, bungalows or modern village houses.",
+    "zh-hant": "列為別墅、平房或新型村屋的私人房屋單位。",
+    "zh-hans": "列为别墅、平房或新型村屋的私人房屋单位。"
+  },
+  "Private housing quarters classified as simple stone structures or traditional village houses.": {
+    "en": "Private housing quarters classified as simple stone structures or traditional village houses.",
+    "zh-hant": "列為簡單磚石蓋搭建築物或傳統村屋的私人房屋單位。",
+    "zh-hans": "列为简单砖石盖搭建筑物或传统村屋的私人房屋单位。"
+  },
+  "Private housing quarters classified as staff quarters.": {
+    "en": "Private housing quarters classified as staff quarters.",
+    "zh-hant": "列為員工宿舍的私人房屋單位。",
+    "zh-hans": "列为员工宿舍的私人房屋单位。"
+  },
+  "Private housing quarters classified as non-domestic quarters.": {
+    "en": "Private housing quarters classified as non-domestic quarters.",
+    "zh-hant": "列為非住宅用屋宇單位的私人房屋單位。",
+    "zh-hans": "列为非住宅用屋宇单位的私人房屋单位。"
+  },
+  "Publisher New Town name in English.": {
+    "en": "Publisher New Town name in English.",
+    "zh-hant": "發布者的新市鎮英文名稱。",
+    "zh-hans": "发布者的新市镇英文名称。"
+  },
+  "Publisher New Town name in Traditional Chinese.": {
+    "en": "Publisher New Town name in Traditional Chinese.",
+    "zh-hant": "發布者的新市鎮繁體中文名稱。",
+    "zh-hans": "发布者的新市镇繁体中文名称。"
+  },
+  "Publisher New Town name in Simplified Chinese.": {
+    "en": "Publisher New Town name in Simplified Chinese.",
+    "zh-hant": "發布者的新市鎮簡體中文名稱。",
+    "zh-hans": "发布者的新市镇简体中文名称。"
+  },
+  "Publisher street code for the road segment. Text codes retain leading zeroes.": {
+    "en": "Publisher street code for the road segment. Text codes retain leading zeroes.",
+    "zh-hant": "發布者的路段街道代碼。文字代碼保留開首的零。",
+    "zh-hans": "发布者的路段街道代码。文字代码保留开首的零。"
+  },
+  "Publisher road segment object identifier.": {
+    "en": "Publisher road segment object identifier.",
+    "zh-hant": "發布者的路段物件識別碼。",
+    "zh-hans": "发布者的路段物件识别码。"
+  },
+  "Street name in English retained from the publisher document.": {
+    "en": "Street name in English retained from the publisher document.",
+    "zh-hant": "從發布者文件保留的街道英文名稱。",
+    "zh-hans": "从发布者文件保留的街道英文名称。"
+  },
+  "Street name in Traditional Chinese retained from the publisher document.": {
+    "en": "Street name in Traditional Chinese retained from the publisher document.",
+    "zh-hant": "從發布者文件保留的街道繁體中文名稱。",
+    "zh-hans": "从发布者文件保留的街道繁体中文名称。"
+  },
+  "Publisher district code for the baseline street record.": {
+    "en": "Publisher district code for the baseline street record.",
+    "zh-hant": "街道基準記錄的發布者地區代碼。",
+    "zh-hans": "街道基准记录的发布者地区代码。"
+  },
+  "Publisher district codes associated with the notice.": {
+    "en": "Publisher district codes associated with the notice.",
+    "zh-hant": "與公告相關的發布者地區代碼。",
+    "zh-hans": "与公告相关的发布者地区代码。"
+  },
+  "English description of the street in the notice.": {
+    "en": "English description of the street in the notice.",
+    "zh-hant": "公告中的街道英文描述。",
+    "zh-hans": "公告中的街道英文描述。"
+  },
+  "Traditional Chinese description of the street in the notice.": {
+    "en": "Traditional Chinese description of the street in the notice.",
+    "zh-hant": "公告中的街道繁體中文描述。",
+    "zh-hans": "公告中的街道繁体中文描述。"
+  },
+  "Publication date of the Gazette notice.": {
+    "en": "Publication date of the Gazette notice.",
+    "zh-hant": "憲報公告的刊登日期。",
+    "zh-hans": "宪报公告的刊登日期。"
+  },
+  "Date on which the notice takes effect.": {
+    "en": "Date on which the notice takes effect.",
+    "zh-hant": "公告的生效日期。",
+    "zh-hans": "公告的生效日期。"
+  },
+  "Classification of the street notice.": {
+    "en": "Classification of the street notice.",
+    "zh-hant": "街道公告的分類。",
+    "zh-hans": "街道公告的分类。"
+  },
+  "Reference identifying the Gazette notice.": {
+    "en": "Reference identifying the Gazette notice.",
+    "zh-hant": "憲報公告的識別參考編號。",
+    "zh-hans": "宪报公告的识别参考编号。"
+  },
+  "References to earlier notices cited by this notice.": {
+    "en": "References to earlier notices cited by this notice.",
+    "zh-hant": "此公告引用的較早公告參考編號。",
+    "zh-hans": "此公告引用的较早公告参考编号。"
+  },
+  "Text extracted from the publisher document.": {
+    "en": "Text extracted from the publisher document.",
+    "zh-hant": "從發布者文件擷取的文字。",
+    "zh-hans": "从发布者文件撷取的文字。"
+  },
+  "Diagnostics retained from extraction of the document.": {
+    "en": "Diagnostics retained from extraction of the document.",
+    "zh-hant": "文件擷取過程保留的診斷資料。",
+    "zh-hans": "文件撷取过程保留的诊断资料。"
+  },
+  "Source document assets supporting the extracted record.": {
+    "en": "Source document assets supporting the extracted record.",
+    "zh-hant": "支持擷取記錄的來源文件資產。",
+    "zh-hans": "支持撷取记录的来源文件资产。"
+  },
+  "Publisher district area code, used to resolve the associated district.": {
+    "en": "Publisher district area code, used to resolve the associated district.",
+    "zh-hant": "發布者的地區代碼，用於識別相關地區。",
+    "zh-hans": "发布者的地区代码，用于识别相关地区。"
+  },
+  "Publisher identifier for the district area.": {
+    "en": "Publisher identifier for the district area.",
+    "zh-hant": "發布者的地區識別碼。",
+    "zh-hans": "发布者的地区识别码。"
+  },
+  "Publisher classification of the administrative area.": {
+    "en": "Publisher classification of the administrative area.",
+    "zh-hant": "發布者的行政區域分類。",
+    "zh-hans": "发布者的行政区域分类。"
+  },
+  "CSDI administrative area identifier.": {
+    "en": "CSDI administrative area identifier.",
+    "zh-hant": "空間數據共享平台的行政區域識別碼。",
+    "zh-hans": "空间数据共享平台的行政区域识别码。"
+  },
+  "District name in Traditional Chinese.": {
+    "en": "District name in Traditional Chinese.",
+    "zh-hant": "地區的繁體中文名稱。",
+    "zh-hans": "地区的繁体中文名称。"
+  },
+  "District name in English.": {
+    "en": "District name in English.",
+    "zh-hant": "地區的英文名稱。",
+    "zh-hans": "地区的英文名称。"
+  },
+  "Organisation responsible for the publisher record.": {
+    "en": "Organisation responsible for the publisher record.",
+    "zh-hant": "負責發布者記錄的機構。",
+    "zh-hans": "负责发布者记录的机构。"
+  },
+  "Start of the publisher record’s validity period.": {
+    "en": "Start of the publisher record’s validity period.",
+    "zh-hant": "發布者記錄有效期的開始時間。",
+    "zh-hans": "发布者记录有效期的开始时间。"
+  },
+  "End of the publisher record’s validity period; an open value indicates no specified end.": {
+    "en": "End of the publisher record’s validity period; an open value indicates no specified end.",
+    "zh-hant": "發布者記錄有效期的結束時間；未填值表示沒有指定結束時間。",
+    "zh-hans": "发布者记录有效期的结束时间；未填值表示没有指定结束时间。"
+  },
+  "Publisher geographic name identifier.": {
+    "en": "Publisher geographic name identifier.",
+    "zh-hant": "發布者的地名識別碼。",
+    "zh-hans": "发布者的地名识别码。"
+  },
+  "Broad publisher feature class: Settlement, Hydrographic or Topographic.": {
+    "en": "Broad publisher feature class: Settlement, Hydrographic or Topographic.",
+    "zh-hant": "發布者的主要地物類別：Settlement（居住地）、Hydrographic（水文地物）或 Topographic（地形）。",
+    "zh-hans": "发布者的主要地物类别：Settlement（居住地）、Hydrographic（水文地物）或 Topographic（地形）。"
+  },
+  "Publisher classification of the named geographic feature.": {
+    "en": "Publisher classification of the named geographic feature.",
+    "zh-hant": "發布者的具名地理地物分類。",
+    "zh-hans": "发布者的具名地理地物分类。"
+  },
+  "Publisher district attribution for the named geographic feature.": {
+    "en": "Publisher district attribution for the named geographic feature.",
+    "zh-hant": "發布者為具名地理地物指定的地區。",
+    "zh-hans": "发布者为具名地理地物指定的地区。"
+  },
+  "Publisher street name plate identifier.": {
+    "en": "Publisher street name plate identifier.",
+    "zh-hant": "發布者的街道名牌識別碼。",
+    "zh-hans": "发布者的街道名牌识别码。"
+  },
+  "Street name displayed on the name plate.": {
+    "en": "Street name displayed on the name plate.",
+    "zh-hant": "名牌上顯示的街道名稱。",
+    "zh-hans": "名牌上显示的街道名称。"
+  },
+  "Publisher level classification for the street name plate.": {
+    "en": "Publisher level classification for the street name plate.",
+    "zh-hant": "發布者的街道名牌級別分類。",
+    "zh-hans": "发布者的街道名牌级别分类。"
+  },
+  "Publisher level classification for the street.": {
+    "en": "Publisher level classification for the street.",
+    "zh-hant": "發布者的街道級別分類。",
+    "zh-hans": "发布者的街道级别分类。"
+  },
+  "Publisher description of the limits of the street section.": {
+    "en": "Publisher description of the limits of the street section.",
+    "zh-hant": "發布者對路段範圍的描述。",
+    "zh-hans": "发布者对路段范围的描述。"
+  },
+  "Street name in English.": {
+    "en": "Street name in English.",
+    "zh-hant": "街道的英文名稱。",
+    "zh-hans": "街道的英文名称。"
+  },
+  "GeoJSON geometry. Overture requires Point for this feature type.": {
+    "en": "GeoJSON geometry. Overture requires Point for this feature type.",
+    "zh-hant": "GeoJSON 幾何資料。Overture 要求此地物類型使用 Point。",
+    "zh-hans": "GeoJSON 几何资料。Overture 要求此地物类型使用 Point。"
+  },
+  "GeoJSON coordinates.": {
+    "en": "GeoJSON coordinates.",
+    "zh-hant": "GeoJSON 坐標。",
+    "zh-hans": "GeoJSON 坐标。"
+  },
+  "Bounding box of the feature geometry.": {
+    "en": "Bounding box of the feature geometry.",
+    "zh-hant": "地物幾何的邊界框。",
+    "zh-hans": "地物几何的边界框。"
+  },
+  "Feature version, incremented in every Overture release that changed it.": {
+    "en": "Feature version, incremented in every Overture release that changed it.",
+    "zh-hant": "地物版本；每次 Overture 發布版本包含此地物的變更時遞增。",
+    "zh-hans": "地物版本；每次 Overture 发布版本包含此地物的变更时递增。"
+  },
+  "Sources for this feature and its properties.": {
+    "en": "Sources for this feature and its properties.",
+    "zh-hant": "此地物及其屬性的來源。",
+    "zh-hans": "此地物及其属性的来源。"
+  },
+  "Source information for a property, using an RFC 6901 JSON Pointer.": {
+    "en": "Source information for a property, using an RFC 6901 JSON Pointer.",
+    "zh-hant": "屬性的來源資料，使用 RFC 6901 JSON Pointer 指定屬性。",
+    "zh-hans": "属性的来源资料，使用 RFC 6901 JSON Pointer 指定属性。"
+  },
+  "Licence name, normally an SPDX identifier.": {
+    "en": "Licence name, normally an SPDX identifier.",
+    "zh-hant": "授權名稱，通常為 SPDX 識別碼。",
+    "zh-hans": "授权名称，通常为 SPDX 识别码。"
+  },
+  "Contributor label, such as osm or esri.": {
+    "en": "Contributor label, such as osm or esri.",
+    "zh-hant": "貢獻者標籤，例如 osm 或 esri。",
+    "zh-hans": "贡献者标签，例如 osm 或 esri。"
+  },
+  "Record ID in the contributing dataset.": {
+    "en": "Record ID in the contributing dataset.",
+    "zh-hant": "貢獻資料集中的記錄識別碼。",
+    "zh-hans": "贡献资料集中的记录识别码。"
+  },
+  "Subject of the contributed data.": {
+    "en": "Subject of the contributed data.",
+    "zh-hant": "所貢獻資料的主題。",
+    "zh-hans": "所贡献资料的主题。"
+  },
+  "Sortable source snapshot identifier.": {
+    "en": "Sortable source snapshot identifier.",
+    "zh-hant": "可排序的來源快照識別碼。",
+    "zh-hans": "可排序的来源快照识别码。"
+  },
+  "Names of the feature.": {
+    "en": "Names of the feature.",
+    "zh-hant": "地物的名稱。",
+    "zh-hans": "地物的名称。"
+  },
+  "Common translations of the name, keyed by IETF BCP 47 language tag.": {
+    "en": "Common translations of the name, keyed by IETF BCP 47 language tag.",
+    "zh-hant": "名稱的常用翻譯，以 IETF BCP 47 語言標籤為鍵。",
+    "zh-hans": "名称的常用翻译，以 IETF BCP 47 语言标签为键。"
+  },
+  "The most commonly used name.": {
+    "en": "The most commonly used name.",
+    "zh-hant": "最常用的名稱。",
+    "zh-hans": "最常用的名称。"
+  },
+  "Additional name variants or scoped names.": {
+    "en": "Additional name variants or scoped names.",
+    "zh-hant": "其他名稱變體或限定適用範圍的名稱。",
+    "zh-hans": "其他名称变体或限定适用范围的名称。"
+  },
+  "An IETF BCP 47 language tag.": {
+    "en": "An IETF BCP 47 language tag.",
+    "zh-hant": "IETF BCP 47 語言標籤。",
+    "zh-hans": "IETF BCP 47 语言标签。"
+  },
+  "The categories of the place.": {
+    "en": "The categories of the place.",
+    "zh-hant": "地點的分類。",
+    "zh-hans": "地点的分类。"
+  },
+  "Additional applicable categories.": {
+    "en": "Additional applicable categories.",
+    "zh-hant": "其他適用分類。",
+    "zh-hans": "其他适用分类。"
+  },
+  "Primary category of the place.": {
+    "en": "Primary category of the place.",
+    "zh-hant": "地點的主要分類。",
+    "zh-hans": "地点的主要分类。"
+  },
+  "Confidence in the existence of the place, from 0 to 1.": {
+    "en": "Confidence in the existence of the place, from 0 to 1.",
+    "zh-hant": "對地點存在的置信度，介乎 0 至 1。",
+    "zh-hans": "对地点存在的置信度，介乎 0 至 1。"
+  },
+  "Website URLs of the place.": {
+    "en": "Website URLs of the place.",
+    "zh-hant": "地點的網站網址。",
+    "zh-hans": "地点的网站网址。"
+  },
+  "Social media URLs of the place.": {
+    "en": "Social media URLs of the place.",
+    "zh-hant": "地點的社交媒體網址。",
+    "zh-hans": "地点的社交媒体网址。"
+  },
+  "Email addresses of the place.": {
+    "en": "Email addresses of the place.",
+    "zh-hant": "地點的電郵地址。",
+    "zh-hans": "地点的电邮地址。"
+  },
+  "Phone numbers of the place.": {
+    "en": "Phone numbers of the place.",
+    "zh-hant": "地點的電話號碼。",
+    "zh-hans": "地点的电话号码。"
+  },
+  "Brand of the place. A location with multiple brands is represented by separate places.": {
+    "en": "Brand of the place. A location with multiple brands is represented by separate places.",
+    "zh-hant": "地點的品牌。同一位置如有多個品牌，會以不同地點表示。",
+    "zh-hans": "地点的品牌。同一位置如有多个品牌，会以不同地点表示。"
+  },
+  "Addresses of the place.": {
+    "en": "Addresses of the place.",
+    "zh-hant": "地點的地址。",
+    "zh-hans": "地点的地址。"
+  },
+  "ISO 3166-1 alpha-2 country code.": {
+    "en": "ISO 3166-1 alpha-2 country code.",
+    "zh-hant": "ISO 3166-1 alpha-2 國家代碼。",
+    "zh-hans": "ISO 3166-1 alpha-2 国家代码。"
+  },
+  "Free-form address information.": {
+    "en": "Free-form address information.",
+    "zh-hant": "自由格式的地址資料。",
+    "zh-hans": "自由格式的地址资料。"
+  },
+  "City or neighbourhood name.": {
+    "en": "City or neighbourhood name.",
+    "zh-hant": "城市或社區名稱。",
+    "zh-hans": "城市或社区名称。"
+  },
+  "Postal code.": {
+    "en": "Postal code.",
+    "zh-hant": "郵政編碼。",
+    "zh-hans": "邮政编码。"
+  },
+  "ISO 3166-2 principal subdivision code.": {
+    "en": "ISO 3166-2 principal subdivision code.",
+    "zh-hant": "ISO 3166-2 主要行政區劃代碼。",
+    "zh-hans": "ISO 3166-2 主要行政区划代码。"
+  },
+  "Operating status, not the opening status at this moment.": {
+    "en": "Operating status, not the opening status at this moment.",
+    "zh-hant": "營運狀態，並非此刻是否營業。",
+    "zh-hans": "营运状态，并非此刻是否营业。"
+  },
+  "Simplified basic-level category for the place.": {
+    "en": "Simplified basic-level category for the place.",
+    "zh-hant": "地點的簡化基本分類。",
+    "zh-hans": "地点的简化基本分类。"
+  },
+  "The place classification in the Overture taxonomy.": {
+    "en": "The place classification in the Overture taxonomy.",
+    "zh-hant": "Overture 分類系統中的地點分類。",
+    "zh-hans": "Overture 分类系统中的地点分类。"
+  },
+  "Ordered path from the most general to most specific category.": {
+    "en": "Ordered path from the most general to most specific category.",
+    "zh-hant": "由最廣泛至最具體分類的有序路徑。",
+    "zh-hans": "由最广泛至最具体分类的有序路径。"
+  },
+  "Most specific category in the taxonomy.": {
+    "en": "Most specific category in the taxonomy.",
+    "zh-hant": "分類系統中最具體的分類。",
+    "zh-hans": "分类系统中最具体的分类。"
+  },
+  "Cartographic display hints.": {
+    "en": "Cartographic display hints.",
+    "zh-hant": "地圖顯示提示。",
+    "zh-hans": "地图显示提示。"
+  },
+  "Division place type.": {
+    "en": "Division place type.",
+    "zh-hant": "區劃的地點類型。",
+    "zh-hans": "区划的地点类型。"
+  },
+  "Settlement class of the division.": {
+    "en": "Settlement class of the division.",
+    "zh-hant": "區劃的聚落分類。",
+    "zh-hans": "区划的聚落分类。"
+  },
+  "Political perspectives from which a division is viewed.": {
+    "en": "Political perspectives from which a division is viewed.",
+    "zh-hant": "檢視區劃所採用的政治立場。",
+    "zh-hans": "检视区划所采用的政治立场。"
+  },
+  "Hierarchies in which this division participates.": {
+    "en": "Hierarchies in which this division participates.",
+    "zh-hant": "此區劃所屬的層級結構。",
+    "zh-hans": "此区划所属的层级结构。"
+  },
+  "A feature ID. It may be a Global Entity Reference System (GERS) ID only when the feature is part of GERS.": {
+    "en": "A feature ID. It may be a Global Entity Reference System (GERS) ID only when the feature is part of GERS.",
+    "zh-hant": "地物識別碼。只有屬於全球實體參照系統（GERS）的地物，才可使用 GERS 識別碼。",
+    "zh-hans": "地物识别码。只有属于全球实体参照系统（GERS）的地物，才可使用 GERS 识别码。"
+  },
+  "Local norms useful to map-related use cases.": {
+    "en": "Local norms useful to map-related use cases.",
+    "zh-hant": "適用於地圖用途的當地慣例。",
+    "zh-hans": "适用于地图用途的当地惯例。"
+  },
+  "Population of the division.": {
+    "en": "Population of the division.",
+    "zh-hant": "區劃的人口。",
+    "zh-hans": "区划的人口。"
+  },
+  "IDs of the division’s capital divisions.": {
+    "en": "IDs of the division’s capital divisions.",
+    "zh-hant": "此區劃的首府區劃識別碼。",
+    "zh-hans": "此区划的首府区划识别码。"
+  },
+  "Divisions for which this division is a capital.": {
+    "en": "Divisions for which this division is a capital.",
+    "zh-hant": "以此區劃為首府的區劃。",
+    "zh-hans": "以此区划为首府的区划。"
+  },
+  "Administrative level, with 0 representing a country.": {
+    "en": "Administrative level, with 0 representing a country.",
+    "zh-hant": "行政級別，0 代表國家。",
+    "zh-hans": "行政级别，0 代表国家。"
+  },
+  "GeoJSON geometry. Overture requires Polygon or MultiPolygon for this feature type.": {
+    "en": "GeoJSON geometry. Overture requires Polygon or MultiPolygon for this feature type.",
+    "zh-hant": "GeoJSON 幾何資料。Overture 要求此地物類型使用 Polygon 或 MultiPolygon。",
+    "zh-hans": "GeoJSON 几何资料。Overture 要求此地物类型使用 Polygon 或 MultiPolygon。"
+  },
+  "Whether the geometry is land-clipped.": {
+    "en": "Whether the geometry is land-clipped.",
+    "zh-hant": "幾何是否已裁切至陸地範圍。",
+    "zh-hans": "几何是否已裁切至陆地范围。"
+  },
+  "Whether the geometry approximates the maritime boundary.": {
+    "en": "Whether the geometry approximates the maritime boundary.",
+    "zh-hant": "幾何是否近似海域邊界。",
+    "zh-hans": "几何是否近似海域边界。"
+  },
+  "GeoJSON geometry. Overture requires LineString or MultiLineString for this feature type.": {
+    "en": "GeoJSON geometry. Overture requires LineString or MultiLineString for this feature type.",
+    "zh-hant": "GeoJSON 幾何資料。Overture 要求此地物類型使用 LineString 或 MultiLineString。",
+    "zh-hans": "GeoJSON 几何资料。Overture 要求此地物类型使用 LineString 或 MultiLineString。"
+  },
+  "IDs of divisions separated by this boundary.": {
+    "en": "IDs of divisions separated by this boundary.",
+    "zh-hant": "此邊界分隔的區劃識別碼。",
+    "zh-hans": "此边界分隔的区划识别码。"
+  },
+  "Whether this is a land boundary.": {
+    "en": "Whether this is a land boundary.",
+    "zh-hant": "是否為陸地邊界。",
+    "zh-hans": "是否为陆地边界。"
+  },
+  "Whether this is a territorial boundary.": {
+    "en": "Whether this is a territorial boundary.",
+    "zh-hant": "是否為領土邊界。",
+    "zh-hans": "是否为领土边界。"
+  },
+  "Whether the boundary is disputed.": {
+    "en": "Whether the boundary is disputed.",
+    "zh-hant": "邊界是否有爭議。",
+    "zh-hans": "边界是否有争议。"
+  },
+  "Hints for displaying the division on a map.": {
+    "en": "Hints for displaying the division on a map.",
+    "zh-hant": "在地圖上顯示區劃的提示。",
+    "zh-hans": "在地图上显示区划的提示。"
+  },
+  "Minimum display zoom level.": {
+    "en": "Minimum display zoom level.",
+    "zh-hant": "顯示的最小縮放級別。",
+    "zh-hans": "显示的最小缩放级别。"
+  },
+  "Maximum display zoom level.": {
+    "en": "Maximum display zoom level.",
+    "zh-hant": "顯示的最大縮放級別。",
+    "zh-hans": "显示的最大缩放级别。"
+  },
+  "Relative cartographic prominence of the division.": {
+    "en": "Relative cartographic prominence of the division.",
+    "zh-hant": "區劃在地圖上的相對顯著程度。",
+    "zh-hans": "区划在地图上的相对显著程度。"
+  },
+  "Broad geographic category of the division.": {
+    "en": "Broad geographic category of the division.",
+    "zh-hant": "區劃的主要地理類別。",
+    "zh-hans": "区划的主要地理类别。"
+  },
+  "Specific geographic class of the division.": {
+    "en": "Specific geographic class of the division.",
+    "zh-hant": "區劃的具體地理分類。",
+    "zh-hans": "区划的具体地理分类。"
+  },
+  "Curated short code for the division, when assigned. 100% Coverage for Hong Kong and Kowloon.": {
+    "en": "Curated short code for the division, when assigned. 100% Coverage for Hong Kong and Kowloon.",
+    "zh-hant": "已編配的區劃策劃簡碼。香港及九龍的覆蓋率為 100%。",
+    "zh-hans": "已编配的区划策划简码。香港及九龙的覆盖率为 100%。"
+  },
+  "Stored ancestor paths, ordered from broadest to narrowest and excluding this division. Labels are retained from the selected release; they are not translated at request time.": {
+    "en": "Stored ancestor paths, ordered from broadest to narrowest and excluding this division. Labels are retained from the selected release; they are not translated at request time.",
+    "zh-hant": "已儲存的上層區劃路徑，由廣至細排列並排除此區劃。名稱保留自所選版本，不會於請求時翻譯。",
+    "zh-hans": "已储存的上层区划路径，由广至细排列并排除此区划。名称保留自所选版本，不会于请求时翻译。"
+  },
+  "Official administrative divisions as recognised by the HKSAR Government. Each inner array is one path.": {
+    "en": "Official administrative divisions as recognised by the HKSAR Government. Each inner array is one path.",
+    "zh-hant": "香港特別行政區政府認可的官方行政區劃。每個內層陣列代表一條路徑。",
+    "zh-hans": "香港特别行政区政府认可的官方行政区划。每个内层阵列代表一条路径。"
+  },
+  "Ancestor division identifier.": {
+    "en": "Ancestor division identifier.",
+    "zh-hant": "上層區劃識別碼。",
+    "zh-hans": "上层区划识别码。"
+  },
+  "Stored display name. The intended format is Traditional Chinese followed by English, separated by a space, omitting missing or duplicate names.": {
+    "en": "Stored display name. The intended format is Traditional Chinese followed by English, separated by a space, omitting missing or duplicate names.",
+    "zh-hant": "已儲存的顯示名稱。預定格式為繁體中文後接英文，以空格分隔，省略缺少或重複的名稱。",
+    "zh-hans": "已储存的显示名称。预定格式为繁体中文后接英文，以空格分隔，省略缺少或重复的名称。"
+  },
+  "Ancestor division class.": {
+    "en": "Ancestor division class.",
+    "zh-hant": "上層區劃分類。",
+    "zh-hans": "上层区划分类。"
+  },
+  "Whether the ancestor covers the division’s entire canonical area, including boundaries and all polygon parts. False means some area lies outside; null or absent means unknown.": {
+    "en": "Whether the ancestor covers the division’s entire canonical area, including boundaries and all polygon parts. False means some area lies outside; null or absent means unknown.",
+    "zh-hant": "上層區劃是否涵蓋此區劃的全部標準面積，包括邊界及所有多邊形部分。False 表示部分面積在外；null 或缺省表示未知。",
+    "zh-hans": "上层区划是否涵盖此区划的全部标准面积，包括边界及所有多边形部分。False 表示部分面积在外；null 或缺省表示未知。"
+  },
+  "Provides the hierarchy within a distinct settlement (city, town, rural area, village or hamlet), including its neighbourhood hierarchy. Each inner array is one path.": {
+    "en": "Provides the hierarchy within a distinct settlement (city, town, rural area, village or hamlet), including its neighbourhood hierarchy. Each inner array is one path.",
+    "zh-hant": "獨立聚落（城市、市鎮、鄉郊地區、村落或小村落）及其社區內部的層級結構。每個內層陣列代表一條路徑。",
+    "zh-hans": "独立聚落（城市、市镇、乡郊地区、村落或小村落）及其社区内部的层级结构。每个内层阵列代表一条路径。"
+  },
+  "Provides landform membership, including which island or island group a place belongs to. Currently, islands are the only recognised landforms. Each inner array is one path.": {
+    "en": "Provides landform membership, including which island or island group a place belongs to. Currently, islands are the only recognised landforms. Each inner array is one path.",
+    "zh-hant": "地形歸屬，包括所屬島嶼或島群。目前只認可島嶼地形。每個內層陣列代表一條路徑。",
+    "zh-hans": "地形归属，包括所属岛屿或岛群。目前只认可岛屿地形。每个内层阵列代表一条路径。"
+  },
+  "Combines the administrative, locality and landform hierarchies into one ordered hierarchy, placing each division at the appropriate level. It omits all city entries and the Hong Kong Island landform; other island landforms remain in the hierarchy. Each inner array is one path.": {
+    "en": "Combines the administrative, locality and landform hierarchies into one ordered hierarchy, placing each division at the appropriate level. It omits all city entries and the Hong Kong Island landform; other island landforms remain in the hierarchy. Each inner array is one path.",
+    "zh-hant": "將行政、聚落及地形層級合併為有序結構，各區劃置於相應級別。省略所有城市項目及香港島地形，保留其他島嶼地形。每個內層陣列代表一條路徑。",
+    "zh-hans": "将行政、聚落及地形层级合并为有序结构，各区划置于相应级别。省略所有城市项目及香港岛地形，保留其他岛屿地形。每个内层阵列代表一条路径。"
+  },
+  "Identifiers grouped by publisher code and camelCase identifier type, for example hkgov-landsd.geoNameId and saanseoi.sourceId.": {
+    "en": "Identifiers grouped by publisher code and camelCase identifier type, for example hkgov-landsd.geoNameId and saanseoi.sourceId.",
+    "zh-hant": "按發布者代碼及 camelCase 識別碼類型分組的識別碼，例如 hkgov-landsd.geoNameId 及 saanseoi.sourceId。",
+    "zh-hans": "按发布者代码及 camelCase 识别码类型分组的识别码，例如 hkgov-landsd.geoNameId 及 saanseoi.sourceId。"
+  },
+  "Identifier value, preserved as supplied.": {
+    "en": "Identifier value, preserved as supplied.",
+    "zh-hant": "按原樣保留的識別碼值。",
+    "zh-hans": "按原样保留的识别码值。"
+  },
+  "Hierarchy level for each division class:\n\n0: `country`, `sar`.\n\n1: `area`, `city`.\n\n2: `district`.\n\n3: `town`.\n\n4: `rural_area`, `macrohood`.\n\n5: `village`, `neighbourhood`.\n\n6: `hamlet`, `microhood`.\n\nLandforms (`major_island`, `minor_island`, `islet`, `island_group`) have no numeric level (`null`).": {
+    "en": "Hierarchy level for each division class:\n\n0: `country`, `sar`.\n\n1: `area`, `city`.\n\n2: `district`.\n\n3: `town`.\n\n4: `rural_area`, `macrohood`.\n\n5: `village`, `neighbourhood`.\n\n6: `hamlet`, `microhood`.\n\nLandforms (`major_island`, `minor_island`, `islet`, `island_group`) have no numeric level (`null`).",
+    "zh-hant": "各區劃分類的層級：0：`country`、`sar`；1：`area`、`city`；2：`district`；3：`town`；4：`rural_area`、`macrohood`；5：`village`、`neighbourhood`；6：`hamlet`、`microhood`。地形（`major_island`、`minor_island`、`islet`、`island_group`）沒有數字級別（`null`）。",
+    "zh-hans": "各区划分类的层级：0：`country`、`sar`；1：`area`、`city`；2：`district`；3：`town`；4：`rural_area`、`macrohood`；5：`village`、`neighbourhood`；6：`hamlet`、`microhood`。地形（`major_island`、`minor_island`、`islet`、`island_group`）没有数字级别（`null`）。"
+  },
+  "Memberships in geographic collections.": {
+    "en": "Memberships in geographic collections.",
+    "zh-hant": "地理集合的成員資格。",
+    "zh-hans": "地理集合的成员资格。"
+  },
+  "Geographic collection identifier.": {
+    "en": "Geographic collection identifier.",
+    "zh-hant": "地理集合識別碼。",
+    "zh-hans": "地理集合识别码。"
+  },
+  "Membership key within the collection.": {
+    "en": "Membership key within the collection.",
+    "zh-hant": "集合內的成員鍵。",
+    "zh-hans": "集合内的成员键。"
+  },
+  "Authority assigning the membership key.": {
+    "en": "Authority assigning the membership key.",
+    "zh-hant": "編配成員鍵的機構。",
+    "zh-hans": "编配成员键的机构。"
+  },
+  "Dataset establishing the membership; resolve its version from the owning release sourceReleases metadata.": {
+    "en": "Dataset establishing the membership; resolve its version from the owning release sourceReleases metadata.",
+    "zh-hant": "確立成員資格的資料集；版本由所屬發布版本的 sourceReleases 中繼資料解析。",
+    "zh-hans": "确立成员资格的资料集；版本由所属发布版本的 sourceReleases 中继资料解析。"
+  },
+  "Source record establishing the membership.": {
+    "en": "Source record establishing the membership.",
+    "zh-hant": "確立成員資格的來源記錄。",
+    "zh-hans": "确立成员资格的来源记录。"
+  },
+  "Names keyed by locale, for example en, zh-hant or zh-hans.": {
+    "en": "Names keyed by locale, for example en, zh-hant or zh-hans.",
+    "zh-hant": "以語言地區為鍵的名稱，例如 en、zh-hant 或 zh-hans。",
+    "zh-hans": "以语言地区为键的名称，例如 en、zh-hant 或 zh-hans。"
+  },
+  "Primary name in this locale.": {
+    "en": "Primary name in this locale.",
+    "zh-hant": "此語言地區的主要名稱。",
+    "zh-hans": "此语言地区的主要名称。"
+  },
+  "Other names for the same place in this language. Names are stored either as text separated by `|` or as a list.": {
+    "en": "Other names for the same place in this language. Names are stored either as text separated by `|` or as a list.",
+    "zh-hant": "此語言中同一地點的其他名稱。名稱以 `|` 分隔的文字或清單儲存。",
+    "zh-hans": "此语言中同一地点的其他名称。名称以 `|` 分隔的文字或清单储存。"
+  },
+  "Curated name values and their variant classifications.": {
+    "en": "Curated name values and their variant classifications.",
+    "zh-hant": "策劃的名稱值及其變體分類。",
+    "zh-hans": "策划的名称值及其变体分类。"
+  },
+  "Name value to which the rule applies.": {
+    "en": "Name value to which the rule applies.",
+    "zh-hant": "規則適用的名稱值。",
+    "zh-hans": "规则适用的名称值。"
+  },
+  "Name variant classification, when assigned.": {
+    "en": "Name variant classification, when assigned.",
+    "zh-hant": "已編配的名稱變體分類。",
+    "zh-hans": "已编配的名称变体分类。"
+  },
+  "Upstream publisher and dataset references for this record and its properties.": {
+    "en": "Upstream publisher and dataset references for this record and its properties.",
+    "zh-hant": "此記錄及其屬性的上游發布者及資料集參照。",
+    "zh-hans": "此记录及其属性的上游发布者及资料集参照。"
+  },
+  "Upstream publisher code.": {
+    "en": "Upstream publisher code.",
+    "zh-hant": "上游發布者代碼。",
+    "zh-hans": "上游发布者代码。"
+  },
+  "Direct publisher through which this source was inherited; omitted for direct sources.": {
+    "en": "Direct publisher through which this source was inherited; omitted for direct sources.",
+    "zh-hant": "繼承此來源所經的直接發布者；直接來源會省略此欄位。",
+    "zh-hans": "继承此来源所经的直接发布者；直接来源会省略此栏位。"
+  },
+  "Upstream dataset code.": {
+    "en": "Upstream dataset code.",
+    "zh-hant": "上游資料集代碼。",
+    "zh-hans": "上游资料集代码。"
+  },
+  "Upstream record identifier.": {
+    "en": "Upstream record identifier.",
+    "zh-hant": "上游記錄識別碼。",
+    "zh-hans": "上游记录识别码。"
+  },
+  "Publisher-supplied record version.": {
+    "en": "Publisher-supplied record version.",
+    "zh-hant": "發布者提供的記錄版本。",
+    "zh-hans": "发布者提供的记录版本。"
+  },
+  "Where this record comes from. `osm-island` is an OpenStreetMap island, islet or archipelago feature, which may be a point label or an outline. `coastline-land` is a complete land shape from the coastline data and can include mainland land. These records are source evidence, not a list of distinct islands.": {
+    "en": "Where this record comes from. `osm-island` is an OpenStreetMap island, islet or archipelago feature, which may be a point label or an outline. `coastline-land` is a complete land shape from the coastline data and can include mainland land. These records are source evidence, not a list of distinct islands.",
+    "zh-hant": "記錄的來源。`osm-island` 為 OpenStreetMap 的島嶼、小島或群島地物，可為標籤點或輪廓。`coastline-land` 為海岸線資料的完整陸地形狀，可能包含大陸陸地。這些記錄是來源證據，並非獨立島嶼清單。",
+    "zh-hans": "记录的来源。`osm-island` 为 OpenStreetMap 的岛屿、小岛或群岛地物，可为标签点或轮廓。`coastline-land` 为海岸线资料的完整陆地形状，可能包含大陆陆地。这些记录是来源证据，并非独立岛屿清单。"
+  },
+  "Names derived from explicit OpenStreetMap `name:<language>` tags, keyed by language. Each value is a name supplied by the source, not a SaanSeoi translation. Any language key may be absent; an empty object means no language-tagged names were supplied. The untagged `name` remains in `tags` without assigning it a language.": {
+    "en": "Names derived from explicit OpenStreetMap `name:<language>` tags, keyed by language. Each value is a name supplied by the source, not a SaanSeoi translation. Any language key may be absent; an empty object means no language-tagged names were supplied. The untagged `name` remains in `tags` without assigning it a language.",
+    "zh-hant": "由 OpenStreetMap 明確的 `name:<language>` 標籤取得、以語言為鍵的名稱。每個值均由來源提供，並非 SaanSeoi 翻譯。任何語言鍵均可能缺省；空物件表示沒有具語言標籤的名稱。沒有標籤的 `name` 保留於 `tags`，不會指定語言。",
+    "zh-hans": "由 OpenStreetMap 明确的 `name:<language>` 标签取得、以语言为键的名称。每个值均由来源提供，并非 SaanSeoi 翻译。任何语言键均可能缺省；空物件表示没有具语言标签的名称。没有标签的 `name` 保留于 `tags`，不会指定语言。"
+  },
+  "English name, from `name:en`.": {
+    "en": "English name, from `name:en`.",
+    "zh-hant": "來自 `name:en` 的英文名稱。",
+    "zh-hans": "来自 `name:en` 的英文名称。"
+  },
+  "Chinese name, from `name:zh`. The tag does not specify Traditional or Simplified Chinese.": {
+    "en": "Chinese name, from `name:zh`. The tag does not specify Traditional or Simplified Chinese.",
+    "zh-hant": "來自 `name:zh` 的中文名稱。標籤並未指定繁體或簡體中文。",
+    "zh-hans": "来自 `name:zh` 的中文名称。标签并未指定繁体或简体中文。"
+  },
+  "Traditional Chinese name, from `name:zh-Hant`.": {
+    "en": "Traditional Chinese name, from `name:zh-Hant`.",
+    "zh-hant": "來自 `name:zh-Hant` 的繁體中文名稱。",
+    "zh-hans": "来自 `name:zh-Hant` 的繁体中文名称。"
+  },
+  "Simplified Chinese name, from `name:zh-Hans`.": {
+    "en": "Simplified Chinese name, from `name:zh-Hans`.",
+    "zh-hant": "來自 `name:zh-Hans` 的簡體中文名稱。",
+    "zh-hans": "来自 `name:zh-Hans` 的简体中文名称。"
+  },
+  "Cantonese name, from `name:yue`. The tag does not specify a script.": {
+    "en": "Cantonese name, from `name:yue`. The tag does not specify a script.",
+    "zh-hant": "來自 `name:yue` 的粵語名稱。標籤並未指定文字系統。",
+    "zh-hans": "来自 `name:yue` 的粤语名称。标签并未指定文字系统。"
+  },
+  "Cantonese name in Traditional Chinese, from `name:yue-Hant`.": {
+    "en": "Cantonese name in Traditional Chinese, from `name:yue-Hant`.",
+    "zh-hant": "來自 `name:yue-Hant` 的繁體中文粵語名稱。",
+    "zh-hans": "来自 `name:yue-Hant` 的繁体中文粤语名称。"
+  },
+  "Cantonese name in Latin script, from `name:yue-Latn`.": {
+    "en": "Cantonese name in Latin script, from `name:yue-Latn`.",
+    "zh-hant": "來自 `name:yue-Latn` 的拉丁字母粵語名稱。",
+    "zh-hans": "来自 `name:yue-Latn` 的拉丁字母粤语名称。"
+  },
+  "A name in another language or writing system identified by its key, for example `ja` (Japanese) or `yue-Latn-jyutping` (Cantonese in Jyutping romanisation). Keys are not limited to the languages used by the SaanSeoi interface.": {
+    "en": "A name in another language or writing system identified by its key, for example `ja` (Japanese) or `yue-Latn-jyutping` (Cantonese in Jyutping romanisation). Keys are not limited to the languages used by the SaanSeoi interface.",
+    "zh-hant": "由鍵識別語言或文字系統的其他名稱，例如 `ja`（日語）或 `yue-Latn-jyutping`（粵拼）。鍵不限於 SaanSeoi 介面所用的語言。",
+    "zh-hans": "由键识别语言或文字系统的其他名称，例如 `ja`（日语）或 `yue-Latn-jyutping`（粤拼）。键不限于 SaanSeoi 介面所用的语言。"
+  },
+  "Source attributes attached to the feature, including OpenStreetMap names, classifications and reference links where supplied. Keys use the retained source-record spelling. An empty object means the feature has no retained tags.": {
+    "en": "Source attributes attached to the feature, including OpenStreetMap names, classifications and reference links where supplied. Keys use the retained source-record spelling. An empty object means the feature has no retained tags.",
+    "zh-hant": "地物的來源屬性，包括來源提供的 OpenStreetMap 名稱、分類及參照連結。鍵使用保留來源記錄的拼寫。空物件表示地物沒有保留的標籤。",
+    "zh-hans": "地物的来源属性，包括来源提供的 OpenStreetMap 名称、分类及参照连结。键使用保留来源记录的拼写。空物件表示地物没有保留的标签。"
+  },
+  "Name without an explicit language tag. Its language is not inferred.": {
+    "en": "Name without an explicit language tag. Its language is not inferred.",
+    "zh-hant": "沒有明確語言標籤的名稱，不會推斷其語言。",
+    "zh-hans": "没有明确语言标签的名称，不会推断其语言。"
+  },
+  "OpenStreetMap place classification, such as `island`, `islet` or `archipelago`.": {
+    "en": "OpenStreetMap place classification, such as `island`, `islet` or `archipelago`.",
+    "zh-hant": "OpenStreetMap 地點分類，例如 `island`、`islet` 或 `archipelago`。",
+    "zh-hans": "OpenStreetMap 地点分类，例如 `island`、`islet` 或 `archipelago`。"
+  },
+  "Source tag value. Tag availability varies between features; numeric-looking values remain text.": {
+    "en": "Source tag value. Tag availability varies between features; numeric-looking values remain text.",
+    "zh-hant": "來源標籤值。不同地物的標籤可能不同；看似數字的值仍以文字保留。",
+    "zh-hans": "来源标签值。不同地物的标签可能不同；看似数字的值仍以文字保留。"
+  },
+  "Identifier of the division represented by this geometry.": {
+    "en": "Identifier of the division represented by this geometry.",
+    "zh-hant": "此幾何所代表的區劃識別碼。",
+    "zh-hans": "此几何所代表的区划识别码。"
+  },
+  "Whether the geometry represents land, when known. Values are booleans; null or absent means unknown.": {
+    "en": "Whether the geometry represents land, when known. Values are booleans; null or absent means unknown.",
+    "zh-hant": "幾何是否代表陸地（如已知）。值為布林值；null 或缺省表示未知。",
+    "zh-hans": "几何是否代表陆地（如已知）。值为布林值；null 或缺省表示未知。"
+  },
+  "Geographic bounding box [west, south, east, north] in longitude/latitude degrees.": {
+    "en": "Geographic bounding box [west, south, east, north] in longitude/latitude degrees.",
+    "zh-hant": "地理邊界框 [西、南、東、北]，以經緯度的度為單位。",
+    "zh-hans": "地理边界框 [西、南、东、北]，以经纬度的度为单位。"
+  },
+  "Whether the geometry represents the division’s territory, when known. Territorial geometry may include land and water; land-clipped geometry is not territorial. Values are booleans; null or absent means unknown.": {
+    "en": "Whether the geometry represents the division’s territory, when known. Territorial geometry may include land and water; land-clipped geometry is not territorial. Values are booleans; null or absent means unknown.",
+    "zh-hant": "幾何是否代表區劃的領土範圍（如已知）。領土幾何可包含陸地及水域；裁切至陸地的幾何不屬於領土幾何。值為布林值；null 或缺省表示未知。",
+    "zh-hans": "几何是否代表区划的领土范围（如已知）。领土几何可包含陆地及水域；裁切至陆地的几何不属于领土几何。值为布林值；null 或缺省表示未知。"
+  },
+  "Source geometry classification, for example land, maritime or mixed (land and water).": {
+    "en": "Source geometry classification, for example land, maritime or mixed (land and water).",
+    "zh-hant": "來源幾何分類，例如陸地、海域或混合（陸地及水域）。",
+    "zh-hans": "来源几何分类，例如陆地、海域或混合（陆地及水域）。"
+  },
+  "Provider and variant key for this geometry. Curated SaanSeoi geometry uses saanseoi; its land and territorial representations share this variant.": {
+    "en": "Provider and variant key for this geometry. Curated SaanSeoi geometry uses saanseoi; its land and territorial representations share this variant.",
+    "zh-hant": "此幾何的提供者及變體鍵。策劃的 SaanSeoi 幾何使用 saanseoi；其陸地及領土表示共用此變體。",
+    "zh-hans": "此几何的提供者及变体键。策划的 SaanSeoi 几何使用 saanseoi；其陆地及领土表示共用此变体。"
+  }
+}

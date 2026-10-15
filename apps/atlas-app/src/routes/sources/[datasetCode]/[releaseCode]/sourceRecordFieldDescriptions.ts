@@ -1,5 +1,8 @@
+import translations from './sourceFieldTranslations.json'
+import meanings from './sourceFieldMeanings.json'
+
 /** Publisher field meanings keyed by retained property names; the schema supplies types and nullability. */
-const planningUnitFields: Record<string, string> = {
+export const planningUnitFields: Record<string, string> = {
   ppu: 'Primary planning unit code. Identifies the primary planning unit containing this source cell.',
   spu: 'Secondary planning unit code. Identifies the secondary planning unit within the primary planning unit containing this source cell.',
   tpu: 'Tertiary planning unit code. Identifies the tertiary planning unit within the secondary planning unit containing this source cell.',
@@ -12,7 +15,7 @@ const planningUnitFields: Record<string, string> = {
 // datasets do not imply an identical definition. Types still come from retained rows.
 // References: docs/datasets/sources/hkgov-had/divisionArea.md,
 // hkgov-landsd/placeName.md and hkgov-hyd/streetNamePlate.md.
-const datasetFields: Record<string, Record<string, string>> = {
+export const datasetFields: Record<string, Record<string, string>> = {
   // C&SD simplified data specification, BG_21C and HMA_21C:
   // https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a
   'hkgov-censtatd-division-statistic-housing-market-areas-building-groups': {
@@ -67,6 +70,11 @@ const datasetFields: Record<string, Record<string, string>> = {
       'Private housing quarters classified as simple stone structures or traditional village houses.',
     qtrPhSq: 'Private housing quarters classified as staff quarters.',
     qtrPhNdq: 'Private housing quarters classified as non-domestic quarters.',
+  },
+  'hkgov-pland-division-area-new-town': {
+    newTownEn: 'Publisher New Town name in English.',
+    newTownZhHant: 'Publisher New Town name in Traditional Chinese.',
+    newTownZhHans: 'Publisher New Town name in Simplified Chinese.',
   },
   'hkgov-pland-division-new-town': {
     newTownEn: 'Publisher New Town name in English.',
@@ -138,13 +146,73 @@ const datasetFields: Record<string, Record<string, string>> = {
 export function sourceRecordFieldDescription(
   sourceReleaseCode: string,
   field: string,
+  locale = 'en',
 ): string | undefined {
+  const language = locale.toLowerCase() as 'en' | 'zh-hant' | 'zh-hans'
+  const text = (value: string | undefined) =>
+    value
+      ? ((translations as Record<string, Record<string, string>>)[value]?.[language] ??
+        value)
+      : undefined
+  if (sourceReleaseCode.startsWith('dr-hk-hkgov-censtatd-')) {
+    const common = [
+      'dc',
+      'dcEn',
+      'dcZhHant',
+      'dcClass',
+      'year',
+      'quarter',
+      'period',
+      'gmlId',
+      'estate',
+      'estateEn',
+      'estateZhHant',
+      'newtown',
+      'newtownEn',
+      'newtownZhHant',
+    ]
+    if (common.includes(field))
+      return (meanings as Record<string, Record<string, string>>)[field]?.[language]
+    if (
+      /^dr-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district-/.test(
+        sourceReleaseCode,
+      ) &&
+      field === 'lq'
+    )
+      return meanings.lq[language]
+  }
+  if (sourceReleaseCode.startsWith('dr-hk-hkgov-dpo-address-')) {
+    const suffix = field.endsWith('ZhHant')
+      ? 'ZhHant'
+      : field.endsWith('En')
+        ? 'En'
+        : ''
+    const key = suffix ? field.slice(0, -suffix.length) : field
+    const definition = (meanings as Record<string, Record<string, string>>)[key]?.[
+      language
+    ]
+    if (definition) {
+      const qualifier =
+        suffix === 'En'
+          ? { en: ' English form.', 'zh-hant': ' 英文形式。', 'zh-hans': ' 英文形式。' }
+          : suffix === 'ZhHant'
+            ? {
+                en: ' Traditional Chinese form.',
+                'zh-hant': ' 繁體中文形式。',
+                'zh-hans': ' 繁体中文形式。',
+              }
+            : null
+      return definition + (qualifier?.[language] ?? '')
+    }
+  }
+  if (sourceReleaseCode.startsWith('dr-hk-hkgov-hyd-pedestrian-street-'))
+    return (meanings as Record<string, Record<string, string>>)[field]?.[language]
   for (const [dataset, fields] of Object.entries(datasetFields)) {
     if (
       sourceReleaseCode.startsWith(`dr-hk-${dataset}-`) &&
       /^\d/.test(sourceReleaseCode.slice(`dr-hk-${dataset}-`.length))
     ) {
-      return fields[field]
+      return text(fields[field])
     }
   }
   if (
@@ -152,7 +220,7 @@ export function sourceRecordFieldDescription(
       sourceReleaseCode,
     )
   ) {
-    return planningUnitFields[field]
+    return text(planningUnitFields[field])
   }
   return undefined
 }
