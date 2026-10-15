@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest'
-import { publishedIslandRows } from '/home/io/code/saanseoi/apps/basemap-viewer/src/local-review/division-areas/islandPublicationState'
+import { publishedIslandRows } from '../src/local-review/division-areas/islandPublicationState'
 
 const polygon = (x: number) => ({
   type: 'Polygon',

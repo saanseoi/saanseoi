@@ -218,7 +218,11 @@ test('escapes arbitrary HTML while preserving supported release-note tags', asyn
     ),
   )
 
-  await expect.element(screen.getByText('safe')).toHaveClass('font-mono')
+  const badge = screen
+    .getByText('safe')
+    .element()
+    .closest<HTMLSpanElement>('span.not-prose')
+  await expect.element(badge).toHaveClass('font-mono')
   await expect.element(screen.getByText(/<iframe/)).toBeVisible()
   expect(document.querySelector('iframe')).toBeNull()
 })
@@ -232,7 +236,7 @@ test('renders allowed presentational HTML in transcluded definitions', async () 
     ),
   )
 
-  await expect.element(screen.getByText('domain')).toHaveProperty('tagName', 'I')
+  await expect.element(screen.container.querySelector('i')).toHaveTextContent('domain')
   expect(screen.container.querySelector('br')).not.toBeNull()
 })
 
@@ -246,9 +250,9 @@ test('renders allowed presentational HTML in generated release notes', async () 
   )
 
   await expect
-    .element(screen.getByText('Building CSU-ID'))
-    .toHaveProperty('tagName', 'B')
-  await expect.element(screen.getByText('not')).toHaveProperty('tagName', 'U')
+    .element(screen.container.querySelector('b'))
+    .toHaveTextContent('Building CSU-ID')
+  await expect.element(screen.container.querySelector('u')).toHaveTextContent('not')
 })
 
 test('renders release-note callouts', async () => {
