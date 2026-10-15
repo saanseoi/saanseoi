@@ -524,6 +524,9 @@ async function listApiReleaseSetSources(dbBinding: D1Database) {
         INNER JOIN datasets d ON d.id = ss.datasetId
         INNER JOIN publishers p ON p.id = d.publisherId
         WHERE ss.role <> 'lookup'
+          -- Lookup bindings expose the bound dataset, rather than the
+          -- enrichment ingredients used to assemble that dataset's snapshot.
+          AND (arss.role <> 'lookup' OR ss.role = 'primary')
         ORDER BY arss.apiReleaseSetId, role, sl.resourceType, r.code
         `,
       )
