@@ -1,3 +1,4 @@
+import { defineRelations } from 'drizzle-orm'
 import type { Database } from 'bun:sqlite'
 import { drizzle } from 'drizzle-orm/bun-sqlite'
 import { captureNetSqlitePlan, type NetTablePolicy } from './netSqlitePlan.ts'
@@ -93,7 +94,9 @@ export async function captureResolvedSqlPlan<T>(input: {
             ...value,
             drizzle: drizzle({
               client: value.db,
-              schema: required(input.targets[binding], binding).schema,
+              relations: defineRelations(
+                required(input.targets[binding], binding).schema,
+              ),
               ...(required(input.targets[binding], binding).retainSql
                 ? {
                     logger: {

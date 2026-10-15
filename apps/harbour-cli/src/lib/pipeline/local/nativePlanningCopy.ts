@@ -1,3 +1,4 @@
+import { defineRelations } from 'drizzle-orm'
 import { Database } from 'bun:sqlite'
 import { createReadStream, closeSync, openSync, writeSync } from 'node:fs'
 import { mkdtemp, rm } from 'node:fs/promises'
@@ -8,7 +9,9 @@ import { drizzle } from 'drizzle-orm/bun-sqlite'
 import type { prepareNativeSqlDelivery } from './nativeSqlDelivery.ts'
 
 type Append = Parameters<Parameters<typeof prepareNativeSqlDelivery>[0]['generate']>[0]
-type PlanningDatabase = ReturnType<typeof drizzle>
+type PlanningDatabase = ReturnType<
+  typeof drizzle<ReturnType<typeof defineRelations<Record<string, unknown>>>>
+>
 
 /**
  * Run a read-after-write planner on WAL-safe copies, retaining exact generated DML.
@@ -46,7 +49,7 @@ export async function captureNativePlanningCopy<T>(input: {
       client.exec('PRAGMA foreign_keys = ON')
       databases[binding] = drizzle({
         client,
-        schema: target.schema,
+        relations: defineRelations(target.schema),
         logger: {
           logQuery(query, params) {
             if (

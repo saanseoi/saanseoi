@@ -48,9 +48,9 @@ test('only verified completed objects enter metadata and registration failure re
     sqlite.exec(
       "CREATE TRIGGER fail_registration BEFORE INSERT ON assets BEGIN SELECT RAISE(ABORT,'metadata unavailable'); END;",
     )
-    await expect(registerManagedSourceAsset(db, f.store, input)).rejects.toThrow(
-      'metadata unavailable',
-    )
+    await expect(registerManagedSourceAsset(db, f.store, input)).rejects.toMatchObject({
+      cause: expect.objectContaining({ message: 'metadata unavailable' }),
+    })
     expect(f.objects.has(metadata.assetKey)).toBe(true)
     expect(f.objects.size).toBe(2)
     expect(sqlite.query('SELECT count(*) AS n FROM assets').get()).toEqual({ n: 0 })

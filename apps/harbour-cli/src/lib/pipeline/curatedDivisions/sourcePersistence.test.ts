@@ -202,7 +202,9 @@ test('curated areas write their own SOURCE before the publication receipt comple
     )
     await expect(
       writeGeometryRows(context, 'divisionArea', [row], version),
-    ).rejects.toThrow('source write failed')
+    ).rejects.toMatchObject({
+      cause: expect.objectContaining({ message: 'source write failed' }),
+    })
     expect(
       current
         .query(

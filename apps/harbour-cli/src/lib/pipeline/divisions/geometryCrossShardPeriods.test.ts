@@ -48,7 +48,10 @@ test('year rollover closes changed and removed source periods and retains unchan
     const sources = [2025, 2026].map(year => ({
       bindingName: `DB_SOURCE_${year}`,
       year: String(year),
-      db: drizzle({ client: dbs[`DB_SOURCE_${year}`]!, schema: sourceSchema }),
+      db: drizzle({
+        client: dbs[`DB_SOURCE_${year}`]!,
+        relations: defineRelations(sourceSchema),
+      }),
     }))
     const context = (index: number) =>
       ({

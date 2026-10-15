@@ -26,7 +26,6 @@ export function createDrizzleConfig(family: DrizzleFamily) {
       },
       schema: family.schema,
       out: family.out,
-      strict: true,
       verbose: true,
     }
   }
@@ -36,7 +35,6 @@ export function createDrizzleConfig(family: DrizzleFamily) {
       dialect: 'sqlite' as const,
       schema: family.schema,
       out: family.out,
-      strict: true,
       verbose: true,
     }
   }
@@ -51,7 +49,6 @@ export function createDrizzleConfig(family: DrizzleFamily) {
     },
     schema: family.schema,
     out: family.out,
-    strict: true,
     verbose: true,
   }
 }

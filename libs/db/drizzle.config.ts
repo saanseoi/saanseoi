@@ -16,7 +16,6 @@ export default defineConfig(
         },
         schema: './src/schema/index.ts',
         out: './migrations',
-        strict: true,
         verbose: true,
       }
     : {
@@ -29,7 +28,6 @@ export default defineConfig(
         },
         schema: './src/schema/index.ts',
         out: './migrations',
-        strict: true,
         verbose: true,
       },
 )
