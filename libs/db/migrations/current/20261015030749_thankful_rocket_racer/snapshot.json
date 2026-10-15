@@ -2,9 +2,7 @@
   "version": "7",
   "dialect": "sqlite",
   "id": "857bbc56-3a60-4a5c-b4d9-cc01028a62b6",
-  "prevIds": [
-    "3de2d896-a2d5-4344-8e80-f331b05d53db"
-  ],
+  "prevIds": ["3de2d896-a2d5-4344-8e80-f331b05d53db"],
   "ddl": [
     {
       "name": "address2d",
@@ -3953,15 +3951,9 @@
       "table": "divisionGeographicMemberships"
     },
     {
-      "columns": [
-        "divisionSnapshotId",
-        "countryId"
-      ],
+      "columns": ["divisionSnapshotId", "countryId"],
       "tableTo": "divisions",
-      "columnsTo": [
-        "scopeId",
-        "id"
-      ],
+      "columnsTo": ["scopeId", "id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "nameExplicit": true,
@@ -3970,15 +3962,9 @@
       "table": "address2d"
     },
     {
-      "columns": [
-        "divisionSnapshotId",
-        "landformId"
-      ],
+      "columns": ["divisionSnapshotId", "landformId"],
       "tableTo": "divisions",
-      "columnsTo": [
-        "scopeId",
-        "id"
-      ],
+      "columnsTo": ["scopeId", "id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "nameExplicit": true,
@@ -3987,15 +3973,9 @@
       "table": "address2d"
     },
     {
-      "columns": [
-        "divisionSnapshotId",
-        "areaId"
-      ],
+      "columns": ["divisionSnapshotId", "areaId"],
       "tableTo": "divisions",
-      "columnsTo": [
-        "scopeId",
-        "id"
-      ],
+      "columnsTo": ["scopeId", "id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "nameExplicit": true,
@@ -4004,15 +3984,9 @@
       "table": "address2d"
     },
     {
-      "columns": [
-        "divisionSnapshotId",
-        "districtId"
-      ],
+      "columns": ["divisionSnapshotId", "districtId"],
       "tableTo": "divisions",
-      "columnsTo": [
-        "scopeId",
-        "id"
-      ],
+      "columnsTo": ["scopeId", "id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "nameExplicit": true,
@@ -4021,15 +3995,9 @@
       "table": "address2d"
     },
     {
-      "columns": [
-        "divisionSnapshotId",
-        "townId"
-      ],
+      "columns": ["divisionSnapshotId", "townId"],
       "tableTo": "divisions",
-      "columnsTo": [
-        "scopeId",
-        "id"
-      ],
+      "columnsTo": ["scopeId", "id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "nameExplicit": true,
@@ -4038,15 +4006,9 @@
       "table": "address2d"
     },
     {
-      "columns": [
-        "divisionSnapshotId",
-        "ruralAreaId"
-      ],
+      "columns": ["divisionSnapshotId", "ruralAreaId"],
       "tableTo": "divisions",
-      "columnsTo": [
-        "scopeId",
-        "id"
-      ],
+      "columnsTo": ["scopeId", "id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "nameExplicit": true,
@@ -4055,15 +4017,9 @@
       "table": "address2d"
     },
     {
-      "columns": [
-        "divisionSnapshotId",
-        "macrohoodId"
-      ],
+      "columns": ["divisionSnapshotId", "macrohoodId"],
       "tableTo": "divisions",
-      "columnsTo": [
-        "scopeId",
-        "id"
-      ],
+      "columnsTo": ["scopeId", "id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "nameExplicit": true,
@@ -4072,15 +4028,9 @@
       "table": "address2d"
     },
     {
-      "columns": [
-        "divisionSnapshotId",
-        "villageId"
-      ],
+      "columns": ["divisionSnapshotId", "villageId"],
       "tableTo": "divisions",
-      "columnsTo": [
-        "scopeId",
-        "id"
-      ],
+      "columnsTo": ["scopeId", "id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "nameExplicit": true,
@@ -4089,15 +4039,9 @@
       "table": "address2d"
     },
     {
-      "columns": [
-        "divisionSnapshotId",
-        "neighbourhoodId"
-      ],
+      "columns": ["divisionSnapshotId", "neighbourhoodId"],
       "tableTo": "divisions",
-      "columnsTo": [
-        "scopeId",
-        "id"
-      ],
+      "columnsTo": ["scopeId", "id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "nameExplicit": true,
@@ -4106,15 +4050,9 @@
       "table": "address2d"
     },
     {
-      "columns": [
-        "divisionSnapshotId",
-        "hamletId"
-      ],
+      "columns": ["divisionSnapshotId", "hamletId"],
       "tableTo": "divisions",
-      "columnsTo": [
-        "scopeId",
-        "id"
-      ],
+      "columnsTo": ["scopeId", "id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "nameExplicit": true,
@@ -4123,15 +4061,9 @@
       "table": "address2d"
     },
     {
-      "columns": [
-        "divisionSnapshotId",
-        "microhoodId"
-      ],
+      "columns": ["divisionSnapshotId", "microhoodId"],
       "tableTo": "divisions",
-      "columnsTo": [
-        "scopeId",
-        "id"
-      ],
+      "columnsTo": ["scopeId", "id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "nameExplicit": true,
@@ -4140,15 +4072,9 @@
       "table": "address2d"
     },
     {
-      "columns": [
-        "streetSnapshotId",
-        "streetId"
-      ],
+      "columns": ["streetSnapshotId", "streetId"],
       "tableTo": "streets",
-      "columnsTo": [
-        "scopeId",
-        "id"
-      ],
+      "columnsTo": ["scopeId", "id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "nameExplicit": true,
@@ -4157,15 +4083,9 @@
       "table": "address2d"
     },
     {
-      "columns": [
-        "scopeId",
-        "addressId"
-      ],
+      "columns": ["scopeId", "addressId"],
       "tableTo": "address2d",
-      "columnsTo": [
-        "scopeId",
-        "id"
-      ],
+      "columnsTo": ["scopeId", "id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "nameExplicit": true,
@@ -4174,15 +4094,9 @@
       "table": "address2dBuildingNumberLookup"
     },
     {
-      "columns": [
-        "scopeId",
-        "addressId"
-      ],
+      "columns": ["scopeId", "addressId"],
       "tableTo": "address2d",
-      "columnsTo": [
-        "scopeId",
-        "id"
-      ],
+      "columnsTo": ["scopeId", "id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "nameExplicit": true,
@@ -4191,15 +4105,9 @@
       "table": "address2dI18n"
     },
     {
-      "columns": [
-        "scopeId",
-        "address2dId"
-      ],
+      "columns": ["scopeId", "address2dId"],
       "tableTo": "address2d",
-      "columnsTo": [
-        "scopeId",
-        "id"
-      ],
+      "columnsTo": ["scopeId", "id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "nameExplicit": true,
@@ -4208,15 +4116,9 @@
       "table": "address3d"
     },
     {
-      "columns": [
-        "scopeId",
-        "address3dId"
-      ],
+      "columns": ["scopeId", "address3dId"],
       "tableTo": "address3d",
-      "columnsTo": [
-        "scopeId",
-        "id"
-      ],
+      "columnsTo": ["scopeId", "id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "nameExplicit": true,
@@ -4225,13 +4127,9 @@
       "table": "address3dI18n"
     },
     {
-      "columns": [
-        "divisionDefinitionSetId"
-      ],
+      "columns": ["divisionDefinitionSetId"],
       "tableTo": "placeDivisionDefinitions",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "nameExplicit": false,
@@ -4240,15 +4138,9 @@
       "table": "places"
     },
     {
-      "columns": [
-        "scopeId",
-        "id"
-      ],
+      "columns": ["scopeId", "id"],
       "tableTo": "places",
-      "columnsTo": [
-        "scopeId",
-        "id"
-      ],
+      "columnsTo": ["scopeId", "id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "nameExplicit": true,
@@ -4257,15 +4149,9 @@
       "table": "placesCells"
     },
     {
-      "columns": [
-        "scopeId",
-        "placeId"
-      ],
+      "columns": ["scopeId", "placeId"],
       "tableTo": "places",
-      "columnsTo": [
-        "scopeId",
-        "id"
-      ],
+      "columnsTo": ["scopeId", "id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "nameExplicit": true,
@@ -4274,15 +4160,9 @@
       "table": "placesI18n"
     },
     {
-      "columns": [
-        "scopeId",
-        "divisionId"
-      ],
+      "columns": ["scopeId", "divisionId"],
       "tableTo": "divisions",
-      "columnsTo": [
-        "scopeId",
-        "id"
-      ],
+      "columnsTo": ["scopeId", "id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "nameExplicit": true,
@@ -4291,15 +4171,9 @@
       "table": "divisionsI18n"
     },
     {
-      "columns": [
-        "streetScopeId",
-        "streetId"
-      ],
+      "columns": ["streetScopeId", "streetId"],
       "tableTo": "streets",
-      "columnsTo": [
-        "scopeId",
-        "id"
-      ],
+      "columnsTo": ["scopeId", "id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "nameExplicit": true,
@@ -4308,15 +4182,9 @@
       "table": "streetsAddress"
     },
     {
-      "columns": [
-        "scopeId",
-        "streetId"
-      ],
+      "columns": ["scopeId", "streetId"],
       "tableTo": "streets",
-      "columnsTo": [
-        "scopeId",
-        "id"
-      ],
+      "columnsTo": ["scopeId", "id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "nameExplicit": true,
@@ -4325,15 +4193,9 @@
       "table": "streetsI18n"
     },
     {
-      "columns": [
-        "scopeId",
-        "nameChangeId"
-      ],
+      "columns": ["scopeId", "nameChangeId"],
       "tableTo": "streetNameChanges",
-      "columnsTo": [
-        "scopeId",
-        "id"
-      ],
+      "columnsTo": ["scopeId", "id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "nameExplicit": true,
@@ -4342,15 +4204,9 @@
       "table": "streetNameChangeStreets"
     },
     {
-      "columns": [
-        "scopeId",
-        "streetId"
-      ],
+      "columns": ["scopeId", "streetId"],
       "tableTo": "streets",
-      "columnsTo": [
-        "scopeId",
-        "id"
-      ],
+      "columnsTo": ["scopeId", "id"],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "nameExplicit": true,
@@ -4359,13 +4215,9 @@
       "table": "streetNameChangeStreets"
     },
     {
-      "columns": [
-        "crosswalkId"
-      ],
+      "columns": ["crosswalkId"],
       "tableTo": "divisionGeographicCrosswalks",
-      "columnsTo": [
-        "id"
-      ],
+      "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "nameExplicit": false,
@@ -4374,400 +4226,273 @@
       "table": "divisionGeographicMemberships"
     },
     {
-      "columns": [
-        "scopeId",
-        "id"
-      ],
+      "columns": ["scopeId", "id"],
       "nameExplicit": false,
       "name": "address2d_pk",
       "entityType": "pks",
       "table": "address2d"
     },
     {
-      "columns": [
-        "scopeId",
-        "addressId",
-        "buildingNumber"
-      ],
+      "columns": ["scopeId", "addressId", "buildingNumber"],
       "nameExplicit": false,
       "name": "address2dBuildingNumberLookup_pk",
       "entityType": "pks",
       "table": "address2dBuildingNumberLookup"
     },
     {
-      "columns": [
-        "scopeId",
-        "addressId",
-        "locale"
-      ],
+      "columns": ["scopeId", "addressId", "locale"],
       "nameExplicit": false,
       "name": "address2dI18n_pk",
       "entityType": "pks",
       "table": "address2dI18n"
     },
     {
-      "columns": [
-        "scopeId",
-        "id"
-      ],
+      "columns": ["scopeId", "id"],
       "nameExplicit": false,
       "name": "address3d_pk",
       "entityType": "pks",
       "table": "address3d"
     },
     {
-      "columns": [
-        "scopeId",
-        "address3dId",
-        "locale"
-      ],
+      "columns": ["scopeId", "address3dId", "locale"],
       "nameExplicit": false,
       "name": "address3dI18n_pk",
       "entityType": "pks",
       "table": "address3dI18n"
     },
     {
-      "columns": [
-        "scopeId",
-        "id"
-      ],
+      "columns": ["scopeId", "id"],
       "nameExplicit": false,
       "name": "places_pk",
       "entityType": "pks",
       "table": "places"
     },
     {
-      "columns": [
-        "scopeId",
-        "id",
-        "h3Level",
-        "h3Cell"
-      ],
+      "columns": ["scopeId", "id", "h3Level", "h3Cell"],
       "nameExplicit": false,
       "name": "placesCells_pk",
       "entityType": "pks",
       "table": "placesCells"
     },
     {
-      "columns": [
-        "scopeId",
-        "placeId",
-        "locale"
-      ],
+      "columns": ["scopeId", "placeId", "locale"],
       "nameExplicit": false,
       "name": "placesI18n_pk",
       "entityType": "pks",
       "table": "placesI18n"
     },
     {
-      "columns": [
-        "scopeId",
-        "id"
-      ],
+      "columns": ["scopeId", "id"],
       "nameExplicit": false,
       "name": "divisions_pk",
       "entityType": "pks",
       "table": "divisions"
     },
     {
-      "columns": [
-        "scopeId",
-        "divisionId",
-        "locale"
-      ],
+      "columns": ["scopeId", "divisionId", "locale"],
       "nameExplicit": false,
       "name": "divisionsI18n_pk",
       "entityType": "pks",
       "table": "divisionsI18n"
     },
     {
-      "columns": [
-        "scopeId",
-        "id"
-      ],
+      "columns": ["scopeId", "id"],
       "nameExplicit": false,
       "name": "streets_pk",
       "entityType": "pks",
       "table": "streets"
     },
     {
-      "columns": [
-        "streetScopeId",
-        "streetId",
-        "addressSnapshotId",
-        "addressId"
-      ],
+      "columns": ["streetScopeId", "streetId", "addressSnapshotId", "addressId"],
       "nameExplicit": false,
       "name": "streetsAddress_pk",
       "entityType": "pks",
       "table": "streetsAddress"
     },
     {
-      "columns": [
-        "scopeId",
-        "streetId",
-        "locale"
-      ],
+      "columns": ["scopeId", "streetId", "locale"],
       "nameExplicit": false,
       "name": "streetsI18n_pk",
       "entityType": "pks",
       "table": "streetsI18n"
     },
     {
-      "columns": [
-        "scopeId",
-        "recordKey",
-        "streetId"
-      ],
+      "columns": ["scopeId", "recordKey", "streetId"],
       "nameExplicit": false,
       "name": "streetChangelog_pk",
       "entityType": "pks",
       "table": "streetChangelog"
     },
     {
-      "columns": [
-        "scopeId",
-        "nameChangeId",
-        "streetId",
-        "role"
-      ],
+      "columns": ["scopeId", "nameChangeId", "streetId", "role"],
       "nameExplicit": false,
       "name": "streetNameChangeStreets_pk",
       "entityType": "pks",
       "table": "streetNameChangeStreets"
     },
     {
-      "columns": [
-        "scopeId",
-        "id"
-      ],
+      "columns": ["scopeId", "id"],
       "nameExplicit": false,
       "name": "streetNameChanges_pk",
       "entityType": "pks",
       "table": "streetNameChanges"
     },
     {
-      "columns": [
-        "scopeId",
-        "streetId"
-      ],
+      "columns": ["scopeId", "streetId"],
       "nameExplicit": false,
       "name": "streetGeometry_pk",
       "entityType": "pks",
       "table": "streetGeometry"
     },
     {
-      "columns": [
-        "scopeId",
-        "id"
-      ],
+      "columns": ["scopeId", "id"],
       "nameExplicit": false,
       "name": "divisionAreas_pk",
       "entityType": "pks",
       "table": "divisionAreas"
     },
     {
-      "columns": [
-        "scopeId",
-        "id"
-      ],
+      "columns": ["scopeId", "id"],
       "nameExplicit": false,
       "name": "divisionBoundaries_pk",
       "entityType": "pks",
       "table": "divisionBoundaries"
     },
     {
-      "columns": [
-        "datasetCode",
-        "fieldName",
-        "versionHash"
-      ],
+      "columns": ["datasetCode", "fieldName", "versionHash"],
       "nameExplicit": false,
       "name": "statsFields_pk",
       "entityType": "pks",
       "table": "statsFields"
     },
     {
-      "columns": [
-        "datasetCode",
-        "fieldName",
-        "locale",
-        "versionHash"
-      ],
+      "columns": ["datasetCode", "fieldName", "locale", "versionHash"],
       "nameExplicit": false,
       "name": "statsFieldsI18n_pk",
       "entityType": "pks",
       "table": "statsFieldsI18n"
     },
     {
-      "columns": [
-        "datasetCode",
-        "measureCode",
-        "versionHash"
-      ],
+      "columns": ["datasetCode", "measureCode", "versionHash"],
       "nameExplicit": false,
       "name": "statsMeasures_pk",
       "entityType": "pks",
       "table": "statsMeasures"
     },
     {
-      "columns": [
-        "datasetCode",
-        "measureCode",
-        "locale",
-        "versionHash"
-      ],
+      "columns": ["datasetCode", "measureCode", "locale", "versionHash"],
       "nameExplicit": false,
       "name": "statsMeasuresI18n_pk",
       "entityType": "pks",
       "table": "statsMeasuresI18n"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "statsRecords_pk",
       "entityType": "pks",
       "table": "statsRecords"
     },
     {
-      "columns": [
-        "datasetCode",
-        "dimensionCode",
-        "valueCode",
-        "locale",
-        "versionHash"
-      ],
+      "columns": ["datasetCode", "dimensionCode", "valueCode", "locale", "versionHash"],
       "nameExplicit": false,
       "name": "statsValuesI18n_pk",
       "entityType": "pks",
       "table": "statsValuesI18n"
     },
     {
-      "columns": [
-        "datasetCode",
-        "referencePeriodCode"
-      ],
+      "columns": ["datasetCode", "referencePeriodCode"],
       "nameExplicit": false,
       "name": "statsPublicationState_pk",
       "entityType": "pks",
       "table": "statsPublicationState"
     },
     {
-      "columns": [
-        "crosswalkId",
-        "divisionId",
-        "geographicDivisionId"
-      ],
+      "columns": ["crosswalkId", "divisionId", "geographicDivisionId"],
       "nameExplicit": false,
       "name": "divisionGeographicMemberships_pk",
       "entityType": "pks",
       "table": "divisionGeographicMemberships"
     },
     {
-      "columns": [
-        "scopeId"
-      ],
+      "columns": ["scopeId"],
       "nameExplicit": false,
       "name": "addressPublicationState_pk",
       "table": "addressPublicationState",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "scopeId"
-      ],
+      "columns": ["scopeId"],
       "nameExplicit": false,
       "name": "addressSearchScopes_pk",
       "table": "addressSearchScopes",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "placeDivisionDefinitions_pk",
       "table": "placeDivisionDefinitions",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "scopeId"
-      ],
+      "columns": ["scopeId"],
       "nameExplicit": false,
       "name": "placeSearchScopes_pk",
       "table": "placeSearchScopes",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "scopeId"
-      ],
+      "columns": ["scopeId"],
       "nameExplicit": false,
       "name": "divisionSearchScopes_pk",
       "table": "divisionSearchScopes",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "statsDefinitionSets_pk",
       "table": "statsDefinitionSets",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "scopeId"
-      ],
+      "columns": ["scopeId"],
       "nameExplicit": false,
       "name": "divisionAreaPublicationState_pk",
       "table": "divisionAreaPublicationState",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "scopeId"
-      ],
+      "columns": ["scopeId"],
       "nameExplicit": false,
       "name": "divisionBoundaryPublicationState_pk",
       "table": "divisionBoundaryPublicationState",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "scopeId"
-      ],
+      "columns": ["scopeId"],
       "nameExplicit": false,
       "name": "divisionPublicationState_pk",
       "table": "divisionPublicationState",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "scopeId"
-      ],
+      "columns": ["scopeId"],
       "nameExplicit": false,
       "name": "placePublicationState_pk",
       "table": "placePublicationState",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "scopeId"
-      ],
+      "columns": ["scopeId"],
       "nameExplicit": false,
       "name": "streetPublicationState_pk",
       "table": "streetPublicationState",
       "entityType": "pks"
     },
     {
-      "columns": [
-        "id"
-      ],
+      "columns": ["id"],
       "nameExplicit": false,
       "name": "divisionGeographicCrosswalks_pk",
       "table": "divisionGeographicCrosswalks",
@@ -5894,54 +5619,42 @@
       "table": "divisionGeographicMemberships"
     },
     {
-      "columns": [
-        "snapshotId"
-      ],
+      "columns": ["snapshotId"],
       "nameExplicit": false,
       "name": "addressPublicationState_snapshotId_unique",
       "entityType": "uniques",
       "table": "addressPublicationState"
     },
     {
-      "columns": [
-        "snapshotId"
-      ],
+      "columns": ["snapshotId"],
       "nameExplicit": false,
       "name": "divisionAreaPublicationState_snapshotId_unique",
       "entityType": "uniques",
       "table": "divisionAreaPublicationState"
     },
     {
-      "columns": [
-        "snapshotId"
-      ],
+      "columns": ["snapshotId"],
       "nameExplicit": false,
       "name": "divisionBoundaryPublicationState_snapshotId_unique",
       "entityType": "uniques",
       "table": "divisionBoundaryPublicationState"
     },
     {
-      "columns": [
-        "snapshotId"
-      ],
+      "columns": ["snapshotId"],
       "nameExplicit": false,
       "name": "divisionPublicationState_snapshotId_unique",
       "entityType": "uniques",
       "table": "divisionPublicationState"
     },
     {
-      "columns": [
-        "snapshotId"
-      ],
+      "columns": ["snapshotId"],
       "nameExplicit": false,
       "name": "placePublicationState_snapshotId_unique",
       "entityType": "uniques",
       "table": "placePublicationState"
     },
     {
-      "columns": [
-        "snapshotId"
-      ],
+      "columns": ["snapshotId"],
       "nameExplicit": false,
       "name": "streetPublicationState_snapshotId_unique",
       "entityType": "uniques",

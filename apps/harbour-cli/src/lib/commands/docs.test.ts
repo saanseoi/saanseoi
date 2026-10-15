@@ -479,7 +479,8 @@ Publishes revision r{{ revision }}.
       '`geographic` <blue>DEFAULT</blue> <blue>THIS RELEASE</blue> — Overture geographic and administrative divisions.',
     )
     expect(rendered).toContain('`hkgov-pland-pu` — 規劃署的規劃單元及小組。')
-    expect(rendered).toContain('`hkgov-landsd` — 地政总署的聚落地名。')
+    expect(rendered).toContain('`hkgov-pland-new-town` — 规划署的新市镇分区。')
+    expect(rendered).not.toContain('`hkgov-landsd`')
     expect(rendered).not.toContain('{{domains:')
   })
 

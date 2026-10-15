@@ -1044,14 +1044,15 @@ test('mapping filenames identify API, registry domain and independent version', 
     expect(file).toBe(
       `${document.apiVersion}@${document.domainCode}-v${document.mappingVersion}.json`,
     )
-    const compositionFile = document.apiVersion.replace('-v0.1', '-comp-v1')
-    const composition = await Bun.file(
+    const apiVersion = await Bun.file(
       new URL(
-        `../../../fixtures/meta/apiCompositions/${compositionFile}.json`,
+        `../../../fixtures/meta/apiVersions/${document.apiVersion}.json`,
         import.meta.url,
       ),
     ).json()
-    expect(JSON.stringify(composition)).toContain(`"code":"${document.domainCode}"`)
+    // Retained mappings can describe domains absent from the current composition.
+    expect(apiVersion.code).toBe(document.apiVersion)
+    expect(document.domainCode).toMatch(/^[a-z][a-z0-9-]*$/)
     expect(Object.keys(document)[0]).toBe('versionHash')
   }
 })

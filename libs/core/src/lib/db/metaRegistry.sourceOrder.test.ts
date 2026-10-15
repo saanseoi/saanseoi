@@ -1,6 +1,7 @@
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { resolve } from 'node:path'
+import type { MetaDatabase } from '@repo/db'
 import { createLocalHarbourDb } from '../../testing/localDb'
 import { loadMigrationSql } from '../../testing/metaFixtures'
 import { getRegistrySource, getRegistrySourceReleaseShell } from './metaRegistry'
@@ -20,7 +21,8 @@ test('source navigation and comparisons follow source versions despite missing o
         ('2024', 'dataset', 'release-2024', '2024', NULL, 'current'),
         ('2021', 'dataset', 'release-2021', '2021', '2025-01-01', 'archived');
     `)
-    const db = createLocalHarbourDb(sqlite)
+    // These registry reads use the shared SQLite query API, without D1 batching.
+    const db = createLocalHarbourDb(sqlite) as unknown as MetaDatabase
     const shell = await getRegistrySourceReleaseShell(db, 'dataset', 'release-2022')
     const source = await getRegistrySource(db, 'dataset')
     for (const result of [shell, source]) {
