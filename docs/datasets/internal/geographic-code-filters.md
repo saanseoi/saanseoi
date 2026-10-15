@@ -137,11 +137,11 @@ projection. Positive overlaps must exceed one square metre and a source fraction
 and both Division and DivisionArea snapshot IDs. Codes remain independent of the
 relationship keys.
 
-Planning requests without the selected source/geographic crosswalk return 503.
-Statistics use their explicit planning area-companion domain and cohort; missing or
-ambiguous crosswalk selections return 503. These overlaps do not allocate population.
-`geographicReleaseSet` pins code resolution; response links retain it and the code
-filters, and `X-Geographic-Release-Set` identifies the selection.
+TPU, HMA and New Town requests without the selected source/geographic crosswalk
+return 503. Statistics use their explicit planning area-companion domain and cohort;
+missing or ambiguous crosswalk selections return 503. These overlaps do not allocate
+population. `geographicReleaseSet` pins code resolution; response links retain it and
+the code filters, and `X-Geographic-Release-Set` identifies the selection.
 
 For a local target, apply the reviewed artefact after the CURRENT migration:
 
@@ -151,14 +151,29 @@ bun apps/harbour-cli/scripts/applyGeographicCrosswalk.ts CURRENT_SQLITE_PATH OUT
 
 The importer verifies the artefact hash and policy, runs each statement in one immediate
 transaction, and checks membership counts and foreign keys. Back up the target database
-using SQLite's backup mechanism before migration or import. Registry synchronisation,
-Division publication and crosswalk import are separate operations; preparing an archive
-does not publish any of them. Verify the selected release through the public API, then
-check TPU collection counts and a cross-boundary TPU against the pinned geographic
-release. Retain the pre-operation backup for rollback; restoring it requires stopping
-writers and separately reconciling publication metadata and stored release assets.
+using SQLite's backup mechanism before migration or import. `saanseoi init:divisions`
+delivers crosswalks for all published native cohorts after Division publication. For a
+standalone backfill, run
+`saanseoi divisions:crosswalk --target local|preview|production`; it selects published
+v0.2 inventories, using exact CURRENT receipts or immutable snapshot-history replay
+without requiring an API server. It covers TPU, HMA and all four New Town cohorts,
+paired with each published SaanSeoi geographic edition. The API-based script accepts a
+source domain as its final argument for individual release pairs. Intersections and
+containment use geographic polygons, while Hong Kong grid coordinates measure areas.
+Registry synchronisation, Division publication and crosswalk delivery each have their
+own readiness checks. Verify the selected release through the public API, then check TPU
+collection counts and a cross-boundary TPU against the pinned geographic release. Retain
+the pre-operation backup for rollback; restoring it requires stopping writers and
+separately reconciling publication metadata and stored release assets.
 
 An explicit district membership takes precedence over inherited membership through a
 neighbourhood that spans districts. Geographic targets without polygons cannot acquire
 spatial TPU links; the preparation report lists this coverage limitation. A statistics
 aggregate with no matching observations retains its route's no-data response.
+
+`GET /divisions/v0.2/crosswalk?sourceReleaseSet=SOURCE_RELEASE_SET&geographicReleaseSet=GEOGRAPHIC_RELEASE_SET`
+exposes persisted overlap evidence, policy, content hash and snapshot/geometry pins.
+Narrow in either direction with `divisionId` or `geographicDivisionId`; paginate with
+`page[limit]` and `page[offset]`. An unavailable pair returns 503; an empty filtered
+result in a ready pair returns 200. Crosswalk membership includes overlaps below the
+separate 5% covered-area hierarchy threshold.

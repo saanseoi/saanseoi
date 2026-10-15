@@ -208,12 +208,14 @@ list replaces the default: use `include=none` to omit included resources, or
 permalinks pin the resolved include selection. Geography and series responses retain
 their single-field shapes.
 
-The initial C&SD District Land Area, Population and Density releases write two distinct
-layers. The source shard preserves C&SD's numeric `DC` and complete source record. The
-history shard resolves `DC` only through the reviewed C&SD numeric and HAD district-code
-bridges, then records the canonical `divisionId`, canonical `districtCode`, reference
-year and measures. This prevents a publisher identifier from being mistaken for a
-SaanSeoi district code.
+C&SD District Land Area, Population and Density observations use the shared
+`statsRecords` tables in CURRENT and HISTORY, with versioned field and measure
+definitions. The source shard preserves C&SD's numeric `DC` and complete source record.
+Canonical preparation resolves `DC` through the reviewed C&SD numeric and HAD
+district-code bridges, records `divisionId` and `geography.code`, and packs the
+reporting period's land area, population and density into `values`. HISTORY retains
+sparse `statsRecord` events for each published snapshot. Publisher identifiers remain
+distinct from SaanSeoi district codes.
 
 These curated identity mappings live in `fixtures/meta/curations/identity/`. Ingestion
 reads the version-controlled curations directly and validates their content hashes;

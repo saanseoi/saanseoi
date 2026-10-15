@@ -510,3 +510,18 @@ level: `housing-market-area` retains its null level. Values participate in canon
 content hashes and persist in CURRENT and HISTORY. The source audit shows the same
 policy table used by ingestion in `libs/db/src/divisionCartography.ts`. Publisher
 properties and native geometry remain SOURCE evidence.
+
+### Published geographic crosswalks
+
+Native polygon cohorts are paired with each published SaanSeoi geographic edition by
+`saanseoi divisions:crosswalk`, which also runs at the end of `init:divisions`. The
+crosswalk retains exact source/area snapshot pins, geometry hashes, overlap in square
+metres, whole-source-area fraction and containment. It excludes boundary-only contacts
+and numerical slivers, independently of the administrative hierarchy's 5% covered-area
+selection rule. Missing source polygons block generation. Geographic identities without
+polygons are reported and omitted from spatial membership.
+
+Consumers can inspect the measurements through `GET /divisions/v0.2/crosswalk` with
+explicit `sourceReleaseSet` and `geographicReleaseSet`, optionally narrowing by
+`divisionId` or `geographicDivisionId`. Native-domain collection requests also support
+geographic code filters through the same release-pinned memberships.

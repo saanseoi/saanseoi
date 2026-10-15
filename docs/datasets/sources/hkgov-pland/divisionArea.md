@@ -498,6 +498,14 @@ documents preparation, tolerances and atomic delivery. A new geometry release re
 new crosswalk selection. Boundary contact and sub-square-metre slivers do not imply
 membership; overlap fractions are not population weights.
 
+`saanseoi init:divisions` prepares and delivers the current-release crosswalk after
+publishing the complete geographic and planning release sets. The standalone
+`saanseoi divisions:crosswalk --target local|preview|production` command uses the same
+path for backfills. Selection uses the published v0.2 catalogue and exact CURRENT
+publication receipts. Polygon intersections and containment use geographic coordinates;
+Hong Kong grid coordinates provide metric overlap areas. Preparation reports geographic
+identities without polygons and requires every selected TPU to have a polygon.
+
 ## Processing policy ownership
 
 Native ingestion retains Planning Department properties and native source geometry.
@@ -582,3 +590,23 @@ Canonical locale rows store metadata in `meta`. See the shared
 [localisation metadata contract](../../i18n-metadata.md) for field origins, locale
 inference and verification. Source evidence remains separate from the canonical metadata
 projection.
+
+### Published geographic crosswalks
+
+Native polygon cohorts are paired with each published SaanSeoi geographic edition by
+`saanseoi divisions:crosswalk`, which also runs at the end of `init:divisions`. The
+crosswalk retains exact source/area snapshot pins, geometry hashes, overlap in square
+metres, whole-source-area fraction and containment. It excludes boundary-only contacts
+and numerical slivers, independently of the administrative hierarchy's 5% covered-area
+selection rule. Missing source polygons block generation. Geographic identities without
+polygons are reported and omitted from spatial membership.
+
+Consumers can inspect the measurements through `GET /divisions/v0.2/crosswalk` with
+explicit `sourceReleaseSet` and `geographicReleaseSet`, optionally narrowing by
+`divisionId` or `geographicDivisionId`. Native-domain collection requests also support
+geographic code filters through the same release-pinned memberships.
+
+New Town backfill and fresh initialisation cover 2006, 2011, 2016 and 2021. Each cohort
+passes through canonical hierarchy inference before hashing and is included in crosswalk
+generation. The pinned administrative geometry is a common reference for spatial
+comparison; it does not assert historical district boundaries.

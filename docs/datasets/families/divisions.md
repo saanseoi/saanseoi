@@ -2152,6 +2152,18 @@ record attribution and country cartography (`minZoom: 2`, `maxZoom: 6`,
 separate from retained native publisher geometry. Native materialisation and prepared
 SaanSeoi archives share the reviewed anchor metadata.
 
+## Current geographic crosswalk preparation
+
+After publishing the geographic and planning release sets, `saanseoi init:divisions`
+prepares the TPU-to-geographic membership crosswalk in CURRENT. It selects the current
+v0.2 SaanSeoi geographic inventory and Planning Department TPU inventory from the
+published catalogue, verifies their exact Division and DivisionArea publication
+receipts, and retains checksummed, versioned overlap relationships. The standalone
+`saanseoi divisions:crosswalk --target local|preview|production` command prepares the
+same selection for a backfill. Geographic divisions without polygons are reported; TPUs
+without polygons block delivery. Crosswalk fractions describe area coverage and do not
+allocate statistical observations.
+
 ## Native Division cartography
 
 Every ingested Division carries `cartography` with `minZoom`, `maxZoom` and
@@ -2194,3 +2206,32 @@ Locale values carry the shared [localisation metadata](../i18n-metadata.md) cont
 `meta.isLocaleInferred` records language assignment, while `meta.fields` records each
 field's origin, optional human verification and optional translator identity. Metadata
 participates in canonical content hashes and retained locale revisions.
+
+### Native-domain geographic crosswalks
+
+`init:divisions` runs `divisions:crosswalk` after publication and reconciliation. It
+pairs every published SaanSeoi geographic edition with the latest published revision of
+each TPU, Housing Market Area and New Town cohort. New Town initialisation includes
+2006, 2011, 2016 and 2021; each cohort receives inferred HKSAR → Area → District
+hierarchies during canonical preparation, using the pinned administrative reference
+rather than a historical-boundary claim.
+
+Crosswalks use exact published Division and DivisionArea snapshot IDs, source and target
+geometry hashes, HK Grid overlap area, whole-source-area fraction and independent
+containment. Boundary-only contact and numerical slivers (at most 1 m² or 1e-8 of source
+area) are excluded. The 5% covered-area hierarchy threshold does not limit crosswalk
+memberships. Fractions are spatial measurements, not population weights. Geographic
+identities without polygonal geometry are reported in the retained artefact and receive
+no invented spatial membership.
+
+`GET /divisions/v0.2/crosswalk` requires `sourceReleaseSet` and `geographicReleaseSet`.
+Optional `divisionId` and `geographicDivisionId` narrow the result in either direction.
+`page[limit]` (1–1000, default 100) and `page[offset]` provide deterministic pagination.
+The response includes selection pins, policy, content hash, total and overlap evidence.
+A missing prepared pair returns 503; a ready pair with no matching memberships returns
+200 with an empty array.
+
+The existing `filter[adminCode]`, `filter[hoodCode]`, `filter[villageCode]` and
+`filter[localityCode]` selectors also use these memberships for HMA and New Town
+collection requests. Supply `geographicReleaseSet` to pin interpretation. Source
+snapshot IDs prevent applying one cohort's or revision's crosswalk to another.

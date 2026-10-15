@@ -74,6 +74,12 @@ delivery and snapshot registration select the source shard for `2023` (the befor
 shard), retaining the full version as release provenance. The reader decompresses source
 geometry before responding and preserves its native GML shape.
 
+District land-area, population and density observations use the shared `statsRecords`,
+field-definition and measure tables in CURRENT and HISTORY. Reviewed district identity
+bridges provide `divisionId` and `geography.code`; the reporting period and packed
+`values` carry the observations. Snapshot history contains sparse `statsRecord` events,
+including deletion events, with source-release provenance.
+
 The `censtatd-source-assertion.json` rule validates prepared district assertions and
 retains publisher properties, native geometry and source references. The
 `censtatd-district-identity.json` rule consumes its authority, domain and target-cohort
