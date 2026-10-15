@@ -1455,6 +1455,7 @@ export async function getRegistrySourceReleaseShell(
         .innerJoin(metaDatasets, eq(metaSourceReleases.datasetId, metaDatasets.id))
         .where(eq(metaSourceReleases.datasetId, source.id))
         .orderBy(
+          desc(metaSourceReleases.sourceVersion),
           desc(metaSourceReleases.publicationDate),
           desc(metaSourceReleases.createdAt),
         )
@@ -1569,6 +1570,7 @@ async function queryRegistrySourceVersions(
       ),
     )
     .orderBy(
+      ...(datasetId ? [desc(metaSourceReleases.sourceVersion)] : []),
       desc(metaSourceReleases.publicationDate),
       desc(metaSourceReleases.createdAt),
     )

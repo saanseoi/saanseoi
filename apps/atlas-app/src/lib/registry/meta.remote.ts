@@ -284,6 +284,7 @@ export const getSourceReleaseContentData = query(
                 .from(metaSourceReleases)
                 .where(eq(metaSourceReleases.datasetId, version.datasetId))
                 .orderBy(
+                  desc(metaSourceReleases.sourceVersion),
                   desc(metaSourceReleases.publicationDate),
                   desc(metaSourceReleases.createdAt),
                 )
