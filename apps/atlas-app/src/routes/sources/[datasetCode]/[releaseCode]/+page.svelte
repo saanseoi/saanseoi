@@ -697,6 +697,7 @@ $effect(() => {
               <SourceRecordChanges
                 stats={selectedResource?.stats ?? version.stats}
                 family={sourceRecordFamily ?? ''}
+                sourceTheme={source.theme}
                 fromRelease={previousVersion?.code}
                 toRelease={selectedResource?.id ?? ''}
                 resourceType={selectedResource?.resourceType ?? ''}

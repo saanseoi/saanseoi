@@ -278,3 +278,90 @@ test('rejects ambiguous versions straddling an identity scan boundary', async ()
     f.db.close()
   }
 })
+
+test('summary counts district-year publisher records independently of processed geographies and page filters', async () => {
+  const f = fixture()
+  try {
+    for (let district = 1; district <= 18; district++) {
+      f.insert(`${district}:2024`, 'same', '2026-08', null, {
+        dc: district,
+        year: 2024,
+      })
+      for (const year of [2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2025])
+        f.insert(`${district}:${year}`, 'new', '2026-09', null, { dc: district, year })
+    }
+    const result = await f.request({ view: 'summary', limit: 1, type: 'removed' })
+    expect(result.summary).toEqual({
+      count: 180,
+      added_count: 162,
+      changed_count: 0,
+      removed_count: 0,
+      unchanged_count: 18,
+    })
+    expect(result.records).toEqual([])
+    expect(result.nextCursor).toBeNull()
+    expect(f.reads.some(read => read.sql.includes('properties'))).toBe(false)
+  } finally {
+    f.db.close()
+  }
+})
+
+test('summary scans all identity batches and ignores hash-only content differences', async () => {
+  const f = fixture()
+  try {
+    for (let i = 0; i < 4100; i++)
+      f.insert(String(i).padStart(5, '0'), 'same', '2026-08', null, { name: 'Same' })
+    for (const [id, oldName, newName] of [
+      ['changed', 'Before', 'After'],
+      ['hash-only', 'Same', 'Same'],
+    ]) {
+      f.insert(id!, 'old', '2026-08', '2026-09', { name: oldName })
+      f.insert(id!, 'new', '2026-09', null, { name: newName })
+    }
+    f.insert('removed', 'old', '2026-08', '2026-09', { name: 'Removed' })
+    const result = await f.request({ view: 'summary' })
+    expect(result.summary).toEqual({
+      count: 4102,
+      added_count: 0,
+      changed_count: 1,
+      removed_count: 1,
+      unchanged_count: 4101,
+    })
+    expect(f.reads.every(read => read.parameters <= 100)).toBe(true)
+    expect(
+      f.reads
+        .filter(read => read.sql.includes('properties'))
+        .flatMap(read => read.ids)
+        .sort(),
+    ).toEqual(['changed', 'changed', 'hash-only', 'hash-only'])
+  } finally {
+    f.db.close()
+  }
+})
+
+test('renamed census source identities remain additions and removals even when all district labels match', async () => {
+  const f = fixture()
+  try {
+    for (let district = 1; district <= 18; district++) {
+      const properties = { dc: district, dcEn: `District ${district}` }
+      f.insert(`DC_16BC_SDU.${district}`, 'old', '2026-08', '2026-09', properties)
+      f.insert(`DC_21C_SDU.${district}`, 'new', '2026-09', null, properties)
+    }
+    const summary = await f.request({ view: 'summary' })
+    const records = await f.request({ limit: 100 })
+    expect(summary.summary).toEqual({
+      count: 18,
+      added_count: 18,
+      changed_count: 0,
+      removed_count: 18,
+      unchanged_count: 0,
+    })
+    expect(records.records.filter(row => row.type === 'added')).toHaveLength(18)
+    expect(records.records.filter(row => row.type === 'removed')).toHaveLength(18)
+    expect(records.records.filter(row => row.type === 'changed')).toHaveLength(0)
+    expect(records.nextCursor).toBeNull()
+    expect((await f.request({ type: 'changed' })).records).toEqual([])
+  } finally {
+    f.db.close()
+  }
+})

@@ -1,5 +1,9 @@
 export const sourceRecordChangesCopy = {
   en: {
+    sourceRecords: 'Retained source records',
+    summaryLoading: 'Counting retained source records…',
+    summaryUnavailable:
+      'Source record counts are unavailable. Processed resource counts use a different unit.',
     backToTop: 'Back to top',
     record: 'Record',
     copyId: 'Copy ID',
@@ -30,6 +34,9 @@ export const sourceRecordChangesCopy = {
     noFields: 'No visible field changes.',
   },
   'zh-Hant': {
+    sourceRecords: '保留的來源記錄',
+    summaryLoading: '正在統計保留的來源記錄…',
+    summaryUnavailable: '無法取得來源記錄數量。已處理資源的統計使用不同單位。',
     backToTop: '返回頂部',
     record: '記錄',
     copyId: '複製 ID',
@@ -59,6 +66,9 @@ export const sourceRecordChangesCopy = {
     noFields: '沒有可顯示的欄位變更。',
   },
   'zh-Hans': {
+    sourceRecords: '保留的来源记录',
+    summaryLoading: '正在统计保留的来源记录…',
+    summaryUnavailable: '无法取得来源记录数量。已处理资源的统计使用不同单位。',
     backToTop: '返回顶部',
     record: '记录',
     copyId: '复制 ID',

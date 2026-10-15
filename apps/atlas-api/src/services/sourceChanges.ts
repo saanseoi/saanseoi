@@ -117,6 +117,20 @@ export async function listSourceChanges(args: {
     sourceReleaseId: to.release.sourceReleaseId,
     surface: 'source',
   })
+  if (query.view === 'summary') {
+    if (query.cursor)
+      throw new SourceChangesError(
+        422,
+        'invalid_cursor',
+        'Summary requests do not accept a cursor.',
+      )
+    return {
+      pin,
+      records: [],
+      nextCursor: null,
+      summary: await summariseComparison(from, to, args.family),
+    }
+  }
   const records: SourceChangesResponse['records'] = []
   let after = cursor?.after
   const batchSize = SOURCE_CHANGE_SCAN_SIZE
@@ -223,5 +237,91 @@ export async function listSourceChanges(args: {
             ),
           )
         : null,
+  }
+}
+
+type Resolved = NonNullable<Awaited<ReturnType<typeof resolveRecordsRequest>>>
+
+/** Count retained records, independently of projection counts and page filters. */
+async function summariseComparison(from: Resolved, to: Resolved, family: SourceFamily) {
+  const summary = {
+    count: 0,
+    added_count: 0,
+    changed_count: 0,
+    removed_count: 0,
+    unchanged_count: 0,
+  }
+  let after: string | undefined
+  const index = (rows: SourceRecordIdentity[]) => {
+    const result = new Map<string, SourceRecordIdentity>()
+    for (const row of rows) {
+      if (result.has(row.sourceRecordId))
+        throw new SourceChangesError(
+          409,
+          'ambiguous_source_identity',
+          'Multiple retained versions are active for one source record.',
+        )
+      result.set(row.sourceRecordId, row)
+    }
+    return result
+  }
+  while (true) {
+    const [oldRows, newRows] = await Promise.all([
+      readSourceChangeIdentities(from, after),
+      readSourceChangeIdentities(to, after),
+    ])
+    const end = [oldRows, newRows]
+      .filter(rows => rows.length >= SOURCE_CHANGE_SCAN_SIZE)
+      .map(rows => rows.at(-1)!.sourceRecordId)
+      .sort()[0]
+    const old = index(oldRows),
+      current = index(newRows)
+    const ids = [...new Set([...old.keys(), ...current.keys()])]
+      .sort()
+      .filter(id => !end || id <= end)
+    const changed: string[] = []
+    for (const id of ids) {
+      const left = old.get(id),
+        right = current.get(id)
+      if (right) summary.count++
+      if (!left) summary.added_count++
+      else if (!right) summary.removed_count++
+      else if (left.versionHash === right.versionHash) summary.unchanged_count++
+      else changed.push(id)
+    }
+    // Only possible semantic changes need payload reads. Ignore observation-only
+    // differences exactly as the paginated records comparison does.
+    for (let offset = 0; offset < changed.length; offset += 64) {
+      const batch = changed.slice(offset, offset + 64)
+      const [beforeRows, afterRows] = await Promise.all([
+        readSourceChangeRecords(from, batch),
+        readSourceChangeRecords(to, batch),
+      ])
+      const before = new Map(beforeRows.map(row => [row.sourceRecordId, row]))
+      const currentRows = new Map(afterRows.map(row => [row.sourceRecordId, row]))
+      for (const id of batch) {
+        const left = before.get(id),
+          right = currentRows.get(id)
+        if (
+          !left ||
+          !right ||
+          left.versionHash !== old.get(id)?.versionHash ||
+          right.versionHash !== current.get(id)?.versionHash
+        )
+          throw new SourceChangesError(
+            409,
+            'source_comparison_changed',
+            'Source records changed during comparison. Retry the request.',
+          )
+        const fields = jsonFieldDiff(
+          recordContent(toSourceRecord(left, from.release, from.entry, true, family)),
+          recordContent(toSourceRecord(right, to.release, to.entry, true, family)),
+        )
+        if (fields.length) summary.changed_count++
+        else summary.unchanged_count++
+      }
+    }
+    if (!end) return summary
+    after = ids.at(-1) ?? after
   }
 }

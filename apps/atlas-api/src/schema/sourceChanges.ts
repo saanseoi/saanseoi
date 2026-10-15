@@ -8,6 +8,7 @@ export const SourceChangesQuerySchema = z
     toRelease: z.string().min(1).max(200),
     resourceType: z.string().min(1).max(80).optional(),
     type: z.enum(['added', 'changed', 'removed']).optional(),
+    view: z.enum(['records', 'summary']).default('records'),
     limit: z.coerce.number().int().min(1).max(100).default(25),
     cursor: z.string().min(1).max(4096).optional(),
   })
@@ -21,6 +22,15 @@ const record = z.object({
   variant: z.string().optional(),
 })
 export const SourceChangesResponseSchema = z.object({
+  summary: z
+    .object({
+      count: z.number(),
+      added_count: z.number(),
+      changed_count: z.number(),
+      removed_count: z.number(),
+      unchanged_count: z.number(),
+    })
+    .optional(),
   pin: z.object({
     datasetCode: z.string(),
     resourceType: z.string(),

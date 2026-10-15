@@ -397,3 +397,46 @@ test('assembled record summaries select locale-keyed translations', () => {
   })
   expect(recordSummary(record, 'zh-Hans', 'id').name).toBe('Village')
 })
+
+test('district statistics headers pair publisher names with the reference year in every locale', () => {
+  for (const locale of ['en', 'zh-Hant', 'zh-Hans'])
+    for (const year of ['2025', 2025])
+      expect(
+        recordSummary(
+          { properties: { dcZhHant: '北區', dcEn: 'North', year } },
+          locale,
+          'record-id',
+        ).name,
+      ).toBe('北區 North - 2025')
+  expect(
+    recordSummary({ properties: { dcEn: 'North', year: '2025' } }, 'en', 'id').name,
+  ).toBe('North - 2025')
+  expect(
+    recordSummary(
+      { properties: { dcZhHant: '北區', dcEn: 'North', year: null } },
+      'en',
+      'id',
+    ).name,
+  ).toBe('北區 North')
+  expect(
+    recordSummary(
+      { properties: { dcZhHant: '北區', dcEn: 'North', year: ' ' } },
+      'en',
+      'id',
+    ).name,
+  ).toBe('北區 North')
+  expect(
+    recordSummary(
+      {
+        properties: {
+          estateZhHant: '華富邨',
+          estateEn: 'Wah Fu Estate',
+          dcEn: 'Southern',
+          year: '2021',
+        },
+      },
+      'en',
+      'id',
+    ).name,
+  ).toBe('華富邨 Wah Fu Estate')
+})

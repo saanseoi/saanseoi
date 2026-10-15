@@ -184,7 +184,7 @@ function sourceRoutesForFamily(familyDefinition: (typeof SOURCE_FAMILIES)[number
       operationId: `list${familyDefinition.label}SourceChanges${version === 'v0' ? 'V0' : 'V01'}`,
       summary: `Compare ${familyDefinition.label} Source Records`,
       description:
-        'Compare retained resource releases of the same dataset. Pass resource-release IDs or release codes. Returns added, changed and removed source records with before/after values and changed JSON fields. Observation timestamps and publisher version labels do not define content changes. The limit counts matching changes after filtering. For the records view, a short page means the comparison is exhausted; nextCursor is present only when another matching change exists.',
+        'Compare retained resource releases of the same dataset. Pass resource-release IDs or release codes. Returns added, changed and removed source records with before/after values and changed JSON fields. Observation timestamps and publisher version labels do not define content changes. The limit counts matching changes after filtering. For the records view, a short page means the comparison is exhausted; nextCursor is present only when another matching change exists. The summary view scans the complete retained comparison and returns unfiltered current-record and change counts, without record payloads or a cursor. These count publisher records, independently of processed geometry or observation counts.',
       tags: ['Sources'],
       request: { query: SourceChangesQuerySchema },
       responses: {

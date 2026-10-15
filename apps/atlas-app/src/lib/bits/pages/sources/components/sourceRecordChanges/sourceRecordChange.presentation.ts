@@ -254,6 +254,17 @@ export function recordSummary(
     ['buildingName', 'villageName', 'streetName', 'streetLocationName']
       .map(base => bilingual(props, base))
       .find(Boolean)
+  const districtName = bilingual(props, 'dc')
+  const year =
+    typeof props.year === 'number' && Number.isFinite(props.year)
+      ? String(props.year)
+      : typeof props.year === 'string'
+        ? props.year.trim()
+        : ''
+  const districtYearLabel =
+    districtName && geographyName === districtName && year
+      ? `${districtName} - ${year}`
+      : undefined
   const codes = planningCodes.join(' · ')
   const identifier = [
     ['BG', props.bg],
@@ -272,7 +283,10 @@ export function recordSummary(
       (typeof value === 'number' && Number.isFinite(value)),
   )
   return {
-    name: publisherName ?? (codes || (identifier ? identifier.join(' ') : fallback)),
+    name:
+      districtYearLabel ??
+      publisherName ??
+      (codes || (identifier ? identifier.join(' ') : fallback)),
     detail:
       planningCodes.length > 0
         ? publisherName

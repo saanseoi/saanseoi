@@ -26,6 +26,7 @@ type ResponsePage = { records: Change[]; nextCursor: string | null }
 let {
   stats,
   family,
+  sourceTheme,
   fromRelease,
   toRelease,
   resourceType,
@@ -39,6 +40,7 @@ let {
   presentation: ReleaseStatsCopy
   diff?: boolean
   family: string
+  sourceTheme?: string
   fromRelease?: string
   toRelease: string
   resourceType: string
@@ -51,11 +53,14 @@ let nextCursor = $state<string | null>(null)
 let loading = $state(false)
 let error = $state(false)
 let unavailable = $state(false)
+let sourceSummary = $state<ReleaseStat[] | null>(null)
+let summaryError = $state(false)
 let controller: AbortController | undefined
 const copy = $derived(sourceRecordChangesCopy[locale])
+const isStatisticalSource = $derived(sourceTheme === 'stats' || family === 'stats')
 const overview = $derived(
   createReleaseStatsPresentation({
-    stats,
+    stats: isStatisticalSource && fromRelease ? (sourceSummary ?? []) : stats,
     resourceType,
     isFirstRelease: !fromRelease,
     locale,
@@ -81,6 +86,39 @@ const requestUrl = $derived.by(() => {
   url.searchParams.set('resourceType', resourceType)
   if (type) url.searchParams.set('type', type)
   return url.href
+})
+// Statistical compilations retain one publisher row per geography and year;
+// their processed geometry/observation statistics describe a different unit.
+const summaryUrl = $derived.by(() => {
+  if (!isStatisticalSource || !fromRelease) return null
+  const url = new URL(requestUrl)
+  url.searchParams.delete('type')
+  url.searchParams.set('view', 'summary')
+  return url.href
+})
+$effect(() => {
+  const url = summaryUrl
+  const pending = new AbortController()
+  sourceSummary = null
+  summaryError = false
+  if (url) {
+    void fetch(url, { signal: pending.signal })
+      .then(async response => {
+        if (!response.ok) throw new Error('Source summary unavailable')
+        const result = (await response.json()) as { summary?: Record<string, number> }
+        if (!result.summary) throw new Error('Source summary unavailable')
+        if (!pending.signal.aborted)
+          sourceSummary = Object.entries(result.summary).map(([measure, value]) => ({
+            category: 'changes',
+            measure,
+            value,
+          }))
+      })
+      .catch(() => {
+        if (!pending.signal.aborted) summaryError = true
+      })
+  }
+  return () => pending.abort()
 })
 
 async function load(base: string, signal: AbortSignal, cursor: string | null) {
@@ -162,11 +200,17 @@ $effect(() => {
     <Tooltip.Provider delayDuration={200}>
       <Overview
         {overview}
-        labels={presentation.labels}
+        labels={isStatisticalSource
+          ? { ...presentation.labels, dataset: copy.sourceRecords }
+          : presentation.labels}
         onChangeSelect={fromRelease && family ? onTypeChange : undefined}
         selectedType={type}
       />
     </Tooltip.Provider>
+  {:else if summaryUrl}
+    <p class="text-caption text-foreground-alt" role="status">
+      {summaryError ? copy.summaryUnavailable : copy.summaryLoading}
+    </p>
   {/if}
   {#each records as record (record.sourceRecordId)}
     <RecordChange

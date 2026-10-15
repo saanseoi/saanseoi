@@ -176,3 +176,138 @@ test('scrolling near the end loads one batch at a time and failures require retr
     .element(screen.getByRole('button', { name: 'Load more' }))
     .not.toBeInTheDocument()
 })
+
+test('statistical compilations show retained source counts and district-year labels rather than processed area counts', async () => {
+  const fetch = vi.fn().mockImplementation(async (url: string) =>
+    new URL(url).searchParams.get('view') === 'summary'
+      ? Response.json({
+          records: [],
+          nextCursor: null,
+          summary: {
+            count: 180,
+            added_count: 162,
+            changed_count: 0,
+            removed_count: 0,
+            unchanged_count: 18,
+          },
+        })
+      : Response.json({
+          records: [
+            {
+              sourceRecordId: 'A:1',
+              type: 'added',
+              before: null,
+              after: {
+                properties: {
+                  dcZhHant: '中西區',
+                  dcEn: 'Central and Western',
+                  year: '2016',
+                },
+              },
+              fields: [],
+            },
+          ],
+          nextCursor: null,
+        }),
+  )
+  vi.stubGlobal('fetch', fetch)
+  const screen = await render(Changes, {
+    ...props,
+    family: 'divisions',
+    sourceTheme: 'stats',
+    resourceType: 'divisionArea',
+    type: undefined,
+    stats: [
+      { category: 'changes', measure: 'count', value: 18 },
+      { category: 'changes', measure: 'added_count', value: 18 },
+    ],
+  })
+  await expect
+    .element(screen.getByRole('heading', { name: '180 records' }))
+    .toBeVisible()
+  await expect
+    .element(screen.getByRole('button', { name: 'Added: 162', exact: true }))
+    .toBeVisible()
+  await expect
+    .element(
+      screen.getByRole('button', {
+        name: '中西區 Central and Western - 2016 Added',
+        exact: true,
+      }),
+    )
+    .toBeVisible()
+  await expect
+    .element(screen.getByRole('heading', { name: '18 records' }))
+    .not.toBeInTheDocument()
+  expect(fetch).toHaveBeenCalledTimes(2)
+})
+
+test('a failed source summary never substitutes a processed geometry count', async () => {
+  const fetch = vi
+    .fn()
+    .mockImplementation(async (url: string) =>
+      new URL(url).searchParams.get('view') === 'summary'
+        ? new Response(null, { status: 500 })
+        : Response.json({ records: [], nextCursor: null }),
+    )
+  vi.stubGlobal('fetch', fetch)
+  const screen = await render(Changes, { ...props, family: 'stats', stats: stats(3) })
+  await expect
+    .element(
+      screen.getByText(
+        'Source record counts are unavailable. Processed resource counts use a different unit.',
+      ),
+    )
+    .toBeVisible()
+  await expect
+    .element(screen.getByRole('heading', { name: '10 records' }))
+    .not.toBeInTheDocument()
+})
+
+test('census Areas replace processed changed counts with retained additions and removals', async () => {
+  const fetch = vi.fn().mockImplementation(async (url: string) =>
+    new URL(url).searchParams.get('view') === 'summary'
+      ? Response.json({
+          records: [],
+          nextCursor: null,
+          summary: {
+            count: 18,
+            added_count: 18,
+            changed_count: 0,
+            removed_count: 18,
+            unchanged_count: 0,
+          },
+        })
+      : Response.json({ records: [], nextCursor: null }),
+  )
+  vi.stubGlobal('fetch', fetch)
+  const screen = await render(Changes, {
+    ...props,
+    family: 'divisions',
+    sourceTheme: 'stats',
+    resourceType: 'divisionArea',
+    type: undefined,
+    stats: [
+      { category: 'changes', measure: 'count', value: 18 },
+      { category: 'changes', measure: 'added_count', value: 0 },
+      { category: 'changes', measure: 'changed_count', value: 18 },
+      { category: 'changes', measure: 'removed_count', value: 0 },
+      { category: 'changes', measure: 'unchanged_count', value: 0 },
+    ],
+  })
+  await expect
+    .element(screen.getByRole('button', { name: 'Added: 18', exact: true }))
+    .toBeVisible()
+  await expect
+    .element(screen.getByRole('button', { name: 'Removed: 18', exact: true }))
+    .toBeVisible()
+  await expect
+    .element(screen.getByRole('button', { name: 'Changed: 0', exact: true }))
+    .toBeVisible()
+  await expect
+    .element(screen.getByRole('button', { name: 'Changed: 18', exact: true }))
+    .not.toBeInTheDocument()
+  await expect
+    .element(screen.getByRole('heading', { name: '18 records', exact: true }))
+    .toBeVisible()
+})
