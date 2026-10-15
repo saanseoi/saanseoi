@@ -126,3 +126,50 @@ test('advancing a scope gates its stable rows and rejects stale predecessor toke
   ).toThrow()
   db.close()
 })
+
+test('draft geometry contributors require an acknowledged prepared token and cannot reopen publication', () => {
+  const db = database()
+  try {
+    execute(db, buildBeginPublicationSql(receipt))
+    execute(db, buildCompletePublicationSql(receipt))
+    const next = {
+      ...receipt,
+      publicationToken: 'second-contributor',
+      previous: {
+        snapshotId: receipt.snapshotId,
+        publicationToken: receipt.publicationToken,
+      },
+      allowPreparedDraftMerge: true,
+    }
+    expect(() =>
+      execute(
+        db,
+        buildBeginPublicationSql({
+          ...next,
+          previous: { ...next.previous, publicationToken: 'stale' },
+        }),
+      ),
+    ).toThrow()
+    execute(db, buildBeginPublicationSql(next))
+    execute(db, buildCompletePublicationSql(next))
+    db.exec("UPDATE divisionPublicationState SET status='current'")
+    expect(() =>
+      execute(
+        db,
+        buildBeginPublicationSql({
+          ...next,
+          publicationToken: 'third',
+          previous: {
+            snapshotId: receipt.snapshotId,
+            publicationToken: next.publicationToken,
+          },
+        }),
+      ),
+    ).toThrow()
+    expect(
+      db.query('SELECT status,publicationToken FROM divisionPublicationState').get(),
+    ).toEqual({ status: 'current', publicationToken: 'second-contributor' })
+  } finally {
+    db.close()
+  }
+})

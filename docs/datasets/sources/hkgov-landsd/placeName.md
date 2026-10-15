@@ -41,7 +41,9 @@ Source-release statistics for LandsD Place Names cover all source records, inclu
 Settlement, Hydrographic and Topographic. Record counts and class distribution come from
 the source-validity window; changes compare the preceding published source release.
 Locale completeness measures publisher-provided official names across that full
-inventory. Curated division statistics belong to the Geographic API release set.
+inventory. Curated division statistics belong to the Geographic API release set. The
+publisher release and its settlement snapshots are published as curated assembly inputs,
+without a standalone API release set or catalogue revision.
 
 ## Divisions projection
 

@@ -1,4 +1,8 @@
-import { fetchReleaseReport, type ReleaseReportRow } from '../api/reporting.ts'
+import {
+  fetchReleaseReport,
+  fetchProcessingRunReport,
+  type ReleaseReportRow,
+} from '../api/reporting.ts'
 import type { UploadTarget } from '../cli/options.ts'
 import {
   type DatasetFixture,
@@ -7,6 +11,60 @@ import {
 import type { DatasetUpdate } from './updateTypes.ts'
 
 const TARGET_RELEASE_REPORT_LIMIT = 100
+
+/** Bulk geometry assembly has completed delivery evidence before publication. */
+export async function verifyDeferredGeometryTarget(
+  target: UploadTarget,
+  dataset: DatasetFixture,
+  update: Pick<DatasetUpdate, 'version'>,
+  reads = { releases: fetchReleaseReport, runs: fetchProcessingRunReport },
+) {
+  if (dataset.theme !== 'stats' || !update.version) return false
+  const report = await reads.releases(target, {
+    datasetCode: dataset.code,
+    limit: TARGET_RELEASE_REPORT_LIMIT,
+  })
+  if (report.rows.length === TARGET_RELEASE_REPORT_LIMIT)
+    throw new Error('Deferred geometry release report may be truncated.')
+  const rows = report.rows.filter(
+    row => normaliseDatasetVersion(dataset, row.sourceVersion) === update.version,
+  )
+  const requiredTypes = dataset.resourceTypes ?? ['divisionStatistic']
+  if (!requiredTypes.every(type => rows.some(row => row.resourceType === type)))
+    return false
+  if (
+    !rows.some(
+      row =>
+        row.resourceType === 'divisionStatistic' &&
+        isPublishedTargetRelease(row.status),
+    )
+  )
+    return false
+  if (
+    rows.some(
+      row =>
+        !isPublishedTargetRelease(row.status) &&
+        !(row.resourceType === 'divisionArea' && row.status === 'processing'),
+    )
+  )
+    return false
+  const pending = rows.filter(
+    row => row.resourceType === 'divisionArea' && row.status === 'processing',
+  )
+  if (!pending.length) return false
+  for (const row of pending) {
+    const report = await reads.runs(target, {
+      resourceReleaseId: row.resourceReleaseId,
+      limit: TARGET_RELEASE_REPORT_LIMIT,
+    })
+    const latest = report.rows.find(run => run.phase === 'processDataset')
+    if (latest?.status !== 'completed' || !latest.finishedAt)
+      throw new Error(
+        `Deferred geometry ${row.releaseCode} has no completed delivery evidence.`,
+      )
+  }
+  return true
+}
 
 /**
  * A native importer exiting successfully is not publication evidence. Confirm

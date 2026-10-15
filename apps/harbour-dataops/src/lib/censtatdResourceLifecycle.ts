@@ -5,6 +5,7 @@ export type CenstatdCombinedResourceType =
 
 export function planCenstatdResourceLifecycle(
   resourceTypes: readonly CenstatdCombinedResourceType[],
+  options: { deferGeometryPublication?: boolean } = {},
 ) {
   const totals = new Map<CenstatdCombinedResourceType, number>()
   for (const type of resourceTypes) totals.set(type, (totals.get(type) ?? 0) + 1)
@@ -16,7 +17,9 @@ export function planCenstatdResourceLifecycle(
     return {
       // Multiple snapshot cohorts share one resource release. Keep it open until
       // its final cohort, then publish all snapshots attached to the release.
-      deferSourcePublish: occurrence < total,
+      deferSourcePublish:
+        occurrence < total ||
+        (type === 'divisionArea' && options.deferGeometryPublication === true),
       reuseExistingRelease: occurrence > 1,
       type,
     }

@@ -9,6 +9,8 @@ import ReleaseSamplesGroupedField from './releaseSamplesGroupedField.svelte'
 import ReleaseSamplesIdentifier from './releaseSamplesIdentifier.svelte'
 
 type Props = {
+  arrayInitialLimit?: number
+  arrayPageSize?: number
   depth?: number
   field: GroupedSampleField
   label?: string
@@ -18,6 +20,8 @@ type Props = {
 }
 
 let {
+  arrayInitialLimit,
+  arrayPageSize = 10,
   depth = 0,
   field,
   label,
@@ -26,6 +30,15 @@ let {
   selectedSampleIds = $bindable<string[] | null>(null),
 }: Props = $props()
 let expanded = $state(untrack(() => field.key !== 'geometry'))
+
+let revealedItems = $state(0)
+const visibleCount = $derived(
+  field.isArray && arrayInitialLimit !== undefined
+    ? arrayInitialLimit + revealedItems
+    : field.children.length,
+)
+const visibleChildren = $derived(field.children.slice(0, visibleCount))
+const remaining = $derived(Math.max(0, field.children.length - visibleCount))
 
 const highlightedSampleIds = $derived(selectedSampleIds ?? activeSampleIds)
 
@@ -132,15 +145,31 @@ function getTone(sampleId: string) {
   </div>
   {#if field.children.length && expanded}
     <dl class="bg-surface-container-low/60">
-      {#each field.children as child (child.key)}
+      {#each visibleChildren as child (child.key)}
         <ReleaseSamplesGroupedField
           field={child}
+          {arrayInitialLimit}
+          {arrayPageSize}
           depth={depth + 1}
           {sampleIds}
           bind:activeSampleIds
           bind:selectedSampleIds
         />
       {/each}
+      {#if remaining > 0}
+        <div class="border-t border-outline-variant/55 px-4 py-3">
+          <button
+            type="button"
+            class="rounded border border-outline-variant px-3 py-2 text-sm text-primary hover:bg-surface-container focus-visible:outline-2 focus-visible:outline-primary"
+            onclick={() => (revealedItems += arrayPageSize)}
+          >
+            Show {Math.min(arrayPageSize, remaining)} more
+            {Math.min(arrayPageSize, remaining) === 1 ? 'item' : 'items'}
+            ({remaining}
+            remaining)
+          </button>
+        </div>
+      {/if}
     </dl>
   {/if}
 </div>

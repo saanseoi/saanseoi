@@ -437,6 +437,15 @@ release set is published during that run. Where one C&SD source also publishes
 its linked `divisionStatistic` snapshots are independently selected for Statistics
 cohort bootstrap.
 
+During complete Statistics initialisation, shared annual `hkgov-censtatd` geometry
+companions remain draft across source datasets. Statistics bootstrap seals those
+prepared companions after every source has contributed, then publishes the composed
+Statistics cohorts. Housing Market Areas retain their independent publication lifecycle.
+Consecutive contributors retain earlier draft rows and acknowledge the exact completed
+preparation token. Published snapshots reject this hand-off. The updater reports these
+deliveries as prepared only after verifying a published Statistics child and a completed
+geometry processing run; publication is certified separately by bootstrap.
+
 The complete 2016 Statistics composition contains Population and Households and
 Subdivided Units. The complete 2021 composition also contains Housing Market Areas and
 Building Groups, Major Housing Estates and New Towns. Each member can supply the primary

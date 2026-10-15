@@ -3,6 +3,24 @@ import { describe, expect, test } from 'bun:test'
 import { planCenstatdResourceLifecycle } from './censtatdResourceLifecycle.ts'
 
 describe('combined C&SD resource lifecycle', () => {
+  test('bulk initialisation retains geometry drafts across sources until bootstrap', () => {
+    const steps = planCenstatdResourceLifecycle(
+      ['divisionStatistic', 'division', 'divisionArea', 'divisionArea'],
+      { deferGeometryPublication: true },
+    )
+    expect(steps.map(step => step.deferSourcePublish)).toEqual([
+      false,
+      false,
+      true,
+      true,
+    ])
+    expect(steps.map(step => step.reuseExistingRelease)).toEqual([
+      false,
+      false,
+      false,
+      true,
+    ])
+  })
   test('completes each resource independently', () => {
     expect(
       planCenstatdResourceLifecycle(['divisionStatistic', 'division', 'divisionArea']),

@@ -127,6 +127,7 @@ export async function writeGeometryRowsDurably(
   // A new snapshot revision needs a new plan even when its geometry is unchanged.
   const deliveryHash = createHash('sha256')
     .update('cross-shard-open-periods-v1\n')
+    .update('acknowledged-prepared-draft-merge-v1\n')
     .update(normalisedSha256)
     .update(JSON.stringify(retainedVersion))
     .digest('hex')
@@ -149,6 +150,7 @@ export async function writeGeometryRowsDurably(
       normalisedSha256,
       historyMembershipPolicy: 'immutable-geometry-v1',
       sourcePeriodPolicy: 'cross-shard-open-periods-v1',
+      draftMergePolicy: 'acknowledged-prepared-draft-merge-v1',
     },
   }
   const directory = sqlDeliveryPhaseDirectory(input)
@@ -164,7 +166,10 @@ export async function writeGeometryRowsDurably(
       Object.entries(targets).map(([name, target]) => [name, target.path]),
     ),
     generate: async append => {
-      const resolved = await captureResolvedSqlPlan({
+      const resolved = await captureResolvedSqlPlan<{
+        churn: Record<string, unknown>
+        currentChanges: Awaited<ReturnType<typeof writeGeometryRows>>['currentChanges']
+      }>({
         publicationTables: [
           type === 'divisionArea'
             ? 'divisionAreaPublicationState'
@@ -172,6 +177,9 @@ export async function writeGeometryRowsDurably(
         ],
         targets,
         append,
+        allowPreparedDraftMerge: (result, snapshotId) =>
+          result.currentChanges.publication?.snapshotId === snapshotId &&
+          result.currentChanges.publication.allowPreparedDraftMerge === true,
         generate: async databases => {
           const result = await writeGeometryRows(
             {

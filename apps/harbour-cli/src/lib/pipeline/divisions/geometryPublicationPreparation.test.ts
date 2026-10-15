@@ -220,3 +220,37 @@ test('identical geometry requires the matching completed receipt even when canon
     f.close()
   }
 })
+
+test('shared draft geometry merges consecutive contributors and rejects published snapshot changes', async () => {
+  const f = fixture()
+  try {
+    await writeGeometryRows(f.context, 'divisionArea', [row('first')], version)
+    f.current.exec("UPDATE divisionAreaPublicationState SET status='publishing'")
+    const nativeMeta = f.meta as unknown as { $client: Database }
+    nativeMeta.$client.exec(
+      "UPDATE snapshots SET status='draft',revision=0 WHERE id='parent'",
+    )
+    const next = {
+      ...version,
+      merge: true,
+      resourceReleaseId: 'second',
+      releaseCode: 'second',
+    }
+    await writeGeometryRows(f.context, 'divisionArea', [row('second')], next)
+    expect(
+      f.current
+        .query('SELECT id FROM divisionAreas WHERE scopeId=? ORDER BY id')
+        .all(JSON.stringify(['lineage', '2021'])),
+    ).toEqual([{ id: 'first' }, { id: 'second' }])
+    nativeMeta.$client.exec("UPDATE snapshots SET status='published' WHERE id='parent'")
+    await expect(
+      writeGeometryRows(f.context, 'divisionArea', [row('third')], {
+        ...next,
+        resourceReleaseId: 'third',
+        releaseCode: 'third',
+      }),
+    ).rejects.toThrow('require a draft snapshot')
+  } finally {
+    f.close()
+  }
+})

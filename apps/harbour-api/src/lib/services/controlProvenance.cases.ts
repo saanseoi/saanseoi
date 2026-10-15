@@ -569,7 +569,7 @@ test('requires retained processing audits for Addresses and Places before publis
   }
 })
 
-test('publishes LandsD divisions in their own API domain', async () => {
+test('publishes LandsD snapshots for curated assembly without an API release set', async () => {
   const tempDir = createTempDir()
   const dbPath = join(tempDir, 'harbour-publish-landsd-division.sqlite')
   const sqlite = initDb(dbPath)
@@ -596,26 +596,25 @@ test('publishes LandsD divisions in their own API domain', async () => {
     status: 'draft',
   })
 
+  const releaseSetsBefore = sqlite
+    .query('SELECT count(*) AS count FROM apiReleaseSets')
+    .get()
+  const cataloguesBefore = sqlite
+    .query('SELECT count(*) AS count FROM apiCatalogRevisions')
+    .get()
   const result = await handlePublishDataset(db, { resourceReleaseId })
-  if (!result.apiReleaseSetId) {
-    throw new Error(
-      'Expected the LandsD division publish result to include a release set.',
-    )
-  }
-  const releaseSet = sqlite
-    .query(
-      'SELECT r.domainCode, v.status FROM apiReleaseSets r JOIN apiVersionReleaseSets v ON v.apiReleaseSetId = r.id WHERE r.id = ?',
-    )
-    .get(result.apiReleaseSetId) as {
-    domainCode: string
-    status: string
-  }
-
+  const snapshot = sqlite
+    .query('SELECT status,revision FROM snapshots WHERE id=?')
+    .get(snapshotId)
+  const releaseSets = sqlite.query('SELECT count(*) AS count FROM apiReleaseSets').get()
+  const catalogues = sqlite
+    .query('SELECT count(*) AS count FROM apiCatalogRevisions')
+    .get()
   sqlite.close()
 
   expect(result).toMatchObject({ resourceReleaseId, snapshotId, status: 'current' })
-  expect(releaseSet).toEqual({
-    domainCode: 'hkgov-landsd',
-    status: 'current',
-  })
+  expect(result.apiReleaseSetId).toBeUndefined()
+  expect(snapshot).toEqual({ status: 'published', revision: 0 })
+  expect(releaseSets).toEqual(releaseSetsBefore)
+  expect(catalogues).toEqual(cataloguesBefore)
 })

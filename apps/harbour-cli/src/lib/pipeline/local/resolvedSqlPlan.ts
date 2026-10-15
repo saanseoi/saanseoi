@@ -57,6 +57,7 @@ export async function captureResolvedSqlPlan<T>(input: {
   publicationTables?: PublicationTable[]
   append: (target: SqlDeliveryTarget, bytes: Uint8Array, kind: 'bound') => Promise<void>
   generate: (candidates: ResolvedSqlCandidates) => Promise<T>
+  allowPreparedDraftMerge?: (result: NoInfer<T>, snapshotId: string) => boolean
   onProgress?: (phase: string) => void
 }) {
   const publications: ReturnType<typeof scopedPublicationDelivery>[] = []
@@ -159,6 +160,8 @@ export async function captureResolvedSqlPlan<T>(input: {
             publicationToken: row.publicationToken,
             timestamp: row.updatedAt,
             previous,
+            allowPreparedDraftMerge:
+              input.allowPreparedDraftMerge?.(value, row.snapshotId) === true,
           }
           const counts =
             input.targets.DB_CURRENT?.tables

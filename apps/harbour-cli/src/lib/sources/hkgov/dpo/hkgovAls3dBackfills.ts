@@ -86,12 +86,14 @@ export async function* readAls3dWithBackfills(
   rows: PreparedHkgovAlsRow[],
 ) {
   const backfills = backfillsForVersion(version)
+  const backfillCsus = new Set(backfills.map(backfill => backfill.csu))
   const seen = new Map<string, Als3dFeature[]>()
   const estates = new Set(rows.map(row => row.enEstateName))
   for await (const record of readAls3dWithHouseRetentions(file, version, rows)) {
     const csu =
       record.feature.properties.Address.PremisesAddress.BuildingCsuInformation?.CsuId
-    if (csu) seen.set(csu, [...(seen.get(csu) ?? []), record.feature])
+    if (csu && backfillCsus.has(csu))
+      seen.set(csu, [...(seen.get(csu) ?? []), record.feature])
     estates.add(
       record.feature.properties.Address.PremisesAddress.EngPremisesAddress?.EngEstate
         ?.EstateName ?? null,

@@ -30,6 +30,7 @@ import {
   metaSnapshotResourceReleases,
   or,
 } from '@repo/db'
+import { like } from 'drizzle-orm'
 import type { ReleaseSetPublication } from './releaseDiscord'
 import type {
   BootstrapStatsReleaseSetsRequest,
@@ -381,6 +382,66 @@ export async function handleBootstrapStatsReleaseSets(
 ): Promise<BootstrapStatsReleaseSetsResult> {
   return runWithTransientControlRetry(async () => {
     const regionCode = request.regionCode ?? 'hk'
+    // Shared annual geometry stays editable until every Statistics source has
+    // contributed. Seal those companions before composing the initial API sets.
+    const deferredGeometry = await db
+      .select({ id: metaResourceReleaseDetails.id })
+      .from(metaResourceReleaseDetails)
+      .innerJoin(
+        metaDatasets,
+        eq(metaResourceReleaseDetails.datasetId, metaDatasets.id),
+      )
+      .innerJoin(
+        metaSnapshotResourceReleases,
+        eq(
+          metaSnapshotResourceReleases.resourceReleaseId,
+          metaResourceReleaseDetails.id,
+        ),
+      )
+      .innerJoin(
+        metaSchema.metaSnapshots,
+        eq(metaSchema.metaSnapshots.id, metaSnapshotResourceReleases.snapshotId),
+      )
+      .innerJoin(
+        metaSchema.metaSnapshotLineages,
+        eq(
+          metaSchema.metaSnapshotLineages.id,
+          metaSchema.metaSnapshots.snapshotLineageId,
+        ),
+      )
+      .where(
+        and(
+          eq(metaDatasets.regionCode, regionCode),
+          eq(metaDatasets.theme, 'stats'),
+          like(metaDatasets.code, 'ds-hk-hkgov-censtatd-%'),
+          eq(metaResourceReleaseDetails.resourceType, 'divisionArea'),
+          or(
+            eq(metaResourceReleaseDetails.status, 'processing'),
+            and(
+              eq(metaResourceReleaseDetails.status, 'current'),
+              eq(metaSchema.metaSnapshots.status, 'draft'),
+            ),
+          ),
+          or(
+            eq(metaSchema.metaSnapshotLineages.variant, 'hkgov-censtatd'),
+            eq(metaSchema.metaSnapshotLineages.variant, 'hkgov-censtatd:simplified'),
+          ),
+        ),
+      )
+      .all()
+    for (const resourceReleaseId of new Set(
+      deferredGeometry.map(release => release.id),
+    ))
+      await handlePublishDataset(
+        db,
+        {
+          resourceReleaseId,
+          deferApiReleaseSet: true,
+          skipSnapshotCleanup: true,
+        },
+        undefined,
+        { lineageStore },
+      )
     const members = (
       await listCurrentApiCompositionMembersForType(db, 'divisionStatistic')
     ).filter(member => member.domainCode === 'government')

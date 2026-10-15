@@ -934,7 +934,6 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
       ('api-composition-divisions-v1', 'geographic', 'division', 'overture', 'primary', 1, 'exact_ref', null, 0),
       ('api-composition-divisions-v1', 'geographic', 'divisionArea', 'overture', 'geometry', 1, 'exact_ref', null, 10),
       ('api-composition-divisions-v1', 'geographic', 'divisionBoundary', 'overture', 'geometry', 1, 'exact_ref', null, 20),
-      ('api-composition-divisions-v1', 'hkgov-landsd', 'division', 'hkgov-landsd', 'primary', 1, 'exact_ref', null, 0),
       ('api-composition-places-v1', 'overture', 'place', 'overture', 'primary', 1, 'exact_ref', null, 0),
       ('api-composition-places-v1', 'overture', 'address', 'hkgov-dpo', 'lookup', 1, 'latest_at_or_before_or_earliest_after_cohort', null, 10),
       ('api-composition-places-v1', 'overture', 'address', 'overture-places', 'lookup', 1, 'exact_ref', null, 15),

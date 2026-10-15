@@ -40,13 +40,15 @@ The [versioned geocoding contract](../../geocoding.md) returns canonical structu
 addresses, explicit point-match distances, and optional division membership composed
 through an exact shared division snapshot.
 
-Address SQL preparation processes chunks of at most 4,096 rows with at most two active
-chunks through normalisation, history and current generation. Intermediate JSON stays in
-memory for the active chunks; generated SQL and sealed delivery files remain durable.
-Combined Address2D/Address3D preparation uses the complete publisher ledger as its sole
-source writer. The normaliser reads one Parquet window per SQL chunk. Historical
-comparison loads exact address, version and locale keys in parameter-bounded batches
-using the existing composite indexes.
+Address SQL preparation processes one chunk of at most 4,096 rows at a time through
+normalisation, history and current generation. Intermediate JSON stays in memory for the
+active chunk and is collected before the next window; generated SQL and sealed delivery
+files remain durable. Combined Address2D/Address3D preparation uses the complete
+publisher ledger as its sole source writer. The normaliser reads one Parquet window per
+SQL chunk. Historical comparison loads exact address, version and locale keys in
+parameter-bounded batches using the existing composite indexes. Preparation releases the
+original parsed 2D feature containers after normalisation and publisher-evidence
+capture, before constructing the combined 3D inventory.
 
 Chronological ALS ingestion runs each source release in a fresh process to bound
 retained preparation and replay memory. Each process completes publication and saves
@@ -686,9 +688,10 @@ selected division lookups and every output digest remain part of the cache contr
 Invalid TypeScript stops fingerprinting; changed runtime inputs during preparation still
 prevent sealing the checkpoint. A consistency failure identifies the changed dependency
 group so that source, processing, code and division-lookup changes can be investigated
-without weakening the seal. Local release-set reconciliation retries Harbour
-`control_unavailable` responses with a bounded delay; other structured failures stop
-ingestion.
+without weakening the seal. Preparation constructs Parquet columns in groups of 5,000
+premises and retains 3D backfill inventories only for the applicable building IDs. Local
+release-set reconciliation retries Harbour `control_unavailable` responses with a
+bounded delay; other structured failures stop ingestion.
 
 The November 2024 ALS triage is recorded in
 [`hkgov-dpo-address-november-deletion-retentions.json`](../../../../fixtures/meta/curations/hkgov-dpo-address-november-deletion-retentions.json).
@@ -1012,7 +1015,10 @@ metadata and distinct current division snapshot IDs; it does not export source o
 history shards. A missing before-image blocks reset before mutations.
 
 A successful full local database reset clears full and minimal family completion
-manifests. Failed resets and focused family resets retain their ownership state.
+manifests. Failed resets and focused family resets retain their ownership state. The
+full reset also clears the generated ALS identity-history ledger so chronological
+ingestion starts from the earliest source cohort. Authored identity decisions remain in
+their fixtures.
 
 Audit registration verifies evidence partitions individually and derives bounded search
 text without concatenating the complete ALS preparation evidence. Large non-tabular
@@ -1647,3 +1653,26 @@ Canonical events derive their producing release from their introducing snapshot'
 primary inputs. Inherited events retain that original ownership. See
 [HISTORY producer ownership](source-evidence.md#history-producer-ownership) for the
 shared contract and dataset discriminators on combined geometry snapshots.
+
+### Local identity review
+
+The development map review reads sealed ALS identity changes, compares previous and
+current evidence, and saves explicit decisions with research notes. Browser drafts and
+exports are bound to the exact review digest. The validated importer preserves existing
+identity decisions, rejects conflicts and leaves unresolved investigations blocking. See
+the
+[local identity review workflow](../sources/hkgov-dpo/address.md#local-identity-review)
+for the page and application commands.
+
+The `2024-07-31.0` identity review records distinct IDs for 88WL and Terra, while
+retaining the predecessor IDs for Fu Tip Estate Social Service Building and Lingnan
+University's amenities building. Each decision retains its exact identity pair, reviewer
+note and evidence digest.
+
+ALS SQL generation releases preparation audit copies, the input identity ledger and full
+predecessor payloads before normalising chunks. Sealed audit evidence remains available,
+and the identity ledger advances only after successful publication.
+
+The Fu Tip Estate Social Service Building and Lingnan amenities building retain their
+reviewed July 2024 predecessor IDs in subsequent retention fixtures. The identity
+decisions and retention rules must name the same canonical premises.

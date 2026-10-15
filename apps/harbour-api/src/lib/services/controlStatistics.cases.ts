@@ -183,15 +183,17 @@ test('publishes a dataset snapshot without finalising a shared source release', 
   sqlite.close()
 })
 
-test('publishes every annual snapshot attached to fallback C&SD geometry', async () => {
-  const tempDir = createTempDir()
-  const sqlite = initDb(join(tempDir, 'harbour-control-fallback-geometry.sqlite'))
-  const db = createLocalHarbourDb(sqlite)
-  const datasetId = 'dataset-censtatd-annual-district'
-  const datasetCode =
-    'ds-hk-hkgov-censtatd-division-statistic-population-households-district'
-  const resourceReleaseId = 'release-censtatd-annual-district-2026-q2-area'
-  sqlite.exec(`
+test.each([false, true])(
+  'publishes every annual fallback geometry snapshot with bootstrap deferral %s',
+  async deferred => {
+    const tempDir = createTempDir()
+    const sqlite = initDb(join(tempDir, 'harbour-control-fallback-geometry.sqlite'))
+    const db = createLocalHarbourDb(sqlite)
+    const datasetId = 'dataset-censtatd-annual-district'
+    const datasetCode =
+      'ds-hk-hkgov-censtatd-division-statistic-population-households-district'
+    const resourceReleaseId = 'release-censtatd-annual-district-2026-q2-area'
+    sqlite.exec(`
     INSERT OR IGNORE INTO publishers (id, code, versionHash, createdAt, updatedAt)
     VALUES ('publisher-hkgov-censtatd', 'hkgov-censtatd', 'vh-publisher-fallback', 1761264000000, 1761264000000);
     INSERT INTO datasets (
@@ -199,7 +201,7 @@ test('publishes every annual snapshot attached to fallback C&SD geometry', async
       theme, sourceVariant, versionHash, createdAt, updatedAt
     ) VALUES (
       '${datasetId}', 'publisher-hkgov-censtatd', '${datasetCode}', 'hk',
-      'static', 'yearly', 'divisions', 'official-statistics',
+      'static', 'yearly', 'stats', 'official-statistics',
       'vh-dataset-fallback', 1761264000000, 1761264000000
     );
     UPDATE datasets
@@ -222,36 +224,58 @@ test('publishes every annual snapshot attached to fallback C&SD geometry', async
 UPDATE sourceReleases SET datasetId = '${datasetId}', sourceVersion = '2026-Q2', cohortKey = '2026-Q2' WHERE id = '${resourceReleaseId}';
 INSERT INTO resourceReleases (id, sourceReleaseId, resourceType, code, geometryStatus, status, ingestedAt, createdAt, updatedAt) VALUES ('${resourceReleaseId}', '${resourceReleaseId}', 'divisionArea', 'dr-hk-hkgov-censtatd-annual-district-2026-q2-area', 'fallback', 'processing', '2026-09-13T00:00:00.000Z', '2026-09-13T00:00:00.000Z', '2026-09-13T00:00:00.000Z');
   `)
-  const snapshotIds: string[] = []
-  for (const cohortKey of ['2016', '2017']) {
-    for (const variant of ['hkgov-censtatd', 'hkgov-censtatd:simplified']) {
-      const snapshot = await ensureDraftSnapshotForRelease(db, 'divisionArea', {
-        cohortKey,
-        datasetCode,
-        datasetId,
-        regionCode: 'hk',
-        sourceReleaseId: resourceReleaseId,
-        variant,
-      })
-      await upsertSnapshotSource(db, snapshot.id, resourceReleaseId, 'primary')
-      snapshotIds.push(snapshot.id)
+    const snapshotIds: string[] = []
+    for (const cohortKey of ['2016', '2017']) {
+      for (const variant of ['hkgov-censtatd', 'hkgov-censtatd:simplified']) {
+        const snapshot = await ensureDraftSnapshotForRelease(db, 'divisionArea', {
+          cohortKey,
+          datasetCode,
+          datasetId,
+          regionCode: 'hk',
+          sourceReleaseId: resourceReleaseId,
+          variant,
+        })
+        await upsertSnapshotSource(db, snapshot.id, resourceReleaseId, 'primary')
+        snapshotIds.push(snapshot.id)
+      }
     }
-  }
-  seedCompletedAudits(sqlite)
+    seedCompletedAudits(sqlite)
 
-  const result = await handlePublishDataset(db, { resourceReleaseId })
+    const result = await handlePublishDataset(db, {
+      resourceReleaseId,
+      deferSourcePublish: deferred,
+    })
+    if (deferred) {
+      expect(
+        sqlite
+          .query(
+            "SELECT count(*) AS n FROM snapshots WHERE id IN (?, ?, ?, ?) AND status='draft'",
+          )
+          .get(...snapshotIds),
+      ).toEqual({ n: 4 })
+      await handleBootstrapStatsReleaseSets(db)
+    }
 
-  expect(
-    sqlite
-      .query('SELECT id, status FROM snapshots WHERE id IN (?, ?, ?, ?) ORDER BY id')
-      .all(...snapshotIds),
-  ).toEqual([...snapshotIds].sort().map(id => ({ id, status: 'published' })))
-  expect(
-    (result.metadataDelta?.snapshots ?? []).map(snapshot => snapshot.id).sort(),
-  ).toEqual([...snapshotIds].sort())
-  expect(result).toMatchObject({ status: 'current', resourceReleaseId })
-  sqlite.close()
-})
+    expect(
+      sqlite
+        .query('SELECT id, status FROM snapshots WHERE id IN (?, ?, ?, ?) ORDER BY id')
+        .all(...snapshotIds),
+    ).toEqual([...snapshotIds].sort().map(id => ({ id, status: 'published' })))
+    expect(
+      (result.metadataDelta?.snapshots ?? []).map(snapshot => snapshot.id).sort(),
+    ).toEqual(deferred ? [] : [...snapshotIds].sort())
+    expect(result).toMatchObject({
+      status: deferred ? 'processing' : 'current',
+      resourceReleaseId,
+    })
+    expect(
+      sqlite
+        .query('SELECT DISTINCT revision FROM snapshots WHERE id IN (?, ?, ?, ?)')
+        .all(...snapshotIds),
+    ).toEqual([{ revision: 0 }])
+    sqlite.close()
+  },
+)
 
 test('bootstraps one cohort-complete initial Statistics release set', async () => {
   const tempDir = createTempDir()

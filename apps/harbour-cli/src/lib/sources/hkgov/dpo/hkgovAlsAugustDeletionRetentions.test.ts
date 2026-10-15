@@ -60,9 +60,10 @@ async function sourceFeatures(dir: string) {
 
 test('review retains all 20 identities across deliveries without touching the two completed cohorts', async () => {
   let count = 0
-  for (const dir of (await readdir('data/hkgov/dpo/ALS'))
+  const deliveries = (await readdir('data/hkgov/dpo/ALS'))
     .filter(d => d.endsWith('ALS-GeoJSON'))
-    .sort()) {
+    .sort()
+  for (const dir of deliveries) {
     const version = `${dir.slice(0, 4)}-${dir.slice(4, 6)}-${dir.slice(6, 8)}.0`
     const originals = await sourceFeatures(dir)
     const originalJson = JSON.stringify(originals)
@@ -111,7 +112,7 @@ test('review retains all 20 identities across deliveries without touching the tw
     expect(terra.zhHantBuildingName).toBe('隆敍')
     count++
   }
-  expect(count).toBe(28)
+  expect(count).toBe(deliveries.filter(d => d.slice(0, 8) >= '20240821').length)
 }, 120_000)
 
 test('unreviewed returning evidence fails closed', () => {

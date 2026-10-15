@@ -201,19 +201,22 @@ export async function handlePublishDataset(
         member =>
           member.resourceType === datasetType && member.variant === datasetVariant,
       ) ?? resolveTransformMember(compositionMembers, datasetType, datasetVariant)
-    // Curated geographic divisions consume a published native baseline. That
-    // baseline is an ingestion input, not the API composition's primary member.
-    const isCuratedDivisionBaseline =
-      ['division', 'divisionArea', 'divisionBoundary'].includes(datasetType) &&
-      datasetVariant === 'overture' &&
-      !compositionMembers.some(
-        member =>
-          member.domainCode === 'geographic' &&
-          member.resourceType === 'division' &&
-          member.variant === 'overture' &&
-          member.role === 'primary',
-      )
-    if (isCuratedDivisionBaseline) {
+    // Native inputs retain published snapshots for curated assembly without
+    // creating their own API release sets.
+    const isCuratedDivisionInput =
+      (datasetType === 'division' &&
+        dataset.datasetCode === 'ds-hk-hkgov-landsd-division' &&
+        datasetVariant === 'hkgov-landsd') ||
+      (['division', 'divisionArea', 'divisionBoundary'].includes(datasetType) &&
+        datasetVariant === 'overture' &&
+        !compositionMembers.some(
+          member =>
+            member.domainCode === 'geographic' &&
+            member.resourceType === 'division' &&
+            member.variant === 'overture' &&
+            member.role === 'primary',
+        ))
+    if (isCuratedDivisionInput) {
       const snapshots = await waitForSnapshotsForRelease(
         db,
         dataset.resourceReleaseId,

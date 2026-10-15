@@ -43,7 +43,7 @@ for dataset in $datasets
         # that domain's primary and area resources together.
         set geography_args --include-geography
     end
-    init_run_step ./bin/saanseoi update --target $saanseoi_init_target \
+    SAANSEOI_INIT_DEFER_SHARED_GEOMETRY=1 init_run_step ./bin/saanseoi update --target $saanseoi_init_target \
         --dataset $dataset --download --check-now --defer-stats-release-set \
         $geography_args $continuation_args --yes
 end

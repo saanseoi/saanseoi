@@ -251,12 +251,19 @@ export async function runHkgovCenstatdStatisticsIngestCommand(
         ? (['divisionArea'] as const)
         : []),
     ])
-    const resourceLifecycle = planCenstatdResourceLifecycle([
-      ...(!geographyOnly && pendingTypes.includes('divisionStatistic')
-        ? (['divisionStatistic'] as const)
-        : []),
-      ...pendingGeographyResources,
-    ])
+    const deferGeometryPublication =
+      process.env.SAANSEOI_INIT_DEFER_SHARED_GEOMETRY === '1' &&
+      datasetCode !==
+        'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups'
+    const resourceLifecycle = planCenstatdResourceLifecycle(
+      [
+        ...(!geographyOnly && pendingTypes.includes('divisionStatistic')
+          ? (['divisionStatistic'] as const)
+          : []),
+        ...pendingGeographyResources,
+      ],
+      { deferGeometryPublication },
+    )
     let resourceLifecycleIndex = 0
     const nextResourceLifecycle = (resourceType: CenstatdCombinedResourceType) => {
       const step = resourceLifecycle[resourceLifecycleIndex]
@@ -376,7 +383,7 @@ export async function runHkgovCenstatdStatisticsIngestCommand(
           target,
           {
             allowReprocessPublished: true,
-            deferApiReleaseSet,
+            deferApiReleaseSet: deferApiReleaseSet || deferGeometryPublication,
             deferSourcePublish: lifecycle.deferSourcePublish,
             dryRun: false,
             forceUpload: true,

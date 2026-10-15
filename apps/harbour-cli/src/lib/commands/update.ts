@@ -38,7 +38,11 @@ import type {
   TargetVersionLookup,
   UpdateProcessingResult,
 } from './updateTypes.ts'
-import { fetchTargetVersions, requirePublishedTargetVersion } from './updateTargets.ts'
+import {
+  fetchTargetVersions,
+  requirePublishedTargetVersion,
+  verifyDeferredGeometryTarget,
+} from './updateTargets.ts'
 import { UpdateRow, clearResolvedPrompt, logPhaseHeading } from './updateDisplay.ts'
 import { processUpdate } from './updateProcessing.ts'
 import { runIslandCurationReview } from '../pipeline/islands/islandCuration.ts'
@@ -500,6 +504,16 @@ async function processPlannedUpdates(
         renderedUpdates.add(update)
         continue
       }
+      if (
+        options.deferStatsReleaseSet &&
+        process.env.SAANSEOI_INIT_DEFER_SHARED_GEOMETRY === '1' &&
+        update.version &&
+        (await verifyDeferredGeometryTarget(options.target, plan.dataset, update))
+      ) {
+        row.finish('PREPARED', update.version, targetVersion)
+        renderedUpdates.add(update)
+        continue
+      }
       const result = await processUpdate(update, {
         forceDownload: options.forceDownload,
         forceUpload: options.forceUpload,
@@ -526,6 +540,17 @@ async function processPlannedUpdates(
         )
       }
       if ((result === 'ingested' || result === 'uploaded') && update.version) {
+        if (
+          options.deferStatsReleaseSet &&
+          process.env.SAANSEOI_INIT_DEFER_SHARED_GEOMETRY === '1' &&
+          (await verifyDeferredGeometryTarget(options.target, plan.dataset, update))
+        ) {
+          if (update.mirroredArchive)
+            recordUpdateArchiveMirror(options.state, plan.dataset.code, update)
+          row.finish('PREPARED', update.version, targetVersion)
+          renderedUpdates.add(update)
+          continue
+        }
         const publishedVersion = requirePublishedTargetVersion(
           update,
           await fetchTargetVersions(options.target, plan.dataset),

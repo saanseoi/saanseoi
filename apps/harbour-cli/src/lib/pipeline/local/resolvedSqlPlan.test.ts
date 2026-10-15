@@ -154,3 +154,45 @@ test('large binary geometry binds as bounded SQL and replays one changed row', a
     ).toEqual(expected)
   })
 })
+
+test('resolved draft geometry hand-off survives capture and replays against the exact prepared owner', async () => {
+  await fixture(async (db, path) => {
+    db.exec("UPDATE divisionPublicationState SET status='publishing'")
+    const draft = { ...preparation, snapshotId: 'old', allowPreparedDraftMerge: true }
+    const batches: NetStatement[][] = []
+    await captureResolvedSqlPlan<typeof draft>({
+      targets: targets(path),
+      publicationTables: ['divisionPublicationState'],
+      append: async (_target, bytes) => {
+        batches.push(JSON.parse(new TextDecoder().decode(bytes)))
+      },
+      allowPreparedDraftMerge: (result, snapshotId) =>
+        result.snapshotId === snapshotId && result.allowPreparedDraftMerge,
+      generate: async candidates => {
+        const copy = currentClient(candidates)
+        copy.exec(buildBeginPublicationSql(draft))
+        copy.exec("UPDATE divisions SET name='Contributed' WHERE scopeId='scope'")
+        copy.exec(buildCompletePublicationSql(draft))
+        return draft
+      },
+    })
+    for (const batch of batches)
+      db.transaction(() => {
+        for (const statement of batch) db.query(statement.sql).run(...statement.params)
+      })()
+    expect(db.query("SELECT name FROM divisions WHERE scopeId='scope'").get()).toEqual({
+      name: 'Contributed',
+    })
+    expect(
+      db
+        .query(
+          'SELECT snapshotId,publicationToken,status FROM divisionPublicationState',
+        )
+        .get(),
+    ).toEqual({
+      snapshotId: 'old',
+      publicationToken: 'new-token',
+      status: 'publishing',
+    })
+  })
+})

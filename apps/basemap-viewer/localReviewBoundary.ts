@@ -1,7 +1,9 @@
 import type { Plugin, PreviewServer, ViteDevServer } from 'vite'
 
 export function isLocalReviewPath(value: string) {
-  return /(?:^|\/)(?:local-review|__division-review)(?:\/|$)/.test(value.split('?')[0]!)
+  return /(?:^|\/)(?:local-review|__division-review|__address-review)(?:\/|$)/.test(
+    value.split('?')[0]!,
+  )
 }
 
 /** Keep development tools out of every deployable bundle, including accidental imports. */

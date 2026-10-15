@@ -110,6 +110,11 @@ Divisions reconciliation recreates missing draft compositions from retained prim
 snapshots; geographic initialisation then restores C&SD district and area-type inputs
 and publishes complete Divisions release sets before the remaining statistics uploads.
 
+Shared C&SD annual geometry remains in draft while the launch datasets contribute their
+records. The final Statistics bootstrap publishes the complete geometry companions
+before creating the initial Statistics release sets, keeping each initial cohort at
+revision zero.
+
 API-field publication matches the exact source composition and a selected primary
 snapshot's lineage. When a cohort contains several primary Statistics datasets, its
 reviewed mapping includes the eligible lineage anchors for each member. Source-schema

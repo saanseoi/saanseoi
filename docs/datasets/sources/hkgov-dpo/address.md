@@ -47,20 +47,59 @@ ALS ingestion reuses complete prepared releases only when source contents, proce
 code, fixtures, runtime, identity history, decisions and the exact selected Division
 lookup match. Every prepared Parquet, Address3D, seal, membership and audit file is
 checksummed on reuse. Missing or altered files require preparation; dependencies changed
-during preparation prevent caching. `--no-cache-artefacts` disables this reuse.
-Completed releases are filtered before preparing their Division prerequisites. Cached
-preparation does not replace publication, predecessor-membership validation or review
-recording.
+during preparation prevent caching. `--no-cache-artefacts` disables this reuse. Original
+parsed 2D feature containers are released after their canonical rows and immutable
+publisher evidence are captured, before combined 3D preparation. Completed releases are
+filtered before preparing their Division prerequisites. Cached preparation does not
+replace publication, predecessor-membership validation or review recording.
+
+### Local identity review
+
+Prepared identity-drift cases can be reviewed at
+`http://localhost:5174/local-review/identity-changes.html?release=2024-07-31.0` while
+the basemap viewer development server is running. Set `release` to the exact prepared
+source version. The map compares previous and current coordinates, highlights changed
+address components and retains the full identity evidence. Shared coordinates use one
+labelled marker; a shared source anchor does not establish identity continuity.
+
+Each case requires an explicit identity resolution and evidence note. Drafts are saved
+in browser storage for the exact review digest. Exports include the reviewer, source
+version, identity pairs and evidence digest; importing an export with changed evidence
+fails. An investigation remains unresolved and cannot authorise ingestion.
+
+Run `bun scripts/als-identity-review.ts /path/to/export.json` to validate an export and
+prepare a proposed identity fixture. This checks the prepared Parquet and 3D inventory
+digests as well as every identity pair. Add `--write` to apply the reviewed decisions to
+`fixtures/meta/curations/hkgov-dpo-address.json`; conflicting existing decisions are
+rejected. Reviewer notes and the evidence digest stay with each new decision. Prepare
+the release again before continuing ingestion. The web endpoint is read-only and is
+available only in development.
+
+The reviewed `2024-07-31.0` identity changes give 88WL and Terra distinct identities,
+with the reviewer recording a new corporate office and a new development respectively.
+Fu Tip Estate Social Service Building and Lingnan University's amenities building retain
+their predecessor IDs. These decisions adopt the current source descriptions; they do
+not approve unrelated retirements. The exact identity pairs, reviewer notes and sealed
+evidence digest are retained in the identity fixture.
 
 Each chronological release runs in a fresh ingestion process. The coordinator waits for
 publication and the identity-history write before starting the next release, so large
-preparation and snapshot-replay heaps are released between cohorts. Child failures stop
-the sequence and preserve completed-release checkpoints. Review gates, target selection
-and final reconciliation apply across the complete sequence.
+preparation and snapshot-replay heaps are released between cohorts. Before SQL
+generation, preparation audit copies and the input identity ledger are released; the
+ledger is reloaded and advanced only after successful publication. Parent replay
+payloads are released after their compact identity/hash lookup indexes are built. Child
+failures stop the sequence and preserve completed-release checkpoints. Review gates,
+target selection and final reconciliation apply across the complete sequence.
 
-SQL normalisation reads at most 4,096 premises per Parquet window and runs at most two
-windows concurrently to bound the combined Address2D, Address3D and evidence working
-set.
+Prepared Parquet columns are constructed and written in batches of 5,000 premises,
+preserving explicit nullable string and integer types without retaining all serialised
+columns in memory. The 3D backfill reader retains feature inventories only for the
+building IDs named by applicable backfills; unrelated source occurrences stream through
+unchanged.
+
+SQL normalisation reads at most 4,096 premises per Parquet window and runs one window at
+a time. Completed chunk data is cleared and collected before the next window to bound
+the combined Address2D, Address3D and evidence working set.
 
 Large ALS withdrawal batches clear inherited locales and building-number lookup rows
 with one state scan per snapshot. Replayed parent restoration requires explicit child
@@ -1028,7 +1067,9 @@ selecting or continuing this mode.
 Official-address initialisation stores the identity-history before-image in a separate
 file beside its manifest. Keep both files for reset recovery. Completion queries release
 metadata and ready Division publication receipts; it does not export source or history
-shards. A missing before-image blocks reset before mutations.
+shards. A missing before-image blocks reset before mutations. Full local database reset
+clears the generated identity-history ledger before the next chronological ingestion.
+Authored identity decisions are retained in their fixtures.
 
 Initialisation manifest version 2 records baseline and materialised Division scope IDs.
 Scoped reset resolves owned logical Address snapshots to their physical scopes before
@@ -1734,3 +1775,7 @@ Canonical HISTORY events follow the shared
 [producer ownership contract](../../families/source-evidence.md#history-producer-ownership).
 The introducing snapshot retains its exact producing inputs; source attribution and
 field-level evidence identify the contributing publisher records.
+
+The Fu Tip Estate Social Service Building and Lingnan amenities building retain their
+reviewed July 2024 predecessor IDs in subsequent retention fixtures. The identity
+decisions and retention rules must name the same canonical premises.

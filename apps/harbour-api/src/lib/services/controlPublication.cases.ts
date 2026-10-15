@@ -464,7 +464,6 @@ test('rebuilds a published Geographic snapshot into a new API release-set revisi
 
 test.each([
   ['ds-hk-hkgov-pland-division-new-town', 'hkgov-pland-new-town'],
-  ['ds-hk-hkgov-landsd-division', 'hkgov-landsd'],
   [
     'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups',
     'hkgov-censtatd-hma',
@@ -496,7 +495,7 @@ test.each([
       sqlite
         .query(`INSERT OR IGNORE INTO apiCompositionMembers(apiCompositionId,domainCode,resourceType,variant,role,isRequired,cohortMatchingMode,priority)
       SELECT apiCompositionId,?,'division',?,'primary',1,'exact_ref',0 FROM apiCompositionMembers
-      WHERE domainCode='hkgov-landsd' AND resourceType='division' LIMIT 1`)
+      WHERE domainCode='geographic' AND resourceType='division' LIMIT 1`)
         .run(variant, variant)
       const version = variant === 'hkgov-landsd' ? '2026-06-10.0' : '2021'
       sqlite
@@ -509,7 +508,7 @@ test.each([
         sqlite
           .query(`INSERT OR IGNORE INTO apiCompositionMembers(apiCompositionId,domainCode,resourceType,variant,role,isRequired,cohortMatchingMode,priority)
         SELECT apiCompositionId,?,'divisionArea',?,'geometry',1,'exact_ref',0 FROM apiCompositionMembers
-        WHERE domainCode='hkgov-landsd' AND resourceType='division' LIMIT 1`)
+        WHERE domainCode='geographic' AND resourceType='division' LIMIT 1`)
           .run(variant, variant)
         sqlite.exec(`INSERT INTO resourceReleases(id,sourceReleaseId,resourceType,code,status)
         VALUES('native-area-release','native-source','divisionArea','native-area-resource','current')`)

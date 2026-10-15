@@ -311,6 +311,13 @@ export async function runHkgovAlsIngestCommand(
       sourceVersion,
       reviewSeal.reviewSha256,
     )
+    // The sealed audit owns preparation evidence. SQL generation reads that
+    // audit itself, so do not retain a second copy alongside predecessor state.
+    result.processingActions.length = 0
+    result.sourceDuplicateFeatureGroups.length = 0
+    result.identityEquivalentFeatureGroups.length = 0
+    history.entries.length = 0
+    Bun.gc(true)
     await runUploadCommand(
       {
         command: 'upload',
@@ -336,7 +343,6 @@ export async function runHkgovAlsIngestCommand(
         divisionCohortKey,
         forceUpload: Boolean(args.options.force),
         invocationCwd: INVOCATION_CWD,
-        processingActions: result.processingActions,
         quality: result.divisionQuality,
         printUsage,
         skipConfirm: true,
@@ -345,7 +351,12 @@ export async function runHkgovAlsIngestCommand(
       },
     )
     if (!args.options['dry-run']) {
-      history = mergeHkgovAlsIdentityHistory(history, result.identityRecords)
+      // Reload only after publication: failed uploads must not advance identity
+      // history, and the preparation ledger need not coexist with the SQL heap.
+      history = mergeHkgovAlsIdentityHistory(
+        await readHistory(historyFile),
+        result.identityRecords,
+      )
       await writeJson(historyFile, history)
     }
   }

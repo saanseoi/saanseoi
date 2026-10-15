@@ -45,7 +45,7 @@ import { createAlsAuditGuards } from './hkgovAlsAuditGuards'
 import { freezeRegisteredRule } from '../../../api/retainedRule'
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { basename, dirname, resolve } from 'node:path'
-import { parquetWriteFile } from 'hyparquet-writer'
+import { writeAlsParquet } from './hkgovAlsParquet'
 import { prepareAls3dCollections } from './hkgovAls3dPreparation'
 import {
   buildAlsMembership,
@@ -229,6 +229,7 @@ async function prepareHkgovAlsAddressParquetInternal(
     duplicateGroups: sourceDuplicateFeatureGroups,
     features: uniqueSourceFeatures,
   } = dedupeHkgovAlsSourceFeatures(sourceFeatures)
+  const uniqueSourceFeatureCount = uniqueSourceFeatures.length
   const romanNumeralBuildingNameFamilies =
     options.postProcessPremiseStructure !== false
       ? collectHkgovAlsRomanNumeralBuildingNameFamilies(
@@ -278,6 +279,11 @@ async function prepareHkgovAlsAddressParquetInternal(
       numericPhaseFamilies,
     ),
   )
+  // Publisher evidence is retained separately; release the original parsed
+  // feature containers before preparing the much larger combined 3D inventory.
+  sourceFeatures.length = 0
+  uniqueSourceFeatures.length = 0
+  Bun.gc(true)
   applyReviewedBlockDetailBackfills(rows, options.sourceVersion)
   labelAls2dBackfillRows(rows)
   applyReviewedSchoolReconciliations(rows, options.sourceVersion)
@@ -411,6 +417,7 @@ async function prepareHkgovAlsAddressParquetInternal(
     onGuardPassed: auditGuards.passed,
     membership: inventoryMembership,
   })
+  Bun.gc(true)
   assertUniquePreparedRowIds(rows)
   if (aliasOwnerIds.size) {
     rows.splice(0, rows.length, ...rows.filter(row => !aliasOwnerIds.has(row.id)))
@@ -452,10 +459,10 @@ async function prepareHkgovAlsAddressParquetInternal(
     estateComponents.applications.length + estateGaps.applications.length,
   )
   if (options.writeOutput !== false)
-    parquetWriteFile({
+    await writeAlsParquet({
       filename: outputFile,
-      rowGroupSize: 5000,
-      columnData: [
+      rows,
+      columnData: rows => [
         jsonColumn(
           'publisherSource',
           rows.map(row =>
@@ -758,6 +765,8 @@ async function prepareHkgovAlsAddressParquetInternal(
       ],
     })
 
+  // Release temporary Parquet encodings before constructing the retained audit.
+  Bun.gc(true)
   const curationApplications = [
     ...estateComponents.applications,
     ...estateGaps.applications,
@@ -835,11 +844,11 @@ async function prepareHkgovAlsAddressParquetInternal(
   return {
     membership,
     curationApplications,
-    deduplicatedFeatureCount: sourceFeatureCount - uniqueSourceFeatures.length,
+    deduplicatedFeatureCount: sourceFeatureCount - uniqueSourceFeatureCount,
     driftCandidates: drift.candidates,
     featureCount: sourceFeatureCount,
     identityConsolidatedFeatureCount:
-      uniqueSourceFeatures.length - identityDistinctRows.length,
+      uniqueSourceFeatureCount - identityDistinctRows.length,
     identityEquivalentFeatureGroups,
     resolvedIdConsolidatedFeatureCount:
       identityDistinctRows.length - resolvedIdDistinctRows.length,

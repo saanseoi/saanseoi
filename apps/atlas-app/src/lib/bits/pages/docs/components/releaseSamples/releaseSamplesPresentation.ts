@@ -1,5 +1,6 @@
 export type ReleaseSampleField = {
   key: string
+  isArray?: boolean
   previousValue?: string
   value?: string
   children?: ReleaseSampleField[]
@@ -12,6 +13,7 @@ export type AddressSample = {
 
 export type GroupedSampleField = {
   key: string
+  isArray?: boolean
   values: Array<{ sampleIds: string[]; value: string }>
   children: GroupedSampleField[]
 }
@@ -109,11 +111,12 @@ export function getSamplePageOffsets(maximumOffset: number, count: number) {
   return [...offsets]
 }
 
-function toSampleFields(source: unknown): ReleaseSampleField[] {
+function toSampleFields(source: unknown, markArrays = false): ReleaseSampleField[] {
   if (!source || typeof source !== 'object') return []
 
   const fields: ReleaseSampleField[] = []
-  for (const [key, value] of Object.entries(source as Record<string, unknown>)) {
+  for (const [sourceKey, value] of Object.entries(source as Record<string, unknown>)) {
+    const key = markArrays && Array.isArray(source) ? `[${sourceKey}]` : sourceKey
     if (value === null || value === undefined) continue
 
     if (Array.isArray(value)) {
@@ -121,19 +124,24 @@ function toSampleFields(source: unknown): ReleaseSampleField[] {
       for (const [index, item] of value.entries()) {
         if (item === null || item === undefined) continue
         if (typeof item === 'object') {
-          const childFields = toSampleFields(item)
+          const childFields = toSampleFields(item, markArrays)
           if (childFields.length)
-            children.push({ key: `[${index}]`, children: childFields })
+            children.push({
+              key: `[${index}]`,
+              children: childFields,
+              ...(markArrays && Array.isArray(item) ? { isArray: true } : {}),
+            })
           continue
         }
         children.push({ key: `[${index}]`, value: String(item) })
       }
-      if (children.length) fields.push({ key, children })
+      if (children.length)
+        fields.push({ key, children, ...(markArrays ? { isArray: true } : {}) })
       continue
     }
 
     if (typeof value === 'object') {
-      const children = toSampleFields(value)
+      const children = toSampleFields(value, markArrays)
       if (children.length) fields.push({ key, children })
       continue
     }
@@ -143,7 +151,10 @@ function toSampleFields(source: unknown): ReleaseSampleField[] {
   return fields
 }
 
-export function toCompleteSample(value: unknown): AddressSample | null {
+export function toCompleteSample(
+  value: unknown,
+  options: { markArrays?: boolean } = {},
+): AddressSample | null {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return null
 
   const resource = value as Record<string, unknown>
@@ -152,6 +163,7 @@ export function toCompleteSample(value: unknown): AddressSample | null {
 
   const fields = toSampleFields(
     Object.fromEntries(Object.entries(resource).filter(([key]) => key !== 'id')),
+    options.markArrays,
   )
   return fields.length ? { id, fields } : null
 }
@@ -199,6 +211,7 @@ export function groupAddressSamples(samples: AddressSample[]) {
         grouped = { key: field.key, values: [], children: [] }
         target.push(grouped)
       }
+      if (field.isArray) grouped.isArray = true
       if (field.value !== undefined) {
         const existingValue = grouped.values.find(
           candidate => candidate.value === field.value,

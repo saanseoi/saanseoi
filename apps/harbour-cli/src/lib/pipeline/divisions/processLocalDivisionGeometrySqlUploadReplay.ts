@@ -80,6 +80,7 @@ export async function generateGeometryReplaySql(
           table: stateTable,
           timestamp: receipt.preparedAt,
           previous: currentChanges?.publication?.previous,
+          allowPreparedDraftMerge: currentChanges?.publication?.allowPreparedDraftMerge,
         } as PublicationPreparation)
       : null
     const historyTable = currentTable

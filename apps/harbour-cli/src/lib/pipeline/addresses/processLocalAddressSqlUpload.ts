@@ -457,6 +457,10 @@ export async function processLocalAddressSqlUpload(
           snapshotId: versionInsertContext.parentSnapshotId as string,
         }
       : undefined
+    // The chunk stages use the compact ID/hash indexes, not full replayed
+    // premise payloads. Release those payloads before loading both memberships.
+    parentVersions?.clear()
+    Bun.gc(true)
     const reviewMembership = () =>
       prepareAddressMembershipBaseline({
         cacheDir: dbContext.state.dbCacheDir,
@@ -589,6 +593,9 @@ export async function processLocalAddressSqlUpload(
                 )
               } finally {
                 chunkBucket.clear()
+                // Combined address inventories can leave large temporary heaps.
+                // Reclaim each completed window before allocating the next one.
+                Bun.gc(true)
               }
             },
           )

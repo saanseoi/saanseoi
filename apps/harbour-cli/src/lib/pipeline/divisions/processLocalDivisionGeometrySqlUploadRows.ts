@@ -18,7 +18,13 @@ import {
 import { nativeSourcePayloadHashInput } from '@repo/core/pipeline/services/sources/sourcePayload'
 import { compressJsonBrotli } from '@repo/core/pipeline/services/storage/brotliJson.ts'
 import { chunkArray, getMaxItemsPerInClause } from '@repo/core/pipeline/utils'
-import { currentSchema, historySchema, sourceSchema, toIsoTimestamp } from '@repo/db'
+import {
+  currentSchema,
+  historySchema,
+  metaSchema,
+  sourceSchema,
+  toIsoTimestamp,
+} from '@repo/db'
 import { and, eq, getTableColumns, inArray, lte, sql } from 'drizzle-orm'
 import type { AnySQLiteColumn, AnySQLiteTable } from 'drizzle-orm/sqlite-core'
 import type { resolveLocalAddressDbContext } from '../../dbCache/localDbCache.ts'
@@ -124,6 +130,23 @@ export async function writeGeometryRows(
       publicationTable,
       scopeId,
     )
+  if (
+    publication &&
+    version.merge &&
+    publication.previous?.snapshotId === version.snapshotId
+  ) {
+    const snapshot = await context.metaDb
+      .select({ status: metaSchema.metaSnapshots.status })
+      .from(metaSchema.metaSnapshots)
+      .where(eq(metaSchema.metaSnapshots.id, version.snapshotId))
+      .get()
+    if (snapshot?.status !== 'draft')
+      throw new Error('Shared geometry contributions require a draft snapshot.')
+    publication.allowPreparedDraftMerge = true
+  }
+  const preparedDraftRows = publication?.allowPreparedDraftMerge
+    ? await readGeometrySnapshot(context, resourceType, version.snapshotId)
+    : []
   const isDisplayDerivative = version.transform === 'simplified'
   const isCenstatdDerivative =
     version.source === 'hkgov-censtatd' && isDisplayDerivative
@@ -210,6 +233,7 @@ export async function writeGeometryRows(
   const nextIds = new Set([
     ...historyHashes.keys(),
     ...(version.merge ? previousById.keys() : []),
+    ...preparedDraftRows.map(row => row.id),
   ])
   const removedCurrentIds: string[] = !version.skipCanonicalMaterialisation
     ? [...currentBaseline.keys()].filter(id => !nextIds.has(id))
@@ -305,8 +329,12 @@ export async function writeGeometryRows(
   }
   onProgress?.('build write batches')
   const inheritedCurrentRows =
-    !version.skipCanonicalMaterialisation && version.merge && version.parentSnapshotId
-      ? parentRows
+    !version.skipCanonicalMaterialisation && version.merge
+      ? [
+          ...new Map(
+            [...parentRows, ...preparedDraftRows].map(row => [row.id, row]),
+          ).values(),
+        ]
       : []
   const currentRowsById = new Map<string, Record<string, unknown>>(
     inheritedCurrentRows.map(row => [row.id, { ...row, scopeId: scopeId }]),

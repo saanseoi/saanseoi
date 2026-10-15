@@ -94,6 +94,9 @@ export async function resetLocalDb(
         force: true,
         recursive: true,
       }),
+      rm(resolve(repoRoot, '.local/hkgov-dpo/als-identity-history.json'), {
+        force: true,
+      }),
     ])
     for (const result of cleanup) {
       if (result.status === 'rejected') throw result.reason

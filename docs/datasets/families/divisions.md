@@ -812,6 +812,8 @@ Native LandsD intake delivers the settlement projection and its source-version
 resolutions before publication. A completed, row-count-verified delivery receipt is
 required alongside snapshot metadata; reconciliation names any snapshot missing that
 receipt. The native archive remains the source artefact throughout canonical delivery.
+Publication seals the publisher release and its assembly-input snapshots without
+creating a standalone API release set or catalogue revision.
 
 All division geometry uploads calculate their canonical WGS84 bbox directly from the
 normalised geometry. Canonical geometry and bbox are persisted only in history and

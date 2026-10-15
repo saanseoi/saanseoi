@@ -74,6 +74,7 @@ async function fixture() {
     join(root, '.local/overture-places/init-runs/local.minimal.json'),
     join(root, '.local/curated-divisions/audits/dev/release-test/stage-audits.json'),
     join(root, '.local/overture-preparation-audits/dev/release-test/stage-audits.json'),
+    join(root, '.local/hkgov-dpo/als-identity-history.json'),
   ] as const
   const remote = join(root, '.local/harbour-sql/deliveries/preview/plan.json')
   for (const path of [...files, remote, marker]) {

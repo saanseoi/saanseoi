@@ -17,6 +17,8 @@ export type PublicationPreparation = PublicationIdentity & {
   timestamp: string
   /** The exact acknowledged predecessor captured while the delivery plan is sealed. */
   previous?: { snapshotId: string; publicationToken: string } | null
+  /** Validated draft-only geometry assembly may accept another completed contributor. */
+  allowPreparedDraftMerge?: boolean
 }
 
 const literal = (value: string) => `'${value.replaceAll("'", "''")}'`
@@ -42,11 +44,12 @@ export function buildPublicationGuardSql(input: PublicationIdentity) {
   )
 }
 
-/** The same sealed delivery may retry; another delivery cannot take its snapshot. */
+/** A sealed delivery may retry; validated draft merges acknowledge the exact prior token. */
 export function buildBeginPublicationSql(input: PublicationPreparation) {
   const previous =
-    input.previous && input.previous.snapshotId !== input.snapshotId
-      ? `snapshotId = ${literal(input.previous.snapshotId)} AND publicationToken = ${literal(input.previous.publicationToken)} AND preparedAt IS NOT NULL`
+    input.previous &&
+    (input.previous.snapshotId !== input.snapshotId || input.allowPreparedDraftMerge)
+      ? `snapshotId = ${literal(input.previous.snapshotId)} AND publicationToken = ${literal(input.previous.publicationToken)} AND preparedAt IS NOT NULL${input.previous.snapshotId === input.snapshotId ? " AND status = 'publishing'" : ''}`
       : '0'
   return [
     'SELECT 1 /* saanseoi-audit-commit:start */;',
