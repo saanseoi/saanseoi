@@ -167,7 +167,7 @@ export async function divisionResetBlockers(context: ResetReadContext) {
   await check(
     context.currentBinding,
     'Places retain division links',
-    'SELECT 1 FROM placesDivision LIMIT 1',
+    'SELECT 1 FROM places p JOIN placeDivisionDefinitions d ON d.id=p.divisionDefinitionSetId WHERE EXISTS(SELECT 1 FROM json_each(d.definition)) LIMIT 1',
   )
   await check(
     context.currentBinding,

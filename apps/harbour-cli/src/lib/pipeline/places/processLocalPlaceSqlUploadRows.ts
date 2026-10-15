@@ -1,3 +1,5 @@
+import { preparePlaceDivisionDefinitions } from './placeDivisionDefinitions'
+import { placePoint } from '@repo/core/pipeline/services/places/placeGeometry'
 import type { HarbourReadableDb } from '@repo/core/db/types'
 import { publisherPlaceId } from '@repo/core/pipeline/services/places/place'
 import { normaliseOvertureAttribution } from '@repo/core/pipeline/services/sources/sourceAttribution'
@@ -169,7 +171,30 @@ export async function buildPlaceSql(
         ),
       )
     }
+    const supportedIds = Object.values(row.divisionReferences ?? {}).filter(
+      (id): id is string => typeof id === 'string',
+    )
+    if (
+      canonicalPlaceJson([...new Set(supportedIds)].sort()) !==
+      canonicalPlaceJson([...new Set(row.divisionIds)].sort())
+    )
+      throw new Error(
+        `Place Division IDs differ from scalar references for ${place.id}.`,
+      )
+    const divisionSet = preparePlaceDivisionDefinitions(
+      row.divisionReferences ?? {},
+      row.divisionDefinitions ?? {},
+      input.snapshots.divisionSnapshotId,
+      previous?.divisionDefinitions,
+    )
+    if (divisionSet.id)
+      currentInserts.add('placeDivisionDefinitions', {
+        id: divisionSet.id,
+        definition: divisionSet.definition,
+      })
     currentInserts.add('places', {
+      ...divisionSet.scalars,
+      divisionDefinitionSetId: divisionSet.id,
       scopeId,
       id: place.id,
       resourceReleaseId: unchanged
@@ -181,15 +206,14 @@ export async function buildPlaceSql(
       address3dId: row.address3dId,
       address3dUnitId: row.address3dUnitId ?? null,
       address3dMembership: row.address3dMembership ?? null,
-      lng,
-      lat,
+      geometry: placePoint(lng, lat),
       bbox: place.bbox,
       operatingStatus: place.operatingStatus,
       basicCategory: place.basicCategory,
       taxonomyPrimary: place.taxonomyPrimary,
       taxonomyHierarchy: place.taxonomyHierarchy,
       taxonomyAlternates: place.taxonomyAlternates,
-      wikidataId: place.wikidataId,
+      identifiers: place.identifiers,
       websites: place.websites,
       socials: place.socials,
       emails: place.emails,
@@ -198,7 +222,6 @@ export async function buildPlaceSql(
       confidence: place.confidence,
       sources: unchanged ? (previous.row.sources ?? resolvedSources) : resolvedSources,
       firstSeenMonth,
-      lastSeenMonth: unchanged ? previous.row.lastSeenMonth : place.lastSeenMonth,
       createdAt: now,
       updatedAt: now,
     })
@@ -214,9 +237,6 @@ export async function buildPlaceSql(
     )
     currentSql.push(
       `DELETE FROM placesCells WHERE ${rowScope} AND id = ${lit(place.id)}${projectedCells.length ? ` AND NOT (${projectedCells.map(cell => `(h3Level = ${cell.h3Level} AND h3Cell = ${lit(cell.h3Cell)})`).join(' OR ')})` : ''};`,
-    )
-    currentSql.push(
-      `DELETE FROM placesDivision WHERE placeScopeId = ${lit(scopeId)} AND placeId = ${lit(place.id)}${row.divisionIds.length ? ` AND divisionId NOT IN (${row.divisionIds.map(lit).join(',')})` : ''};`,
     )
     for (const { h3Level, h3Cell } of projectedCells) {
       publicationCounts.cells += 1
@@ -278,44 +298,23 @@ export async function buildPlaceSql(
       if (place.i18n.some(row => row.locale === previousLocale.row.locale)) continue
       retireLocale(previousLocale)
     }
-    const previousDivisions = new Map(
-      previous?.divisionLinks?.map(link => [link.divisionId, link]),
-    )
-    for (const divisionId of [...new Set(row.divisionIds)].sort()) {
-      const candidate = row.divisionDefinitions?.[divisionId]
-      if (!candidate)
-        throw new Error(
-          `Missing exact Place Division definition ${place.id}/${divisionId}.`,
-        )
-      const definition = {
-        level: candidate.level,
-        locales: [...candidate.locales].sort((a, b) =>
-          a.locale.localeCompare(b.locale),
-        ),
-      }
-      const previousDivision = previousDivisions.get(divisionId)
-      const divisionSnapshotId =
-        previousDivision &&
-        canonicalPlaceJson(previousDivision.definition) ===
-          canonicalPlaceJson(definition)
-          ? previousDivision.divisionSnapshotId
-          : input.snapshots.divisionSnapshotId
-      publicationCounts.divisionLinks += 1
-      currentInserts.add('placesDivision', {
-        placeScopeId: scopeId,
-        placeId: place.id,
-        divisionSnapshotId,
-        divisionId,
-        definition,
-      })
-    }
+    publicationCounts.divisionLinks += Object.keys(divisionSet.definition).length
 
     if (previous?.row.versionHash !== row.versionHash) {
+      if (divisionSet.id)
+        historyStatements(input.activeHistoryBindingName).push(
+          insertSql('placeDivisionDefinitions', {
+            id: divisionSet.id,
+            definition: divisionSet.definition,
+          }),
+        )
       historyStatements(input.activeHistoryBindingName).push(
         placeHistoryInsertSql(
           'places',
           {
             id: place.id,
+            ...divisionSet.scalars,
+            divisionDefinitionSetId: divisionSet.id,
             resourceReleaseId: input.message.resourceReleaseId,
             addressSnapshotId,
             addressDependencyHash: row.addressDependencyHash ?? null,
@@ -323,15 +322,14 @@ export async function buildPlaceSql(
             address3dId: row.address3dId,
             address3dUnitId: row.address3dUnitId ?? null,
             address3dMembership: row.address3dMembership ?? null,
-            lng,
-            lat,
+            geometry: placePoint(lng, lat),
             bbox: place.bbox,
             operatingStatus: place.operatingStatus,
             basicCategory: place.basicCategory,
             taxonomyPrimary: place.taxonomyPrimary,
             taxonomyHierarchy: place.taxonomyHierarchy,
             taxonomyAlternates: place.taxonomyAlternates,
-            wikidataId: place.wikidataId,
+            identifiers: place.identifiers,
             websites: place.websites,
             socials: place.socials,
             emails: place.emails,

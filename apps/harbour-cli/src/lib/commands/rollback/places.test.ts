@@ -37,6 +37,7 @@ function insert(db: Database, table: string, row: Record<string, unknown>) {
     delete row.snapshotId
   }
   if (!fixtureColumns.has('updatedAt')) delete row.updatedAt
+  if (!fixtureColumns.has('lastSeenMonth')) delete row.lastSeenMonth
 
   const columns = Object.keys(row)
   db.query(
@@ -216,8 +217,7 @@ async function fixture() {
   }
   const base = {
     resourceReleaseId: 'release-p0',
-    lng: 114.1,
-    lat: 22.3,
+    geometry: { type: 'Point', coordinates: [114.1, 22.3] },
     addressSnapshotId: 'a0',
     addressDependencyHash,
     address2dId: 'building',
@@ -243,9 +243,7 @@ async function fixture() {
     'en',
   )
   const hydrate = (db = old, baseHash = 'place-old', localeHash = 'locale-old') => {
-    current.exec(
-      'DELETE FROM placesCells; DELETE FROM placesDivision; DELETE FROM placesI18n; DELETE FROM places;',
-    )
+    current.exec('DELETE FROM placesCells; DELETE FROM placesI18n; DELETE FROM places;')
     for (const [table, hash] of [
       ['places', baseHash],
       ['placesI18n', localeHash],
@@ -315,7 +313,7 @@ test('Place rollback reconstructs unjournaled Division definition changes and th
       expect(
         f.current
           .query(
-            "SELECT divisionSnapshotId,json_extract(definition,'$.level') AS level FROM placesDivision",
+            "SELECT json_extract(e.value,'$.divisionSnapshotId') AS divisionSnapshotId,json_extract(e.value,'$.level') AS level FROM places p JOIN placeDivisionDefinitions d ON d.id=p.divisionDefinitionSetId,json_each(d.definition) e",
           )
           .get(),
       ).toEqual({ divisionSnapshotId: pointer, level })
@@ -342,7 +340,11 @@ test('Place rollback clears empty predecessor companions and resets pointers whe
     f.deleteEvent(f.recent, 'p4', 'placeI18n', 'place', 'en')
     f.current.exec('DELETE FROM placesI18n; DELETE FROM places;')
     expect(await f.restore('p4')).toEqual({ places: 0, divisionLinks: 0, cells: 0 })
-    expect(f.current.query('SELECT COUNT(*) AS n FROM placesDivision').get()).toEqual({
+    expect(
+      f.current
+        .query('SELECT COUNT(*) AS n FROM places WHERE districtId IS NOT NULL')
+        .get(),
+    ).toEqual({
       n: 0,
     })
     f.snapshot('p5', 'place', 'p4', 'NEW')
@@ -371,7 +373,11 @@ test('Place rollback clears empty predecessor companions and resets pointers whe
     f.hydrate(f.recent, 'place-new', 'locale-new')
     await f.restore('p5')
     expect(
-      f.current.query('SELECT divisionSnapshotId FROM placesDivision').get(),
+      f.current
+        .query(
+          "SELECT json_extract(e.value,'$.divisionSnapshotId') divisionSnapshotId FROM places p JOIN placeDivisionDefinitions d ON d.id=p.divisionDefinitionSetId,json_each(d.definition) e",
+        )
+        .get(),
     ).toEqual({ divisionSnapshotId: 'd1' })
   } finally {
     f.close()
@@ -520,20 +526,164 @@ test('Place rollback rebuilds address-free membership from the pinned geometry, 
     })
     f.hydrate()
     expect(await f.restore('p0')).toEqual({ places: 1, divisionLinks: 1, cells: 3 })
-    expect(f.current.query('SELECT divisionId FROM placesDivision').all()).toEqual([
-      { divisionId: 'division' },
-    ])
+    expect(
+      f.current
+        .query(
+          'SELECT districtId AS divisionId FROM places WHERE districtId IS NOT NULL',
+        )
+        .all(),
+    ).toEqual([{ divisionId: 'division' }])
     expect(
       f.old
         .query("SELECT name FROM sqlite_schema WHERE name='sourceResolutions'")
         .all(),
     ).toEqual([])
-    const before = f.current.query('SELECT * FROM placesDivision').all()
+    const before = f.current
+      .query(
+        'SELECT p.*,d.definition FROM places p JOIN placeDivisionDefinitions d ON d.id=p.divisionDefinitionSetId',
+      )
+      .all()
     f.meta.exec(
       "DELETE FROM snapshotDependencies WHERE snapshotId='a0' AND role='divisionArea'",
     )
     await expect(f.restore('p0')).rejects.toThrow('DivisionArea dependency')
-    expect(f.current.query('SELECT * FROM placesDivision').all()).toEqual(before)
+    expect(
+      f.current
+        .query(
+          'SELECT p.*,d.definition FROM places p JOIN placeDivisionDefinitions d ON d.id=p.divisionDefinitionSetId',
+        )
+        .all(),
+    ).toEqual(before)
+  } finally {
+    f.close()
+  }
+})
+
+test('scalar memberships and shared definitions round-trip across shards with independent locale evidence', async () => {
+  const { placeDivisionFieldNames } = await import('@repo/db')
+  const { preparePlaceDivisionDefinitions } = await import(
+    '../../pipeline/places/placeDivisionDefinitions'
+  )
+  const { listPlaceRecordsCurrent, listPlaceDivisions, countPlaceRecordsCurrent } =
+    await import('../../../../../../apps/atlas-api/src/db/places')
+  const { listReplayedPlaceRecords } = await import(
+    '../../../../../../apps/atlas-api/src/db/placesHistory'
+  )
+  const f = await fixture()
+  try {
+    const references = Object.fromEntries(
+      placeDivisionFieldNames.map(field => [
+        field,
+        field === 'districtId' ? 'division' : field,
+      ]),
+    )
+    const candidates = Object.fromEntries(
+      Object.values(references).map(id => [
+        id,
+        { level: 2, locales: [{ locale: 'en', name: id }] },
+      ]),
+    )
+    const original = preparePlaceDivisionDefinitions(references, candidates, 'd0')
+    insert(f.old, 'placeDivisionDefinitions', {
+      id: original.id,
+      definition: original.definition,
+    })
+    insert(f.current, 'placeDivisionDefinitions', {
+      id: original.id,
+      definition: original.definition,
+    })
+    f.old
+      .query(
+        `UPDATE places SET divisionDefinitionSetId=?,${placeDivisionFieldNames.map(field => `"${field}"=?`).join(',')}`,
+      )
+      .run(original.id, ...placeDivisionFieldNames.map(field => references[field]!))
+    const text = Object.keys(original.definition).sort().join(',')
+    f.old
+      .query(
+        "UPDATE placesI18n SET searchDependencyText=json_set(searchDependencyText,'$.divisionText',?)",
+      )
+      .run(text)
+    f.hydrate()
+    expect(await f.restore('p0')).toEqual({ places: 1, divisionLinks: 11, cells: 3 })
+    const revised = structuredClone(candidates)
+    revised.division!.locales[0]!.name = 'Later district'
+    const next = preparePlaceDivisionDefinitions(
+      references,
+      revised,
+      'd2',
+      original.definition,
+    )
+    expect(next.definition.countryId?.divisionSnapshotId).toBe('d0')
+    expect(next.definition.division?.divisionSnapshotId).toBe('d2')
+    insert(f.recent, 'placeDivisionDefinitions', {
+      id: next.id,
+      definition: next.definition,
+    })
+    f.history(f.recent, 'places', 'p2', 'place', 'modern-new', {
+      ...f.base,
+      ...references,
+      divisionDefinitionSetId: next.id,
+    })
+    // The base advances across shards; the independently inherited locale still owns p0 text.
+    f.current.exec('PRAGMA foreign_keys=OFF')
+    f.current.query('UPDATE places SET divisionDefinitionSetId=?').run(next.id)
+    f.current.exec('DELETE FROM placeDivisionDefinitions')
+    expect(await f.restore('p2')).toEqual({ places: 1, divisionLinks: 11, cells: 3 })
+    f.current.exec(
+      "INSERT INTO placePublicationState(scopeId,snapshotId,status,publicationToken,preparedAt) VALUES('place-scope','p2','current','t','ready')",
+    )
+    const db = createLocalHarbourDb(f.current) as never
+    for (const id of Object.values(references))
+      expect(
+        await countPlaceRecordsCurrent(db, { snapshotId: 'p2', divisionId: id }),
+      ).toBe(1)
+    const current = await listPlaceRecordsCurrent(db, {
+      snapshotId: 'p2',
+      localeSelection: { mode: 'all', locales: ['*'] },
+    })
+    expect(current[0]?.divisionIds.sort()).toEqual(Object.values(references).sort())
+    expect(
+      (
+        await listPlaceDivisions(db, {
+          snapshotId: 'p2',
+          placeId: 'place',
+          locale: 'en',
+        })
+      ).find(row => row.divisionId === 'division')?.name,
+    ).toBe('Later district')
+    const replayed = await listReplayedPlaceRecords({
+      divisionSnapshotId: 'd2',
+      snapshotId: 'p2',
+      metaDb: f.metaDb,
+      historyDbsByBinding: Object.fromEntries(
+        f.historyTargets.map(target => [target.bindingName, target.db]),
+      ) as never,
+      localeSelection: { mode: 'all', locales: ['*'] },
+    })
+    expect(replayed[0]?.divisionIds.sort()).toEqual(current[0]?.divisionIds.sort())
+    expect(replayed[0]?.divisionDefinitions).toEqual(next.definition)
+    expect(replayed[0]?.i18n.en?.name).toBe('Place')
+    f.current.exec('PRAGMA foreign_keys=ON')
+    expect(f.current.query('PRAGMA foreign_key_check').all()).toEqual([])
+    // Retrying reconstruction reads shared evidence again and preserves the selected identity.
+    const rowid = f.current.query('SELECT rowid FROM places').get()
+    expect(await f.restore('p2')).toEqual({ places: 1, divisionLinks: 11, cells: 3 })
+    expect(f.current.query('SELECT rowid FROM places').get()).toEqual(rowid)
+    // A scope can inherit both scalar-era content and older evidence across the same ancestry.
+    f.history(f.old, 'places', 'p0', 'legacy-place', 'legacy', f.base)
+    insert(f.current, 'places', {
+      ...f.base,
+      scopeId: 'place-scope',
+      id: 'legacy-place',
+    })
+    expect(await f.restore('p2')).toEqual({ places: 2, divisionLinks: 12, cells: 6 })
+    expect(
+      f.current.query("SELECT districtId FROM places WHERE id='legacy-place'").get(),
+    ).toEqual({ districtId: 'division' })
+    f.old.exec('DELETE FROM placeDivisionDefinitions')
+    await expect(f.restore('p2')).rejects.toThrow(
+      'Missing retained Place definition set',
+    )
   } finally {
     f.close()
   }

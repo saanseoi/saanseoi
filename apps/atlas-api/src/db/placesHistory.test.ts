@@ -105,17 +105,29 @@ test('replays Place text and spatial divisions from the selected version without
       ],
     )
 
+    for (const [id, kind] of [
+      ['division-country-old', 'country'],
+      ['division-district-old', 'district'],
+      ['excluded-sar', 'region'],
+      ['excluded-city', 'city'],
+      ['excluded-group', 'island_group'],
+    ]) {
+      run(
+        history,
+        "INSERT INTO divisions(id,class,hierarchies,versionHash,sourceReleaseId,snapshotId,isCurrent,createdAt) VALUES(?,?,'{}',?,?,?,1,?)",
+        [id!, kind!, id!, 'release-old', 'division-snapshot-old', TIMESTAMP],
+      )
+    }
     for (const versionHash of ['place-old-hash', 'place-new-hash']) {
       run(
         history,
-        `INSERT INTO places (id,resourceReleaseId,addressSnapshotId,address2dId,lng,lat,bbox,basicCategory,sources,firstSeenMonth,lastSeenMonth,versionHash,sourceReleaseId,snapshotId,isCurrent,createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        'INSERT INTO places (id,resourceReleaseId,addressSnapshotId,address2dId,geometry,bbox,basicCategory,sources,firstSeenMonth,lastSeenMonth,versionHash,sourceReleaseId,snapshotId,isCurrent,createdAt) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
         [
           'place-1',
           versionHash === 'place-old-hash' ? 'release-old' : 'release-new',
           null,
           null,
-          114.1,
-          22.3,
+          JSON.stringify({ type: 'Point', coordinates: [114.1, 22.3] }),
           '[114.1,22.3,114.1,22.3]',
           'restaurant',
           JSON.stringify({
@@ -124,6 +136,9 @@ test('replays Place text and spatial divisions from the selected version without
               divisionAreaSnapshotId: 'area-old',
               evidence: [
                 { divisionId: 'division-country-old', method: 'ancestry' },
+                { divisionId: 'excluded-sar', method: 'ancestry' },
+                { divisionId: 'excluded-city', method: 'ancestry' },
+                { divisionId: 'excluded-group', method: 'ancestry' },
                 { divisionId: 'division-district-old', method: 'geometry' },
               ],
             },
@@ -177,12 +192,11 @@ test('replays Place text and spatial divisions from the selected version without
       const versionHash = `${id}-v1`
       run(
         history,
-        `INSERT INTO places (id,resourceReleaseId,lng,lat,firstSeenMonth,lastSeenMonth,versionHash,sourceReleaseId,snapshotId,isCurrent,createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        'INSERT INTO places (id,resourceReleaseId,geometry,firstSeenMonth,lastSeenMonth,versionHash,sourceReleaseId,snapshotId,isCurrent,createdAt) VALUES (?,?,?,?,?,?,?,?,?,?)',
         [
           id,
           'release-old',
-          114.1,
-          22.3,
+          JSON.stringify({ type: 'Point', coordinates: [114.1, 22.3] }),
           '2025-09',
           '2025-09',
           versionHash,
@@ -312,12 +326,11 @@ test('historical Places resolve independently inherited locales across years and
     for (const id of ['place', 'same-hash-neighbour'])
       run(
         old,
-        'INSERT INTO places (id,resourceReleaseId,lng,lat,firstSeenMonth,lastSeenMonth,versionHash,sourceReleaseId,snapshotId,isCurrent,createdAt) VALUES (?,?,?,?,?,?,?,?,?,?,?)',
+        'INSERT INTO places (id,resourceReleaseId,geometry,firstSeenMonth,lastSeenMonth,versionHash,sourceReleaseId,snapshotId,isCurrent,createdAt) VALUES (?,?,?,?,?,?,?,?,?,?)',
         [
           id,
           'source-base',
-          114,
-          22,
+          JSON.stringify({ type: 'Point', coordinates: [114, 22] }),
           '2025-01',
           '2025-01',
           'base-content',

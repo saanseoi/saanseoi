@@ -1,3 +1,4 @@
+import { preparePlaceDivisionDefinitions } from './placeDivisionDefinitions'
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { readFileSync, rmSync } from 'node:fs'
@@ -42,6 +43,7 @@ const insert = (db: Database, table: string, row: Record<string, unknown>) => {
     delete row.snapshotId
   }
   if (!fixtureColumns.has('updatedAt')) delete row.updatedAt
+  if (!fixtureColumns.has('lastSeenMonth')) delete row.lastSeenMonth
 
   db.query(
     `INSERT INTO ${table} (${Object.keys(row).join(',')}) VALUES (${Object.keys(row)
@@ -436,8 +438,7 @@ test('exact historical Place dependencies replay independent locale shards and s
       address3dId: 'collection',
       address3dUnitId: 'chosen',
       address3dMembership: 'established',
-      lng: 114,
-      lat: 22,
+      geometry: { type: 'Point', coordinates: [114, 22] },
       firstSeenMonth: '2025-01',
       lastSeenMonth: '2025-01',
     })
@@ -448,13 +449,18 @@ test('exact historical Place dependencies replay independent locale shards and s
       name: 'Shop',
       searchDependencyText: dependencies.searchDependencies.en,
     })
-    insert(current, 'placesDivision', {
-      placeScopeId: 'place-scope',
-      placeId: 'shop',
-      divisionSnapshotId: 'd',
-      divisionId: 'country',
-      definition: dependencies.divisionDefinitions.country,
+    const set = preparePlaceDivisionDefinitions(
+      { countryId: 'country' },
+      dependencies.divisionDefinitions,
+      'd',
+    )
+    insert(current, 'placeDivisionDefinitions', {
+      id: set.id,
+      definition: set.definition,
     })
+    current
+      .query('UPDATE places SET countryId=?,divisionDefinitionSetId=?')
+      .run('country', set.id)
     expect(
       await listPlaceDivisions(createLocalHarbourDb(current) as never, {
         snapshotId: 'p',
@@ -472,6 +478,7 @@ test('exact historical Place dependencies replay independent locale shards and s
         address2dId: 'building',
         address3dId: 'collection',
         address3dUnitId: 'chosen',
+        divisionReferences: { countryId: 'country' },
         divisionIds: ['country'],
         ...dependencies,
       }),
@@ -487,14 +494,14 @@ test('exact historical Place dependencies replay independent locale shards and s
       .query('UPDATE placesI18n SET searchDependencyText=?')
       .run(JSON.stringify(dependencies.searchDependencies.en))
     current.exec(
-      "UPDATE placesDivision SET definition=json_set(definition,'$.level',9)",
+      "UPDATE placeDivisionDefinitions SET definition=json_set(definition,'$.country.level',9)",
     )
     await expect(
       validateResolvedPlaces(current, staged, 'place-scope', 1),
     ).rejects.toThrow('exact Division definitions')
     current
-      .query('UPDATE placesDivision SET definition=?')
-      .run(JSON.stringify(dependencies.divisionDefinitions.country))
+      .query('UPDATE placeDivisionDefinitions SET definition=?')
+      .run(JSON.stringify(set.definition))
     insert(current, 'placeSearchScopes', { scopeId: 'search', snapshotId: 'p' })
     const rebuild = readFileSync(
       join(

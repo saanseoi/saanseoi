@@ -1,3 +1,4 @@
+import { I18nMetaSchema } from './i18nMeta'
 import { geographicCodeQueryShape } from './geographicCodeFilters'
 import { z } from '@hono/zod-openapi'
 import {
@@ -82,6 +83,7 @@ const geometry = z
   ])
   .nullable()
 const names = z.object({
+  meta: I18nMetaSchema.optional(),
   name: z.string().nullable(),
   nameVariant: z.array(z.string()).nullable().optional(),
   nameAlts: z.array(z.string()).nullable().optional(),

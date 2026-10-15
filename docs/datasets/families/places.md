@@ -294,21 +294,23 @@ used by the source files; UUID format alone is not accepted as evidence of GERS
 membership.
 
 Canonical place rows are indexed at H3 resolutions 5, 7, and 9. Search uses the
-incremental `placeSearchFts` index. `placesDivision` and `placesCells` are current-only
-projections and are rebuilt for the active Place snapshot; they are not copied into
-history. The division projection uses the Place's effective coordinates against the
-pinned DivisionArea polygons, with common canonical ancestors and separate island
-membership. A matched Address supplies compatible references where polygons are missing,
-including text-resolved village and hamlet membership. A Place without an Address can
-still have spatial Division links. Geometry takes precedence over inherited Address
-references. Shared boundaries and overlapping peers remain unresolved.
+incremental `placeSearchFts` index. Scalar memberships are canonical base content;
+`placesCells` are current-only projections and are rebuilt for the active Place
+snapshot; they are not copied into history. The division projection uses the Place's
+effective coordinates against the pinned DivisionArea polygons, with common canonical
+ancestors and separate island membership. A matched Address supplies compatible
+references where polygons are missing, including text-resolved village and hamlet
+membership. A Place without an Address can still have spatial Division memberships.
+Geometry takes precedence over inherited Address references. Shared boundaries and
+overlapping peers remain unresolved.
 
 Retained preparation artefacts and processing audits carry Division association
-evidence. Rollback rebuilds `placesDivision` with the ingestion membership function
-using historical Place coordinates, the referenced Address and the pinned Division and
-DivisionArea snapshots. It preserves the original Division pointer while the association
-and its definition remain unchanged. Missing dependencies fail before replacing serving
-rows. Snapshot IDs and geometry content participate in preparation cache invalidation.
+evidence. Rollback restores scalar memberships and exact shared definition sets from
+immutable content. Older evidence reconstructs with the ingestion membership function
+using historical Place coordinates, the referenced Address and pinned DivisionArea
+polygons. It preserves the original Division pointer while the association and its
+definition remain unchanged. Missing dependencies fail before replacing serving rows.
+Snapshot IDs and geometry content participate in preparation cache invalidation.
 
 The Places collection endpoint is `GET /places/v0.1`. All API families accept the
 optional `region` query parameter: `hk` (default), `mo`, or `gba`. GBA currently selects
@@ -418,13 +420,12 @@ and keeps a dry-run and confirmation boundary:
 ```
 
 `rollback:release` reconstructs the published predecessor from retained base and locale
-versions. It rebuilds H3 cells and replays Place ancestry to recover each Division
-link's exact definition and original logical snapshot pointer. Localised search text
-retains its own historical Address identity, including when the Place base has since
-been linked to a different Address with identical text. Missing dependency evidence
-stops preparation. The shared sealed delivery emits only changed current rows and
-updates readiness with the incremental search index; published source/history evidence
-remains retained.
+versions. It rebuilds H3 cells and restores the shared definition sets and their
+independent exact logical snapshot pointers. Localised search text retains its own
+historical Address identity, including when the Place base has since been linked to a
+different Address with identical text. Missing dependency evidence stops preparation.
+The shared sealed delivery emits only changed current rows and updates readiness with
+the incremental search index; published source/history evidence remains retained.
 
 Subsequent ingestion loads the restored serving predecessor's exact base and locale
 events from their owning shards. Retained `isCurrent` flags do not select the comparison
@@ -510,19 +511,19 @@ selected release.
 
 ## Publication readiness
 
-Current Places, localisations, spatial cells and Division links use one stable scope per
-snapshot lineage. `placePublicationState` maps that scope to the logical publication.
-Address and Division references retain exact logical revisions. Preparation replays
-selected historical Address bases, unit collections and independent localisations into a
+Current Places, localisations and spatial cells use one stable scope per snapshot
+lineage. `placePublicationState` maps that scope to the logical publication. Address and
+Division references retain exact logical revisions. Preparation replays selected
+historical Address bases, unit collections and independent localisations into a
 disposable dependency view using the Address assembly's recorded Division lookup. Those
 lookup rows never enter delivered tables. Missing revision evidence fails preparation.
 
 Final-difference delivery preserves unchanged Place content, cells, localisations and
 links without transmitting their candidate SQL. Complete replacement membership removes
-absent rows within that scope. The stored `resourceReleaseId` and `lastSeenMonth` retain
-the last real content change. Current API responses derive `lastSeenMonth` from the
-selected complete publication cohort; immutable history retains its recorded version
-values.
+absent rows within that scope. The stored `resourceReleaseId` retains the last real
+content change. CURRENT has no `lastSeenMonth` column. Current API responses derive
+`lastSeenMonth` from the selected complete publication cohort; immutable history retains
+its recorded version values.
 
 SQL planning uses disposable database copies with disk-backed rollback journals.
 Generation buffers are collected before comparison, and each comparison connection is
@@ -537,14 +538,14 @@ exact predecessor under the delivery lock.
 
 A newer Address revision with identical relevant base, selected unit and locale content
 reuses the Place's earlier reference. Changed dependency content advances that exact
-reference. Division links retain their selected logical revision and a small definition
-containing level and localisations; unchanged definitions reuse the preceding link.
+reference. Scalar memberships select a shared immutable definition set containing exact
+logical revisions, levels and localisations; unchanged definitions reuse their pointers.
 Place localisations retain resolved dependency search text, so both incremental search
 and fresh FTS rebuilds use the same definitions. API projections omit the internal
 dependency fingerprint and search text fields.
 
-Place delivery checks records, localisations, spatial cells and Division links before
-marking its receipt prepared. Supplementary Address delivery resolves final row
+Place delivery checks records, localisations, spatial cells and scalar memberships
+before marking its receipt prepared. Supplementary Address delivery resolves final row
 differences locally and owns its separate receipt. Required selected projections must be
 ready before publication finalises Place search. An interrupted scope remains
 unavailable, and a valid empty snapshot still requires completion evidence. Search
@@ -743,3 +744,52 @@ Locale values carry the shared [localisation metadata](../i18n-metadata.md) cont
 `meta.isLocaleInferred` records language assignment, while `meta.fields` records each
 field's origin, optional human verification and optional translator identity. Metadata
 participates in canonical content hashes and retained locale revisions.
+
+## Canonical spatial and identifier fields
+
+CURRENT and HISTORY Places store `geometry` as a GeoJSON Point with longitude before
+latitude. Canonical `bbox` is `[west, south, east, north]`; SOURCE retains the publisher
+bbox struct. Numeric coordinates are transient processing values for membership and H3.
+
+`identifiers.wikidata.brandId.id` identifies the publisher's brand, rather than the
+individual venue. A Place without a brand identifier has null `identifiers`.
+
+`createdAt` and `updatedAt` describe serving materialisation. A changed point, category,
+contact, address association or dependency may update a base row. Locale content and
+retained search text update independently. Timestamp-only and observation-only changes
+do not rewrite serving rows. Immutable history captures content versions with creation
+time and its recorded observation month; current observation months derive from the
+selected completed publication.
+
+Places carry nullable `countryId`, `areaId`, `districtId`, `townId`, `ruralAreaId`,
+`macrohoodId`, `neighbourhoodId`, `villageId`, `microhoodId`, `hamletId` and
+`landformId`. SAR, city and island-group memberships do not enter Place relationships or
+newly prepared Division search text. The shared Address resolver remains unchanged:
+Places consume only its unambiguous `references`, including its most-specific landform.
+Address-free Places resolve from the pinned polygons. Ambiguous peers remain null.
+
+`divisionDefinitionSetId` selects an immutable content-addressed row in
+`placeDivisionDefinitions`. Its definition maps only selected IDs to exact logical
+Division revisions, levels and locale names. Each unchanged definition inherits its own
+pointer; a set may therefore contain multiple revisions. Two Places with the same
+selected definitions share one row. Equivalent releases preserve pointers and cause no
+base, locale or FTS mutation. A selected name or level change affects only Places using
+that definition. Canonical hashes include supported references and selected definition
+content, excluding assembly revision IDs. A new base content version carries its shared
+set into its HISTORY shard. Empty sets also have a content address.
+
+CURRENT retains shared sets across serving-scope retirement. Rollback reads and checks
+sets across retained HISTORY shards, delivers them before referencing bases, and uses
+each locale version's original base definitions to validate its independent search text.
+Older immutable evidence is preserved; public replay filters its recorded IDs through
+exact historical Division classes, excluding SAR, city and island-group relationships.
+`searchDependencyText` supplies both fresh and incremental FTS.
+
+Scalar filters deduplicate matches before counts and pagination. Covering indexes use
+`(scopeId, scalarId, id)`: all eleven measured filters otherwise read the whole scope. A
+140,000-row synthetic query check reduced selective reads from about 14–16 ms to about
+0.03 ms. Geographic codes resolve through supported descendants; `HKSAR` is the existing
+region-wide selection. Direct Division-ID filters select supported memberships.
+
+Migration validation uses isolated fresh databases. Populated database conversion,
+backfill, reingestion and publication require separate operational authorisation.

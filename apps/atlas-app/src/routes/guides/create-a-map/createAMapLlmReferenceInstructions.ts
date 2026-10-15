@@ -647,6 +647,20 @@ with optional \`isHumanVerified\` and \`translatorId\`. Human verification is
 independent of translation origin. Omitted field metadata is unknown. Marker rendering
 does not require these attributes.
 
+## Places spatial and identifier fields
+
+Places geometry is a GeoJSON Point with longitude before latitude. Bbox is a four-number
+array ordered west, south, east, north. In full-profile responses, identifiers.wikidata.brandId.id
+identifies the brand; do not treat it as a venue Wikidata identity. lastSeenMonth is the
+observation month of the selected completed publication. updatedAt records content
+materialisation, rather than publisher modification time.
+
+Places relationships include supported country, area, district, locality, hood and
+landform IDs. SAR, city and island-group ancestors are excluded. Full profiles expose
+nullable scalar IDs from countryId through hamletId and landformId. Geographic code
+filters resolve through supported descendants; filter[adminCode]=HKSAR selects the
+whole region. include=divisions uses exact retained definition revisions.
+
 ## Places discovery
 
 Places text search uses the latest published regional release. Search results include

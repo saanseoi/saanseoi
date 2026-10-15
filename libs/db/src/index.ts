@@ -76,3 +76,6 @@ export type {
 export * from './sourceAttribution'
 export * from './statisticDefinitionSets'
 export * from './versioning'
+
+export { placeDivisionFieldNames } from './schema/shared'
+export type { PlaceDivisionDefinitionSet, PlaceDivisionField } from './schema/shared'

@@ -58,7 +58,7 @@ function fixture(beforeQuery?: (sqlite: Database, query: string) => void) {
       address:
         "INSERT INTO address2d(scopeId,id,divisionSnapshotId) VALUES ('scope','address','division-scope')",
       place:
-        "INSERT INTO places(scopeId,id,resourceReleaseId,lng,lat,firstSeenMonth,lastSeenMonth) VALUES ('scope','place','release',114,22,'2026-01','2026-01')",
+        "INSERT INTO places(scopeId,id,resourceReleaseId,geometry,firstSeenMonth) VALUES ('scope','place','release',json_object('type','Point','coordinates',json_array(114,22)),'2026-01')",
     }[family]
     sqlite.exec(insert)
   }
@@ -145,18 +145,22 @@ test.each(['obsolete', 'scope'])(
       }
       f.sqlite
         .query(
-          "INSERT INTO places(scopeId,id,resourceReleaseId,lng,lat,firstSeenMonth,lastSeenMonth,addressSnapshotId) VALUES ('dependent','place','release',114,22,'2026-01','2026-01',?)",
+          "INSERT INTO places(scopeId,id,resourceReleaseId,geometry,firstSeenMonth,addressSnapshotId) VALUES ('dependent','place','release',json_object('type','Point','coordinates',json_array(114,22)),'2026-01',?)",
         )
         .run(logicalSnapshotId)
       const definition = JSON.stringify({
-        level: 1,
-        locales: [{ locale: 'en', name: 'Retained division' }],
+        division: {
+          divisionSnapshotId: logicalSnapshotId,
+          level: 1,
+          locales: [{ locale: 'en', name: 'Retained division' }],
+        },
       })
       f.sqlite
-        .query(
-          "INSERT INTO placesDivision(placeScopeId,placeId,divisionSnapshotId,divisionId,definition) VALUES ('dependent','place',?,'division',?)",
-        )
-        .run(logicalSnapshotId, definition)
+        .query('INSERT INTO placeDivisionDefinitions(id,definition) VALUES (?,?)')
+        .run('set', definition)
+      f.sqlite.exec(
+        "UPDATE places SET districtId='division',divisionDefinitionSetId='set'",
+      )
       for (const family of ['address', 'division'] as const)
         expect(await f.clean(family)).toBe(true)
       expect(f.sqlite.query('SELECT addressSnapshotId FROM places').get()).toEqual({
@@ -164,7 +168,9 @@ test.each(['obsolete', 'scope'])(
       })
       expect(
         f.sqlite
-          .query('SELECT divisionSnapshotId,definition FROM placesDivision')
+          .query(
+            "SELECT json_extract(d.definition,'$.division.divisionSnapshotId') divisionSnapshotId,d.definition FROM places p JOIN placeDivisionDefinitions d ON d.id=p.divisionDefinitionSetId",
+          )
           .get(),
       ).toEqual({ divisionSnapshotId: logicalSnapshotId, definition })
     } finally {

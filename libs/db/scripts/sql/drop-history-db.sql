@@ -35,3 +35,5 @@ DROP TABLE IF EXISTS `divisionAreas`;
 DROP TABLE IF EXISTS `d1_migrations`;
 
 PRAGMA foreign_keys = ON;
+
+DROP TABLE IF EXISTS `placeDivisionDefinitions`;

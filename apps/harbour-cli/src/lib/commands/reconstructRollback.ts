@@ -56,7 +56,7 @@ const familyTables: Record<RollbackResourceType, string[]> = {
     'address3d',
     'address3dI18n',
   ],
-  place: ['places', 'placesI18n', 'placesCells', 'placesDivision'],
+  place: ['places', 'placesI18n', 'placesCells', 'placeDivisionDefinitions'],
   street: [
     'streets',
     'streetsI18n',
@@ -82,11 +82,7 @@ const familyForTable = (table: string): RollbackResourceType => {
   throw new Error(`Unknown rollback table ${table}.`)
 }
 const scopeColumn = (table: string) =>
-  table === 'placesDivision'
-    ? 'placeScopeId'
-    : table === 'streetsAddress'
-      ? 'streetScopeId'
-      : 'scopeId'
+  table === 'streetsAddress' ? 'streetScopeId' : 'scopeId'
 
 /** Current-only reconstruction preserves retained evidence and emits keyed row differences. */
 export async function prepareReconstructedRollback(input: {
@@ -113,13 +109,12 @@ export async function prepareReconstructedRollback(input: {
   const tables: NetTablePolicy[] = families.flatMap(family =>
     familyTables[family].map(name => ({
       name,
-      ignoredColumns:
-        name === 'statsDefinitionSets'
-          ? []
-          : name.startsWith('stats') && name !== 'statsRecords'
-            ? ['createdAt']
-            : ['createdAt', 'updatedAt'],
-      ...(name === 'statsDefinitionSets'
+      ignoredColumns: ['statsDefinitionSets', 'placeDivisionDefinitions'].includes(name)
+        ? []
+        : name.startsWith('stats') && name !== 'statsRecords'
+          ? ['createdAt']
+          : ['createdAt', 'updatedAt'],
+      ...(['statsDefinitionSets', 'placeDivisionDefinitions'].includes(name)
         ? {}
         : {
             rowScope: {
@@ -327,7 +322,9 @@ export async function prepareReconstructedRollback(input: {
           current.exec('PRAGMA foreign_keys=OFF')
           try {
             current.transaction(() => {
-              for (const name of familyTables[scope.family].toReversed())
+              for (const name of familyTables[scope.family]
+                .filter(name => name !== 'placeDivisionDefinitions')
+                .toReversed())
                 current
                   .query(`DELETE FROM "${name}" WHERE "${scopeColumn(name)}"=?`)
                   .run(scope.scopeId)

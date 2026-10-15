@@ -1,3 +1,4 @@
+import { placeDivisionFieldNames } from '@repo/db'
 import {
   getPublicationReadiness,
   guardPublicationRead,
@@ -238,7 +239,7 @@ function createPlaceResource(args: {
 
   if (isDefaultPlaceProfile(args.routeState.profile)) {
     Object.assign(attributes, {
-      wikidataId: place.wikidataId,
+      identifiers: place.identifiers,
       websites: place.websites,
       socials: place.socials,
       emails: place.emails,
@@ -268,6 +269,9 @@ function createPlaceResource(args: {
       address3dUnitId: place.address3dUnitId ?? null,
       address3dMembership: place.address3dMembership ?? null,
       sources: place.sources,
+      ...Object.fromEntries(
+        placeDivisionFieldNames.map(field => [field, place[field] ?? null]),
+      ),
     })
   }
 
@@ -378,8 +382,49 @@ async function loadIncludedDivisions(args: {
 }) {
   if (args.include !== 'divisions') return []
 
-  const divisionIds = [...new Set(args.records.flatMap(record => record.divisionIds))]
-  if (divisionIds.length === 0) return []
+  const selections = new Map<string, Set<string>>()
+  const selectedDefinitions = new Map<string, string>()
+  for (const record of args.records)
+    for (const id of record.divisionIds) {
+      const definition = record.divisionDefinitions?.[id]
+      const signature = definition
+        ? JSON.stringify({ level: definition.level, locales: definition.locales })
+        : args.activeSnapshot.divisionSnapshotId
+      const selected = selectedDefinitions.get(id)
+      if (selected !== undefined) {
+        if (selected !== signature)
+          throw new PublicationReadUnavailableError(
+            `Conflicting exact Place definitions for included Division ${id}`,
+          )
+        continue
+      }
+      selectedDefinitions.set(id, signature)
+      const snapshot =
+        record.divisionDefinitions?.[id]?.divisionSnapshotId ??
+        args.activeSnapshot.divisionSnapshotId
+      const ids = selections.get(snapshot) ?? new Set<string>()
+      ids.add(id)
+      selections.set(snapshot, ids)
+    }
+  const included = []
+  for (const [snapshotId, ids] of selections)
+    included.push(
+      ...(await loadExactIncludedDivisions(
+        {
+          ...args,
+          activeSnapshot: { ...args.activeSnapshot, divisionSnapshotId: snapshotId },
+        },
+        [...ids],
+      )),
+    )
+  return included
+}
+
+async function loadExactIncludedDivisions(
+  args: Parameters<typeof loadIncludedDivisions>[0],
+  divisionIds: string[],
+) {
+  if (!divisionIds.length) return []
 
   const divisionToken = await getPublicationReadiness(args.currentDb, 'division', [
     args.activeSnapshot.divisionSnapshotId,

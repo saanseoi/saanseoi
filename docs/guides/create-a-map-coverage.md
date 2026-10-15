@@ -7,6 +7,10 @@ solely because it compiles or an LLM generated the wording.
 
 ## Objective coverage
 
+Places geometry and bbox use the canonical GeoJSON Point and four-number bounds
+contracts. The hand-over instructions distinguish brand Wikidata identity from venue
+identity and explain observation months and materialisation timestamps.
+
 Places full-profile locale values expose `i18n.{locale}.meta`. The hand-over
 instructions distinguish locale inference from field origin and human verification;
 marker clients can use names without requiring metadata.
@@ -127,3 +131,9 @@ including source references (`recordId`, `updateTime`) and cartography (`minZoom
 `maxZoom`). Raw source-record responses retain publisher field names. The tutorial's
 reference instructions state this distinction; basic marker and pagination examples
 consume canonical fields.
+
+Places Division relationships use supported scalar memberships: country, area, district,
+town, rural area, hoods, village, hamlet and the most-specific unambiguous landform.
+SAR, city and island-group ancestors are excluded. Code filters resolve descendants;
+`filter[adminCode]=HKSAR` selects the region. Full-profile scalar IDs and exact retained
+`include=divisions` revisions are described in the hand-over reference.

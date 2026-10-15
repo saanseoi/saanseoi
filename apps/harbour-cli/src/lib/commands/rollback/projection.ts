@@ -300,7 +300,7 @@ export async function restoreSnapshotProjection(input: RestoreSnapshotProjection
     await assertStreetSideTablesReconstructable(input)
   const tables = selected.map(component => component.table)
   if (input.resourceType === 'address') tables.push('address2dBuildingNumberLookup')
-  if (input.resourceType === 'place') tables.push('placesCells', 'placesDivision')
+  if (input.resourceType === 'place') tables.push('placesCells')
   const counts: Record<string, number> = {}
   const foreignKeys =
     input.current.query<{ foreign_keys: number }, []>('PRAGMA foreign_keys').get()
@@ -313,7 +313,7 @@ export async function restoreSnapshotProjection(input: RestoreSnapshotProjection
   input.current.exec('BEGIN')
   try {
     for (const name of tables) {
-      const scopeColumn = name === 'placesDivision' ? 'placeScopeId' : 'scopeId'
+      const scopeColumn = 'scopeId'
       input.current
         .query(`DELETE FROM ${quote(name)} WHERE ${quote(scopeColumn)}=?`)
         .run(input.scopeId)

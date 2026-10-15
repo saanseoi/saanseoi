@@ -297,17 +297,15 @@ function seedCurrent(sqlite: Database) {
   for (const place of places) {
     run(
       sqlite,
-      `INSERT INTO places
-        (scopeId, id, resourceReleaseId, lng, lat, bbox, operatingStatus, basicCategory,
-         taxonomyPrimary, taxonomyHierarchy, taxonomyAlternates, websites, confidence,
-         sources, firstSeenMonth, lastSeenMonth, createdAt, updatedAt)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      'INSERT INTO places (scopeId,id,resourceReleaseId,geometry,bbox,operatingStatus,basicCategory,taxonomyPrimary,taxonomyHierarchy,taxonomyAlternates,websites,confidence,sources,firstSeenMonth,createdAt,updatedAt) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
       [
         `scope:${PLACE_SNAPSHOT}`,
         place.id,
         'release-overture-2026-08-19',
-        place.point[0],
-        place.point[1],
+        JSON.stringify({
+          type: 'Point',
+          coordinates: [place.point[0], place.point[1]],
+        }),
         json([place.point[0], place.point[1], place.point[0], place.point[1]]),
         place.status,
         place.category,
@@ -317,7 +315,6 @@ function seedCurrent(sqlite: Database) {
         json(['https://example.com']),
         0.9,
         json({ overture: [{ dataset: 'overture', record_id: place.id }] }),
-        '2026-08',
         '2026-08',
         PUBLISHED_AT,
         PUBLISHED_AT,
@@ -340,28 +337,11 @@ function seedCurrent(sqlite: Database) {
         PUBLISHED_AT,
       ],
     )
-    run(
-      sqlite,
-      `INSERT INTO placesDivision
-        (placeScopeId, placeId, divisionSnapshotId, divisionId, definition)
-        VALUES (?, ?, ?, ?, ?)`,
-      [
-        `scope:${PLACE_SNAPSHOT}`,
-        place.id,
-        DIVISION_SNAPSHOT,
-        'division-central',
-        JSON.stringify({
-          level: 2,
-          locales: [
-            {
-              meta: { isLocaleInferred: false },
-              locale: 'en',
-              name: 'Central and Western',
-            },
-          ],
-        }),
-      ],
-    )
+    run(sqlite, 'UPDATE places SET districtId=? WHERE scopeId=? AND id=?', [
+      'division-central',
+      `scope:${PLACE_SNAPSHOT}`,
+      place.id,
+    ])
   }
 }
 
@@ -422,14 +402,13 @@ function seedHistory(sqlite: Database) {
     )
     run(
       sqlite,
-      `INSERT INTO places (id,resourceReleaseId,addressSnapshotId,address2dId,lng,lat,bbox,operatingStatus,basicCategory,taxonomyPrimary,taxonomyHierarchy,taxonomyAlternates,websites,confidence,sources,firstSeenMonth,lastSeenMonth,versionHash,sourceReleaseId,snapshotId,isCurrent,createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      'INSERT INTO places (id,resourceReleaseId,addressSnapshotId,address2dId,geometry,bbox,operatingStatus,basicCategory,taxonomyPrimary,taxonomyHierarchy,taxonomyAlternates,websites,confidence,sources,firstSeenMonth,lastSeenMonth,versionHash,sourceReleaseId,snapshotId,isCurrent,createdAt) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
       [
         id,
         'release-overture-2026-08-19',
         ADDRESS_SNAPSHOT,
         addressId,
-        point[0],
-        point[1],
+        JSON.stringify({ type: 'Point', coordinates: [point[0], point[1]] }),
         JSON.stringify([...point, ...point]),
         'open',
         category,
@@ -805,7 +784,7 @@ test('Place current endpoints reject incomplete publications while preserving em
       expect(await response.json()).toMatchObject({ error: 'snapshot_not_ready' })
     }
     fixture.currentSqlite.exec(
-      "UPDATE placePublicationState SET status='current'; DELETE FROM placesDivision; DELETE FROM placesI18n; DELETE FROM places",
+      "UPDATE placePublicationState SET status='current'; DELETE FROM placesI18n; DELETE FROM places",
     )
     const empty = await app.fetch(
       new Request('http://localhost/places/v0.1'),
@@ -850,7 +829,12 @@ test('Place routes discard reads interrupted by publication', async () => {
 test('Place current responses derive last seen month from publication without rewriting the stored record', async () => {
   const fixture = createFixtureEnvironment({ rejectHistory: true })
   try {
-    fixture.currentSqlite.exec("UPDATE places SET lastSeenMonth='2026-07'")
+    expect(
+      fixture.currentSqlite
+        .query('PRAGMA table_info(places)')
+        .all()
+        .map(row => (row as { name: string }).name),
+    ).not.toContain('lastSeenMonth')
     const stored = fixture.currentSqlite
       .query('SELECT rowid,* FROM places ORDER BY id')
       .all()

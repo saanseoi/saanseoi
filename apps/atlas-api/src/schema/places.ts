@@ -33,6 +33,13 @@ export {
   SearchUnavailableErrorResponseSchema,
 } from './placesSearchErrors'
 
+export const PlaceIdentifiersSchema = z
+  .object({ wikidata: z.object({ brandId: z.object({ id: WikidataIdSchema }) }) })
+  .openapi('PlaceIdentifiers', {
+    description:
+      'External identifiers. Wikidata brandId identifies the brand, rather than the venue.',
+  })
+
 export const PlaceParamsSchema = z
   .object({
     id: z.string(),
@@ -272,6 +279,17 @@ const PlaceSchema = z
         description: openApiText('openapi_places_address_snapshot_id_description'),
         examples: ['c241e1ea-8d63-5bc4-88b9-e031d5be05d5', null],
       }),
+    countryId: IdSchema.nullable().optional(),
+    areaId: IdSchema.nullable().optional(),
+    districtId: IdSchema.nullable().optional(),
+    townId: IdSchema.nullable().optional(),
+    ruralAreaId: IdSchema.nullable().optional(),
+    macrohoodId: IdSchema.nullable().optional(),
+    neighbourhoodId: IdSchema.nullable().optional(),
+    villageId: IdSchema.nullable().optional(),
+    microhoodId: IdSchema.nullable().optional(),
+    hamletId: IdSchema.nullable().optional(),
+    landformId: IdSchema.nullable().optional(),
     address2dId: z
       .string()
       .nullable()
@@ -303,7 +321,7 @@ const PlaceSchema = z
         description: openApiText('openapi_places_basic_category_description'),
       }),
     taxonomy: PlaceTaxonomySchema,
-    wikidataId: z.union([WikidataIdSchema, z.null()]).openapi({
+    identifiers: PlaceIdentifiersSchema.nullable().openapi({
       description: openApiText('openapi_places_brand_description'),
     }),
     websites: PlaceWebsitesSchema,
@@ -635,12 +653,11 @@ const PlaceCollectionAttributesSchema = z
         },
       ],
     }),
-    wikidataId: z
-      .union([WikidataIdSchema, z.null()])
+    identifiers: PlaceIdentifiersSchema.nullable()
       .optional()
       .openapi({
         description: openApiText('openapi_places_brand_description'),
-        examples: ['Q106298409', 'Q113365214', null],
+        examples: [{ wikidata: { brandId: { id: 'Q106298409' } } }, null],
       }),
     websites: PlaceWebsitesSchema.optional().openapi({
       examples: [['http://www.lantaublue.com/'], null],
@@ -719,6 +736,17 @@ const PlaceCollectionAttributesSchema = z
         description: openApiText('openapi_places_address_snapshot_id_description'),
         examples: ['c241e1ea-8d63-5bc4-88b9-e031d5be05d5', null],
       }),
+    countryId: IdSchema.nullable().optional(),
+    areaId: IdSchema.nullable().optional(),
+    districtId: IdSchema.nullable().optional(),
+    townId: IdSchema.nullable().optional(),
+    ruralAreaId: IdSchema.nullable().optional(),
+    macrohoodId: IdSchema.nullable().optional(),
+    neighbourhoodId: IdSchema.nullable().optional(),
+    villageId: IdSchema.nullable().optional(),
+    microhoodId: IdSchema.nullable().optional(),
+    hamletId: IdSchema.nullable().optional(),
+    landformId: IdSchema.nullable().optional(),
     address2dId: IdSchema.nullable()
       .optional()
       .openapi({

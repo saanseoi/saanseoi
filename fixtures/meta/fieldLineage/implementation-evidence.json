@@ -18,7 +18,7 @@
       "path": "libs/core/src/pipeline/services/divisions/curatedDivision.ts",
       "symbol": "normaliseCuratedDivision",
       "dependencies": [],
-      "sourceHash": "sha256:0852eb7e582da2875707ccb4192b284738f0207db5f681f6cdaae0c866af2af1"
+      "sourceHash": "sha256:b9c515e0ab9f1b81dd241f3b14d9300d50406aab82b88c97283610ade224c39b"
     },
     "planning-unit-geometry": {
       "path": "apps/harbour-cli/src/lib/sources/hkgov/pland/hkgovPland.ts",
@@ -33,10 +33,10 @@
         {
           "path": "apps/atlas-api/src/db/divisions.ts",
           "symbol": "mapDivisionLocaleValue",
-          "sourceHash": "sha256:5c9d400105ddc82c7260b597949170afe742ee4090feba6f35b2000f1311539a"
+          "sourceHash": "sha256:2ba2631db549cd219029662077c366e1ff3da661940e4f442396186ac958e082"
         }
       ],
-      "sourceHash": "sha256:2bdbb1d514cd276d7bc228ed46f34d77958d5460faf938e8d983b4de13b7d33d"
+      "sourceHash": "sha256:3d1f4c3de7e147612c42284b057394fa5524b4b9c929eff4db5dd637a6a6c0f4"
     },
     "statistic-response-field": {
       "path": "apps/atlas-api/src/services/statistics.ts",
@@ -59,7 +59,7 @@
     "libs/core/src/pipeline/services/divisions/division.ts#normaliseDivisionRowInternal": {
       "path": "libs/core/src/pipeline/services/divisions/division.ts",
       "symbol": "normaliseDivisionRowInternal",
-      "sourceHash": "sha256:f896e5b1c1229bfbb8936941082ac982d35e818b58f088624986b01e96eff138",
+      "sourceHash": "sha256:daaadf68a49139cac550cdee4e9f29fcf004439034054742450a551c2a16b68c",
       "dependencies": [
         {
           "path": "libs/core/src/pipeline/services/divisions/divisionCartography.ts",
@@ -76,7 +76,7 @@
     "libs/core/src/pipeline/services/divisions/curatedDivisionPolicy.ts#curatedDivisionClassification": {
       "path": "libs/core/src/pipeline/services/divisions/curatedDivisionPolicy.ts",
       "symbol": "curatedDivisionClassification",
-      "sourceHash": "sha256:9aaab9b1d87b32eb5fded08ef73f498466378d22fae28c12dcfb340b8579f58f",
+      "sourceHash": "sha256:6723f5f51e84868c1df1c45e7b7d71edb35063fbf67c176ed2b8d84992f8b90f",
       "dependencies": []
     },
     "libs/core/src/pipeline/services/divisions/divisionClassificationPatch.ts#applyDivisionClassificationPatch": {
@@ -88,37 +88,37 @@
     "apps/atlas-api/src/services/divisionsPresentation.ts#createDivisionResource": {
       "path": "apps/atlas-api/src/services/divisionsPresentation.ts",
       "symbol": "createDivisionResource",
-      "sourceHash": "sha256:2bdbb1d514cd276d7bc228ed46f34d77958d5460faf938e8d983b4de13b7d33d",
+      "sourceHash": "sha256:3d1f4c3de7e147612c42284b057394fa5524b4b9c929eff4db5dd637a6a6c0f4",
       "dependencies": [
         {
           "path": "apps/atlas-api/src/db/divisions.ts",
           "symbol": "mapDivisionLocaleValue",
-          "sourceHash": "sha256:5c9d400105ddc82c7260b597949170afe742ee4090feba6f35b2000f1311539a"
+          "sourceHash": "sha256:2ba2631db549cd219029662077c366e1ff3da661940e4f442396186ac958e082"
         }
       ]
     },
     "libs/core/src/pipeline/services/divisions/division.ts#normaliseDivisionI18n": {
       "path": "libs/core/src/pipeline/services/divisions/division.ts",
       "symbol": "normaliseDivisionI18n",
-      "sourceHash": "sha256:f896e5b1c1229bfbb8936941082ac982d35e818b58f088624986b01e96eff138",
+      "sourceHash": "sha256:daaadf68a49139cac550cdee4e9f29fcf004439034054742450a551c2a16b68c",
       "dependencies": []
     },
     "libs/core/src/pipeline/services/divisions/curatedDivisionPolicy.ts#applyCuratedDivisionNames": {
       "path": "libs/core/src/pipeline/services/divisions/curatedDivisionPolicy.ts",
       "symbol": "applyCuratedDivisionNames",
-      "sourceHash": "sha256:9aaab9b1d87b32eb5fded08ef73f498466378d22fae28c12dcfb340b8579f58f",
+      "sourceHash": "sha256:6723f5f51e84868c1df1c45e7b7d71edb35063fbf67c176ed2b8d84992f8b90f",
       "dependencies": [
         {
           "path": "libs/core/src/pipeline/services/divisions/division.ts",
           "symbol": "normaliseDivisionI18n",
-          "sourceHash": "sha256:f896e5b1c1229bfbb8936941082ac982d35e818b58f088624986b01e96eff138"
+          "sourceHash": "sha256:daaadf68a49139cac550cdee4e9f29fcf004439034054742450a551c2a16b68c"
         }
       ]
     },
     "libs/core/src/pipeline/services/divisions/divisionNamePatch.ts#applyDivisionNamePatch": {
       "path": "libs/core/src/pipeline/services/divisions/divisionNamePatch.ts",
       "symbol": "applyDivisionNamePatch",
-      "sourceHash": "sha256:40916cf69cc253ac7c6073693ad587854a0cfaa89d06466339bfebb0a47d5266",
+      "sourceHash": "sha256:d2fcbe8caeabca43d746e34447e96a87363ffb1e3310e975e23f7d4a73c82267",
       "dependencies": [
         {
           "path": "libs/core/src/pipeline/services/divisions/divisionClassificationPatch.ts",
@@ -130,7 +130,7 @@
     "libs/core/src/pipeline/services/divisions/division.ts#buildDivisionHierarchyLookup": {
       "path": "libs/core/src/pipeline/services/divisions/division.ts",
       "symbol": "buildDivisionHierarchyLookup",
-      "sourceHash": "sha256:f896e5b1c1229bfbb8936941082ac982d35e818b58f088624986b01e96eff138",
+      "sourceHash": "sha256:daaadf68a49139cac550cdee4e9f29fcf004439034054742450a551c2a16b68c",
       "dependencies": []
     },
     "apps/harbour-cli/src/lib/pipeline/divisions/processLocalDivisionSqlUploadTranslations.ts#resolveDivisionNameTranslations": {
@@ -146,12 +146,12 @@
         {
           "path": "apps/harbour-cli/src/lib/pipeline/divisions/processLocalDivisionSqlUploadPreparation.ts",
           "symbol": "translationsByDivisionId",
-          "sourceHash": "sha256:df50fe5ee01d856581aa3b080a3221291852f0180a44c41af500aaa95affe96b"
+          "sourceHash": "sha256:9ba2d6c0c9ac3593eb0ee118ebad0ebe2bb5c5e2d5a0c8acf5c0f424b29f0d78"
         },
         {
           "path": "libs/core/src/pipeline/services/divisions/divisionTranslationRule.ts",
           "symbol": "divisionTranslationRule",
-          "sourceHash": "sha256:9e4114a807f87e862bdab646db575b4cdd2559bce3a8a31289fedbe61314de27"
+          "sourceHash": "sha256:038c865b95c222f525c2af4eb02757e4f2bbf74dc9a910c2dce2731652ad4546"
         }
       ]
     },
@@ -280,7 +280,7 @@
     "libs/core/src/pipeline/services/divisions/division.ts#normaliseHkgovCenstatdStatisticDivisionRow": {
       "path": "libs/core/src/pipeline/services/divisions/division.ts",
       "symbol": "normaliseHkgovCenstatdStatisticDivisionRow",
-      "sourceHash": "sha256:f896e5b1c1229bfbb8936941082ac982d35e818b58f088624986b01e96eff138",
+      "sourceHash": "sha256:daaadf68a49139cac550cdee4e9f29fcf004439034054742450a551c2a16b68c",
       "dependencies": [
         {
           "path": "libs/core/src/pipeline/services/divisions/divisionCartography.ts",
@@ -297,17 +297,17 @@
     "apps/harbour-cli/src/lib/pipeline/divisions/processLocalDivisionSqlUploadRows.ts#buildDivisionCurrentSqlFile": {
       "path": "apps/harbour-cli/src/lib/pipeline/divisions/processLocalDivisionSqlUploadRows.ts",
       "symbol": "buildDivisionCurrentSqlFile",
-      "sourceHash": "sha256:9b167e438ddc38c6dcb9c77df0a831fea1cb685d4fc7d96cc323f3c59a8d6e22",
+      "sourceHash": "sha256:ba7c8e20c750f143183393010a07e3cb9d254e9d28e28c4d5986266e88f9eccc",
       "dependencies": [
         {
           "path": "apps/atlas-api/src/db/divisions.ts",
           "symbol": "createdAt",
-          "sourceHash": "sha256:5c9d400105ddc82c7260b597949170afe742ee4090feba6f35b2000f1311539a"
+          "sourceHash": "sha256:2ba2631db549cd219029662077c366e1ff3da661940e4f442396186ac958e082"
         },
         {
           "path": "libs/core/src/pipeline/services/divisions/division.ts",
           "symbol": "normaliseDivisionRowInternal",
-          "sourceHash": "sha256:f896e5b1c1229bfbb8936941082ac982d35e818b58f088624986b01e96eff138"
+          "sourceHash": "sha256:daaadf68a49139cac550cdee4e9f29fcf004439034054742450a551c2a16b68c"
         }
       ]
     },
@@ -326,13 +326,13 @@
     "libs/core/src/pipeline/services/divisions/division.ts#buildCanonicalDivisionApiI18n": {
       "path": "libs/core/src/pipeline/services/divisions/division.ts",
       "symbol": "buildCanonicalDivisionApiI18n",
-      "sourceHash": "sha256:f896e5b1c1229bfbb8936941082ac982d35e818b58f088624986b01e96eff138",
+      "sourceHash": "sha256:daaadf68a49139cac550cdee4e9f29fcf004439034054742450a551c2a16b68c",
       "dependencies": []
     },
     "apps/harbour-dataops/src/commands/hkgovLandsdNative.ts#runHkgovLandsdPlaceNameIngestCommand": {
       "path": "apps/harbour-dataops/src/commands/hkgovLandsdNative.ts",
       "symbol": "runHkgovLandsdPlaceNameIngestCommand",
-      "sourceHash": "sha256:f28ce9389e819128143311af2ed7b2258f6178de6ea6dceaabbd17634afa3b26",
+      "sourceHash": "sha256:f709e71816c725e0d643380aa6eceade0267af9b955d28a9e1331f2c283c23b4",
       "dependencies": [
         {
           "path": "libs/core/src/pipeline/services/sources/retainedProperties.ts",
@@ -368,7 +368,7 @@
     "apps/harbour-cli/src/lib/pipeline/divisions/processLocalHkgovPlandDivisionSqlUploadRows.ts#insertSourceRows": {
       "path": "apps/harbour-cli/src/lib/pipeline/divisions/processLocalHkgovPlandDivisionSqlUploadRows.ts",
       "symbol": "insertSourceRows",
-      "sourceHash": "sha256:e736e855f68ed0da1411572d8101cf74669fd8a38ade1ea8c8d53baf4a33863f",
+      "sourceHash": "sha256:628a7bda6eb61b604e96a3ade631f9433507f5f87f10fb819359e1aa52269d63",
       "dependencies": [
         {
           "path": "libs/core/src/pipeline/services/sources/retainedProperties.ts",
@@ -521,7 +521,7 @@
     "apps/harbour-cli/src/lib/pipeline/places/processLocalPlaceSqlUploadPreparation.ts#resolvePlaceSnapshots": {
       "path": "apps/harbour-cli/src/lib/pipeline/places/processLocalPlaceSqlUploadPreparation.ts",
       "symbol": "resolvePlaceSnapshots",
-      "sourceHash": "sha256:49d731923da82271a4c3e420522e678a058ad6ed7c0f8a2c8e72080f8954dde4",
+      "sourceHash": "sha256:d7a69d67cf7ce6469a5739cfae7e68041ca84b0a4138639094fef6a7d6266691",
       "dependencies": [
         {
           "path": "apps/harbour-cli/src/lib/pipeline/places/placeSnapshotDependencies.ts",
@@ -543,7 +543,7 @@
         {
           "path": "apps/harbour-cli/src/lib/pipeline/places/processLocalPlaceSqlUploadPreparation.ts",
           "symbol": "stageEnrichedPlaces",
-          "sourceHash": "sha256:49d731923da82271a4c3e420522e678a058ad6ed7c0f8a2c8e72080f8954dde4"
+          "sourceHash": "sha256:d7a69d67cf7ce6469a5739cfae7e68041ca84b0a4138639094fef6a7d6266691"
         }
       ]
     },
@@ -757,48 +757,48 @@
     "libs/core/src/pipeline/services/addresses/normalisation.ts#normaliseAddressRowForPipelineInternal": {
       "path": "libs/core/src/pipeline/services/addresses/normalisation.ts",
       "symbol": "normaliseAddressRowForPipelineInternal",
-      "sourceHash": "sha256:3e6a675b55415b46ddc98705fd242fb81d52e6ace9ae21a940777f5ed4fd0ad8",
+      "sourceHash": "sha256:e6910ff2aa0ee0748b883d3a7dbad0075bd8ea54229cfe472139b9cb3a5587d1",
       "dependencies": []
     },
     "libs/core/src/pipeline/services/addresses/normalisation.ts#normalisePreparedHkgovAddressRow": {
       "path": "libs/core/src/pipeline/services/addresses/normalisation.ts",
       "symbol": "normalisePreparedHkgovAddressRow",
-      "sourceHash": "sha256:3e6a675b55415b46ddc98705fd242fb81d52e6ace9ae21a940777f5ed4fd0ad8",
+      "sourceHash": "sha256:e6910ff2aa0ee0748b883d3a7dbad0075bd8ea54229cfe472139b9cb3a5587d1",
       "dependencies": []
     },
     "apps/atlas-api/src/services/addresses.ts#createAddressResource": {
       "path": "apps/atlas-api/src/services/addresses.ts",
       "symbol": "createAddressResource",
-      "sourceHash": "sha256:ec9addcf08f5cf98d927392367a580757d97e0bd6dda477292a532a2b2aff1de",
+      "sourceHash": "sha256:f54e4dc107324a002acb84434e5d9b654dfa29818a42f6c7e441f83ed9b72f7a",
       "dependencies": []
     },
     "libs/core/src/pipeline/services/addresses/normalisation.ts#normaliseBlockFields": {
       "path": "libs/core/src/pipeline/services/addresses/normalisation.ts",
       "symbol": "normaliseBlockFields",
-      "sourceHash": "sha256:3e6a675b55415b46ddc98705fd242fb81d52e6ace9ae21a940777f5ed4fd0ad8",
+      "sourceHash": "sha256:e6910ff2aa0ee0748b883d3a7dbad0075bd8ea54229cfe472139b9cb3a5587d1",
       "dependencies": []
     },
     "libs/core/src/pipeline/services/addresses/normalisation.ts#getBuildingNumberComponents": {
       "path": "libs/core/src/pipeline/services/addresses/normalisation.ts",
       "symbol": "getBuildingNumberComponents",
-      "sourceHash": "sha256:3e6a675b55415b46ddc98705fd242fb81d52e6ace9ae21a940777f5ed4fd0ad8",
+      "sourceHash": "sha256:e6910ff2aa0ee0748b883d3a7dbad0075bd8ea54229cfe472139b9cb3a5587d1",
       "dependencies": []
     },
     "libs/core/src/pipeline/services/addresses/normalisation.ts#normalisePhaseFields": {
       "path": "libs/core/src/pipeline/services/addresses/normalisation.ts",
       "symbol": "normalisePhaseFields",
-      "sourceHash": "sha256:3e6a675b55415b46ddc98705fd242fb81d52e6ace9ae21a940777f5ed4fd0ad8",
+      "sourceHash": "sha256:e6910ff2aa0ee0748b883d3a7dbad0075bd8ea54229cfe472139b9cb3a5587d1",
       "dependencies": []
     },
     "libs/core/src/pipeline/services/places/place.ts#normaliseOverturePlaceInternal": {
       "path": "libs/core/src/pipeline/services/places/place.ts",
       "symbol": "normaliseOverturePlaceInternal",
-      "sourceHash": "sha256:804475c7fbbef88573dbb306b47a66aa1f0730d2361b9984c863ac674fa77b62",
+      "sourceHash": "sha256:6fda614d21f28c8004c751d2cc902c39af663ade9b4f1b8747a08ee77570f6ff",
       "dependencies": [
         {
           "path": "apps/harbour-cli/src/lib/pipeline/places/processLocalPlaceSqlUploadPreparation.ts",
           "symbol": "stagePlaces",
-          "sourceHash": "sha256:49d731923da82271a4c3e420522e678a058ad6ed7c0f8a2c8e72080f8954dde4"
+          "sourceHash": "sha256:d7a69d67cf7ce6469a5739cfae7e68041ca84b0a4138639094fef6a7d6266691"
         }
       ]
     },
@@ -810,14 +810,14 @@
         {
           "path": "apps/harbour-cli/src/lib/pipeline/places/processLocalPlaceSqlUploadPreparation.ts",
           "symbol": "stageEnrichedPlaces",
-          "sourceHash": "sha256:49d731923da82271a4c3e420522e678a058ad6ed7c0f8a2c8e72080f8954dde4"
+          "sourceHash": "sha256:d7a69d67cf7ce6469a5739cfae7e68041ca84b0a4138639094fef6a7d6266691"
         }
       ]
     },
     "apps/harbour-cli/src/lib/pipeline/places/supplementaryPlaceAddress.ts#createSupplementaryAddressAnalyserInternal": {
       "path": "apps/harbour-cli/src/lib/pipeline/places/supplementaryPlaceAddress.ts",
       "symbol": "createSupplementaryAddressAnalyserInternal",
-      "sourceHash": "sha256:21868b29a922c0a1903e0aab8016f885d1a07273af5ca61cd47c39e2d46b653a",
+      "sourceHash": "sha256:3c7180ebbde6106a7e655e154ce2c0313bf13c3f2c519ecc68d2108467608900",
       "dependencies": [
         {
           "path": "apps/harbour-cli/src/lib/pipeline/places/placeAddressMatcher.ts",
@@ -832,26 +832,26 @@
         {
           "path": "libs/core/src/pipeline/services/places/place.ts",
           "symbol": "extractPlaceAddressTexts",
-          "sourceHash": "sha256:804475c7fbbef88573dbb306b47a66aa1f0730d2361b9984c863ac674fa77b62"
+          "sourceHash": "sha256:6fda614d21f28c8004c751d2cc902c39af663ade9b4f1b8747a08ee77570f6ff"
         }
       ]
     },
     "apps/harbour-cli/src/lib/pipeline/places/supplementaryPlaceAddress.ts#compactAddressResolution": {
       "path": "apps/harbour-cli/src/lib/pipeline/places/supplementaryPlaceAddress.ts",
       "symbol": "compactAddressResolution",
-      "sourceHash": "sha256:21868b29a922c0a1903e0aab8016f885d1a07273af5ca61cd47c39e2d46b653a",
+      "sourceHash": "sha256:3c7180ebbde6106a7e655e154ce2c0313bf13c3f2c519ecc68d2108467608900",
       "dependencies": []
     },
     "apps/harbour-cli/src/lib/pipeline/places/supplementaryPlaceAddressRows.ts#buildSupplementaryAddressRows": {
       "path": "apps/harbour-cli/src/lib/pipeline/places/supplementaryPlaceAddressRows.ts",
       "symbol": "buildSupplementaryAddressRows",
-      "sourceHash": "sha256:6e8772259ebb068842f35463acb6dfeb536e38231b60e754fd5e4ea7b97b6db0",
+      "sourceHash": "sha256:8307b5b9bd034e59cc8f5b6cb049d09619452f27c3201be1c591724c5588c779",
       "dependencies": []
     },
     "apps/atlas-api/src/db/addresses.ts#addressDivisionRelationshipsFromDedicatedIds": {
       "path": "apps/atlas-api/src/db/addresses.ts",
       "symbol": "addressDivisionRelationshipsFromDedicatedIds",
-      "sourceHash": "sha256:af0aadb77f7e4d74bf9d82d8b6667407641d9a3c525c3369323d7b842245806e",
+      "sourceHash": "sha256:82bfa781d698c577a9023edf84b73a5148ef82eef21d2447c98846d8b79bec7c",
       "dependencies": []
     },
     "apps/harbour-cli/src/lib/pipeline/curatedDivisions/archiveInput.ts#curatedArchiveRows": {
@@ -867,12 +867,12 @@
         {
           "path": "apps/harbour-cli/src/lib/pipeline/curatedDivisions/assemble.ts",
           "symbol": "assembleCuratedDivisions",
-          "sourceHash": "sha256:a96c32feaddcc22b3ecd96779b378681d64f1cfca6081da31fb365bc45898523"
+          "sourceHash": "sha256:80aa0fc6aa0c5ae6aea3c2f0b50eceb5e90071731cfcfb7aa183700a9e762edd"
         },
         {
           "path": "apps/harbour-cli/src/lib/pipeline/curatedDivisions/buildRelease.ts",
           "symbol": "buildCuratedDivisionRelease",
-          "sourceHash": "sha256:e6f3a95326e14f5544174f0e80074ab029fe76fa35a17352cca2c6635a35e799"
+          "sourceHash": "sha256:c639b8693149e2dce2cdec2625977eb653a47fc45dda7066e75fdbd465b5fef3"
         },
         {
           "path": "apps/harbour-cli/src/lib/pipeline/curatedDivisions/islandGroupGeometry.ts",
@@ -897,7 +897,7 @@
         {
           "path": "libs/core/src/pipeline/services/divisions/curatedDivisionPolicy.ts",
           "symbol": "applyCuratedDivisionNames",
-          "sourceHash": "sha256:9aaab9b1d87b32eb5fded08ef73f498466378d22fae28c12dcfb340b8579f58f"
+          "sourceHash": "sha256:6723f5f51e84868c1df1c45e7b7d71edb35063fbf67c176ed2b8d84992f8b90f"
         },
         {
           "path": "libs/core/src/pipeline/services/divisions/curationInventory.ts",
@@ -929,13 +929,13 @@
     "libs/core/src/pipeline/services/divisions/curatedDivision.ts#normaliseCuratedDivision": {
       "path": "libs/core/src/pipeline/services/divisions/curatedDivision.ts",
       "symbol": "normaliseCuratedDivision",
-      "sourceHash": "sha256:0852eb7e582da2875707ccb4192b284738f0207db5f681f6cdaae0c866af2af1",
+      "sourceHash": "sha256:b9c515e0ab9f1b81dd241f3b14d9300d50406aab82b88c97283610ade224c39b",
       "dependencies": []
     },
     "apps/harbour-cli/src/lib/pipeline/places/processLocalPlaceSqlUploadPreparation.ts#stageEnrichedPlaces": {
       "path": "apps/harbour-cli/src/lib/pipeline/places/processLocalPlaceSqlUploadPreparation.ts",
       "symbol": "stageEnrichedPlaces",
-      "sourceHash": "sha256:49d731923da82271a4c3e420522e678a058ad6ed7c0f8a2c8e72080f8954dde4",
+      "sourceHash": "sha256:d7a69d67cf7ce6469a5739cfae7e68041ca84b0a4138639094fef6a7d6266691",
       "dependencies": [
         {
           "path": "apps/harbour-cli/src/lib/pipeline/divisions/divisionMembership.ts",
@@ -945,19 +945,19 @@
         {
           "path": "apps/harbour-cli/src/lib/pipeline/places/processLocalPlaceSqlUploadPreparation.ts",
           "symbol": "stageEnrichedPlaces",
-          "sourceHash": "sha256:49d731923da82271a4c3e420522e678a058ad6ed7c0f8a2c8e72080f8954dde4"
+          "sourceHash": "sha256:d7a69d67cf7ce6469a5739cfae7e68041ca84b0a4138639094fef6a7d6266691"
         },
         {
           "path": "apps/harbour-cli/src/lib/pipeline/places/processLocalPlaceSqlUploadRows.ts",
           "symbol": "buildPlaceSql",
-          "sourceHash": "sha256:ae4226fb6a3598ef7bf63a1dbdee691307627832039cfc0694e49c1d13c41daf"
+          "sourceHash": "sha256:0cc4245b4477e1e4725c36b0ba948b78362509a75e6871cf3a2ae190a9d3c630"
         }
       ]
     },
     "apps/atlas-api/src/services/places.ts#createPlaceResource": {
       "path": "apps/atlas-api/src/services/places.ts",
       "symbol": "createPlaceResource",
-      "sourceHash": "sha256:f3de9bc78ad0c158932ed3b96ad546138a24aa00f5621296e92f36d32d396449",
+      "sourceHash": "sha256:285086ce03e6444be30c4cdbee6f8b1a5647f110062811f7d8707ab2760011cc",
       "dependencies": []
     },
     "apps/harbour-cli/src/lib/pipeline/places/placeAddress3d.ts#loadCollection": {
@@ -968,7 +968,7 @@
         {
           "path": "apps/harbour-cli/src/lib/pipeline/places/processLocalPlaceSqlUploadPreparation.ts",
           "symbol": "stageEnrichedPlaces",
-          "sourceHash": "sha256:49d731923da82271a4c3e420522e678a058ad6ed7c0f8a2c8e72080f8954dde4"
+          "sourceHash": "sha256:d7a69d67cf7ce6469a5739cfae7e68041ca84b0a4138639094fef6a7d6266691"
         }
       ]
     },
@@ -981,49 +981,55 @@
     "apps/harbour-cli/src/lib/pipeline/places/placeHistoryBaseline.ts#loadCurrentPlaceHistory": {
       "path": "apps/harbour-cli/src/lib/pipeline/places/placeHistoryBaseline.ts",
       "symbol": "loadCurrentPlaceHistory",
-      "sourceHash": "sha256:e04ac440223aa15f29567596fbab8a886d3140afe19d42b36daf490ce9b4cc72",
+      "sourceHash": "sha256:dff3508127c25d5de0686dd587456ab9b66291411cbea5f098516a64483c0cff",
       "dependencies": []
     },
     "apps/harbour-cli/src/lib/pipeline/places/processLocalPlaceSqlUploadRows.ts#buildPlaceSql": {
       "path": "apps/harbour-cli/src/lib/pipeline/places/processLocalPlaceSqlUploadRows.ts",
       "symbol": "buildPlaceSql",
-      "sourceHash": "sha256:ae4226fb6a3598ef7bf63a1dbdee691307627832039cfc0694e49c1d13c41daf",
+      "sourceHash": "sha256:0cc4245b4477e1e4725c36b0ba948b78362509a75e6871cf3a2ae190a9d3c630",
       "dependencies": [
         {
           "path": "apps/harbour-cli/src/lib/pipeline/places/placeHistoryBaseline.ts",
           "symbol": "loadCurrentPlaceHistory",
-          "sourceHash": "sha256:e04ac440223aa15f29567596fbab8a886d3140afe19d42b36daf490ce9b4cc72"
+          "sourceHash": "sha256:dff3508127c25d5de0686dd587456ab9b66291411cbea5f098516a64483c0cff"
         }
       ]
     },
     "apps/harbour-cli/src/lib/pipeline/places/placeSearchDependencies.ts#createPlaceSearchDependencies": {
       "path": "apps/harbour-cli/src/lib/pipeline/places/placeSearchDependencies.ts",
       "symbol": "createPlaceSearchDependencies",
-      "sourceHash": "sha256:beffb2cd4bd374955cdefb5456027b413fc5da0d466b9f76e5a09f5dba418437",
-      "dependencies": []
+      "sourceHash": "sha256:c4d8b1e097214a057fd4b16b820ea96b7ca001c4ab8d688c399731011a52e1d2",
+      "dependencies": [
+        {
+          "path": "apps/harbour-cli/src/lib/pipeline/places/processLocalPlaceSqlUploadPreparation.ts",
+          "symbol": "stageEnrichedPlaces",
+          "sourceHash": "sha256:d7a69d67cf7ce6469a5739cfae7e68041ca84b0a4138639094fef6a7d6266691"
+        }
+      ]
     },
     "libs/core/src/pipeline/services/places/place.ts#hashPlaceMaterialisation": {
       "path": "libs/core/src/pipeline/services/places/place.ts",
       "symbol": "hashPlaceMaterialisation",
-      "sourceHash": "sha256:804475c7fbbef88573dbb306b47a66aa1f0730d2361b9984c863ac674fa77b62",
+      "sourceHash": "sha256:6fda614d21f28c8004c751d2cc902c39af663ade9b4f1b8747a08ee77570f6ff",
       "dependencies": []
     },
     "libs/core/src/pipeline/services/places/place.ts#mergePlaceI18n": {
       "path": "libs/core/src/pipeline/services/places/place.ts",
       "symbol": "mergePlaceI18n",
-      "sourceHash": "sha256:804475c7fbbef88573dbb306b47a66aa1f0730d2361b9984c863ac674fa77b62",
+      "sourceHash": "sha256:6fda614d21f28c8004c751d2cc902c39af663ade9b4f1b8747a08ee77570f6ff",
       "dependencies": []
     },
     "apps/atlas-api/src/services/places.ts#withPlacePublication": {
       "path": "apps/atlas-api/src/services/places.ts",
       "symbol": "withPlacePublication",
-      "sourceHash": "sha256:f3de9bc78ad0c158932ed3b96ad546138a24aa00f5621296e92f36d32d396449",
+      "sourceHash": "sha256:285086ce03e6444be30c4cdbee6f8b1a5647f110062811f7d8707ab2760011cc",
       "dependencies": []
     },
     "libs/core/src/pipeline/services/places/place.ts#composePlaceReferenceName": {
       "path": "libs/core/src/pipeline/services/places/place.ts",
       "symbol": "composePlaceReferenceName",
-      "sourceHash": "sha256:804475c7fbbef88573dbb306b47a66aa1f0730d2361b9984c863ac674fa77b62",
+      "sourceHash": "sha256:6fda614d21f28c8004c751d2cc902c39af663ade9b4f1b8747a08ee77570f6ff",
       "dependencies": []
     },
     "apps/harbour-cli/src/lib/sources/hkgov/censtatd/hkgovCenstatdStatistics.ts#readHkgovCenstatdStatisticArchive": {
@@ -1118,7 +1124,7 @@
         {
           "path": "apps/harbour-cli/src/lib/pipeline/statistics/statisticLocalisationRule.ts",
           "symbol": "statisticLocalisationRule",
-          "sourceHash": "sha256:c1df26a594f519082a14c7ed2f4ef7a2fc32f5972fbc6beb9100a68e1950349b"
+          "sourceHash": "sha256:7a74c044e97c4f27b56bf882874f9ae014901a479b76a1574ddbfe114278b769"
         },
         {
           "path": "apps/harbour-cli/src/lib/pipeline/statistics/statisticsRecordIdentity.ts",

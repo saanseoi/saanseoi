@@ -22,7 +22,7 @@ test('Places delivery writes only current content changes and removals, with rec
         join(import.meta.dir, '../../../../../../libs/db/migrations'),
         ['current'],
       )
-      const tables = ['places', 'placesI18n', 'placesCells', 'placesDivision']
+      const tables = ['places', 'placesI18n', 'placesCells', 'placeDivisionDefinitions']
       for (const db of [f.remote, local]) {
         db.exec(migrationSql)
         db.exec(
@@ -51,7 +51,11 @@ test('Places delivery writes only current content changes and removals, with rec
           versionHash: id,
           address2dId: null,
           address3dId: null,
-          divisionIds: [],
+          divisionIds: ['district'],
+          divisionReferences: { districtId: 'district' },
+          divisionDefinitions: {
+            district: { level: 2, locales: [{ locale: 'en', name: 'District' }] },
+          },
         }
       }
       const target = { name: 'current' as const, databaseId: 'db' }
@@ -127,6 +131,12 @@ test('Places delivery writes only current content changes and removals, with rec
         await completeSqlDeliveryRelease(f.root, resourceReleaseId)
       }
       await run(1, initial)
+      expect(
+        local.query('SELECT count(*) n FROM places WHERE districtId IS NOT NULL').get(),
+      ).toEqual({ n: 2 })
+      expect(
+        local.query('SELECT count(*) n FROM placeDivisionDefinitions').get(),
+      ).toEqual({ n: 1 })
       for (const db of [f.remote, local]) db.exec('DELETE FROM audit')
       const reissued = structuredClone(initial)
       for (const row of reissued) row.place.lastSeenMonth = '2026-10'

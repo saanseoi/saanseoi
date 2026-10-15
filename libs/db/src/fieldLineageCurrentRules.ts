@@ -1,3 +1,4 @@
+import { placeDivisionFieldNames } from './schema/shared'
 import type { OperationExplanation } from './fieldLineageExplanation'
 import { geometryReferenceRule } from './fieldLineageGeometryReferences'
 import type { HumanOperation } from './fieldLineageHuman'
@@ -347,7 +348,7 @@ export function currentPlaceFieldRule(apiField: string): CurrentFieldRule | null
         place,
         'mergePlaceI18n',
         expressions[locale[1]!]!,
-        locale[1] === 'provenance'
+        locale[1] === 'meta'
           ? ['names', 'brand.names', 'addresses']
           : locale[1] === 'freeformAddress'
             ? ['addresses']
@@ -365,6 +366,13 @@ export function currentPlaceFieldRule(apiField: string): CurrentFieldRule | null
         },
       )
   }
+  if ((placeDivisionFieldNames as readonly string[]).includes(field))
+    return rule(
+      'apps/harbour-cli/src/lib/pipeline/places/processLocalPlaceSqlUploadPreparation.ts',
+      'stageEnrichedPlaces',
+      `divisionMembership.references.${field} ?? null`,
+      ['divisionMembership'],
+    )
   const expressions: Record<string, string> = {
     id: 'asString(row.id)',
     basicCategory:
@@ -372,7 +380,9 @@ export function currentPlaceFieldRule(apiField: string): CurrentFieldRule | null
     'taxonomy.primary': 'asString(taxonomy?.primary) ?? asString(categories?.primary)',
     'taxonomy.alternates':
       'jsonValue(categories?.alternate ?? taxonomy?.alternates ?? taxonomy?.alternate)',
-    geometry: "{ type: 'Point', coordinates: [lng, lat] }",
+    geometry: 'placePoint(effectiveLng, effectiveLat)',
+    bbox: 'normalisePlaceBbox(row.bbox)',
+    'identifiers.wikidata.brandId.id': 'asString(brand?.wikidata)',
     sources: 'normaliseOvertureAttribution(row.sources)',
     firstSeenMonth:
       'Preserve the existing identity firstSeenMonth; for a new identity use sourceVersion.slice(0, 7).',
@@ -396,7 +406,7 @@ export function currentPlaceFieldRule(apiField: string): CurrentFieldRule | null
     'relationships.address':
       'address2dId ? { type: "addresses", id: address2dId } : null',
     'relationships.divisions':
-      'Canonical divisionIds for the accepted Place/Address association, in reader order.',
+      'Non-null supported scalar Division IDs, without SAR, city or island-group ancestors.',
   }
   if (!expressions[field]) return null
   if (field === 'geometry')
@@ -449,7 +459,7 @@ export function currentPlaceFieldRule(apiField: string): CurrentFieldRule | null
       'apps/harbour-cli/src/lib/pipeline/places/processLocalPlaceSqlUploadPreparation.ts',
       'stageEnrichedPlaces',
       field === 'relationships.divisions'
-        ? '[...new Set(divisionMembership.divisionIds)]'
+        ? 'Object.values(divisionMembership.references).filter(id => typeof id === "string")'
         : field.startsWith('address3d')
           ? `unitReference?.${field} ?? null`
           : 'address2dId',
@@ -515,6 +525,8 @@ export function currentPlaceFieldRule(apiField: string): CurrentFieldRule | null
           'taxonomy.alternate',
         ],
         geometry: ['geometry'],
+        bbox: ['place'],
+        'identifiers.wikidata.brandId.id': ['place'],
         sources: ['sources'],
         firstSeenMonth: ['sourceVersion', 'previousIdentity'],
         lastSeenMonth: ['publication.cohortKey'],

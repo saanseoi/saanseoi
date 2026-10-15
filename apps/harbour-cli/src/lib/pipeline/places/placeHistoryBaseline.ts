@@ -147,19 +147,25 @@ export async function loadCurrentPlaceHistory(
     throw new Error(
       'Missing exact Place predecessor content: locale membership differs from its serving scope.',
     )
-  const links = await ownership.currentDb
-    .select()
-    .from(currentSchema.placesDivision)
-    .where(eq(currentSchema.placesDivision.placeScopeId, ownership.scopeId))
+  const definitions = await ownership.currentDb
+    .select({
+      placeId: currentSchema.places.id,
+      definition: currentSchema.placeDivisionDefinitions.definition,
+    })
+    .from(currentSchema.places)
+    .innerJoin(
+      currentSchema.placeDivisionDefinitions,
+      eq(
+        currentSchema.places.divisionDefinitionSetId,
+        currentSchema.placeDivisionDefinitions.id,
+      ),
+    )
+    .where(eq(currentSchema.places.scopeId, ownership.scopeId))
     .all()
-  for (const link of links) {
-    const state = states.get(String(link.placeId))
-    if (!state)
-      throw new Error(
-        `Current Place Division link without a base: ${link.placeId}/${link.divisionId}.`,
-      )
-    state.divisionLinks ??= []
-    state.divisionLinks.push(link as typeof currentSchema.placesDivision.$inferSelect)
+  for (const row of definitions) {
+    const state = states.get(row.placeId)
+    if (!state) throw new Error(`Place definitions without base ${row.placeId}.`)
+    state.divisionDefinitions = row.definition
   }
   return [...states.values()]
 }

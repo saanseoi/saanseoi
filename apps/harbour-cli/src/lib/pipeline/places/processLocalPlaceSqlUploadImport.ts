@@ -180,13 +180,11 @@ export async function importPlaceSqlBatches(
   }
   await executeSqlText(targets.current, buildBeginPublicationSql(publication), options)
   let localisedRows = 0
-  let divisionLinks = 0
   let cells = 0
   let completedBatches = 0
   for await (const sql of buildPlaceSqlBatches(input, path, timestamp, onProgress)) {
     const batchEnd = Math.min(totalRows, (completedBatches + 1) * PLACE_SQL_BATCH_SIZE)
     localisedRows += sql.publicationCounts.localisedRows
-    divisionLinks += sql.publicationCounts.divisionLinks
     cells += sql.publicationCounts.cells
     sql.currentSql = sql.currentSql.map(statement =>
       buildGuardedPublicationSql(publication, [statement]),
@@ -216,12 +214,6 @@ export async function importPlaceSqlBatches(
       validationSql: [
         buildPublicationRowCountSql('places', publication.scopeId, totalRows),
         buildPublicationRowCountSql('placesI18n', publication.scopeId, localisedRows),
-        buildPublicationRowCountSql(
-          'placesDivision',
-          publication.scopeId,
-          divisionLinks,
-          'placeScopeId',
-        ),
         buildPublicationRowCountSql('placesCells', publication.scopeId, cells),
       ].join(' AND '),
     }),
@@ -339,19 +331,21 @@ export function insertSqlParts(
   return [
     `INSERT INTO "${table}" (${entries.map(([key]) => `"${key}"`).join(', ')}) VALUES `,
     `(${entries.map(([, value]) => sqlValue(value)).join(', ')})`,
-    ` ON CONFLICT DO UPDATE SET ${updates.map(([key]) => `"${key}" = excluded."${key}"`).join(', ')}${
-      preserveOpenVersion
-        ? ` WHERE "${table}".isCurrent <> 1 OR "${table}".validToRelease IS NOT NULL`
-        : currentProjection
-          ? ` WHERE ${currentRowChangedSqlText(
-              table,
-              entries.map(([key]) => key),
-              table === 'places'
-                ? ['createdAt', 'updatedAt', 'resourceReleaseId', 'lastSeenMonth']
-                : undefined,
-            )}`
-          : ''
-    };`,
+    table === 'placeDivisionDefinitions'
+      ? ' ON CONFLICT DO NOTHING;'
+      : ` ON CONFLICT DO UPDATE SET ${updates.map(([key]) => `"${key}" = excluded."${key}"`).join(', ')}${
+          preserveOpenVersion
+            ? ` WHERE "${table}".isCurrent <> 1 OR "${table}".validToRelease IS NOT NULL`
+            : currentProjection
+              ? ` WHERE ${currentRowChangedSqlText(
+                  table,
+                  entries.map(([key]) => key),
+                  table === 'places'
+                    ? ['createdAt', 'updatedAt', 'resourceReleaseId', 'lastSeenMonth']
+                    : undefined,
+                )}`
+              : ''
+        };`,
   ]
 }
 

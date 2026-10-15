@@ -4,7 +4,6 @@ import type {
   PlaceLocalisationStatistics,
 } from '@repo/core/pipeline/services/places/place'
 import type { ReleaseProcessingAction } from '@repo/core/provenance/processingAction'
-import type { currentSchema } from '@repo/db'
 import type { PlaceVersionI18nRow, PlaceVersionRow } from '@repo/db/historySchema'
 
 export type PlaceUploadPlan = {
@@ -48,6 +47,7 @@ export type EnrichedPlace = {
     divisionAreaSnapshotId: string
     evidence: { divisionId: string; method: string }[]
   }
+  divisionReferences?: import('../divisions/divisionMembership').DivisionReferences
   divisionIds: string[]
   divisionDefinitions?: Record<
     string,
@@ -69,7 +69,6 @@ export type PlaceHistoryRow = Pick<
   | 'addresses'
   | 'createdAt'
   | 'firstSeenMonth'
-  | 'lastSeenMonth'
   | 'resourceReleaseId'
   | 'versionHash'
 > &
@@ -85,7 +84,7 @@ export type PlaceHistoryState = {
   bindingName: string
   row: PlaceHistoryRow
   locales?: PlaceLocaleHistoryState[]
-  divisionLinks?: (typeof currentSchema.placesDivision.$inferSelect)[]
+  divisionDefinitions?: import('@repo/db').PlaceDivisionDefinitionSet
 }
 
 export type BuildPlaceSqlInput = {

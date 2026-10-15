@@ -1,3 +1,7 @@
+import { chunkArray } from '@repo/core/pipeline/utils.ts'
+import { placeDivisionFieldNames } from '@repo/db'
+import { placeDivisionDefinitions } from '@repo/db/currentSchema'
+import { normalisePlaceBbox } from '@repo/core/pipeline/services/places/placeGeometry'
 import { parseI18nMeta } from '@repo/db'
 import { geographicMembershipSql } from '../lib/geographicFilterContext'
 import {
@@ -16,7 +20,6 @@ import { MAX_PLACE_RESULTS } from '../lib/api-limits'
 const {
   places,
   placesCells,
-  placesDivision,
   placesFts,
   placeSearchScopes,
   placesFtsMatch,
@@ -66,6 +69,17 @@ export type PlaceRecord = {
     id: string
     resourceReleaseId: string
     addressSnapshotId: string | null
+    countryId?: string | null
+    areaId?: string | null
+    districtId?: string | null
+    townId?: string | null
+    ruralAreaId?: string | null
+    macrohoodId?: string | null
+    neighbourhoodId?: string | null
+    villageId?: string | null
+    microhoodId?: string | null
+    hamletId?: string | null
+    landformId?: string | null
     address2dId: string | null
     address3dId: string | null
     address3dUnitId?: string | null
@@ -78,7 +92,7 @@ export type PlaceRecord = {
     taxonomyPrimary: string | null
     taxonomyHierarchy: unknown
     taxonomyAlternates: unknown
-    wikidataId: string | null
+    identifiers: { wikidata: { brandId: { id: string } } } | null
     websites: unknown
     socials: unknown
     emails: unknown
@@ -92,31 +106,10 @@ export type PlaceRecord = {
   }
   i18n: Record<string, PlaceLocaleValue>
   divisionIds: string[]
+  divisionDefinitions?: import('@repo/db').PlaceDivisionDefinitionSet
 }
 
-export function normalisePlaceBbox(value: unknown): BBox | null {
-  const coordinates = Array.isArray(value)
-    ? value
-    : value && typeof value === 'object' && !Array.isArray(value)
-      ? [
-          (value as Record<string, unknown>).xmin,
-          (value as Record<string, unknown>).ymin,
-          (value as Record<string, unknown>).xmax,
-          (value as Record<string, unknown>).ymax,
-        ]
-      : null
-
-  if (
-    coordinates?.length !== 4 ||
-    coordinates.some(
-      coordinate => typeof coordinate !== 'number' || !Number.isFinite(coordinate),
-    )
-  ) {
-    return null
-  }
-
-  return [coordinates[0], coordinates[1], coordinates[2], coordinates[3]]
-}
+export { normalisePlaceBbox } from '@repo/core/pipeline/services/places/placeGeometry'
 
 type PlaceListLookup = {
   snapshotId: string
@@ -151,7 +144,15 @@ export async function getPlaceCurrent(db: CurrentDatabase, lookup: PlaceLookup) 
     .limit(1)
     .get()
 
-  return row ? { ...row, bbox: normalisePlaceBbox(row.bbox) } : null
+  return row
+    ? {
+        ...row,
+        lng: row.geometry.coordinates[0],
+        lat: row.geometry.coordinates[1],
+        lastSeenMonth: '',
+        bbox: normalisePlaceBbox(row.bbox),
+      }
+    : null
 }
 
 export async function listPlaceI18n(db: CurrentDatabase, lookup: I18nLookup) {
@@ -173,21 +174,30 @@ export async function listPlaceI18n(db: CurrentDatabase, lookup: I18nLookup) {
 }
 
 export async function listPlaceDivisions(db: CurrentDatabase, lookup: I18nLookup) {
-  const rows = await db
+  const row = await db
     .select({
-      divisionId: placesDivision.divisionId,
-      definition: placesDivision.definition,
+      ...getTableColumns(places),
+      definition: placeDivisionDefinitions.definition,
     })
-    .from(placesDivision)
+    .from(places)
+    .innerJoin(
+      placeDivisionDefinitions,
+      eq(places.divisionDefinitionSetId, placeDivisionDefinitions.id),
+    )
     .where(
       and(
-        publicationScopeCondition('place', placesDivision.placeScopeId, [
-          lookup.snapshotId,
-        ]),
-        eq(placesDivision.placeId, lookup.placeId),
+        publicationScopeCondition('place', places.scopeId, [lookup.snapshotId]),
+        eq(places.id, lookup.placeId),
       ),
     )
-    .all()
+    .get()
+  const ids = new Set(
+    placeDivisionFieldNames.flatMap(field => (row?.[field] ? [row[field]!] : [])),
+  )
+  const rows = Object.entries(row?.definition ?? {})
+    .filter(([id]) => ids.has(id))
+    .map(([divisionId, definition]) => ({ divisionId, definition }))
+
   return rows
     .flatMap(({ divisionId, definition }) => {
       const locales = definition.locales.filter(
@@ -217,8 +227,8 @@ export async function listPlacesByH3Cell(db: CurrentDatabase, lookup: H3Lookup) 
       taxonomyHierarchy: places.taxonomyHierarchy,
       taxonomyAlternates: places.taxonomyAlternates,
       operatingStatus: places.operatingStatus,
-      lat: places.lat,
-      lng: places.lng,
+      lat: sql<number>`json_extract(${places.geometry}, '$.coordinates[1]')`,
+      lng: sql<number>`json_extract(${places.geometry}, '$.coordinates[0]')`,
       h3Level: placesCells.h3Level,
       h3Cell: placesCells.h3Cell,
     })
@@ -398,13 +408,17 @@ function parseDivisionIds(value: string) {
   }
 }
 
+function scalarDivisionIdsSql() {
+  return sql<string>`json_array(${sql.join(
+    placeDivisionFieldNames.map(field => places[field]),
+    sql`, `,
+  )})`
+}
 function placeGeographicCondition() {
-  const membership = sql`${placesDivision.placeScopeId} = ${places.scopeId} and ${placesDivision.placeId} = ${places.id}`
-  const all = sql`(select json_group_array(${placesDivision.divisionId}) from ${placesDivision} where ${membership})`
+  const all = scalarDivisionIdsSql()
   return geographicMembershipSql(all, undefined, targetClass =>
     targetClass === 'district'
-      ? sql`case when exists (select 1 from ${placesDivision} where ${membership} and json_extract(${placesDivision.definition}, '$.level') = 2)
-        then (select json_group_array(${placesDivision.divisionId}) from ${placesDivision} where ${membership} and json_extract(${placesDivision.definition}, '$.level') = 2) else ${all} end`
+      ? sql`case when ${places.districtId} is not null then json_array(${places.districtId}) else ${all} end`
       : all,
   )
 }
@@ -430,24 +444,36 @@ function buildPlaceConditions(
       ? eq(places.operatingStatus, lookup.operatingStatus)
       : undefined,
     lookup.divisionId
-      ? sql`(${places.scopeId}, ${places.id}) in (
-          select ${placesDivision.placeScopeId}, ${placesDivision.placeId}
-          from ${placesDivision}
-          where ${publicationScopeCondition('place', placesDivision.placeScopeId, [lookup.snapshotId])}
-            and ${placesDivision.divisionId} = ${lookup.divisionId}
-        )`
+      ? sql`(${places.scopeId}, ${places.id}) in (${sql.join(
+          chunkArray([...placeDivisionFieldNames], 5).map(
+            fields =>
+              sql`select * from (${sql.join(
+                fields.map(
+                  field =>
+                    sql`select ${places.scopeId}, ${places.id} from ${places} where ${publicationScopeCondition('place', places.scopeId, [lookup.snapshotId])} and ${places[field]} = ${lookup.divisionId}`,
+                ),
+                sql` UNION `,
+              )})`,
+          ),
+          sql` UNION `,
+        )})`
       : undefined,
   ].filter(condition => condition !== undefined)
 }
 
-type PlaceListRow = PlaceRecord['place'] & { i18n: string; divisionIds: string }
+type PlaceListRow = PlaceRecord['place'] & {
+  i18n: string
+  divisionIds: string
+  definition: string | null
+}
 
 function mapPlaceRow(row: PlaceListRow): PlaceRecord {
-  const { divisionIds, i18n, ...place } = row
+  const { divisionIds, i18n, definition, ...place } = row
   return {
     place: { ...place, bbox: normalisePlaceBbox(place.bbox) },
     i18n: parsePlaceI18n(i18n),
     divisionIds: parseDivisionIds(divisionIds),
+    divisionDefinitions: definition ? JSON.parse(definition) : {},
   }
 }
 
@@ -456,12 +482,7 @@ export async function listPlaceRecordsCurrent(
   lookup: PlaceListLookup,
 ): Promise<PlaceRecord[]> {
   const i18n = buildPlaceI18nJsonSelection(lookup.localeSelection)
-  const divisionIds = sql<string>`coalesce((
-    select json_group_array(${placesDivision.divisionId})
-    from ${placesDivision}
-    where ${placesDivision.placeScopeId} = ${places.scopeId}
-      and ${placesDivision.placeId} = ${places.id}
-  ), '[]')`
+  const divisionIds = scalarDivisionIdsSql()
   const rows = await db
     .select({
       snapshotId: publicationLogicalSnapshot('place', places.scopeId),
@@ -472,15 +493,15 @@ export async function listPlaceRecordsCurrent(
       address3dId: places.address3dId,
       address3dUnitId: places.address3dUnitId,
       address3dMembership: places.address3dMembership,
-      lng: places.lng,
-      lat: places.lat,
+      lng: sql<number>`json_extract(${places.geometry}, '$.coordinates[0]')`,
+      lat: sql<number>`json_extract(${places.geometry}, '$.coordinates[1]')`,
       bbox: places.bbox,
       operatingStatus: places.operatingStatus,
       basicCategory: places.basicCategory,
       taxonomyPrimary: places.taxonomyPrimary,
       taxonomyHierarchy: places.taxonomyHierarchy,
       taxonomyAlternates: places.taxonomyAlternates,
-      wikidataId: places.wikidataId,
+      identifiers: places.identifiers,
       websites: places.websites,
       socials: places.socials,
       emails: places.emails,
@@ -488,11 +509,17 @@ export async function listPlaceRecordsCurrent(
       confidence: places.confidence,
       sources: places.sources,
       firstSeenMonth: places.firstSeenMonth,
-      lastSeenMonth: places.lastSeenMonth,
+      lastSeenMonth: sql<string>`''`,
       createdAt: places.createdAt,
       updatedAt: places.updatedAt,
       i18n,
       divisionIds,
+      ...Object.fromEntries(
+        placeDivisionFieldNames.map(field => [field, places[field]]),
+      ),
+      definition: sql<
+        string | null
+      >`(select definition from ${placeDivisionDefinitions} where id = ${places.divisionDefinitionSetId})`,
     })
     .from(places)
     .where(and(...buildPlaceConditions(lookup)))
