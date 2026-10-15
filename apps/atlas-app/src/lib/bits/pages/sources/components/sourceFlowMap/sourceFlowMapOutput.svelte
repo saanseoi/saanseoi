@@ -3,11 +3,11 @@ import { m } from '#lib/bits/internal/i18n.js'
 
 import type { SourceFlowLane } from './sourceFlowMapTypes'
 
-type Props = { lane: SourceFlowLane; groupId: string }
-let { lane, groupId }: Props = $props()
+type Props = { lane: SourceFlowLane; groupId: string; href: string }
+let { lane, groupId, href }: Props = $props()
 </script>
 
-<a class="source-flow-output group" href={lane.href} id={`source-flow-${groupId}`}>
+<a class="source-flow-output group" {href} id={`source-flow-${groupId}`}>
   <span class="source-flow-output-image" aria-hidden="true"
     ><img src={lane.image} alt=""></span
   >

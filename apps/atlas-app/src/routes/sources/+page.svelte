@@ -349,6 +349,7 @@ const sourceFlowLanes = $derived.by<SourceFlowLane[]>(() =>
             return [
               {
                 id: `${familyType}:${groupCode}`,
+                href: `/apis/${familyType}?domain=${encodeURIComponent(groupCode)}`,
                 label: domainLabel(
                   groupCode,
                   domainMetadata?.members.find(
@@ -372,7 +373,7 @@ const sourceFlowLanes = $derived.by<SourceFlowLane[]>(() =>
           {
             id: familyType,
             label: theme.name,
-            href: `/apis/${familyType}`,
+            href: defaultDomain.href,
             accent: theme.colorway.primary,
             secondary: theme.colorway.secondary,
             ink: '#fffaf0',

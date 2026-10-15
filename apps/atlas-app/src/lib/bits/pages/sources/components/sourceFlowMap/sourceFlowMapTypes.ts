@@ -24,6 +24,7 @@ export type SourceFlowField = {
 export type SourceFlowDomain = {
   id: string
   label: string
+  href: string
   primary: SourceFlowInput
   variants: SourceFlowInput[]
 }

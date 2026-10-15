@@ -425,22 +425,33 @@ async function getSourceReleaseMeasures(input: {
   })
 }
 
-export const getApiFamilyPageData = query(registryCodeSchema, async familyType => {
-  const api = (await runWithD1ReadRetry(() =>
-    getRegistryApi(getMetaDb(), familyType),
-  )) as RegistryApi | null
-  if (!api) error(404, 'API family not found.')
+export const getApiFamilyPageData = query(
+  z.object({
+    familyType: registryCodeSchema,
+    domainCode: registryCodeSchema.optional(),
+  }),
+  async ({ familyType, domainCode }) => {
+    const api = (await runWithD1ReadRetry(() =>
+      getRegistryApi(getMetaDb(), familyType),
+    )) as RegistryApi | null
+    if (!api) error(404, 'API family not found.')
 
-  const latestRelease =
-    api.releases?.find(release => release.displayStatus === 'current') ??
-    api.releases?.[0]
-  if (latestRelease) {
-    redirect(302, `/apis/${api.familyType}/${latestRelease.code}`)
-  }
+    const releases = domainCode
+      ? api.releases?.filter(
+          release => (release.domainCode ?? 'default') === domainCode,
+        )
+      : api.releases
+    const latestRelease =
+      releases?.find(release => release.displayStatus === 'current') ?? releases?.[0]
+    if (latestRelease) {
+      redirect(302, `/apis/${api.familyType}/${latestRelease.code}`)
+    }
+    if (domainCode) error(404, 'API domain release not found.')
 
-  recordRegistryDataLoad('/apis/:id', 'api', familyType)
-  return { api, release: null }
-})
+    recordRegistryDataLoad('/apis/:id', 'api', familyType)
+    return { api, release: null }
+  },
+)
 
 export const getApiReleaseShellData = query(
   apiReleaseDetailSchema,

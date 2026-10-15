@@ -163,7 +163,7 @@ let shouldShowLaneToggle = $derived(
     </dl>
 
     <SourceFlowMapConnectors {groupElement} {inputs} />
-    <SourceFlowMapOutput {lane} {groupId} />
+    <SourceFlowMapOutput {lane} {groupId} href={domain?.href ?? lane.href} />
   </section>
 {/if}
 
