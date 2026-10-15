@@ -6,8 +6,8 @@ export const divisionAreas = sqliteTable(
   'divisionAreas',
   {
     scopeId: text('scopeId').notNull(),
-    ...canonicalDivisionGeometry,
     divisionId: text('divisionId').notNull(),
+    ...canonicalDivisionGeometry,
     ...timestamps,
   },
   table => [
@@ -21,9 +21,9 @@ export const divisionBoundaries = sqliteTable(
   'divisionBoundaries',
   {
     scopeId: text('scopeId').notNull(),
-    ...canonicalDivisionGeometry,
     leftDivisionId: text('leftDivisionId').notNull(),
     rightDivisionId: text('rightDivisionId').notNull(),
+    ...canonicalDivisionGeometry,
     ...timestamps,
   },
   table => [
