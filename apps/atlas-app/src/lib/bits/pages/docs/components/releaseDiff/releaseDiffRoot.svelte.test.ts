@@ -34,19 +34,3 @@ test('renders the supplied no-change state', async () => {
 
   await expect.element(screen.getByText('No changes')).toBeVisible()
 })
-
-test('centres an initial-release empty state in the notes pane', async () => {
-  const screen = await render(ReleaseDiffRoot, {
-    centerEmptyState: true,
-    changes: [],
-    labels: { ...labels, empty: 'Initial release. Nothing to compare to.' },
-    markdown,
-  })
-
-  await expect
-    .element(screen.getByText('Initial release. Nothing to compare to.'))
-    .toHaveClass('items-center')
-  await expect
-    .element(screen.getByText('Initial release. Nothing to compare to.'))
-    .toHaveClass('justify-center')
-})

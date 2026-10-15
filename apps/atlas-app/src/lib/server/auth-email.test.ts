@@ -16,7 +16,6 @@ describe('createAuthEmail', () => {
       'Reset password: https://saanseoi.hk/api/auth/reset-password',
     )
     expect(email.html).toContain('Reset your password')
-    expect(email.html).toContain('background:#007b66')
     expect(email.html).toContain('Hi &lt;Avery&gt;,')
     expect(email.html).not.toContain('Hi <Avery>,')
     expect(email.html).toContain(

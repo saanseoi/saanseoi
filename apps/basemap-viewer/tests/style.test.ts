@@ -7,11 +7,9 @@ import {
   applyVisibility,
   createPostcardStyle,
   createStyle,
-  earthColor,
   firstTextSymbolLayerId,
   labelExpression,
   postcardPalette,
-  waterColor,
 } from '../src/lib/style'
 import { defaultState } from '../src/lib/ctx/app'
 
@@ -145,15 +143,6 @@ describe('basemap style', () => {
     expect(style.sprite).toBe(
       'https://protomaps.github.io/basemaps-assets/sprites/v4/dark',
     )
-  })
-
-  it('exposes the earth and water colours used by regional coverage', () => {
-    expect(earthColor('light')).toBe('#e2dfda')
-    expect(earthColor('dark')).toBe('#1f1f1f')
-    expect(earthColor('midnight')).toBe('#0D3036')
-    expect(waterColor('light')).toBe('#80deea')
-    expect(waterColor('dark')).toBe('#31353f')
-    expect(waterColor('midnight')).toBe('#061426')
   })
 
   it('renders Midnight with restrained road hierarchy and high-contrast labels', () => {

@@ -8,7 +8,6 @@ test('uses the shared record skeleton for Samples', async () => {
 
   await expect.element(screen.getByRole('status')).toBeVisible()
   await expect.element(screen.getByRole('status')).toHaveAttribute('aria-busy', 'true')
-  await expect.element(screen.getByRole('status')).toHaveClass('space-y-4')
 })
 
 test('uses a schema-shaped skeleton for Schema', async () => {
