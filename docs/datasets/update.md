@@ -17,6 +17,38 @@ saanseoi update
 saanseoi update --dataset ds-hk-overture-division --download
 ```
 
+## Explicitly skipped releases
+
+Record an exact publisher version and a non-empty reason in the affected dataset
+fixture's `skippedReleases` array:
+
+```json
+{
+  "skippedReleases": [
+    {
+      "sourceVersion": "2026-09-23.1",
+      "reason": "This patch does not affect the data ingested by SaanSeoi."
+    }
+  ]
+}
+```
+
+Run `bun run rehash:fixture datasets/<fixture>.json` after editing the fixture.
+Decisions apply to that dataset on every target. `saanseoi update` prints the skipped
+version and full reason, excludes it from downloads, archive mirroring and ingestion,
+and leaves the published target version unchanged. `--check-now`, `--force-download` and
+`--force-upload` honour the decision. Remove the decision to make that version eligible
+again.
+
+Overture discovery selects the newest eligible catalogue version for ingestion even when
+a newer patch is skipped. Other historical versions retain their archive role; skipped
+versions do not consume the minimal initialisation sample. The Hong Kong Places and
+Divisions fixtures explicitly skip `2026-09-23.1` because it does not affect the data
+ingested by SaanSeoi. These decisions govern `update`; direct upload and source-specific
+initialisation commands have their own release selection.
+
+## Source discovery
+
 Each dataset is checked sequentially with a compact spinner row. Overture is checked
 through its STAC catalog. For a new release, the command runs
 `../overturist/overturist.ts get` with the stable Hong Kong division id and the dataset

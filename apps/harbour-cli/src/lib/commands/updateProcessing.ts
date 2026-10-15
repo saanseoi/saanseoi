@@ -42,6 +42,7 @@ export async function processUpdate(
     updateTotal: number
   },
 ): Promise<UpdateProcessingResult> {
+  if (update.status === 'skipped') return 'skipped'
   if (update.status === 'review') {
     return resolveMetadataReview(options.skipPrompts, () => askToInvestigate(update))
   }
@@ -187,7 +188,11 @@ export function shouldDownloadUpdate(
   update: Pick<DatasetUpdate, 'download' | 'status'>,
   forceDownload = false,
 ) {
-  return Boolean(update.download) && (forceDownload || update.status !== 'current')
+  return (
+    update.status !== 'skipped' &&
+    Boolean(update.download) &&
+    (forceDownload || update.status !== 'current')
+  )
 }
 
 async function askToDownload(

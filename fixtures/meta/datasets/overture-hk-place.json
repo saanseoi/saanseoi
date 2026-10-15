@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:c9f434ce46219b8899639a31849f77d253accb542472c53952a73dd424177f1b",
+  "versionHash": "sha256:4a8ab2e65ce180cd78e7bf4866b37ce65b5a8870757601d9892173b70f149ab0",
   "publisherCode": "overture",
   "code": "ds-hk-overture-place",
   "regionCode": "hk",
@@ -45,6 +45,12 @@
       "entryUrl": "https://stac.overturemaps.org/catalog.json"
     }
   },
+  "skippedReleases": [
+    {
+      "sourceVersion": "2026-09-23.1",
+      "reason": "This patch does not affect the data ingested by SaanSeoi."
+    }
+  ],
   "versionPolicy": {
     "scheme": "upstream",
     "correctionSuffixSource": "upstream"

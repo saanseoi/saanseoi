@@ -12,6 +12,8 @@ import {
   formatIngestProgressLine,
   formatUpdateProgressLine,
   formatSkippedDatasetLine,
+  formatUpdateGridRow,
+  wrapUpdateMessage,
 } from './updateFormatting.ts'
 import type { DatasetUpdate } from './updateTypes.ts'
 
@@ -153,6 +155,17 @@ export class UpdateRow {
 
   error(message: string) {
     this.stop(message, 'error')
+  }
+
+  skippedRelease(update: DatasetUpdate) {
+    this.stop(
+      formatUpdateGridRow(this.dataset, 'SKIPPED', update.version, undefined, true),
+      'success',
+    )
+    log.message(wrapUpdateMessage(update.message ?? ''), {
+      spacing: 0,
+      withGuide: true,
+    })
   }
 
   skipped(reason: string) {

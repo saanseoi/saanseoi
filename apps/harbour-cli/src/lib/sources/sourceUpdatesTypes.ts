@@ -139,6 +139,8 @@ export type DatasetRelease = {
 }
 
 export type DatasetFixture = {
+  /** Exact publisher versions excluded from update discovery and processing. */
+  skippedReleases?: Array<{ sourceVersion: string; reason: string }>
   sourceRecordIdentity?: SourceRecordIdentity
   code: string
   publisherCode: string

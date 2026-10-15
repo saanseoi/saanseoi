@@ -195,6 +195,7 @@ export function formatUpdateGridRow(
   status: string,
   version?: string,
   targetVersion?: string | null,
+  preserveSourceVersion = false,
 ) {
   const parts = datasetLabelParts(dataset)
   const width = updateLineWidth()
@@ -210,7 +211,7 @@ export function formatUpdateGridRow(
       : width - publisherWidth - resourceWidth - statusWidth - versionsWidth - 8,
   )
   const versions = version
-    ? `v${ownVersion(version)}${targetVersion && releasesDiffer(version, targetVersion) ? ` ← v${ownVersion(targetVersion)}` : ''}`
+    ? `v${preserveSourceVersion ? version : ownVersion(version)}${targetVersion && releasesDiffer(version, targetVersion) ? ` ← v${ownVersion(targetVersion)}` : ''}`
     : targetVersion
       ? `v${ownVersion(targetVersion)}`
       : '—'

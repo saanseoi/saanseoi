@@ -92,7 +92,8 @@ export async function lookupOverture({
         ),
     ]
   })
-  if (targetHasNoRelease) updates.sort((a, b) => compareVersions(a.version, b.version))
+  if (targetHasNoRelease)
+    updates.sort((a, b) => compareVersions(a.version ?? '', b.version ?? ''))
   return updates.length === 1 ? updates[0]! : updates
 }
 

@@ -1,5 +1,11 @@
 # Places dataset family
 
+The Overture dataset fixture excludes publisher patch `2026-09-23.1` from
+`saanseoi update`: it does not affect the data ingested by SaanSeoi. The command reports
+the version and reason and keeps eligible releases available for ingestion. See
+[explicitly skipped releases](../update.md#explicitly-skipped-releases) for the decision
+format.
+
 API release-set record totals replay the exact published HISTORY branches for the
 preceding and selected publications. Place content and all retained locale versions
 contribute to one primary Place comparison; translation-only edits count as changed
