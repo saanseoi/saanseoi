@@ -231,7 +231,9 @@ test('failed cleanup rolls back companion deletions and preserves its receipt', 
     f.sqlite.exec(
       "CREATE TRIGGER fail_receipt BEFORE DELETE ON streetPublicationState BEGIN SELECT RAISE(ABORT,'injected cleanup failure'); END",
     )
-    await expect(f.clean('street')).rejects.toThrow('injected cleanup failure')
+    await expect(f.clean('street')).rejects.toMatchObject({
+      cause: expect.objectContaining({ message: 'injected cleanup failure' }),
+    })
     expect(f.sqlite.query('SELECT count(*) AS n FROM streetsI18n').get()).toEqual({
       n: 1,
     })
