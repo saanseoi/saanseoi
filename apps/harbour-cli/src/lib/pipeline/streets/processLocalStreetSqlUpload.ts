@@ -1,3 +1,10 @@
+import { prepareSourceOnlyReleaseMetadata } from '../local/sourceOnlyReleaseMetadata'
+import {
+  calculateAndStoreApiReleaseSetStats,
+  isApiReleaseSetStatsReady,
+  resolveApiReleaseSetStatsTarget,
+} from '../../api/apiReleaseSetStats'
+import { refreshRemoteMetaCache } from '../../dbCache/localDbCache'
 import {
   ensureDraftSnapshotForRelease,
   recordSnapshotAssembly,
@@ -397,11 +404,26 @@ export async function processLocalStreetSqlUpload(
           changedSourceRecords,
           now,
         )
-        await replaceDatasetStats(
-          metaDb,
-          resourceReleaseId,
-          buildStreetStats(resolvedRecords, lifecycle.current, lifecycle.stats, now),
+        if (!context.metaBinding || !context.sourceBinding?.bindingName)
+          throw new Error('Street source stats require META and SOURCE bindings.')
+        const sourceMetadata = await prepareSourceOnlyReleaseMetadata(
+          context.metaBinding,
+          context.sourceTargets.map(source => {
+            if (!source.binding) throw new Error('Missing Street source binding.')
+            return source.binding
+          }),
+          {
+            datasetCode,
+            resourceReleaseId,
+            sourceVersion: dataset.sourceVersion,
+            sourceBindingName: context.sourceBinding.bindingName,
+            environment: target.environment === 'production' ? 'production' : 'preview',
+          },
         )
+        await replaceDatasetStats(metaDb, resourceReleaseId, [
+          ...buildStreetStats(resolvedRecords, lifecycle.current, lifecycle.stats, now),
+          ...sourceMetadata.stats,
+        ])
         const removedStreetIds = new Set(
           changedMaterialisedStreets
             .filter(street => street.status === 'deleted')
@@ -464,6 +486,32 @@ export async function processLocalStreetSqlUpload(
     const publishResult = await client.publishDataset(resourceReleaseId, releaseCode, {
       skipSnapshotCleanup: options.skipSnapshotCleanup,
     })
+    if (isApiReleaseSetStatsReady(publishResult)) {
+      if (target.remote)
+        await refreshRemoteMetaCache(
+          target.environment === 'production' ? 'production' : 'preview',
+          context.state.dbCacheDir,
+          resourceReleaseId,
+        )
+      await calculateAndStoreApiReleaseSetStats({
+        family: 'street',
+        currentDb: context.currentDb as unknown as HarbourReadableDb,
+        historyTargets: context.historyTargets,
+        harbourClient: client,
+        metaDb,
+        progress,
+        resourceReleaseId,
+        releaseCode,
+        target: resolveApiReleaseSetStatsTarget(publishResult),
+        importOptions: {
+          isLocal: !target.remote,
+          metaBinding: context.metaBinding,
+          metaDatabaseId: context.state.bindings.DB_META?.databaseId,
+          accountId: process.env.CLOUDFLARE_ACCOUNT_ID,
+          apiToken: process.env.CLOUDFLARE_API_TOKEN,
+        },
+      })
+    }
     completed = true
     return { importedRows: records.length, publishResult, snapshotId: snapshot.id }
   } catch (error) {

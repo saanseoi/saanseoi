@@ -1,5 +1,11 @@
 # LandsD street names
 
+Source-release record totals compare both retained baseline PDF rows and extracted
+Government Notice rows, including evidence and parser-diagnostic properties. They are
+independent of canonical lifecycle events. Street API release sets compare primary
+Street records and their retained locale and geometry versions on published HISTORY
+branches.
+
 Retained source assertions use
 [distinct validity periods for recurring content](../../families/source-evidence.md#recurring-source-validity-periods).
 An unchanged open occurrence continues; returning content starts a new occurrence.

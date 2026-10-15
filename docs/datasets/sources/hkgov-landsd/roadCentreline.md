@@ -1,5 +1,10 @@
 # LandsD Road Centreline
 
+Source releases persist current, added, changed, removed and unchanged road-segment
+assertion totals. Comparisons use retained publisher properties and native geometry at
+the selected and preceding published source-version intervals across yearly shards. The
+first release counts every assertion as added.
+
 Retained source assertions use
 [distinct validity periods for recurring content](../../families/source-evidence.md#recurring-source-validity-periods).
 An unchanged open occurrence continues; returning content starts a new occurrence.

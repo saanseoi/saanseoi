@@ -5,26 +5,64 @@ import {
 import { buildChurnStatsRows } from '@repo/core/pipeline/services/metrics/releaseStats'
 import type { LocalD1ExecBinding } from '../../dbCache/localDbCacheTypes'
 
+export const sourceReleaseContracts: Record<
+  string,
+  { label: string; table: string; geometry: string }
+> = {
+  'ds-hk-protomaps-island': {
+    label: 'Protomaps',
+    table: 'protomapsIslandFeatures',
+    geometry: 'sourceGeometry',
+  },
+  'ds-hk-hkgov-rvd-division': {
+    label: 'RVD',
+    table: 'hkgovRvdAreas',
+    geometry: 'NULL AS sourceGeometry',
+  },
+  ...Object.fromEntries(
+    [
+      ['ds-hk-hkgov-landsd-road-centreline', 'hkgovLandsdRoadCentrelines'],
+      ['ds-hk-hkgov-hyd-street', 'hkgovHydStreetNamePlates'],
+      ['ds-hk-hkgov-hyd-sensitive-street', 'hkgovHydSensitiveStreets'],
+      ['ds-hk-hkgov-hyd-strategic-street', 'hkgovHydStrategicStreets'],
+      ['ds-hk-hkgov-hyd-pedestrian-street', 'hkgovTdPedestrianStreets'],
+    ].map(([dataset, table]) => [
+      dataset,
+      { label: dataset, table, geometry: 'sourceGeometry' },
+    ]),
+  ),
+  'ds-hk-hkgov-landsd-street': {
+    label: 'LandsD Streets',
+    geometry: 'NULL AS sourceGeometry',
+    table: `(SELECT sourceRecordId, validFromRelease, validToRelease,
+      json_object('nameEn', nameEn, 'nameZhHant', nameZhHant, 'districtCode', districtCode) AS properties
+      FROM hkgovLandsdStreetBaselineRecords UNION ALL
+      SELECT sourceRecordId, validFromRelease, validToRelease,
+      json_object('nameEn', nameEn, 'nameZhHant', nameZhHant, 'descriptionEn', descriptionEn,
+        'descriptionZhHant', descriptionZhHant, 'gazetteDate', gazetteDate, 'effectiveDate', effectiveDate,
+        'kind', kind, 'noticeRef', noticeRef, 'previousNoticeRefs', json(previousNoticeRefs),
+        'districtCodes', json(districtCodes), 'rawExtractedText', json(rawExtractedText),
+        'parserDiagnostics', json(parserDiagnostics), 'evidenceAssets', json(evidenceAssets)) AS properties
+      FROM hkgovLandsdStreetNotices)`,
+  },
+}
+
 /** Source-only releases still need discoverable SOURCE shards and release facts. */
 export async function prepareSourceOnlyReleaseMetadata(
   meta: LocalD1ExecBinding,
   sources: LocalD1ExecBinding[],
   input: {
-    datasetCode: 'ds-hk-protomaps-island' | 'ds-hk-hkgov-rvd-division'
+    datasetCode: string
     resourceReleaseId: string
     sourceVersion: string
     sourceBindingName: string
     environment: 'preview' | 'production'
   },
 ) {
-  const contract =
-    input.datasetCode === 'ds-hk-protomaps-island'
-      ? {
-          label: 'Protomaps',
-          table: 'protomapsIslandFeatures',
-          geometry: 'sourceGeometry',
-        }
-      : { label: 'RVD', table: 'hkgovRvdAreas', geometry: 'NULL AS sourceGeometry' }
+  const selected = sourceReleaseContracts[input.datasetCode]
+  if (!selected)
+    throw new Error(`No source release stats contract for ${input.datasetCode}`)
+  const contract = selected
   const { results: shards } = await meta
     .prepare(
       "SELECT id FROM dataShards WHERE bindingName = ? AND environment = ? AND shardType = 'source' AND status = 'active'",

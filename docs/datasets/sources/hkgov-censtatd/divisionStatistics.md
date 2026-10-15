@@ -481,7 +481,17 @@ using the earliest later cohort only when no earlier one is available.
 When a comparable earlier source release exists, structural churn is limited to measure
 and dimension-definition/coverage changes. It is a quality-control signal, not a claim
 that publisher values changed incorrectly. Multi-year compilation periods and numeric
-values are not compared as churn, and no baseline produces no churn rows.
+values are not compared in these structural rows, and no baseline produces no structural
+churn rows.
+
+Independent record totals compare retained publisher assertions against the preceding
+published, non-revoked release of the same dataset and resource type. They count added,
+changed, removed and unchanged rows across all retained reference periods. Changes to
+publisher properties or native geometry count as record changes. Exact resource-release
+ownership isolates compilation payloads; the comparison ignores canonical filtering and
+storage-version hashes. The first release counts every retained assertion as added.
+These totals use dimensionless `changes` rows, while structural comparisons use
+`dimension: structural`.
 
 ## Canonical division links
 

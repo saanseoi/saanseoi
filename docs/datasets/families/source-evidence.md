@@ -155,3 +155,27 @@ Retries address the same complete period key, including SQL replay and large-pay
 updates. A source ledger explicitly keyed by resource release records membership per
 release instead. Canonical history uses snapshot membership and retains its content
 keys.
+
+## Persisted record change counts
+
+Source releases store aggregate `changes` rows with no dimension: `count`,
+`added_count`, `changed_count`, `removed_count` and `unchanged_count`. The first release
+counts its retained records as added. Comparisons use the preceding published,
+non-revoked release of the same dataset and resource type, across all required yearly
+SOURCE shards. Types and statistical structures have separate breakdowns; they do not
+substitute for these record totals.
+
+C&SD compares exact release-owned publisher assertions, including all retained reference
+periods, properties and content-addressed native geometry. Native Street sources compare
+publisher assertions at their source-version validity intervals. LandsD Street
+assertions include both baseline PDF rows and extracted notices. Missing or ambiguous
+retained comparison evidence must not produce invented totals.
+
+API release sets store the same aggregate measures for their primary public records.
+Statistics counts geography packs, Addresses counts Address2D records, Divisions counts
+Divisions, Places counts Places and Streets counts Streets. Comparisons follow the
+preceding publication within the API version, domain and region; Statistics also matches
+period granularity. Places and Streets replay exact HISTORY branches, including
+independent translations and Street geometry. An unchanged reissue counts inherited
+records as unchanged, even across yearly shards. The Changes and Stats pages read
+persisted totals; opening a page does not backfill missing summaries.

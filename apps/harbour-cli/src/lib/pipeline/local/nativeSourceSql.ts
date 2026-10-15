@@ -1,6 +1,9 @@
 import { stringifyGeoJson, orderGeoJsonText } from '@repo/db/geoJsonSerialisation'
 import { writeResourceSourceParquet } from '../../sources/resourceSourceArchive'
-import { prepareSourceOnlyReleaseMetadata } from './sourceOnlyReleaseMetadata'
+import {
+  prepareSourceOnlyReleaseMetadata,
+  sourceReleaseContracts,
+} from './sourceOnlyReleaseMetadata'
 import importFixture from '../../../../../../fixtures/meta/processing-rules/ingestion/native-source-import.json'
 import { registerRule, ruleDeclarationFromFixture } from '@repo/core/provenance'
 import { nativeSourceLocatorDefaults } from './nativeSourceLocators'
@@ -170,7 +173,7 @@ export async function processNativeSourceSqlRelease(
   // profiles. Mirror their source records into the local planning cache.
   const context = await resolveLocalAddressDbContext(target, 'hk', shardYear, {
     cacheTableProfile: 'nativeSource',
-    includeAllSourceShardYears: input.sourceOnly,
+    includeAllSourceShardYears: input.sourceOnly || input.resourceType === 'street',
   })
   const metaDb = context.metaDb as unknown as HarbourReadableDb & HarbourWritableDb
   const client = target.remote
@@ -270,9 +273,8 @@ export async function processNativeSourceSqlRelease(
     }
 
     if (
-      input.sourceOnly &&
-      (input.datasetCode === 'ds-hk-protomaps-island' ||
-        input.datasetCode === 'ds-hk-hkgov-rvd-division')
+      (input.sourceOnly || input.resourceType === 'street') &&
+      sourceReleaseContracts[input.datasetCode]
     ) {
       if (!context.metaBinding || !context.sourceBinding?.bindingName)
         throw new Error('Source-only metadata requires local META and SOURCE bindings.')

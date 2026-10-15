@@ -1,5 +1,11 @@
 # Places dataset family
 
+API release-set record totals replay the exact published HISTORY branches for the
+preceding and selected publications. Place content and all retained locale versions
+contribute to one primary Place comparison; translation-only edits count as changed
+Places. Orphan locale rows do not create Places. The first publication counts every
+Place as added; a no-op revision counts inherited Places as unchanged.
+
 Source ledgers retain separate occurrences of recurring content under the
 [shared source validity contract](source-evidence.md#recurring-source-validity-periods).
 

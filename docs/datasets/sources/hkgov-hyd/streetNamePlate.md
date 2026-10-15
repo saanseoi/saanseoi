@@ -1,5 +1,10 @@
 # Highways Department street datasets
 
+Source releases persist current, added, changed, removed and unchanged publisher-record
+totals. Each HyD/TD dataset compares its own retained properties and native geometry
+against the preceding published source version across yearly SOURCE shards. The first
+release counts every assertion as added.
+
 Retained source assertions use
 [distinct validity periods for recurring content](../../families/source-evidence.md#recurring-source-validity-periods).
 An unchanged open occurrence continues; returning content starts a new occurrence.

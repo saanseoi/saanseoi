@@ -1,3 +1,4 @@
+import { buildCenstatdSourceRecordChurn } from './censtatdSourceRecordChurn'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import { replaceDatasetStatsAndReturnRows } from '@repo/core/pipeline/db/stats'
 import type { HarbourClient } from '@repo/core/pipeline/harbourClient'
@@ -432,6 +433,13 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
       canonical,
       statsProfile,
     )
+    const recordChurn = await buildCenstatdSourceRecordChurn({
+      metaDb,
+      datasetCode,
+      sourceDbs: context.sourceTargets.map(target => target.db as HarbourReadableDb),
+      resourceReleaseId,
+      expectedRecords: rows.length,
+    })
     const previousStats = await findPreviousComparableCenstatdReleaseStats(
       metaDb,
       resourceReleaseId,
@@ -445,6 +453,7 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
           resourceReleaseId,
           [
             ...structuralStats,
+            ...recordChurn,
             ...buildCenstatdStructuralChurnStats(structuralStats, previousStats),
           ],
         )

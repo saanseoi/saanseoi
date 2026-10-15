@@ -1,5 +1,11 @@
 # Statistics dataset family
 
+Source release record totals count retained publisher assertions across all compilation
+periods, independently of the structural field and period breakdowns. Their aggregate
+`changes` rows record added, changed, removed, unchanged and current record counts.
+Statistics API release sets count canonical geography packs for their selected period.
+See the [shared count contract](source-evidence.md#persisted-record-change-counts).
+
 C&SD statistics ingestion retains the `reuse-censtatd-statistics-geometry` rule under
 the resource child's Ingestion audit. Its input count records statistic geometry
 references; outputs show distinct new geometries, distinct reused geometries and total

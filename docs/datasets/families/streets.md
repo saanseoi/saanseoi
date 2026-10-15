@@ -1,5 +1,11 @@
 # Streets API family
 
+Source-release record totals compare retained publisher baseline and notice assertions,
+including their extracted labels, dates and evidence. Native Street ingredients retain
+their own record totals. Street API release sets compare primary Streets on exact
+published HISTORY branches, including locale and geometry versions. These totals remain
+separate from lifecycle event and notice-type counts.
+
 Canonical `sources` items use `publisher` and `dataset` for upstream codes and
 `recordId` for retained publisher record keys.
 

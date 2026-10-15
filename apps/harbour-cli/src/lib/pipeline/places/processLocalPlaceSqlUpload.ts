@@ -647,8 +647,16 @@ export async function processLocalPlaceSqlUpload(
     }
     if (postPublishCacheError) throw postPublishCacheError
     if (!options.deferApiReleaseSet) {
+      // The replay comparison needs the publication branch just committed remotely.
+      if (target.remote)
+        await refreshRemoteMetaCache(
+          target.environment === 'production' ? 'production' : 'preview',
+          context.state.dbCacheDir,
+          resourceReleaseId,
+        )
       await calculateAndStoreApiReleaseSetStats({
         family: 'place',
+        historyTargets: context.historyTargets,
         currentDb: context.currentDb as unknown as HarbourReadableDb,
         harbourClient: processingClient,
         importOptions: {

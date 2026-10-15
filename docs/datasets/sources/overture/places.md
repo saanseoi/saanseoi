@@ -1,5 +1,11 @@
 # Overture Places
 
+Places API release-set statistics persist current, added, changed, removed and unchanged
+primary-record totals. Comparisons replay immutable HISTORY membership for the preceding
+publication of the same API version, domain and region. Base Place versions and
+independently retained locale versions form one compared record; observation-only
+publication metadata does not create a content change.
+
 The Place snapshot policy selects `resolve-place-identity` as an assembly operation.
 Canonical Place ID provenance refers to that recipe rule, while source ingestion retains
 publisher identities independently.
