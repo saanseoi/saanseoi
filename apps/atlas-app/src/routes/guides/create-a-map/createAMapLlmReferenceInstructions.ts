@@ -652,8 +652,8 @@ does not require these attributes.
 Places geometry is a GeoJSON Point with longitude before latitude. Bbox is a four-number
 array ordered west, south, east, north. In full-profile responses, identifiers.wikidata.brandId
 identifies the brand; do not treat it as a venue Wikidata identity. lastSeenMonth is the
-observation month of the selected completed publication. updatedAt records content
-materialisation, rather than publisher modification time.
+observation month of the selected completed publication. Content responses omit serving-write
+timestamps; snapshot and resource-release provenance identify the selected content.
 
 Places relationships include supported country, area, district, locality, hood and
 landform IDs. SAR, city and island-group ancestors are excluded. Full profiles expose

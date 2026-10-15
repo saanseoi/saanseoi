@@ -184,7 +184,7 @@ function fixture() {
         divisionId: id,
         locale: 'en',
         name: label,
-        ...timestamps,
+        createdAt: stamp,
         meta: { isLocaleInferred: false },
       })
     }

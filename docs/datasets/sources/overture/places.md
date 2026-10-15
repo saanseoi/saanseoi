@@ -839,9 +839,10 @@ the direct publisher, not a dataset or record ID. Prepared archives retain this 
 order.
 
 Canonical HISTORY events retain their introducing snapshot and `createdAt`, without an
-`updatedAt` column. Mutable CURRENT projections and publication receipts keep their own
-update timestamps. Statistics definitions keyed by `versionHash` retain `createdAt`
-only. See [storage timestamp ownership](../../pipeline.md#storage-timestamp-ownership).
+`updatedAt` column. CURRENT content projections retain only `createdAt`; publication
+receipts retain operational update timestamps. Statistics definitions keyed by
+`versionHash` retain `createdAt` only. See
+[storage timestamp ownership](../../pipeline.md#storage-timestamp-ownership).
 
 Places preparation records the exact official Address, Division and DivisionArea
 dependencies before supplementary processing. Supplementary Address lookups use the

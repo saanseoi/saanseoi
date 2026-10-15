@@ -111,9 +111,7 @@ export async function prepareReconstructedRollback(input: {
       name,
       ignoredColumns: ['statsDefinitionSets', 'placeDivisionDefinitions'].includes(name)
         ? []
-        : name.startsWith('stats') && name !== 'statsRecords'
-          ? ['createdAt']
-          : ['createdAt', 'updatedAt'],
+        : ['createdAt'],
       ...(['statsDefinitionSets', 'placeDivisionDefinitions'].includes(name)
         ? {}
         : {

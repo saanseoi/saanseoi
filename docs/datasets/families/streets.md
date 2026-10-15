@@ -247,9 +247,10 @@ retains them so a later restoration continues the logical version counter. Uncha
 components inherit the exact parent, including on revisions and branches.
 
 Canonical HISTORY events retain their introducing snapshot and `createdAt`, without an
-`updatedAt` column. Mutable CURRENT projections and publication receipts keep their own
-update timestamps. Statistics definitions keyed by `versionHash` retain `createdAt`
-only. See [storage timestamp ownership](../pipeline.md#storage-timestamp-ownership).
+`updatedAt` column. CURRENT content projections retain only `createdAt`; publication
+receipts retain operational update timestamps. Statistics definitions keyed by
+`versionHash` retain `createdAt` only. See
+[storage timestamp ownership](../pipeline.md#storage-timestamp-ownership).
 
 ## Localisation metadata
 

@@ -372,6 +372,7 @@ test.each(['preview', 'production'] as const)(
               i18n: {
                 en: {
                   name: 'Old Village',
+                  meta: { isLocaleInferred: false },
                 },
               },
             }),

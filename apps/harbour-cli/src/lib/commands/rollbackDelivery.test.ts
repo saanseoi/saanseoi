@@ -52,7 +52,7 @@ async function fixture() {
   }
   const tables = ['divisions', 'divisionsI18n'].map(name => ({
     name,
-    ignoredColumns: ['createdAt', 'updatedAt'],
+    ignoredColumns: ['createdAt'],
     rowScope: { column: 'scopeId', values: ['scope'] },
   }))
   const capture = (
@@ -71,7 +71,7 @@ async function fixture() {
         } else
           candidate
             .query(
-              "UPDATE divisionsI18n SET name=?,updatedAt='changed' WHERE scopeId='scope' AND locale='en'",
+              "UPDATE divisionsI18n SET name=? WHERE scopeId='scope' AND locale='en'",
             )
             .run(change)
         const guard = {
@@ -367,7 +367,7 @@ test('Places rollback delivers shared definitions before scalars and resumes int
             { name: 'placeDivisionDefinitions', ignoredColumns: [] },
             ...['places', 'placesI18n'].map(name => ({
               name,
-              ignoredColumns: ['createdAt', 'updatedAt'],
+              ignoredColumns: ['createdAt'],
               rowScope: { column: 'scopeId', values: ['place-scope'] },
             })),
           ],

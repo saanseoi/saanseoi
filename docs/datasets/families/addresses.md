@@ -1618,10 +1618,10 @@ Address2D exposes point geometry without a stored or API `bbox` field. Official
 addresses retain their publisher point; supplementary addresses without an established
 point retain null geometry. Clients can calculate bounds from the points they display.
 
-CURRENT Address components are mutable: changed content replaces the component under the
-same scope and record key. `updatedAt` records that replacement. HISTORY components are
-immutable events with an introducing snapshot and `createdAt`; they have no `updatedAt`
-column. Historical API `updatedAt` uses the event's creation time.
+CURRENT Address components retain `createdAt` without `updatedAt`. Changed content
+replaces the component under the same scope and record key. HISTORY components retain
+the introducing snapshot and event creation time. Public content responses omit
+`updatedAt`; publication receipts retain operational update timing.
 
 `addressPublicationState` is the delivery and serving-readiness receipt. Its `scopeId`
 matches the storage key in CURRENT Address rows; its `snapshotId` identifies their

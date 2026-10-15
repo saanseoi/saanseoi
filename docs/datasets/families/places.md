@@ -759,12 +759,12 @@ bbox struct. Numeric coordinates are transient processing values for membership 
 `identifiers.wikidata.brandId` identifies the publisher's brand, rather than the
 individual venue. A Place without a brand identifier has null `identifiers`.
 
-`createdAt` and `updatedAt` describe serving materialisation. A changed point, category,
-contact, address association or dependency may update a base row. Locale content and
-retained search text update independently. Timestamp-only and observation-only changes
-do not rewrite serving rows. Immutable history captures content versions with creation
-time and its recorded observation month; current observation months derive from the
-selected completed publication.
+CURRENT content projections retain `createdAt` and omit `updatedAt`. Changed content
+replaces the selected serving row without recording a serving-write timestamp on that
+row. Locale content and retained search text update independently. HISTORY captures
+immutable content versions with creation time and its recorded observation month;
+current observation months derive from the selected completed publication. Publication
+receipts retain operational update timing.
 
 Places carry nullable `countryId`, `areaId`, `districtId`, `townId`, `ruralAreaId`,
 `macrohoodId`, `neighbourhoodId`, `villageId`, `microhoodId`, `hamletId` and

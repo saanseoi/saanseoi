@@ -322,7 +322,7 @@ const currentRecordsTableSql = `
     referencePeriodGranularity TEXT NOT NULL, referencePeriodEndYear TEXT NOT NULL,
     geography TEXT NOT NULL, fieldSources TEXT NOT NULL,
     definitionSetId TEXT NOT NULL, "values" TEXT NOT NULL, versionHash TEXT NOT NULL,
-    createdAt TEXT NOT NULL, updatedAt TEXT NOT NULL
+    createdAt TEXT NOT NULL
   );
 `
 

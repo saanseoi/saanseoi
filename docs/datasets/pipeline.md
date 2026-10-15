@@ -617,13 +617,13 @@ Use this as the review checklist for a source addition:
 
 ## Storage timestamp ownership
 
-| Storage role                                  | Tables                                                                                            | Timestamps                                                                                                        |
-| --------------------------------------------- | ------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| Mutable serving projections                   | CURRENT Address, Division, Place, Street, geometry, crosswalk and Statistics value rows           | `createdAt` and `updatedAt`; replacements preserve creation time and advance the update time when content changes |
-| Immutable Statistics definitions              | CURRENT `statsFields`, `statsFieldsI18n`, `statsMeasures`, `statsMeasuresI18n`, `statsValuesI18n` | `createdAt` only; the primary key includes `versionHash`                                                          |
-| Immutable canonical change events             | All 24 canonical HISTORY event tables and the `historyEvents` view                                | `createdAt` only; logical membership follows snapshot ancestry                                                    |
-| Mutable delivery and serving receipts         | CURRENT family publication-state tables                                                           | `createdAt`, `updatedAt` and the explicit preparation/publication fields                                          |
-| Mutable registry and publisher validity state | META records and SOURCE validity periods                                                          | Their operational timestamps remain independent of canonical events                                               |
+| Storage role                                  | Tables                                                                                            | Timestamps                                                               |
+| --------------------------------------------- | ------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| Mutable serving projections                   | CURRENT Address, Division, Place, Street, geometry, crosswalk and Statistics value rows           | `createdAt` only; content rows omit serving-write timestamps             |
+| Immutable Statistics definitions              | CURRENT `statsFields`, `statsFieldsI18n`, `statsMeasures`, `statsMeasuresI18n`, `statsValuesI18n` | `createdAt` only; the primary key includes `versionHash`                 |
+| Immutable canonical change events             | All 24 canonical HISTORY event tables and the `historyEvents` view                                | `createdAt` only; logical membership follows snapshot ancestry           |
+| Mutable delivery and serving receipts         | CURRENT family publication-state tables                                                           | `createdAt`, `updatedAt` and the explicit preparation/publication fields |
+| Mutable registry and publisher validity state | META records and SOURCE validity periods                                                          | Their operational timestamps remain independent of canonical events      |
 
 HISTORY retries preserve existing events. CURRENT projection restoration derives its
 update time from the selected event's creation time, rather than requiring a duplicate

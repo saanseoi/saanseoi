@@ -26,8 +26,8 @@ during canonical processing and SaanSeoi preparation.
 
 API Division attributes are ordered as `divisionCode`, `category`, `class`, `level`,
 `i18n`, `hierarchies`, `geometry`, `cartography`, `identifiers`, `sources`,
-`snapshotId`, `createdAt`, `updatedAt`. Profile omissions preserve this order.
-Identifiers are available in the default, map and full profiles.
+`snapshotId`, `createdAt`. Profile omissions preserve this order. Identifiers are
+available in the default, map and full profiles.
 
 ## Representative points and separate areas
 
@@ -2142,9 +2142,10 @@ Prepared publisher records omit this selection evidence and expose flat source
 attribution arrays.
 
 Canonical HISTORY events retain their introducing snapshot and `createdAt`, without an
-`updatedAt` column. Mutable CURRENT projections and publication receipts keep their own
-update timestamps. Statistics definitions keyed by `versionHash` retain `createdAt`
-only. See [storage timestamp ownership](../pipeline.md#storage-timestamp-ownership).
+`updatedAt` column. CURRENT content projections retain only `createdAt`; publication
+receipts retain operational update timestamps. Statistics definitions keyed by
+`versionHash` retain `createdAt` only. See
+[storage timestamp ownership](../pipeline.md#storage-timestamp-ownership).
 
 The PRC ancestry anchor uses division code `PRC`, Wikidata `Q148`, Overture Division
 record attribution and country cartography (`minZoom: 2`, `maxZoom: 6`,

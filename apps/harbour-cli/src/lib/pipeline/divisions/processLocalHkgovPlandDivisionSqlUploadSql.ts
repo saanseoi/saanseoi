@@ -279,7 +279,6 @@ export async function buildPlandCurrentSql(
     'nameRules',
     'meta',
     'createdAt',
-    'updatedAt',
   ]
   const changedI18nKeys = new Set(state.changedCurrentI18nKeys)
   const i18nInsert = prepareRowsForSql(

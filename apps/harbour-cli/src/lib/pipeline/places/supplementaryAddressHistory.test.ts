@@ -172,7 +172,6 @@ test.each(['scope-a', 'scope-b'] as const)(
             ...row,
             scopeId: 'scope-b',
             createdAt: '2026-01-21T00:00:00Z',
-            updatedAt: '2026-01-21T00:00:00Z',
           })),
         ),
       )

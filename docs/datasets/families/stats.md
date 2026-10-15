@@ -576,9 +576,10 @@ attribution contract. Source archive metadata remains with retained publisher
 assertions; reference periods are not upstream record versions.
 
 Canonical HISTORY events retain their introducing snapshot and `createdAt`, without an
-`updatedAt` column. Mutable CURRENT projections and publication receipts keep their own
-update timestamps. Statistics definitions keyed by `versionHash` retain `createdAt`
-only. See [storage timestamp ownership](../pipeline.md#storage-timestamp-ownership).
+`updatedAt` column. CURRENT content projections retain only `createdAt`; publication
+receipts retain operational update timestamps. Statistics definitions keyed by
+`versionHash` retain `createdAt` only. See
+[storage timestamp ownership](../pipeline.md#storage-timestamp-ownership).
 
 ## Localisation metadata
 

@@ -116,7 +116,6 @@ export function insertProjectionRow(
   }
   const table = currentSchema[name as keyof typeof currentSchema] as SQLiteTable
   if (!table) throw new Error(`Unknown current projection table ${name}.`)
-  row = { ...row, updatedAt: row.createdAt }
   const columns = Object.values(getTableColumns(table))
   const values = columns.map(column => {
     const value = row[column.name]
@@ -241,10 +240,9 @@ function rebuildAddressBuildingNumbers(current: Database, scopeId: string) {
       'SELECT addressId,buildingNumberConnector,buildingNumberFrom,buildingNumberTo FROM address2dI18n WHERE scopeId=?',
     )
     .all(scopeId)
-  const timestamps = current.query<
-    { createdAt: string; updatedAt: string },
-    [string, string]
-  >('SELECT createdAt,updatedAt FROM address2d WHERE scopeId=? AND id=?')
+  const timestamps = current.query<{ createdAt: string }, [string, string]>(
+    'SELECT createdAt FROM address2d WHERE scopeId=? AND id=?',
+  )
   for (const row of buildAddressBuildingNumberLookupRows(rows)) {
     const times = timestamps.get(scopeId, row.addressId)
     if (!times) throw new Error(`Missing reconstructed Address owner ${row.addressId}.`)

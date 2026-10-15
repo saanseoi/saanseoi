@@ -117,6 +117,15 @@ class PlaceStorageUpgradeTests(unittest.TestCase):
                        sourceReleaseId='release', resourceReleaseId='release',
                        firstSeenMonth='2025-01', lastSeenMonth='2025-02')
             db.execute("INSERT INTO places(id,snapshotId,operation,versionHash) VALUES('place','deleted','delete',NULL)")
+        self.metadata = self.root / 'meta.sqlite'
+        with sqlite3.connect(self.metadata) as db:
+            db.executescript("""CREATE TABLE datasets(id,code);
+                CREATE TABLE resourceReleaseDetails(id,datasetId,resourceType);
+                CREATE TABLE snapshotResourceReleases(snapshotId,resourceReleaseId,role);
+                INSERT INTO datasets VALUES('dataset','places');
+                INSERT INTO resourceReleaseDetails VALUES('release','dataset','place');
+                INSERT INTO snapshotResourceReleases VALUES
+                    ('root','release','primary'),('deleted','release','primary');""")
         self.remaining()
         self.run_migrations()
         self.assertEqual(self.run_migrations(), [])

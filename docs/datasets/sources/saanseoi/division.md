@@ -253,9 +253,10 @@ Simplified Chinese (`zh-hans`). Other retained source locales remain evidence an
 participate in search. Code searches also require a supported localisation.
 
 Canonical HISTORY events retain their introducing snapshot and `createdAt`, without an
-`updatedAt` column. Mutable CURRENT projections and publication receipts keep their own
-update timestamps. Statistics definitions keyed by `versionHash` retain `createdAt`
-only. See [storage timestamp ownership](../../pipeline.md#storage-timestamp-ownership).
+`updatedAt` column. CURRENT content projections retain only `createdAt`; publication
+receipts retain operational update timestamps. Statistics definitions keyed by
+`versionHash` retain `createdAt` only. See
+[storage timestamp ownership](../../pipeline.md#storage-timestamp-ownership).
 
 The prepared PRC country record carries code `PRC`, Wikidata `Q148`, Overture
 country-record attribution and country cartography. A representative Point `[103, 35]`

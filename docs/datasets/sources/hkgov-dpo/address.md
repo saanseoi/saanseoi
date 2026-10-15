@@ -1727,8 +1727,8 @@ resolve ancestry before filtering and use the exact introducing snapshot to fetc
 content. SOURCE release validity and interpretation evidence remain separate.
 
 Canonical Address2D retains point geometry without a `bbox` column or API attribute. Its
-immutable HISTORY events retain `createdAt`; CURRENT projection replacements retain
-their own `updatedAt` timestamps.
+immutable HISTORY events and CURRENT projections retain `createdAt` without `updatedAt`.
+Publication receipts retain operational update timing.
 
 Canonical HISTORY events follow the shared
 [producer ownership contract](../../families/source-evidence.md#history-producer-ownership).
