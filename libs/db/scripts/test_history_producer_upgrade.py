@@ -58,6 +58,24 @@ class HistoryProducerUpgradeTest(unittest.TestCase):
         self.assertIn('sourceReleaseId', [row[1] for row in self.db.execute('PRAGMA table_info(divisionAreas)')])
         self.assertNotIn('producerDatasetCode', [row[1] for row in self.db.execute('PRAGMA table_info(divisionAreas)')])
 
+    def test_reapplies_conversion_without_losing_existing_dataset_ownership(self):
+        self.apply()
+        rows = self.db.execute('SELECT * FROM divisionAreas ORDER BY id').fetchall()
+        self.apply()
+        self.assertEqual(rows, self.db.execute('SELECT * FROM divisionAreas ORDER BY id').fetchall())
+        self.assertEqual('ok', self.db.execute('PRAGMA integrity_check').fetchone()[0])
+
+    def test_fills_preexisting_discriminator_columns_before_removing_releases(self):
+        for table in ['divisionAreas', 'divisionBoundaries']:
+            self.db.execute(f'ALTER TABLE {table} ADD producerDatasetCode TEXT')
+        self.apply()
+        self.assertEqual([('a','dataset-a'),('b','dataset-b'),('c',None)], self.db.execute('SELECT id,producerDatasetCode FROM divisionAreas ORDER BY id').fetchall())
+
+    def test_rejects_incompatible_preexisting_discriminator(self):
+        self.db.execute('ALTER TABLE divisionAreas ADD producerDatasetCode INTEGER')
+        with self.assertRaisesRegex(ValueError, 'incompatible producerDatasetCode'):
+            self.apply()
+
     def test_rejects_a_retained_owner_that_metadata_cannot_reproduce(self):
         self.db.execute("UPDATE divisionAreas SET sourceReleaseId='release-b' WHERE id='c'")
         with self.assertRaisesRegex(ValueError,'not an unambiguous primary producer'):

@@ -74,9 +74,19 @@ def upgrade(db, sql, split_statements, metadata=None):
         if re.match(r'INSERT INTO [`"]__new_(divisionAreas|divisionBoundaries)[`"]', clean):
             # Drizzle omits added columns from rebuild copies; retain the converted discriminator.
             statement = statement.replace('`id`,', '`producerDatasetCode`, `id`,')
-        db.execute(statement)
         added = re.match(r'ALTER TABLE [`"]?(divisionAreas|divisionBoundaries)[`"]? ADD [`"]?producerDatasetCode\b', clean, re.I)
+        existing = None
         if added:
+            existing = next((row for row in db.execute(f'PRAGMA table_info({quote(added[1])})')
+                             if row[1] == 'producerDatasetCode'), None)
+            if existing is not None and (existing[2].upper(), existing[3], existing[4], existing[5]) != ('TEXT', 0, None, 0):
+                raise ValueError(f'{added[1]} has an incompatible producerDatasetCode column; ownership was not changed.')
+        # A local shard can already contain the conversion under a different
+        # generated migration receipt. Rebuild it normally, retaining its dataset
+        # discriminators, rather than adding the same nullable TEXT column twice.
+        if existing is None:
+            db.execute(statement)
+        if added and added[1] in fills:
             table = added[1]
             db.executemany(f'''UPDATE {quote(table)} SET producerDatasetCode=?
                 WHERE snapshotId=? AND sourceReleaseId=? AND operation='upsert' ''', fills.get(table, ()))
