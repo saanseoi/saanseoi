@@ -10,7 +10,6 @@ export const divisionSearchDomains = [
   'hkgov-censtatd-hma',
   'hkgov-pland-pu',
   'hkgov-pland-new-town',
-  'hkgov-landsd',
 ] as const
 
 export const divisionSearchIndex: SearchIndexDefinition = {

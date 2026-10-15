@@ -781,24 +781,20 @@ carry domain context so planning or electoral relationships cannot enter the def
 administrative traversal accidentally. Cohort keys identify the period selected for a
 release; source publication and validity metadata remain provenance.
 
-The LandsD Place Name database is registered as the separate `hkgov-landsd` geographic
-domain. Its canonical rows and hierarchy lookup share the `settlement`, level 5 mapping.
-Publisher class values remain in source evidence. Its settlement points are an
-alternative primary division collection, not an Overture geometry companion. Only
-`PLACE_CLASS=Settlement` records belong in that division domain. Its Hydrographic and
-Topographic records remain source data for a future government place-name projection;
-they should not be forced into the divisions taxonomy. Source records retain the joined
-official and alias labels in `properties.placeNames`, alongside publisher classification
-attributes. Each joined row contains `nameEn`, `nameZhHant` and `nameStatus`. Locale
-grouping belongs to canonical assembly and completeness metrics. This source collection
-includes Settlement, Hydrographic and Topographic records; selection for the settlement
-domain is a separate assembly step.
+The LandsD Place Name database supplies publisher evidence to SaanSeoi's curated
+Geographic divisions. It is not a separate Division API domain. Assembly reads the full
+native gazetteer for names, aliases, identities and location evidence; curated SaanSeoi
+records determine which features belong in the public division hierarchy. Source records
+retain the joined official and alias labels in `properties.placeNames`, alongside
+publisher classification attributes. Each joined row contains `nameEn`, `nameZhHant` and
+`nameStatus`. Locale grouping belongs to canonical assembly and completeness metrics.
+The source collection includes Settlement, Hydrographic and Topographic records.
 
 Source-release statistics for LandsD Place Names cover all source records, including
 Settlement, Hydrographic and Topographic. Record counts and class distribution come from
 the source-validity window; changes compare the preceding published source release.
 Locale completeness measures publisher-provided official names across that full
-inventory. Canonical settlement statistics belong to the API release set.
+inventory. Curated division statistics belong to the Geographic API release set.
 
 The LandsD selection Bulk Rule belongs to the assembly audit and records counts for all
 native inputs, selected settlements and exclusions by publisher class, including missing
@@ -1003,10 +999,10 @@ spelling; demographic measures about language are not locale-bearing labels.
 
 `GET /divisions/v0.1/search?q=水埗` searches the latest published catalogue selection
 across all supported Division domains. `/divisions/v0/search` is the current-version
-alias. Supply `domain=geographic`, `hkgov-censtatd-hma`, `hkgov-pland-pu`,
-`hkgov-pland-new-town` or `hkgov-landsd` to restrict the search. A domain without a
-published selection contributes no results. Region defaults to Hong Kong; `region=gba`
-uses Hong Kong data, and `region=mo` selects Macao independently.
+alias. Supply `domain=geographic`, `hkgov-censtatd-hma`, `hkgov-pland-pu`, or
+`hkgov-pland-new-town` to restrict the search. A domain without a published selection
+contributes no results. Region defaults to Hong Kong; `region=gba` uses Hong Kong data,
+and `region=mo` selects Macao independently.
 
 Search matches localised names, alternate names, name-rule values and curated
 `divisionCode` values. English partial text is case-insensitive; Chinese substrings can

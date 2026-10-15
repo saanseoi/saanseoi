@@ -11,7 +11,11 @@ export const sourceFlowDomain = (source: SourcesPageSource, familyType: string) 
   if (familyType === 'streets') return 'saanseoi'
   if (
     familyType === 'divisions' &&
-    ['ds-hk-protomaps-island', 'ds-hk-saanseoi-division'].includes(source.code)
+    [
+      'ds-hk-protomaps-island',
+      'ds-hk-saanseoi-division',
+      'ds-hk-hkgov-landsd-division',
+    ].includes(source.code)
   )
     return 'geographic'
 
@@ -22,13 +26,6 @@ export const sourceFlowDomain = (source: SourcesPageSource, familyType: string) 
     )
   ) {
     return 'default'
-  }
-
-  // Settlement Place Names is its own HKGOV division domain. Its published
-  // release metadata predates that composition, so it must not take the old
-  // Geographic assignment from releaseAs.
-  if (familyType === 'divisions' && source.publisherCode === 'hkgov-landsd') {
-    return 'hkgov-landsd'
   }
 
   const publishedDomain = source.sourceVersions
@@ -47,7 +44,7 @@ export const sourceFlowDomain = (source: SourcesPageSource, familyType: string) 
   }
 
   if (source.sourceVariant === 'default') {
-    return source.publisherCode === 'hkgov-landsd' ? 'hkgov-landsd' : 'geographic'
+    return 'geographic'
   }
 
   return source.sourceVariant

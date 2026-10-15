@@ -275,7 +275,6 @@ const sourceFlowLanes = $derived.by<SourceFlowLane[]>(() =>
               'overture',
               'hkgov-pland-pu',
               'hkgov-pland-new-town',
-              'hkgov-landsd',
             ]
             const domainRank = (domain: string) => {
               const index = domainOrder.indexOf(domain)
@@ -312,9 +311,7 @@ const sourceFlowLanes = $derived.by<SourceFlowLane[]>(() =>
           familyType === 'divisions'
             ? curatedRelationships.flatMap(relationship =>
                 familySources.some(source => source.code === relationship.datasetCode)
-                  ? relationship.inputs.filter(
-                      code => code !== 'ds-hk-hkgov-landsd-division',
-                    )
+                  ? relationship.inputs
                   : [],
               )
             : [],

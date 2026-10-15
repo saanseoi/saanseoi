@@ -41,7 +41,7 @@ Source-release statistics for LandsD Place Names cover all source records, inclu
 Settlement, Hydrographic and Topographic. Record counts and class distribution come from
 the source-validity window; changes compare the preceding published source release.
 Locale completeness measures publisher-provided official names across that full
-inventory. Canonical settlement statistics belong to the API release set.
+inventory. Curated division statistics belong to the Geographic API release set.
 
 ## Divisions projection
 
@@ -58,14 +58,14 @@ The `select-landsd-settlements` Bulk Rule belongs to canonical assembly. It reco
 native inputs, selected settlements and exclusions by publisher class. Source ingestion
 stores every publisher record; its audit reports the complete import.
 
-The divisions API uses the source as the primary collection in the `hkgov-landsd`
-domain. Only `PLACE_CLASS=Settlement` is eligible for that projection. Each eligible
-source row is a point division identified by `GEO_NAME_ID`, with `PLACE_TYPE` as the
-source classification and `DISTRICT` as provenance.
+The divisions API uses this gazetteer as an input to SaanSeoi's curated Geographic
+divisions, rather than offering a separate Lands Department domain. The retained
+settlement projection selects `PLACE_CLASS=Settlement`, identifies points by
+`GEO_NAME_ID` and preserves `PLACE_TYPE` and `DISTRICT` as publisher evidence.
 
-Hydrographic and Topographic rows are deliberately excluded from divisions. They are
-named geographic features and belong in a future government place-name projection under
-the Places API family, rather than in the administrative division hierarchy.
+The full native ledger, including Hydrographic and Topographic rows, remains available
+to curated assembly for names, aliases, identities and location evidence. Curated
+SaanSeoi records determine the public division selection and hierarchy.
 
 ## Inferred administrative ancestry
 

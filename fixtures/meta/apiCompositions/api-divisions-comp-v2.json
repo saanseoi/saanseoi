@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:02b34dd6178555e112c6b4972b0869e52257285ce8159150b67a8d1c50693d29",
+  "versionHash": "sha256:b76c363278c019928f633b978e0bed9b30e2b78b1a8ef0d7d078e22e1120d1f0",
   "apiVersion": "api-divisions-v0.2",
   "code": "comp-divisions-v2",
   "version": 2,
@@ -240,36 +240,6 @@
               "variant": "hkgov-pland-new-town"
             }
           ]
-        }
-      ]
-    },
-    {
-      "code": "hkgov-landsd",
-      "i18n": {
-        "en": {
-          "name": "HKGOV",
-          "descriptionShort": "Lands Department settlement place names.",
-          "description": "Lands Department settlement place names published as point divisions, not an administrative hierarchy."
-        },
-        "zh-hant": {
-          "name": "香港政府",
-          "descriptionShort": "地政總署的聚落地名。",
-          "description": "地政總署的聚落地名，作為點區劃發布，而非行政層級。"
-        },
-        "zh-hans": {
-          "name": "香港政府",
-          "descriptionShort": "地政总署的聚落地名。",
-          "description": "地政总署的聚落地名，作为点区划发布，而非行政层级。"
-        }
-      },
-      "members": [
-        {
-          "resourceType": "division",
-          "variant": "hkgov-landsd",
-          "role": "primary",
-          "isRequired": true,
-          "cohortMatchingMode": "exact_ref",
-          "priority": 0
         }
       ]
     }

@@ -387,11 +387,13 @@ describe('division services', () => {
         include: 'areas:hkgov-censtatd-landclipped@2021',
       },
       { domain: 'hkgov-censtatd-hma', include: 'areas:hkgov-censtatd-hma' },
-      { domain: 'hkgov-landsd' },
     ]) {
       expect(DivisionsListQuerySchema.safeParse(query).success).toBe(true)
     }
 
+    expect(DivisionsListQuerySchema.safeParse({ domain: 'hkgov-landsd' }).success).toBe(
+      false,
+    )
     expect(DivisionsListQuerySchema.safeParse({ domain: 'overture' }).success).toBe(
       false,
     )

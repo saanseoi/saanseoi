@@ -94,10 +94,11 @@ describe('sourceFlowDomain', () => {
     ).toBe('hkgov-censtatd-hma')
   })
 
-  test('keeps LandsD settlement divisions in HKGOV', () => {
+  test('groups LandsD Place Names with curated Geographic inputs', () => {
     expect(
       sourceFlowDomain(
         source({
+          code: 'ds-hk-hkgov-landsd-division',
           publisherCode: 'hkgov-landsd',
           resourceTypes: ['division'],
           sourceVariant: 'default',
@@ -105,13 +106,14 @@ describe('sourceFlowDomain', () => {
         }),
         'divisions',
       ),
-    ).toBe('hkgov-landsd')
+    ).toBe('geographic')
   })
 
-  test('keeps LandsD settlement divisions in HKGOV when release metadata is stale', () => {
+  test('groups LandsD Place Names in Geographic when release metadata is stale', () => {
     expect(
       sourceFlowDomain(
         source({
+          code: 'ds-hk-hkgov-landsd-division',
           publisherCode: 'hkgov-landsd',
           resourceTypes: ['division'],
           sourceVersions: [
@@ -119,7 +121,7 @@ describe('sourceFlowDomain', () => {
               code: '2025-01',
               cohortKey: '2025',
               license: null,
-              releaseAs: [{ apiFamily: 'divisions', domainCode: 'geographic' }],
+              releaseAs: [{ apiFamily: 'divisions', domainCode: 'hkgov-landsd' }],
               stats: [],
               status: 'current',
             },
@@ -128,7 +130,7 @@ describe('sourceFlowDomain', () => {
         }),
         'divisions',
       ),
-    ).toBe('hkgov-landsd')
+    ).toBe('geographic')
   })
 
   test('orders curated divisions and areas before Overture in Geographic', () => {

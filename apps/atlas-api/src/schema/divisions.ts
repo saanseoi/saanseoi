@@ -481,7 +481,6 @@ export const DivisionsListQuerySchema = z
         'hkgov-censtatd-hma',
         'hkgov-pland-pu',
         'hkgov-pland-new-town',
-        'hkgov-landsd',
       ])
       .optional()
       .openapi({
@@ -574,7 +573,6 @@ export const DivisionDetailQuerySchema = z
         'hkgov-censtatd-hma',
         'hkgov-pland-pu',
         'hkgov-pland-new-town',
-        'hkgov-landsd',
       ])
       .optional()
       .openapi({
