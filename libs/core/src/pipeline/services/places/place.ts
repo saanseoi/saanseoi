@@ -1,5 +1,6 @@
 import { normalisePlaceBbox } from './placeGeometry'
 import { normaliseOvertureAttribution } from '../sources/sourceAttribution'
+import { recordContent } from '../sources/recordContent'
 import type { PlaceIdentityDecision } from './placeIdentity'
 import { createHash } from '../../utils'
 import referenceNameFixture from '../../../../../../fixtures/meta/processing-rules/assembly/place-reference-name.json'
@@ -168,7 +169,7 @@ function normaliseOverturePlaceInternal(
 export async function hashNormalisedPlace(place: NormalisedPlace) {
   return createHash({
     id: place.id,
-    sources: normaliseOvertureAttribution(place.sources.overture),
+    sources: recordContent(normaliseOvertureAttribution(place.sources.overture)),
     lng: place.lng,
     lat: place.lat,
     bbox: place.bbox,
@@ -209,7 +210,7 @@ export async function hashPlaceMaterialisation(
 ) {
   return createHash({
     id: place.id,
-    sources: normaliseOvertureAttribution(place.sources.overture),
+    sources: recordContent(normaliseOvertureAttribution(place.sources.overture)),
     lng: references.effectiveLng ?? place.lng,
     lat: references.effectiveLat ?? place.lat,
     bbox: place.bbox,

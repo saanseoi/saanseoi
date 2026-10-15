@@ -94,6 +94,11 @@ versions are excluded too. Confidence and other content metadata participate in 
 hash. Timestamps remain in the retained payload, but timestamp-only refreshes do not
 create or update a source version.
 
+Canonical Place content and materialisation hashes exclude attribution observation
+timestamps and publisher version labels too. Publisher identity, dataset, record ID,
+property pointer, confidence and licence participate in those hashes. Observation-only
+refreshes retain the introducing canonical payload and create no base history event.
+
 Places SQL delivery reads current `overturePlaces` IDs and publisher hashes from every
 prepared source shard. Unchanged records remain untouched in their owning shard. New,
 changed and returning records send full payloads to the active shard; changed assertions

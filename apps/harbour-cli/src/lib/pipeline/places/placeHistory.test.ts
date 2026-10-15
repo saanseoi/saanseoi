@@ -13,6 +13,7 @@ import {
 import { drizzle } from 'drizzle-orm/bun-sqlite'
 import { loadMigrationSql } from '../../../../../../libs/core/src/testing/metaFixtures.ts'
 import { reusePlaceLocaleDependencies } from './placeHistory.ts'
+import { hashPlaceSource } from './placeSourceHash.ts'
 import {
   buildPlaceSql,
   loadCurrentPlaceHistory,
@@ -188,6 +189,50 @@ test('locale dependency reuse retains only complete evidence for the same link s
   }
   expect(reusePlaceLocaleDependencies(unlinked, historical)).toBe(unlinked)
   expect(reusePlaceLocaleDependencies(undefined, historical)).toBeNull()
+})
+
+test('attribution observation refreshes inherit history and retain the introducing payload', async () => {
+  const f = fixture()
+  try {
+    const row = await place()
+    const refresh = async (month: string) => {
+      const raw = {
+        ...row.place.raw,
+        sources: [
+          { dataset: 'Overture', update_time: `${month}-01T00:00:00Z`, version: month },
+        ],
+      }
+      row.place = normaliseOverturePlace(raw, `${month}-19.0`)!
+      row.sourcePayloadHash = await hashPlaceSource(raw)
+      row.versionHash = await hashPlaceMaterialisation(row.place, {
+        addressId: null,
+        addressSnapshotId: 'address',
+        divisionSnapshotId: 'division',
+        divisionIds: [],
+      })
+    }
+    await refresh('2025-01')
+    await f.run([row])
+    const before = f.current
+      .query('SELECT sources, createdAt, updatedAt FROM places')
+      .get()
+    await refresh('2025-02')
+    const repeated = await f.run([row], 'new', 'source-next')
+    expect(repeated.historySqlByBinding.size).toBe(0)
+    expect(repeated.sourceSqlByBinding.size).toBe(0)
+    expect(repeated.changes).toEqual([])
+    expect(
+      f.current.query('SELECT sources, createdAt, updatedAt FROM places').get(),
+    ).toEqual(before)
+    expect(
+      getDatabase(f.databases, 'old').query('SELECT count(*) AS n FROM places').get(),
+    ).toEqual({ n: 1 })
+    expect(
+      getDatabase(f.databases, 'new').query('SELECT count(*) AS n FROM places').get(),
+    ).toEqual({ n: 0 })
+  } finally {
+    f.close()
+  }
 })
 
 test('Places inherit independent base, locales and source resolutions across years and close each owning shard', async () => {

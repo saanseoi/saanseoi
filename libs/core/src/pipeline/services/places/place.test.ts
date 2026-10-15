@@ -7,6 +7,7 @@ import {
   derivePlaceReferenceName,
   extractPlaceAddressTexts,
   hashPlaceMaterialisation,
+  hashNormalisedPlace,
   normaliseOverturePlace,
   normalisePlaceText,
   namedValues,
@@ -314,6 +315,68 @@ test('counts locale conflicts from transient resolver evidence', () => {
   expect(stats.fields.get('name\u0000zh-hant')).toMatchObject({
     valueCount: 1,
     conflictCount: 1,
+  })
+})
+
+test('Place hashes ignore attribution observation metadata but retain attribution content', async () => {
+  const row = {
+    id: 'place-1',
+    geometry: { type: 'Point', coordinates: [114.1694, 22.3193] },
+    names: { en: 'Example' },
+    sources: [
+      {
+        dataset: 'OpenStreetMap',
+        record_id: 'node/123',
+        update_time: '2026-08-01T00:00:00Z',
+        version: '1',
+        confidence: 0.8,
+        license: 'ODbL-1.0',
+        property: '',
+      },
+    ],
+  }
+  const original = normaliseOverturePlace(row, '2026-08-19.0')!
+  const observed = normaliseOverturePlace(
+    {
+      ...row,
+      sources: [
+        { ...row.sources[0]!, update_time: '2026-09-01T00:00:00Z', version: '2' },
+      ],
+    },
+    '2026-09-23.0',
+  )!
+  const references = {
+    addressSnapshotId: 'address',
+    divisionSnapshotId: 'division',
+    addressId: null,
+    divisionIds: [],
+  }
+  for (const hash of [
+    hashNormalisedPlace,
+    (place: typeof original) => hashPlaceMaterialisation(place, references),
+  ]) {
+    const initial = await hash(original)
+    expect(await hash(observed)).toBe(initial)
+    for (const change of [
+      { record_id: 'node/456' },
+      { confidence: 0.9 },
+      { license: 'CC0-1.0' },
+      { property: '/properties/names' },
+      { dataset: 'meta' },
+    ]) {
+      const changed = normaliseOverturePlace(
+        {
+          ...row,
+          sources: [{ ...row.sources[0]!, ...change }],
+        },
+        '2026-09-23.0',
+      )!
+      expect(await hash(changed)).not.toBe(initial)
+    }
+  }
+  expect(observed.sources.overture[0]).toMatchObject({
+    update_time: '2026-09-01T00:00:00Z',
+    version: '2',
   })
 })
 

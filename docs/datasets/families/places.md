@@ -75,6 +75,11 @@ too. Confidence and other content metadata remain hash-significant. Stored paylo
 retain the timestamps from the observation that created the version; timestamp-only
 refreshes do not replace that payload.
 
+Canonical Place hashes also exclude attribution observation timestamps and publisher
+version labels. Attribution identity, property pointers, confidence and licences remain
+content-significant. Observation-only refreshes inherit the predecessor's history event
+and retained attribution payload.
+
 SQL uploads compare incoming publisher hashes with current source assertions in the
 prepared local mirrors. New and changed assertions carry full payloads; unchanged
 assertions remain untouched, preserving their original release, validity and timestamps.
