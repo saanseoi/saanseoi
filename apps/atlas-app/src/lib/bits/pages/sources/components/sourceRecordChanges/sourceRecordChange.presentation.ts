@@ -206,30 +206,78 @@ export function recordSummary(
     )
     .map(([label, code]) => `${label} ${code}`)
   function name(value: unknown): string | undefined {
-    if (typeof value === 'string' && value.trim()) return value
+    if (typeof value === 'string' && value.trim()) return value.trim()
     if (Array.isArray(value)) return value.map(name).find(Boolean)
     if (value && typeof value === 'object') {
       const local = value as Record<string, unknown>
       return (
         name(local[locale]) ??
+        name(local[locale.toLowerCase()]) ??
         name(local.en) ??
         name(local.name) ??
         name(local.primary) ??
+        name(local.common) ??
         name(local.value)
       )
     }
   }
+  // Prefer the most specific geography, e.g. a building group within an HMA.
+  // These are publisher labels, so retain both supplied languages in the header.
+  function bilingual(fields: Record<string, unknown>, base: string) {
+    const labels = [fields[`${base}ZhHant`], fields[`${base}En`]]
+      .map(value => (typeof value === 'string' ? value.trim() : ''))
+      .filter(Boolean)
+    return [...new Set(labels)].join(' ') || undefined
+  }
+  const geographyName = ['bg', 'estate', 'newtown', 'newTown', 'hma', 'dc', 'area']
+    .map(base => bilingual(props, base))
+    .find(Boolean)
+  const placeNames = Array.isArray(props.placeNames)
+    ? props.placeNames.filter(
+        (item): item is Record<string, unknown> =>
+          item !== null && typeof item === 'object',
+      )
+    : []
+  const officialPlace =
+    placeNames.find(item => item.nameStatus === 'Official') ?? placeNames[0]
+  const publisherName =
+    geographyName ??
+    name(props.name) ??
+    name(props.names) ??
+    name(props.label) ??
+    name(props.translations) ??
+    bilingual(props, 'name') ??
+    (officialPlace ? bilingual(officialPlace, 'name') : undefined) ??
+    name(props.roadName) ??
+    name(props.stEngnm) ??
+    name(props.address) ??
+    ['buildingName', 'villageName', 'streetName', 'streetLocationName']
+      .map(base => bilingual(props, base))
+      .find(Boolean)
+  const codes = planningCodes.join(' · ')
+  const identifier = [
+    ['BG', props.bg],
+    ['Estate', props.estate],
+    ['New Town', props.newtown],
+    ['HMA', props.hma],
+    ['DC', props.dc],
+    ['Area', props.areaCode],
+    ['Place', props.geoNameId],
+    ['Plate', props.snpId],
+    ['Street', props.streetcode],
+    ['Object', props.objectId],
+  ].find(
+    ([, value]) =>
+      (typeof value === 'string' && value.trim()) ||
+      (typeof value === 'number' && Number.isFinite(value)),
+  )
   return {
-    name:
-      name(props.name) ??
-      name(props.names) ??
-      name(props.label) ??
-      name(props.translations) ??
-      name(props.address) ??
-      fallback,
+    name: publisherName ?? (codes || (identifier ? identifier.join(' ') : fallback)),
     detail:
       planningCodes.length > 0
-        ? planningCodes.join(' · ')
+        ? publisherName
+          ? codes
+          : ''
         : [props.type, props.subtype, props.class, props.status]
             .filter((value): value is string => typeof value === 'string')
             .join(' · '),

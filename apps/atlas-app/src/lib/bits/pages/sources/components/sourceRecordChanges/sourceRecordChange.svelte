@@ -84,7 +84,7 @@ const tones = {
       />
       <span class="min-w-0 flex-1">
         <span class="block wrap-break-word font-body text-body-md text-primary">
-          {summary.name === id ? copy.record : summary.name}
+          {summary.name === id ? `${copy.record} ${id}` : summary.name}
         </span>
         <span
           class="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-foreground-alt"

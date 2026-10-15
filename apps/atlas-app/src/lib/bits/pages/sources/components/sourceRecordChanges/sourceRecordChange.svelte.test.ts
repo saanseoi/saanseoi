@@ -50,6 +50,37 @@ test('Planning record headers show the unit codes and omit absent SB_VC', async 
   await expect.element(screen.getByText(/SB_VC/)).not.toBeInTheDocument()
 })
 
+for (const type of ['added', 'changed', 'removed'] as const) {
+  test(`${type} statistics headers identify the district while collapsed`, async () => {
+    const value = { properties: { dcZhHant: '北區', dcEn: 'North' } }
+    const screen = await render(SourceRecordChange, {
+      id: 'DC_12BC_SDU:14',
+      type,
+      before: type === 'added' ? null : value,
+      after: type === 'removed' ? null : value,
+      fields: [],
+      locale: 'en',
+    })
+    const header = screen.getByRole('button', { name: /北區 North/ })
+    await expect.element(header).toBeVisible()
+    await expect.element(header).toHaveAttribute('aria-expanded', 'false')
+  })
+}
+
+test('unnamed headers expose their ID without expanding the record', async () => {
+  const screen = await render(SourceRecordChange, {
+    id: 'unnamed-boundary-1',
+    type: 'added',
+    before: null,
+    after: { properties: {} },
+    fields: [],
+    locale: 'en',
+  })
+  await expect
+    .element(screen.getByRole('button', { name: /Record unnamed-boundary-1/ }))
+    .toBeVisible()
+})
+
 for (const type of ['added', 'removed'] as const) {
   test(`${type} records use a single value column`, async () => {
     const value = { name: 'Test village', properties: { retained: 'Record detail' } }

@@ -55,10 +55,90 @@ test('summary selects localised publisher names and useful record context', () =
 test('Planning source record summary shows PPU, SPU, TPU and optional SB_VC codes', () => {
   expect(
     recordSummary({ properties: { ppu: 1, spu: 11, tpu: 111, sbVc: 2 } }, 'en', 'id'),
-  ).toEqual({ name: 'id', detail: 'PPU 1 · SPU 11 · TPU 111 · SB_VC 2' })
+  ).toEqual({ name: 'PPU 1 · SPU 11 · TPU 111 · SB_VC 2', detail: '' })
   expect(
     recordSummary({ properties: { ppu: 1, spu: 11, tpu: 111 } }, 'en', 'id'),
-  ).toEqual({ name: 'id', detail: 'PPU 1 · SPU 11 · TPU 111' })
+  ).toEqual({ name: 'PPU 1 · SPU 11 · TPU 111', detail: '' })
+})
+
+test.each([
+  [{ dcZhHant: '北區', dcEn: 'North' }, '北區 North'],
+  [{ estateZhHant: '華富邨', estateEn: 'Wah Fu Estate' }, '華富邨 Wah Fu Estate'],
+  [{ newtownZhHant: '沙田', newtownEn: 'Sha Tin' }, '沙田 Sha Tin'],
+  [{ newTownZhHant: '沙田', newTownEn: 'Sha Tin' }, '沙田 Sha Tin'],
+  [{ hmaZhHant: '中環', hmaEn: 'Central' }, '中環 Central'],
+  [{ areaZhHant: '九龍', areaEn: 'Kowloon' }, '九龍 Kowloon'],
+  [
+    { bgZhHant: '樓群', bgEn: 'Building group', hmaZhHant: '中環', hmaEn: 'Central' },
+    '樓群 Building group',
+  ],
+  [{ dcZhHant: null, dcEn: ' North ' }, 'North'],
+  [{ dcZhHant: '北區', dcEn: '  ' }, '北區'],
+  [{ hmaZhHant: 'HMA001', hmaEn: 'HMA001' }, 'HMA001'],
+] as const)(
+  'statistics headers use the supplied geography names: %j',
+  (properties, expected) => {
+    for (const locale of ['en', 'zh-Hant', 'zh-Hans']) {
+      expect(recordSummary({ properties }, locale, 'source-id').name).toBe(expected)
+    }
+  },
+)
+
+test('publisher summaries cover official place names, streets and localised name suffixes', () => {
+  expect(
+    recordSummary(
+      {
+        properties: {
+          placeNames: [
+            { nameZhHant: '別名', nameEn: 'Alias', nameStatus: 'Alias' },
+            { nameZhHant: '山', nameEn: 'Hill', nameStatus: 'Official' },
+          ],
+        },
+      },
+      'en',
+      'id',
+    ).name,
+  ).toBe('山 Hill')
+  expect(
+    recordSummary(
+      { properties: { nameZhHant: '中西區', nameEn: 'Central and Western' } },
+      'en',
+      'id',
+    ).name,
+  ).toBe('中西區 Central and Western')
+  expect(
+    recordSummary({ properties: { roadName: 'FU MEI STREET' } }, 'en', 'id').name,
+  ).toBe('FU MEI STREET')
+  expect(
+    recordSummary({ properties: { stEngnm: 'QUEEN’S ROAD' } }, 'en', 'id').name,
+  ).toBe('QUEEN’S ROAD')
+  expect(
+    recordSummary(
+      { properties: { names: { common: { en: 'Village', 'zh-Hant': '村' } } } },
+      'zh-Hant',
+      'id',
+    ).name,
+  ).toBe('村')
+  expect(
+    recordSummary(
+      { properties: { names: { 'zh-hant': '村', en: 'Village' } } },
+      'zh-Hant',
+      'id',
+    ).name,
+  ).toBe('村')
+})
+
+test('unnamed records use source codes and retain the unique ID as the final fallback', () => {
+  expect(
+    recordSummary({ properties: { bg: '001', hma: '002' } }, 'en', 'id').name,
+  ).toBe('BG 001')
+  expect(recordSummary({ properties: { objectId: 0 } }, 'en', 'id').name).toBe(
+    'Object 0',
+  )
+  expect(
+    recordSummary({ properties: { dcEn: ' ', objectId: null } }, 'en', 'unique-id')
+      .name,
+  ).toBe('unique-id')
 })
 
 test('coarse nested-array differences omit equal ancestors and equal object values', () => {
