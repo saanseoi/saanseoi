@@ -1905,3 +1905,8 @@ recorded as unverified curations with the publisher records and existing guard e
 Ingestion requires an explicit deferral acknowledgement. Assertions for covered releases
 and individual curation guards remain enforced; missing coverage does not approve a
 source change or alter publisher records.
+
+When publisher evidence changes beyond a premise curation’s verified coverage, the
+deferred-investigation policy records the unapplied curation and source records, leaving
+publisher defaults intact. Verified historical assertions and ambiguous premise matches
+still fail their guards.

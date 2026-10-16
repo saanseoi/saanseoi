@@ -1,3 +1,5 @@
+import { permitsAlsReviewIssue } from './hkgovAlsReviewPolicy'
+import { reportAlsReviewIssue } from './hkgovAlsReviewIssue'
 import { alsReviewOperations } from './hkgovAlsReviewProgram'
 import type { ReviewedPremiseRetention as Rule } from './hkgovAlsReviewRetentionSchema'
 import { strict as assert } from 'node:assert'
@@ -102,6 +104,24 @@ export function retainReviewedAlsPremises(
     )
     const assertion = rule.assertions.find(a => a.version === version)
     const accepted = assertion?.hashes ?? rule.assertions.flatMap(a => a.hashes)
+    if (
+      !assertion &&
+      verification === 'unverified' &&
+      permitsAlsReviewIssue('unverified-curation', version) &&
+      matches.some(match => !accepted.includes(hash(match.feature)))
+    ) {
+      reportAlsReviewIssue({
+        code: 'unverified-curation',
+        sourceVersion: version,
+        decisionId: rule.id,
+        curationFile: rule.curationFile ?? curationFile,
+        decision: rule,
+        records: matches,
+        message:
+          'Publisher evidence changed beyond verified curation coverage; leave source records unchanged pending investigation.',
+      })
+      continue
+    }
     for (const match of matches)
       assert(
         accepted.includes(hash(match.feature)),

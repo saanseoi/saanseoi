@@ -63,7 +63,7 @@ const targets = new Set(allRules.flatMap(r => r.csus))
 test('all 30 releases preserve identities, restore omissions and separate Tin Wang complex from its houses', async () => {
   let count = 0
   for (const dir of (await readdir('data/hkgov/dpo/ALS'))
-    .filter(d => d.endsWith('ALS-GeoJSON'))
+    .filter(d => d.endsWith('ALS-GeoJSON') && d.slice(0, 8) <= '20260819')
     .sort()) {
     const version = `${dir.slice(0, 4)}-${dir.slice(4, 6)}-${dir.slice(6, 8)}.0`
     const features: HkgovAlsSourceFeature[] = []
@@ -162,10 +162,10 @@ test('future releases retain known evidence as unverified; revocation stops new 
   expect(retainReviewedAlsPremises([oneSoho()], '2024-07-25.0', decisions).size).toBe(1)
 })
 
-test('rejects changed evidence and ambiguous matches without modifying the publisher', () => {
+test('rejects changed verified evidence and ambiguous matches without modifying the publisher', () => {
   const f = oneSoho()
   f.feature.geometry!.coordinates = [114.5, 22.5]
-  expect(() => retainReviewedAlsPremises([f], '2026-09-30.0', decisions)).toThrow(
+  expect(() => retainReviewedAlsPremises([f], '2026-08-19.0', decisions)).toThrow(
     'source evidence changed',
   )
   expect(() =>
@@ -213,4 +213,66 @@ test('membership preserves current raw sources and marks reconstructed addresses
     ),
   ).toBeTrue()
   expect(membership.sources).toHaveLength(1)
+})
+
+test('unverified changed premise evidence keeps publisher defaults and queues the unapplied curation', async () => {
+  const { collectAlsReviewIssues } = await import('./hkgovAlsReviewIssue')
+  const rule = structuredClone(decisions[0]!)
+  const source = {
+    sourceFile: rule.sourceFile,
+    featureIndexOneBased: 1,
+    feature: structuredClone(rule.evidence.feature),
+  } as HkgovAlsSourceFeature
+  source.feature.geometry = { type: 'Point', coordinates: [114.12, 22.34] }
+  const original = structuredClone(source)
+  collectAlsReviewIssues(issues => {
+    expect(retainReviewedAlsPremises([source], '2026-09-22.0', [rule]).size).toBe(0)
+    expect(source).toEqual(original)
+    expect(issues).toMatchObject([
+      {
+        code: 'unverified-curation',
+        decisionId: rule.id,
+        sourceVersion: '2026-09-22.0',
+        records: [source],
+      },
+    ])
+  })
+  expect(() => retainReviewedAlsPremises([source], '2026-08-19.0', [rule])).toThrow(
+    'source evidence changed',
+  )
+  expect(() => retainReviewedAlsPremises([source], '2027-01-01.0', [rule])).toThrow(
+    'source evidence changed',
+  )
+})
+
+test('September Ching Sum source changes are retained for investigation without applying the owner curation', async () => {
+  const { collectAlsReviewIssues } = await import('./hkgovAlsReviewIssue')
+  const rule = continuity.rules.find(
+    r => r.id === 'ching-sum-reviewed-inventory-owner',
+  )!
+  const input = await Bun.file(
+    `data/hkgov/dpo/ALS/20260922-1336-ALS-GeoJSON/${rule.sourceFile}`,
+  ).json()
+  const features = input.features.flatMap(
+    (feature: HkgovAlsSourceFeature['feature'], i: number) =>
+      rule.csus.includes(
+        feature.properties?.Address?.PremisesAddress?.BuildingCsuInformation?.CsuId ??
+          '',
+      )
+        ? [{ feature, sourceFile: rule.sourceFile, featureIndexOneBased: i + 1 }]
+        : [],
+  )
+  expect(features).toHaveLength(1)
+  const original = structuredClone(features)
+  collectAlsReviewIssues(issues => {
+    expect(
+      retainReviewedAlsPremises(features, '2026-09-22.0', [
+        rule,
+      ] as unknown as typeof decisions).size,
+    ).toBe(0)
+    expect(features).toEqual(original)
+    expect(issues).toMatchObject([
+      { code: 'unverified-curation', decisionId: rule.id, records: features },
+    ])
+  })
 })
