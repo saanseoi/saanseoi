@@ -250,3 +250,57 @@ test('Kwai Hin remains retained beyond verified history without invented flats; 
     ),
   ).toThrow('no longer empty')
 })
+
+test.skipIf(!existsSync(root))(
+  'a resolved school alias retains guarded evidence without removing another row',
+  async () => {
+    for (const release of ['20260722-1931-ALS-GeoJSON', '20260819-1047-ALS-GeoJSON']) {
+      const version = `${release.slice(0, 4)}-${release.slice(4, 6)}-${release.slice(6, 8)}.0`
+      const features: HkgovAlsFeature[] = (
+        await Bun.file(
+          `${root}/${release}/als_addresses_(sha_tin_district).geojson`,
+        ).json()
+      ).features.filter(
+        (feature: HkgovAlsFeature) =>
+          feature.properties?.Address?.PremisesAddress?.BuildingCsuInformation
+            ?.CsuId === '3639525221T20050430',
+      )
+      const rows = features.map((feature, index) =>
+        normaliseHkgovAlsFeature(
+          feature,
+          'als_addresses_(sha_tin_district).geojson',
+          index + 1,
+          'test',
+          version,
+          maps,
+          true,
+          new Map(),
+          new Map(),
+          new Map(),
+        ),
+      )
+      const owner = requireDefined(rows.find(row => row.enBuildingName))
+      const alias = requireDefined(rows.find(row => !row.enBuildingName))
+      alias.id = alias.canonicalId = owner.id
+      const retained = [owner]
+      expect(suppressApprovedEstateDuplicates(retained, version, [alias])).toBe(0)
+      expect(retained).toEqual([owner])
+      expect(
+        JSON.parse(owner.sources).hkgovAlsApprovedDuplicate.suppressedAddress,
+      ).toEqual(alias)
+      const changedOwner = structuredClone(alias)
+      changedOwner.id = 'different-owner'
+      expect(() =>
+        suppressApprovedEstateDuplicates(retained, version, [changedOwner]),
+      ).toThrow('consolidated owner changed')
+      const changedSource = structuredClone(alias)
+      changedSource.geometry = JSON.stringify({ type: 'Point', coordinates: [0, 0] })
+      expect(() =>
+        suppressApprovedEstateDuplicates(retained, version, [changedSource]),
+      ).toThrow('source evidence changed')
+      expect(() => suppressApprovedEstateDuplicates(retained, version)).toThrow(
+        'alias changed',
+      )
+    }
+  },
+)

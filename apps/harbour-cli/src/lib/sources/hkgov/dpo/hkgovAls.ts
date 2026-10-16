@@ -440,7 +440,7 @@ async function prepareHkgovAlsAddressParquetInternal(
     }
   }
   applyAlsNestedPremises(rows, options.sourceVersion)
-  suppressAlsUnnamedPremises(rows, options.sourceVersion)
+  suppressAlsUnnamedPremises(rows, options.sourceVersion, consolidatedParentVariants)
   const coordinateChanges = backfillAlsCoordinates(
     rows,
     options.sourceVersion,

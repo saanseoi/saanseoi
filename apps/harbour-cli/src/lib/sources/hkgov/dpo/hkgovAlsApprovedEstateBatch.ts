@@ -76,13 +76,14 @@ export function resolveApprovedEstateCsu(
 export function suppressApprovedEstateDuplicates(
   rows: PreparedHkgovAlsRow[],
   version: string,
+  consolidatedVariants: PreparedHkgovAlsRow[] = [],
 ) {
   if (!inBounds(version)) return 0
   let suppressed = 0
   for (const rule of fixture.duplicates) {
     if (!rule.assertions.some(s => s.sourceVersions.includes(version))) continue
     if (!rows.some(r => r.enEstateName === rule.estate)) continue
-    const aliases = rows.filter(
+    const aliases = [...rows, ...consolidatedVariants].filter(
       r =>
         r.hkgovCsuId === rule.csu &&
         r.enEstateName === rule.estate &&
@@ -99,6 +100,12 @@ export function suppressApprovedEstateDuplicates(
     assert.equal(owners.length, 1, `Duplicate ${rule.id}: owner changed`)
     const alias = requireDefined(aliases[0]),
       owner = requireDefined(owners[0])
+    if (!rows.includes(alias))
+      assert.equal(
+        alias.id,
+        owner.id,
+        `Duplicate ${rule.id}: consolidated owner changed`,
+      )
     const rawEn = JSON.parse(requireDefined(alias.engPremisesAddressJson)),
       rawZh = JSON.parse(requireDefined(alias.chiPremisesAddressJson))
     const signature = estateBatchSignature({
@@ -140,8 +147,11 @@ export function suppressApprovedEstateDuplicates(
         suppressedAddress: { ...alias },
       },
     })
-    rows.splice(rows.indexOf(alias), 1)
-    suppressed++
+    const index = rows.indexOf(alias)
+    if (index >= 0) {
+      rows.splice(index, 1)
+      suppressed++
+    }
   }
   return suppressed
 }

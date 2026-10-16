@@ -12,12 +12,13 @@ const curationFile = 'hkgov-dpo-address-unnamed-premise-suppressions.json'
 export function suppressAlsUnnamedPremises(
   rows: PreparedHkgovAlsRow[],
   version: string,
+  consolidatedVariants: PreparedHkgovAlsRow[] = [],
 ) {
   let suppressed =
     suppressReviewedDuplicatePremises(rows, version) +
     suppressLinTsuiVariants(rows) +
     suppressHungHomPhase2Aliases(rows, version) +
-    suppressApprovedEstateDuplicates(rows, version)
+    suppressApprovedEstateDuplicates(rows, version, consolidatedVariants)
   for (const decision of fixture.suppressions) {
     if (version < decision.sourceVersionFrom || version > decision.sourceVersionTo)
       continue

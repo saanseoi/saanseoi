@@ -1893,3 +1893,9 @@ August 2025, its estate fields contain Royal Dragon Villa / 嘉御龍庭, its bu
 fields are empty, and its block fields contain Block / 座 and 9. The correction
 preserves the publisher assertions and coordinates, with exact source-and-geometry
 guards through September 2026.
+
+Reviewed empty estate aliases retain their source evidence when identity resolution
+already consolidates them into the named owner. Suppression validates the original
+bilingual source signature, geometry and components, and requires the consolidated alias
+to share the retained owner ID. Missing or changed evidence still fails the guard; it
+does not authorise removal of another address.
