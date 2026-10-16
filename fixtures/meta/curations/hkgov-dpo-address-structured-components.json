@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "authority": "User instruction, 2026-10-16: separate house/block descriptors and numbers from building names at 8 Hang Hau Wing Lung Road and Tam Towers/Tam Gardens; retain street numbers and premise identities.",
+  "authority": "User instruction, 2026-10-16: separate house/block descriptors and numbers from building names at 8 Hang Hau Wing Lung Road and Tam Towers/Tam Gardens; retain street numbers and premise identities. User instruction, 2026-10-16: Royal Dragon Villa remains the estate, Block 9 belongs in block fields, and the predecessor ID is retained.",
   "sourceVersionFrom": "2025-02-25.0",
   "sourceVersionTo": "2026-09-22.0",
   "rules": [
@@ -23,7 +23,8 @@
           "blockNumber": "1"
         }
       },
-      "sourceVersionTo": "2026-09-22.0"
+      "sourceVersionTo": "2026-09-22.0",
+      "sourceVersionFrom": "2025-02-25.0"
     },
     {
       "id": "wing-lung-house-2",
@@ -45,7 +46,8 @@
           "blockNumber": "2"
         }
       },
-      "sourceVersionTo": "2026-09-22.0"
+      "sourceVersionTo": "2026-09-22.0",
+      "sourceVersionFrom": "2025-02-25.0"
     },
     {
       "id": "wing-lung-house-3",
@@ -67,7 +69,8 @@
           "blockNumber": "3"
         }
       },
-      "sourceVersionTo": "2026-09-22.0"
+      "sourceVersionTo": "2026-09-22.0",
+      "sourceVersionFrom": "2025-02-25.0"
     },
     {
       "id": "tam-towers-block-1",
@@ -88,7 +91,8 @@
           "blockNumber": "1"
         }
       },
-      "sourceVersionTo": "2026-02-04.0"
+      "sourceVersionTo": "2026-02-04.0",
+      "sourceVersionFrom": "2025-02-25.0"
     },
     {
       "id": "tam-towers-block-2",
@@ -109,7 +113,8 @@
           "blockNumber": "2"
         }
       },
-      "sourceVersionTo": "2026-02-04.0"
+      "sourceVersionTo": "2026-02-04.0",
+      "sourceVersionFrom": "2025-02-25.0"
     },
     {
       "id": "tam-towers-block-3",
@@ -130,7 +135,8 @@
           "blockNumber": "3"
         }
       },
-      "sourceVersionTo": "2026-02-04.0"
+      "sourceVersionTo": "2026-02-04.0",
+      "sourceVersionFrom": "2025-02-25.0"
     },
     {
       "id": "tam-gardens-block-4",
@@ -152,7 +158,8 @@
           "blockNumber": "4"
         }
       },
-      "sourceVersionTo": "2026-09-22.0"
+      "sourceVersionTo": "2026-09-22.0",
+      "sourceVersionFrom": "2025-02-25.0"
     },
     {
       "id": "tam-gardens-block-5",
@@ -173,7 +180,33 @@
           "blockNumber": "5"
         }
       },
-      "sourceVersionTo": "2026-02-04.0"
+      "sourceVersionTo": "2026-02-04.0",
+      "sourceVersionFrom": "2025-02-25.0"
+    },
+    {
+      "id": "royal-dragon-villa-block-9",
+      "csu": "2640325602T20050430",
+      "sourceName": "ROYAL DRAGON VILLA BLOCK 9",
+      "sourceVersionFrom": "2025-08-13.0",
+      "sourceVersionTo": "2026-09-22.0",
+      "hashes": [
+        "f135b3f2d08fcb7cf73d4d776545409754ca7eb3f36da5b0e428293954e82747",
+        "8a769233a2dfd71f1a133463ec6b68e3d1f1b03dc542e6c1cce8eb0159e6fac0"
+      ],
+      "components": {
+        "en": {
+          "estateName": "Royal Dragon Villa",
+          "buildingName": null,
+          "blockDescriptor": "Block",
+          "blockNumber": "9"
+        },
+        "zh-hant": {
+          "estateName": "嘉御龍庭",
+          "buildingName": null,
+          "blockDescriptor": "座",
+          "blockNumber": "9"
+        }
+      }
     }
   ]
 }

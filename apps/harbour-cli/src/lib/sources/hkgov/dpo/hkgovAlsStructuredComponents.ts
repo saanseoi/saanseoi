@@ -19,7 +19,7 @@ export function applyReviewedStructuredComponents(
     `Structured components: release requires review`,
   )
   for (const rule of fixture.rules) {
-    if (version > rule.sourceVersionTo) continue
+    if (version < rule.sourceVersionFrom || version > rule.sourceVersionTo) continue
     const candidates = rows.filter(
       row =>
         row.hkgovCsuId === rule.csu &&
@@ -43,6 +43,8 @@ export function applyReviewedStructuredComponents(
       canonicalZh = structuredClone(zh)
     const english = rule.components.en,
       chinese = rule.components['zh-hant']
+    if ('estateName' in english) row.enEstateName = english.estateName ?? null
+    if ('estateName' in chinese) row.zhHantEstateName = chinese.estateName ?? null
     row.enBuildingName = canonicalEn.BuildingName = english.buildingName
     row.zhHantBuildingName = canonicalZh.BuildingName = chinese.buildingName
     row.enBlockDescriptor = english.blockDescriptor

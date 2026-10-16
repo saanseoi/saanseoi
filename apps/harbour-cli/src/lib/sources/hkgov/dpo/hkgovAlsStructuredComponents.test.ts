@@ -16,8 +16,8 @@ const maps: DivisionLookupMaps = {
   ambiguousDistrictZh: new Set(),
   snapshotId: 'test',
 }
-function rows() {
-  return examples.map((feature, index) =>
+function rows(features = examples) {
+  return features.map((feature, index) =>
     normaliseHkgovAlsFeature(
       {
         ...feature,
@@ -41,8 +41,47 @@ function rows() {
     ),
   )
 }
+test('Royal Dragon Villa remains the estate with separate Block 9 fields and an unchanged identity', () => {
+  const input = rows()
+  const row = input.find(row => row.hkgovCsuId === '2640325602T20050430')!
+  row.id = row.canonicalId = 'ss-e39dba05-bf20-505f-acb4-de310a20ba93'
+  const before = structuredClone(row)
+  applyReviewedStructuredComponents(input, '2025-08-13.0')
+  const normalised = normaliseAddressRowForPipeline({ ...row })
+  const en = normalised.i18n.find(value => value.locale === 'en')!
+  expect(en.estateName).toBe('Royal Dragon Villa')
+  expect(en.buildingName).toBeNull()
+  expect(en.blockType).toBe('block')
+  expect(en.blockRef).toBe('9')
+  expect(row.enFormattedAddress).toBe(
+    'Block 9, Royal Dragon Villa, 85, TING KAU, TSUEN WAN DISTRICT, NT',
+  )
+  expect(row.zhHantEstateName).toBe('嘉御龍庭')
+  expect(row.zhHantBlockNumber).toBe('9')
+  expect([
+    row.id,
+    row.canonicalId,
+    row.identityKey,
+    row.geometry,
+    row.engPremisesAddressJson,
+    row.chiPremisesAddressJson,
+  ]).toEqual([
+    before.id,
+    before.canonicalId,
+    before.identityKey,
+    before.geometry,
+    before.engPremisesAddressJson,
+    before.chiPremisesAddressJson,
+  ])
+})
 test('curates three houses and five Tam blocks through the ingestion normaliser without identity or source changes', () => {
-  const input = rows(),
+  const input = rows(
+      examples.filter(
+        feature =>
+          feature.properties.Address.PremisesAddress.BuildingCsuInformation.CsuId !==
+          '2640325602T20050430',
+      ),
+    ),
     before = structuredClone(input)
   applyReviewedStructuredComponents(input, '2025-02-25.0')
   for (const [index, row] of input.entries()) {

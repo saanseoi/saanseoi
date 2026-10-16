@@ -20424,6 +20424,16 @@
         "reviewSha256": "aa7ccd9995af9981011b9f31c8b2dda74cf1ebd09568133c9424da4632b86860",
         "notes": "corrected name"
       }
+    },
+    {
+      "previousIdentityKey": "HKGOV ALS PREMISE V1\u00002640325602T20050430\u0000TSUEN WAN DISTRICT\u0000VILLAGE\u0000TING KAU\u000085\u0000\u0000ROYAL DRAGON VILLA\u0000\u0000\u0000\u0000\u0000BLOCK 9\u0000\u0000",
+      "currentIdentityKey": "HKGOV ALS PREMISE V1\u00002640325602T20050430\u0000TSUEN WAN DISTRICT\u0000VILLAGE\u0000TING KAU\u000085\u0000\u0000\u0000\u0000\u0000\u0000\u0000ROYAL DRAGON VILLA BLOCK 9\u0000\u0000",
+      "resolution": "keep-existing-id",
+      "review": {
+        "sourceVersion": "2025-08-13.0",
+        "reviewSha256": "429101ae9509c41f282a6927444ed1a2d936af3252caf1934f163c7e88fdf695",
+        "notes": "User instruction: Royal Dragon Villa should remain the estate, block 9 belongs in block fields, keep the ID."
+      }
     }
   ],
   "version": 1

@@ -305,5 +305,41 @@
         }
       }
     }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [114.0811, 22.3696]
+    },
+    "properties": {
+      "Northing": 825606,
+      "Easting": 826404,
+      "Address": {
+        "PremisesAddress": {
+          "BuildingCsuInformation": {
+            "CsuId": "2640325602T20050430"
+          },
+          "ChiPremisesAddress": {
+            "Region": "新界",
+            "ChiDistrict": "荃灣區",
+            "ChiVillage": {
+              "VillageName": "汀九",
+              "BuildingNoFrom": "85"
+            }
+          },
+          "EngPremisesAddress": {
+            "BuildingName": "ROYAL DRAGON VILLA BLOCK 9",
+            "EngVillage": {
+              "BuildingNoFrom": "85",
+              "VillageName": "TING KAU"
+            },
+            "EngDistrict": "TSUEN WAN DISTRICT",
+            "Region": "NT"
+          },
+          "GeoAddress": "2640325602T20050430"
+        }
+      }
+    }
   }
 ]

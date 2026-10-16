@@ -1775,3 +1775,9 @@ inventories retain the exact parent keys of those variants and resolve them to t
 surviving canonical owner. This preserves inventories whose publisher parent still omits
 a newly added building name. Unrelated owner IDs and ambiguous parent matches remain
 subject to review.
+
+Royal Dragon Villa Block 9 at 85 Ting Kau retains its reviewed predecessor ID. From
+August 2025, its estate fields contain Royal Dragon Villa / 嘉御龍庭, its building-name
+fields are empty, and its block fields contain Block / 座 and 9. The correction
+preserves the publisher assertions and coordinates, with exact source-and-geometry
+guards through September 2026.
