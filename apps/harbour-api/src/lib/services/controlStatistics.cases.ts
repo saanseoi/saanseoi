@@ -1,3 +1,4 @@
+import { datasetVariantForSource } from '@repo/core/codes'
 import { handleReconcileDraftReleaseSets } from './controlFixtures.fixtures'
 import { expect, test } from 'bun:test'
 import { join } from 'node:path'
@@ -68,11 +69,11 @@ test('publishes a dataset snapshot without finalising a shared source release', 
     ) VALUES
       (
         'api-composition-stats-v1', 'government', 'divisionStatistic',
-        '${datasetCode}', 'primary', 0, 'exact_ref', 0
+        '${datasetVariantForSource('divisionStatistic', undefined, { datasetCode })}', 'primary', 0, 'exact_ref', 0
       ),
       (
         'api-composition-stats-v1', 'government', 'divisionStatistic',
-        'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
+        'hkgov-censtatd-population-households-district',
         'primary', 0, 'exact_ref', 1
       );
   `)
@@ -117,7 +118,7 @@ test('publishes a dataset snapshot without finalising a shared source release', 
     datasetId: dataset.id,
     regionCode: 'hk',
     sourceReleaseId: resourceReleaseId,
-    variant: datasetCode,
+    variant: datasetVariantForSource('divisionStatistic', undefined, { datasetCode }),
   })
   sqlite
     .query(
@@ -324,7 +325,7 @@ test('bootstraps one cohort-complete initial Statistics release set', async () =
         apiCompositionId, domainCode, resourceType, variant, role, isRequired,
         cohortMatchingMode, priority
       ) VALUES (
-        'api-composition-stats-v1', 'government', 'divisionStatistic', '${datasetCode}',
+        'api-composition-stats-v1', 'government', 'divisionStatistic', '${datasetVariantForSource('divisionStatistic', undefined, { datasetCode })}',
         'primary', 0, 'exact_ref', ${index}
       );
       INSERT INTO sourceReleases
@@ -345,7 +346,7 @@ INSERT INTO resourceReleases (id, sourceReleaseId, resourceType, code, status, i
       datasetId,
       regionCode: 'hk',
       sourceReleaseId: resourceReleaseId,
-      variant: datasetCode,
+      variant: datasetVariantForSource('divisionStatistic', undefined, { datasetCode }),
     })
     await upsertSnapshotSource(db, snapshot.id, resourceReleaseId, 'primary')
     seedSnapshotAssembly(sqlite, snapshot.id)
@@ -491,7 +492,9 @@ INSERT INTO resourceReleases (id, sourceReleaseId, resourceType, code, status, i
     datasetId: 'dataset-0',
     regionCode: 'hk',
     sourceReleaseId: 'legacy-release-2022',
-    variant: datasetCodes[0],
+    variant: datasetVariantForSource('divisionStatistic', undefined, {
+      datasetCode: datasetCodes[0],
+    }),
   })
   await upsertSnapshotSource(db, legacySnapshot.id, 'legacy-release-2022', 'primary')
   seedSnapshotAssembly(sqlite, legacySnapshot.id)
@@ -512,7 +515,9 @@ INSERT INTO resourceReleases (id, sourceReleaseId, resourceType, code, status, i
     datasetId: 'dataset-0',
     regionCode: 'hk',
     sourceReleaseId: 'staged-release-2023',
-    variant: datasetCodes[0],
+    variant: datasetVariantForSource('divisionStatistic', undefined, {
+      datasetCode: datasetCodes[0],
+    }),
   })
   await upsertSnapshotSource(db, stagedSnapshot.id, 'staged-release-2023', 'primary')
 

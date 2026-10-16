@@ -1,3 +1,4 @@
+import { datasetVariantForSource } from '../../../core/src/codes'
 import { geographicDivisionClassification } from '../divisionTaxonomy'
 import { requireDefined } from '../../../core/src/requireDefined'
 import { describe, expect, test } from 'bun:test'
@@ -312,7 +313,15 @@ describe('fixture version hashes', () => {
         )
         .map(member => member.variant)
         .sort(),
-    ).toEqual(censtatdStats.map(dataset => dataset.code).sort())
+    ).toEqual(
+      censtatdStats
+        .map(dataset =>
+          datasetVariantForSource('divisionStatistic', undefined, {
+            datasetCode: dataset.code,
+          }),
+        )
+        .sort(),
+    )
     expect(
       initialApiCompositionMembers
         .filter(member => member.apiCompositionCode === 'comp-stats-v1')

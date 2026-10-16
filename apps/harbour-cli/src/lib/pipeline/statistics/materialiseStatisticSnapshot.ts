@@ -1,3 +1,4 @@
+import { datasetVariantForSource } from '@repo/core/codes'
 import {
   buildDeterministicSnapshotLineageId,
   ensureDraftSnapshotForRelease,
@@ -23,7 +24,9 @@ export async function resolveStatisticSnapshotPredecessors(args: {
   const lineageCode = buildSnapshotLineageCode(
     args.datasetCode,
     'divisionStatistic',
-    args.datasetCode,
+    datasetVariantForSource('divisionStatistic', undefined, {
+      datasetCode: args.datasetCode,
+    }),
   )
   const lineageId = buildDeterministicSnapshotLineageId(lineageCode)
   return Promise.all(
@@ -95,7 +98,9 @@ export async function materialiseStatisticSnapshots(args: {
         identityMode: 'cohort_scoped',
         regionCode: dataset.regionCode,
         sourceReleaseId: dataset.resourceReleaseId,
-        variant: args.datasetCode,
+        variant: datasetVariantForSource('divisionStatistic', dataset.source, {
+          datasetCode: args.datasetCode,
+        }),
       },
     )
     await upsertSnapshotSource(

@@ -89,7 +89,7 @@ describe('registry code construction', () => {
         datasetCode:
           'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
       }),
-    ).toBe('ds-hk-hkgov-censtatd-division-statistic-population-households-district')
+    ).toBe('hkgov-censtatd-population-households-district')
     expect(
       datasetVariantForSource('divisionArea', 'hkgov-censtatd', {
         cohortKey: '2016',
@@ -139,4 +139,30 @@ describe('registry code construction', () => {
       'Invalid publisher code slug="hkgovHad".',
     )
   })
+})
+
+test('statistic composition variants match ingestion and preserve lineage identities', async () => {
+  const { default: fixture } = await import(
+    '../../../fixtures/meta/apiCompositions/api-stats-comp-v1.json'
+  )
+  const { buildSnapshotLineageCode } = await import('../../db/src/versioning')
+  const datasets = (await import('@repo/db/registry')).initialDatasets.filter(row =>
+    row.code.startsWith('ds-hk-hkgov-censtatd-division-statistic-'),
+  )
+  const variants = datasets.map(dataset => {
+    const variant = datasetVariantForSource('divisionStatistic', 'hkgov-censtatd', {
+      datasetCode: dataset.code,
+    })
+    expect(variant.startsWith('hkgov-censtatd-')).toBe(true)
+    expect(buildSnapshotLineageCode(dataset.code, 'divisionStatistic', variant)).toBe(
+      buildSnapshotLineageCode(dataset.code, 'divisionStatistic', dataset.code),
+    )
+    return variant
+  })
+  expect(new Set(variants).size).toBe(8)
+  expect(
+    fixture.domains
+      .flatMap(domain => domain.members.map(member => member.variant))
+      .sort(),
+  ).toEqual(variants.sort())
 })

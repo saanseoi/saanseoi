@@ -1,3 +1,4 @@
+import { datasetVariantForSource } from '@repo/core/codes'
 import { recordSnapshotAssembly } from '@repo/core/db/metaRegistry'
 import { expect, test } from 'bun:test'
 import { Database } from 'bun:sqlite'
@@ -38,7 +39,7 @@ function fixture() {
     INSERT INTO apiComposition(id,apiVersionId,code,version,primaryResourceType,defaultDomainCode,status,versionHash)
     VALUES('composition','api','comp-stats-v1',1,'divisionStatistic','government','current','hash');
     INSERT INTO apiCompositionMembers(apiCompositionId,domainCode,resourceType,variant,role,isRequired,cohortMatchingMode,priority)
-    VALUES('composition','government','divisionStatistic','${datasetCode}','primary',1,'exact_ref',0);
+    VALUES('composition','government','divisionStatistic','${datasetVariantForSource('divisionStatistic', undefined, { datasetCode })}','primary',1,'exact_ref',0);
   `)
   let sourceRevision = 0
   const snapshot = async (resourceReleaseId: string, period = '2020') => {
@@ -69,7 +70,7 @@ function fixture() {
       identityMode: 'cohort_scoped',
       regionCode: 'hk',
       sourceReleaseId: resourceReleaseId,
-      variant: datasetCode,
+      variant: datasetVariantForSource('divisionStatistic', undefined, { datasetCode }),
     })
     await upsertSnapshotSource(db, result.id, resourceReleaseId, 'primary', {
       anchorReleaseId: resourceReleaseId,

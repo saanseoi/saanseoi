@@ -164,6 +164,25 @@ export function isDatasetReleaseCode(value: string) {
   )
 }
 
+/** Stable public variants for the independently published C&SD statistic products. */
+const statisticDatasetVariants: Record<string, string> = {
+  'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups':
+    'hkgov-censtatd-hma-building-groups',
+  'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district':
+    'hkgov-censtatd-density-district',
+  'ds-hk-hkgov-censtatd-division-statistic-major-housing-estates':
+    'hkgov-censtatd-housing-estates',
+  'ds-hk-hkgov-censtatd-division-statistic-new-towns': 'hkgov-censtatd-new-towns',
+  'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters':
+    'hkgov-censtatd-living-quarters',
+  'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district':
+    'hkgov-censtatd-living-quarters-district',
+  'ds-hk-hkgov-censtatd-division-statistic-population-households-district':
+    'hkgov-censtatd-population-households-district',
+  'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district':
+    'hkgov-censtatd-subdivided-units-district',
+}
+
 export function datasetVariantForSource(
   resourceType: ResourceType,
   source?: string,
@@ -176,7 +195,9 @@ export function datasetVariantForSource(
   } = {},
 ) {
   if (resourceType === 'divisionStatistic') {
-    return options.datasetCode ?? 'default'
+    return options.datasetCode
+      ? (statisticDatasetVariants[options.datasetCode] ?? options.datasetCode)
+      : 'default'
   }
 
   // One Places publisher dataset contributes two resource outputs. Its Address

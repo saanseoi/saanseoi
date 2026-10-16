@@ -28,7 +28,7 @@
       "members": [
         {
           "resourceType": "divisionStatistic",
-          "variant": "ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups",
+          "variant": "hkgov-censtatd-hma-building-groups",
           "role": "primary",
           "isRequired": false,
           "cohortMatchingMode": "exact_ref",
@@ -36,7 +36,7 @@
         },
         {
           "resourceType": "divisionStatistic",
-          "variant": "ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district",
+          "variant": "hkgov-censtatd-density-district",
           "role": "primary",
           "isRequired": false,
           "cohortMatchingMode": "exact_ref",
@@ -44,7 +44,7 @@
         },
         {
           "resourceType": "divisionStatistic",
-          "variant": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates",
+          "variant": "hkgov-censtatd-housing-estates",
           "role": "primary",
           "isRequired": false,
           "cohortMatchingMode": "exact_ref",
@@ -52,7 +52,7 @@
         },
         {
           "resourceType": "divisionStatistic",
-          "variant": "ds-hk-hkgov-censtatd-division-statistic-new-towns",
+          "variant": "hkgov-censtatd-new-towns",
           "role": "primary",
           "isRequired": false,
           "cohortMatchingMode": "exact_ref",
@@ -60,7 +60,7 @@
         },
         {
           "resourceType": "divisionStatistic",
-          "variant": "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters",
+          "variant": "hkgov-censtatd-living-quarters",
           "role": "primary",
           "isRequired": false,
           "cohortMatchingMode": "exact_ref",
@@ -68,7 +68,7 @@
         },
         {
           "resourceType": "divisionStatistic",
-          "variant": "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district",
+          "variant": "hkgov-censtatd-living-quarters-district",
           "role": "primary",
           "isRequired": false,
           "cohortMatchingMode": "exact_ref",
@@ -76,7 +76,7 @@
         },
         {
           "resourceType": "divisionStatistic",
-          "variant": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
+          "variant": "hkgov-censtatd-population-households-district",
           "role": "primary",
           "isRequired": false,
           "cohortMatchingMode": "exact_ref",
@@ -84,7 +84,7 @@
         },
         {
           "resourceType": "divisionStatistic",
-          "variant": "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
+          "variant": "hkgov-censtatd-subdivided-units-district",
           "role": "primary",
           "isRequired": false,
           "cohortMatchingMode": "exact_ref",
@@ -93,5 +93,5 @@
       ]
     }
   ],
-  "versionHash": "sha256:726ed34c5abd93691cc370dad5acde7a0ebdcf2645eae49129f1dd771a7289d1"
+  "versionHash": "sha256:acbad638c2e9f4339d5400a11ea869801cb5b0aec61c7e86843310aee56d20e5"
 }

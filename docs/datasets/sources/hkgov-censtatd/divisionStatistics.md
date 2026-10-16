@@ -1,5 +1,10 @@
 # Census and Statistics Department division statistics
 
+Statistics snapshot lineages and API composition members use stable, provider-prefixed
+product variants (for example `hkgov-censtatd-density-district` and
+`hkgov-censtatd-hma-building-groups`). Dataset codes retain the full source identity.
+Ingestion and publication resolve variants through `datasetVariantForSource`.
+
 Housing Market Area ancestor lookup uses the native C&SD classification and preserves
 the null hierarchy level. These statistical geographies use the C&SD normaliser, without
 applying Overture subtype/class mappings.

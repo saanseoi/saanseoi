@@ -1,5 +1,10 @@
 # Statistics dataset family
 
+Statistics snapshot lineages and API composition members use stable, provider-prefixed
+product variants (for example `hkgov-censtatd-density-district` and
+`hkgov-censtatd-hma-building-groups`). Dataset codes retain the full source identity.
+Ingestion and publication resolve variants through `datasetVariantForSource`.
+
 Source release record totals count retained publisher assertions across all compilation
 periods, independently of the structural field and period breakdowns. Their aggregate
 `changes` rows record added, changed, removed, unchanged and current record counts.
