@@ -424,12 +424,6 @@ export class ReviewDatabase {
       ['apiCompositionMembers', 'apiReleaseSetSnapshots'].includes(table)
     )
       throw new Error('Unsupported subset')
-    if (
-      column === 'cohortKey' &&
-      kind === 'HISTORY' &&
-      this.columns(db, table).some(c => c.name === 'snapshotId')
-    )
-      return '(SELECT cohortKey FROM review_meta.snapshots WHERE id=r.snapshotId)'
     const allowed = [
       'scopeId',
       'operation',
@@ -475,7 +469,6 @@ export class ReviewDatabase {
     >()
     const dimensions = [
       'scopeId',
-      'cohortKey',
       'operation',
       'locale',
       'variant',

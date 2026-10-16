@@ -267,7 +267,7 @@ test('offers only populated related tables; shared tables have one separate grou
   }
 })
 
-test('catalogue removes empty datasets and lineage cohorts produce distinct subsets', () => {
+test('catalogue removes empty datasets and history operations produce distinct subsets', () => {
   const review = fixture([
     {
       binding: 'DB_HISTORY_HK_2026',
@@ -493,6 +493,44 @@ test('HISTORY i18n tables review locales together while retaining operation subs
       ),
     ).toThrow('Unsupported subset')
   } finally {
+    review.close()
+  }
+})
+
+test('HISTORY reviews all lineage cohorts together without cohort-key subsets', () => {
+  const review = fixture([
+    {
+      binding: 'DB_HISTORY_HK_2026',
+      sql: `CREATE TABLE records(id TEXT, snapshotId TEXT, operation TEXT);
+      INSERT INTO records VALUES ('a','snap','upsert'),('b','later','upsert'),('excluded','unrelated','upsert');`,
+    },
+  ])
+  const meta = new Database(review.shards[0].path)
+  try {
+    meta.exec("INSERT INTO snapshots VALUES ('later','lineage','2027')")
+    expect(
+      review
+        .subsets('HISTORY', 'lineage', 'records')
+        .some(s => s.dimension === 'cohortKey'),
+    ).toBe(false)
+    expect(
+      review
+        .inspect('HISTORY', 'lineage', 'records', false, 8)
+        .samples.map(s => s.record.id)
+        .sort(),
+    ).toEqual(['a', 'b'])
+    expect(() =>
+      review.inspect(
+        'HISTORY',
+        'lineage',
+        'records',
+        false,
+        8,
+        JSON.stringify(['cohortKey', '2026']),
+      ),
+    ).toThrow('Unsupported subset')
+  } finally {
+    meta.close()
     review.close()
   }
 })
