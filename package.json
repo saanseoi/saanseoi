@@ -17,6 +17,7 @@
     "dev:all": "bash ./scripts/dev.sh all",
     "dev:atlas": "bash ./scripts/dev.sh atlas",
     "dev:harbour": "bash ./scripts/dev.sh harbour",
+    "dev:review": "bun run --cwd ./apps/harbour-app dev",
     "dev:basemap": "bun run --filter=basemap-viewer dev",
     "update": "bun update --interactive --recursive",
     "outdated": "bun outdated --recursive",
