@@ -1,6 +1,7 @@
 import { expect, test } from 'bun:test'
 import {
   normaliseAls3dInventory,
+  readAls3dFeatures,
   assertAddress3dRowBudget,
   type Als3dFeature,
 } from './hkgovAls3d'
@@ -141,4 +142,47 @@ test('formats ordinary expressions, retains optional overrides and measures UTF-
   expect(() => assertAddress3dRowBudget({ text: '樓'.repeat(340_000) })).toThrow(
     'bytes',
   )
+})
+
+test('3D source streaming preserves UTF-8 and feature order across delayed consumption and line endings', async () => {
+  const { mkdtemp, writeFile, rm } = await import('node:fs/promises')
+  const { tmpdir } = await import('node:os')
+  const { join } = await import('node:path')
+  const directory = await mkdtemp(join(tmpdir(), 'als-stream-'))
+  try {
+    const features = Array.from({ length: 100 }, (_, i) => {
+      const f = feature([['1', String(i)]])
+      f.properties.Address.PremisesAddress.ChiPremisesAddress!.BuildingName =
+        '中文樓宇'.repeat(5000)
+      return f
+    })
+    for (const newline of ['\n', '\r\n']) {
+      const path = join(directory, 'input.geojson')
+      await writeFile(
+        path,
+        JSON.stringify({ type: 'FeatureCollection', features }, null, 2).replaceAll(
+          '\n',
+          newline,
+        ),
+      )
+      const actual = []
+      for await (const item of readAls3dFeatures(path)) {
+        if (item.featureIndexOneBased % 10 === 1)
+          await new Promise(resolve => setTimeout(resolve, 10))
+        expect(item.featureIndexOneBased).toBe(actual.length + 1)
+        actual.push(item.feature)
+      }
+      expect(actual).toEqual(features)
+    }
+    const broken = join(directory, 'broken.geojson')
+    await writeFile(broken, '{\n  "features": [\n    {\n')
+    await expect(
+      (async () => {
+        for await (const _ of readAls3dFeatures(broken)) {
+        }
+      })(),
+    ).rejects.toThrow('Incomplete or unsupported')
+  } finally {
+    await rm(directory, { recursive: true, force: true })
+  }
 })

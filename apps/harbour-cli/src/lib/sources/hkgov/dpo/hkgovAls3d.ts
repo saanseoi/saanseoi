@@ -1,6 +1,5 @@
 import { createHash } from 'node:crypto'
 import { createReadStream } from 'node:fs'
-import { createInterface } from 'node:readline'
 import { buildDeterministicUuidV5 } from '@repo/db'
 import type { Address3dUnit, Address3dUnitI18n } from '@repo/db/address3d'
 
@@ -44,14 +43,28 @@ export type Als3dFeature = {
   }
 }
 
+/** Pull chunks only as the feature consumer advances; never resume a closed readline. */
+async function* alsSourceLines(path: string) {
+  let pending = ''
+  for await (const chunk of createReadStream(path, { encoding: 'utf8' })) {
+    pending += chunk
+    let start = 0
+    let end = pending.indexOf('\n', start)
+    while (end !== -1) {
+      yield pending.slice(start, end).replace(/\r$/, '')
+      start = end + 1
+      end = pending.indexOf('\n', start)
+    }
+    pending = pending.slice(start)
+  }
+  if (pending) yield pending.replace(/\r$/, '')
+}
+
 /** ALS deliveries use one indented feature per block; reject other layouts. */
 export async function* readAls3dFeatures(path: string) {
   let lines: string[] | null = null
   let count = 0
-  for await (const line of createInterface({
-    input: createReadStream(path),
-    crlfDelay: Infinity,
-  })) {
+  for await (const line of alsSourceLines(path)) {
     if (line === '    {') {
       if (lines) throw new Error(`Nested feature boundary in ${path}`)
       lines = []

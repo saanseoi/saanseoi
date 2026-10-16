@@ -1829,3 +1829,7 @@ respectively.
 Unmatched estate-gap targets beyond verified coverage are retained as unverified
 curations under the deferral policy. Their publisher records remain untouched; scheduled
 historical targets still require an exact match.
+
+ALS 3D source features are read incrementally with file-stream backpressure, preserving
+UTF-8 text, source order and LF/CRLF line endings when processing pauses between
+features. Incomplete feature blocks are rejected.
