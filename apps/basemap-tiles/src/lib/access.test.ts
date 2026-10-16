@@ -21,25 +21,32 @@ const config: OriginAccessConfig = {
   EXTERNAL_ORIGINS: '',
 }
 
-test('deployed config allows Hype localhost CORS and key-free tile access', async () => {
-  const { vars } = Bun.JSONC.parse(
-    readFileSync(resolve(import.meta.dirname, '../../wrangler.jsonc'), 'utf8'),
-  ) as { vars: OriginAccessConfig & { AUTH_MODE: string } }
-  const origin = 'http://hype.localhost'
-  assert.equal(getAllowedOrigin(origin, vars), origin)
-  assert.equal(isUnmeteredOrigin(origin, vars), true)
-  assert.deepEqual(
-    await authenticatePublicKeyRequest(
-      new Request('https://tiles.saanseoi.hk/hongkong-latest.json', {
-        headers: { origin },
-      }),
-      vars as Parameters<typeof authenticatePublicKeyRequest>[1],
-    ),
-    { unmetered: true },
-  )
-  assert.equal(isUnmeteredOrigin('http://hype.localhost.example.com', vars), false)
-  assert.equal(isUnmeteredOrigin('http://other.localhost', vars), false)
-})
+for (const origin of [
+  'http://hype.localhost',
+  'http://review.localhost',
+  'http://review.localhost:5185',
+]) {
+  test(`configured origin ${origin} allows CORS and key-free tile access`, async () => {
+    const { vars } = Bun.JSONC.parse(
+      readFileSync(resolve(import.meta.dirname, '../../wrangler.jsonc'), 'utf8'),
+    ) as { vars: OriginAccessConfig & { AUTH_MODE: string } }
+    assert.equal(getAllowedOrigin(origin, vars), origin)
+    assert.equal(isUnmeteredOrigin(origin, vars), true)
+    assert.deepEqual(
+      await authenticatePublicKeyRequest(
+        new Request('https://tiles.saanseoi.hk/hongkong-latest.json', {
+          headers: { origin },
+        }),
+        vars as Parameters<typeof authenticatePublicKeyRequest>[1],
+      ),
+      { unmetered: true },
+    )
+    assert.equal(isUnmeteredOrigin('http://hype.localhost.example.com', vars), false)
+    assert.equal(isUnmeteredOrigin('http://other.localhost', vars), false)
+    assert.equal(isUnmeteredOrigin('http://review.localhost.example.com', vars), false)
+    assert.equal(isUnmeteredOrigin('http://review.localhost:9999', vars), false)
+  })
+}
 
 test('tiles reject an expired coordinator lease rather than extending revoked access', async () => {
   const expired = { keyId: 'key-1', status: 'active', nextCheckAt: Date.now() - 1 }

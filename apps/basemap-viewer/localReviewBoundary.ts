@@ -1,7 +1,7 @@
 import type { Plugin, PreviewServer, ViteDevServer } from 'vite'
 
 export function isLocalReviewPath(value: string) {
-  return /(?:^|\/)(?:local-review|__division-review|__address-review)(?:\/|$)/.test(
+  return /(?:^|\/)(?:harbour-app|local-review|__division-review|__address-review)(?:\/|$)/.test(
     value.split('?')[0]!,
   )
 }

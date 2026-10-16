@@ -1,0 +1,40 @@
+import { resolve } from 'node:path'
+import { defineConfig } from 'vitest/config'
+import { svelte } from '@sveltejs/vite-plugin-svelte'
+import tailwindcss from '@tailwindcss/vite'
+import { ingestionPlugin } from './ingestionPlugin.ts'
+import { reviewInputsPlugin } from './reviewInputsPlugin.ts'
+
+export default defineConfig({
+  appType: 'mpa',
+  plugins: [svelte(), tailwindcss(), ingestionPlugin(), reviewInputsPlugin()],
+  resolve: {
+    alias: [
+      {
+        find: '#lib/bits/internal/i18n.js',
+        replacement: resolve(import.meta.dirname, '../../libs/i18n/src/messages.ts'),
+      },
+      {
+        find: '#lib',
+        replacement: resolve(import.meta.dirname, '../atlas-app/src/lib'),
+      },
+    ],
+  },
+  optimizeDeps: { exclude: ['maplibre-gl'] },
+  server: {
+    host: 'localhost',
+    allowedHosts: ['review.localhost'],
+    port: 5185,
+    strictPort: true,
+    fs: { allow: [resolve(import.meta.dirname, '../..')] },
+  },
+  build: {
+    rolldownOptions: {
+      input: ['index.html', 'divisions/index.html', 'ingestion/index.html'],
+    },
+  },
+  test: {
+    environment: 'node',
+    include: ['tests/**/*.test.ts', 'src/**/*.test.ts'],
+  },
+})

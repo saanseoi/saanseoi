@@ -1,5 +1,4 @@
 import { blockLocalReview, localReviewBoundary } from './localReviewBoundary.ts'
-import { reviewInputsPlugin } from './reviewInputsPlugin.ts'
 import { identityReviewPlugin } from './identityReviewPlugin.ts'
 import { defineConfig } from 'vitest/config'
 import { svelte } from '@sveltejs/vite-plugin-svelte'
@@ -39,7 +38,7 @@ function localReviewRoutes() {
 export default defineConfig(({ command, mode, isPreview }) => ({
   plugins: [
     ...(command === 'serve' && !isPreview && mode === 'development'
-      ? [reviewInputsPlugin(), identityReviewPlugin(), localReviewRoutes()]
+      ? [identityReviewPlugin(), localReviewRoutes()]
       : [blockLocalReview()]),
     localReviewBoundary(),
     tailwindcss(),

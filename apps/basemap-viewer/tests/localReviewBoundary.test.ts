@@ -15,7 +15,9 @@ describe('deployment boundary', () => {
           build: {
             write: false,
             rolldownOptions: {
-              input: resolve('src/local-review/division-areas/layerControls.ts'),
+              input: resolve(
+                '../harbour-app/src/tools/division-areas/layerControls.ts',
+              ),
             },
           },
         }),

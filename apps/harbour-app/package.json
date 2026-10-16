@@ -1,0 +1,31 @@
+{
+  "name": "harbour-app",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "bun --bun ../../node_modules/vite/bin/vite.js",
+    "check": "svelte-check --tsconfig ./tsconfig.json",
+    "test": "bun test ./ingestion/server.test.ts ./ingestion/signoffs.test.ts && vitest run",
+    "build": "vite build",
+    "lint": "biome lint ."
+  },
+  "dependencies": {
+    "@iconify/svelte": "^5.2.2",
+    "@protomaps/basemaps": "^5.7.2",
+    "@repo/basemap": "workspace:*",
+    "bits-ui": "^2.19.5",
+    "maplibre-gl": "^6.14.0",
+    "svelte": "^5.57.2",
+    "@repo/core": "workspace:*",
+    "jsts": "2.12.1"
+  },
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "^7.3.1",
+    "@tailwindcss/vite": "^4.3.3",
+    "@types/node": "^26.6.5",
+    "svelte-check": "^4.7.6",
+    "typescript": "^6.0.3",
+    "vite": "^8.3.4",
+    "vitest": "^5.0.4"
+  }
+}

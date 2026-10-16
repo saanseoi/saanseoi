@@ -1,10 +1,9 @@
 # Geographic hierarchy and SaanSeoi estimated-area review
 
-The local drawing map is served at <http://localhost:5174/local-review/> by the basemap
-viewer (`bun run --cwd apps/basemap-viewer dev`). Its page and modules live in
-`apps/basemap-viewer/local-review/` and
-`apps/basemap-viewer/src/local-review/division-areas/`. These local review directories
-are ignored by Git and excluded from the deployed viewer.
+The local drawing map is served at <http://localhost:5185/divisions/> by Harbour
+(`bun run review:divisions`). Its page and modules live in `apps/harbour-app/divisions/`
+and `apps/harbour-app/src/tools/division-areas/`. The application source is tracked;
+generated geometry and browser working state stay local.
 
 The editor generates its identity inventory and reference geometry from the pinned
 archives in `fixtures/meta/datasetInputs/saanseoi-division-review.json`, then applies
@@ -149,14 +148,13 @@ repeated there. Map extents come from the selected DivisionArea geometry.
 
 ## Versioned local division editor
 
-The division editor page at `apps/basemap-viewer/local-review/index.html` and its
-modules under `apps/basemap-viewer/src/local-review/division-areas/` are application
-source in version control. Other temporary review pages remain ignored.
+The division editor page at `apps/harbour-app/divisions/index.html` and its modules
+under `apps/harbour-app/src/tools/division-areas/` are application source in version
+control. Other temporary review pages remain ignored.
 
-Run `bun run --cwd apps/basemap-viewer dev` and open
-<http://localhost:5174/local-review/>. The default `development` mode registers the
-input-generation and local-asset endpoints. Retain the pinned ingredient archives needed
-by `scripts/divisions/prepare-review.ts`; it builds
+Run `bun run dev:harbour-app` and open <http://localhost:5185/divisions/>. The default
+`development` mode registers the input-generation and local-asset endpoints. Retain the
+pinned ingredient archives needed by `scripts/divisions/prepare-review.ts`; it builds
 `.local/division-review/editor.json`. The government comparison also requires the
 retained HAD and C&SD files listed in `scripts/divisions/government-review.ts`. Missing
 required inputs produce an explicit error, not a substitute source edition.
@@ -169,7 +167,7 @@ FeatureCollections, run from the repository root:
 
 ```sh
 uv run --with duckdb --with shapely python \
-  apps/basemap-viewer/src/local-review/division-areas/prepareGeometryInputs.py \
+  apps/harbour-app/src/tools/division-areas/prepareGeometryInputs.py \
   --buildings /path/to/buildings.geojson --roads /path/to/road-centrelines.geojson
 ```
 
@@ -182,9 +180,20 @@ drawings, backups and `.local/division-review/division-editor-project.json` rema
 working state. The checked-in Tseung Kwan O recovery fixture supports the editor's
 existing once-per-browser restore; it is not published by the viewer.
 
-Preview and production builds use only the public `index.html` entry and exclude
-`src/local-review` from the deployment type-check entry set. The build boundary rejects
-any accidental import of a local review module or dataset. Preview serving and
-non-development Vite modes return 404 for review pages and endpoints. Deployment assets
-contain neither the editor nor its geometry inputs; the editor is not enabled with a
-client-side visibility toggle.
+Harbour is a local development application with no deployment command. Its input and
+query endpoints run in the development server. A static build checks browser bundles; it
+does not provide the local endpoints. Public basemap builds reject imports from
+`harbour-app`, and temporary basemap review pages remain excluded from deployments.
+
+## Editor loading
+
+Harbour starts the basemap while preparing editor inputs. The development server retains
+successful input generation in memory and checks source-code, curation, pin, retained
+archive, government input and editor-project file metadata before reuse. Changes
+invalidate the result; restarting the server also requires a rebuild. Concurrent
+requests share generation, and failed builds are retried.
+
+Government comparison polygons are fetched with **Load government comparisons** under
+**Use an existing area**. They remain separate from active reference geometry. The
+optional geometry catalogue downloads only when a search term is entered. These
+comparison inputs are not part of the initial editor response.

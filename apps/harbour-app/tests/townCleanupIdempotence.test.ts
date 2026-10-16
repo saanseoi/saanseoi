@@ -1,0 +1,78 @@
+import { describe, expect, it } from 'vitest'
+import type { Polygon } from 'geojson'
+import {
+  cleanTownEstimatedAreaGeometries,
+  TOWN_GEOMETRY_CLEANUP_VERSION,
+} from '../src/tools/division-areas/geometryTools'
+import type {
+  ReviewInventory,
+  SaanseoiEstimatedAreas,
+} from '../../../libs/core/src/pipeline/services/divisions/geographicReview'
+
+const rectangle = (west: number, east: number): Polygon => ({
+  type: 'Polygon',
+  coordinates: [
+    [
+      [west, 0],
+      [east, 0],
+      [east, 1],
+      [west, 1],
+      [west, 0],
+    ],
+  ],
+})
+
+describe('town cleanup reruns', () => {
+  it('validates current-version geometry instead of trusting a marker', () => {
+    const inventory: ReviewInventory = {
+      schemaVersion: 1,
+      region: 'hk',
+      domain: 'geographic',
+      cohort: 'test',
+      releaseSet: 'test',
+      divisions: [
+        {
+          id: 'town',
+          category: 'locality',
+          class: 'town',
+          level: 3,
+          names: { en: 'Town' },
+          point: null,
+          hierarchies: {
+            administrative: [],
+            locality: [],
+            full: [],
+            landform: [],
+          },
+        },
+      ],
+    }
+    const estimatedAreas: SaanseoiEstimatedAreas = {
+      type: 'FeatureCollection',
+      schemaVersion: 1,
+      region: 'hk',
+      domain: 'geographic',
+      cohort: 'test',
+      variant: 'saanseoi',
+      features: [
+        {
+          type: 'Feature',
+          id: 'saanseoi:town',
+          properties: {
+            divisionId: 'town',
+            variant: 'saanseoi',
+            geometryCleanup: TOWN_GEOMETRY_CLEANUP_VERSION,
+          },
+          geometry: rectangle(0, 1),
+        },
+      ],
+    }
+
+    expect(() =>
+      cleanTownEstimatedAreaGeometries(estimatedAreas, inventory, {
+        type: 'FeatureCollection',
+        features: [],
+      }),
+    ).toThrow('Coastline land data is empty')
+  })
+})

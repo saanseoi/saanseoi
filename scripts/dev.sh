@@ -8,7 +8,7 @@ script_dir="$(cd "$(dirname "$0")" && pwd)"
 
 case "$mode" in
   all)
-    filters=(harbour-api atlas-api atlas-app basemap-viewer)
+    filters=(harbour-api harbour-app atlas-api atlas-app basemap-viewer)
     ;;
   atlas)
     filters=(atlas-api atlas-app)

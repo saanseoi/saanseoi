@@ -1,8 +1,0 @@
-@import "../../atlas-app/src/routes/app.css";
-@source "../../atlas-app/src/lib/bits/pages/docs/components/releaseSamples";
-
-html,
-body {
-  background: var(--surface);
-  color: var(--foreground);
-}
