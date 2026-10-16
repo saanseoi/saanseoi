@@ -1788,3 +1788,12 @@ apply it across the group. China Taiping Finance Centre, 383 King’s Road, Bamb
 and The Rainbow use distinct IDs. Ying Lun Centre, Tsuen Fook Kui and Kin Sang Car Park
 retain their predecessor IDs. Exact identity pairs and the sealed review digest
 accompany every decision.
+
+The `2024-10-18.0` Emerald Bay to Ocean Camino name changes retain the same 22 published
+premise IDs under the explicit group instruction. Exact source comparisons permit only
+the building-name change; every other identity component remains equal. S22 and Five
+Pacific Place remain separate review cases.
+
+The remaining `2024-10-18.0` decisions identify S22 and Five Pacific Place as new
+developments with distinct IDs. Their exact identity pairs and sealed review digest are
+recorded with the optional development notes.
