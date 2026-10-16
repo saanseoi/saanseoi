@@ -81,6 +81,9 @@ test('coordinate evidence for reviewed aliases is bound to the exact release', (
   expect(
     applyJuneReviewedIdentityAliases([row], '2026-04-03.0').get(decision.aliasIds[0]!),
   ).toBe(decision.canonicalId)
+  expect(
+    applyJuneReviewedIdentityAliases([row], '2026-09-22.0').get(decision.aliasIds[0]!),
+  ).toBe(decision.canonicalId)
   expect(() => applyJuneReviewedIdentityAliases([row], '2025-06-20.0')).toThrow(
     'target evidence changed',
   )

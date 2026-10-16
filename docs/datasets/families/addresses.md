@@ -1810,3 +1810,7 @@ still fail their guards.
 Lin Tsui’s existing identity and duplicate-suppression decision is verified through 22
 September 2026 against the bilingual source components, coordinates and complete
 288-unit inventory hash.
+
+Shek Pik Sha Tsui Staff Mess retains its reviewed canonical identity in September 2026:
+its complete publisher record matches August, including the location guarded from
+April 2026. The September guard is explicit.

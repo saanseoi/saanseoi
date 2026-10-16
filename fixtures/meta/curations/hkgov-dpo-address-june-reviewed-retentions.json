@@ -2159,6 +2159,17 @@
           "enStreetNumberFrom": "53",
           "enStreetNumberTo": null,
           "geometry": "{\"type\":\"Point\",\"coordinates\":[113.89345,22.22485]}"
+        },
+        "2026-09-22.0": {
+          "hkgovCsuId": "0704709601T20050430",
+          "enBuildingName": "SHEK PIK SHA TSUI STAFF MESS",
+          "zhHantBuildingName": "石壁沙咀職員會所",
+          "enEstateName": null,
+          "zhHantEstateName": null,
+          "enStreetName": "SHEK PIK RESERVOIR ROAD",
+          "enStreetNumberFrom": "53",
+          "enStreetNumberTo": null,
+          "geometry": "{\"type\":\"Point\",\"coordinates\":[113.89345,22.22485]}"
         }
       },
       "subsequentReviews": [
