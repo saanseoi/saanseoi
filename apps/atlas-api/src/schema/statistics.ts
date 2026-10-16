@@ -53,8 +53,8 @@ const StatisticResourceSchema = z
     id: IdSchema.openapi({
       description: openApiText('openapi_statistics_id_description'),
       examples: [
-        'stats:2650b1e3a7fe8a269919d9b2e97e54304d0e3db607748f2c51e03ce1b2f0f5dd',
-        'stats:2e16ff6629a00669a571b4e514b3d6a9a6063b56964d6bec3981780dd4e219e4',
+        'ss-32096c06-e0fa-51f0-a472-5ef18c8f7aab',
+        'ss-0044b402-c056-5670-b1f1-d2eb3f78764e',
       ],
     }),
     attributes: z
@@ -433,9 +433,7 @@ export const StatisticsListQuerySchema = z
 export const StatisticDetailParamsSchema = z
   .object({
     id: IdSchema.openapi({
-      examples: [
-        'stats:2650b1e3a7fe8a269919d9b2e97e54304d0e3db607748f2c51e03ce1b2f0f5dd',
-      ],
+      examples: ['ss-32096c06-e0fa-51f0-a472-5ef18c8f7aab'],
     }),
   })
   .openapi('StatisticDetailParams')

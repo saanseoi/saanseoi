@@ -20,3 +20,33 @@ export function canonicalGeneratedId(uuid: string) {
     throw new Error('Generated identity requires a UUID.')
   return `ss-${bare}`
 }
+
+const STATISTIC_NAMESPACE = '5ba92ab6-d63c-50de-b14e-9f8ca425ad47'
+
+/** Dataset, period and native geography identify a statistic independently of its values. */
+export function canonicalStatisticId(input: {
+  datasetCode: string
+  referencePeriodCode: string
+  geography: {
+    kind: string
+    code: string
+    class?: string | null
+    namespace?: string | null
+  }
+}) {
+  return canonicalGeneratedId(
+    buildDeterministicUuidV5(
+      STATISTIC_NAMESPACE,
+      JSON.stringify({
+        datasetCode: input.datasetCode,
+        referencePeriodCode: input.referencePeriodCode,
+        geography: {
+          kind: input.geography.kind,
+          code: input.geography.code,
+          class: input.geography.class ?? null,
+          namespace: input.geography.namespace ?? null,
+        },
+      }),
+    ),
+  )
+}

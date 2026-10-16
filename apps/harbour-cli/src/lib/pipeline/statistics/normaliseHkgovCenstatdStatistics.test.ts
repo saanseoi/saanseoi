@@ -433,6 +433,9 @@ describe('normaliseHkgovCenstatdStatistics', () => {
         sourceVersion: '2026-Q2',
       },
     ]).records[0]
+    expect(first?.id).toMatch(
+      /^ss-[0-9a-f]{8}-[0-9a-f]{4}-5[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/,
+    )
     expect(revised?.id).toBe(first?.id)
     expect(revised?.referencePeriodCode).toBe('2021')
     expect(revised?.fieldSources).not.toEqual(first?.fieldSources)

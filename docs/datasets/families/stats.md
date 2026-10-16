@@ -1,5 +1,10 @@
 # Statistics dataset family
 
+Canonical statistic records use `ss-`-prefixed deterministic UUIDv5 identities derived
+from the dataset code, reference period and native geography kind, code, class and
+namespace. Values and publisher release versions are excluded from identity. The content
+hash separately identifies each revision and includes the canonical ID.
+
 C&SD statistics dataset codes identify publisher products, for example
 `ds-hk-hkgov-censtatd-new-towns`. Resource types are declared separately in
 `resourceTypes`; the dataset code does not include `division-statistic`.

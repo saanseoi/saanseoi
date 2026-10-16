@@ -1,3 +1,4 @@
+import { canonicalStatisticId } from '@repo/db'
 import ruleFixture from '../../../../../../fixtures/meta/processing-rules/assembly/statistic-normalisation.json'
 import { ruleDeclarationFromFixture } from '@repo/core/provenance'
 import { createHash } from 'node:crypto'
@@ -676,20 +677,7 @@ export function recordIdentifier(input: {
   geography: CanonicalStatsGeography
   referencePeriodCode: string
 }) {
-  return `stats:${createHash('sha256')
-    .update(
-      JSON.stringify({
-        datasetCode: input.datasetCode,
-        referencePeriodCode: input.referencePeriodCode,
-        geography: {
-          kind: input.geography.kind,
-          code: input.geography.code,
-          class: input.geography.class ?? null,
-          namespace: input.geography.namespace ?? null,
-        },
-      }),
-    )
-    .digest('hex')}`
+  return canonicalStatisticId(input)
 }
 
 /** Identity-only recovery uses retained publisher properties, never recuration. */
