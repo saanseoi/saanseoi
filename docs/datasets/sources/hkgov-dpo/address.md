@@ -1861,3 +1861,9 @@ its exact March membership record, including source ID, bilingual labels, coordi
 and parent. Tamson Plaza retains its published March identity through the reviewed
 `THE 80|20` rename at 161 Wai Yip Street. These decisions do not infer demolition or a
 new development from a publisher name change.
+
+The June 2025 Tung Tau (II) Estate refuse collection point uses the explicitly reviewed
+canonical identity in `june-2025-reviewed-alias-34`. Its earlier shortened English label
+remains an alias of that identity. The exact CSU, address, Chinese name and coordinates
+match the reviewed target; this is identity reconciliation, not a construction-date
+inference or a physical retirement.

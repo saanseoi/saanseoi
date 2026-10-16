@@ -20384,6 +20384,16 @@
         "reviewSha256": "739fa5e161794c4e5b7111a5ac6460641fa5a5f1556c719898f535283a85260c",
         "notes": "Component correction requested on 2026-10-16: Tam Towers with Block 1. Preserve the existing reviewed parent/child hierarchy (february-2025-group-071): the previous identity is the Tam Villas parent; the named block keeps its distinct child identity. This does not assert recent construction."
       }
+    },
+    {
+      "previousIdentityKey": "HKGOV ALS PREMISE V1\u00003796421950T20050430\u0000WONG TAI SIN DISTRICT\u0000STREET\u0000TUNG TAU TSUEN ROAD\u0000183\u0000\u0000TUNG TAU II ESTATE\u0000\u0000\u0000\u0000\u0000TUNG TAU\u0000\u0000",
+      "currentIdentityKey": "HKGOV ALS PREMISE V1\u00003796421950T20050430\u0000WONG TAI SIN DISTRICT\u0000STREET\u0000TUNG TAU TSUEN ROAD\u0000183\u0000\u0000TUNG TAU II ESTATE\u0000\u0000\u0000\u0000\u0000TUNG TAU II ESTATE REFUSE COLLECTION POINT\u0000\u0000",
+      "resolution": "new-id",
+      "review": {
+        "sourceVersion": "2025-06-20.0",
+        "reviewSha256": "e6eac10ed71b8d1400cd4e0d1062660e385eb763f6e8d9b2a872cb1b4a1362dc",
+        "notes": "Reconcile the already approved curated identity, not a new-development inference. Existing june-2025-reviewed-alias-34 explicitly selects current ID ss-c60806af-7dc7-501f-88d2-708a49c77a59 and aliases previous ID ss-cbaffbac-c79f-5807-916d-4a0a7fb105d1; authority is user-requested reuse on 2026-10-06. CSU, exact address, Chinese building name and coordinates match the approved target guard. No physical retirement."
+      }
     }
   ],
   "version": 1
