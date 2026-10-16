@@ -204,3 +204,47 @@ test('editor schema and runtime operation vocabulary agree and unsupported scope
     'unsupported operation fields',
   )
 })
+
+test('missing 2026 source coverage queues evidence without changing publisher data or accepting known mismatches', async () => {
+  const { collectAlsReviewIssues } = await import('./hkgovAlsReviewIssue')
+  const guard = october.sourceGuards[0]!
+  const features = [
+    {
+      sourceFile: guard.sourceFile,
+      featureIndexOneBased: 1,
+      feature: {
+        properties: {
+          Address: {
+            PremisesAddress: {
+              BuildingCsuInformation: { CsuId: guard.csu },
+              EngPremisesAddress: { BuildingName: 'UNREVIEWED PUBLISHER NAME' },
+            },
+          },
+        },
+        geometry: { type: 'Point', coordinates: [114, 22] },
+      },
+    },
+  ] as HkgovAlsSourceFeature[]
+  const original = structuredClone(features)
+  collectAlsReviewIssues(issues => {
+    validateReviewedAlsSources(features, '2026-09-22.0', fixture)
+    expect(features).toEqual(original)
+    const issue = issues.find(
+      issue =>
+        issue.code === 'unverified-curation' &&
+        'decisionId' in issue &&
+        issue.decisionId.endsWith(`:${guard.csu}`),
+    )
+    expect(issue).toMatchObject({
+      code: 'unverified-curation',
+      sourceVersion: '2026-09-22.0',
+      records: features,
+    })
+    expect(() => validateReviewedAlsSources(features, '2026-08-19.0', fixture)).toThrow(
+      'source evidence changed',
+    )
+    expect(() => validateReviewedAlsSources(features, '2027-01-01.0', fixture)).toThrow(
+      'unreviewed source release',
+    )
+  })
+})

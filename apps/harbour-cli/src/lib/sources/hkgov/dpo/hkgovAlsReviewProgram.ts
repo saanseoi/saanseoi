@@ -1,3 +1,5 @@
+import { permitsAlsReviewIssue } from './hkgovAlsReviewPolicy'
+import { reportAlsReviewIssue } from './hkgovAlsReviewIssue'
 import {
   object,
   string,
@@ -307,6 +309,24 @@ export function validateReviewedAlsSources(
     for (const guard of operation.decisions) {
       if (!features.some(f => f.sourceFile === guard.sourceFile)) continue
       const expected = guard.assertions.find(a => a.version === sourceVersion)
+      if (!expected && permitsAlsReviewIssue('unverified-curation', sourceVersion)) {
+        reportAlsReviewIssue({
+          code: 'unverified-curation',
+          sourceVersion,
+          decisionId: `${operation.id}:${guard.csu}`,
+          curationFile: `${operation.fixture}.json`,
+          decision: guard,
+          records: features.filter(
+            f =>
+              f.sourceFile === guard.sourceFile &&
+              f.feature.properties?.Address?.PremisesAddress?.BuildingCsuInformation
+                ?.CsuId === guard.csu,
+          ),
+          message:
+            'Source group has no assertion for this release; retain publisher evidence for investigation. Existing curation guards still apply.',
+        })
+        continue
+      }
       assert(expected, `${guard.csu}: unreviewed source release (${operation.fixture})`)
       const hashes = features
         .filter(

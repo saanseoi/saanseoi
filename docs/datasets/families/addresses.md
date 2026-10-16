@@ -1795,3 +1795,9 @@ already consolidates them into the named owner. Suppression validates the origin
 bilingual source signature, geometry and components, and requires the consolidated alias
 to share the retained owner ID. Missing or changed evidence still fails the guard; it
 does not authorise removal of another address.
+
+Within the deferred-investigation policy period, missing source-group assertions are
+recorded as unverified curations with the publisher records and existing guard evidence.
+Ingestion requires an explicit deferral acknowledgement. Assertions for covered releases
+and individual curation guards remain enforced; missing coverage does not approve a
+source change or alter publisher records.

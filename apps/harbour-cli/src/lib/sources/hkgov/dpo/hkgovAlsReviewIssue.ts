@@ -26,6 +26,15 @@ export type AlsStreetComponentConflict = {
 
 export type AlsPendingIssue =
   | {
+      code: 'unverified-curation'
+      sourceVersion: string
+      decisionId: string
+      curationFile: string
+      decision: unknown
+      records: unknown[]
+      message: string
+    }
+  | {
       code: 'hierarchy-evidence-conflict'
       sourceVersion: string
       decisionId: string
