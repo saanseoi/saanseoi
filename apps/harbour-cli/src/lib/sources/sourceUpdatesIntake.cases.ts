@@ -14,8 +14,7 @@ import {
 test('passes requested C&SD geography materialisation to the native intake', () => {
   expect(
     buildHkgovCenstatdStatisticsArchiveIngestCommand({
-      datasetCode:
-        'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups',
+      datasetCode: 'ds-hk-hkgov-censtatd-housing-market-areas-building-groups',
       deferStatsReleaseSet: true,
       includeGeography: true,
       inputFile: '/tmp/hma-source.zip',
@@ -188,7 +187,7 @@ test('starts C&SD density intake from the prepared archive and retains its ident
 test('starts C&SD subdivided-units statistics intake from the prepared native archive', () => {
   expect(
     buildHkgovCenstatdStatisticsArchiveIngestCommand({
-      datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district',
+      datasetCode: 'ds-hk-hkgov-censtatd-subdivided-units-district',
       deferStatsReleaseSet: true,
       inputFile: '/tmp/prepared-districts.zip',
       releaseNotesUrl: 'https://portal.csdi.gov.hk/districts',
@@ -205,7 +204,7 @@ test('starts C&SD subdivided-units statistics intake from the prepared native ar
       '--target',
       'production',
       '--dataset-code',
-      'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district',
+      'ds-hk-hkgov-censtatd-subdivided-units-district',
       '--source-archive-key',
       'by-source/hk/hkgov-csdi/districts/source.zip',
       '--defer-stats-release-set',
@@ -217,7 +216,7 @@ test('starts C&SD subdivided-units statistics intake from the prepared native ar
 test('starts each remaining C&SD statistic from the prepared archive', () => {
   expect(
     buildHkgovCenstatdStatisticsArchiveIngestCommand({
-      datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-new-towns',
+      datasetCode: 'ds-hk-hkgov-censtatd-new-towns',
       deferStatsReleaseSet: true,
       inputFile: '/tmp/new-towns.zip',
       releaseNotesUrl: 'https://portal.csdi.gov.hk/new-towns',
@@ -234,7 +233,7 @@ test('starts each remaining C&SD statistic from the prepared archive', () => {
       '--target',
       'preview',
       '--dataset-code',
-      'ds-hk-hkgov-censtatd-division-statistic-new-towns',
+      'ds-hk-hkgov-censtatd-new-towns',
       '--defer-stats-release-set',
       '--yes',
     ]),

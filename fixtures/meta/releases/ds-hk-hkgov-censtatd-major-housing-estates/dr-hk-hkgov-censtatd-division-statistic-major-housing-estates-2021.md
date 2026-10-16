@@ -1,7 +1,7 @@
 ---
 createdAt: "2026-08-19T00:00:00.000Z"
 updatedAt: "2026-08-19T00:00:00.000Z"
-dataset: "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates"
+dataset: "ds-hk-hkgov-censtatd-major-housing-estates"
 release: "dr-hk-hkgov-censtatd-division-statistic-major-housing-estates-2021"
 regionCode: "hk"
 source: "hkgov-censtatd"

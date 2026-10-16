@@ -20,8 +20,7 @@ import { initialDatasets } from '@repo/db/registry'
 import type { CanonicalStatsRows } from './normaliseHkgovCenstatdStatistics'
 
 const migrations = resolve(import.meta.dir, '../../../../../../libs/db/migrations')
-const datasetCode =
-  'ds-hk-hkgov-censtatd-division-statistic-population-households-district'
+const datasetCode = 'ds-hk-hkgov-censtatd-population-households-district'
 
 function fixture() {
   const meta = new Database(':memory:')

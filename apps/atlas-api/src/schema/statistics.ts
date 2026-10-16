@@ -62,8 +62,8 @@ const StatisticResourceSchema = z
         datasetCode: z.string().openapi({
           description: openApiText('openapi_statistics_dataset_code_description'),
           examples: [
-            'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters',
-            'ds-hk-hkgov-censtatd-division-statistic-major-housing-estates',
+            'ds-hk-hkgov-censtatd-permanent-living-quarters',
+            'ds-hk-hkgov-censtatd-major-housing-estates',
           ],
         }),
         referencePeriod: z
@@ -251,7 +251,7 @@ const StatisticResourceSchema = z
               'openapi_statistics_source_feature_ref_description',
             ),
             examples: [
-              'hkgov-censtatd/ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters/2023-H2/AREA_LQ_2023:HK',
+              'hkgov-censtatd/ds-hk-hkgov-censtatd-permanent-living-quarters/2023-H2/AREA_LQ_2023:HK',
             ],
           }),
         createdAt: z
@@ -403,7 +403,7 @@ export const StatisticsListQuerySchema = z
       .optional()
       .openapi({
         description: openApiText('openapi_statistics_dataset_filter_description'),
-        examples: ['ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters'],
+        examples: ['ds-hk-hkgov-censtatd-permanent-living-quarters'],
       }),
     'filter[division]': IdSchema.optional().openapi({
       description: openApiText('openapi_statistics_division_filter_description'),
@@ -482,9 +482,7 @@ const StatisticsDocumentMetaSchema = z
             description: openApiText(
               'openapi_statistics_meta_filter_dataset_description',
             ),
-            examples: [
-              'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters',
-            ],
+            examples: ['ds-hk-hkgov-censtatd-permanent-living-quarters'],
           }),
         division: z
           .string()
@@ -564,8 +562,8 @@ const IncludedStatisticResourceSchema = z.union([
               'openapi_statistics_field_dataset_code_description',
             ),
             examples: [
-              'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters',
-              'ds-hk-hkgov-censtatd-division-statistic-major-housing-estates',
+              'ds-hk-hkgov-censtatd-permanent-living-quarters',
+              'ds-hk-hkgov-censtatd-major-housing-estates',
             ],
           }),
           fieldName: z.string().openapi({
@@ -782,9 +780,7 @@ const GeographyAggregateQueryShape = {
     .optional()
     .openapi({
       description: openApiText('openapi_statistics_dataset_filter_description'),
-      examples: [
-        'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district',
-      ],
+      examples: ['ds-hk-hkgov-censtatd-land-area-population-density-district'],
     }),
   'filter[field]': z
     .string()
@@ -871,7 +867,7 @@ const GeographyDimensionSchema = z.object({
 const StatisticMeasureCandidateSchema = z.object({
   datasetCode: z.string().openapi({
     description: openApiText('openapi_statistics_dataset_code_description'),
-    examples: ['ds-hk-hkgov-censtatd-division-statistic-major-housing-estates'],
+    examples: ['ds-hk-hkgov-censtatd-major-housing-estates'],
   }),
   geography: GeographyDimensionSchema.openapi({
     description: openApiText('openapi_statistics_geography_description'),
@@ -894,8 +890,7 @@ export const StatisticAmbiguousMeasureErrorResponseSchema = z
         examples: [
           [
             {
-              datasetCode:
-                'ds-hk-hkgov-censtatd-division-statistic-major-housing-estates',
+              datasetCode: 'ds-hk-hkgov-censtatd-major-housing-estates',
               geography: {
                 kind: 'majorHousingEstate',
                 codeAttribute: 'geographyCode',
@@ -904,8 +899,7 @@ export const StatisticAmbiguousMeasureErrorResponseSchema = z
               },
             },
             {
-              datasetCode:
-                'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups',
+              datasetCode: 'ds-hk-hkgov-censtatd-housing-market-areas-building-groups',
               geography: {
                 kind: 'buildingGroup',
                 codeAttribute: 'geographyCode',
@@ -929,9 +923,7 @@ const GeographyAggregateMetaSchema = z
       .object({
         datasetCode: z.string().openapi({
           description: openApiText('openapi_statistics_dataset_code_description'),
-          examples: [
-            'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district',
-          ],
+          examples: ['ds-hk-hkgov-censtatd-land-area-population-density-district'],
         }),
         fieldName: z.string().openapi({
           description: openApiText('openapi_statistics_field_name_description'),
@@ -946,8 +938,7 @@ const GeographyAggregateMetaSchema = z
         description: openApiText('openapi_statistics_measure_description'),
         examples: [
           {
-            datasetCode:
-              'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district',
+            datasetCode: 'ds-hk-hkgov-censtatd-land-area-population-density-district',
             fieldName: 'populationDensity',
             unitCode: 'person-per-square-kilometre',
           },

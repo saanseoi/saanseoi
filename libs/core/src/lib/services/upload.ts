@@ -935,7 +935,7 @@ function isAllowedKnownSchemaTransition(
 
   if (
     latestDataset.datasetCode ===
-      'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district' &&
+      'ds-hk-hkgov-censtatd-land-area-population-density-district' &&
     nextPlan.datasetCode === latestDataset.datasetCode &&
     latestDataset.source === 'hkgov-censtatd' &&
     nextPlan.source === 'hkgov-censtatd' &&

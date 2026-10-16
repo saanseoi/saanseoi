@@ -1,8 +1,7 @@
 import profiles from '../../../fixtures/meta/fieldLineage/censtatd-intake-profiles.json'
 const generic =
   'apps/harbour-cli/src/lib/sources/hkgov/censtatd/hkgovCenstatdStatistics.ts'
-const density =
-  'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district'
+const density = 'ds-hk-hkgov-censtatd-land-area-population-density-district'
 
 export function statisticIntakeSpecification(datasetCode: string, path: string) {
   if (path === 'intakeRows')

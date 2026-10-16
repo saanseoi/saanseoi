@@ -103,7 +103,7 @@ describe('C&SD district GML preparation', () => {
         readHkgovCenstatdDistrictGmlArchive(
           districtArchive,
           '2024',
-          'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
+          'ds-hk-hkgov-censtatd-population-households-district',
         ),
         'utf8',
       )
@@ -112,8 +112,7 @@ describe('C&SD district GML preparation', () => {
         outputDir,
         '2024',
         {
-          datasetCode:
-            'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
+          datasetCode: 'ds-hk-hkgov-censtatd-population-households-district',
         },
       )
       const displayPrepared = await prepareHkgovCenstatdDistrictUpload(
@@ -121,8 +120,7 @@ describe('C&SD district GML preparation', () => {
         outputDir,
         '2024',
         {
-          datasetCode:
-            'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
+          datasetCode: 'ds-hk-hkgov-censtatd-population-households-district',
           transform: 'simplified',
         },
       )
@@ -183,7 +181,7 @@ describe('C&SD district GML preparation', () => {
       const gml = readHkgovCenstatdDistrictGmlArchive(
         archive,
         '2026-Q2',
-        'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
+        'ds-hk-hkgov-censtatd-population-households-district',
       )
       const cohortKeys = [
         ...new Set(
@@ -200,8 +198,7 @@ describe('C&SD district GML preparation', () => {
         cohortKeys.map(cohortKey =>
           prepareHkgovCenstatdDistrictUpload(inputFile, outputDir, '2026-Q2', {
             cohortKey,
-            datasetCode:
-              'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
+            datasetCode: 'ds-hk-hkgov-censtatd-population-households-district',
           }),
         ),
       )

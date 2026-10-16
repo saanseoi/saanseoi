@@ -3,8 +3,7 @@ import { compileFieldLineage, type FieldLineageMapping } from './fieldLineageCom
 import { expandStatisticFieldLineage } from './fieldLineageStatistics'
 import { computeVersionHash } from './versioning'
 
-const datasetCode =
-  'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district'
+const datasetCode = 'ds-hk-hkgov-censtatd-land-area-population-density-district'
 const fields: FieldLineageMapping[] = ['oldName', 'secondOldName'].map(name => ({
   apiField: `attributes.values.${name}`,
   resourceType: 'statistic',

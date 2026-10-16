@@ -9,7 +9,7 @@ test('small canonical cohorts normalise directly without creating disk artefacts
   const directory = await mkdtemp(join(tmpdir(), 'small-statistic-cohort-'))
   try {
     const input = Array.from({ length: 18 }, (_, id) => ({
-      datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-example',
+      datasetCode: 'ds-hk-hkgov-censtatd-example',
       properties: { AREA: '12' },
       sourceFeatureRef: `example:${id}`,
       sourceReleaseId: 'release',
@@ -28,7 +28,7 @@ test('cached canonical preparation matches the normaliser and refreshes changed 
   const directory = await mkdtemp(join(tmpdir(), 'canonical-statistic-cache-'))
   try {
     const input = Array.from({ length: 19 }, (_, index) => ({
-      datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-example',
+      datasetCode: 'ds-hk-hkgov-censtatd-example',
       divisionId: 'division-1',
       properties: { AREA: '12' },
       sourceFeatureRef: `example:${index}`,

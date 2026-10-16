@@ -487,20 +487,20 @@ function profileFor(
   const reference = (field: string) => identifierFields.add(field)
 
   switch (datasetCode) {
-    case 'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups':
+    case 'ds-hk-hkgov-censtatd-housing-market-areas-building-groups':
       add('housing-market-area', 'hma', 'hma_eng', 'hma_chi')
       if (properties.bg !== undefined) add('building-group', 'bg', 'bg_eng', 'bg_chi')
       if (properties.bg_ind !== undefined) add('building-group-class', 'bg_ind')
       return censusProfile(sourceVersion, dimensions, identifierFields)
-    case 'ds-hk-hkgov-censtatd-division-statistic-major-housing-estates':
+    case 'ds-hk-hkgov-censtatd-major-housing-estates':
       add('housing-estate', 'estate', 'estate_eng', 'estate_chi')
       reference('gml_id')
       return censusProfile(sourceVersion, dimensions, identifierFields)
-    case 'ds-hk-hkgov-censtatd-division-statistic-new-towns':
+    case 'ds-hk-hkgov-censtatd-new-towns':
       add('new-town', 'newtown', 'newtown_eng', 'newtown_chi')
       reference('gml_id')
       return censusProfile(sourceVersion, dimensions, identifierFields)
-    case 'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters':
+    case 'ds-hk-hkgov-censtatd-permanent-living-quarters':
       add('area', 'AREA_ENG', 'AREA_ENG', 'AREA_CHI')
       reference('PERIOD')
       return {
@@ -512,7 +512,7 @@ function profileFor(
           'C&SD permanent living quarters area row',
         ),
       }
-    case 'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district': {
+    case 'ds-hk-hkgov-censtatd-permanent-living-quarters-district': {
       add('district', 'DC', 'DC_ENG', 'DC_CHI')
       reference('YEAR')
       reference('QUARTER')
@@ -532,7 +532,7 @@ function profileFor(
         referencePeriodCode: `${year}-Q${quarter.replace(/^Q/i, '')}`,
       }
     }
-    case 'ds-hk-hkgov-censtatd-division-statistic-population-households-district': {
+    case 'ds-hk-hkgov-censtatd-population-households-district': {
       add('district', 'dc', 'dc_eng', 'dc_chi')
       add('district-class', 'dc_class')
       const year = literal(properties.year)
@@ -544,11 +544,11 @@ function profileFor(
         referencePeriodCode: year,
       }
     }
-    case 'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district':
+    case 'ds-hk-hkgov-censtatd-subdivided-units-district':
       add('district', 'dc', 'dc_eng', 'dc_chi')
       add('district-class', 'dc_class')
       return censusProfile(sourceVersion, dimensions, identifierFields)
-    case 'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district':
+    case 'ds-hk-hkgov-censtatd-land-area-population-density-district':
       add('district', 'DC', 'DC_ENG', 'DC_CHI')
       reference('PERIOD')
       return {
@@ -646,10 +646,7 @@ function isPopulationThousands(sourceField: string, sourceValue: string) {
 }
 
 function unitFor(datasetCode: string, sourceField: string) {
-  if (
-    datasetCode ===
-    'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district'
-  ) {
+  if (datasetCode === 'ds-hk-hkgov-censtatd-land-area-population-density-district') {
     if (sourceField === 'LA') return 'square-kilometre'
     if (sourceField === 'MYPOPN_LAND') return 'person'
     if (sourceField === 'POPN_D') return 'person-per-square-kilometre'

@@ -203,13 +203,13 @@ export function seedCompleteDivisionSourceSignature(
     ) VALUES
       (
         'hkgov-censtatd-hk-district', 'publisher-hkgov-censtatd',
-        'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district', 'hk', 'static', 'as-needed',
+        'ds-hk-hkgov-censtatd-subdivided-units-district', 'hk', 'static', 'as-needed',
         'divisions', 'default', 'https://www.censtatd.gov.hk/',
         'vh-dataset-hkgov-censtatd-hk-district-v1', 1761264000000, 1761264000000
       ),
       (
         'hkgov-censtatd-hk-district-annual', 'publisher-hkgov-censtatd',
-        'ds-hk-hkgov-censtatd-division-statistic-population-households-district', 'hk', 'static', 'yearly',
+        'ds-hk-hkgov-censtatd-population-households-district', 'hk', 'static', 'yearly',
         'divisions', 'official-statistics', 'https://www.censtatd.gov.hk/',
         'vh-dataset-hkgov-censtatd-hk-district-annual-v1', 1761264000000, 1761264000000
       );
@@ -260,7 +260,7 @@ INSERT INTO resourceReleases (id, sourceReleaseId, resourceType, code, status, i
       schemaVersion: '1.2',
     },
     {
-      datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district',
+      datasetCode: 'ds-hk-hkgov-censtatd-subdivided-units-district',
       source: 'hkgov-censtatd',
       type: 'divisionArea' as const,
       sourceVersion: '2016',

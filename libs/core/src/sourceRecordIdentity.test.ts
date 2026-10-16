@@ -8,10 +8,10 @@ import { datasetSourceRecordIdentity } from './pipeline/services/sources/dataset
 
 const had = datasetSourceRecordIdentity('ds-hk-hkgov-had-division-area-district')
 const density = datasetSourceRecordIdentity(
-  'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district',
+  'ds-hk-hkgov-censtatd-land-area-population-density-district',
 )
 const hma = datasetSourceRecordIdentity(
-  'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups',
+  'ds-hk-hkgov-censtatd-housing-market-areas-building-groups',
 )
 const planning = datasetSourceRecordIdentity('ds-hk-hkgov-pland-division-pu')
 

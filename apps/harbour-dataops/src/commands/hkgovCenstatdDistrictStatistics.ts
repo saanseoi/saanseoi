@@ -13,8 +13,7 @@ import { assertSourceArchiveHash, isSha256 } from '../lib/sourceArchive.ts'
 import { planCenstatdResourceLifecycle } from '../lib/censtatdResourceLifecycle.ts'
 import { unzipSelected } from '../lib/zip.ts'
 
-const DATASET_CODE =
-  'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district'
+const DATASET_CODE = 'ds-hk-hkgov-censtatd-land-area-population-density-district'
 const REPO_ROOT = resolve(import.meta.dir, '../../../..')
 
 type DistrictStatisticDependencies = {

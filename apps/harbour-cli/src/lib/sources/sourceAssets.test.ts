@@ -140,7 +140,7 @@ test('retains an Overture release Parquet as a managed source asset', async () =
 test('encodes compound materialisation release codes in source asset paths', () => {
   expect(
     buildSourceReleaseAssetObjectKey({
-      datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-district',
+      datasetCode: 'ds-hk-hkgov-censtatd-district',
       fileName: 'division-area.gml.zip',
       publisherCode: 'hkgov-censtatd',
       releaseCode:
@@ -148,7 +148,7 @@ test('encodes compound materialisation release codes in source asset paths', () 
       sha256: 'a'.repeat(64),
     }),
   ).toBe(
-    'by-source/hk/hkgov-censtatd/ds-hk-hkgov-censtatd-division-statistic-district/' +
+    'by-source/hk/hkgov-censtatd/ds-hk-hkgov-censtatd-district/' +
       'dr-hk-hkgov-censtatd-division-statistic-district-2016__divisionArea/' +
       `${'a'.repeat(64)}-division-area.gml.zip`,
   )

@@ -669,23 +669,18 @@ function divisionIdForSourceProperties(
   > | null,
   newTownsBySourceCode: ReadonlyMap<string, { divisionId: string }> | null,
 ) {
-  if (
-    datasetCode === 'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters'
-  ) {
+  if (datasetCode === 'ds-hk-hkgov-censtatd-permanent-living-quarters') {
     return hkgovCenstatdStatisticDivisionId(
       datasetCode,
       rawSourceFeatureId.split(':').at(-1) ?? '',
     )
   }
-  if (
-    datasetCode ===
-    'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups'
-  ) {
+  if (datasetCode === 'ds-hk-hkgov-censtatd-housing-market-areas-building-groups') {
     if (!rawSourceFeatureId.startsWith('HMA_21C:')) return null
     const code = typeof properties.hma === 'string' ? properties.hma : ''
     return hkgovCenstatdStatisticDivisionId(datasetCode, code)
   }
-  if (datasetCode === 'ds-hk-hkgov-censtatd-division-statistic-new-towns') {
+  if (datasetCode === 'ds-hk-hkgov-censtatd-new-towns') {
     if (!rawSourceFeatureId.startsWith('NewTown_21C:')) return null
     const code = typeof properties.newtown === 'string' ? properties.newtown.trim() : ''
     return newTownsBySourceCode?.get(code)?.divisionId ?? null

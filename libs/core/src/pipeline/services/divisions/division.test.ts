@@ -738,8 +738,7 @@ describe('normaliseDivisionRow i18n', () => {
         source: {
           source: 'hkgov-censtatd',
           sourceVersion: '2021',
-          datasetCode:
-            'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups',
+          datasetCode: 'ds-hk-hkgov-censtatd-housing-market-areas-building-groups',
         },
       },
     )

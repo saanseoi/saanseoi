@@ -66,8 +66,7 @@ export function statisticDefinitionFoldSpecification() {
         'Other non-null literals are published categorical values unless another accepted observation or metadata makes the field numeric.',
     },
     defaultUnits: {
-      datasetCode:
-        'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district',
+      datasetCode: 'ds-hk-hkgov-censtatd-land-area-population-density-district',
       mapping: {
         LA: 'square-kilometre',
         MYPOPN_LAND: 'person',

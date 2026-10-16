@@ -430,8 +430,7 @@ describe('division geometry normalisation', () => {
       'hkgov-censtatd',
       {
         variant: 'hkgov-censtatd:simplified',
-        datasetCode:
-          'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district',
+        datasetCode: 'ds-hk-hkgov-censtatd-land-area-population-density-district',
       },
     )
     if (!normalised) throw new Error('Expected a C&SD display area row.')
@@ -441,8 +440,7 @@ describe('division geometry normalisation', () => {
     expect(normalised.canonical.sources).toEqual([
       {
         publisher: 'hkgov-censtatd',
-        dataset:
-          'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district',
+        dataset: 'ds-hk-hkgov-censtatd-land-area-population-density-district',
         recordId: 'CENSTATD:A',
       },
     ])

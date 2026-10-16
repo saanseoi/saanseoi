@@ -68,7 +68,7 @@ endpoint. It returns one geography-value map per reference period in
 
 ```url
 /stats/v0/series?
-          filter[dataset]=ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district&
+          filter[dataset]=ds-hk-hkgov-censtatd-subdivided-units-district&
           filter[field]=householdsInSubdividedUnits&
           filter[geographyKind]=division&
           filter[geographyLevel]=2
@@ -87,7 +87,7 @@ endpoint. It returns the selected period's values keyed by the geography code in
 
 ```url
 /stats/v0/geographies?
-          filter[dataset]=ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district&
+          filter[dataset]=ds-hk-hkgov-censtatd-subdivided-units-district&
           filter[field]=householdsInSubdividedUnits&
           filter[referencePeriod]=2016&
           filter[geographyKind]=division&
@@ -202,14 +202,14 @@ breakdown. To browse the measures in this release's dataset:
 
 ```url
 /stats/v0/registry/measures?
-          filter[dataset]=ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district
+          filter[dataset]=ds-hk-hkgov-censtatd-subdivided-units-district
 ```
 
 Then browse its fields, or narrow them to one measure:
 
 ```url
 /stats/v0/registry/fields?
-          filter[dataset]=ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district&
+          filter[dataset]=ds-hk-hkgov-censtatd-subdivided-units-district&
           filter[measure]=householdsInSubdividedUnits
 ```
 
@@ -217,7 +217,7 @@ After choosing a field, inspect where it is available. This shows its reference 
 and geography coverage, and provides a ready-made geography request for each period:
 
 ```url
-/stats/v0/registry/fields/ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district/householdsInSubdividedUnits/availability
+/stats/v0/registry/fields/ds-hk-hkgov-censtatd-subdivided-units-district/householdsInSubdividedUnits/availability
 ```
 
 Use the returned <black>datasetCode</black> and <black>fieldName</black> to request
@@ -225,7 +225,7 @@ statistics. For example:
 
 ```url
 /stats/v0?
-          filter[dataset]=ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district&
+          filter[dataset]=ds-hk-hkgov-censtatd-subdivided-units-district&
           filter[field]=householdsInSubdividedUnits&
           filter[referencePeriod]=2016
 ```
@@ -246,7 +246,7 @@ for every available language, or provide a supported comma-separated list of lan
 
 ```url
 /stats/v0?
-          filter[dataset]=ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district&
+          filter[dataset]=ds-hk-hkgov-censtatd-subdivided-units-district&
           filter[field]=householdsInSubdividedUnits&
           filter[referencePeriod]=2016&
           include=fields&
@@ -270,7 +270,7 @@ For example, this requests one field for one division in the 2016 release:
 /stats/v0?
           domain={{ domainCode }}&
           cohort={{ cohortKey }}&
-          filter[dataset]=ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district&
+          filter[dataset]=ds-hk-hkgov-censtatd-subdivided-units-district&
           filter[field]=householdsInSubdividedUnits&
           filter[division]=division-hk-18
 ```
@@ -338,7 +338,7 @@ Statistics family, so there are no other domains to explore.
 
 ```url
 /stats/v0/series?
-          filter[dataset]=ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district&
+          filter[dataset]=ds-hk-hkgov-censtatd-subdivided-units-district&
           filter[field]=householdsInSubdividedUnits&
           filter[geographyKind]=division&
           filter[geographyLevel]=2
@@ -352,7 +352,7 @@ Statistics family, so there are no other domains to explore.
 
 ```url
 /stats/v0/geographies?
-          filter[dataset]=ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district&
+          filter[dataset]=ds-hk-hkgov-censtatd-subdivided-units-district&
           filter[field]=householdsInSubdividedUnits&
           filter[referencePeriod]=2016&
           filter[geographyKind]=division&
@@ -456,28 +456,28 @@ Registry 尋找記錄端點接受的資料集及確切欄位名稱。它會搜�
 
 ```url
 /stats/v0/registry/measures?
-          filter[dataset]=ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district
+          filter[dataset]=ds-hk-hkgov-censtatd-subdivided-units-district
 ```
 
 然後瀏覽其欄位，或縮小至某個指標：
 
 ```url
 /stats/v0/registry/fields?
-          filter[dataset]=ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district&
+          filter[dataset]=ds-hk-hkgov-censtatd-subdivided-units-district&
           filter[measure]=householdsInSubdividedUnits
 ```
 
 選取欄位後，請檢查其可用範圍。這會顯示參考期及地理涵蓋範圍，並為每個期間提供可直接使用的地理請求：
 
 ```url
-/stats/v0/registry/fields/ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district/householdsInSubdividedUnits/availability
+/stats/v0/registry/fields/ds-hk-hkgov-censtatd-subdivided-units-district/householdsInSubdividedUnits/availability
 ```
 
 使用傳回的 <black>datasetCode</black> 及 <black>fieldName</black> 請求統計資料。例如：
 
 ```url
 /stats/v0?
-          filter[dataset]=ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district&
+          filter[dataset]=ds-hk-hkgov-censtatd-subdivided-units-district&
           filter[field]=householdsInSubdividedUnits&
           filter[referencePeriod]=2016
 ```
@@ -497,7 +497,7 @@ Registry 尋找記錄端點接受的資料集及確切欄位名稱。它會搜�
 
 ```url
 /stats/v0?
-          filter[dataset]=ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district&
+          filter[dataset]=ds-hk-hkgov-censtatd-subdivided-units-district&
           filter[field]=householdsInSubdividedUnits&
           filter[referencePeriod]=2016&
           include=fields&
@@ -520,7 +520,7 @@ Registry 尋找記錄端點接受的資料集及確切欄位名稱。它會搜�
 /stats/v0?
           domain={{ domainCode }}&
           cohort={{ cohortKey }}&
-          filter[dataset]=ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district&
+          filter[dataset]=ds-hk-hkgov-censtatd-subdivided-units-district&
           filter[field]=householdsInSubdividedUnits&
           filter[division]=division-hk-18
 ```
@@ -586,7 +586,7 @@ Registry 尋找記錄端點接受的資料集及確切欄位名稱。它會搜�
 
 ```url
 /stats/v0/series?
-          filter[dataset]=ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district&
+          filter[dataset]=ds-hk-hkgov-censtatd-subdivided-units-district&
           filter[field]=householdsInSubdividedUnits&
           filter[geographyKind]=division&
           filter[geographyLevel]=2
@@ -600,7 +600,7 @@ Registry 尋找記錄端點接受的資料集及確切欄位名稱。它會搜�
 
 ```url
 /stats/v0/geographies?
-          filter[dataset]=ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district&
+          filter[dataset]=ds-hk-hkgov-censtatd-subdivided-units-district&
           filter[field]=householdsInSubdividedUnits&
           filter[referencePeriod]=2016&
           filter[geographyKind]=division&
@@ -704,28 +704,28 @@ Registry 查找记录端点接受的数据集及确切字段名称。它会搜�
 
 ```url
 /stats/v0/registry/measures?
-          filter[dataset]=ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district
+          filter[dataset]=ds-hk-hkgov-censtatd-subdivided-units-district
 ```
 
 然后浏览其字段，或缩小至某个指标：
 
 ```url
 /stats/v0/registry/fields?
-          filter[dataset]=ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district&
+          filter[dataset]=ds-hk-hkgov-censtatd-subdivided-units-district&
           filter[measure]=householdsInSubdividedUnits
 ```
 
 选取字段后，请检查其可用范围。这会显示参考期及地理涵盖范围，并为每个期间提供可直接使用的地理请求：
 
 ```url
-/stats/v0/registry/fields/ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district/householdsInSubdividedUnits/availability
+/stats/v0/registry/fields/ds-hk-hkgov-censtatd-subdivided-units-district/householdsInSubdividedUnits/availability
 ```
 
 使用返回的 <black>datasetCode</black> 及 <black>fieldName</black> 请求统计数据。例如：
 
 ```url
 /stats/v0?
-          filter[dataset]=ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district&
+          filter[dataset]=ds-hk-hkgov-censtatd-subdivided-units-district&
           filter[field]=householdsInSubdividedUnits&
           filter[referencePeriod]=2016
 ```
@@ -745,7 +745,7 @@ Registry 查找记录端点接受的数据集及确切字段名称。它会搜�
 
 ```url
 /stats/v0?
-          filter[dataset]=ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district&
+          filter[dataset]=ds-hk-hkgov-censtatd-subdivided-units-district&
           filter[field]=householdsInSubdividedUnits&
           filter[referencePeriod]=2016&
           include=fields&
@@ -768,7 +768,7 @@ Registry 查找记录端点接受的数据集及确切字段名称。它会搜�
 /stats/v0?
           domain={{ domainCode }}&
           cohort={{ cohortKey }}&
-          filter[dataset]=ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district&
+          filter[dataset]=ds-hk-hkgov-censtatd-subdivided-units-district&
           filter[field]=householdsInSubdividedUnits&
           filter[division]=division-hk-18
 ```

@@ -246,7 +246,7 @@ test('rebuilds a missing static CSDI cohort from its latest archive slot', async
       'https://portal.csdi.gov.hk/geoportal/?datasetId=censtatd-static-series'
     const updates = await lookupDatasetUpdates(
       {
-        code: 'ds-hk-hkgov-censtatd-division-statistic-example',
+        code: 'ds-hk-hkgov-censtatd-example',
         publisherCode: 'hkgov-censtatd',
         regionCode: 'hk',
         releases: [{ sourceUrl, sourceVersion: '2021' }],
@@ -432,7 +432,7 @@ test('maps distinct CSDI archive slots to their configured source releases', asy
       'https://portal.csdi.gov.hk/geoportal/?datasetId=censtatd_rcd_1635934215448_25451'
     const updates = await lookupDatasetUpdates(
       {
-        code: 'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district',
+        code: 'ds-hk-hkgov-censtatd-land-area-population-density-district',
         publisherCode: 'hkgov-censtatd',
         regionCode: 'hk',
         sourceUrl,
@@ -509,7 +509,7 @@ test('maps an unpinned current CSDI slot to its matching configured source versi
       'https://portal.csdi.gov.hk/geoportal/?datasetId=censtatd_rcd_1635934545173_69201'
     const [update] = await lookupDatasetUpdates(
       {
-        code: 'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
+        code: 'ds-hk-hkgov-censtatd-population-households-district',
         publisherCode: 'hkgov-censtatd',
         regionCode: 'hk',
         sourceUrl,
@@ -721,7 +721,7 @@ test('collapses current CSDI archive slots for the same source release', async (
 
   try {
     const dataset = {
-      code: 'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
+      code: 'ds-hk-hkgov-censtatd-population-households-district',
       publisherCode: 'hkgov-censtatd',
       regionCode: 'hk',
       sourceUrl:

@@ -72,7 +72,7 @@ INSERT INTO resourceReleases(id,sourceReleaseId,code,resourceType,status) VALUES
 
     const plan: GeometryUploadPlan = {
       cohortKey: '2023-H2',
-      datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters',
+      datasetCode: 'ds-hk-hkgov-censtatd-permanent-living-quarters',
       regionCode: 'hk',
       releaseCode: 'censtatd-2023-H2::divisionArea',
       rowCount: 3,
@@ -105,8 +105,7 @@ INSERT INTO resourceReleases(id,sourceReleaseId,code,resourceType,status) VALUES
         },
         'hkgov-censtatd',
         {
-          datasetCode:
-            'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district',
+          datasetCode: 'ds-hk-hkgov-censtatd-subdivided-units-district',
         },
       )
       if (!row) throw new Error(`Invalid geometry fixture: ${id}`)

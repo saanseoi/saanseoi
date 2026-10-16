@@ -17,8 +17,8 @@ import { computeVersionHash } from './versioning'
 const overtureSourceSchemas = {
   'ds-hk-overture-division': '1.17.0',
   'ds-hk-hkgov-had-division-area-district': '1.2',
-  'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district': '1.0',
-  'ds-hk-hkgov-censtatd-division-statistic-population-households-district': '1.0',
+  'ds-hk-hkgov-censtatd-subdivided-units-district': '1.0',
+  'ds-hk-hkgov-censtatd-population-households-district': '1.0',
 }
 
 describe('api field fixtures', () => {
@@ -439,10 +439,7 @@ describe('api field fixtures', () => {
     ]
     for (const [period, sources, anchors = sources] of cohorts) {
       const sourceSchemas = Object.fromEntries(
-        sources.map(source => [
-          `ds-hk-hkgov-censtatd-division-statistic-${source}`,
-          '1.0',
-        ]),
+        sources.map(source => [`ds-hk-hkgov-censtatd-${source}`, '1.0']),
       )
       for (const anchor of anchors) {
         const lookup = {
@@ -451,7 +448,7 @@ describe('api field fixtures', () => {
           schemaVersion: 'sv-statistics-v1',
           rulesetVersion: 'rs-division-statistic-merge-v1',
           lineageSnapshotVersions: [
-            `ss-hk-division-statistic-ds-hk-hkgov-censtatd-division-statistic-${anchor}-${period}`,
+            `ss-hk-division-statistic-ds-hk-hkgov-censtatd-${anchor}-${period}`,
           ],
           sourceSchemas,
         }
@@ -532,7 +529,7 @@ describe('api field fixtures', () => {
       const sourceSchemas = {
         'ds-hk-overture-division': cohort.version,
         'ds-hk-hkgov-had-division-area-district': '1.2',
-        'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district': '1.0',
+        'ds-hk-hkgov-censtatd-subdivided-units-district': '1.0',
       }
       const fixture = resolveApiFieldFixture({
         apiVersion: 'api-divisions-v0.1',
@@ -561,16 +558,15 @@ describe('api field fixtures', () => {
       sourceSchemas: {
         'ds-hk-overture-division': '1.12.0',
         'ds-hk-hkgov-had-division-area-district': '1.2',
-        'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district': '1.0',
-        'ds-hk-hkgov-censtatd-division-statistic-population-households-district': '1.0',
+        'ds-hk-hkgov-censtatd-subdivided-units-district': '1.0',
+        'ds-hk-hkgov-censtatd-population-households-district': '1.0',
       },
     })
 
     expect(fixture?.fields).toContainEqual(
       expect.objectContaining({
         apiField: 'attributes.variant',
-        sourceDatasetCode:
-          'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
+        sourceDatasetCode: 'ds-hk-hkgov-censtatd-population-households-district',
         variant: 'hkgov-censtatd',
       }),
     )
@@ -589,15 +585,14 @@ describe('api field fixtures', () => {
       sourceSchemas: {
         'ds-hk-overture-division': '1.13.0',
         'ds-hk-hkgov-had-division-area-district': '1.2',
-        'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district': '1.0',
-        'ds-hk-hkgov-censtatd-division-statistic-population-households-district': '1.0',
+        'ds-hk-hkgov-censtatd-subdivided-units-district': '1.0',
+        'ds-hk-hkgov-censtatd-population-households-district': '1.0',
       },
     })
 
     expect(fixture?.fields).toContainEqual(
       expect.objectContaining({
-        sourceDatasetCode:
-          'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district',
+        sourceDatasetCode: 'ds-hk-hkgov-censtatd-subdivided-units-district',
       }),
     )
   })
@@ -612,8 +607,8 @@ describe('api field fixtures', () => {
       sourceSchemas: {
         'ds-hk-overture-division': '1.12.0',
         'ds-hk-hkgov-had-division-area-district': '1.2',
-        'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district': '1.0',
-        'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters': '1.0',
+        'ds-hk-hkgov-censtatd-subdivided-units-district': '1.0',
+        'ds-hk-hkgov-censtatd-permanent-living-quarters': '1.0',
       },
     })
 
@@ -630,8 +625,8 @@ describe('api field fixtures', () => {
       sourceSchemas: {
         'ds-hk-overture-division': '1.15.0',
         'ds-hk-hkgov-had-division-area-district': '1.2',
-        'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district': '1.0',
-        'ds-hk-hkgov-censtatd-division-statistic-population-households-district': '1.0',
+        'ds-hk-hkgov-censtatd-subdivided-units-district': '1.0',
+        'ds-hk-hkgov-censtatd-population-households-district': '1.0',
       },
     })
 
@@ -659,9 +654,8 @@ describe('api field fixtures', () => {
         sourceSchemas: {
           'ds-hk-overture-division': cohort.version,
           'ds-hk-hkgov-had-division-area-district': '1.2',
-          'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district': '1.0',
-          'ds-hk-hkgov-censtatd-division-statistic-population-households-district':
-            '1.0',
+          'ds-hk-hkgov-censtatd-subdivided-units-district': '1.0',
+          'ds-hk-hkgov-censtatd-population-households-district': '1.0',
         },
       })
 
@@ -781,8 +775,8 @@ describe('api field fixtures', () => {
       sourceSchemas: {
         'ds-hk-overture-division': '1.18.0',
         'ds-hk-hkgov-had-division-area-district': '1.2',
-        'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district': '1.0',
-        'ds-hk-hkgov-censtatd-division-statistic-population-households-district': '1.0',
+        'ds-hk-hkgov-censtatd-subdivided-units-district': '1.0',
+        'ds-hk-hkgov-censtatd-population-households-district': '1.0',
       },
     })
 
@@ -1094,16 +1088,14 @@ test('anchors are unique and compositions cannot be borrowed from another branch
 test('initial curated release resolves its retained ingredient composition for API 0.2', () => {
   const sourceSchemas: Record<string, string> = {
     ...overtureSourceSchemas,
-    'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters': '1.0',
+    'ds-hk-hkgov-censtatd-permanent-living-quarters': '1.0',
     'ds-hk-overture-division': '1.18.0',
     'ds-hk-hkgov-landsd-division': '1.0',
     'ds-hk-hkgov-rvd-division': '1.0',
     'ds-hk-protomaps-island': '1.0',
     'ds-hk-saanseoi-division': '1.0',
   }
-  delete sourceSchemas[
-    'ds-hk-hkgov-censtatd-division-statistic-population-households-district'
-  ]
+  delete sourceSchemas['ds-hk-hkgov-censtatd-population-households-district']
   const lookup = {
     apiVersion: 'api-divisions-v0.2',
     domainCode: 'geographic',

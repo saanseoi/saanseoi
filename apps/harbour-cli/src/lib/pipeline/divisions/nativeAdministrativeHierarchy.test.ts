@@ -170,8 +170,7 @@ test('assembly retains the exact reference policy and per-record inference decis
   const audit = await retainDivisionProvenance(store, {
     scope: { stage: 'assembly', ownerId: 'snapshot' },
     resourceReleaseId: 'release',
-    datasetCode:
-      'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups',
+    datasetCode: 'ds-hk-hkgov-censtatd-housing-market-areas-building-groups',
     inputCount: 1,
     outputCount: 1,
     actions: [result.action],

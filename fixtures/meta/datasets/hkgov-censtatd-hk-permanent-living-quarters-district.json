@@ -1,7 +1,7 @@
 {
-  "versionHash": "sha256:1caca25b470008667657730d7b8b697ac5c1de8a079675ec392a3124de5d86af",
+  "versionHash": "sha256:ab79bc716df4865a445214293d17dfad68072151a7fc8450dcbe97646535a920",
   "publisherCode": "hkgov-censtatd",
-  "code": "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters",
+  "code": "ds-hk-hkgov-censtatd-permanent-living-quarters-district",
   "regionCode": "hk",
   "releaseType": "static",
   "releaseFrequency": "half-yearly",
@@ -35,8 +35,8 @@
   ],
   "licenseCode": "hkgov-open-data",
   "attribution": "© Hong Kong Special Administrative Region Government, Census and Statistics Department",
-  "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635933883228_46491",
-  "schemaURL": "https://static.csdi.gov.hk/csdi-webpage/view/common/52b017ade181cda9663d10d121d0d1c0f4608e380c4f90f7edfc87bec9ae04b2",
+  "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635934103275_66203",
+  "schemaURL": "https://static.csdi.gov.hk/csdi-webpage/view/common/b3f0372efef6e9b26d05f13d02d52fd631e1767f0d88f763b8bd86d500ed7bf4",
   "publisherReleaseFrequency": "half-yearly",
   "updatePolicy": {
     "allowUpdates": true,
@@ -65,7 +65,7 @@
     "archives": {
       "availability": "full",
       "operation": "csdi-archived-dataset",
-      "entryUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635933883228_46491"
+      "entryUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635934103275_66203"
     }
   },
   "versionPolicy": {
@@ -76,7 +76,7 @@
   "releases": [
     {
       "sourceVersion": "2023-H2",
-      "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635933883228_46491"
+      "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635934103275_66203"
     }
   ],
   "transforms": [
@@ -96,23 +96,23 @@
   ],
   "i18n": {
     "en": {
-      "name": "Permanent Living Quarters",
-      "description": "C&SD source for area-level permanent living-quarters stock by type."
+      "name": "Permanent Living Quarters by District Council District",
+      "description": "C&SD source for District Council district permanent living-quarters stock."
     },
     "zh-hant": {
-      "name": "永久性居住屋宇單位",
-      "description": "政府統計處提供的按地區及類型劃分的永久性居住屋宇單位數目統計。"
+      "name": "按區議會分區劃分的永久性居住屋宇單位",
+      "description": "政府統計處提供的按區議會分區劃分的永久性居住屋宇單位數目統計。"
     },
     "zh-hans": {
-      "name": "永久性居住屋宇单位",
-      "description": "政府统计处提供的按地区及类型划分的永久性居住屋宇单位数目统计。"
+      "name": "按区议会分区划分的永久性居住屋宇单位",
+      "description": "政府统计处提供的按区议会分区划分的永久性居住屋宇单位数目统计。"
     }
   },
   "processingRules": [
     {
       "rulesetVersion": "rs-source-ingestion-v1",
       "operationCodes": [
-        "ingest-hkgov-censtatd-division-statistic-permanent-living-quarters"
+        "ingest-hkgov-censtatd-division-statistic-permanent-living-quarters-district"
       ]
     }
   ]

@@ -21,8 +21,7 @@ export type ResolvedHkgovCenstatdNewTown = {
   newTownCode: string
 }
 
-const subdividedUnitsDatasetCode =
-  'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district'
+const subdividedUnitsDatasetCode = 'ds-hk-hkgov-censtatd-subdivided-units-district'
 
 /**
  * Returns the reviewed C&SD district-geography cohort represented by a
@@ -35,9 +34,9 @@ export function resolveCenstatdDistrictBridgeCohort(
   sourceVersion: string,
 ): DistrictBridgeCohortKey | null {
   switch (datasetCode) {
-    case 'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district':
-    case 'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district':
-    case 'ds-hk-hkgov-censtatd-division-statistic-population-households-district':
+    case 'ds-hk-hkgov-censtatd-land-area-population-density-district':
+    case 'ds-hk-hkgov-censtatd-permanent-living-quarters-district':
+    case 'ds-hk-hkgov-censtatd-population-households-district':
       return '2021'
     case subdividedUnitsDatasetCode:
       if (sourceVersion === '2016' || sourceVersion === '2021') return sourceVersion
@@ -54,7 +53,7 @@ export function resolveCenstatdNewTownBridgeCohort(
   datasetCode: string,
   sourceVersion: string,
 ): NewTownBridgeCohortKey | null {
-  if (datasetCode !== 'ds-hk-hkgov-censtatd-division-statistic-new-towns') {
+  if (datasetCode !== 'ds-hk-hkgov-censtatd-new-towns') {
     return null
   }
   if (sourceVersion === '2021') return sourceVersion

@@ -1,5 +1,5 @@
 {
-  "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
+  "datasetCode": "ds-hk-hkgov-censtatd-population-households-district",
   "measures": [
     {
       "localisations": [
@@ -256,5 +256,5 @@
     }
   ],
   "schemaVersion": 1,
-  "versionHash": "sha256:3c67363bf2142b74f7631bbe193514815db0926a8ef0ec9fef0c9f8c8bfc1acb"
+  "versionHash": "sha256:b2d1b8129913654576313563d06c2bc01c117d88d2761effa26806d3565afb35"
 }

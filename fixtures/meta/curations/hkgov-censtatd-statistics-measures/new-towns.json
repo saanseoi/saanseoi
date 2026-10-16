@@ -1,5 +1,5 @@
 {
-  "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-new-towns",
+  "datasetCode": "ds-hk-hkgov-censtatd-new-towns",
   "measures": [
     {
       "localisations": [
@@ -463,5 +463,5 @@
     }
   ],
   "schemaVersion": 1,
-  "versionHash": "sha256:5e6f6b7118b8400bd00af62ebfbd88276dec7baa84a92da65387340ac954c52d"
+  "versionHash": "sha256:be169b29bcbbcd7f8edfba97e0196b7c61e6b76fa8dfe2d893dc05424ccb994a"
 }

@@ -253,8 +253,7 @@ export async function runHkgovCenstatdStatisticsIngestCommand(
     ])
     const deferGeometryPublication =
       process.env.SAANSEOI_INIT_DEFER_SHARED_GEOMETRY === '1' &&
-      datasetCode !==
-        'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups'
+      datasetCode !== 'ds-hk-hkgov-censtatd-housing-market-areas-building-groups'
     const resourceLifecycle = planCenstatdResourceLifecycle(
       [
         ...(!geographyOnly && pendingTypes.includes('divisionStatistic')
@@ -456,14 +455,12 @@ async function prepareAnnualDistrictGeographies(input: {
 export function isCenstatdDistrictGeometryDataset(
   datasetCode: string,
 ): datasetCode is
-  | 'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district'
-  | 'ds-hk-hkgov-censtatd-division-statistic-population-households-district'
-  | 'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district' {
+  | 'ds-hk-hkgov-censtatd-permanent-living-quarters-district'
+  | 'ds-hk-hkgov-censtatd-population-households-district'
+  | 'ds-hk-hkgov-censtatd-subdivided-units-district' {
   return (
-    datasetCode ===
-      'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district' ||
-    datasetCode ===
-      'ds-hk-hkgov-censtatd-division-statistic-population-households-district' ||
-    datasetCode === 'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district'
+    datasetCode === 'ds-hk-hkgov-censtatd-permanent-living-quarters-district' ||
+    datasetCode === 'ds-hk-hkgov-censtatd-population-households-district' ||
+    datasetCode === 'ds-hk-hkgov-censtatd-subdivided-units-district'
   )
 }

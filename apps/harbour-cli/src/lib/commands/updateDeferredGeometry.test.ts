@@ -4,7 +4,7 @@ import { loadDatasetFixtures } from '../sources/sourceUpdates'
 import type { fetchReleaseReport, fetchProcessingRunReport } from '../api/reporting'
 const dataset = (
   await loadDatasetFixtures(
-    new Set(['ds-hk-hkgov-censtatd-division-statistic-population-households-district']),
+    new Set(['ds-hk-hkgov-censtatd-population-households-district']),
   )
 )[0]!
 const target = { remote: false, environment: 'dev' as const }

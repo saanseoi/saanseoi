@@ -168,8 +168,7 @@ describe('source records', () => {
     const sqlite = new Database(':memory:')
     const code =
       'dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021'
-    const datasetCode =
-      'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups'
+    const datasetCode = 'ds-hk-hkgov-censtatd-housing-market-areas-building-groups'
     sqlite.exec(`
       CREATE TABLE publishers(id, code);
       CREATE TABLE datasets(id, code, publisherId, regionCode, sourceVariant);
@@ -257,7 +256,7 @@ describe('source records', () => {
   test('uses release and dataset ownership to isolate statistics sharing geometry', async () => {
     const sqlite = new Database(':memory:')
     sqlite.exec(`CREATE TABLE hkgovCenstatdStatistics (
-      datasetCode TEXT DEFAULT 'ds-hk-hkgov-censtatd-division-statistic-new-towns',
+      datasetCode TEXT DEFAULT 'ds-hk-hkgov-censtatd-new-towns',
       sources TEXT, sourceRecordId TEXT, versionHash TEXT, properties TEXT,
       validFromRelease TEXT, validToRelease TEXT, resourceReleaseId TEXT, geometryId TEXT DEFAULT 'geometry'
     )`)
@@ -317,7 +316,7 @@ describe('source records', () => {
       family: 'stats' as const,
       includeGeometry: false,
       metaDb: metaDatabase({
-        datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-new-towns',
+        datasetCode: 'ds-hk-hkgov-censtatd-new-towns',
         sourceReleaseCode: code,
         sourceVersion: '2021',
       }),
@@ -756,7 +755,7 @@ describe('source records', () => {
         return {
           bind(...values: unknown[]) {
             expect(values).toEqual([
-              'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district',
+              'ds-hk-hkgov-censtatd-subdivided-units-district',
               'source-release-id',
               2,
             ])
@@ -794,8 +793,7 @@ describe('source records', () => {
       includeGeometry: false,
       limit: 2,
       metaDb: metaDatabase({
-        datasetCode:
-          'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district',
+        datasetCode: 'ds-hk-hkgov-censtatd-subdivided-units-district',
         resourceType: 'divisionArea',
         sourceReleaseCode: censtatdRelease,
         sourceVariant: 'hkgov-censtatd:2016',
@@ -896,8 +894,7 @@ describe('source records', () => {
         family: 'divisions',
         includeGeometry: true,
         metaDb: metaDatabase({
-          datasetCode:
-            'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district',
+          datasetCode: 'ds-hk-hkgov-censtatd-subdivided-units-district',
           resourceType: 'divisionArea',
           sourceReleaseCode: censtatdRelease,
           sourceVersion: '2016',
@@ -975,7 +972,7 @@ for (const [family, datasetCode, tableName, resourceType] of [
   ['places', 'ds-hk-overture-place', 'overturePlaces', 'place'],
   [
     'stats',
-    'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district',
+    'ds-hk-hkgov-censtatd-land-area-population-density-district',
     'hkgovCenstatdStatistics',
     'divisionStatistic',
   ],

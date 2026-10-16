@@ -59,9 +59,9 @@ export function censtatdReleaseStatsProfileFor(
   sourceVersion: string,
 ): CenstatdReleaseStatsProfile {
   switch (datasetCode) {
-    case 'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district':
-    case 'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district':
-    case 'ds-hk-hkgov-censtatd-division-statistic-population-households-district':
+    case 'ds-hk-hkgov-censtatd-land-area-population-density-district':
+    case 'ds-hk-hkgov-censtatd-permanent-living-quarters-district':
+    case 'ds-hk-hkgov-censtatd-population-households-district':
       return {
         geographyLink: {
           cohortKey: '2021',
@@ -69,7 +69,7 @@ export function censtatdReleaseStatsProfileFor(
           kind: 'reviewed_canonical_link',
         },
       }
-    case 'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district':
+    case 'ds-hk-hkgov-censtatd-subdivided-units-district':
       if (sourceVersion !== '2016' && sourceVersion !== '2021') {
         throw new Error(
           `C&SD subdivided-units sourceVersion=${sourceVersion} has no reviewed district bridge.`,
@@ -82,20 +82,20 @@ export function censtatdReleaseStatsProfileFor(
           kind: 'reviewed_canonical_link',
         },
       }
-    case 'ds-hk-hkgov-censtatd-division-statistic-new-towns':
+    case 'ds-hk-hkgov-censtatd-new-towns':
       return {
         geographyLink: {
           domain: 'hkgov-pland-new-town',
           kind: 'existing_domain_candidate',
         },
       }
-    case 'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters':
+    case 'ds-hk-hkgov-censtatd-permanent-living-quarters':
       return { geographyLink: { domain: 'area', kind: 'domain_candidate' } }
-    case 'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups':
+    case 'ds-hk-hkgov-censtatd-housing-market-areas-building-groups':
       return {
         geographyLink: { domain: 'housing-market-area', kind: 'domain_candidate' },
       }
-    case 'ds-hk-hkgov-censtatd-division-statistic-major-housing-estates':
+    case 'ds-hk-hkgov-censtatd-major-housing-estates':
       return {
         geographyLink: { domain: 'major-housing-estate', kind: 'domain_candidate' },
       }

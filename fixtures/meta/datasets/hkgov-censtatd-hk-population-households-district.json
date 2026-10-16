@@ -1,0 +1,147 @@
+{
+  "versionHash": "sha256:c3252a8badc93ecd786da98bbcd08ba99c3f2baedf4657f41772ad5996e8788e",
+  "publisherCode": "hkgov-censtatd",
+  "code": "ds-hk-hkgov-censtatd-population-households-district",
+  "regionCode": "hk",
+  "releaseType": "static",
+  "releaseFrequency": "yearly",
+  "theme": "stats",
+  "areaCompanionByReferencePeriod": {
+    "*": {
+      "variant": "hkgov-censtatd",
+      "domainCode": "geographic",
+      "cohortKey": "{referencePeriodEndYear}"
+    }
+  },
+  "sourceCrs": "EPSG:2326",
+  "sourceRecordIdentity": {
+    "scope": "dataset-release",
+    "stability": "release",
+    "components": [
+      {
+        "paths": [
+          "gmlId",
+          "id",
+          "fid"
+        ],
+        "fallback": "row-ordinal"
+      }
+    ],
+    "duplicates": "append-row-ordinal"
+  },
+  "resourceTypes": [
+    "divisionStatistic",
+    "divisionArea"
+  ],
+  "licenseCode": "hkgov-open-data",
+  "attribution": "© Hong Kong Special Administrative Region Government, Census and Statistics Department",
+  "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635934545173_69201",
+  "schemaURL": "https://static.csdi.gov.hk/csdi-webpage/view/common/ed4de1cb0750ae8251f7f61acbbfe77146067cec48329f1ac6a04044e4b360af",
+  "updatePolicy": {
+    "allowUpdates": true,
+    "checkFrequency": "monthly"
+  },
+  "releasePolicy": {
+    "series": "cohort",
+    "schedule": "regular",
+    "revisionScope": "all",
+    "checks": {
+      "newReleases": {
+        "trigger": "initial-only"
+      },
+      "revisions": {
+        "trigger": "periodic",
+        "frequency": "weekly"
+      },
+      "archives": {
+        "trigger": "on-discovery",
+        "discoveries": [
+          "revision"
+        ],
+        "includeInitialDownload": true
+      }
+    },
+    "archives": {
+      "availability": "full",
+      "operation": "csdi-archived-dataset",
+      "entryUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635934545173_69201"
+    }
+  },
+  "versionPolicy": {
+    "scheme": "reference-year",
+    "releaseField": "sourceVersion",
+    "correctionSuffixSource": "generated"
+  },
+  "releases": [
+    {
+      "sourceVersion": "2024",
+      "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635934545173_69201",
+      "verifiedIdenticalArchiveSlots": [
+        {
+          "releaseSlot": "2025-Q2",
+          "sourceObjectHash": "fb9ce26b82759e635777632fdaa560702e20f7ae4e3766f22bb473f0b8ca5ffc",
+          "contentHash": "bb9145810adabb52a32316b79b2c3a3fbc8a37e2f9438cd98242892a9f50797b"
+        }
+      ]
+    },
+    {
+      "sourceVersion": "2026-Q2",
+      "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635934545173_69201",
+      "referencePeriods": {
+        "geometryStatus": "fallback",
+        "sourceField": "year",
+        "materialiseAreaCompanions": true
+      }
+    }
+  ],
+  "transforms": [
+    {
+      "code": "simplified",
+      "resourceType": "divisionArea",
+      "sourceVersion": "2024",
+      "outputVariant": "hkgov-censtatd:simplified",
+      "derivation": {
+        "method": "topology-preserving-simplification",
+        "inputGeometryProjection": "EPSG:4326",
+        "workingProjection": "local-equirectangular",
+        "toleranceMetres": 10,
+        "preservesPublisherGeometry": true
+      }
+    },
+    {
+      "code": "simplified",
+      "resourceType": "divisionArea",
+      "sourceVersion": "2026-Q2",
+      "outputVariant": "hkgov-censtatd:simplified",
+      "derivation": {
+        "method": "topology-preserving-simplification",
+        "inputGeometryProjection": "EPSG:4326",
+        "workingProjection": "local-equirectangular",
+        "toleranceMetres": 10,
+        "preservesPublisherGeometry": true
+      }
+    }
+  ],
+  "i18n": {
+    "en": {
+      "name": "Population and Household Statistics by District Council District",
+      "description": "C&SD source for annual land-based, non-institutional population, household and socio-economic measures."
+    },
+    "zh-hant": {
+      "name": "按區議會分區劃分的人口及住戶統計",
+      "description": "政府統計處提供的陸上非住院人口、住戶及社會經濟指標的每年統計。"
+    },
+    "zh-hans": {
+      "name": "按区议会分区划分的人口及住户统计",
+      "description": "政府统计处提供的陆上非住院人口、住户及社会经济指标的每年统计。"
+    }
+  },
+  "processingRules": [
+    {
+      "rulesetVersion": "rs-source-ingestion-v1",
+      "operationCodes": [
+        "ingest-hkgov-censtatd-division-statistic-population-households-district"
+      ]
+    }
+  ]
+}

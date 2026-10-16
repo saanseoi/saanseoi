@@ -1,5 +1,5 @@
 /** Dataset branches in normaliseHkgovCenstatdStatistics.profileFor. */
-const prefix = 'ds-hk-hkgov-censtatd-division-statistic-'
+const prefix = 'ds-hk-hkgov-censtatd-'
 export function statisticProfileSpecification(datasetCode: string) {
   const profiles: Record<
     string,

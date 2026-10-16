@@ -8,6 +8,6 @@ init_configure "saanseoi init:divisions:hkgov-censtatd-hma" $argv
 # Statistics release-set deferred so this focused Divisions run does not
 # publish a partial Statistics cohort.
 init_run_step ./bin/saanseoi update --target $saanseoi_init_target \
-    --dataset ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups \
+    --dataset ds-hk-hkgov-censtatd-housing-market-areas-building-groups \
     --download --check-now --defer-stats-release-set --include-geography --yes
 init_publish_docs

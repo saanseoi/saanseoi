@@ -8,12 +8,10 @@ import type { AppBindings } from '../../../types'
 const REPO_ROOT = resolve(import.meta.dir, '../../../../../../')
 const MIGRATIONS_DIR = resolve(REPO_ROOT, 'libs/db/migrations')
 export const PUBLISHED_AT = '2026-08-20T00:00:00.000Z'
-export const DATASET_CODE =
-  'ds-hk-hkgov-censtatd-division-statistic-population-households-district'
+export const DATASET_CODE = 'ds-hk-hkgov-censtatd-population-households-district'
 export const RELEASE_ID = 'release-statistics-population-households-2021'
 export const STATISTIC_ID = 'statistic-population-households-2021-district-1'
-export const HISTORICAL_DATASET_CODE =
-  'ds-hk-hkgov-censtatd-division-statistic-households-district'
+export const HISTORICAL_DATASET_CODE = 'ds-hk-hkgov-censtatd-households-district'
 export const HISTORICAL_RELEASE_ID = 'release-statistics-households-2020'
 
 type MockStatement = {
@@ -489,7 +487,7 @@ function seedHistory(sqlite: Database) {
     [
       STATISTIC_ID,
       DATASET_CODE,
-      'hkgov-censtatd/ds-hk-hkgov-censtatd-division-statistic-population-households-district/2021/District:1',
+      'hkgov-censtatd/ds-hk-hkgov-censtatd-population-households-district/2021/District:1',
       'division-central-western',
       '2021',
       null,

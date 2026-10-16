@@ -18,14 +18,14 @@ end
 # Keep this launch set explicit: it is intentionally narrower than the full
 # stats scope, whose datasets may have independent launch schedules.
 set -l datasets \
-    ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district \
-    ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups \
-    ds-hk-hkgov-censtatd-division-statistic-major-housing-estates \
-    ds-hk-hkgov-censtatd-division-statistic-new-towns \
-    ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters \
-    ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district \
-    ds-hk-hkgov-censtatd-division-statistic-population-households-district \
-    ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district
+    ds-hk-hkgov-censtatd-land-area-population-density-district \
+    ds-hk-hkgov-censtatd-housing-market-areas-building-groups \
+    ds-hk-hkgov-censtatd-major-housing-estates \
+    ds-hk-hkgov-censtatd-new-towns \
+    ds-hk-hkgov-censtatd-permanent-living-quarters \
+    ds-hk-hkgov-censtatd-permanent-living-quarters-district \
+    ds-hk-hkgov-censtatd-population-households-district \
+    ds-hk-hkgov-censtatd-subdivided-units-district
 
 # `update` owns source discovery, while the upload receives the continuation
 # proof. A resumed initialiser may re-enter only a release with no active
@@ -37,7 +37,7 @@ end
 
 for dataset in $datasets
     set -l geography_args
-    if test "$dataset" = ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups
+    if test "$dataset" = ds-hk-hkgov-censtatd-housing-market-areas-building-groups
         # This Stats source also owns the complete current HMA Divisions
         # domain. Retain its Statistics release-set deferral while publishing
         # that domain's primary and area resources together.

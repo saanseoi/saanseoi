@@ -1,5 +1,5 @@
 {
-  "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates",
+  "datasetCode": "ds-hk-hkgov-censtatd-major-housing-estates",
   "measures": [
     {
       "localisations": [
@@ -371,5 +371,5 @@
     }
   ],
   "schemaVersion": 1,
-  "versionHash": "sha256:4c4a3fe1b746afaf7a4599bf0ea0dace5d7c9089b85ae37dae996cc744acb545"
+  "versionHash": "sha256:4185f752e852ac4d7b2bf3f3070aabc46ddc3555aaa2135df0555fd974689759"
 }

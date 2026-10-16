@@ -97,8 +97,7 @@ test('C&SD hierarchy lookup preserves its native classification and null HMA lev
     {
       source: 'hkgov-censtatd',
       sourceVersion: '2021',
-      datasetCode:
-        'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups',
+      datasetCode: 'ds-hk-hkgov-censtatd-housing-market-areas-building-groups',
     },
   )
   expect(lookup.get('hma')).toMatchObject({ class: 'housing-market-area', level: null })

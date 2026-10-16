@@ -1,5 +1,5 @@
 {
-  "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
+  "datasetCode": "ds-hk-hkgov-censtatd-subdivided-units-district",
   "fields": [
     {
       "aggregation": "total",

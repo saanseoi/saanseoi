@@ -34,91 +34,84 @@ const CASES: Array<{
   {
     archive:
       'data/hkgov/csdi/archive/censtatd_rcd_1728978338390_76872/2026-Q2/source.zip',
-    datasetCode:
-      'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups',
+    datasetCode: 'ds-hk-hkgov-censtatd-housing-market-areas-building-groups',
     rowCount: 3495,
     sourceVersion: '2021',
   },
   {
     archive:
       'data/hkgov/csdi/archive/censtatd_rcd_1695182015782_79001/2026-Q2/source.zip',
-    datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-major-housing-estates',
+    datasetCode: 'ds-hk-hkgov-censtatd-major-housing-estates',
     rowCount: 540,
     sourceVersion: '2021',
   },
   {
     archive:
       'data/hkgov/csdi/archive/censtatd_rcd_1695181913136_27614/2026-Q2/source.zip',
-    datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-new-towns',
+    datasetCode: 'ds-hk-hkgov-censtatd-new-towns',
     rowCount: 13,
     sourceVersion: '2021',
   },
   {
     archive:
       'data/hkgov/csdi/archive/censtatd_rcd_1635933883228_46491/2023-Q4/81e2fd2c5aaeadaaf1c651a4b6d42f37f5cd7812fce2437303fa5054d978aa4a-source.zip',
-    datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters',
+    datasetCode: 'ds-hk-hkgov-censtatd-permanent-living-quarters',
     rowCount: 3,
     sourceVersion: '2023-H2',
   },
   {
     archive:
       'data/hkgov/csdi/archive/censtatd_rcd_1635934103275_66203/2023-Q4/source.zip',
-    datasetCode:
-      'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district',
+    datasetCode: 'ds-hk-hkgov-censtatd-permanent-living-quarters-district',
     rowCount: 18,
     sourceVersion: '2023-H2',
   },
   {
     archive:
       'data/hkgov/csdi/archive/censtatd_rcd_1635934545173_69201/2026-Q2/source.zip',
-    datasetCode:
-      'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
+    datasetCode: 'ds-hk-hkgov-censtatd-population-households-district',
     rowCount: 180,
     sourceVersion: '2026-Q2',
   },
   {
     archive:
       'data/hkgov/csdi/archive/censtatd_rcd_1635934545173_69201/2023-Q4/source.zip',
-    datasetCode:
-      'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
+    datasetCode: 'ds-hk-hkgov-censtatd-population-households-district',
     rowCount: 126,
     sourceVersion: '2026-Q2',
   },
   {
     archive:
       'data/hkgov/csdi/archive/censtatd_rcd_1635934545173_69201/2024-Q2/source.zip',
-    datasetCode:
-      'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
+    datasetCode: 'ds-hk-hkgov-censtatd-population-households-district',
     rowCount: 144,
     sourceVersion: '2026-Q2',
   },
   {
     archive:
       'data/hkgov/csdi/archive/censtatd_rcd_1635934545173_69201/2025-Q2/source.zip',
-    datasetCode:
-      'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
+    datasetCode: 'ds-hk-hkgov-censtatd-population-households-district',
     rowCount: 162,
     sourceVersion: '2024',
   },
   {
     archive:
       'data/hkgov/csdi/archive/censtatd_rcd_1635934545173_69201/2025-Q2/source.zip',
-    datasetCode:
-      'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
+    datasetCode: 'ds-hk-hkgov-censtatd-population-households-district',
     rowCount: 162,
     sourceVersion: '2026-Q2',
   },
   {
     archive:
       'data/hkgov/csdi/archive/censtatd_rcd_1635932488538_10765/2026-Q2/source.zip',
-    datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district',
+    datasetCode: 'ds-hk-hkgov-censtatd-subdivided-units-district',
     rowCount: 18,
     sourceVersion: '2016',
   },
   {
     archive:
       'data/hkgov/csdi/archive/censtatd_rcd_1635933617052_68946/2026-Q2/source.zip',
-    datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district',
+    datasetCode: 'ds-hk-hkgov-censtatd-subdivided-units-district',
     rowCount: 18,
     sourceVersion: '2021',
   },
@@ -279,7 +272,7 @@ describe('C&SD native statistics archives', () => {
     for (const area of overtureHongKongAreas) {
       expect(
         hkgovCenstatdStatisticDivisionId(
-          'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters',
+          'ds-hk-hkgov-censtatd-permanent-living-quarters',
           area.censtatdCode,
         ),
       ).toBe(overtureHongKongAreaDivisionId(area.code))
@@ -288,21 +281,13 @@ describe('C&SD native statistics archives', () => {
 })
 
 function expectedFirstReferencePeriod(datasetCode: string, sourceVersion: string) {
-  if (
-    datasetCode ===
-    'ds-hk-hkgov-censtatd-division-statistic-population-households-district'
-  ) {
+  if (datasetCode === 'ds-hk-hkgov-censtatd-population-households-district') {
     return '2016'
   }
-  if (
-    datasetCode === 'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters'
-  ) {
+  if (datasetCode === 'ds-hk-hkgov-censtatd-permanent-living-quarters') {
     return '2023'
   }
-  if (
-    datasetCode ===
-    'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district'
-  ) {
+  if (datasetCode === 'ds-hk-hkgov-censtatd-permanent-living-quarters-district') {
     return '2023-Q3'
   }
   return sourceVersion

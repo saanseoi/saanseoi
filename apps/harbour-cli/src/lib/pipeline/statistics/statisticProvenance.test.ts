@@ -18,8 +18,7 @@ test('Statistics retains bulk counts and reviewed definitions without source or 
       objects.set(key, bytes)
     },
   }
-  const datasetCode =
-    'ds-hk-hkgov-censtatd-division-statistic-population-households-district'
+  const datasetCode = 'ds-hk-hkgov-censtatd-population-households-district'
   const source = [
     {
       datasetCode,

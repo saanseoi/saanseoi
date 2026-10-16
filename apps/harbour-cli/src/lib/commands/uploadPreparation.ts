@@ -93,13 +93,10 @@ export async function prepareHkgovCenstatdGmlUpload(
 
 export function censtatdDistrictDatasetCode(datasetCode: string | undefined) {
   if (
-    datasetCode ===
-      'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district' ||
-    datasetCode ===
-      'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district' ||
-    datasetCode ===
-      'ds-hk-hkgov-censtatd-division-statistic-population-households-district' ||
-    datasetCode === 'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district'
+    datasetCode === 'ds-hk-hkgov-censtatd-land-area-population-density-district' ||
+    datasetCode === 'ds-hk-hkgov-censtatd-permanent-living-quarters-district' ||
+    datasetCode === 'ds-hk-hkgov-censtatd-population-households-district' ||
+    datasetCode === 'ds-hk-hkgov-censtatd-subdivided-units-district'
   ) {
     return datasetCode
   }

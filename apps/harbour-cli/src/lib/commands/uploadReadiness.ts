@@ -186,14 +186,11 @@ export async function assertDivisionGeometryUploadPrerequisites(
     plan.source === 'hkgov-had' ||
     (plan.source === 'hkgov-censtatd' &&
       (plan.datasetCode === 'ds-hk-hkgov-censtatd-division-area-district' ||
+        plan.datasetCode === 'ds-hk-hkgov-censtatd-subdivided-units-district' ||
+        plan.datasetCode === 'ds-hk-hkgov-censtatd-population-households-district' ||
         plan.datasetCode ===
-          'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district' ||
-        plan.datasetCode ===
-          'ds-hk-hkgov-censtatd-division-statistic-population-households-district' ||
-        plan.datasetCode ===
-          'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district' ||
-        plan.datasetCode ===
-          'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district'))
+          'ds-hk-hkgov-censtatd-land-area-population-density-district' ||
+        plan.datasetCode === 'ds-hk-hkgov-censtatd-permanent-living-quarters-district'))
   ) {
     return
   }
@@ -291,10 +288,7 @@ export function resolveDivisionDomainCode(
   source: DivisionGeometryPlan['source'] | undefined,
   datasetCode?: string,
 ) {
-  if (
-    datasetCode ===
-    'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups'
-  ) {
+  if (datasetCode === 'ds-hk-hkgov-censtatd-housing-market-areas-building-groups') {
     return 'hkgov-censtatd-hma'
   }
   return source === 'hkgov-landsd' ||
@@ -486,8 +480,7 @@ async function resolveCenstatdPermanentLivingQuartersDivisionSnapshot(
 function isCenstatdPermanentLivingQuartersPlan(plan: DivisionGeometryPlan) {
   return (
     plan.source === 'hkgov-censtatd' &&
-    plan.datasetCode ===
-      'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters'
+    plan.datasetCode === 'ds-hk-hkgov-censtatd-permanent-living-quarters'
   )
 }
 

@@ -7,6 +7,10 @@ solely because it compiles or an LLM generated the wording.
 
 ## Objective coverage
 
+The statistics overlay example uses the product dataset code
+`ds-hk-hkgov-censtatd-land-area-population-density-district`. Resource type selection is
+independent of the dataset name.
+
 The hand-over instructions explain Places geographic references as Division IDs,
 distinguishing broad areas and districts, settlement and neighbourhood scales, and
 physical island landforms.

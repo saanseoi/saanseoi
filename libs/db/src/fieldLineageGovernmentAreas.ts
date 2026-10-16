@@ -1,5 +1,5 @@
 import { retainedGovernmentIdentityDocuments } from './fieldLineageStatisticContext'
-const prefix = 'ds-hk-hkgov-censtatd-division-statistic-'
+const prefix = 'ds-hk-hkgov-censtatd-'
 const upload =
   'apps/harbour-cli/src/lib/pipeline/divisions/processLocalDivisionGeometrySqlUploadPreparation.ts'
 export const districtAreaProfiles: Record<

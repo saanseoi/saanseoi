@@ -21,9 +21,8 @@ import { normaliseCenstatdProperty } from './hkgovCenstatdProperties.ts'
 const CANONICAL_DIVISION_ID_NAMESPACE = '68cfb529-cbcb-58c9-bdf1-ff9c8e5b9c7c'
 
 const PERMANENT_LIVING_QUARTERS_DATASET =
-  'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters'
-const HMA_DATASET =
-  'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups'
+  'ds-hk-hkgov-censtatd-permanent-living-quarters'
+const HMA_DATASET = 'ds-hk-hkgov-censtatd-housing-market-areas-building-groups'
 
 type CenstatdStatisticLayer = {
   name: string
@@ -41,36 +40,36 @@ type CenstatdStatisticProfile = {
 }
 
 export const CENSTATD_STATISTIC_PROFILES = {
-  'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups': {
+  'ds-hk-hkgov-censtatd-housing-market-areas-building-groups': {
     layers: [
       { expectedRowCount: 3322, name: 'BG_21C', required: ['bg', 'hma', 't_pop'] },
       { expectedRowCount: 173, name: 'HMA_21C', required: ['hma', 't_pop'] },
     ],
     sourceVersions: ['2021'],
   },
-  'ds-hk-hkgov-censtatd-division-statistic-major-housing-estates': {
+  'ds-hk-hkgov-censtatd-major-housing-estates': {
     layers: [{ expectedRowCount: 540, name: 'MHE_21C', required: ['estate', 't_pop'] }],
     sourceVersions: ['2021'],
   },
-  'ds-hk-hkgov-censtatd-division-statistic-new-towns': {
+  'ds-hk-hkgov-censtatd-new-towns': {
     layers: [
       { expectedRowCount: 13, name: 'NewTown_21C', required: ['newtown', 't_pop'] },
     ],
     sourceVersions: ['2021'],
   },
-  'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters': {
+  'ds-hk-hkgov-censtatd-permanent-living-quarters': {
     layers: [
       { expectedRowCount: 3, name: 'AREA_LQ_2023', required: ['AREA_ENG', 'PERIOD'] },
     ],
     sourceVersions: ['2023-H2'],
   },
-  'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district': {
+  'ds-hk-hkgov-censtatd-permanent-living-quarters-district': {
     layers: [
       { expectedRowCount: 18, name: 'DCD_LQ_Q32023', required: ['DC', 'YEAR', 'LQ'] },
     ],
     sourceVersions: ['2023-H2'],
   },
-  'ds-hk-hkgov-censtatd-division-statistic-population-households-district': {
+  'ds-hk-hkgov-censtatd-population-households-district': {
     layers: [
       {
         name: 'DC_GHS',
@@ -80,7 +79,7 @@ export const CENSTATD_STATISTIC_PROFILES = {
     ],
     sourceVersions: ['2024', '2026-Q2'],
   },
-  'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district': {
+  'ds-hk-hkgov-censtatd-subdivided-units-district': {
     layers: [
       {
         expectedRowCount: 18,
@@ -350,8 +349,7 @@ export function readHkgovCenstatdStatisticArchive(input: {
   }
   const rows: SourceRow[] = []
   const layers =
-    input.datasetCode ===
-    'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district'
+    input.datasetCode === 'ds-hk-hkgov-censtatd-subdivided-units-district'
       ? profile.layers.filter(layer =>
           layer.name.includes(input.sourceVersion.slice(2)),
         )
@@ -494,7 +492,7 @@ export async function prepareHkgovCenstatdStatisticUpload(input: {
 export function parseCsdiGml(
   input: string,
   layerName: string,
-  datasetCode = 'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district',
+  datasetCode = 'ds-hk-hkgov-censtatd-land-area-population-density-district',
 ): SourceRow[] {
   const parsed = new XMLParser({
     attributeNamePrefix: '@_',

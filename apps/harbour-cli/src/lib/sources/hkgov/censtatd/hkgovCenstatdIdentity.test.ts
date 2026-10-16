@@ -3,7 +3,7 @@ import { parseCsdiGml } from './hkgovCenstatdStatistics'
 import { loadDatasetFixtures } from '../../sourceUpdatesCatalog'
 import { datasetSourceRecordIdentity } from '@repo/core/pipeline/services/sources/datasetSourceRecordIdentity'
 
-const dataset = 'ds-hk-hkgov-censtatd-division-statistic-population-households-district'
+const dataset = 'ds-hk-hkgov-censtatd-population-households-district'
 const gml = `<FeatureCollection><featureMember><DC_GHS fid="same"><dc>A</dc></DC_GHS></featureMember><featureMember><DC_GHS fid="same"><dc>B</dc></DC_GHS></featureMember><featureMember><DC_GHS><dc>C</dc></DC_GHS></featureMember></FeatureCollection>`
 
 test('native GML intake applies declared collision and missing-ID rules', () => {

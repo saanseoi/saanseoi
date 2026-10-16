@@ -56,9 +56,7 @@ test('Statistics dataset and unit metadata has complete canonical locale keys an
         ...row,
       })),
     )
-    .filter(row =>
-      row.datasetCode.startsWith('ds-hk-hkgov-censtatd-division-statistic-'),
-    )
+    .filter(row => row.datasetCode.startsWith('ds-hk-hkgov-censtatd-'))
   expect(new Set(statistics.map(row => row.datasetCode)).size).toBe(8)
   for (const code of new Set(statistics.map(row => row.datasetCode))) {
     const rows = statistics.filter(row => row.datasetCode === code)

@@ -90,31 +90,21 @@ export function normaliseHkgovCenstatdInputRow(
 export function geometryVariant(plan: GeometryUploadPlan) {
   const withTransform = (variant: string) =>
     plan.transform ? `${variant}:${plan.transform}` : variant
-  if (
-    plan.datasetCode ===
-    'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district'
-  ) {
+  if (plan.datasetCode === 'ds-hk-hkgov-censtatd-subdivided-units-district') {
     return withTransform('hkgov-censtatd-landclipped')
   }
   if (
-    plan.datasetCode ===
-      'ds-hk-hkgov-censtatd-division-statistic-population-households-district' ||
-    plan.datasetCode ===
-      'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district' ||
-    plan.datasetCode ===
-      'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district'
+    plan.datasetCode === 'ds-hk-hkgov-censtatd-population-households-district' ||
+    plan.datasetCode === 'ds-hk-hkgov-censtatd-land-area-population-density-district' ||
+    plan.datasetCode === 'ds-hk-hkgov-censtatd-permanent-living-quarters-district'
   ) {
     return withTransform('hkgov-censtatd')
   }
-  if (
-    plan.datasetCode ===
-    'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters'
-  ) {
+  if (plan.datasetCode === 'ds-hk-hkgov-censtatd-permanent-living-quarters') {
     return withTransform('hkgov-censtatd')
   }
   if (
-    plan.datasetCode ===
-    'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups'
+    plan.datasetCode === 'ds-hk-hkgov-censtatd-housing-market-areas-building-groups'
   ) {
     return withTransform('hkgov-censtatd-hma')
   }
@@ -283,8 +273,7 @@ export function hasIdenticalGeometryMaterialisation(
 export function isCenstatdPermanentLivingQuartersPlan(plan: GeometryUploadPlan) {
   return (
     plan.source === 'hkgov-censtatd' &&
-    plan.datasetCode ===
-      'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters'
+    plan.datasetCode === 'ds-hk-hkgov-censtatd-permanent-living-quarters'
   )
 }
 
@@ -294,19 +283,16 @@ export function resolveProviderBridgeConfig(plan: GeometryUploadPlan) {
   }
   if (
     plan.source === 'hkgov-censtatd' &&
-    plan.datasetCode ===
-      'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district'
+    plan.datasetCode === 'ds-hk-hkgov-censtatd-subdivided-units-district'
   ) {
     return { authority: 'hkgov-censtatd', cohortKey: plan.cohortKey }
   }
   if (
     plan.source === 'hkgov-censtatd' &&
-    (plan.datasetCode ===
-      'ds-hk-hkgov-censtatd-division-statistic-population-households-district' ||
+    (plan.datasetCode === 'ds-hk-hkgov-censtatd-population-households-district' ||
       plan.datasetCode ===
-        'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district' ||
-      plan.datasetCode ===
-        'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district')
+        'ds-hk-hkgov-censtatd-land-area-population-density-district' ||
+      plan.datasetCode === 'ds-hk-hkgov-censtatd-permanent-living-quarters-district')
   ) {
     // The curated 2021 C&SD-to-canonical bridge has the same district
     // identifiers as the annual and PLQ publications. It is deliberately an

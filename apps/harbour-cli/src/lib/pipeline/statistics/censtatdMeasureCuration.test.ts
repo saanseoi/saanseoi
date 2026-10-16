@@ -27,41 +27,33 @@ test('curates C&SD analytical dimensions without turning scalar statistics into 
     )?.dimensions
 
   expect(
-    dimensionsFor(
-      'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups',
-      'nm_f',
-    ),
+    dimensionsFor('ds-hk-hkgov-censtatd-housing-market-areas-building-groups', 'nm_f'),
   ).toEqual({
     'age-group': '15-and-over',
     'marital-status': 'never-married',
     sex: 'female',
   })
   expect(
-    dimensionsFor(
-      'ds-hk-hkgov-censtatd-division-statistic-major-housing-estates',
-      'readeng_ablepctn',
-    ),
+    dimensionsFor('ds-hk-hkgov-censtatd-major-housing-estates', 'readeng_ablepctn'),
   ).toEqual({
     'age-group': '5-and-over',
     'literacy-language': 'english',
     'literacy-skill': 'reading',
   })
-  expect(
-    dimensionsFor('ds-hk-hkgov-censtatd-division-statistic-new-towns', 'dhi_e3'),
-  ).toEqual({
+  expect(dimensionsFor('ds-hk-hkgov-censtatd-new-towns', 'dhi_e3')).toEqual({
     'foreign-domestic-helper': 'excluded',
     'household-economic-activity': 'economically-active',
     'monthly-income-band': 'hkd-10-000-to-19-999',
   })
-  expect(
-    dimensionsFor('ds-hk-hkgov-censtatd-division-statistic-new-towns', 'dhm_2'),
-  ).toEqual({ 'monthly-mortgage-repayment-band': 'hkd-1-to-3-999' })
-  expect(
-    dimensionsFor('ds-hk-hkgov-censtatd-division-statistic-new-towns', 'dhr_2'),
-  ).toEqual({ 'monthly-rent-band': 'hkd-2-000-to-5-999' })
+  expect(dimensionsFor('ds-hk-hkgov-censtatd-new-towns', 'dhm_2')).toEqual({
+    'monthly-mortgage-repayment-band': 'hkd-1-to-3-999',
+  })
+  expect(dimensionsFor('ds-hk-hkgov-censtatd-new-towns', 'dhr_2')).toEqual({
+    'monthly-rent-band': 'hkd-2-000-to-5-999',
+  })
   expect(
     dimensionsFor(
-      'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
+      'ds-hk-hkgov-censtatd-population-households-district',
       'lbnp15_ms_nm_f',
     ),
   ).toEqual({
@@ -70,24 +62,18 @@ test('curates C&SD analytical dimensions without turning scalar statistics into 
     sex: 'female',
   })
   expect(
-    dimensionsFor(
-      'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters',
-      'QTR_PRH_HA',
-    ),
+    dimensionsFor('ds-hk-hkgov-censtatd-permanent-living-quarters', 'QTR_PRH_HA'),
   ).toEqual({
     'housing-provider': 'housing-authority',
     'housing-sector': 'public-rental',
   })
 
   expect(
-    dimensionsFor(
-      'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups',
-      'whr_1',
-    ),
+    dimensionsFor('ds-hk-hkgov-censtatd-housing-market-areas-building-groups', 'whr_1'),
   ).toEqual({})
   expect(
     dimensionsFor(
-      'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district',
+      'ds-hk-hkgov-censtatd-land-area-population-density-district',
       'POPN_D',
     ),
   ).toEqual({})
@@ -108,7 +94,7 @@ test('curates C&SD analytical dimensions without turning scalar statistics into 
 test('shows the proposed name and description before prompting for field metadata', () => {
   const output = formatCenstatdFieldReviewContext({
     field: {
-      datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-example',
+      datasetCode: 'ds-hk-hkgov-censtatd-example',
       sourceField: 't_pop',
       unitCode: 'publisher-unknown',
       valueKind: 'numeric',
@@ -135,7 +121,7 @@ test('shows the proposed name and description before prompting for field metadat
 
 test('identifies C&SD field fields that require a reviewed decision', () => {
   const field = {
-    datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-example',
+    datasetCode: 'ds-hk-hkgov-censtatd-example',
     sourceField: 'TOTAL',
     unitCode: 'publisher-unknown',
     valueKind: 'numeric',
@@ -196,7 +182,7 @@ test('rejects duplicate localised field names within a C&SD dataset', () => {
   expect(() =>
     parseCenstatdFieldCuration(
       {
-        datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-example',
+        datasetCode: 'ds-hk-hkgov-censtatd-example',
         fields: [
           {
             aggregation: 'none',
@@ -244,11 +230,11 @@ test('requires the C&SD dataset code at the manifest root', () => {
   expect(() =>
     parseCenstatdFieldCuration(
       {
-        datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-example',
+        datasetCode: 'ds-hk-hkgov-censtatd-example',
         fields: [
           {
             aggregation: 'none',
-            datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-example',
+            datasetCode: 'ds-hk-hkgov-censtatd-example',
             localisations: [
               {
                 description: 'A distinct statistic.',
@@ -274,7 +260,7 @@ test('requires the C&SD dataset code at the manifest root', () => {
 
 test('accepts only reviewed source comparability cautions', () => {
   const manifest = {
-    datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-example',
+    datasetCode: 'ds-hk-hkgov-censtatd-example',
     fields: [
       {
         aggregation: 'total',

@@ -1,5 +1,5 @@
 {
-  "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups",
+  "datasetCode": "ds-hk-hkgov-censtatd-housing-market-areas-building-groups",
   "fields": [
     {
       "aggregation": "total",

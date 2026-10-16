@@ -223,7 +223,7 @@ export async function saveCenstatdFieldCuration(
 }
 
 function curationDatasetFilename(datasetCode: string) {
-  const prefix = 'ds-hk-hkgov-censtatd-division-statistic-'
+  const prefix = 'ds-hk-hkgov-censtatd-'
   return `${datasetCode.startsWith(prefix) ? datasetCode.slice(prefix.length) : datasetCode}.json`
 }
 

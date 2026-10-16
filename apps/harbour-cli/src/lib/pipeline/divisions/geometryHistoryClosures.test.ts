@@ -142,8 +142,7 @@ function fixture(resourceType: ResourceType) {
             scope.source,
             {
               variant: scope.variant,
-              datasetCode:
-                'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups',
+              datasetCode: 'ds-hk-hkgov-censtatd-housing-market-areas-building-groups',
             },
           )
         : normaliseDivisionBoundaryGeometryRow(raw, scope.source, {

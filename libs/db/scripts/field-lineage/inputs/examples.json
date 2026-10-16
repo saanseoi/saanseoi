@@ -288,7 +288,7 @@
             "id": "source",
             "kind": "source-release",
             "bindingRole": "statisticPublisherInput",
-            "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district"
+            "datasetCode": "ds-hk-hkgov-censtatd-land-area-population-density-district"
           },
           {
             "id": "canonical",

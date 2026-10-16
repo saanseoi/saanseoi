@@ -2481,8 +2481,8 @@ describe('atlas-api', () => {
       'stats:2e16ff6629a00669a571b4e514b3d6a9a6063b56964d6bec3981780dd4e219e4',
     ])
     expect(statisticAttributes?.properties?.datasetCode?.examples).toEqual([
-      'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters',
-      'ds-hk-hkgov-censtatd-division-statistic-major-housing-estates',
+      'ds-hk-hkgov-censtatd-permanent-living-quarters',
+      'ds-hk-hkgov-censtatd-major-housing-estates',
     ])
     const statisticFieldAttributes =
       statisticSchemas?.StatisticField?.properties?.attributes

@@ -1,18 +1,18 @@
 {
-  "versionHash": "sha256:ac51f87051f50ca9bb881f1e4f8d285e2c24d209fb2f4ef741fe287567c47f38",
+  "versionHash": "sha256:12c97da58e74d2e77068940f864ba3eb0d8ae3ff30c2213f3d2753cc07328abb",
   "apiVersion": "api-divisions-v0.1",
   "domainCode": "hkgov-censtatd-hma",
   "mappingVersion": 1,
   "schemaVersion": "sv-division-v1",
   "rulesetVersion": "rs-division-hkgov-censtatd-hma-merge-v1",
   "publisherSchemaRanges": {
-    "ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups": {
+    "ds-hk-hkgov-censtatd-housing-market-areas-building-groups": {
       "min": "1.0",
       "max": "1.0"
     }
   },
   "publisherFields": {
-    "ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups": {
+    "ds-hk-hkgov-censtatd-housing-market-areas-building-groups": {
       "properties.hma": "properties.hma",
       "geometry": "HMA_21C.gml.geometry",
       "properties.hmaEng": "properties.hma_eng",
@@ -22,7 +22,7 @@
   "sourceCompositions": [
     {
       "datasetCodes": [
-        "ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups"
+        "ds-hk-hkgov-censtatd-housing-market-areas-building-groups"
       ],
       "anchorSnapshotVersions": [
         "ss-hk-division-hkgov-censtatd-hma-2021"
@@ -40,7 +40,7 @@
       "fields": [
         {
           "apiField": "id",
-          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-housing-market-areas-building-groups",
           "resolverCode": "direct_copy",
           "contributionType": "primary",
           "priority": 0,
@@ -54,7 +54,7 @@
         },
         {
           "apiField": "attributes.level",
-          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-housing-market-areas-building-groups",
           "resolverCode": "direct_copy",
           "contributionType": "primary",
           "priority": 0,
@@ -68,7 +68,7 @@
         },
         {
           "apiField": "attributes.class",
-          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-housing-market-areas-building-groups",
           "resolverCode": "direct_copy",
           "contributionType": "primary",
           "priority": 0,
@@ -82,7 +82,7 @@
         },
         {
           "apiField": "attributes.category",
-          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-housing-market-areas-building-groups",
           "resolverCode": "direct_copy",
           "contributionType": "primary",
           "priority": 0,
@@ -96,7 +96,7 @@
         },
         {
           "apiField": "attributes.geometry",
-          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-housing-market-areas-building-groups",
           "resolverCode": "direct_copy",
           "contributionType": "primary",
           "priority": 0,
@@ -110,7 +110,7 @@
         },
         {
           "apiField": "attributes.identifiers",
-          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-housing-market-areas-building-groups",
           "resolverCode": "direct_copy",
           "contributionType": "primary",
           "priority": 0,
@@ -124,7 +124,7 @@
         },
         {
           "apiField": "attributes.sources",
-          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-housing-market-areas-building-groups",
           "resolverCode": "direct_copy",
           "contributionType": "primary",
           "priority": 0,
@@ -138,7 +138,7 @@
         },
         {
           "apiField": "attributes.hierarchies",
-          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-housing-market-areas-building-groups",
           "resolverCode": "direct_copy",
           "contributionType": "primary",
           "priority": 0,
@@ -152,7 +152,7 @@
         },
         {
           "apiField": "attributes.cartography",
-          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-housing-market-areas-building-groups",
           "resolverCode": "direct_copy",
           "contributionType": "primary",
           "priority": 0,
@@ -166,7 +166,7 @@
         },
         {
           "apiField": "attributes.divisionCode",
-          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-housing-market-areas-building-groups",
           "resolverCode": "direct_copy",
           "contributionType": "primary",
           "priority": 0,
@@ -180,7 +180,7 @@
         },
         {
           "apiField": "attributes.i18n.*.name",
-          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-housing-market-areas-building-groups",
           "resolverCode": "direct_copy",
           "contributionType": "primary",
           "priority": 0,
@@ -198,7 +198,7 @@
         },
         {
           "apiField": "attributes.i18n.*.nameAlts",
-          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-housing-market-areas-building-groups",
           "resolverCode": "direct_copy",
           "contributionType": "primary",
           "priority": 0,
@@ -216,7 +216,7 @@
         },
         {
           "apiField": "attributes.i18n.*.nameRules",
-          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-housing-market-areas-building-groups",
           "resolverCode": "direct_copy",
           "contributionType": "primary",
           "priority": 0,
@@ -234,7 +234,7 @@
         },
         {
           "apiField": "relationships.areas",
-          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-housing-market-areas-building-groups",
           "resolverCode": "direct_copy",
           "contributionType": "primary",
           "priority": 0,
@@ -248,7 +248,7 @@
         },
         {
           "apiField": "relationships.boundaries",
-          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-housing-market-areas-building-groups",
           "resolverCode": "direct_copy",
           "contributionType": "primary",
           "priority": 0,
@@ -262,7 +262,7 @@
         },
         {
           "apiField": "attributes.snapshotId",
-          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-housing-market-areas-building-groups",
           "resolverCode": "direct_copy",
           "contributionType": "primary",
           "priority": 0,
@@ -276,7 +276,7 @@
         },
         {
           "apiField": "attributes.createdAt",
-          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-housing-market-areas-building-groups",
           "resolverCode": "direct_copy",
           "contributionType": "primary",
           "priority": 0,
@@ -295,7 +295,7 @@
       "fields": [
         {
           "apiField": "id",
-          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-housing-market-areas-building-groups",
           "resolverCode": "direct_copy",
           "contributionType": "primary",
           "priority": 0,
@@ -310,7 +310,7 @@
         },
         {
           "apiField": "attributes.geometry",
-          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-housing-market-areas-building-groups",
           "resolverCode": "direct_copy",
           "contributionType": "primary",
           "priority": 0,
@@ -325,7 +325,7 @@
         },
         {
           "apiField": "attributes.bbox",
-          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-housing-market-areas-building-groups",
           "resolverCode": "direct_copy",
           "contributionType": "primary",
           "priority": 0,
@@ -340,7 +340,7 @@
         },
         {
           "apiField": "attributes.divisionId",
-          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-housing-market-areas-building-groups",
           "resolverCode": "direct_copy",
           "contributionType": "primary",
           "priority": 0,
@@ -355,7 +355,7 @@
         },
         {
           "apiField": "attributes.type",
-          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-housing-market-areas-building-groups",
           "resolverCode": "constant_value",
           "contributionType": "primary",
           "priority": 0,
@@ -370,7 +370,7 @@
         },
         {
           "apiField": "attributes.variant",
-          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-housing-market-areas-building-groups",
           "resolverCode": "direct_copy",
           "contributionType": "primary",
           "priority": 0,
@@ -385,7 +385,7 @@
         },
         {
           "apiField": "attributes.sources",
-          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-housing-market-areas-building-groups",
           "resolverCode": "direct_copy",
           "contributionType": "primary",
           "priority": 0,
@@ -400,7 +400,7 @@
         },
         {
           "apiField": "attributes.isLand",
-          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-housing-market-areas-building-groups",
           "resolverCode": "constant_value",
           "contributionType": "primary",
           "priority": 0,
@@ -415,7 +415,7 @@
         },
         {
           "apiField": "attributes.isTerritorial",
-          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-housing-market-areas-building-groups",
           "resolverCode": "constant_value",
           "contributionType": "primary",
           "priority": 0,
@@ -430,7 +430,7 @@
         },
         {
           "apiField": "attributes.snapshotId",
-          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-housing-market-areas-building-groups",
           "resolverCode": "direct_copy",
           "contributionType": "primary",
           "priority": 0,

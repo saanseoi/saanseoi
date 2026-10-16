@@ -37,7 +37,7 @@ test('resolves churn metadata after a staged C&SD release is synced into a reuse
     ) VALUES (
       'dataset',
       'publisher',
-      'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters',
+      'ds-hk-hkgov-censtatd-permanent-living-quarters',
       'hk',
       'static',
       'half-yearly',
@@ -54,7 +54,7 @@ test('resolves churn metadata after a staged C&SD release is synced into a reuse
   await syncStagedReleaseIntoLocalMetaCache(
     metaDb as unknown as Parameters<typeof syncStagedReleaseIntoLocalMetaCache>[0],
     {
-      datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters',
+      datasetCode: 'ds-hk-hkgov-censtatd-permanent-living-quarters',
       rawObjectKey: 'hk/hkgov-censtatd/2023-H2/division-statistic.parquet',
       releaseCode:
         'dr-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-2023-H2',
@@ -82,7 +82,7 @@ test('resolves churn metadata after a staged C&SD release is synced into a reuse
   await syncStagedReleaseIntoLocalMetaCache(
     metaDb as unknown as Parameters<typeof syncStagedReleaseIntoLocalMetaCache>[0],
     {
-      datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters',
+      datasetCode: 'ds-hk-hkgov-censtatd-permanent-living-quarters',
       rawObjectKey: 'hk/hkgov-censtatd/2023-H2/division-statistic.parquet',
       releaseCode:
         'dr-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-2023-H2',
@@ -99,7 +99,7 @@ test('resolves churn metadata after a staged C&SD release is synced into a reuse
   )
   expect(sqlite.query('SELECT code,sourceVersion FROM sourceReleases').all()).toEqual([
     {
-      code: 'dr-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-2023-H2',
+      code: 'dr-hk-hkgov-censtatd-permanent-living-quarters-2023-H2',
       sourceVersion: '2023-H2',
     },
   ])
@@ -137,8 +137,7 @@ test('resolves churn metadata after a staged C&SD release is synced into a reuse
     await syncStagedReleaseIntoLocalMetaCache(
       metaDb as never,
       {
-        datasetCode:
-          'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters',
+        datasetCode: 'ds-hk-hkgov-censtatd-permanent-living-quarters',
         rawObjectKey: 'hk/hkgov-censtatd/2023-H2/division-statistic.parquet',
         releaseCode,
         resourceReleaseId,
@@ -165,8 +164,7 @@ test('resolves churn metadata after a staged C&SD release is synced into a reuse
     syncStagedReleaseIntoLocalMetaCache(
       metaDb as unknown as Parameters<typeof syncStagedReleaseIntoLocalMetaCache>[0],
       {
-        datasetCode:
-          'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters',
+        datasetCode: 'ds-hk-hkgov-censtatd-permanent-living-quarters',
         rawObjectKey: 'hk/hkgov-censtatd/2023-H2/division-area.parquet',
         releaseCode:
           'dr-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-2023-H2',

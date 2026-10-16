@@ -8,10 +8,10 @@ import { statisticGeometryDependencies } from './statisticsGeometry'
 
 const statistic = {
   id: 'statistic-population-2021',
-  datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
+  datasetCode: 'ds-hk-hkgov-censtatd-population-households-district',
   sourceReleaseId: 'release-statistics-2021',
   sourceFeatureRef:
-    'hkgov-censtatd/ds-hk-hkgov-censtatd-division-statistic-population-households-district/2021/District:1',
+    'hkgov-censtatd/ds-hk-hkgov-censtatd-population-households-district/2021/District:1',
   divisionId: 'division-central-western',
   referencePeriodCode: '2021',
   referencePeriodStart: null,
@@ -46,9 +46,9 @@ const statistic = {
 const majorHousingEstateStatistic = {
   ...statistic,
   id: 'statistic-major-housing-estate-population-2021',
-  datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-major-housing-estates',
+  datasetCode: 'ds-hk-hkgov-censtatd-major-housing-estates',
   sourceFeatureRef:
-    'hkgov-censtatd/ds-hk-hkgov-censtatd-division-statistic-major-housing-estates/2021/HousingEstate:1',
+    'hkgov-censtatd/ds-hk-hkgov-censtatd-major-housing-estates/2021/HousingEstate:1',
   divisionId: null,
   geography: { kind: 'housing-estate', code: 'estate-1' },
 } as const
@@ -56,9 +56,8 @@ const majorHousingEstateStatistic = {
 const newTownStatistic = {
   ...statistic,
   id: 'statistic-new-town-population-2021',
-  datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-new-towns',
-  sourceFeatureRef:
-    'hkgov-censtatd/ds-hk-hkgov-censtatd-division-statistic-new-towns/2021/NewTown:1',
+  datasetCode: 'ds-hk-hkgov-censtatd-new-towns',
+  sourceFeatureRef: 'hkgov-censtatd/ds-hk-hkgov-censtatd-new-towns/2021/NewTown:1',
   divisionId: 'division-new-town-shatin',
   geography: {
     kind: 'new-town',
@@ -464,12 +463,11 @@ describe('Statistics service', () => {
     const densityStatistic = {
       ...statistic,
       id: 'statistic-density-2024',
-      datasetCode:
-        'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district',
+      datasetCode: 'ds-hk-hkgov-censtatd-land-area-population-density-district',
       referencePeriodCode: '2024',
       referencePeriodEndYear: '2024',
       sourceFeatureRef:
-        'hkgov-censtatd/ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district/2024/Density:11',
+        'hkgov-censtatd/ds-hk-hkgov-censtatd-land-area-population-density-district/2024/Density:11',
       geography: {
         kind: 'district',
         code: '11',

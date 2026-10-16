@@ -5909,11 +5909,11 @@ export async function publishReleaseArtefacts(
 }
 
 const CENSTATD_DENSITY_DISTRICT_DATASET =
-  'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district'
+  'ds-hk-hkgov-censtatd-land-area-population-density-district'
 const CENSTATD_PERMANENT_LIVING_QUARTERS_DATASET =
-  'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters'
+  'ds-hk-hkgov-censtatd-permanent-living-quarters'
 const CENSTATD_POPULATION_HOUSEHOLDS_DISTRICT_DATASET =
-  'ds-hk-hkgov-censtatd-division-statistic-population-households-district'
+  'ds-hk-hkgov-censtatd-population-households-district'
 
 /**
  * Selects the canonical C&SD source relationship for API field provenance.

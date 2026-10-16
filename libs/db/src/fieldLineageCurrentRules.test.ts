@@ -61,7 +61,7 @@ test('native C&SD divisions dispatch before the generic WKB normaliser', () => {
   const native = currentFieldRule(
     'division',
     'attributes.geometry',
-    'ds-hk-hkgov-censtatd-division-statistic-new-towns',
+    'ds-hk-hkgov-censtatd-new-towns',
   )!
   expect(native.implementation.symbol).toBe(
     'normaliseHkgovCenstatdStatisticDivisionRow',

@@ -76,8 +76,7 @@ test('post-publication statistics failures retain archived resource release stat
   }
 })
 
-const datasetCode =
-  'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district'
+const datasetCode = 'ds-hk-hkgov-censtatd-land-area-population-density-district'
 const sourceCode = `dr-${datasetCode.slice(3)}-2024`
 const types = ['divisionStatistic', 'divisionArea'] as const
 

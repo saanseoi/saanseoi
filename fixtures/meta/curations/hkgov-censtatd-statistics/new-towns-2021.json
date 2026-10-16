@@ -1,5 +1,5 @@
 {
-  "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-new-towns",
+  "datasetCode": "ds-hk-hkgov-censtatd-new-towns",
   "fields": [
     {
       "aggregation": "none",

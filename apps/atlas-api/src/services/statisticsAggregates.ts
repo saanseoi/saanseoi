@@ -84,10 +84,9 @@ type SeriesAggregateResult =
   | { status: 503; body: StatisticSnapshotNotReadyResponse }
 
 const BUILDING_GROUP_DATASET =
-  'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups'
-const MAJOR_HOUSING_ESTATE_DATASET =
-  'ds-hk-hkgov-censtatd-division-statistic-major-housing-estates'
-const NEW_TOWNS_DATASET = 'ds-hk-hkgov-censtatd-division-statistic-new-towns'
+  'ds-hk-hkgov-censtatd-housing-market-areas-building-groups'
+const MAJOR_HOUSING_ESTATE_DATASET = 'ds-hk-hkgov-censtatd-major-housing-estates'
+const NEW_TOWNS_DATASET = 'ds-hk-hkgov-censtatd-new-towns'
 
 function aggregateGeographyFor(record: StatisticRecord): AggregateGeography | null {
   if (record.datasetCode === BUILDING_GROUP_DATASET) {

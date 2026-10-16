@@ -22,8 +22,7 @@ test('Statistics value specification matches decimal, suppression and literal pr
   ] as const) {
     const result = normaliseHkgovCenstatdStatistics([
       {
-        datasetCode:
-          'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district',
+        datasetCode: 'ds-hk-hkgov-censtatd-land-area-population-density-district',
         sourceReleaseId: 'release',
         sourceFeatureRef: 'feature',
         sourceVersion: '2024',
@@ -100,7 +99,7 @@ test('retained Statistics profiles agree with period selection and identifier ex
     ],
   ]
   for (const [suffix, identifiers, period, kind] of cases) {
-    const datasetCode = `ds-hk-hkgov-censtatd-division-statistic-${suffix}`
+    const datasetCode = `ds-hk-hkgov-censtatd-${suffix}`
     const specification = statisticProfileSpecification(datasetCode)!
     expect(new Set(specification.identifierFields)).toEqual(
       new Set(Object.keys(identifiers)),
@@ -131,8 +130,7 @@ test('retained Statistics profiles agree with period selection and identifier ex
 })
 
 test('Statistics definition fold retains numeric classification across rows and hashes the field and linked measure', () => {
-  const datasetCode =
-    'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district'
+  const datasetCode = 'ds-hk-hkgov-censtatd-land-area-population-density-district'
   const input = ['literal', '12', '**'].map((amount, index) => ({
     datasetCode,
     sourceReleaseId: 'release',
@@ -168,8 +166,7 @@ test('Statistics definition fold retains numeric classification across rows and 
 })
 
 test('packed Statistics keep first-series identity and per-field source identity independently', () => {
-  const datasetCode =
-    'ds-hk-hkgov-censtatd-division-statistic-population-households-district'
+  const datasetCode = 'ds-hk-hkgov-censtatd-population-households-district'
   const row = (
     sourceFeatureRef: string,
     values: Record<string, unknown>,
@@ -222,8 +219,7 @@ test('retained intake profiles cover the current parser branches exactly', () =>
 test('reviewed geography takes precedence and exact-year companions take precedence over wildcard companions', () => {
   const result = normaliseHkgovCenstatdStatistics([
     {
-      datasetCode:
-        'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
+      datasetCode: 'ds-hk-hkgov-censtatd-population-households-district',
       sourceReleaseId: 'release',
       sourceFeatureRef: 'feature',
       sourceVersion: '2024',

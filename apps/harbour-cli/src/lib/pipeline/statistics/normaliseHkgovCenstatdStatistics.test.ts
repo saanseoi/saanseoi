@@ -11,8 +11,7 @@ describe('normaliseHkgovCenstatdStatistics', () => {
   test('retains a compilation row’s own annual reference period', () => {
     const rows = normaliseHkgovCenstatdStatistics([
       {
-        datasetCode:
-          'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
+        datasetCode: 'ds-hk-hkgov-censtatd-population-households-district',
         areaCompanionByReferencePeriod: {
           '*': {
             variant: 'hkgov-censtatd',
@@ -63,8 +62,7 @@ describe('normaliseHkgovCenstatdStatistics', () => {
   test('uses the row quarter and preserves suppression literals', () => {
     const rows = normaliseHkgovCenstatdStatistics([
       {
-        datasetCode:
-          'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district',
+        datasetCode: 'ds-hk-hkgov-censtatd-permanent-living-quarters-district',
         properties: {
           DC: '11',
           DC_CHI: '中西區',
@@ -91,7 +89,7 @@ describe('normaliseHkgovCenstatdStatistics', () => {
   test('keeps Major Housing Estate GML references out of statistics', () => {
     const rows = normaliseHkgovCenstatdStatistics([
       {
-        datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-major-housing-estates',
+        datasetCode: 'ds-hk-hkgov-censtatd-major-housing-estates',
         properties: {
           estate: '1',
           estate_chi: '測試屋苑',
@@ -119,8 +117,7 @@ describe('normaliseHkgovCenstatdStatistics', () => {
   test('stores density population as actual people without a multiplier', () => {
     const rows = normaliseHkgovCenstatdStatistics([
       {
-        datasetCode:
-          'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district',
+        datasetCode: 'ds-hk-hkgov-censtatd-land-area-population-density-district',
         geography: { code: 'CW', kind: 'district' },
         divisionId: 'district-central-western',
         properties: {
@@ -166,7 +163,7 @@ describe('normaliseHkgovCenstatdStatistics', () => {
     const rows = normaliseHkgovCenstatdStatistics(
       [
         {
-          datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-example',
+          datasetCode: 'ds-hk-hkgov-censtatd-example',
           properties: { AREA: '12' },
           sourceFeatureRef: 'example:1',
           sourceReleaseId: 'release-example',
@@ -176,7 +173,7 @@ describe('normaliseHkgovCenstatdStatistics', () => {
       {
         fieldMetadata: new Map([
           [
-            'ds-hk-hkgov-censtatd-division-statistic-example\u0000AREA',
+            'ds-hk-hkgov-censtatd-example\u0000AREA',
             {
               localisations: [
                 {
@@ -266,8 +263,7 @@ describe('normaliseHkgovCenstatdStatistics', () => {
   test('packs a feature’s dimension-qualified values into one canonical record', () => {
     const [record] = normaliseHkgovCenstatdStatistics([
       {
-        datasetCode:
-          'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district',
+        datasetCode: 'ds-hk-hkgov-censtatd-land-area-population-density-district',
         properties: {
           DC: '11',
           DC_CHI: '中西區',
@@ -293,7 +289,7 @@ describe('normaliseHkgovCenstatdStatistics', () => {
     const rows = normaliseHkgovCenstatdStatistics(
       [
         {
-          datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-example',
+          datasetCode: 'ds-hk-hkgov-censtatd-example',
           properties: { ALL: '10', FEMALE: '6', MALE: '4' },
           sourceFeatureRef: 'hkgov-censtatd/example/2024/Example:1',
           sourceReleaseId: 'release-example',
@@ -303,7 +299,7 @@ describe('normaliseHkgovCenstatdStatistics', () => {
       {
         fieldMetadata: new Map([
           [
-            'ds-hk-hkgov-censtatd-division-statistic-example\u0000ALL',
+            'ds-hk-hkgov-censtatd-example\u0000ALL',
             {
               aggregation: 'total' as const,
               dimensions: { sex: 'all' },
@@ -315,7 +311,7 @@ describe('normaliseHkgovCenstatdStatistics', () => {
             },
           ],
           [
-            'ds-hk-hkgov-censtatd-division-statistic-example\u0000FEMALE',
+            'ds-hk-hkgov-censtatd-example\u0000FEMALE',
             {
               aggregation: 'total' as const,
               dimensions: { sex: 'female' },
@@ -327,7 +323,7 @@ describe('normaliseHkgovCenstatdStatistics', () => {
             },
           ],
           [
-            'ds-hk-hkgov-censtatd-division-statistic-example\u0000MALE',
+            'ds-hk-hkgov-censtatd-example\u0000MALE',
             {
               aggregation: 'total' as const,
               dimensions: { sex: 'male' },
@@ -365,8 +361,7 @@ describe('normaliseHkgovCenstatdStatistics', () => {
   })
 
   test('packs the 69 reviewed building-group dimension combinations into one geography/period record', async () => {
-    const datasetCode =
-      'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups'
+    const datasetCode = 'ds-hk-hkgov-censtatd-housing-market-areas-building-groups'
     const registry = await loadCenstatdFieldCuration()
     const curated = registry.fields.filter(field => field.datasetCode === datasetCode)
     expect(new Set(curated.map(field => JSON.stringify(field.dimensions))).size).toBe(
@@ -407,8 +402,7 @@ describe('normaliseHkgovCenstatdStatistics', () => {
   })
 
   test('record identity excludes publication versions and geometry companion vintages', () => {
-    const datasetCode =
-      'ds-hk-hkgov-censtatd-division-statistic-population-households-district'
+    const datasetCode = 'ds-hk-hkgov-censtatd-population-households-district'
     const row = {
       datasetCode,
       properties: { dc: '11', dc_class: 'A', year: '2021', my_lp: '123' },
@@ -445,8 +439,7 @@ describe('normaliseHkgovCenstatdStatistics', () => {
   })
 
   test('separates semantic geography, dataset, exact period and parent namespace', () => {
-    const datasetCode =
-      'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters'
+    const datasetCode = 'ds-hk-hkgov-censtatd-permanent-living-quarters'
     const base = {
       datasetCode,
       properties: { AREA_ENG: 'District', PERIOD: '2024-Q1', LQ: '12' },
@@ -472,7 +465,7 @@ describe('normaliseHkgovCenstatdStatistics', () => {
 
   test('merges disjoint source fields but rejects conflicting duplicate source variants', () => {
     const base = {
-      datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-example',
+      datasetCode: 'ds-hk-hkgov-censtatd-example',
       properties: { population: '12' },
       sourceFeatureRef: 'publisher/first',
       sourceReleaseId: 'release',
@@ -507,7 +500,7 @@ describe('normaliseHkgovCenstatdStatistics', () => {
 
   test('suppression does not revise numeric field definitions', () => {
     const base = {
-      datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-example',
+      datasetCode: 'ds-hk-hkgov-censtatd-example',
       properties: { population: '12' },
       sourceFeatureRef: 'publisher/first',
       sourceReleaseId: 'release',

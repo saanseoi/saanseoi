@@ -38,10 +38,8 @@ export async function runCsdiArchiveIngestPlaceholder(
   }
 
   if (
-    (dataset.code ===
-      'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district' ||
-      dataset.code ===
-        'ds-hk-hkgov-censtatd-division-statistic-population-households-district') &&
+    (dataset.code === 'ds-hk-hkgov-censtatd-subdivided-units-district' ||
+      dataset.code === 'ds-hk-hkgov-censtatd-population-households-district') &&
     (release?.sourceVersion === '2016' ||
       release?.sourceVersion === '2021' ||
       release?.sourceVersion === '2024') &&
@@ -71,8 +69,7 @@ export async function runCsdiArchiveIngestPlaceholder(
   }
 
   if (
-    dataset.code ===
-      'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district' &&
+    dataset.code === 'ds-hk-hkgov-censtatd-land-area-population-density-district' &&
     (release?.sourceVersion === '2022' || release?.sourceVersion === '2024') &&
     release.sourceUrl
   ) {
@@ -286,8 +283,8 @@ export function buildHkgovCenstatdDistrictStatisticArchiveIngestCommand(input: {
 
 export function buildHkgovCenstatdDistrictArchiveIngestCommand(input: {
   datasetCode:
-    | 'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district'
-    | 'ds-hk-hkgov-censtatd-division-statistic-population-households-district'
+    | 'ds-hk-hkgov-censtatd-subdivided-units-district'
+    | 'ds-hk-hkgov-censtatd-population-households-district'
   deferApiReleaseSet?: boolean
   inputFile: string
   releaseNotesUrl: string
@@ -321,13 +318,13 @@ export function buildHkgovCenstatdDistrictArchiveIngestCommand(input: {
 }
 
 const HKGOV_CENSTATD_STATISTIC_DATASETS = new Set([
-  'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups',
-  'ds-hk-hkgov-censtatd-division-statistic-major-housing-estates',
-  'ds-hk-hkgov-censtatd-division-statistic-new-towns',
-  'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters',
-  'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district',
-  'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
-  'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district',
+  'ds-hk-hkgov-censtatd-housing-market-areas-building-groups',
+  'ds-hk-hkgov-censtatd-major-housing-estates',
+  'ds-hk-hkgov-censtatd-new-towns',
+  'ds-hk-hkgov-censtatd-permanent-living-quarters',
+  'ds-hk-hkgov-censtatd-permanent-living-quarters-district',
+  'ds-hk-hkgov-censtatd-population-households-district',
+  'ds-hk-hkgov-censtatd-subdivided-units-district',
 ])
 
 function isHkgovCenstatdStatisticDataset(code: string) {

@@ -297,8 +297,7 @@ function isHousingMarketAreaPlan(plan: GeometryUploadPlan) {
   return (
     plan.resourceType === 'divisionArea' &&
     plan.source === 'hkgov-censtatd' &&
-    plan.datasetCode ===
-      'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups'
+    plan.datasetCode === 'ds-hk-hkgov-censtatd-housing-market-areas-building-groups'
   )
 }
 
@@ -307,14 +306,11 @@ export function supportsDistrictGeometryStatistics(plan: GeometryUploadPlan) {
     plan.source === 'hkgov-had' ||
     plan.source === 'overture' ||
     (plan.source === 'hkgov-censtatd' &&
-      (plan.datasetCode ===
-        'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district' ||
+      (plan.datasetCode === 'ds-hk-hkgov-censtatd-subdivided-units-district' ||
+        plan.datasetCode === 'ds-hk-hkgov-censtatd-population-households-district' ||
         plan.datasetCode ===
-          'ds-hk-hkgov-censtatd-division-statistic-population-households-district' ||
-        plan.datasetCode ===
-          'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district' ||
-        plan.datasetCode ===
-          'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district'))
+          'ds-hk-hkgov-censtatd-land-area-population-density-district' ||
+        plan.datasetCode === 'ds-hk-hkgov-censtatd-permanent-living-quarters-district'))
   )
 }
 

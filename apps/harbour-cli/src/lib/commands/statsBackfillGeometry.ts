@@ -346,14 +346,11 @@ async function listGeometryReleases(
 function isDistrictGeometryRelease(release: BackfillRelease) {
   return (
     release.datasetCode === 'ds-hk-hkgov-had-division-area-district' ||
+    release.datasetCode === 'ds-hk-hkgov-censtatd-subdivided-units-district' ||
+    release.datasetCode === 'ds-hk-hkgov-censtatd-population-households-district' ||
     release.datasetCode ===
-      'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district' ||
-    release.datasetCode ===
-      'ds-hk-hkgov-censtatd-division-statistic-population-households-district' ||
-    release.datasetCode ===
-      'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district' ||
-    release.datasetCode ===
-      'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district' ||
+      'ds-hk-hkgov-censtatd-land-area-population-density-district' ||
+    release.datasetCode === 'ds-hk-hkgov-censtatd-permanent-living-quarters-district' ||
     release.datasetCode === 'ds-hk-overture-division' ||
     release.datasetCode === 'ds-hk-overture-division'
   )
@@ -362,14 +359,11 @@ function isDistrictGeometryRelease(release: BackfillRelease) {
 function usesReviewedDistrictBridge(release: BackfillRelease) {
   return (
     release.datasetCode === 'ds-hk-hkgov-had-division-area-district' ||
+    release.datasetCode === 'ds-hk-hkgov-censtatd-subdivided-units-district' ||
+    release.datasetCode === 'ds-hk-hkgov-censtatd-population-households-district' ||
     release.datasetCode ===
-      'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district' ||
-    release.datasetCode ===
-      'ds-hk-hkgov-censtatd-division-statistic-population-households-district' ||
-    release.datasetCode ===
-      'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district' ||
-    release.datasetCode ===
-      'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district'
+      'ds-hk-hkgov-censtatd-land-area-population-density-district' ||
+    release.datasetCode === 'ds-hk-hkgov-censtatd-permanent-living-quarters-district'
   )
 }
 

@@ -86,8 +86,7 @@ describe('registry code construction', () => {
     ).toBe('overture')
     expect(
       datasetVariantForSource('divisionStatistic', 'hkgov-censtatd', {
-        datasetCode:
-          'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
+        datasetCode: 'ds-hk-hkgov-censtatd-population-households-district',
       }),
     ).toBe('hkgov-censtatd-population-households-district')
     expect(
@@ -147,7 +146,7 @@ test('statistic composition variants match ingestion and preserve lineage identi
   )
   const { buildSnapshotLineageCode } = await import('../../db/src/versioning')
   const datasets = (await import('@repo/db/registry')).initialDatasets.filter(row =>
-    row.code.startsWith('ds-hk-hkgov-censtatd-division-statistic-'),
+    row.code.startsWith('ds-hk-hkgov-censtatd-'),
   )
   const variants = datasets.map(dataset => {
     const variant = datasetVariantForSource('divisionStatistic', 'hkgov-censtatd', {

@@ -1,5 +1,5 @@
 {
-  "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
+  "datasetCode": "ds-hk-hkgov-censtatd-subdivided-units-district",
   "measures": [
     {
       "localisations": [
@@ -95,5 +95,5 @@
     }
   ],
   "schemaVersion": 1,
-  "versionHash": "sha256:cd571e934eae05149c30167e97be6b1b0df82299aef3894e6bc543b43241280b"
+  "versionHash": "sha256:f38ad742ba0ace6cff9095838b22f084239b742776408a1108cf89461e490a6d"
 }

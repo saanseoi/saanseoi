@@ -22,8 +22,7 @@ test('publishes a dataset snapshot without finalising a shared source release', 
   const tempDir = createTempDir()
   const sqlite = initDb(join(tempDir, 'harbour-control-statistic.sqlite'))
   const db = createLocalHarbourDb(sqlite)
-  const datasetCode =
-    'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district'
+  const datasetCode = 'ds-hk-hkgov-censtatd-land-area-population-density-district'
   sqlite.exec(`
     INSERT INTO publishers (id, code, versionHash, createdAt, updatedAt)
     VALUES (
@@ -43,7 +42,7 @@ test('publishes a dataset snapshot without finalising a shared source release', 
       theme, sourceVariant, versionHash, createdAt, updatedAt
     ) VALUES (
       'dataset-censtatd-population', 'publisher-hkgov-censtatd',
-      'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
+      'ds-hk-hkgov-censtatd-population-households-district',
       'hk', 'static', 'yearly', 'stats', 'official-statistics',
       'vh-dataset-censtatd-population', 1761264000000, 1761264000000
     );
@@ -191,8 +190,7 @@ test.each([false, true])(
     const sqlite = initDb(join(tempDir, 'harbour-control-fallback-geometry.sqlite'))
     const db = createLocalHarbourDb(sqlite)
     const datasetId = 'dataset-censtatd-annual-district'
-    const datasetCode =
-      'ds-hk-hkgov-censtatd-division-statistic-population-households-district'
+    const datasetCode = 'ds-hk-hkgov-censtatd-population-households-district'
     const resourceReleaseId = 'release-censtatd-annual-district-2026-q2-area'
     sqlite.exec(`
     INSERT OR IGNORE INTO publishers (id, code, versionHash, createdAt, updatedAt)
@@ -282,9 +280,7 @@ test('bootstraps one cohort-complete initial Statistics release set', async () =
   const tempDir = createTempDir()
   const sqlite = initDb(join(tempDir, 'harbour-control-statistics-bootstrap.sqlite'))
   const db = createLocalHarbourDb(sqlite)
-  const datasetCodes = [
-    'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
-  ] as const
+  const datasetCodes = ['ds-hk-hkgov-censtatd-population-households-district'] as const
   const releaseIds: string[] = []
 
   sqlite.exec(`

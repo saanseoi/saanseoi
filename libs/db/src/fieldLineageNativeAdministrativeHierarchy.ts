@@ -3,7 +3,7 @@ import type { CurrentFieldRule } from './fieldLineageCurrentRules'
 import type { HumanOperation } from './fieldLineageHuman'
 
 export const inferredAdministrativeDatasets = new Set([
-  'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups',
+  'ds-hk-hkgov-censtatd-housing-market-areas-building-groups',
   'ds-hk-hkgov-pland-division-new-town',
   'ds-hk-hkgov-landsd-division',
 ])

@@ -93,7 +93,7 @@ if not init_is_completed_release "$censtatd_area_release_code::divisionStatistic
         # update pass below. The dataops replay mirrors the prepared archive to the
         # selected target before attempting to link its derived source releases.
         init_run_step ./bin/saanseoi update --target $saanseoi_init_target \
-            --dataset ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters \
+            --dataset ds-hk-hkgov-censtatd-permanent-living-quarters \
             --download --force-download --no-upload --yes
     end
     if not test -f "$censtatd_area_archive"; or not test -f "$censtatd_area_manifest"
@@ -106,7 +106,7 @@ if not init_is_completed_release "$censtatd_area_release_code::divisionStatistic
     # leave this cohort without an API snapshot.
     init_run_step bun run --silent dataops -- hkgov-censtatd:statistics \
         "$censtatd_area_archive" --target $saanseoi_init_target \
-        --dataset-code ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters \
+        --dataset-code ds-hk-hkgov-censtatd-permanent-living-quarters \
         --source-version 2023-H2 \
         --release-notes-url "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635933883228_46491" \
         --source-archive-key by-source/hk/hkgov-csdi/censtatd_rcd_1635933883228_46491/f481982c28e83faf0c470e3093146b146921e10739c6c455fe8d08cd31841070-source.zip \

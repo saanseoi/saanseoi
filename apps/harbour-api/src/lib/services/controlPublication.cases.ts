@@ -28,7 +28,7 @@ test('retains a dataset source variant when reading a release for publication', 
       theme, sourceVariant, sourceUrl, versionHash, createdAt, updatedAt
     ) VALUES (
       'hkgov-censtatd-hk-hma', 'publisher-hkgov-censtatd',
-      'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups',
+      'ds-hk-hkgov-censtatd-housing-market-areas-building-groups',
       'hk', 'static', 'five-yearly', 'divisions', 'hkgov-censtatd-hma',
       'https://www.censtatd.gov.hk/', 'vh-dataset-hkgov-censtatd-hma', 1761264000000, 1761264000000
     );
@@ -38,7 +38,7 @@ test('retains a dataset source variant when reading a release for publication', 
     SELECT
       '${resourceReleaseId}', id, 'sr-${resourceReleaseId}', '2021', '2021', 'staged'
     FROM datasets
-    WHERE code = 'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups';
+    WHERE code = 'ds-hk-hkgov-censtatd-housing-market-areas-building-groups';
 
     INSERT INTO resourceReleases (
       id, sourceReleaseId, resourceType, code,
@@ -49,7 +49,7 @@ test('retains a dataset source variant when reading a release for publication', 
       'staged',
       '2026-08-19T00:00:00.000Z', '2026-08-19T00:00:00.000Z', '2026-08-19T00:00:00.000Z'
     FROM datasets
-    WHERE code = 'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups';
+    WHERE code = 'ds-hk-hkgov-censtatd-housing-market-areas-building-groups';
   `)
 
   const release = await getDatasetRecordByReleaseId(db, resourceReleaseId)
@@ -464,10 +464,7 @@ test('rebuilds a published Geographic snapshot into a new API release-set revisi
 
 test.each([
   ['ds-hk-hkgov-pland-division-new-town', 'hkgov-pland-new-town'],
-  [
-    'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups',
-    'hkgov-censtatd-hma',
-  ],
+  ['ds-hk-hkgov-censtatd-housing-market-areas-building-groups', 'hkgov-censtatd-hma'],
 ])(
   'rebuilds native administrative ancestry for %s without mutating its published API set',
   async (datasetCode, variant) => {

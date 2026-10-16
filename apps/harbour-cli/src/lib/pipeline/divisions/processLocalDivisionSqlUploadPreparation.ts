@@ -176,8 +176,7 @@ export async function buildDivisionSqlState(
   const inferAdministrativeHierarchy =
     administrativeHierarchy ??
     (message.source === 'hkgov-landsd' ||
-    message.datasetCode ===
-      'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups'
+    message.datasetCode === 'ds-hk-hkgov-censtatd-housing-market-areas-building-groups'
       ? await loadNativeAdministrativeHierarchy()
       : undefined)
   const seenIds = new Set<string>()

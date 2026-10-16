@@ -8,8 +8,7 @@ const root = 'apps/harbour-cli/src/lib/'
 const landsd = `${root}sources/hkgov/landsd/landsdPlaceName.ts`
 const census = `${root}sources/hkgov/censtatd/hkgovCenstatdStatistics.ts`
 const normaliser = 'libs/core/src/pipeline/services/divisions/division.ts'
-export const HMA_DATASET =
-  'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups'
+export const HMA_DATASET = 'ds-hk-hkgov-censtatd-housing-market-areas-building-groups'
 export const LANDSD_DATASET = 'ds-hk-hkgov-landsd-division'
 export function nativeDivisionProducer(
   dataset: string,

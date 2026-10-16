@@ -1,7 +1,7 @@
 {
-  "versionHash": "sha256:b41ff75a2a1825caa89c33585acd67527f433038fa272d8ceaffa4e741cbf549",
+  "versionHash": "sha256:3dbb388431b6ef1d2a0fd6b8414fa17cc2536b80d6179008c3b8c4c5d529042c",
   "publisherCode": "hkgov-censtatd",
-  "code": "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
+  "code": "ds-hk-hkgov-censtatd-subdivided-units-district",
   "regionCode": "hk",
   "releaseType": "static",
   "releaseFrequency": "census",

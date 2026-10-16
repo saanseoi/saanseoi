@@ -95,7 +95,9 @@ export function datasetLabel(
     ? remainder.slice(typeSlug.length + 1)
     : remainder.endsWith(`-${typeSlug}`)
       ? remainder.slice(0, -(typeSlug.length + 1))
-      : ''
+      : primaryType === 'divisionStatistic'
+        ? remainder
+        : ''
   return `${dataset.publisherCode} : ${resourceTypes.join(' + ')}${suffix ? ` [::${suffix}]` : ''}`
 }
 
@@ -406,7 +408,9 @@ function datasetLabelParts(dataset: DatasetFixture) {
     ? remainder.slice(typeSlug.length + 1)
     : remainder.endsWith(`-${typeSlug}`)
       ? remainder.slice(0, -(typeSlug.length + 1))
-      : ''
+      : primaryType === 'divisionStatistic'
+        ? remainder
+        : ''
   const variantPrefix = `${dataset.publisherCode}-`
   const variantSubtype = dataset.sourceVariant?.startsWith(variantPrefix)
     ? dataset.sourceVariant.slice(variantPrefix.length)

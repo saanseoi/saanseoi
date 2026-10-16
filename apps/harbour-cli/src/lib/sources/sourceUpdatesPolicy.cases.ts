@@ -466,7 +466,7 @@ test('records Planning Department divisions as revisable regular cohorts', async
 
 test('records C&SD districts as initial-only cohorts with revision archive scans', async () => {
   const [dataset] = await loadDatasetFixtures(
-    new Set(['ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district']),
+    new Set(['ds-hk-hkgov-censtatd-subdivided-units-district']),
   )
 
   expect(dataset?.releasePolicy).toEqual({
@@ -517,7 +517,7 @@ test('records C&SD statistics as initial-only cohorts with revision archive scan
 
 test('declares reference periods carried by the historic Population and Household delivery', async () => {
   const [dataset] = await loadDatasetFixtures(
-    new Set(['ds-hk-hkgov-censtatd-division-statistic-population-households-district']),
+    new Set(['ds-hk-hkgov-censtatd-population-households-district']),
   )
 
   expect(

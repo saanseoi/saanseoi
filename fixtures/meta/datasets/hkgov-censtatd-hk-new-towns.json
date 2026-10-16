@@ -1,7 +1,7 @@
 {
-  "versionHash": "sha256:d3d02f380f6f17da53f0efaaec06656cfd8f238cb49f6edff505da25482d2913",
+  "versionHash": "sha256:8cb3e96ce48643960e31a6b73a2e1ca9ba1517df35e557950bb941486dfebdfa",
   "publisherCode": "hkgov-censtatd",
-  "code": "ds-hk-hkgov-censtatd-division-statistic-new-towns",
+  "code": "ds-hk-hkgov-censtatd-new-towns",
   "regionCode": "hk",
   "releaseType": "static",
   "releaseFrequency": "census",

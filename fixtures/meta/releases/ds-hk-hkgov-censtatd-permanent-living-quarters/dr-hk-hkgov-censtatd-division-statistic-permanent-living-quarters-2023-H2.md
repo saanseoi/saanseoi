@@ -1,19 +1,19 @@
 ---
 createdAt: "2026-08-19T00:00:00.000Z"
 updatedAt: "2026-08-19T00:00:00.000Z"
-dataset: "ds-hk-hkgov-censtatd-division-statistic-new-towns"
-release: "dr-hk-hkgov-censtatd-division-statistic-new-towns-2021"
+dataset: "ds-hk-hkgov-censtatd-permanent-living-quarters"
+release: "dr-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-2023-H2"
 regionCode: "hk"
 source: "hkgov-censtatd"
-publicationDate: "2024-12-23"
-publicationDateSource: "https://portal.csdi.gov.hk/geoportal/rest/metadata/item/censtatd_rcd_1695181913136_27614/xml"
-sourceVersion: "2021"
-releaseNotesUrl: "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1695181913136_27614"
-releaseVersion: "2021.0"
+publicationDate: "2023-12-27"
+publicationDateSource: "https://portal.csdi.gov.hk/geoportal/rest/metadata/item/censtatd_rcd_1635933883228_46491/xml"
+sourceVersion: "2023-H2"
+releaseNotesUrl: "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635933883228_46491"
+releaseVersion: "2023-H2.0"
 type: "divisionStatistic"
-cohortKey: "2021"
-hkgovCenstatdCuration: "fixtures/meta/curations/hkgov-censtatd-statistics/new-towns-2021.json"
-measureCuration: "fixtures/meta/curations/hkgov-censtatd-statistics-measures/new-towns.json"
+cohortKey: "2023-H2"
+hkgovCenstatdCuration: "fixtures/meta/curations/hkgov-censtatd-statistics/permanent-living-quarters.json"
+measureCuration: "fixtures/meta/curations/hkgov-censtatd-statistics-measures/permanent-living-quarters.json"
 ---
 
 # EN
@@ -22,14 +22,13 @@ measureCuration: "fixtures/meta/curations/hkgov-censtatd-statistics-measures/new
 
 - Initial 山水 | SaanSeoi release.
 - <orange>Upstream</orange> Add [C&SD](saanseoi:en:definition/hkgov-censtatd/v1)'s
-  {{ sourceVersion }} Census statistics for New Towns.
+  {{ sourceVersion }} Permanent Living Quarters statistics.
 
 ## Versioning
 
-This source release is versioned as <black>{{ releaseVersion }}</black>, from the
-publisher's <black>{{ sourceVersion }}</black> Census cohort. It retains that cohort's
-statistical geography and reviewed measures; an unchanged later archive is not a
-version.
+The version <black>{{ releaseVersion }}</black> preserves C&SD's reviewed
+<black>{{ sourceVersion }}</black> publisher release. Its source period and statistical
+geography come from the native layer, not from the date of a CSDI archive slot.
 
 ## Compatibility
 
@@ -42,8 +41,8 @@ Every observation retains the original C&SD property name and literal as
 
 Each reviewed source field becomes a canonical statistics observation with a stable
 <black>measureCode</black>, statistic kind, aggregation, unit, status, reference period,
-and localised measure offering. Source geometry and feature identity remain with the
-release-owned series.
+and localised measure offering. The source feature identity and area geography remain
+attached to the release-owned series.
 
 ### Measure offerings
 
@@ -64,12 +63,13 @@ The reviewed mapping below is generated from this release's C&SD
 
 - 山水初始版本。
 - <orange>上游</orange> 新增 [C&SD](saanseoi:zh-hant:definition/hkgov-censtatd/v1) 的
-  {{ sourceVersion }} 年人口普查新市鎮統計資料。
+  {{ sourceVersion }}永久性居住屋宇統計資料。
 
 ## 版本控制
 
-此來源發布以發布者 <black>{{ sourceVersion }}</black> 年人口普查批次為基礎，版本為
-<black>{{ releaseVersion }}</black>。它保留該批次的統計地理範圍及經審核的指標；日後內容不變的歸檔不會成為新版本。
+版本 <black>{{ releaseVersion }}</black> 保留 C&SD 經審核的
+<black>{{ sourceVersion }}</black>
+發布。其來源時段及統計地理範圍取自原生圖層，而非 CSDI 歸檔時段的日期。
 
 ## 相容性
 
@@ -81,7 +81,7 @@ The reviewed mapping below is generated from this release's C&SD
 ### 正規化欄位
 
 每個經審核的來源欄位均成為標準統計觀測，並附有穩定的
-<black>measureCode</black>、統計種類、匯總方式、單位、狀態、參考時段及在地化指標 offering。來源幾何及要素識別碼保留於發布專屬的 series。
+<black>measureCode</black>、統計種類、匯總方式、單位、狀態、參考時段及在地化指標 offering。來源要素識別碼及區域地理範圍保留於發布專屬的 series。
 
 ### 指標 offering
 
@@ -103,12 +103,13 @@ The reviewed mapping below is generated from this release's C&SD
 
 - 山水初始版本。
 - <orange>上游</orange> 新增 [C&SD](saanseoi:zh-hans:definition/hkgov-censtatd/v1) 的
-  {{ sourceVersion }} 年人口普查新市镇统计数据。
+  {{ sourceVersion }}永久性居住屋宇统计数据。
 
 ## 版本控制
 
-此来源发布以发布者 <black>{{ sourceVersion }}</black> 年人口普查批次为基础，版本为
-<black>{{ releaseVersion }}</black>。它保留该批次的统计地理范围及经审核的指标；日后内容不变的归档不会成为新版本。
+版本 <black>{{ releaseVersion }}</black> 保留 C&SD 经审核的
+<black>{{ sourceVersion }}</black>
+发布。其来源时段及统计地理范围取自原生图层，而非 CSDI 归档时段的日期。
 
 ## 兼容性
 
@@ -120,7 +121,7 @@ The reviewed mapping below is generated from this release's C&SD
 ### 规范化字段
 
 每个经审核的来源字段均成为标准统计观测，并附有稳定的
-<black>measureCode</black>、统计种类、汇总方式、单位、状态、参考时段及本地化指标 offering。来源几何及要素标识符保留于发布专属的 series。
+<black>measureCode</black>、统计种类、汇总方式、单位、状态、参考时段及本地化指标 offering。来源要素标识符及区域地理范围保留于发布专属的 series。
 
 ### 指标 offering
 

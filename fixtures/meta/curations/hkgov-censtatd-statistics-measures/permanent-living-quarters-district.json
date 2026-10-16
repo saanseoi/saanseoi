@@ -1,5 +1,5 @@
 {
-  "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district",
+  "datasetCode": "ds-hk-hkgov-censtatd-permanent-living-quarters-district",
   "measures": [
     {
       "localisations": [
@@ -26,5 +26,5 @@
     }
   ],
   "schemaVersion": 1,
-  "versionHash": "sha256:911583cc93d2ea1275d41fe590de49fb7c1c5b428368c5f34a8dce1437c12fb1"
+  "versionHash": "sha256:32ef2eae678face205e48ab55e52e1767fcafaf843885a3502d15243331ae42c"
 }

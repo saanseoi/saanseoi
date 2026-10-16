@@ -96,11 +96,11 @@ Retention follows the processed geometry resource release, independently of publ
 of the source package's statistics output. Superseded snapshots remain reconstructable
 from history.
 
-| Cohort | Upstream publication series                                             | CSDI dataset                       | Native layer  | SaanSeoi source dataset                                                  |
-| ------ | ----------------------------------------------------------------------- | ---------------------------------- | ------------- | ------------------------------------------------------------------------ |
-| 2016   | 2016 By-census subdivided units by District Council district            | `censtatd_rcd_1635932488538_10765` | `DC_16BC_SDU` | `ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district`      |
-| 2021   | 2021 Population Census subdivided units by District Council district    | `censtatd_rcd_1635933617052_68946` | `DC_21C_SDU`  | `ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district`      |
-| 2024   | Annual Population and Household Statistics by District Council district | `censtatd_rcd_1635934545173_69201` | `DC_GHS`      | `ds-hk-hkgov-censtatd-division-statistic-population-households-district` |
+| Cohort | Upstream publication series                                             | CSDI dataset                       | Native layer  | SaanSeoi source dataset                               |
+| ------ | ----------------------------------------------------------------------- | ---------------------------------- | ------------- | ----------------------------------------------------- |
+| 2016   | 2016 By-census subdivided units by District Council district            | `censtatd_rcd_1635932488538_10765` | `DC_16BC_SDU` | `ds-hk-hkgov-censtatd-subdivided-units-district`      |
+| 2021   | 2021 Population Census subdivided units by District Council district    | `censtatd_rcd_1635933617052_68946` | `DC_21C_SDU`  | `ds-hk-hkgov-censtatd-subdivided-units-district`      |
+| 2024   | Annual Population and Household Statistics by District Council district | `censtatd_rcd_1635934545173_69201` | `DC_GHS`      | `ds-hk-hkgov-censtatd-population-households-district` |
 
 The 2016 and 2021 cohorts belong to the census/by-census subdivided-units series. The
 2024 cohort belongs to the distinct annual population-and-household series. They share
@@ -184,12 +184,12 @@ retained as an independent snapshot, even where its exact geometry is byte-ident
 an earlier cohort.
 
 ```text
-dataset  ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district
+dataset  ds-hk-hkgov-censtatd-subdivided-units-district
 variant  hkgov-censtatd-landclipped  (2016 and 2021 census/by-census districts)
 releases dr-hk-hkgov-censtatd-division-statistic-subdivided-units-district-2016
          dr-hk-hkgov-censtatd-division-statistic-subdivided-units-district-2021
 
-dataset  ds-hk-hkgov-censtatd-division-statistic-population-households-district
+dataset  ds-hk-hkgov-censtatd-population-households-district
 variant  hkgov-censtatd              (annual districts and Area/type polygons)
 release  dr-hk-hkgov-censtatd-division-statistic-population-households-district-2024
 ```
@@ -207,8 +207,8 @@ exposes a named geometry transformation for each companion snapshot, without cli
 unioning or otherwise changing its topology:
 
 ```text
-datasets  ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district
-          ds-hk-hkgov-censtatd-division-statistic-population-households-district
+datasets  ds-hk-hkgov-censtatd-subdivided-units-district
+          ds-hk-hkgov-censtatd-population-households-district
 transform simplified
 applies   hkgov-censtatd-landclipped
           hkgov-censtatd
@@ -348,7 +348,7 @@ runtime inputs. Use `saanseoi update`, or invoke the importer with the prepared 
 
 ```bash
 bun run dataops -- hkgov-censtatd:district-area ./data/.../source.zip \
-  --target preview --dataset-code ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district \
+  --target preview --dataset-code ds-hk-hkgov-censtatd-subdivided-units-district \
   --source-version 2021 --release-notes-url URL \
   --source-archive-key by-source/.../source.zip --source-archive-sha256 SHA256
 ```

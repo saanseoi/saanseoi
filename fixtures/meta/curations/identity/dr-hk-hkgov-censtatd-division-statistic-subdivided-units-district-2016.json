@@ -1,6 +1,6 @@
 {
-  "versionHash": "sha256:975156372ae552dcadc941f737364b4aadb0101d4f0e34e9e4d298318259775f",
-  "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
+  "versionHash": "sha256:b79c7f70c68a3b239a19f25f518ca88ed326e9663bd8314f8d92d804dbd63473",
+  "sourceDatasetCode": "ds-hk-hkgov-censtatd-subdivided-units-district",
   "resourceType": "division",
   "sourceReleaseCode": "dr-hk-hkgov-censtatd-division-statistic-subdivided-units-district-2016",
   "cohortKey": "2016",

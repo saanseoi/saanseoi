@@ -13,7 +13,7 @@ import { censtatdGenericSourceRule } from './processLocalHkgovCenstatdStatisticS
 import { sourceStatisticAssertion } from './sourceStatisticAssertion'
 import { buildStatisticSqlBatches } from './statisticSqlReplay'
 
-const datasetCode = 'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district'
+const datasetCode = 'ds-hk-hkgov-censtatd-subdivided-units-district'
 const nativeGeometry = {
   'gml:MultiSurface': { '@_srsName': 'EPSG:2326', 'gml:surfaceMember': [] },
 }

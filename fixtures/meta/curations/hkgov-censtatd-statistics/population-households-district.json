@@ -1,5 +1,5 @@
 {
-  "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
+  "datasetCode": "ds-hk-hkgov-censtatd-population-households-district",
   "fields": [
     {
       "aggregation": "total",

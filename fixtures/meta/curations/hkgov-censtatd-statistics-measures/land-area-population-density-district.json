@@ -1,5 +1,5 @@
 {
-  "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district",
+  "datasetCode": "ds-hk-hkgov-censtatd-land-area-population-density-district",
   "measures": [
     {
       "localisations": [
@@ -72,5 +72,5 @@
     }
   ],
   "schemaVersion": 1,
-  "versionHash": "sha256:544688180732f579f345fe1a78001a5671e9b59894c47d9b82d2774606eb290f"
+  "versionHash": "sha256:ed4621d7f03ef949b1985fdf50830f0555c1f7cacba69c04625d3897dc3b6522"
 }

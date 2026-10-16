@@ -31,7 +31,7 @@ test('groups final errors under aligned dataset rows and preserves recovery inst
 test('preserves colour and terminal width when the logger pipes stdout', () => {
   const script = `
     import { formatUpdateGridRow } from ${JSON.stringify(`${import.meta.dir}/updateFormatting.ts`)};
-    console.log(formatUpdateGridRow({code: 'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups', publisherCode: 'hkgov-censtatd', regionCode: 'hk', resourceTypes: ['divisionStatistic']}, 'ERROR', '2026-Q2'));
+    console.log(formatUpdateGridRow({code: 'ds-hk-hkgov-censtatd-housing-market-areas-building-groups', publisherCode: 'hkgov-censtatd', regionCode: 'hk', resourceTypes: ['divisionStatistic']}, 'ERROR', '2026-Q2'));
   `
   const run = (noColour: boolean) =>
     Bun.spawnSync([process.execPath, '-e', script], {

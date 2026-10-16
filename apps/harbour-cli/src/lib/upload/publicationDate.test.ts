@@ -15,8 +15,7 @@ test('reads verified upstream dates from release fixtures', async () => {
   ).toBe('2022-06-24')
   expect(
     await readFixturePublicationDate({
-      datasetCode:
-        'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
+      datasetCode: 'ds-hk-hkgov-censtatd-population-households-district',
       releaseCode:
         'dr-hk-hkgov-censtatd-division-statistic-population-households-district-2026-Q2',
       sourceVersion: '2026-Q2',

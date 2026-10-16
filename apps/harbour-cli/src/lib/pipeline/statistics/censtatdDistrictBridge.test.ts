@@ -8,8 +8,7 @@ import {
 
 describe('C&SD statistic district bridge selection', () => {
   test('uses the release-specific census bridge for subdivided units', () => {
-    const datasetCode =
-      'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district'
+    const datasetCode = 'ds-hk-hkgov-censtatd-subdivided-units-district'
 
     expect(resolveCenstatdDistrictBridgeCohort(datasetCode, '2016')).toBe('2016')
     expect(resolveCenstatdDistrictBridgeCohort(datasetCode, '2021')).toBe('2021')
@@ -18,19 +17,19 @@ describe('C&SD statistic district bridge selection', () => {
   test('uses the reviewed 2021 bridge for the other district datasets', () => {
     expect(
       resolveCenstatdDistrictBridgeCohort(
-        'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district',
+        'ds-hk-hkgov-censtatd-land-area-population-density-district',
         '2024',
       ),
     ).toBe('2021')
     expect(
       resolveCenstatdDistrictBridgeCohort(
-        'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district',
+        'ds-hk-hkgov-censtatd-permanent-living-quarters-district',
         '2023-H2',
       ),
     ).toBe('2021')
     expect(
       resolveCenstatdDistrictBridgeCohort(
-        'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
+        'ds-hk-hkgov-censtatd-population-households-district',
         '2021',
       ),
     ).toBe('2021')
@@ -38,20 +37,14 @@ describe('C&SD statistic district bridge selection', () => {
 
   test('uses the reviewed 2021 New Town bridge only for the archived census cohort', () => {
     expect(
-      resolveCenstatdNewTownBridgeCohort(
-        'ds-hk-hkgov-censtatd-division-statistic-new-towns',
-        '2021',
-      ),
+      resolveCenstatdNewTownBridgeCohort('ds-hk-hkgov-censtatd-new-towns', '2021'),
     ).toBe('2021')
     expect(() =>
-      resolveCenstatdNewTownBridgeCohort(
-        'ds-hk-hkgov-censtatd-division-statistic-new-towns',
-        '2026',
-      ),
+      resolveCenstatdNewTownBridgeCohort('ds-hk-hkgov-censtatd-new-towns', '2026'),
     ).toThrow('has no reviewed New Town bridge')
     expect(
       resolveCenstatdDistrictBridgeCohort(
-        'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters',
+        'ds-hk-hkgov-censtatd-permanent-living-quarters',
         '2023-H2',
       ),
     ).toBeNull()

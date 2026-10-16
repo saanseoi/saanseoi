@@ -65,7 +65,7 @@ export function sourceRetentionSpecification(
         symbol: 'insertSourceRows',
       },
     }
-  if (datasetCode.startsWith('ds-hk-hkgov-censtatd-division-statistic-'))
+  if (datasetCode.startsWith('ds-hk-hkgov-censtatd-'))
     return {
       ...common,
       expression:

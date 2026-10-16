@@ -311,11 +311,9 @@ test('normalises localisations for equivalent C&SD source fields', async () => {
     manifests
       .find(manifest => manifest.datasetCode === datasetCode)
       ?.fields.find(candidate => candidate.sourceField === sourceField)
-  const newTowns = 'ds-hk-hkgov-censtatd-division-statistic-new-towns'
-  const populationHouseholds =
-    'ds-hk-hkgov-censtatd-division-statistic-population-households-district'
-  const majorHousingEstates =
-    'ds-hk-hkgov-censtatd-division-statistic-major-housing-estates'
+  const newTowns = 'ds-hk-hkgov-censtatd-new-towns'
+  const populationHouseholds = 'ds-hk-hkgov-censtatd-population-households-district'
+  const majorHousingEstates = 'ds-hk-hkgov-censtatd-major-housing-estates'
 
   const equivalentFields: Array<[string, string, string, string]> = [
     [newTowns, 'lfpr_t', populationHouseholds, 't_lfpr'],
@@ -446,8 +444,8 @@ test('keeps C&SD field names and dimensions canonical', async () => {
       ['nwp_hm', 'nwp_re', 'nwp_care', 'nwp_oth'].map(sourceField => ({
         datasetCode:
           filename === 'major-housing-estates-2021.json'
-            ? 'ds-hk-hkgov-censtatd-division-statistic-major-housing-estates'
-            : 'ds-hk-hkgov-censtatd-division-statistic-new-towns',
+            ? 'ds-hk-hkgov-censtatd-major-housing-estates'
+            : 'ds-hk-hkgov-censtatd-new-towns',
         sourceField,
         comparability: {
           affectedReferencePeriods: ['2011', '2016'],
@@ -541,8 +539,7 @@ test('keeps age groups on fields and maps them to population', async () => {
     readMeasureFixtures(),
     readFieldManifests(),
   ])
-  const datasetCode =
-    'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups'
+  const datasetCode = 'ds-hk-hkgov-censtatd-housing-market-areas-building-groups'
   const field = fieldManifests
     .find(candidate => candidate.datasetCode === datasetCode)
     ?.fields.find(candidate => candidate.sourceField === 'age_2')

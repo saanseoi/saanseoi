@@ -1,7 +1,7 @@
 ---
 createdAt: "2026-08-19T00:00:00.000Z"
 updatedAt: "2026-08-19T00:00:00.000Z"
-dataset: "ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups"
+dataset: "ds-hk-hkgov-censtatd-housing-market-areas-building-groups"
 release: "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021"
 regionCode: "hk"
 source: "hkgov-censtatd"

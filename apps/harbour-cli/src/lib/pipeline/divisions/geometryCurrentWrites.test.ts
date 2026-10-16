@@ -98,8 +98,7 @@ for (const sourceName of ['overture', 'hkgov-censtatd'] as const)
         },
         sourceName,
         {
-          datasetCode:
-            'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district',
+          datasetCode: 'ds-hk-hkgov-censtatd-land-area-population-density-district',
         },
       )
       if (!item) throw new Error('Invalid geometry fixture')

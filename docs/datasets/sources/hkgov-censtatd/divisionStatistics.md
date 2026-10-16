@@ -1,5 +1,9 @@
 # Census and Statistics Department division statistics
 
+C&SD statistics dataset codes identify publisher products, for example
+`ds-hk-hkgov-censtatd-new-towns`. Resource types are declared separately in
+`resourceTypes`; the dataset code does not include `division-statistic`.
+
 Statistics snapshot lineages and API composition members use stable, provider-prefixed
 product variants (for example `hkgov-censtatd-density-district` and
 `hkgov-censtatd-hma-building-groups`). Dataset codes retain the full source identity.

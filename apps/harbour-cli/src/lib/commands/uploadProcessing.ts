@@ -43,7 +43,7 @@ export function resolveUploadProcessingStrategy(
     previewResult.plan.theme === 'stats' &&
     previewResult.plan.source === 'hkgov-censtatd' &&
     previewResult.plan.datasetCode ===
-      'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district'
+      'ds-hk-hkgov-censtatd-land-area-population-density-district'
   ) {
     return { mode: 'local-hkgov-censtatd-statistic-sql' as const }
   }

@@ -72,7 +72,7 @@ const STATISTIC_SOURCE_RECORD_CATALOGUE: Record<string, SourceRecordCatalogueEnt
       'subdivided-units-district',
       'land-area-population-density-district',
     ].map(name => [
-      `ds-hk-hkgov-censtatd-division-statistic-${name}`,
+      `ds-hk-hkgov-censtatd-${name}`,
       {
         geometryColumn: 'sourceGeometry',
         geometryEncoding: 'brotli-json',

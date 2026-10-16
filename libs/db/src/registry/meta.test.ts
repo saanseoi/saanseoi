@@ -294,10 +294,10 @@ describe('fixture version hashes', () => {
         .map(dataset => dataset.code)
         .sort(),
     ).toEqual([
-      'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups',
-      'ds-hk-hkgov-censtatd-division-statistic-major-housing-estates',
-      'ds-hk-hkgov-censtatd-division-statistic-new-towns',
-      'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district',
+      'ds-hk-hkgov-censtatd-housing-market-areas-building-groups',
+      'ds-hk-hkgov-censtatd-major-housing-estates',
+      'ds-hk-hkgov-censtatd-new-towns',
+      'ds-hk-hkgov-censtatd-subdivided-units-district',
     ])
     expect(
       initialApiCompositions.find(
@@ -337,7 +337,7 @@ describe('fixture version hashes', () => {
             ruleset.rules.some(
               rule =>
                 rule.operationCode ===
-                  `ingest-${dataset.code.replace(/^ds-hk-/, '')}` &&
+                  `ingest-hkgov-censtatd-division-statistic-${dataset.code.replace(/^ds-hk-hkgov-censtatd-/, '')}` &&
                 rule.definition?.id ===
                   (dataset.code.endsWith('-land-area-population-density-district')
                     ? 'normalise_censtatd_statistic_source_assertion'
@@ -432,8 +432,7 @@ describe('fixture version hashes', () => {
     ])
     const density = initialDatasets.find(
       dataset =>
-        dataset.code ===
-        'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district',
+        dataset.code === 'ds-hk-hkgov-censtatd-land-area-population-density-district',
     )!.processingRules!
     expect(density.stage).toBe('ingestion')
     expect(density.rulesets[0]!.rules.map(rule => rule.definition?.id)).toEqual([

@@ -1,5 +1,5 @@
 {
-  "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups",
+  "datasetCode": "ds-hk-hkgov-censtatd-housing-market-areas-building-groups",
   "measures": [
     {
       "localisations": [
@@ -486,5 +486,5 @@
     }
   ],
   "schemaVersion": 1,
-  "versionHash": "sha256:700fcc2d9ef17897a1fa71610d80a0908543885ce6f26c321a0583d5f0489bd8"
+  "versionHash": "sha256:1e6411ca60a9157421457370b00ea937fcd655f3cb5ef2283ce21a7081f3e849"
 }

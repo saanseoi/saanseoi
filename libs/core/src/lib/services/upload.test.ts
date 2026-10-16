@@ -211,7 +211,7 @@ function seedCenstatdDensityDataset(db: Database) {
     ) VALUES (
       'hkgov-censtatd-hk-density',
       'publisher-hkgov-censtatd',
-      'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district',
+      'ds-hk-hkgov-censtatd-land-area-population-density-district',
       'hk',
       'static',
       'yearly',
@@ -463,8 +463,7 @@ describe('upload', () => {
 
     const planned = await prepareUpload({
       cohortKey: '2022',
-      datasetCode:
-        'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district',
+      datasetCode: 'ds-hk-hkgov-censtatd-land-area-population-density-district',
       filePath: fixtureFile,
       inspection: {
         rowCount: 18,
@@ -480,10 +479,10 @@ describe('upload', () => {
     })
 
     expect(planned.plan.datasetCode).toBe(
-      'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district',
+      'ds-hk-hkgov-censtatd-land-area-population-density-district',
     )
     expect(planned.plan.releaseCode).toBe(
-      'dr-hk-hkgov-censtatd-division-statistic-land-area-population-density-district-2022::divisionStatistic',
+      'dr-hk-hkgov-censtatd-land-area-population-density-district-2022::divisionStatistic',
     )
     const geometry = await prepareUpload({
       cohortKey: '2022',
@@ -500,7 +499,7 @@ describe('upload', () => {
       resourceType: 'divisionArea',
     })
     expect(geometry.plan.releaseCode).toBe(
-      'dr-hk-hkgov-censtatd-division-statistic-land-area-population-density-district-2022::divisionArea',
+      'dr-hk-hkgov-censtatd-land-area-population-density-district-2022::divisionArea',
     )
     expect(geometry.plan.datasetCode).toBe(planned.plan.datasetCode)
   })
@@ -1320,8 +1319,7 @@ describe('upload', () => {
     const sqlite = initDb(dbPath)
     seedCenstatdDensityDataset(sqlite)
     const db = createLocalHarbourDb(sqlite)
-    const datasetCode =
-      'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district'
+    const datasetCode = 'ds-hk-hkgov-censtatd-land-area-population-density-district'
     await registerUpload(db, {
       source: 'hkgov-censtatd',
       regionCode: 'hk',
@@ -1354,7 +1352,7 @@ describe('upload', () => {
       plan: {
         datasetCode,
         releaseCode:
-          'dr-hk-hkgov-censtatd-division-statistic-land-area-population-density-district-2024::divisionStatistic',
+          'dr-hk-hkgov-censtatd-land-area-population-density-district-2024::divisionStatistic',
       },
     })
 
@@ -1365,8 +1363,7 @@ describe('upload', () => {
     const tempDir = createTempDir()
     const sqlite = initDb(join(tempDir, 'harbour.sqlite'))
     const db = createLocalHarbourDb(sqlite)
-    const datasetCode =
-      'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district'
+    const datasetCode = 'ds-hk-hkgov-censtatd-land-area-population-density-district'
     seedCenstatdDensityDataset(sqlite)
 
     await registerUpload(db, {

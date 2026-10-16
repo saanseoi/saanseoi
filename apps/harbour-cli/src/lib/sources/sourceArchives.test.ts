@@ -138,7 +138,7 @@ describe('CSDI source archives', () => {
     const inputPath = join(root, 'source.zip')
     const outputPath = join(root, 'prepared-source.zip')
     const archive = {
-      datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters',
+      datasetCode: 'ds-hk-hkgov-censtatd-permanent-living-quarters',
       datasetId: 'censtatd_rcd_1635933883228_46491',
       releaseSlot: '2023-Q4',
       sourceUrl: 'https://publisher.example/archive',

@@ -1,5 +1,5 @@
 {
-  "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district",
+  "datasetCode": "ds-hk-hkgov-censtatd-land-area-population-density-district",
   "fields": [
     {
       "aggregation": "total",

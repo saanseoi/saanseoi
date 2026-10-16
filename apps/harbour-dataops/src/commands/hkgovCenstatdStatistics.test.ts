@@ -11,12 +11,12 @@ describe('C&SD statistics ingestion idempotency', () => {
   test('uses the district parser for both the census and renamed annual datasets', () => {
     expect(
       isCenstatdDistrictGeometryDataset(
-        'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district',
+        'ds-hk-hkgov-censtatd-subdivided-units-district',
       ),
     ).toBe(true)
     expect(
       isCenstatdDistrictGeometryDataset(
-        'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
+        'ds-hk-hkgov-censtatd-population-households-district',
       ),
     ).toBe(true)
   })
@@ -66,7 +66,7 @@ describe('C&SD statistics ingestion idempotency', () => {
   test('uses one standard source-grid row when every requested resource is complete', async () => {
     const output = await formatCompletedCenstatdStatisticReleases(
       { environment: 'dev', remote: false },
-      'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters',
+      'ds-hk-hkgov-censtatd-permanent-living-quarters',
     )
 
     expect(output).toHaveLength(1)
@@ -77,7 +77,7 @@ describe('C&SD statistics ingestion idempotency', () => {
 
   test('uses the source-grid renderer for a completed member of a partial release', async () => {
     const output = await formatSkippedCenstatdResource(
-      'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters',
+      'ds-hk-hkgov-censtatd-permanent-living-quarters',
       'divisionArea',
     )
 

@@ -67,7 +67,7 @@ const censtatdDatasets = new Set(
     'population-households-district',
     'land-area-population-density-district',
     'subdivided-units-district',
-  ].map(name => `ds-hk-hkgov-censtatd-division-statistic-${name}`),
+  ].map(name => `ds-hk-hkgov-censtatd-${name}`),
 )
 
 /** Annotate observed numeric types; suppression strings keep separate schema branches. */

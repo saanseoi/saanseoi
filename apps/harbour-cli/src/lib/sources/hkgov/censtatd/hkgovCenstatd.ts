@@ -25,13 +25,12 @@ type CenstatdDistrictSourceVersion =
   | '2026-Q2'
 
 type CenstatdDistrictDatasetCode =
-  | 'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district'
-  | 'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district'
-  | 'ds-hk-hkgov-censtatd-division-statistic-population-households-district'
-  | 'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district'
+  | 'ds-hk-hkgov-censtatd-land-area-population-density-district'
+  | 'ds-hk-hkgov-censtatd-permanent-living-quarters-district'
+  | 'ds-hk-hkgov-censtatd-population-households-district'
+  | 'ds-hk-hkgov-censtatd-subdivided-units-district'
 
-const DEFAULT_DISTRICT_DATASET =
-  'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district'
+const DEFAULT_DISTRICT_DATASET = 'ds-hk-hkgov-censtatd-subdivided-units-district'
 
 const SOURCE_PROFILES: Record<
   CenstatdDistrictDatasetCode,
@@ -42,19 +41,19 @@ const SOURCE_PROFILES: Record<
     >
   >
 > = {
-  'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district': {
+  'ds-hk-hkgov-censtatd-land-area-population-density-district': {
     '2022': { layerName: 'Density_2022' },
     '2024': { layerName: 'Density_2024' },
   },
-  'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district': {
+  'ds-hk-hkgov-censtatd-permanent-living-quarters-district': {
     '2023-H2': { layerName: 'DCD_LQ_Q32023' },
   },
-  'ds-hk-hkgov-censtatd-division-statistic-population-households-district': {
+  'ds-hk-hkgov-censtatd-population-households-district': {
     // The annual release is filtered to its publisher-labelled year below.
     '2024': { layerName: 'DC_GHS', referencePeriodField: 'year' },
     '2026-Q2': { layerName: 'DC_GHS', referencePeriodField: 'year' },
   },
-  'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district': {
+  'ds-hk-hkgov-censtatd-subdivided-units-district': {
     '2016': { layerName: 'DC_16BC_SDU' },
     '2021': { layerName: 'DC_21C_SDU' },
   },
@@ -369,7 +368,7 @@ function normaliseCsdIDistrictFeature(
 async function withDisplayGeometry(
   rows: PreparedDistrictRow[],
   sourceVersion: string,
-  datasetCode = 'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district',
+  datasetCode = 'ds-hk-hkgov-censtatd-subdivided-units-district',
 ) {
   const simplified = await simplifyPolygonCoverage(
     rows.map(row => row.geometry),

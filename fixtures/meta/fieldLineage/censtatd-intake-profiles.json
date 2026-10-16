@@ -1,5 +1,5 @@
 {
-  "ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups": {
+  "ds-hk-hkgov-censtatd-housing-market-areas-building-groups": {
     "layers": [
       {
         "expectedRowCount": 3322,
@@ -23,7 +23,7 @@
       "2021"
     ]
   },
-  "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates": {
+  "ds-hk-hkgov-censtatd-major-housing-estates": {
     "layers": [
       {
         "expectedRowCount": 540,
@@ -38,7 +38,7 @@
       "2021"
     ]
   },
-  "ds-hk-hkgov-censtatd-division-statistic-new-towns": {
+  "ds-hk-hkgov-censtatd-new-towns": {
     "layers": [
       {
         "expectedRowCount": 13,
@@ -53,7 +53,7 @@
       "2021"
     ]
   },
-  "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters": {
+  "ds-hk-hkgov-censtatd-permanent-living-quarters": {
     "layers": [
       {
         "expectedRowCount": 3,
@@ -68,7 +68,7 @@
       "2023-H2"
     ]
   },
-  "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district": {
+  "ds-hk-hkgov-censtatd-permanent-living-quarters-district": {
     "layers": [
       {
         "expectedRowCount": 18,
@@ -84,7 +84,7 @@
       "2023-H2"
     ]
   },
-  "ds-hk-hkgov-censtatd-division-statistic-population-households-district": {
+  "ds-hk-hkgov-censtatd-population-households-district": {
     "layers": [
       {
         "name": "DC_GHS",
@@ -104,7 +104,7 @@
       "2026-Q2"
     ]
   },
-  "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district": {
+  "ds-hk-hkgov-censtatd-subdivided-units-district": {
     "layers": [
       {
         "expectedRowCount": 18,

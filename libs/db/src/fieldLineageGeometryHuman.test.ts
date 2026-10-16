@@ -11,7 +11,7 @@ test('every area and boundary field has a schematic contract', () => {
     'ds-hk-saanseoi-division',
     'ds-hk-overture-division',
     'ds-hk-hkgov-had-division-area-district',
-    'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district',
+    'ds-hk-hkgov-censtatd-subdivided-units-district',
   ])
     for (const resource of ['divisionArea', 'divisionBoundary'])
       for (const field of [

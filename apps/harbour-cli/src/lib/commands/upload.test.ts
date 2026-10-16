@@ -107,9 +107,9 @@ describe('C&SD District Council GML preparation', () => {
   test('retains the annual population-and-households dataset selection', () => {
     expect(
       censtatdDistrictDatasetCode(
-        'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
+        'ds-hk-hkgov-censtatd-population-households-district',
       ),
-    ).toBe('ds-hk-hkgov-censtatd-division-statistic-population-households-district')
+    ).toBe('ds-hk-hkgov-censtatd-population-households-district')
   })
 })
 
@@ -283,8 +283,7 @@ describe('C&SD geometry prerequisites', () => {
       },
       {
         cohortKey: '2021',
-        datasetCode:
-          'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups',
+        datasetCode: 'ds-hk-hkgov-censtatd-housing-market-areas-building-groups',
         regionCode: 'hk',
         source: 'hkgov-censtatd',
         sourceVersion: '2021',
@@ -309,8 +308,7 @@ describe('C&SD geometry prerequisites', () => {
         remote: true,
       },
       {
-        datasetCode:
-          'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district',
+        datasetCode: 'ds-hk-hkgov-censtatd-subdivided-units-district',
         source: 'hkgov-censtatd',
         theme: 'divisions',
         resourceType: 'divisionArea',

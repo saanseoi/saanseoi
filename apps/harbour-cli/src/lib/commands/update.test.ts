@@ -81,7 +81,7 @@ test('shows ingestion progress and target while a native importer is working', (
 
 test('retains and identifies every published cohort in the update summary', () => {
   const dataset = {
-    code: 'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district',
+    code: 'ds-hk-hkgov-censtatd-land-area-population-density-district',
     publisherCode: 'hkgov-censtatd',
     regionCode: 'hk',
     theme: 'stats',
@@ -206,9 +206,7 @@ test('uses explicit update flags instead of ambiguous --force', () => {
 test('labels an explicit dataset selection without implying every dataset', () => {
   expect(
     updateSelectionLabel({
-      requested: new Set([
-        'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters',
-      ]),
+      requested: new Set(['ds-hk-hkgov-censtatd-permanent-living-quarters']),
       selectedFamily: 'all',
     }),
   ).toBe('SELECTED DATASET')
@@ -240,9 +238,7 @@ test('adds a composition lookup provider before an address update', async () => 
 test('keeps an explicit C&SD dataset selection exact unless dependencies are requested', async () => {
   const datasets = await loadDatasetFixtures()
   const area = datasets.find(
-    dataset =>
-      dataset.code ===
-      'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters',
+    dataset => dataset.code === 'ds-hk-hkgov-censtatd-permanent-living-quarters',
   )
   if (!area)
     throw new Error('C&SD Permanent Living Quarters dataset fixture is missing.')
@@ -578,7 +574,7 @@ test('shows the matching target version for a CSDI archive release', () => {
 
 test('shows an ingested archive release as current in the completion summary', () => {
   const dataset = {
-    code: 'ds-hk-hkgov-censtatd-division-statistic-new-towns',
+    code: 'ds-hk-hkgov-censtatd-new-towns',
     publisherCode: 'hkgov-censtatd',
     regionCode: 'hk',
     theme: 'stats',
@@ -612,7 +608,7 @@ test('shows an ingested archive release as current in the completion summary', (
 
 test('shows both published C&SD district-statistic source releases as current', () => {
   const dataset = {
-    code: 'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district',
+    code: 'ds-hk-hkgov-censtatd-land-area-population-density-district',
     publisherCode: 'hkgov-censtatd',
     regionCode: 'hk',
     theme: 'stats',
@@ -731,7 +727,7 @@ test('labels LandsD ingestion as a chronological step instead of a generic downl
 test('formats division statistics and identifies the HyD nameplate source', () => {
   expect(
     formatDatasetPromptLabel({
-      code: 'ds-hk-hkgov-censtatd-division-statistic-land-area',
+      code: 'ds-hk-hkgov-censtatd-land-area',
       publisherCode: 'hkgov-censtatd',
       regionCode: 'hk',
       theme: 'stats',
@@ -741,7 +737,7 @@ test('formats division statistics and identifies the HyD nameplate source', () =
   ).toBe('CenstatD ∷ Statistic ∷ Land Area')
   expect(
     formatDatasetPromptLabel({
-      code: 'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas',
+      code: 'ds-hk-hkgov-censtatd-housing-market-areas',
       publisherCode: 'hkgov-censtatd',
       regionCode: 'hk',
       theme: 'stats',
@@ -941,7 +937,7 @@ test('all-family selection excludes Streets and orders selected providers before
     codes.indexOf('ds-hk-saanseoi-division'),
   )
   expect(codes.indexOf('ds-hk-saanseoi-division')).toBeLessThan(
-    codes.indexOf('ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters'),
+    codes.indexOf('ds-hk-hkgov-censtatd-permanent-living-quarters'),
   )
 })
 

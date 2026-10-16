@@ -63,7 +63,7 @@ describe('buildCenstatdReleaseStats', () => {
         ],
       },
       censtatdReleaseStatsProfileFor(
-        'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups',
+        'ds-hk-hkgov-censtatd-housing-market-areas-building-groups',
         '2021',
       ),
       timestamp,
@@ -124,7 +124,7 @@ describe('buildCenstatdReleaseStats', () => {
         values: [{ dimensionCode: 'district', valueCode: '11' }],
       },
       censtatdReleaseStatsProfileFor(
-        'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district',
+        'ds-hk-hkgov-censtatd-land-area-population-density-district',
         '2024',
       ),
       timestamp,
@@ -138,7 +138,7 @@ describe('buildCenstatdReleaseStats', () => {
 
   test('declares reviewed district links and pending statistical domains distinctly', () => {
     const district = censtatdReleaseStatsProfileFor(
-      'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district',
+      'ds-hk-hkgov-censtatd-subdivided-units-district',
       '2016',
     )
     expect(district.geographyLink).toEqual({
@@ -154,19 +154,17 @@ describe('buildCenstatdReleaseStats', () => {
     ])
 
     for (const datasetCode of [
-      'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters',
-      'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups',
-      'ds-hk-hkgov-censtatd-division-statistic-major-housing-estates',
+      'ds-hk-hkgov-censtatd-permanent-living-quarters',
+      'ds-hk-hkgov-censtatd-housing-market-areas-building-groups',
+      'ds-hk-hkgov-censtatd-major-housing-estates',
     ]) {
       const profile = censtatdReleaseStatsProfileFor(datasetCode, '2021')
       expect(profile.geographyLink.kind).toBe('domain_candidate')
       expect(buildCenstatdGeographyLinkAuditActions(profile, 1)).toEqual([])
     }
     expect(
-      censtatdReleaseStatsProfileFor(
-        'ds-hk-hkgov-censtatd-division-statistic-new-towns',
-        '2021',
-      ).geographyLink.kind,
+      censtatdReleaseStatsProfileFor('ds-hk-hkgov-censtatd-new-towns', '2021')
+        .geographyLink.kind,
     ).toBe('existing_domain_candidate')
   })
 
@@ -215,7 +213,7 @@ describe('buildCenstatdReleaseStats', () => {
         values: [],
       },
       censtatdReleaseStatsProfileFor(
-        'ds-hk-hkgov-censtatd-division-statistic-population-households-district',
+        'ds-hk-hkgov-censtatd-population-households-district',
         '2026-Q2',
       ),
       timestamp,

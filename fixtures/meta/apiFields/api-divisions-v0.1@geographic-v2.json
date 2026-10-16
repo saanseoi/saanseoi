@@ -1,16 +1,16 @@
 {
-  "versionHash": "sha256:f682f02b54158e933094f12e712c35852aff2c49c95d294fbd9280a851abcf2b",
+  "versionHash": "sha256:f8b20e1723613f5b5436b21ccb32fd927033a078f8e53594f99062a5cea055fb",
   "apiVersion": "api-divisions-v0.1",
   "domainCode": "geographic",
   "mappingVersion": 2,
   "schemaVersion": "sv-division-v1",
   "rulesetVersion": "rs-division-merge-v1",
   "publisherSchemaRanges": {
-    "ds-hk-hkgov-censtatd-division-statistic-population-households-district": {
+    "ds-hk-hkgov-censtatd-population-households-district": {
       "min": "1.0",
       "max": "1.0"
     },
-    "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district": {
+    "ds-hk-hkgov-censtatd-subdivided-units-district": {
       "min": "1.0",
       "max": "1.0"
     },
@@ -54,18 +54,18 @@
       "properties.csdiAdminAreaId": "properties.CSDI_ADMIN_AREA_ID",
       "properties.objectId": "properties.OBJECTID"
     },
-    "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district": {
+    "ds-hk-hkgov-censtatd-subdivided-units-district": {
       "geometry": "geometry"
     },
-    "ds-hk-hkgov-censtatd-division-statistic-population-households-district": {
+    "ds-hk-hkgov-censtatd-population-households-district": {
       "geometry": "geometry"
     }
   },
   "sourceCompositions": [
     {
       "datasetCodes": [
-        "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
-        "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
+        "ds-hk-hkgov-censtatd-population-households-district",
+        "ds-hk-hkgov-censtatd-subdivided-units-district",
         "ds-hk-hkgov-had-division-area-district",
         "ds-hk-overture-division"
       ],
@@ -89,7 +89,7 @@
     },
     {
       "datasetCodes": [
-        "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
+        "ds-hk-hkgov-censtatd-subdivided-units-district",
         "ds-hk-hkgov-had-division-area-district",
         "ds-hk-overture-division"
       ],
@@ -113,7 +113,7 @@
     },
     {
       "datasetCodes": [
-        "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
+        "ds-hk-hkgov-censtatd-subdivided-units-district",
         "ds-hk-hkgov-had-division-area-district",
         "ds-hk-overture-division"
       ],
@@ -136,8 +136,8 @@
     },
     {
       "datasetCodes": [
-        "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
-        "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
+        "ds-hk-hkgov-censtatd-population-households-district",
+        "ds-hk-hkgov-censtatd-subdivided-units-district",
         "ds-hk-hkgov-had-division-area-district",
         "ds-hk-overture-division",
         "ds-hk-saanseoi-division"
@@ -148,7 +148,7 @@
     },
     {
       "datasetCodes": [
-        "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
+        "ds-hk-hkgov-censtatd-subdivided-units-district",
         "ds-hk-hkgov-had-division-area-district",
         "ds-hk-overture-division",
         "ds-hk-saanseoi-division"
@@ -1166,7 +1166,7 @@
         {
           "apiField": "attributes.variant",
           "variant": "hkgov-censtatd-landclipped",
-          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-subdivided-units-district",
           "resolverCode": "derive_variant_from_source",
           "contributionType": "primary",
           "priority": 0,
@@ -1185,7 +1185,7 @@
         {
           "apiField": "attributes.variant",
           "variant": "hkgov-censtatd-landclipped:simplified",
-          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-subdivided-units-district",
           "resolverCode": "derive_variant_from_source",
           "contributionType": "primary",
           "priority": 0,
@@ -1204,7 +1204,7 @@
         {
           "apiField": "attributes.variant",
           "variant": "hkgov-censtatd",
-          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-population-households-district",
           "resolverCode": "derive_variant_from_source",
           "contributionType": "primary",
           "priority": 0,
@@ -1223,7 +1223,7 @@
         {
           "apiField": "attributes.variant",
           "variant": "hkgov-censtatd:simplified",
-          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-population-households-district",
           "resolverCode": "derive_variant_from_source",
           "contributionType": "primary",
           "priority": 0,
@@ -1384,7 +1384,7 @@
         {
           "apiField": "id",
           "variant": "hkgov-censtatd-landclipped",
-          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-subdivided-units-district",
           "resolverCode": "normalise-division-area-geometry",
           "contributionType": "primary",
           "priority": 0,
@@ -1399,7 +1399,7 @@
         {
           "apiField": "attributes.geometry",
           "variant": "hkgov-censtatd-landclipped",
-          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-subdivided-units-district",
           "resolverCode": "normalise-division-area-geometry",
           "contributionType": "primary",
           "priority": 0,
@@ -1418,7 +1418,7 @@
         {
           "apiField": "attributes.bbox",
           "variant": "hkgov-censtatd-landclipped",
-          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-subdivided-units-district",
           "resolverCode": "derive_bbox_from_geometry",
           "contributionType": "primary",
           "priority": 0,
@@ -1433,7 +1433,7 @@
         {
           "apiField": "attributes.divisionId",
           "variant": "hkgov-censtatd-landclipped",
-          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-subdivided-units-district",
           "resolverCode": "lookup_fk",
           "contributionType": "primary",
           "priority": 0,
@@ -1452,7 +1452,7 @@
         {
           "apiField": "attributes.type",
           "variant": "hkgov-censtatd-landclipped",
-          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-subdivided-units-district",
           "resolverCode": "constant_value",
           "contributionType": "primary",
           "priority": 0,
@@ -1467,7 +1467,7 @@
         {
           "apiField": "attributes.isLand",
           "variant": "hkgov-censtatd-landclipped",
-          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-subdivided-units-district",
           "resolverCode": "constant_value",
           "contributionType": "primary",
           "priority": 0,
@@ -1482,7 +1482,7 @@
         {
           "apiField": "attributes.isTerritorial",
           "variant": "hkgov-censtatd-landclipped",
-          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-subdivided-units-district",
           "resolverCode": "constant_value",
           "contributionType": "primary",
           "priority": 0,
@@ -1497,7 +1497,7 @@
         {
           "apiField": "attributes.sources",
           "variant": "hkgov-censtatd-landclipped",
-          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-subdivided-units-district",
           "resolverCode": "wrap_publisher_sources",
           "contributionType": "primary",
           "priority": 0,
@@ -1512,7 +1512,7 @@
         {
           "apiField": "id",
           "variant": "hkgov-censtatd-landclipped:simplified",
-          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-subdivided-units-district",
           "resolverCode": "normalise-division-area-geometry",
           "contributionType": "primary",
           "priority": 0,
@@ -1527,7 +1527,7 @@
         {
           "apiField": "attributes.geometry",
           "variant": "hkgov-censtatd-landclipped:simplified",
-          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-subdivided-units-district",
           "resolverCode": "normalise-division-area-geometry",
           "contributionType": "primary",
           "priority": 0,
@@ -1546,7 +1546,7 @@
         {
           "apiField": "attributes.bbox",
           "variant": "hkgov-censtatd-landclipped:simplified",
-          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-subdivided-units-district",
           "resolverCode": "derive_bbox_from_geometry",
           "contributionType": "primary",
           "priority": 0,
@@ -1561,7 +1561,7 @@
         {
           "apiField": "attributes.divisionId",
           "variant": "hkgov-censtatd-landclipped:simplified",
-          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-subdivided-units-district",
           "resolverCode": "lookup_fk",
           "contributionType": "primary",
           "priority": 0,
@@ -1580,7 +1580,7 @@
         {
           "apiField": "attributes.type",
           "variant": "hkgov-censtatd-landclipped:simplified",
-          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-subdivided-units-district",
           "resolverCode": "constant_value",
           "contributionType": "primary",
           "priority": 0,
@@ -1595,7 +1595,7 @@
         {
           "apiField": "attributes.isLand",
           "variant": "hkgov-censtatd-landclipped:simplified",
-          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-subdivided-units-district",
           "resolverCode": "constant_value",
           "contributionType": "primary",
           "priority": 0,
@@ -1610,7 +1610,7 @@
         {
           "apiField": "attributes.isTerritorial",
           "variant": "hkgov-censtatd-landclipped:simplified",
-          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-subdivided-units-district",
           "resolverCode": "constant_value",
           "contributionType": "primary",
           "priority": 0,
@@ -1625,7 +1625,7 @@
         {
           "apiField": "attributes.sources",
           "variant": "hkgov-censtatd-landclipped:simplified",
-          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-subdivided-units-district",
           "resolverCode": "wrap_publisher_sources",
           "contributionType": "primary",
           "priority": 0,
@@ -1640,7 +1640,7 @@
         {
           "apiField": "id",
           "variant": "hkgov-censtatd",
-          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-population-households-district",
           "resolverCode": "normalise-division-area-geometry",
           "contributionType": "primary",
           "priority": 0,
@@ -1655,7 +1655,7 @@
         {
           "apiField": "attributes.geometry",
           "variant": "hkgov-censtatd",
-          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-population-households-district",
           "resolverCode": "normalise-division-area-geometry",
           "contributionType": "primary",
           "priority": 0,
@@ -1674,7 +1674,7 @@
         {
           "apiField": "attributes.bbox",
           "variant": "hkgov-censtatd",
-          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-population-households-district",
           "resolverCode": "derive_bbox_from_geometry",
           "contributionType": "primary",
           "priority": 0,
@@ -1689,7 +1689,7 @@
         {
           "apiField": "attributes.divisionId",
           "variant": "hkgov-censtatd",
-          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-population-households-district",
           "resolverCode": "lookup_fk",
           "contributionType": "primary",
           "priority": 0,
@@ -1708,7 +1708,7 @@
         {
           "apiField": "attributes.type",
           "variant": "hkgov-censtatd",
-          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-population-households-district",
           "resolverCode": "constant_value",
           "contributionType": "primary",
           "priority": 0,
@@ -1723,7 +1723,7 @@
         {
           "apiField": "attributes.isLand",
           "variant": "hkgov-censtatd",
-          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-population-households-district",
           "resolverCode": "constant_value",
           "contributionType": "primary",
           "priority": 0,
@@ -1738,7 +1738,7 @@
         {
           "apiField": "attributes.isTerritorial",
           "variant": "hkgov-censtatd",
-          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-population-households-district",
           "resolverCode": "constant_value",
           "contributionType": "primary",
           "priority": 0,
@@ -1753,7 +1753,7 @@
         {
           "apiField": "attributes.sources",
           "variant": "hkgov-censtatd",
-          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-population-households-district",
           "resolverCode": "wrap_publisher_sources",
           "contributionType": "primary",
           "priority": 0,
@@ -1768,7 +1768,7 @@
         {
           "apiField": "id",
           "variant": "hkgov-censtatd:simplified",
-          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-population-households-district",
           "resolverCode": "normalise-division-area-geometry",
           "contributionType": "primary",
           "priority": 0,
@@ -1783,7 +1783,7 @@
         {
           "apiField": "attributes.geometry",
           "variant": "hkgov-censtatd:simplified",
-          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-population-households-district",
           "resolverCode": "normalise-division-area-geometry",
           "contributionType": "primary",
           "priority": 0,
@@ -1802,7 +1802,7 @@
         {
           "apiField": "attributes.bbox",
           "variant": "hkgov-censtatd:simplified",
-          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-population-households-district",
           "resolverCode": "derive_bbox_from_geometry",
           "contributionType": "primary",
           "priority": 0,
@@ -1817,7 +1817,7 @@
         {
           "apiField": "attributes.divisionId",
           "variant": "hkgov-censtatd:simplified",
-          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-population-households-district",
           "resolverCode": "lookup_fk",
           "contributionType": "primary",
           "priority": 0,
@@ -1836,7 +1836,7 @@
         {
           "apiField": "attributes.type",
           "variant": "hkgov-censtatd:simplified",
-          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-population-households-district",
           "resolverCode": "constant_value",
           "contributionType": "primary",
           "priority": 0,
@@ -1851,7 +1851,7 @@
         {
           "apiField": "attributes.isLand",
           "variant": "hkgov-censtatd:simplified",
-          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-population-households-district",
           "resolverCode": "constant_value",
           "contributionType": "primary",
           "priority": 0,
@@ -1866,7 +1866,7 @@
         {
           "apiField": "attributes.isTerritorial",
           "variant": "hkgov-censtatd:simplified",
-          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-population-households-district",
           "resolverCode": "constant_value",
           "contributionType": "primary",
           "priority": 0,
@@ -1881,7 +1881,7 @@
         {
           "apiField": "attributes.sources",
           "variant": "hkgov-censtatd:simplified",
-          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-population-households-district",
           "resolverCode": "wrap_publisher_sources",
           "contributionType": "primary",
           "priority": 0,

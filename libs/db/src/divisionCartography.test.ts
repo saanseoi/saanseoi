@@ -9,8 +9,7 @@ import { normaliseDivisionRow } from '../../core/src/pipeline/services/divisions
 import { normalisePreparedDivision } from '../../../apps/harbour-cli/src/lib/pipeline/divisions/processLocalHkgovPlandDivisionSqlUploadPreparation'
 
 const landsd = 'ds-hk-hkgov-landsd-division'
-const hma =
-  'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups'
+const hma = 'ds-hk-hkgov-censtatd-housing-market-areas-building-groups'
 const point = { type: 'Point', coordinates: [114.1, 22.3] }
 const nativeCases = [
   ['planning-newtown', 10, 15, 80],

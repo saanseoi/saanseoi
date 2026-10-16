@@ -41,13 +41,11 @@ describe('snapshot identifiers', () => {
   test('distinguishes geography from a shared division-statistic dataset', () => {
     expect(
       buildSnapshotLineageCode(
-        'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups',
+        'ds-hk-hkgov-censtatd-housing-market-areas-building-groups',
         'division',
         'hkgov-censtatd-hma',
       ),
-    ).toBe(
-      'sl-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-division',
-    )
+    ).toBe('sl-hk-hkgov-censtatd-housing-market-areas-building-groups-division')
   })
 
   test('uses the source variant rather than a full dataset code in snapshot codes', () => {

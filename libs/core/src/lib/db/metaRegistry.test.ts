@@ -49,19 +49,18 @@ import {
 describe('canonicaliseApiFieldSourceSchemas', () => {
   test('retains Density as source provenance but excludes it from the canonical Population and Household field relationship', () => {
     const result = canonicaliseApiFieldSourceSchemas({
-      'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district':
-        '1.0',
-      'ds-hk-hkgov-censtatd-division-statistic-population-households-district': '1.0',
-      'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district': '1.0',
+      'ds-hk-hkgov-censtatd-land-area-population-density-district': '1.0',
+      'ds-hk-hkgov-censtatd-population-households-district': '1.0',
+      'ds-hk-hkgov-censtatd-subdivided-units-district': '1.0',
     })
 
     expect(result).toEqual({
       redundantDatasetCodes: [
-        'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district',
+        'ds-hk-hkgov-censtatd-land-area-population-density-district',
       ],
       sourceSchemas: {
-        'ds-hk-hkgov-censtatd-division-statistic-population-households-district': '1.0',
-        'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district': '1.0',
+        'ds-hk-hkgov-censtatd-population-households-district': '1.0',
+        'ds-hk-hkgov-censtatd-subdivided-units-district': '1.0',
       },
     })
   })
@@ -1214,9 +1213,9 @@ id TEXT PRIMARY KEY,
 
     INSERT INTO datasets (id, publisherId, code) VALUES
       ('dataset-hkgov-had-district', 'publisher-hkgov-had', 'ds-hk-hkgov-had-division-area-district'),
-      ('dataset-hkgov-censtatd-district', 'publisher-hkgov-censtatd', 'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district'),
-      ('dataset-hkgov-censtatd-district-annual', 'publisher-hkgov-censtatd', 'ds-hk-hkgov-censtatd-division-statistic-population-households-district'),
-      ('dataset-hkgov-censtatd-area-type', 'publisher-hkgov-censtatd', 'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters');
+      ('dataset-hkgov-censtatd-district', 'publisher-hkgov-censtatd', 'ds-hk-hkgov-censtatd-subdivided-units-district'),
+      ('dataset-hkgov-censtatd-district-annual', 'publisher-hkgov-censtatd', 'ds-hk-hkgov-censtatd-population-households-district'),
+      ('dataset-hkgov-censtatd-area-type', 'publisher-hkgov-censtatd', 'ds-hk-hkgov-censtatd-permanent-living-quarters');
   `)
 
   sqlite.exec(
@@ -2634,7 +2633,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
       INSERT INTO publishers (id, code) VALUES ('publisher-censtatd', 'hkgov-censtatd');
       INSERT INTO datasets (id, publisherId, code, regionCode, theme, type) VALUES
         ('dataset-district-area', 'publisher-censtatd', 'ds-hk-hkgov-censtatd-division-area-district', 'hk', 'divisions', 'divisionArea'),
-        ('dataset-hma', 'publisher-censtatd', 'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups', 'hk', 'divisions', 'divisionArea');
+        ('dataset-hma', 'publisher-censtatd', 'ds-hk-hkgov-censtatd-housing-market-areas-building-groups', 'hk', 'divisions', 'divisionArea');
       INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status, cohortKey) VALUES (coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'dataset-district-area' AND sourceVersion = '2021'), 'source-' || 'release-district-area-2021'), 'dataset-district-area', 'source-' || 'dr-hk-hkgov-censtatd-division-area-district-2021', '2021', 'current', '2021');
 UPDATE sourceReleases SET sourceVersion = '2021', cohortKey = '2021' WHERE id = coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'dataset-district-area' AND sourceVersion = '2021'), 'source-' || 'release-district-area-2021');
 INSERT INTO resourceReleases (id, code, resourceType, status, ingestedAt, createdAt, updatedAt, sourceReleaseId) VALUES ('release-district-area-2021', 'dr-hk-hkgov-censtatd-division-area-district-2021', 'divisionArea', 'current', '2026-08-01T00:00:00.000Z', '2026-08-01T00:00:00.000Z', '2026-08-01T00:00:00.000Z', coalesce((SELECT id FROM sourceReleases WHERE datasetId = 'dataset-district-area' AND sourceVersion = '2021'), 'source-' || 'release-district-area-2021'));
@@ -2647,7 +2646,7 @@ INSERT INTO resourceReleases (id, code, resourceType, status, ingestedAt, create
       db as never,
       'hk',
       'hkgov-censtatd',
-      'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups',
+      'ds-hk-hkgov-censtatd-housing-market-areas-building-groups',
       'divisionArea',
     )
 
@@ -3151,7 +3150,7 @@ INSERT INTO snapshotResourceReleases (snapshotId, resourceReleaseId, role) VALUE
 
       INSERT INTO publishers (id, code) VALUES ('publisher-censtatd', 'hkgov-censtatd');
       INSERT INTO datasets (id, publisherId, code, regionCode) VALUES
-        ('dataset-censtatd', 'publisher-censtatd', 'ds-hk-hkgov-censtatd-division-statistic-population-households-district', 'hk');
+        ('dataset-censtatd', 'publisher-censtatd', 'ds-hk-hkgov-censtatd-population-households-district', 'hk');
 
       INSERT INTO snapshotLineages (id, variant) VALUES
         ('lineage-censtatd', 'hkgov-censtatd');

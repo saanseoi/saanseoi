@@ -1,8 +1,8 @@
 {
-  "versionHash": "sha256:6b11ab0c4ccde6de506e90988178d6df7d187a75f2a34ae4cd6e3f63cdc196dd",
+  "versionHash": "sha256:93ad74e69b7e3fd7fa64a76e0afb50abc1cd4dc8214f2d1c2b79c12f429a3cba",
   "policies": [
     {
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups",
+      "datasetCode": "ds-hk-hkgov-censtatd-housing-market-areas-building-groups",
       "resourceType": "divisionStatistic",
       "processingRules": [
         {
@@ -16,7 +16,7 @@
       ]
     },
     {
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups",
+      "datasetCode": "ds-hk-hkgov-censtatd-housing-market-areas-building-groups",
       "resourceType": "division",
       "processingRules": [
         {
@@ -28,7 +28,7 @@
       ]
     },
     {
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups",
+      "datasetCode": "ds-hk-hkgov-censtatd-housing-market-areas-building-groups",
       "resourceType": "divisionArea",
       "processingRules": [
         {
@@ -40,7 +40,7 @@
       ]
     },
     {
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district",
+      "datasetCode": "ds-hk-hkgov-censtatd-land-area-population-density-district",
       "resourceType": "divisionStatistic",
       "processingRules": [
         {
@@ -56,7 +56,7 @@
       ]
     },
     {
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district",
+      "datasetCode": "ds-hk-hkgov-censtatd-land-area-population-density-district",
       "resourceType": "divisionArea",
       "processingRules": [
         {
@@ -69,7 +69,7 @@
       ]
     },
     {
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates",
+      "datasetCode": "ds-hk-hkgov-censtatd-major-housing-estates",
       "resourceType": "divisionStatistic",
       "processingRules": [
         {
@@ -83,7 +83,7 @@
       ]
     },
     {
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-new-towns",
+      "datasetCode": "ds-hk-hkgov-censtatd-new-towns",
       "resourceType": "divisionStatistic",
       "processingRules": [
         {
@@ -97,7 +97,7 @@
       ]
     },
     {
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district",
+      "datasetCode": "ds-hk-hkgov-censtatd-permanent-living-quarters-district",
       "resourceType": "divisionStatistic",
       "processingRules": [
         {
@@ -112,7 +112,7 @@
       ]
     },
     {
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district",
+      "datasetCode": "ds-hk-hkgov-censtatd-permanent-living-quarters-district",
       "resourceType": "divisionArea",
       "processingRules": [
         {
@@ -125,7 +125,7 @@
       ]
     },
     {
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters",
+      "datasetCode": "ds-hk-hkgov-censtatd-permanent-living-quarters",
       "resourceType": "divisionStatistic",
       "processingRules": [
         {
@@ -139,7 +139,7 @@
       ]
     },
     {
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters",
+      "datasetCode": "ds-hk-hkgov-censtatd-permanent-living-quarters",
       "resourceType": "divisionArea",
       "processingRules": [
         {
@@ -151,7 +151,7 @@
       ]
     },
     {
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
+      "datasetCode": "ds-hk-hkgov-censtatd-population-households-district",
       "resourceType": "divisionStatistic",
       "processingRules": [
         {
@@ -166,7 +166,7 @@
       ]
     },
     {
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
+      "datasetCode": "ds-hk-hkgov-censtatd-population-households-district",
       "resourceType": "divisionArea",
       "processingRules": [
         {
@@ -179,7 +179,7 @@
       ]
     },
     {
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
+      "datasetCode": "ds-hk-hkgov-censtatd-subdivided-units-district",
       "resourceType": "divisionStatistic",
       "processingRules": [
         {
@@ -194,7 +194,7 @@
       ]
     },
     {
-      "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
+      "datasetCode": "ds-hk-hkgov-censtatd-subdivided-units-district",
       "resourceType": "divisionArea",
       "processingRules": [
         {

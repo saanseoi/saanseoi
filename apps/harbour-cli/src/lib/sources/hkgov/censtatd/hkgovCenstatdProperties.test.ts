@@ -2,7 +2,7 @@ import { describe, expect, test } from 'bun:test'
 import { parseCsdiGml } from './hkgovCenstatdStatistics'
 import { normaliseCenstatdProperty } from './hkgovCenstatdProperties'
 
-const dataset = 'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district'
+const dataset = 'ds-hk-hkgov-censtatd-subdivided-units-district'
 
 function parseProperties(layer: string, attributes: Record<string, string>) {
   return parseCsdiGml(

@@ -760,7 +760,7 @@ export const createUrbanDensityStatsCode = (
     '',
     'if (!savedResult) {',
     "const statsEndpoint = '/stats/v0.1/geographies'",
-    "const densityDatasetCode = 'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district'",
+    "const densityDatasetCode = 'ds-hk-hkgov-censtatd-land-area-population-density-district'",
     '',
     '// The 2024 reference period uses its latest published revision.',
     '// To reproduce a revision, set the same releaseSet on both requests using meta.apiReleaseSet.',
