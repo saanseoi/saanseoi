@@ -1781,3 +1781,10 @@ field-level evidence identify the contributing publisher records.
 The Fu Tip Estate Social Service Building and Lingnan amenities building retain their
 reviewed July 2024 predecessor IDs in subsequent retention fixtures. The identity
 decisions and retention rules must name the same canonical premises.
+
+The `2024-09-03.0` identity decisions retain the predecessor IDs for all 22 Emerald Bay
+premises, using the reviewed Emerald Bay A11 decision and the explicit instruction to
+apply it across the group. China Taiping Finance Centre, 383 King’s Road, Bamboo Vista
+and The Rainbow use distinct IDs. Ying Lun Centre, Tsuen Fook Kui and Kin Sang Car Park
+retain their predecessor IDs. Exact identity pairs and the sealed review digest
+accompany every decision.
