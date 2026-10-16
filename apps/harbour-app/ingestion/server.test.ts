@@ -14,7 +14,7 @@ function fixture(extra: Array<{ binding: string; sql: string }>) {
   const specs = [
     {
       binding: 'DB_META',
-      sql: `CREATE TABLE resourceReleases(id TEXT, code TEXT); INSERT INTO resourceReleases VALUES ('release','release-code'),('other','other-code'); CREATE TABLE snapshotLineages(id TEXT,code TEXT); INSERT INTO snapshotLineages VALUES ('lineage','lineage-code'); CREATE TABLE snapshots(id TEXT,snapshotLineageId TEXT,cohortKey TEXT); INSERT INTO snapshots VALUES ('snap','lineage','2026'),('unrelated','other','2025');`,
+      sql: `CREATE TABLE datasets(id TEXT, code TEXT); INSERT INTO datasets VALUES ('dataset','dataset-code'),('other-dataset','other-dataset-code'); CREATE TABLE sourceReleases(id TEXT, datasetId TEXT); INSERT INTO sourceReleases VALUES ('source-a','dataset'),('source-b','other-dataset'); CREATE TABLE resourceReleases(id TEXT, code TEXT, sourceReleaseId TEXT); INSERT INTO resourceReleases VALUES ('release','release-code','source-a'),('other','other-code','source-b'); CREATE TABLE snapshotLineages(id TEXT,code TEXT); INSERT INTO snapshotLineages VALUES ('lineage','lineage-code'); CREATE TABLE snapshots(id TEXT,snapshotLineageId TEXT,cohortKey TEXT); INSERT INTO snapshots VALUES ('snap','lineage','2026'),('unrelated','other','2025');`,
     },
     ...extra,
   ]
@@ -34,17 +34,77 @@ test('source samples include multiple physical shards; summaries cover all rows'
     { binding: 'DB_SOURCE_HK_2026', sql },
   ])
   try {
-    const data = review.inspect('SOURCE', 'release', 'records', false, 4)
+    const data = review.inspect('SOURCE', 'dataset', 'records', false, 4)
     expect(data.samples).toHaveLength(4)
     expect(new Set(data.samples.map(r => r.shard)).size).toBe(2)
     expect(data.samples.every(s => s.record.resourceReleaseId === 'release')).toBe(true)
-    const summary = review.inspect('SOURCE', 'release', 'records', true)
+    const summary = review.inspect('SOURCE', 'dataset', 'records', true)
     expect(summary.columns.find(c => c.name === 'value')).toMatchObject({
       nulls: 2,
       rows: 4,
     })
     expect(() => review.shards[0].db.exec('DELETE FROM resourceReleases')).toThrow()
   } finally {
+    review.close()
+  }
+})
+test('SOURCE groups all dataset releases and resource types with scoped summaries and fingerprints', () => {
+  const review = fixture([
+    {
+      binding: 'DB_SOURCE_HK_2025',
+      sql: `CREATE TABLE records(id TEXT, resourceReleaseId TEXT, locale TEXT, value TEXT);
+        INSERT INTO records VALUES ('a','release','en',NULL),('excluded','other','fr',NULL);`,
+    },
+    {
+      binding: 'DB_SOURCE_HK_2026',
+      sql: `CREATE TABLE records(id TEXT, resourceReleaseId TEXT, locale TEXT, value TEXT);
+        INSERT INTO records VALUES ('b','later','zh-hant','present'),('c','area','en',NULL);`,
+    },
+  ])
+  const meta = new Database(review.shards[0].path)
+  try {
+    meta.exec(`INSERT INTO sourceReleases VALUES ('source-later','dataset');
+      INSERT INTO resourceReleases VALUES ('later','later-code','source-later'),('area','area-code','source-later');`)
+    expect(review.catalogue('SOURCE').groups).toEqual([
+      { id: 'dataset', label: 'dataset-code' },
+      { id: 'other-dataset', label: 'other-dataset-code' },
+    ])
+    expect(review.tables('SOURCE', 'dataset')[0]?.shards).toHaveLength(2)
+    const samples = review.inspect('SOURCE', 'dataset', 'records', false, 8)
+    expect(samples.samples.map(s => s.record.id).sort()).toEqual(['a', 'b', 'c'])
+    expect(review.subsets('SOURCE', 'dataset', 'records').map(s => s.label)).toEqual([
+      'locale: en',
+      'locale: zh-hant',
+    ])
+    const summary = review.inspect('SOURCE', 'dataset', 'records', true)
+    expect(summary.columns.find(c => c.name === 'value')).toMatchObject({
+      nulls: 2,
+      rows: 3,
+    })
+    const subset = review.inspect(
+      'SOURCE',
+      'dataset',
+      'records',
+      true,
+      8,
+      JSON.stringify(['locale', 'en']),
+    )
+    expect(subset.columns.find(c => c.name === 'value')).toMatchObject({
+      nulls: 2,
+      rows: 2,
+    })
+    expect(() => review.tables('SOURCE', 'release')).toThrow('Unknown group')
+    meta.exec(
+      "UPDATE sourceReleases SET datasetId='other-dataset' WHERE id='source-later'",
+    )
+    const changed = review.inspect('SOURCE', 'dataset', 'records', true)
+    expect(changed.contentRevision).not.toBe(summary.contentRevision)
+    expect(changed.columns.find(c => c.name === 'value')).toMatchObject({
+      nulls: 1,
+      rows: 1,
+    })
+  } finally {
+    meta.close()
     review.close()
   }
 })
@@ -90,11 +150,11 @@ test('supporting table joins follow composite foreign keys in either direction',
   ])
   try {
     expect(
-      review.inspect('SOURCE', 'release', 'definitions', true).shards[0].count,
+      review.inspect('SOURCE', 'dataset', 'definitions', true).shards[0].count,
     ).toBe(1)
     expect(
       review
-        .inspect('SOURCE', 'release', 'children', false)
+        .inspect('SOURCE', 'dataset', 'children', false)
         .samples.map(s => s.record.id),
     ).toEqual(['child-a'])
     expect(
@@ -137,8 +197,7 @@ test('statistics and immutable definitions follow lineage release membership', (
   try {
     // Fixture setup uses a separate connection; the review connections remain read-only.
     const setup = new Database(review.shards[0].path)
-    setup.exec(`ALTER TABLE resourceReleases ADD COLUMN sourceReleaseId TEXT;
-      UPDATE resourceReleases SET sourceReleaseId = CASE id WHEN 'release' THEN 'source-a' ELSE 'source-b' END;
+    setup.exec(`UPDATE resourceReleases SET sourceReleaseId = CASE id WHEN 'release' THEN 'source-a' ELSE 'source-b' END;
       CREATE TABLE snapshotResourceReleases(snapshotId TEXT, resourceReleaseId TEXT);
       INSERT INTO snapshotResourceReleases VALUES ('snap','release'),('unrelated','other');`)
     setup.close()
@@ -174,19 +233,19 @@ test('offers only populated related tables; shared tables have one separate grou
     },
   ])
   try {
-    expect(review.tables('SOURCE', 'release').map(t => t.name)).toEqual([
+    expect(review.tables('SOURCE', 'dataset').map(t => t.name)).toEqual([
       'child',
       'records',
       'definitions',
     ])
     expect(review.tables('SOURCE', SHARED_GROUP).map(t => t.name)).toEqual(['shared'])
-    expect(review.inspect('SOURCE', 'release', 'unrelated', false).samples).toEqual([])
-    const options = review.subsets('SOURCE', 'release', 'records')
+    expect(review.inspect('SOURCE', 'dataset', 'unrelated', false).samples).toEqual([])
+    const options = review.subsets('SOURCE', 'dataset', 'records')
     expect(options.map(s => s.label)).toEqual(['locale: en', 'locale: zh-hant'])
     expect(
       review.inspect(
         'SOURCE',
-        'release',
+        'dataset',
         'records',
         true,
         8,
@@ -196,7 +255,7 @@ test('offers only populated related tables; shared tables have one separate grou
     expect(() =>
       review.inspect(
         'SOURCE',
-        'release',
+        'dataset',
         'records',
         true,
         8,
@@ -208,7 +267,7 @@ test('offers only populated related tables; shared tables have one separate grou
   }
 })
 
-test('catalogue removes empty releases and lineage cohorts produce distinct subsets', () => {
+test('catalogue removes empty datasets and lineage cohorts produce distinct subsets', () => {
   const review = fixture([
     {
       binding: 'DB_HISTORY_HK_2026',
@@ -224,7 +283,7 @@ test('catalogue removes empty releases and lineage cohorts produce distinct subs
   ])
   try {
     expect(review.catalogue('SOURCE').groups).toEqual([
-      { id: 'release', label: 'release-code' },
+      { id: 'dataset', label: 'dataset-code' },
     ])
     expect(review.catalogue('HISTORY').groups).toEqual([
       { id: 'lineage', label: 'lineage-code' },
@@ -363,6 +422,37 @@ test('samples retain physical column order and decode stored values', () => {
       'resourceTypes',
       'kind',
     ])
+  } finally {
+    review.close()
+  }
+})
+
+test('source review keeps open and closed records together without isCurrent subsets', () => {
+  const review = fixture([
+    {
+      binding: 'DB_SOURCE_HK_2026',
+      sql: `CREATE TABLE records(id TEXT, resourceReleaseId TEXT, isCurrent INTEGER);
+      INSERT INTO records VALUES ('open','release',1),('closed','release',0);`,
+    },
+  ])
+  try {
+    expect(review.subsets('SOURCE', 'dataset', 'records')).toEqual([])
+    expect(
+      review
+        .inspect('SOURCE', 'dataset', 'records', false)
+        .samples.map(s => s.record.isCurrent)
+        .sort(),
+    ).toEqual([0, 1])
+    expect(() =>
+      review.inspect(
+        'SOURCE',
+        'dataset',
+        'records',
+        false,
+        8,
+        JSON.stringify(['isCurrent', 0]),
+      ),
+    ).toThrow('Unsupported subset')
   } finally {
     review.close()
   }

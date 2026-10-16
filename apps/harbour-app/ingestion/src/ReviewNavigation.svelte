@@ -59,12 +59,12 @@ let {
     aria-label={kind === 'META'
       ? 'Table'
       : kind === 'SOURCE'
-        ? 'Resource release'
+        ? 'Dataset'
         : 'Snapshot lineage'}
     title={kind === 'META'
       ? 'Table'
       : kind === 'SOURCE'
-        ? 'Resource release'
+        ? 'Dataset'
         : 'Snapshot lineage'}
     class="h-9 min-w-48 flex-1 rounded-lg border border-outline-variant bg-surface-container-lowest px-2 text-sm"
     value={group}

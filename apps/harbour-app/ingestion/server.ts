@@ -114,7 +114,7 @@ export class ReviewDatabase {
       if (
         !meta
           .query(
-            `SELECT 1 FROM ${kind === 'SOURCE' ? 'resourceReleases' : 'snapshotLineages'} WHERE id=?`,
+            `SELECT 1 FROM ${kind === 'SOURCE' ? 'datasets' : 'snapshotLineages'} WHERE id=?`,
           )
           .get(group)
       )
@@ -129,7 +129,7 @@ export class ReviewDatabase {
         ? this.names(meta).map(id => ({ id, label: id }))
         : meta
             .query<{ id: string; label: string }, []>(
-              `SELECT id, code AS label FROM ${kind === 'SOURCE' ? 'resourceReleases' : 'snapshotLineages'} ORDER BY code`,
+              `SELECT id, code AS label FROM ${kind === 'SOURCE' ? 'datasets' : 'snapshotLineages'} ORDER BY code`,
             )
             .all()
     if (kind !== 'META') {
@@ -141,6 +141,16 @@ export class ReviewDatabase {
           )
           .all()
           .map(s => [s.id, s.snapshotLineageId]),
+      )
+      const releaseDatasets = new Map(
+        kind === 'SOURCE'
+          ? meta
+              .query<{ id: string; datasetId: string }, []>(
+                'SELECT rr.id, sr.datasetId FROM resourceReleases rr JOIN sourceReleases sr ON sr.id = rr.sourceReleaseId',
+              )
+              .all()
+              .map(r => [r.id, r.datasetId])
+          : [],
       )
       let shared = false
       for (const { db } of selected) {
@@ -160,7 +170,10 @@ export class ReviewDatabase {
             for (const row of db
               .query(`SELECT DISTINCT ${q(key)} AS value FROM ${q(name)}`)
               .all() as Array<{ value: string }>) {
-              if (key === 'snapshotId') {
+              if (kind === 'SOURCE') {
+                const dataset = releaseDatasets.get(row.value)
+                if (dataset) available.add(dataset)
+              } else if (key === 'snapshotId') {
                 const lineage = snapshots.get(row.value)
                 if (lineage) available.add(lineage)
               } else if (key === 'scopeId') {
@@ -211,7 +224,7 @@ export class ReviewDatabase {
     const columns = new Set(this.columns(db, table).map(c => c.name))
     const col = (name: string) => `${alias}.${q(name)}`
     if (kind === 'SOURCE' && columns.has('resourceReleaseId'))
-      return `${col('resourceReleaseId')} = ?1`
+      return `${col('resourceReleaseId')} IN (SELECT rr.id FROM review_meta.resourceReleases rr JOIN review_meta.sourceReleases sr ON sr.id = rr.sourceReleaseId WHERE sr.datasetId = ?1)`
     if (
       kind === 'CURRENT' &&
       table === 'statsRecords' &&
@@ -370,7 +383,7 @@ export class ReviewDatabase {
       }
     }
     const meta = this.shards.find(s => s.binding === 'DB_META')!.db
-    const groupTable = kind === 'SOURCE' ? 'resourceReleases' : 'snapshotLineages'
+    const groupTable = kind === 'SOURCE' ? 'datasets' : 'snapshotLineages'
     const resource = this.columns(meta, groupTable).some(c => c.name === 'resourceType')
       ? meta
           .query<{ resourceType: string }, [string]>(
@@ -419,7 +432,6 @@ export class ReviewDatabase {
       'scopeId',
       'operation',
       'locale',
-      'isCurrent',
       'variant',
       'resourceType',
       'transform',
@@ -464,7 +476,6 @@ export class ReviewDatabase {
       'cohortKey',
       'operation',
       'locale',
-      'isCurrent',
       'variant',
       'resourceType',
       'transform',
