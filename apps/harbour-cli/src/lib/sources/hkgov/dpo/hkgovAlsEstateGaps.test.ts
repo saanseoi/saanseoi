@@ -190,3 +190,28 @@ test('reviewed gaps accept matching continuity names without changing publisher 
   r.enEstateName = 'OTHER'
   expect(() => restoreAlsEstateGaps([r], '2026-04-03.0')).toThrow()
 })
+
+test('unverified missing estate-gap targets are queued without altering publisher defaults', async () => {
+  const { collectAlsReviewIssues } = await import('./hkgovAlsReviewIssue')
+  const row = {
+    hkgovCsuId: '4185419315T20050430',
+    engPremisesAddressJson: '{"BuildingName":"CHANGED"}',
+    chiPremisesAddressJson: '{"BuildingName":"已更改"}',
+    sources: '{}',
+  } as PreparedHkgovAlsRow
+  const original = structuredClone(row)
+  collectAlsReviewIssues(issues => {
+    expect(restoreAlsEstateGaps([row], '2026-09-22.0', true).restored).toBe(0)
+    expect(row).toEqual(original)
+    expect(
+      issues.find(
+        issue =>
+          'decisionId' in issue &&
+          issue.decisionId === 'estate-gap-2636873f21125794-2026-04-03.0',
+      ),
+    ).toMatchObject({ code: 'unverified-curation', records: [row] })
+  })
+  expect(() => restoreAlsEstateGaps([row], '2027-01-01.0', true)).toThrow(
+    'expected source target missing',
+  )
+})

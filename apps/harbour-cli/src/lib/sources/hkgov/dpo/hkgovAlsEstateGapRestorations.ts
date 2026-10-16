@@ -1,3 +1,5 @@
+import { permitsAlsReviewIssue } from './hkgovAlsReviewPolicy'
+import { reportAlsReviewIssue } from './hkgovAlsReviewIssue'
 import { requireDefined } from '@repo/core/requireDefined'
 import { strict as assert } from 'node:assert'
 import fixture from '../../../../../../../fixtures/meta/curations/hkgov-dpo-address-estate-component-gaps.json'
@@ -128,10 +130,28 @@ export function restoreAlsEstateGaps(
     })
   }
   if (requireComplete)
-    for (const d of decisions)
+    for (const d of decisions) {
+      if (
+        !seen.has(d.decision.identity) &&
+        d.verification === 'unverified' &&
+        permitsAlsReviewIssue('unverified-curation', version)
+      ) {
+        reportAlsReviewIssue({
+          code: 'unverified-curation',
+          sourceVersion: version,
+          decisionId: d.decision.id,
+          curationFile: 'hkgov-dpo-address-estate-component-gaps.json',
+          decision: d.decision,
+          records: rows.filter(row => row.hkgovCsuId === d.decision.csu),
+          message:
+            'Estate-gap target no longer matches beyond verified coverage; preserve publisher defaults pending investigation.',
+        })
+        continue
+      }
       assert(
         seen.has(d.decision.identity),
         `Estate gap ${d.decision.id}: expected source target missing or changed; review required`,
       )
+    }
   return { applications, restored }
 }

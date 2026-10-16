@@ -1929,3 +1929,7 @@ and section ownership: its address components and inventories are unchanged, whi
 King House uses the publisher’s updated location. Man Hong’s 422 units and Man King’s 25
 units belong to their building owners, with six and three distinct sections
 respectively.
+
+Unmatched estate-gap targets beyond verified coverage are retained as unverified
+curations under the deferral policy. Their publisher records remain untouched; scheduled
+historical targets still require an exact match.
