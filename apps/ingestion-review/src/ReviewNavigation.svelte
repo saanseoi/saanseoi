@@ -1,4 +1,5 @@
 <script lang="ts">
+import ReviewActionIcon from './ReviewActionIcon.svelte'
 import type { Group, Table, Subset } from './types'
 let {
   kind,
@@ -40,15 +41,12 @@ let {
 const groupIndex = $derived(groups.findIndex(g => g.id === group))
 const tableIndex = $derived(tables.findIndex(t => t.name === table))
 </script>
-<section
-  class="space-y-4 rounded-xl border border-outline-variant bg-surface-container-lowest p-5"
-  aria-label="Review navigation"
->
-  <div class="flex flex-wrap items-end gap-4">
-    <label class="grid gap-1 text-sm"
+<section class="space-y-3" aria-label="Review navigation">
+  <div class="grid grid-cols-[6rem_minmax(0,1fr)_2.25rem_2.25rem] items-end gap-2">
+    <label class="grid gap-1 text-xs font-medium text-foreground-alt"
       >Shard type
       <select
-        class="rounded border border-outline-variant bg-surface p-2"
+        class="rounded-lg border border-outline-variant bg-surface-container-lowest p-2 text-sm text-foreground"
         value={kind}
         onchange={e => onKind(e.currentTarget.value)}
       >
@@ -57,14 +55,14 @@ const tableIndex = $derived(tables.findIndex(t => t.name === table))
         {/each}
       </select>
     </label>
-    <label class="grid min-w-0 flex-1 gap-1 text-sm"
+    <label class="grid min-w-0 flex-1 gap-1 text-xs font-medium text-foreground-alt"
       >{kind === 'META'
         ? 'Table'
         : kind === 'SOURCE'
           ? 'Resource release'
           : 'Snapshot lineage'}
       <select
-        class="w-full min-w-0 rounded border border-outline-variant bg-surface p-2"
+        class="w-full min-w-0 rounded-lg border border-outline-variant bg-surface-container-lowest p-2 text-sm text-foreground"
         value={group}
         onchange={e => onGroup(e.currentTarget.value)}
         disabled={!groups.length}
@@ -79,27 +77,31 @@ const tableIndex = $derived(tables.findIndex(t => t.name === table))
     </label>
     <button
       type="button"
-      class="rounded border border-outline-variant px-3 py-2 disabled:opacity-30"
+      aria-label="Previous group"
+      title="Previous group"
+      class="flex size-9 items-center justify-center rounded-lg border border-outline-variant text-foreground transition hover:bg-surface-container focus-visible:outline-2 focus-visible:outline-primary disabled:opacity-30"
       disabled={groupIndex <= 0}
       onclick={() => onMove(-1, 'group')}
     >
-      Previous group
+      <ReviewActionIcon kind="previous" />
     </button>
     <button
       type="button"
-      class="rounded border border-outline-variant px-3 py-2 disabled:opacity-30"
+      aria-label="Next group"
+      title="Next group"
+      class="flex size-9 items-center justify-center rounded-lg border border-outline-variant text-foreground transition hover:bg-surface-container focus-visible:outline-2 focus-visible:outline-primary disabled:opacity-30"
       disabled={groupIndex < 0 || groupIndex >= groups.length - 1}
       onclick={() => onMove(1, 'group')}
     >
-      Next group
+      <ReviewActionIcon kind="next" />
     </button>
   </div>
   {#if kind !== 'META'}
-    <div class="flex flex-wrap items-end gap-4">
-      <label class="grid min-w-0 flex-1 gap-1 text-sm"
+    <div class="grid grid-cols-[minmax(0,1fr)_2.25rem_2.25rem] items-end gap-2">
+      <label class="grid min-w-0 flex-1 gap-1 text-xs font-medium text-foreground-alt"
         >Data and supporting tables
         <select
-          class="w-full min-w-0 rounded border border-outline-variant bg-surface p-2"
+          class="w-full min-w-0 rounded-lg border border-outline-variant bg-surface-container-lowest p-2 text-sm text-foreground"
           value={table}
           onchange={e => onTable(e.currentTarget.value)}
           disabled={!tables.length}
@@ -114,27 +116,31 @@ const tableIndex = $derived(tables.findIndex(t => t.name === table))
       </label>
       <button
         type="button"
-        class="rounded border border-outline-variant px-3 py-2 disabled:opacity-30"
+        aria-label="Previous table"
+        title="Previous table"
+        class="flex size-9 items-center justify-center rounded-lg border border-outline-variant text-foreground transition hover:bg-surface-container focus-visible:outline-2 focus-visible:outline-primary disabled:opacity-30"
         disabled={tableIndex <= 0}
         onclick={() => onMove(-1, 'table')}
       >
-        Previous table
+        <ReviewActionIcon kind="previous" />
       </button>
       <button
         type="button"
-        class="rounded border border-outline-variant px-3 py-2 disabled:opacity-30"
+        aria-label="Next table"
+        title="Next table"
+        class="flex size-9 items-center justify-center rounded-lg border border-outline-variant text-foreground transition hover:bg-surface-container focus-visible:outline-2 focus-visible:outline-primary disabled:opacity-30"
         disabled={tableIndex < 0 || tableIndex >= tables.length - 1}
         onclick={() => onMove(1, 'table')}
       >
-        Next table
+        <ReviewActionIcon kind="next" />
       </button>
     </div>
   {/if}
   {#if subsets.length}
-    <label class="grid gap-1 text-sm"
+    <label class="grid gap-1 text-xs font-medium text-foreground-alt"
       >Review subset
       <select
-        class="w-full min-w-0 rounded border border-outline-variant bg-surface p-2"
+        class="w-full min-w-0 rounded-lg border border-outline-variant bg-surface-container-lowest p-2 text-sm text-foreground"
         value={subset}
         onchange={e => onSubset(e.currentTarget.value)}
       >
@@ -148,11 +154,11 @@ const tableIndex = $derived(tables.findIndex(t => t.name === table))
       </select>
     </label>
   {/if}
-  <div class="flex flex-wrap items-center gap-4 text-sm">
+  <div class="flex flex-wrap items-center gap-2 text-sm">
     <label
       >Samples
       <select
-        class="ml-2 rounded border border-outline-variant bg-surface p-2"
+        class="ml-2 rounded-lg border border-outline-variant bg-surface-container-lowest p-2 text-sm text-foreground"
         value={limit}
         onchange={e => onLimit(Number(e.currentTarget.value))}
       >
@@ -163,13 +169,16 @@ const tableIndex = $derived(tables.findIndex(t => t.name === table))
     >
     <button
       type="button"
-      class="rounded bg-primary px-4 py-2 text-surface disabled:opacity-40"
+      class="flex h-9 items-center gap-2 rounded-lg bg-primary px-3 text-surface disabled:opacity-40"
       disabled={busy || !table}
+      aria-label="Load different samples"
+      title="Load different samples"
       onclick={onRefresh}
     >
-      Load different samples
+      <ReviewActionIcon kind="refresh" />
+      <span>Resample</span>
     </button>
-    <span
+    <span class="ml-auto px-2 text-xs tabular-nums text-foreground-alt"
       >{groupIndex + 1}
       / {groups.length} groups{kind !== 'META'
         ? ` · ${tableIndex + 1} / ${tables.length} tables`
@@ -177,19 +186,23 @@ const tableIndex = $derived(tables.findIndex(t => t.name === table))
     >
     <button
       type="button"
-      class="rounded border border-outline-variant px-3 py-2 disabled:opacity-30"
+      aria-label="Previous view"
+      title="Previous view"
+      class="flex size-9 items-center justify-center rounded-lg border border-outline-variant text-foreground transition hover:bg-surface-container focus-visible:outline-2 focus-visible:outline-primary disabled:opacity-30"
       disabled={busy || !table}
       onclick={() => onMove(-1, 'view')}
     >
-      Previous view
+      <ReviewActionIcon kind="previous" />
     </button>
     <button
       type="button"
-      class="rounded border border-outline-variant px-3 py-2 disabled:opacity-30"
+      aria-label="Next view"
+      title="Next view"
+      class="flex size-9 items-center justify-center rounded-lg border border-outline-variant text-foreground transition hover:bg-surface-container focus-visible:outline-2 focus-visible:outline-primary disabled:opacity-30"
       disabled={busy || !table}
       onclick={() => onMove(1, 'view')}
     >
-      Next view
+      <ReviewActionIcon kind="next" />
     </button>
   </div>
 </section>

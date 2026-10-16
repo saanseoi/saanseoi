@@ -2,9 +2,18 @@
 import { onMount } from 'svelte'
 import ReviewNavigation from './ReviewNavigation.svelte'
 import ReviewProgress from './ReviewProgress.svelte'
+import ProductionReviewQueue from './ProductionReviewQueue.svelte'
+import {
+  tableKey,
+  needsProductionReview,
+  readProductionReviews,
+  productionReviewStorageKey,
+  type ProductionReviews,
+  type ProductionReview,
+} from './productionReviews'
 import SamplePanel from './SamplePanel.svelte'
 import NullSummary from './NullSummary.svelte'
-import ThemeToggle from './ThemeToggle.svelte'
+import ReviewHeader from './ReviewHeader.svelte'
 import {
   isApproved,
   readSignoffs,
@@ -33,7 +42,13 @@ let summaryError = $state('')
 let storageError = $state('')
 let notice = $state('')
 let signoffs = $state<Signoffs>({})
-let skip = $state(true)
+let productionReviews = $state<ProductionReviews>({})
+const productionReview = $derived(
+  needsProductionReview(productionReviews, kind, group, table),
+)
+const productionEntries = $derived(
+  Object.values(productionReviews).sort((a, b) => a.markedAt.localeCompare(b.markedAt)),
+)
 let controller: AbortController | undefined
 let planController: AbortController | undefined
 const key = $derived(viewKey(kind, group, table, subset))
@@ -49,9 +64,6 @@ const canApprove = $derived(
       !error &&
       !summaryError,
   ),
-)
-const progress = $derived(
-  `${['', ...subsets.map(s => s.id)].filter(s => isApproved(signoffs, viewKey(kind, group, table, s), revision)).length} / ${subsets.length + 1} views signed off for this table`,
 )
 
 async function get<T>(
@@ -101,7 +113,7 @@ const message = (e: unknown) => (e instanceof Error ? e.message : String(e))
 function save() {
   try {
     localStorage.setItem(signoffStorageKey, JSON.stringify(signoffs))
-    localStorage.setItem('ingestion-review-skip', String(skip))
+    localStorage.setItem(productionReviewStorageKey, JSON.stringify(productionReviews))
     storageError = ''
   } catch {
     storageError =
@@ -109,6 +121,8 @@ function save() {
   }
 }
 function approvalLabel(target: string, slice: string) {
+  if (needsProductionReview(productionReviews, kind, group, target))
+    return ' · Production review'
   return isApproved(signoffs, viewKey(kind, group, target, slice), revision)
     ? ' ✓ Signed off'
     : ''
@@ -197,7 +211,7 @@ async function show(
 async function seek(
   direction: number,
   level: 'group' | 'table' | 'view',
-  onlyPending = skip,
+  onlyPending = true,
   initial = false,
 ) {
   const current = startPlan()
@@ -231,6 +245,11 @@ async function seek(
         )
           continue
         const targetTable = availableTables[ti].name
+        if (
+          onlyPending &&
+          needsProductionReview(productionReviews, kind, targetGroup, targetTable)
+        )
+          continue
         const availableSubsets = await plannedSubsets(
           targetGroup,
           targetTable,
@@ -295,7 +314,7 @@ async function selectTable(value: string) {
     }
   }
 }
-async function selectGroup(value: string) {
+async function selectGroup(value: string, targetTable?: string) {
   const current = startPlan()
   group = value
   table = ''
@@ -311,8 +330,17 @@ async function selectGroup(value: string) {
       notice = 'No populated related tables are available.'
       return
     }
-    const slices = await plannedSubsets(value, available[0].name, current.signal)
-    await show(value, available[0].name, '', available, slices, current.signal)
+    const chosen = targetTable
+      ? available.find(t => t.name === targetTable)
+      : available[0]
+    if (!chosen) {
+      navigating = false
+      notice =
+        'This queued table has no populated local view. It remains pending production review.'
+      return
+    }
+    const slices = await plannedSubsets(value, chosen.name, current.signal)
+    await show(value, chosen.name, '', available, slices, current.signal)
   } catch (e) {
     if (!current.signal.aborted) {
       error = message(e)
@@ -320,7 +348,7 @@ async function selectGroup(value: string) {
     }
   }
 }
-async function selectKind(value: string) {
+async function selectKind(value: string, target?: ProductionReview) {
   const current = startPlan()
   kind = value
   group = ''
@@ -340,7 +368,15 @@ async function selectKind(value: string) {
     groups = result.groups
     missing = result.missing
     revision = result.revision
-    if (groups.length) await seek(1, 'view', skip, true)
+    if (target) {
+      if (groups.some(g => g.id === target.group))
+        await selectGroup(target.group, target.table)
+      else {
+        navigating = false
+        notice =
+          'This queued group has no populated local view. It remains pending production review.'
+      }
+    } else if (groups.length) await seek(1, 'view', true, true)
     else navigating = false
   } catch (e) {
     if (!current.signal.aborted) {
@@ -349,8 +385,27 @@ async function selectKind(value: string) {
     }
   }
 }
+function markProductionReview() {
+  if (!table || navigating) return
+  const entry: ProductionReview = {
+    kind,
+    group,
+    groupLabel: groups.find(g => g.id === group)?.label ?? group,
+    table,
+    markedAt: new Date().toISOString(),
+  }
+  productionReviews = { ...productionReviews, [tableKey(kind, group, table)]: entry }
+  save()
+  void seek(1, 'view', true)
+}
+function removeProductionReview(entry: ProductionReview) {
+  const next = { ...productionReviews }
+  delete next[tableKey(entry.kind, entry.group, entry.table)]
+  productionReviews = next
+  save()
+}
 function approve() {
-  if (!canApprove) return
+  if (!canApprove || productionReview) return
   signoffs = { ...signoffs, [key]: { revision, signedAt: new Date().toISOString() } }
   save()
   void seek(1, 'view', true)
@@ -364,13 +419,17 @@ function undo() {
 onMount(() => {
   try {
     signoffs = readSignoffs(localStorage.getItem(signoffStorageKey))
-    skip = localStorage.getItem('ingestion-review-skip') !== 'false'
+    productionReviews = readProductionReviews(
+      localStorage.getItem(productionReviewStorageKey),
+    )
   } catch {
     storageError =
       'Browser storage is unavailable; progress will last only for this session.'
   }
   const update = (event: StorageEvent) => {
     if (event.key === signoffStorageKey) signoffs = readSignoffs(event.newValue)
+    if (event.key === productionReviewStorageKey)
+      productionReviews = readProductionReviews(event.newValue)
   }
   window.addEventListener('storage', update)
   void selectKind(kind)
@@ -383,61 +442,36 @@ onMount(() => {
 </script>
 
 <main
-  class="mx-auto min-h-screen max-w-screen-2xl space-y-7 bg-surface px-4 py-8 text-foreground sm:px-8"
+  class="mx-auto min-h-screen max-w-screen-2xl space-y-7 bg-surface px-4 pb-28 text-foreground sm:px-8"
 >
-  <header class="flex flex-wrap items-start justify-between gap-4">
-    <div class="space-y-2">
-      <p class="text-sm font-medium text-foreground-alt">SaanSeoi · local database</p>
-      <h1 class="text-3xl font-semibold">Data ingestion review</h1>
-      <p>Inspect stored schemas, compare record samples and review missing values.</p>
-    </div>
-    <ThemeToggle />
-  </header>
-  <ReviewNavigation
-    {kind}
-    {group}
-    {table}
-    {groups}
-    {tables}
-    {limit}
-    {subset}
-    {subsets}
-    {approvalLabel}
-    onSubset={value => {
-      subset = value
-      notice = ''
-      void loadSamples()
-    }}
-    onMove={seek}
-    busy={loading || navigating}
-    onKind={selectKind}
-    onGroup={selectGroup}
-    onTable={selectTable}
-    onLimit={value => {
-      limit = value
-      void loadSamples()
-    }}
-    onRefresh={loadSamples}
-  />
-  <ReviewProgress
-    {approved}
-    signedAt={signoffs[key]?.signedAt}
-    {canApprove}
-    {skip}
-    busy={navigating}
-    {progress}
-    {storageError}
-    {notice}
-    onApprove={approve}
-    onUndo={undo}
-    onNext={() => {
-      void seek(1, 'view', true)
-    }}
-    onSkip={value => {
-      skip = value
-      save()
-    }}
-  />
+  <ReviewHeader>
+    <ReviewNavigation
+      {kind}
+      {group}
+      {table}
+      {groups}
+      {tables}
+      {limit}
+      {subset}
+      {subsets}
+      {approvalLabel}
+      onSubset={value => {
+        subset = value
+        notice = ''
+        void loadSamples()
+      }}
+      onMove={seek}
+      busy={loading || navigating}
+      onKind={selectKind}
+      onGroup={selectGroup}
+      onTable={selectTable}
+      onLimit={value => {
+        limit = value
+        void loadSamples()
+      }}
+      onRefresh={loadSamples}
+    />
+  </ReviewHeader>
   {#if missing.length}
     <p role="status">
       Unavailable local shards: {missing.join(', ')}. Review covers available shards
@@ -457,3 +491,31 @@ onMount(() => {
   {/if}
   <NullSummary data={summary} loading={counting} error={summaryError} />
 </main>
+
+<ReviewProgress
+  {approved}
+  {productionReview}
+  canMarkProduction={Boolean(table && !navigating)}
+  onProduction={markProductionReview}
+  onReturnToLocal={() => {
+    const entry = productionReviews[tableKey(kind, group, table)]
+    if (entry) removeProductionReview(entry)
+  }}
+  {canApprove}
+  busy={navigating}
+  {storageError}
+  {notice}
+  onApprove={approve}
+  onUndo={undo}
+  onNext={() => {
+    void seek(1, 'view', true)
+  }}
+/>
+
+<ProductionReviewQueue
+  entries={productionEntries}
+  onOpen={entry => {
+    void selectKind(entry.kind, entry)
+  }}
+  onRemove={removeProductionReview}
+/>

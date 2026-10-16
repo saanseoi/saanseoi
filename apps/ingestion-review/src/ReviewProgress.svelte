@@ -1,85 +1,87 @@
 <script lang="ts">
+import ReviewActionIcon from './ReviewActionIcon.svelte'
 let {
   approved,
-  signedAt,
+  productionReview,
+  canMarkProduction,
+  onProduction,
+  onReturnToLocal,
   canApprove,
-  skip,
   busy,
-  progress,
   storageError,
   notice,
   onApprove,
   onUndo,
   onNext,
-  onSkip,
 }: {
+  productionReview: boolean
+  canMarkProduction: boolean
+  onProduction: () => void
+  onReturnToLocal: () => void
   approved: boolean
-  signedAt?: string
   canApprove: boolean
-  skip: boolean
   busy: boolean
-  progress: string
   storageError: string
   notice: string
   onApprove: () => void
   onUndo: () => void
   onNext: () => void
-  onSkip: (value: boolean) => void
 } = $props()
+const approvalLabel = $derived(approved ? 'Undo sign-off' : 'Sign off and next')
+const productionLabel = $derived(
+  productionReview ? 'Return to local review' : 'Production review and next',
+)
 </script>
-<section
-  class="flex flex-wrap items-center gap-4 rounded-xl border border-outline-variant bg-surface-container-lowest p-4"
-  aria-label="Review progress"
+
+<div
+  class="pointer-events-none fixed inset-x-0 bottom-[max(1rem,env(safe-area-inset-bottom))] z-50 mx-auto flex max-w-screen-2xl flex-col items-end gap-3 px-4 sm:px-8"
 >
-  <div class="min-w-48 flex-1">
-    <p class="font-semibold">{approved ? 'Signed off' : 'Awaiting sign-off'}</p>
-    <p class="text-sm text-foreground-alt">
-      {approved && signedAt ? new Date(signedAt).toLocaleString() : progress}
-    </p>
-  </div>
-  {#if approved}
-    <button
-      type="button"
-      class="rounded border border-outline-variant px-3 py-2"
-      onclick={onUndo}
-    >
-      Undo sign-off
-    </button>
-  {:else}
-    <button
-      type="button"
-      class="rounded bg-primary px-4 py-2 text-surface disabled:opacity-40"
-      disabled={!canApprove || busy}
-      onclick={onApprove}
-    >
-      Sign off and next
-    </button>
-  {/if}
-  <button
-    type="button"
-    class="rounded border border-outline-variant px-3 py-2 disabled:opacity-40"
-    disabled={busy}
-    onclick={onNext}
-  >
-    Next unreviewed view
-  </button>
-  <label class="flex items-center gap-2 text-sm"
-    ><input
-      type="checkbox"
-      checked={skip}
-      onchange={e => onSkip(e.currentTarget.checked)}
-    >Skip signed-off views</label
-  >
-  <p class="w-full text-xs text-foreground-alt">
-    Sign-offs are saved in this browser for the exact shard, group, table and subset.
-    Local database changes make prior sign-offs pending again.
-  </p>
-  {#if notice}
-    <p role="status" class="w-full text-sm">{notice}</p>
-  {/if}
   {#if storageError}
-    <p role="alert" class="w-full text-sm text-red-700 dark:text-red-400">
+    <p
+      role="alert"
+      class="pointer-events-auto max-w-80 rounded-xl border border-outline-variant bg-surface-container-lowest p-3 text-sm text-red-700 shadow-lg dark:text-red-400"
+    >
       {storageError}
     </p>
   {/if}
-</section>
+  <fieldset
+    aria-label="Review actions"
+    class="pointer-events-auto flex items-center gap-1 rounded-2xl border border-outline-variant bg-surface-container-lowest/95 p-1.5 text-foreground shadow-lg backdrop-blur-md"
+  >
+    <button
+      type="button"
+      class="flex size-12 items-center justify-center rounded-xl transition hover:bg-surface-container focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-30"
+      class:bg-surface-container-high={approved}
+      aria-label={approvalLabel}
+      title={approvalLabel}
+      aria-pressed={approved}
+      disabled={busy || (!approved && (!canApprove || productionReview))}
+      onclick={approved ? onUndo : onApprove}
+    >
+      <ReviewActionIcon kind="approval" />
+    </button>
+    <button
+      type="button"
+      class="flex size-12 items-center justify-center rounded-xl transition hover:bg-surface-container focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-30"
+      class:bg-surface-container-high={productionReview}
+      aria-label={productionLabel}
+      title={productionLabel}
+      aria-pressed={productionReview}
+      disabled={busy || (!productionReview && !canMarkProduction)}
+      onclick={productionReview ? onReturnToLocal : onProduction}
+    >
+      <ReviewActionIcon kind="production" />
+    </button>
+    <button
+      type="button"
+      class="flex size-12 items-center justify-center rounded-xl transition hover:bg-surface-container focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-30"
+      aria-label="Next unreviewed view"
+      title={notice || 'Next unreviewed view'}
+      disabled={busy}
+      onclick={onNext}
+    >
+      <ReviewActionIcon kind="skip" />
+    </button>
+  </fieldset>
+  <span class="sr-only" role="status">{notice}</span>
+</div>

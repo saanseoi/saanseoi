@@ -46,19 +46,30 @@ filter: available locales, history operations and cohorts, CURRENT scopes, refer
 periods, categories, granularities, source assertion state and transforms. A dimension
 with a single value adds no subset. Dimensions with over 100 distinct values are omitted
 to keep the choices manageable. Samples and null counts use the same selected subset.
-Arrays show five items initially and reveal ten more per click. Dark mode is the
-default; the theme toggle remembers your choice.
+Arrays show five items initially and reveal ten more per click. The review tool uses
+dark mode.
 
-Use **Sign off and next** to approve the exact shard/group/table/subset view. **Next
-unreviewed view** and the enabled **Skip signed-off views** setting move past approved
-views across subsets, tables and groups within the selected shard type. Dropdowns still
-allow returning to a signed-off view; **Undo sign-off** reopens it. Progress is stored
-in this browser's local storage and synchronised between tabs on the same origin. It is
-not a shared team approval ledger. A conservative revision of the META and selected
-shard files (including WAL files) invalidates approvals after local database changes,
-even if an unrelated table changed. Sign-off is unavailable when samples and counts came
-from different or changing revisions. Sample count and random resampling do not create
-separate views.
+The fixed bottom-right controls provide an approval stamp (**Sign off and next**), a
+factory (**Production review and next**) and a skip icon (**Next unreviewed view**).
+Hover for action names; each button also has an accessible label. Navigation skips
+signed-off and production-review views across subsets, tables and groups within the
+selected shard type. Dropdowns still allow returning to a signed-off view; **Undo
+sign-off** reopens it. Progress is stored in this browser's local storage and
+synchronised between tabs on the same origin. It is not a shared team approval ledger. A
+conservative revision of the META and selected shard files (including WAL files)
+invalidates approvals after local database changes, even if an unrelated table changed.
+Sign-off is unavailable when samples and counts came from different or changing
+revisions. Sample count and random resampling do not create separate views.
 
-Run `bun run --cwd apps/ingestion-review test` and
-`bun run --cwd apps/ingestion-review check` for focused verification.
+Use **Production review and next** to defer an entire table within its selected
+shard/group, including every subset. Local skip navigation passes over these tables. The
+hidden **Production review queue** records the table, group and marking time, with a
+link to reopen its local view. **Return to local review** removes the flag. These flags
+are separate from local sign-offs, remain pending across local database revisions, and
+still require verification against production data. Open the queue with the bottom-left
+clipboard icon; close it with the icon, close button or Escape. The queue uses the same
+browser-local persistence and tab synchronisation as sign-offs; it does not query or
+modify production.
+
+Run `bun run --cwd apps/ingestion-review test` and `bun run --cwd apps/ingestion-review check` for
+focused verification.

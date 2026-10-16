@@ -13,3 +13,28 @@ test('sign-offs distinguish table subsets and become pending for a new data revi
   expect(readSignoffs('{broken')).toEqual({})
   expect(readSignoffs(JSON.stringify({ bad: { revision: 'one' } }))).toEqual({})
 })
+
+test('production-review flags cover every subset, remain pending independently of revisions, and reject malformed records', async () => {
+  const { tableKey, needsProductionReview, readProductionReviews } = await import(
+    './src/productionReviews'
+  )
+  const key = tableKey('CURRENT', 'lineage', 'records')
+  const entry = {
+    kind: 'CURRENT',
+    group: 'lineage',
+    groupLabel: 'Example lineage',
+    table: 'records',
+    markedAt: '2026-10-16T00:00:00Z',
+  }
+  const saved = readProductionReviews(JSON.stringify({ [key]: entry }))
+  expect(needsProductionReview(saved, 'CURRENT', 'lineage', 'records')).toBe(true)
+  expect(needsProductionReview(saved, 'CURRENT', 'lineage', 'other')).toBe(false)
+  expect(needsProductionReview(saved, 'HISTORY', 'lineage', 'records')).toBe(false)
+  expect(Object.values(saved)).toEqual([entry])
+  expect(readProductionReviews(JSON.stringify({ wrong: entry }))).toEqual({})
+  expect(
+    readProductionReviews(JSON.stringify({ [key]: { ...entry, kind: 'REMOTE' } })),
+  ).toEqual({})
+  expect(readProductionReviews('{bad')).toEqual({})
+  expect(readProductionReviews(JSON.stringify(saved))).toEqual(saved)
+})
