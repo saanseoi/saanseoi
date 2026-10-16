@@ -1693,3 +1693,11 @@ Pacific Place remain separate review cases.
 The remaining `2024-10-18.0` decisions identify S22 and Five Pacific Place as new
 developments with distinct IDs. Their exact identity pairs and sealed review digest are
 recorded with the optional development notes.
+
+Identity review researches the building’s construction, groundbreaking or occupation
+permit dates before requesting decisions. A documented new development whose
+construction is roughly contemporaneous with the source-name appearance may receive a
+distinct ID under the explicit review instruction. Evidence must match the exact site
+and retain its source URLs and dates. An established building’s rename, ownership change
+or refurbishment alone does not establish a new development; unclear cases remain
+subject to review.
