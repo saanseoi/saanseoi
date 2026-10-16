@@ -300,3 +300,35 @@ test('content sign-offs ignore unrelated writes and samples but track scoped row
     review.close()
   }
 })
+
+test.each(['apiCompositionMembers', 'apiReleaseSetSnapshots'])(
+  '%s is reviewed as one table across variants and resource types',
+  table => {
+    const root = mkdtempSync(join(tmpdir(), 'ingestion-review-members-'))
+    roots.push(root)
+    const path = join(root, 'meta.sqlite')
+    const db = new Database(path)
+    db.exec(`CREATE TABLE ${table}(id TEXT PRIMARY KEY, variant TEXT, resourceType TEXT);
+    INSERT INTO ${table} VALUES ('a','hma','division'),('b','buildings','divisionArea');`)
+    db.close()
+    const review = new ReviewDatabase([{ binding: 'DB_META', path }])
+    try {
+      expect(review.subsets('META', table, table)).toEqual([])
+      expect(review.inspect('META', table, table, false, 8).samples).toHaveLength(2)
+      for (const dimension of ['variant', 'resourceType']) {
+        expect(() =>
+          review.inspect(
+            'META',
+            table,
+            table,
+            true,
+            8,
+            JSON.stringify([dimension, 'hma']),
+          ),
+        ).toThrow('Unsupported subset')
+      }
+    } finally {
+      review.close()
+    }
+  },
+)

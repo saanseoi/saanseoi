@@ -7,6 +7,7 @@ let {
   onProduction,
   onReturnToLocal,
   canApprove,
+  approvalBlockedReason,
   busy,
   storageError,
   notice,
@@ -19,6 +20,7 @@ let {
   onProduction: () => void
   onReturnToLocal: () => void
   approved: boolean
+  approvalBlockedReason: string
   canApprove: boolean
   busy: boolean
   storageError: string
@@ -53,7 +55,9 @@ const productionLabel = $derived(
       class="flex size-12 items-center justify-center rounded-xl text-green-700 dark:text-green-400 transition hover:bg-surface-container focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-30"
       class:bg-surface-container-high={approved}
       aria-label={approvalLabel}
-      title={approvalLabel}
+      title={!approved && !canApprove
+        ? approvalBlockedReason || approvalLabel
+        : approvalLabel}
       aria-pressed={approved}
       disabled={busy || (!approved && (!canApprove || productionReview))}
       onclick={approved ? onUndo : onApprove}
@@ -83,5 +87,12 @@ const productionLabel = $derived(
       <ReviewActionIcon kind="skip" />
     </button>
   </fieldset>
-  <span class="sr-only" role="status">{notice}</span>
+  {#if notice && !storageError}
+    <p
+      role="status"
+      class="pointer-events-auto absolute right-4 bottom-full mb-3 max-w-80 rounded-xl border border-outline-variant bg-surface-container-lowest p-3 text-sm shadow-lg sm:right-8"
+    >
+      {notice}
+    </p>
+  {/if}
 </div>

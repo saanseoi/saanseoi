@@ -41,6 +41,7 @@ let error = $state('')
 let summaryError = $state('')
 let storageError = $state('')
 let notice = $state('')
+let actionNotice = $state('')
 let signoffs = $state<Signoffs>({})
 let productionReviews = $state<ProductionReviews>({})
 const productionReview = $derived(
@@ -57,6 +58,7 @@ const canApprove = $derived(
   Boolean(
     data &&
       summary &&
+      Boolean(data.contentRevision) &&
       data.stable &&
       summary.stable &&
       data.contentRevision === summary.contentRevision &&
@@ -65,6 +67,18 @@ const canApprove = $derived(
       !error &&
       !summaryError,
   ),
+)
+
+const approvalBlockedReason = $derived(
+  navigating
+    ? 'Finding the next unreviewed view…'
+    : loading || counting
+      ? 'Waiting for samples and column counts before approval…'
+      : error || summaryError
+        ? 'Could not load this view. Resample before signing off.'
+        : data && summary && !canApprove
+          ? 'Samples and counts do not match a stable data revision. Resample before signing off.'
+          : '',
 )
 
 async function get<T>(
@@ -186,6 +200,7 @@ function startPlan() {
   const current = new AbortController()
   planController = current
   navigating = true
+  actionNotice = ''
   loading = false
   counting = false
   data = null
@@ -296,11 +311,12 @@ async function seek(
       }
     }
     if (!current.signal.aborted) {
-      notice = onlyPending
+      const completedNotice = onlyPending
         ? 'No more unreviewed views in this direction for this shard type.'
         : 'No more views in this direction.'
       navigating = false
       if (table) await loadSamples()
+      if (!current.signal.aborted) notice = completedNotice
     }
   } catch (e) {
     if (!current.signal.aborted) {
@@ -421,7 +437,9 @@ function approve() {
     [key]: { revision: data!.contentRevision, signedAt: new Date().toISOString() },
   }
   save()
+  const acceptedTable = `${table} · ${subsets.find(item => item.id === subset)?.label ?? 'All rows'}`
   void seek(1, 'view', true)
+  actionNotice = `${acceptedTable} signed off${storageError ? ' for this session' : ''}.`
 }
 function undo() {
   const next = { ...signoffs }
@@ -499,6 +517,7 @@ onMount(() => {
     {#key `${kind}/${group}/${table}/${subset}`}
       <SamplePanel
         {data}
+        subsetLabel={subsets.find(item => item.id === subset)?.label ?? 'All rows'}
         {approved}
         {productionReview}
         staleApproval={Boolean(signoffs[key]) && !approved}
@@ -522,7 +541,8 @@ onMount(() => {
   {canApprove}
   busy={navigating}
   {storageError}
-  {notice}
+  notice={[actionNotice, notice || approvalBlockedReason].filter(Boolean).join(' ')}
+  {approvalBlockedReason}
   onApprove={approve}
   onUndo={undo}
   onNext={() => {

@@ -7,10 +7,12 @@ import {
 import type { Inspection } from './types'
 let {
   data,
+  subsetLabel,
   approved,
   productionReview,
   staleApproval,
 }: {
+  subsetLabel: string
   data: Inspection
   approved: boolean
   productionReview: boolean
@@ -49,6 +51,7 @@ const fields = $derived(groupAddressSamples(samples))
       title={reviewStatus}
     >
       {data.table}
+      <span class="ml-2 text-sm font-normal text-foreground-alt">{subsetLabel}</span>
       {#if approved || productionReview || staleApproval}
         <span class="ml-2 text-sm font-normal">· {reviewStatus}</span>
       {:else}

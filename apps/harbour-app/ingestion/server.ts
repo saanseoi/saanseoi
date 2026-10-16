@@ -402,6 +402,13 @@ export class ReviewDatabase {
   }
 
   subsetExpression(db: Database, table: string, kind: string, column: string) {
+    // API membership rows share one shape; their routing values do not
+    // define distinct review cases. Review these rows together across variants.
+    if (
+      kind === 'META' &&
+      ['apiCompositionMembers', 'apiReleaseSetSnapshots'].includes(table)
+    )
+      throw new Error('Unsupported subset')
     if (
       column === 'cohortKey' &&
       kind === 'HISTORY' &&
