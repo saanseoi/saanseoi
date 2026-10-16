@@ -333,7 +333,7 @@ test.each(['apiCompositionMembers', 'apiReleaseSetSnapshots'])(
   },
 )
 
-test('samples follow declared schema order while retaining unexpected stored columns', () => {
+test('samples retain physical column order and decode stored values', () => {
   const root = mkdtempSync(join(tmpdir(), 'ingestion-review-order-'))
   roots.push(root)
   const path = join(root, 'meta.sqlite')
@@ -346,12 +346,12 @@ test('samples follow declared schema order while retaining unexpected stored col
   try {
     const data = review.inspect('META', 'datasets', 'datasets', false, 4)
     expect(Object.keys(data.samples[0]!.record)).toEqual([
-      'id',
+      'extra',
       'code',
       'theme',
+      'id',
       'resourceTypes',
       'kind',
-      'extra',
     ])
     expect(data.samples[0]!.record.resourceTypes).toEqual(['divisionStatistic'])
     expect(data.samples[0]!.record.extra).toBe('unexpected')
