@@ -116,6 +116,42 @@ test('September decisions preserve names, selected identities and distinct build
     for (const id of d.aliasIds) expect(aliases.get(id)).toBe(d.canonicalId)
 })
 
+test('returned kindergarten frontages retain the selected identity and raw evidence', async () => {
+  const decision = fixture.identityReconciliations.find(d => d.entry === 2)!
+  for (const date of ['20251104', '20251216', '20260204']) {
+    const version = `${date.slice(0, 4)}-${date.slice(4, 6)}-${date.slice(6)}.0`
+    const dir = (await readdir('data/hkgov/dpo/ALS')).find(
+      d => d.startsWith(date) && d.endsWith('ALS-GeoJSON'),
+    )!
+    const rows = prepare(await inputs(dir), version).filter(
+      r => r.hkgovCsuId === '4137618474T20130802',
+    )
+    const returned = rows.filter(r => r.enStreetName === 'CHA KWO LING ROAD')
+    expect(returned).toHaveLength(2)
+    for (const row of returned) {
+      expect(row.enEstateName).toBeNull()
+      // Model the published ID resolution performed before reconciliation.
+      row.id = decision.aliasIds[row.enStreetNumberFrom === '99' ? 0 : 1]!
+    }
+    const changed = structuredClone(rows)
+    changed.find(r => r.id === returned[0]!.id)!.zhHantFormattedAddress += ' changed'
+    expect(() => applySeptemberReviewedIdentityAliases(changed, version)).toThrow(
+      'returned frontage changed',
+    )
+    const aliases = applySeptemberReviewedIdentityAliases(rows, version)
+    const owner = rows.find(r => r.id === decision.canonicalId)!
+    expect(owner).toBeDefined()
+    for (const row of returned) {
+      expect(aliases.get(row.id)).toBe(owner.id)
+      expect(rows.some(r => r.id === row.id)).toBe(false)
+    }
+    expect(
+      JSON.parse(owner.sources).hkgovAlsSeptemberReviewedIdentityReconciliation
+        .returnedPublisherAssertions,
+    ).toHaveLength(2)
+  }
+})
+
 test('Tsing Fung shop frontages remain distinct units beneath the combined building', () => {
   const parentId = 'ss-2bc8efc1-3ac0-578a-9bd4-2e2ceb2da35e'
   const rows = [

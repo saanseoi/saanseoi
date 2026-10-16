@@ -1509,6 +1509,11 @@ address.
 
 ### September 2025 reviewed premises
 
+Lam Tin Ling Liang Kindergarten's 91 and 99 Cha Kwo Ling Road frontages return without
+an estate name in November 2025 through February 2026. Exact bilingual labels and
+coordinates guard their reconciliation into the approved identity; the returned
+publisher assertions remain in provenance.
+
 The 3 September review retains sixteen premise records through guarded publisher
 evidence and explicit identity reconciliation. The kindergarten and management-centre
 frontages reconcile to the selected Laguna Street addresses while other valid frontages

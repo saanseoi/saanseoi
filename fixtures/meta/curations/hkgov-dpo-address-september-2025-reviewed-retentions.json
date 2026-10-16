@@ -3431,8 +3431,8 @@
       "previousGuards": [
         {
           "id": "ss-0811c137-1f6c-5a08-b3b4-bc1965fd847d",
-          "enFormattedAddress": "LAM TIN LING LIANG KINDERGARTEN, LAGUNA CITY, 99 CHA KWO LING ROAD, KWUN TONG DISTRICT, KLN",
-          "zhHantFormattedAddress": "藍田靈糧幼稚園麗港城99茶果嶺道觀塘區九龍",
+          "enFormattedAddress": "LAM TIN LING LIANG KINDERGARTEN, 99 CHA KWO LING ROAD, KWUN TONG DISTRICT, KLN",
+          "zhHantFormattedAddress": "藍田靈糧幼稚園99茶果嶺道觀塘區九龍",
           "coordinates": [
             114.22645,
             22.30522
@@ -3440,8 +3440,8 @@
         },
         {
           "id": "ss-72891a41-6f23-518a-b514-dbdedcaefb34",
-          "enFormattedAddress": "LAM TIN LING LIANG KINDERGARTEN, LAGUNA CITY, 91 CHA KWO LING ROAD, KWUN TONG DISTRICT, KLN",
-          "zhHantFormattedAddress": "藍田靈糧幼稚園麗港城91茶果嶺道觀塘區九龍",
+          "enFormattedAddress": "LAM TIN LING LIANG KINDERGARTEN, 91 CHA KWO LING ROAD, KWUN TONG DISTRICT, KLN",
+          "zhHantFormattedAddress": "藍田靈糧幼稚園91茶果嶺道觀塘區九龍",
           "coordinates": [
             114.22645,
             22.30522
