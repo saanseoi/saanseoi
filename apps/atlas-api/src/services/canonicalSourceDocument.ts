@@ -58,10 +58,10 @@ export async function hydrateCanonicalSourceDocument(
   for (const resource of resources) {
     const fields = (
       resource as {
-        attributes?: { fieldSources?: Record<string, { sourceReleaseId?: string }> }
+        attributes?: { fieldSources?: Array<{ sourceReleaseId?: string }> }
       } | null
     )?.attributes?.fieldSources
-    for (const field of Object.values(fields ?? {}))
+    for (const field of fields ?? [])
       if (field.sourceReleaseId) releases.add(field.sourceReleaseId)
     const sources = (resource as { attributes?: { sources?: unknown } } | null)
       ?.attributes?.sources

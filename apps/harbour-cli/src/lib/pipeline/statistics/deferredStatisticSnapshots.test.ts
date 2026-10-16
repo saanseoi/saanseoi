@@ -1,3 +1,5 @@
+import { statisticFieldSource } from '@repo/db'
+import { compactStatisticFieldSources } from '@repo/db'
 import { datasetVariantForSource } from '@repo/core/codes'
 import { recordSnapshotAssembly } from '@repo/core/db/metaRegistry'
 import { expect, test } from 'bun:test'
@@ -108,14 +110,16 @@ function fixture() {
       fieldDefinitionHashes: Object.fromEntries(
         Object.keys(values).map(key => [key, `${key}-v1`]),
       ),
-      fieldSources: Object.fromEntries(
-        Object.keys(values).map(key => [
-          key,
-          {
-            sourceReleaseId: resourceReleaseId,
-            sourceFeatureRef: `${resourceReleaseId}/${id}`,
-          },
-        ]),
+      fieldSources: compactStatisticFieldSources(
+        Object.fromEntries(
+          Object.keys(values).map(key => [
+            key,
+            {
+              sourceReleaseId: resourceReleaseId,
+              sourceFeatureRef: `${resourceReleaseId}/${id}`,
+            },
+          ]),
+        ),
       ),
     }))
     const plan = await planCanonicalStatistics({
@@ -224,9 +228,10 @@ test.each([false, true])(
         { id: 'A', values: { population: '102', age: '40' } },
         { id: 'B', values: { population: '200', age: '41' } },
       ])
-      expect(rows.find(row => row.id === 'A')?.fieldSources.age?.sourceReleaseId).toBe(
-        'first',
-      )
+      expect(
+        statisticFieldSource(rows.find(row => row.id === 'A')!.fieldSources, 'age')
+          ?.sourceReleaseId,
+      ).toBe('first')
       expect(f.meta.query('SELECT * FROM snapshots WHERE id=?').get(first.id)).toEqual(
         retainedFirst,
       )

@@ -63,7 +63,7 @@ export function humanField(
       comparability:
         'Read comparability from the exact field definition associated with each observation; omit fields without a comparability definition.',
       fieldSources:
-        'Keep each observation’s contributing publisher fields and source references.',
+        'Retain source entries with an empty property as the default and /values/{field} JSON Pointer overrides for each value’s last change.',
       fieldDefinitionHashes:
         'Keep the content identity of the exact definition used for each observation.',
       'relationships.division':

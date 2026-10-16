@@ -1,3 +1,4 @@
+import { compactStatisticFieldSources, expandStatisticFieldSources } from '@repo/db'
 import { resolveSnapshotReplayPlan } from '@repo/core/db/metaRegistry'
 import type { HarbourReadableDb } from '@repo/core/db/types'
 import {
@@ -43,9 +44,15 @@ export function mergeStatisticRecord(
     ...previous?.fieldDefinitionHashes,
     ...incoming.fieldDefinitionHashes,
   }
-  const fieldSources = { ...previous?.fieldSources }
+  const fieldSources = previous
+    ? expandStatisticFieldSources(previous.fieldSources, Object.keys(previous.values))
+    : {}
+  const incomingSources = expandStatisticFieldSources(
+    incoming.fieldSources,
+    Object.keys(incoming.values),
+  )
   for (const field of Object.keys(incoming.values)) {
-    const source = incoming.fieldSources[field]
+    const source = incomingSources[field]
     if (!incoming.fieldDefinitionHashes[field] || !source)
       throw new Error(
         `Statistic ${incoming.id} has no definition or provenance for ${field}.`,
@@ -58,7 +65,12 @@ export function mergeStatisticRecord(
       fieldSources[field] = source
     }
   }
-  const merged = { ...incoming, values, fieldDefinitionHashes, fieldSources }
+  const merged = {
+    ...incoming,
+    values,
+    fieldDefinitionHashes,
+    fieldSources: compactStatisticFieldSources(fieldSources),
+  }
   const versionHash = statisticContentHash(merged)
   if (previous?.versionHash === versionHash) return null
   return {

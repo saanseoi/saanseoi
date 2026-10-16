@@ -1,3 +1,4 @@
+import { compactStatisticFieldSources } from '@repo/db'
 import { Database, type SQLQueryBindings } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { join } from 'node:path'
@@ -134,12 +135,12 @@ const pack = (
   referencePeriodEndYear: '2021',
   referencePeriodGranularity: 'quarter',
   geography: { kind: 'district', code: id },
-  fieldSources: {
+  fieldSources: compactStatisticFieldSources({
     population: {
       sourceReleaseId: 'original-release',
       sourceFeatureRef: `publisher/${id}`,
     },
-  },
+  }),
   fieldDefinitionHashes: { population: definition.fields[0]?.versionHash ?? '' },
   values: { population: '123' },
 })
@@ -372,7 +373,7 @@ test('Statistics rollback restores exact inherited packs and immutable dictionar
       sourceReleaseId: 'a-release',
       sourceFeatureRef: 'publisher/inherited',
       fieldSources:
-        '{"population":{"sourceReleaseId":"original-release","sourceFeatureRef":"publisher/inherited"}}',
+        '[{"property":"","sourceReleaseId":"original-release","sourceFeatureRef":"publisher/inherited"}]',
     })
     expect(
       f.current
@@ -584,11 +585,16 @@ test('large packed definition sets stay bounded and copy only the exact referenc
       fieldDefinitionHashes: Object.fromEntries(
         many.fields.map(field => [field.fieldName, field.versionHash]),
       ),
-      fieldSources: Object.fromEntries(
-        many.fields.map(field => [
-          field.fieldName,
-          { sourceReleaseId: 'original-release', sourceFeatureRef: 'publisher/large' },
-        ]),
+      fieldSources: compactStatisticFieldSources(
+        Object.fromEntries(
+          many.fields.map(field => [
+            field.fieldName,
+            {
+              sourceReleaseId: 'original-release',
+              sourceFeatureRef: 'publisher/large',
+            },
+          ]),
+        ),
       ),
     })
     expect((await restoreStatisticsProjection(f.input)).counts).toEqual({

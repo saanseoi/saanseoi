@@ -1,3 +1,5 @@
+import { statisticFieldSource } from '@repo/db'
+import { compactStatisticFieldSources } from '@repo/db'
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { drizzle } from 'drizzle-orm/bun-sqlite'
@@ -26,10 +28,10 @@ INSERT INTO resourceReleases (id, code, sourceReleaseId, resourceType, status) V
         type: 'statistics',
         id: 'record',
         attributes: {
-          fieldSources: {
-            population: { sourceReleaseId: 'old' },
-            area: { sourceReleaseId: 'new' },
-          },
+          fieldSources: compactStatisticFieldSources({
+            population: { sourceReleaseId: 'old', sourceFeatureRef: 'old/feature' },
+            area: { sourceReleaseId: 'new', sourceFeatureRef: 'new/feature' },
+          }),
         },
       },
     ],
@@ -47,9 +49,10 @@ INSERT INTO resourceReleases (id, code, sourceReleaseId, resourceType, status) V
       },
       new: { sourceVersion: '2026', originalFileName: null },
     })
-    expect(document.data[0]!.attributes.fieldSources.population.sourceReleaseId).toBe(
-      'old',
-    )
+    expect(
+      statisticFieldSource(document.data[0]!.attributes.fieldSources, 'population')!
+        .sourceReleaseId,
+    ).toBe('old')
     await hydrateCanonicalSourceDocument(
       { data: [{ type: 'statistics', attributes: { values: { population: 1 } } }] },
       { metaDb: {} as never as never },

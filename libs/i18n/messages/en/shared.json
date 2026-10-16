@@ -3029,7 +3029,7 @@
   "openapi_statistics_area_companion_domain_description": "The domain of the selected geometry companion.",
   "openapi_statistics_area_companion_variant_description": "The provider variant of the selected geometry companion.",
   "openapi_statistics_field_definition_hashes_description": "Exact field-definition version for each dimension-qualified value.",
-  "openapi_statistics_field_sources_description": "Contributing source for each dimension-qualified value; included with the full profile.",
+  "openapi_statistics_field_sources_description": "Contributing sources for retained values, included with the full profile. Each entry uses a JSON Pointer property relative to the attributes: an empty property applies to all values, and /values/{field} overrides that default. Sources identify the last value or definition change, not the latest observation.",
   "openapi_statistics_geography_namespace_description": "Stable parent namespace for geography codes that are unique only within that parent.",
   "openapi_statistics_dimensions_description": "Dimension values qualifying the observation, keyed by dimension name.",
   "openapi_statistics_values_description": "Published measure values, keyed by canonical field name.",

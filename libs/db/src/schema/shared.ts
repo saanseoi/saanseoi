@@ -1,3 +1,4 @@
+import type { StatisticFieldSources } from '../statisticFieldSources'
 import { parseI18nMeta, type I18nMeta } from '../i18nMeta'
 import type { NotNull } from 'drizzle-orm'
 import { sql } from 'drizzle-orm'
@@ -242,10 +243,7 @@ export type CanonicalStatsGeography = {
   class?: string
 }
 
-export type CanonicalStatsFieldSource = {
-  sourceReleaseId: string
-  sourceFeatureRef: string
-}
+export type CanonicalStatsFieldSource = StatisticFieldSources[number]
 
 /** Canonical structured period fields shared by source and API statistic rows. */
 export function statisticsReferencePeriodColumns<Required extends boolean>(
@@ -282,7 +280,7 @@ export function canonicalStatsRecordColumns<Required extends boolean>(
     geography: requiredColumn(jsonText<CanonicalStatsGeography>('geography'), required),
     /** Provenance of the last real change to each retained field. */
     fieldSources: requiredColumn(
-      jsonText<Record<string, CanonicalStatsFieldSource>>('fieldSources').default({}),
+      jsonText<StatisticFieldSources>('fieldSources').default([]),
       required,
     ),
     /** Immutable shared field-definition selection. */

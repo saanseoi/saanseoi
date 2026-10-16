@@ -3032,7 +3032,7 @@
   "openapi_statistics_area_companion_domain_description": "所選幾何 companion 的領域。",
   "openapi_statistics_area_companion_variant_description": "所選幾何 companion 的提供者變體。",
   "openapi_statistics_field_definition_hashes_description": "每個包含維度限定的數值所使用的確切欄位定義版本。",
-  "openapi_statistics_field_sources_description": "每個包含維度限定的數值所依據的來源；完整資料模式會包含此欄位。",
+  "openapi_statistics_field_sources_description": "保留數值的來源；完整資料模式會包含此欄位。每項的 property 是相對於 attributes 的 JSON Pointer：空字串適用於所有數值，/values/{field} 則覆寫該欄位的預設來源。來源指出數值或定義上次變更，而非最近一次觀測。",
   "openapi_statistics_geography_namespace_description": "地理代碼僅在所屬區域內唯一時，用以識別該區域的穩定命名空間。",
   "openapi_statistics_dimensions_description": "按維度名稱索引、限定觀測值的維度值。",
   "openapi_statistics_values_description": "按標準欄位名稱索引的已發布量度值。",

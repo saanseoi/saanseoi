@@ -1,3 +1,4 @@
+import { compactStatisticFieldSources } from '@repo/db'
 import { seedSnapshotProducerFixtures } from '../../../../../libs/core/src/testing/snapshotFixtures'
 import { Database, type SQLQueryBindings } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
@@ -152,9 +153,9 @@ const record = (
   geography: { kind: 'district', code: id },
   values: { population: value },
   fieldDefinitionHashes: { population: definitions.fields[0]?.versionHash ?? '' },
-  fieldSources: {
+  fieldSources: compactStatisticFieldSources({
     population: { sourceReleaseId: 'release-old', sourceFeatureRef: `native/${id}` },
-  },
+  }),
 })
 
 async function fixture(previous = true) {

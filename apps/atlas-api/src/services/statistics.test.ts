@@ -1,3 +1,4 @@
+import { compactStatisticFieldSources } from '@repo/db'
 import { Database } from 'bun:sqlite'
 import { describe, expect, test } from 'bun:test'
 import { drizzle } from 'drizzle-orm/bun-sqlite'
@@ -31,12 +32,12 @@ const statistic = {
   values: {
     totalPopulation: '235953',
   },
-  fieldSources: {
+  fieldSources: compactStatisticFieldSources({
     totalPopulation: {
       sourceReleaseId: 'release-statistics-2021',
       sourceFeatureRef: 'population/2021/district/11',
     },
-  },
+  }),
   fieldDefinitionHashes: { totalPopulation: 'population-field-version' },
   versionHash: 'population-pack-version',
   createdAt: '2026-08-20T00:00:00.000Z',
@@ -919,4 +920,28 @@ describe('Statistics service', () => {
       },
     })
   })
+})
+
+test('full statistics responses expose compact property-scoped source entries', async () => {
+  const result = await listStatistics({
+    currentDb: {} as never,
+    historyDbs: [],
+    historyDbsByBinding: {} as never,
+    metaDb: {} as never,
+    requestUrl: 'https://api.saanseoi.hk/stats/v0.1?profile=full',
+    requestedVersionPath: 'stats/v0.1',
+    requestedApiVersion: '0.1',
+    resolvedApiVersion: 'api-stats-v0.1',
+    query: { profile: 'full' },
+    dependencies: dependencies() as never,
+  })
+  expect(result.status).toBe(200)
+  if (result.status !== 200) return
+  expect(result.body.data[0]?.attributes.fieldSources).toEqual([
+    {
+      property: '',
+      sourceReleaseId: 'release-statistics-2021',
+      sourceFeatureRef: 'population/2021/district/11',
+    },
+  ])
 })

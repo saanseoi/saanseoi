@@ -1,3 +1,4 @@
+import { statisticFieldSource } from '@repo/db'
 import { describe, expect, test } from 'bun:test'
 
 import { normaliseHkgovCenstatdStatistics } from './normaliseHkgovCenstatdStatistics.ts'
@@ -353,7 +354,9 @@ describe('normaliseHkgovCenstatdStatistics', () => {
       expect(rows.records[0]?.fieldDefinitionHashes[field.fieldName]).toBe(
         field.versionHash,
       )
-      expect(rows.records[0]?.fieldSources[field.fieldName]).toEqual({
+      expect(
+        statisticFieldSource(rows.records[0]!.fieldSources, field.fieldName),
+      ).toEqual({
         sourceFeatureRef: 'hkgov-censtatd/example/2024/Example:1',
         sourceReleaseId: 'release-example',
       })
@@ -484,9 +487,10 @@ describe('normaliseHkgovCenstatdStatistics', () => {
     expect(rows.records).toHaveLength(1)
     expect(rows.observations).toHaveLength(2)
     expect(rows.records[0]?.values).toEqual({ population: '12', households: '4' })
-    expect(rows.records[0]?.fieldSources.households?.sourceFeatureRef).toBe(
-      'publisher/second',
-    )
+    expect(
+      statisticFieldSource(rows.records[0]!.fieldSources, 'households')
+        ?.sourceFeatureRef,
+    ).toBe('publisher/second')
     expect(() =>
       normaliseHkgovCenstatdStatistics([
         base,

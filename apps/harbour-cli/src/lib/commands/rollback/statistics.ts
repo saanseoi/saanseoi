@@ -1,3 +1,4 @@
+import { expandStatisticFieldSources, type StatisticFieldSources } from '@repo/db'
 import type { Database, SQLQueryBindings } from 'bun:sqlite'
 import { resolveSnapshotReplayPlan } from '@repo/core/db/metaRegistry'
 import type { HarbourReadableDb } from '@repo/core/db/types'
@@ -252,29 +253,16 @@ function validatePack(row: ProjectionRow) {
     throw new Error(
       `Statistics pack ${row.id} has incomplete field definition versions.`,
     )
-  const sources = row.fieldSources
-  if (
-    !sources ||
-    typeof sources !== 'object' ||
-    Array.isArray(sources) ||
-    Object.keys(values).some(field => {
-      const source = (sources as Record<string, unknown>)[field]
-      return (
-        !source ||
-        typeof source !== 'object' ||
-        Array.isArray(source) ||
-        !('sourceReleaseId' in source) ||
-        typeof source.sourceReleaseId !== 'string' ||
-        !source.sourceReleaseId ||
-        !('sourceFeatureRef' in source) ||
-        typeof source.sourceFeatureRef !== 'string' ||
-        !source.sourceFeatureRef
-      )
-    })
-  )
+  try {
+    expandStatisticFieldSources(
+      row.fieldSources as StatisticFieldSources,
+      Object.keys(values),
+    )
+  } catch {
     throw new Error(
       `Statistics pack ${row.id} has incomplete retained field provenance.`,
     )
+  }
 }
 
 async function copyReferencedDictionaries(

@@ -1,3 +1,4 @@
+import { statisticFieldSource } from '@repo/db'
 import { resolveSnapshotReplayPlan } from '@repo/core/db/metaRegistry'
 import type { HarbourReadableDb } from '@repo/core/db/types'
 import { readHistoryDictionaryVersions } from '@repo/core/pipeline/db/historyDictionaries.ts'
@@ -97,7 +98,8 @@ export async function readStatisticsSourceMeasures(input: {
         const hash = record.fieldDefinitionHashes[fieldName]
         if (!hash) throw new Error(`Missing statistic field definition: ${fieldName}`)
         const assertedHere =
-          record.fieldSources[fieldName]?.sourceReleaseId === release.id
+          statisticFieldSource(record.fieldSources, fieldName)?.sourceReleaseId ===
+          release.id
         const previous = references.get(fieldName)
         if (!previous || (assertedHere && !previous.assertedHere))
           references.set(fieldName, { hash, assertedHere })

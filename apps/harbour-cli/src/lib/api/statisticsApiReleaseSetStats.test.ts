@@ -18,7 +18,7 @@ const record = (id: string, values: Record<string, string>, datasetCode = 'a') =
     referencePeriodCode: '2025',
     geography: { kind: 'district', code: id },
     divisionId: null,
-    fieldSources: {},
+    fieldSources: [],
     fieldDefinitionHashes: Object.fromEntries(
       Object.keys(values).map(field => [field, `definition-${datasetCode}-${field}`]),
     ),
@@ -168,12 +168,12 @@ INSERT INTO snapshots (id, snapshotLineageId, parentSnapshotId) VALUES
       INSERT INTO datasets (id,code) VALUES ('dataset','a');
       INSERT INTO snapshotResourceReleases (snapshotId,resourceReleaseId,role) VALUES ('reissue','new-source','primary');`)
     history.exec(`INSERT INTO statsDefinitionSets (id,fieldDefinitionHashes) VALUES
-      ('definitions-f1','{"population":"f1"}'),('definitions-f2','{"population":"f2"}'),('definitions-empty','{}');
+      ('definitions-f1','{"population":"f1"}'),('definitions-f2','{"population":"f2"}'),('definitions-empty','[]');
       INSERT INTO statsRecords (id,datasetCode,referencePeriodCode,"values",geography,isCurrent,versionHash,definitionSetId,fieldSources) VALUES
-      ('yes','a','2025','{"population":"1"}','{"kind":"district","code":"one"}',0,'v1','definitions-f1','{}'),
-      ('yes','a','2025','{"population":"2"}','{"kind":"district","code":"one"}',1,'v2','definitions-f2','{}'),
-      ('wrong-period','a','2024','{}','{}',1,'v3','definitions-empty','{}'),
-      ('unselected','a','2025','{}','{}',1,'v4','definitions-empty','{}');
+      ('yes','a','2025','{"population":"1"}','{"kind":"district","code":"one"}',0,'v1','definitions-f1','[]'),
+      ('yes','a','2025','{"population":"2"}','{"kind":"district","code":"one"}',1,'v2','definitions-f2','[]'),
+      ('wrong-period','a','2024','{}','{}',1,'v3','definitions-empty','[]'),
+      ('unselected','a','2025','{}','{}',1,'v4','definitions-empty','[]');
 
       INSERT INTO statsFields (datasetCode,fieldName,isCurrent,versionHash) VALUES
         ('a','population',0,'f1'),('a','population',1,'f2');

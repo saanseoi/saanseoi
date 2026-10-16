@@ -3026,7 +3026,7 @@
   "openapi_statistics_area_companion_domain_description": "所选几何 companion 的领域。",
   "openapi_statistics_area_companion_variant_description": "所选几何 companion 的提供者变体。",
   "openapi_statistics_field_definition_hashes_description": "每个包含维度限定的数值所使用的确切字段定义版本。",
-  "openapi_statistics_field_sources_description": "每个包含维度限定的数值所依据的来源；完整数据模式会包含此字段。",
+  "openapi_statistics_field_sources_description": "保留数值的来源；完整数据模式会包含此字段。每项的 property 是相对于 attributes 的 JSON Pointer：空字符串适用于所有数值，/values/{field} 则覆盖该字段的默认来源。来源指出数值或定义上次变更，而非最近一次观测。",
   "openapi_statistics_geography_namespace_description": "地理代码仅在所属区域内唯一时，用以标识该区域的稳定命名空间。",
   "openapi_statistics_dimensions_description": "按维度名称索引、限定观测值的维度值。",
   "openapi_statistics_values_description": "按规范字段名称索引的已发布度量值。",

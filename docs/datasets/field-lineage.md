@@ -95,10 +95,12 @@ Statistics record graphs include native GML intake and collision-qualified featu
 identities, retained administrative/New Town bridges, inferred versus reviewed
 geography, exact-year versus wildcard area companions, series grouping and record
 packing. A packed record keeps the first series in source-reference order as its
-record-level source; `fieldSources` retains the contributing series for each value.
-Duplicate fields and conflicting geography or Division associations are errors. Dynamic
-value selection reads the packed record after these checks. Comparability uses the exact
-dataset/field/hash definition selected by the API serializer.
+record-level source; `fieldSources` retains a default contributing series
+(`property: ""`) and JSON Pointer overrides (`/values/{field}`). Field lineage resolves
+the specific override before the default. Duplicate fields and conflicting geography or
+Division associations are errors. Dynamic value selection reads the packed record after
+these checks. Comparability uses the exact dataset/field/hash definition selected by the
+API serializer.
 
 Government area graphs include native/projected geometry handling, cohort filtering,
 reviewed identity remapping and the complete normalised coverage consumed by the display

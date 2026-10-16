@@ -1,3 +1,4 @@
+import { compactStatisticFieldSources } from '@repo/db'
 import { expect, test } from 'bun:test'
 import operations from '../../../../../../fixtures/meta/fieldLineage/operations.json'
 import { normaliseHkgovCenstatdStatistics } from './normaliseHkgovCenstatdStatistics'
@@ -186,10 +187,10 @@ test('packed Statistics keep first-series identity and per-field source identity
     sourceFeatureRef: 'a',
     sourceReleaseId: 'a-release',
     values: { population: '100', households: '20' },
-    fieldSources: {
+    fieldSources: compactStatisticFieldSources({
       population: { sourceFeatureRef: 'a', sourceReleaseId: 'a-release' },
       households: { sourceFeatureRef: 'z', sourceReleaseId: 'z-release' },
-    },
+    }),
   })
   expect(normaliseHkgovCenstatdStatistics(inputs.toReversed()).records).toEqual(
     result.records,

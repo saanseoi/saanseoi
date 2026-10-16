@@ -178,9 +178,16 @@ const StatisticResourceSchema = z
           ),
         }),
         fieldSources: z
-          .record(
-            z.string(),
-            z.object({ sourceReleaseId: z.string(), sourceFeatureRef: z.string() }),
+          .array(
+            z.object({
+              property: z
+                .string()
+                .describe(
+                  'JSON Pointer relative to the statistic attributes. Empty applies to all values; /values/{field} overrides the default.',
+                ),
+              sourceReleaseId: z.string(),
+              sourceFeatureRef: z.string(),
+            }),
           )
           .optional()
           .openapi({

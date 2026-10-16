@@ -1,3 +1,4 @@
+import { compactStatisticFieldSources } from '@repo/db'
 import { expect, test } from 'bun:test'
 import { compileFieldLineage, type FieldLineageMapping } from './fieldLineageCompiler'
 import { expandStatisticFieldLineage } from './fieldLineageStatistics'
@@ -44,12 +45,12 @@ const record = {
   datasetCode,
   values: { populationMidYear: '243300' },
   fieldDefinitionHashes: { populationMidYear: 'retained-definition-v1' },
-  fieldSources: {
+  fieldSources: compactStatisticFieldSources({
     populationMidYear: {
       sourceReleaseId: 'source-release',
       sourceFeatureRef: 'feature',
     },
-  },
+  }),
 }
 const definition = {
   datasetCode,

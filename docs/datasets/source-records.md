@@ -149,8 +149,9 @@ Synthetic canonical rows have no publisher assertion of their own.
 
 Canonical records retain publisher attribution in `sources`. Exact snapshot and source
 release selections remain in META, while publisher assertions and validity periods
-remain in SOURCE. Statistics retain field-specific source references in `fieldSources`.
-Processing decisions belong to retained processing audits.
+remain in SOURCE. Statistics retain property-scoped source references in `fieldSources`:
+an empty `property` supplies the default, and `/values/{field}` overrides it. Processing
+decisions belong to retained processing audits.
 
 ## Verification
 

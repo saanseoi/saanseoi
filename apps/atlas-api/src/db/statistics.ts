@@ -1,3 +1,4 @@
+import type { StatisticFieldSources } from '@repo/db'
 import type { RequestedApiLocaleSelection } from '@repo/core'
 import type { ResolvedSnapshotVersion } from '@repo/core/pipeline/db/snapshotReplay.ts'
 import { historyVersionSelection } from '@repo/core/pipeline/db/snapshotReplay.ts'
@@ -85,7 +86,7 @@ export type StatisticRecord = {
   referencePeriodGranularity: string
   geography: CanonicalStatsGeography
   values: Record<string, string>
-  fieldSources: Record<string, { sourceReleaseId: string; sourceFeatureRef: string }>
+  fieldSources: StatisticFieldSources
   fieldDefinitionHashes: Record<string, string>
   versionHash: string
   createdAt: string
@@ -311,7 +312,7 @@ export async function listStatisticRecordsForGeography(
   return rows.map(({ value, fieldDefinitionHash, ...row }) => ({
     ...row,
     values: { [lookup.fieldName]: value },
-    fieldSources: {},
+    fieldSources: [],
     fieldDefinitionHashes: { [lookup.fieldName]: fieldDefinitionHash },
   }))
 }

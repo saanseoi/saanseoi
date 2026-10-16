@@ -1,3 +1,7 @@
+import {
+  statisticFieldSource,
+  type StatisticFieldSources,
+} from './statisticFieldSources'
 import type { LineageDefinition, ReleaseBinding } from './fieldLineageTypes'
 import { expandFieldLineage, validateFieldLineageBinding } from './fieldLineageGraph'
 
@@ -17,7 +21,7 @@ export function expandStatisticFieldLineage(
     datasetCode: string
     values: Record<string, unknown>
     fieldDefinitionHashes: Record<string, string>
-    fieldSources: Record<string, { sourceReleaseId: string; sourceFeatureRef: string }>
+    fieldSources: StatisticFieldSources
   },
   definitions: ReadonlyMap<string, RetainedField>,
 ) {
@@ -55,7 +59,7 @@ export function expandStatisticFieldLineage(
         !retained.sourceField
       )
         throw new Error(`Missing retained Statistics field definition: ${fieldName}`)
-      const source = record.fieldSources[fieldName]
+      const source = statisticFieldSource(record.fieldSources, fieldName)
       const candidates = definition.scopes.filter(
         scope =>
           scope.kind === 'source-release' &&

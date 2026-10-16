@@ -1,3 +1,4 @@
+import { compactStatisticFieldSources, type StatisticSource } from '@repo/db'
 import type { CanonicalStatsGeography } from '@repo/db'
 import {
   recordIdentifier,
@@ -28,7 +29,12 @@ export function packRetainedStatistics(input: RetainedStatisticsInput) {
     measures: input.measures.map(definitionRow) as CanonicalStatsRows['measures'],
     measuresI18n: input.measuresI18n.map(definitionRow),
   })
-  const records = new Map<string, CanonicalStatsRows['records'][number]>()
+  const records = new Map<
+    string,
+    Omit<CanonicalStatsRows['records'][number], 'fieldSources'> & {
+      fieldSources: Record<string, StatisticSource>
+    }
+  >()
   const mappings: Array<{
     legacyId: string
     legacyVersionHash: string | null
@@ -121,7 +127,10 @@ export function packRetainedStatistics(input: RetainedStatisticsInput) {
     })
   }
   const canonical: CanonicalStatsRows = {
-    records: [...records.values()],
+    records: [...records.values()].map(record => ({
+      ...record,
+      fieldSources: compactStatisticFieldSources(record.fieldSources),
+    })),
     fields: definitions.fields,
     fieldsI18n: definitions.fieldsI18n,
     measures: definitions.measures,

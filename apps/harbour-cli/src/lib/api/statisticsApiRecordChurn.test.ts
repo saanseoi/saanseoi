@@ -1,3 +1,4 @@
+import { compactStatisticFieldSources } from '@repo/db'
 import { expect, test } from 'bun:test'
 import { buildStatisticsRecordChurn } from './statisticsApiRecordChurn'
 import type { StatisticsStatsData } from './statisticsApiReleaseSetStats'
@@ -23,12 +24,12 @@ const record = (overrides: Partial<RecordRow> = {}): RecordRow => ({
     areaCompanion: { cohortKey: '2025', domainCode: 'geographic', variant: 'censtatd' },
   },
   fieldDefinitionHashes: { population: 'female-adult', households: 'all' },
-  fieldSources: {
+  fieldSources: compactStatisticFieldSources({
     population: {
       sourceReleaseId: 'source-2025',
       sourceFeatureRef: 'publisher/2025/feature:23',
     },
-  },
+  }),
   values: { population: '10', households: '4' },
   versionHash: 'hash-2025',
   isCurrent: true,
@@ -57,7 +58,7 @@ test('period, provenance, JSON key order and geometry cohort alone do not change
       },
     },
     fieldDefinitionHashes: { households: 'all', population: 'female-adult' },
-    fieldSources: {},
+    fieldSources: [],
     values: { households: '4', population: '10' },
   })
   expect(buildStatisticsRecordChurn([record()], [previous])).toEqual({

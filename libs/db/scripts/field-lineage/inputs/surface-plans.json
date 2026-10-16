@@ -128,7 +128,7 @@
       "selectors": [
         "values[fieldName]",
         "fieldDefinitionHashes[fieldName]",
-        "fieldSources[fieldName]",
+        "statisticFieldSource(fieldSources, fieldName)",
         "dimensions[dimension]",
         "time/geography map keys"
       ],

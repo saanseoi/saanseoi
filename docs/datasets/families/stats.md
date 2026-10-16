@@ -631,3 +631,33 @@ Canonical events derive their producing release from their introducing snapshot'
 primary inputs. Inherited events retain that original ownership. See
 [HISTORY producer ownership](source-evidence.md#history-producer-ownership) for the
 shared contract and dataset discriminators on combined geometry snapshots.
+
+### Statistic field sources
+
+CURRENT and HISTORY `statsRecords.fieldSources`, retained canonical packs and the full
+Statistics API response use the same array of source references. Each entry contains
+`property`, `sourceReleaseId` and `sourceFeatureRef`. `property` is a JSON Pointer
+relative to the statistic attributes, following the source-attribution convention: `""`
+applies to all values, while `/values/{field}` overrides the default for that field.
+Escape `~` as `~0` and `/` as `~1` in field names. Duplicate paths and references to
+absent value fields are invalid. Every retained value must resolve to a source.
+
+```json
+[
+  { "property": "", "sourceReleaseId": "release-a", "sourceFeatureRef": "feature-a" },
+  {
+    "property": "/values/population",
+    "sourceReleaseId": "release-b",
+    "sourceFeatureRef": "feature-b"
+  }
+]
+```
+
+The most frequent source pair supplies the default, with ties resolved by sorting the
+JSON-encoded release/feature pair. Matching overrides are omitted and remaining entries
+are ordered by field name. The default is selected from the complete retained pack,
+including values inherited from earlier releases. A source identifies the last value or
+definition change; repeating an unchanged value does not replace its source. An omitted
+field retains its value and provenance. These references are independent of the
+snapshot’s producing release and are excluded from the statistic content hash. The
+default source and explicit overrides both contribute to API source specifications.

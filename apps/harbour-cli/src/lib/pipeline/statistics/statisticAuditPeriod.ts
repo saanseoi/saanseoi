@@ -16,7 +16,7 @@ export function statisticAuditPeriod(
   const references = new Set(
     records.flatMap(record => [
       record.sourceFeatureRef,
-      ...Object.values(record.fieldSources).map(value => value.sourceFeatureRef),
+      ...record.fieldSources.map(value => value.sourceFeatureRef),
     ]),
   )
   return {

@@ -1,3 +1,5 @@
+import { statisticFieldSource } from '@repo/db'
+import { compactStatisticFieldSources } from '@repo/db'
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { resolve } from 'node:path'
@@ -27,10 +29,10 @@ const record = (overrides: Partial<RecordInput> = {}): RecordInput => ({
   referencePeriodGranularity: 'year',
   values: { population: '100', age: '40' },
   fieldDefinitionHashes: { population: 'population-v1', age: 'age-v1' },
-  fieldSources: {
+  fieldSources: compactStatisticFieldSources({
     population: { sourceReleaseId: 'release-1', sourceFeatureRef: 'source/2025/A' },
     age: { sourceReleaseId: 'release-1', sourceFeatureRef: 'source/2025/A' },
-  },
+  }),
   ...overrides,
 })
 const canonical = (records: RecordInput[]): CanonicalStatsRows => ({
@@ -89,7 +91,7 @@ test('only changed geography packs create history and snapshot changes across re
         record({
           sourceReleaseId: 'archive-2026',
           sourceFeatureRef: 'source/2026/A',
-          fieldSources: {
+          fieldSources: compactStatisticFieldSources({
             population: {
               sourceReleaseId: 'archive-2026',
               sourceFeatureRef: 'source/2026/A',
@@ -98,7 +100,7 @@ test('only changed geography packs create history and snapshot changes across re
               sourceReleaseId: 'archive-2026',
               sourceFeatureRef: 'source/2026/A',
             },
-          },
+          }),
         }),
       ]),
       metaDb,
@@ -111,7 +113,7 @@ test('only changed geography packs create history and snapshot changes across re
       record({
         sourceReleaseId: 'new-publication',
         sourceFeatureRef: 'source/2026/A',
-        fieldSources: {
+        fieldSources: compactStatisticFieldSources({
           population: {
             sourceReleaseId: 'new-publication',
             sourceFeatureRef: 'source/2026/A',
@@ -120,7 +122,7 @@ test('only changed geography packs create history and snapshot changes across re
             sourceReleaseId: 'new-publication',
             sourceFeatureRef: 'source/2026/A',
           },
-        },
+        }),
       }),
     ])
     expect(unchanged.changedRecords).toHaveLength(0)
@@ -136,12 +138,12 @@ test('only changed geography packs create history and snapshot changes across re
         sourceReleaseId: 'correction',
         values: { population: '101' },
         fieldDefinitionHashes: { population: 'population-v1' },
-        fieldSources: {
+        fieldSources: compactStatisticFieldSources({
           population: {
             sourceReleaseId: 'correction',
             sourceFeatureRef: 'correction/A',
           },
-        },
+        }),
       }),
     ])
     expect(corrected.changedRecords).toHaveLength(1)
@@ -153,8 +155,12 @@ test('only changed geography packs create history and snapshot changes across re
     })
     const revised = requireDefined(latest.find(row => row.id === 'stats:stable'))
     expect(revised.values).toEqual({ population: '101', age: '40' })
-    expect(revised.fieldSources.population?.sourceReleaseId).toBe('correction')
-    expect(revised.fieldSources.age?.sourceReleaseId).toBe('release-1')
+    expect(
+      statisticFieldSource(revised.fieldSources, 'population')?.sourceReleaseId,
+    ).toBe('correction')
+    expect(statisticFieldSource(revised.fieldSources, 'age')?.sourceReleaseId).toBe(
+      'release-1',
+    )
     expect(latest).toHaveLength(2)
     expect(history.query('SELECT count(*) AS n FROM historyEvents').get()).toEqual({
       n: 3,
@@ -163,12 +169,12 @@ test('only changed geography packs create history and snapshot changes across re
       record({
         values: { population: '101' },
         fieldDefinitionHashes: { population: 'population-v1' },
-        fieldSources: {
+        fieldSources: compactStatisticFieldSources({
           population: {
             sourceReleaseId: 'correction',
             sourceFeatureRef: 'correction/A',
           },
-        },
+        }),
       }),
     ])
     expect(history.query('SELECT count(*) AS n FROM statsRecords').get()).toEqual({
@@ -184,12 +190,12 @@ test('only changed geography packs create history and snapshot changes across re
       record({
         values: { population: '101' },
         fieldDefinitionHashes: { population: 'population-v2' },
-        fieldSources: {
+        fieldSources: compactStatisticFieldSources({
           population: {
             sourceReleaseId: 'definition-correction',
             sourceFeatureRef: 'definition/A',
           },
-        },
+        }),
       }),
     ])
     expect(definitionChange.changedRecords).toHaveLength(1)
@@ -197,12 +203,12 @@ test('only changed geography packs create history and snapshot changes across re
       record({
         values: { population: 'suppressed' },
         fieldDefinitionHashes: { population: 'population-v2' },
-        fieldSources: {
+        fieldSources: compactStatisticFieldSources({
           population: {
             sourceReleaseId: 'suppression',
             sourceFeatureRef: 'suppression/A',
           },
-        },
+        }),
       }),
     ])
     expect(suppressed.changedRecords[0]?.values).toEqual({

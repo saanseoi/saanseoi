@@ -1,4 +1,8 @@
-import { canonicalStatisticId } from '@repo/db'
+import {
+  compactStatisticFieldSources,
+  type StatisticFieldSources,
+  canonicalStatisticId,
+} from '@repo/db'
 import ruleFixture from '../../../../../../fixtures/meta/processing-rules/assembly/statistic-normalisation.json'
 import { ruleDeclarationFromFixture } from '@repo/core/provenance'
 import { createHash } from 'node:crypto'
@@ -98,7 +102,9 @@ export type CanonicalStatsRows = {
   measures: Array<CanonicalMeasure & { versionHash: string }>
   measuresI18n: Row[]
   observations: CanonicalObservation[]
-  records: CanonicalRecord[]
+  records: Array<
+    Omit<CanonicalRecord, 'fieldSources'> & { fieldSources: StatisticFieldSources }
+  >
   values: CanonicalDimensionValue[]
   valuesI18n: Row[]
 }
@@ -387,7 +393,10 @@ function normaliseStatistics(
     measures: definitions.measures,
     measuresI18n: definitions.measuresI18n,
     observations,
-    records: [...records.values()],
+    records: [...records.values()].map(record => ({
+      ...record,
+      fieldSources: compactStatisticFieldSources(record.fieldSources),
+    })),
     values: [],
     valuesI18n: [],
     auditGuards: guards.snapshot(),

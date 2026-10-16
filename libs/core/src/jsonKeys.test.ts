@@ -17,7 +17,7 @@ test('projects inherited fields recursively without changing values or dictionar
     identifiers: { 'LANDSD:GEO_NAME_ID': '1', upstream_id: { source_id: 'x' } },
     values: { QTR_PRH: '10', t_ma: '3' },
     dimensions: { housing_sector: 'public_rental' },
-    field_sources: { t_ma: { source_release_id: 'release' } },
+    field_sources: [{ property: '/values/t_ma', source_release_id: 'release' }],
     hierarchies: { full: [[{ full_containment: false }]] },
   }
   const original = structuredClone(input)
@@ -32,7 +32,7 @@ test('projects inherited fields recursively without changing values or dictionar
     identifiers: { 'LANDSD:GEO_NAME_ID': '1', upstream_id: { sourceId: 'x' } },
     values: { QTR_PRH: '10', t_ma: '3' },
     dimensions: { housing_sector: 'public_rental' },
-    fieldSources: { t_ma: { sourceReleaseId: 'release' } },
+    fieldSources: [{ property: '/values/t_ma', sourceReleaseId: 'release' }],
     hierarchies: { full: [[{ fullContainment: false }]] },
   })
   expect(input).toEqual(original)

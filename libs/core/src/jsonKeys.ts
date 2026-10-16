@@ -7,7 +7,6 @@ const dictionaries = new Set([
   'localType',
   'sources',
   'sourceSpecifications',
-  'fieldSources',
   'fieldDefinitionHashes',
   'values',
   'comparability',
