@@ -46,14 +46,17 @@ export function applyReviewedPremiseRenames(
     zh.BuildingName = row.zhHantBuildingName = rule.zhName
     row.enFormattedAddress = formatEnPremisesAddress(en)
     row.zhHantFormattedAddress = formatZhPremisesAddress(zh)
-    row.identityAlias = row.id
-    row.id =
-      row.canonicalId =
-      row.identityBuildingId =
-        ('canonicalId' in rule ? rule.canonicalId : undefined) ??
-        `ss-${buildDeterministicUuidV5('6e7c2e9f-dd17-5d55-ae29-0e6f18e1662b', rule.id)}`
-    row.identityKey = row.identityContinuityKey = `reviewed-premise-rename:${rule.id}`
-    row.identityMatchMethod = 'reviewed-premise-rename'
+    // Display-only corrections retain the independently reviewed source identity.
+    if (!('preserveIdentity' in rule && rule.preserveIdentity)) {
+      row.identityAlias = row.id
+      row.id =
+        row.canonicalId =
+        row.identityBuildingId =
+          ('canonicalId' in rule ? rule.canonicalId : undefined) ??
+          `ss-${buildDeterministicUuidV5('6e7c2e9f-dd17-5d55-ae29-0e6f18e1662b', rule.id)}`
+      row.identityKey = row.identityContinuityKey = `reviewed-premise-rename:${rule.id}`
+      row.identityMatchMethod = 'reviewed-premise-rename'
+    }
     row.identitySummary = { ...row.identitySummary, buildingName: rule.enName }
     row.curatedGranularity = 'building'
     row.sources = JSON.stringify({

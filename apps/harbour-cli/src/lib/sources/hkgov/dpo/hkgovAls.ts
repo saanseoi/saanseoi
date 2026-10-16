@@ -1,3 +1,4 @@
+import { applyReviewedStructuredComponents } from './hkgovAlsStructuredComponents'
 import { alsReviewPolicy, alsReviewScope } from './hkgovAlsReviewPolicy'
 import { classifyReviewedAlsPremises } from './hkgovAlsReviewHierarchy'
 import { applyReviewedAlsFrontages } from './hkgovAlsReviewFrontages'
@@ -450,6 +451,7 @@ async function prepareHkgovAlsAddressParquetInternal(
   applyReviewedAlsDerivedHierarchy(rows, options.sourceVersion)
   recordReviewedAlsCoalescences(rows, options.sourceVersion)
   applyReviewedAlsParents(rows, options.sourceVersion, 'hierarchy')
+  applyReviewedStructuredComponents(rows, options.sourceVersion)
   applyAlsDivisionMembership(rows, divisionMaps)
   const divisionQuality = buildHkgovAlsDivisionQuality(rows)
   auditGuards.passed('unique-identities', rows.length)

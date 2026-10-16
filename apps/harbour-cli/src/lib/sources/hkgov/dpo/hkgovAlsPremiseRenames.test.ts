@@ -20,7 +20,7 @@ test('all30 reviewed renames preserve stable identities, raw assertions and unna
   const ids = new Set<string>()
   let releases = 0
   for (const dir of (await readdir('data/hkgov/dpo/ALS'))
-    .filter(d => d.endsWith('ALS-GeoJSON'))
+    .filter(d => d.endsWith('ALS-GeoJSON') && d.slice(0, 8) <= '20260819')
     .sort()) {
     const version = `${dir.slice(0, 4)}-${dir.slice(4, 6)}-${dir.slice(6, 8)}.0`
     const file = 'als_addresses_(yau_tsim_mong_district).geojson'
@@ -70,6 +70,31 @@ test('all30 reviewed renames preserve stable identities, raw assertions and unna
       east.geometry,
     ]
     rows.push(east)
+    if (version >= '2025-01-23.0') {
+      const shineFile = 'als_addresses_(kowloon_city_district).geojson'
+      const shineData = await Bun.file(`data/hkgov/dpo/ALS/${dir}/${shineFile}`).json()
+      const shineFeature = shineData.features.find(
+        (f: HkgovAlsFeature) =>
+          f.properties?.Address?.PremisesAddress?.BuildingCsuInformation?.CsuId ===
+          '3660721093T20050430',
+      )
+      rows.push(
+        normaliseHkgovAlsFeature(
+          shineFeature,
+          shineFile,
+          1,
+          'test',
+          version,
+          maps,
+          true,
+          new Map(),
+          new Map(),
+          new Map(),
+        ),
+      )
+    }
+    const shine = rows.find(r => r.hkgovCsuId === '3660721093T20050430')
+    const shineBefore = shine && structuredClone(shine)
     const unnamed = rows.filter(r => !r.enBuildingName)
     const before = JSON.stringify(unnamed)
     const named = rows.find(r => r.enBuildingName)!
@@ -84,6 +109,15 @@ test('all30 reviewed renames preserve stable identities, raw assertions and unna
       'publisher evidence changed',
     )
     applyReviewedPremiseRenames(rows, version)
+    if (shine && shineBefore) {
+      expect(shine.enBuildingName).toBe('Shine Skills Centre')
+      expect(shine.enFormattedAddress).toContain('Shine Skills Centre')
+      expect(shine.id).toBe(shineBefore.id)
+      expect(shine.identityKey).toBe(shineBefore.identityKey)
+      expect(shine.engPremisesAddressJson).toBe(shineBefore.engPremisesAddressJson)
+      expect(shine.chiPremisesAddressJson).toBe(shineBefore.chiPremisesAddressJson)
+      expect(shine.geometry).toBe(shineBefore.geometry)
+    }
     expect(east.id).toBe('ss-37a5cd54-c595-52e9-a918-9104b32e8b01')
     expect(east.enBuildingName).toBe(
       'CHINA RESOURCES LOGISTICS EAST ASIA INDUSTRIAL BUILDING',

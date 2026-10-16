@@ -1,3 +1,4 @@
+import structuredComponents from '../../../../../../../fixtures/meta/curations/hkgov-dpo-address-structured-components.json'
 import reviewedContinuityLatest from '../../../../../../../fixtures/meta/curations/hkgov-dpo-address-2026-reviewed-continuity.json'
 import duplicatePremises from '../../../../../../../fixtures/meta/curations/hkgov-dpo-address-duplicate-premise-guards.json'
 import estateRanges from '../../../../../../../fixtures/meta/curations/hkgov-dpo-address-estate-range-hierarchies.json'
@@ -140,6 +141,7 @@ export const alsAuditFixtures = [
   },
   { type: 'hkgov-dpo-address-university-hill-retentions', document: universityHill },
   { type: 'hkgov-dpo-address-premise-renames', document: premiseRenames },
+  { type: 'hkgov-dpo-address-structured-components', document: structuredComponents },
   { type: 'address-granularity', document: fixture0 },
   { type: 'hkgov-dpo-address-2d-backfills', document: fixture1 },
   { type: 'hkgov-dpo-address-3d-backfills', document: fixture2 },

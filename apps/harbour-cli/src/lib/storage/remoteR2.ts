@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto'
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
@@ -24,7 +25,8 @@ const sessions = new Map<
 export function remoteR2Config(bucketName: string, remote = true) {
   const accountId = process.env.CLOUDFLARE_ACCOUNT_ID?.trim()
   return {
-    name: 'saanseoi-local-r2-upload',
+    // Concurrent proxies share a registry directory, but must own separate entries.
+    name: `saanseoi-local-r2-upload-${randomUUID()}`,
     compatibility_date: '2026-05-01',
     ...(remote && accountId ? { account_id: accountId } : {}),
     r2_buckets: [{ binding: 'R2_ASSETS', bucket_name: bucketName, remote }],

@@ -4,10 +4,17 @@ import { remoteR2Config, retainRemoteR2Object, type RemoteR2Bucket } from './rem
 
 test('remote proxy exposes only the selected R2 bucket', () => {
   expect(remoteR2Config('ss-assets-prod')).toMatchObject({
-    name: 'saanseoi-local-r2-upload',
+    name: expect.stringMatching(/^saanseoi-local-r2-upload-[a-f0-9-]+$/),
     compatibility_date: '2026-05-01',
     r2_buckets: [{ binding: 'R2_ASSETS', bucket_name: 'ss-assets-prod', remote: true }],
   })
+})
+
+test('concurrent proxy sessions have distinct registry identities for the same bucket', () => {
+  const first = remoteR2Config('ss-assets-preview', false)
+  const second = remoteR2Config('ss-assets-preview', false)
+  expect(first.name).not.toBe(second.name)
+  expect(first.r2_buckets).toEqual(second.r2_buckets)
 })
 
 test('local source retention config has no remote bindings or D1 capability', () => {

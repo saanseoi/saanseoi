@@ -1,0 +1,309 @@
+[
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [114.2816, 22.31728]
+    },
+    "properties": {
+      "Address": {
+        "PremisesAddress": {
+          "BuildingCsuInformation": {
+            "CsuId": "4705819814T20050430"
+          },
+          "ChiPremisesAddress": {
+            "Region": "新界",
+            "ChiDistrict": "西貢區",
+            "ChiStreet": {
+              "StreetName": "坑口永隆路",
+              "BuildingNoFrom": "8"
+            }
+          },
+          "EngPremisesAddress": {
+            "BuildingName": "8 HANG HAU WING LUNG ROAD HOUSE 1",
+            "EngStreet": {
+              "BuildingNoFrom": "8",
+              "StreetName": "HANG HAU WING LUNG ROAD"
+            },
+            "EngDistrict": "SAI KUNG DISTRICT",
+            "Region": "NT"
+          },
+          "GeoAddress": "4705819814T20050430"
+        }
+      }
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [114.28151, 22.31731]
+    },
+    "properties": {
+      "Address": {
+        "PremisesAddress": {
+          "BuildingCsuInformation": {
+            "CsuId": "4705019817T20050430"
+          },
+          "ChiPremisesAddress": {
+            "Region": "新界",
+            "ChiDistrict": "西貢區",
+            "ChiStreet": {
+              "StreetName": "坑口永隆路",
+              "BuildingNoFrom": "8"
+            }
+          },
+          "EngPremisesAddress": {
+            "BuildingName": "8 HANG HAU WING LUNG ROAD HOUSE 2",
+            "EngStreet": {
+              "BuildingNoFrom": "8",
+              "StreetName": "HANG HAU WING LUNG ROAD"
+            },
+            "EngDistrict": "SAI KUNG DISTRICT",
+            "Region": "NT"
+          },
+          "GeoAddress": "4705019817T20050430"
+        }
+      }
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [114.28143, 22.31734]
+    },
+    "properties": {
+      "Address": {
+        "PremisesAddress": {
+          "BuildingCsuInformation": {
+            "CsuId": "4704019819T20050430"
+          },
+          "ChiPremisesAddress": {
+            "Region": "新界",
+            "ChiDistrict": "西貢區",
+            "ChiStreet": {
+              "StreetName": "坑口永隆路",
+              "BuildingNoFrom": "8"
+            }
+          },
+          "EngPremisesAddress": {
+            "BuildingName": "8 HANG HAU WING LUNG ROAD HOUSE 3",
+            "EngStreet": {
+              "BuildingNoFrom": "8",
+              "StreetName": "HANG HAU WING LUNG ROAD"
+            },
+            "EngDistrict": "SAI KUNG DISTRICT",
+            "Region": "NT"
+          },
+          "GeoAddress": "4704019819T20050430"
+        }
+      }
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [114.12712, 22.26628]
+    },
+    "properties": {
+      "Address": {
+        "PremisesAddress": {
+          "BuildingCsuInformation": {
+            "CsuId": "3114114160T20050430"
+          },
+          "ChiPremisesAddress": {
+            "Region": "香港",
+            "ChiDistrict": "南區",
+            "ChiStreet": {
+              "StreetName": "沙灣徑",
+              "BuildingNoFrom": "25"
+            },
+            "ChiEstate": {
+              "EstateName": "衡益邨"
+            },
+            "BuildingName": "譚益芳樓第１座"
+          },
+          "EngPremisesAddress": {
+            "BuildingName": "TAM TOWERS BLOCK 1",
+            "EngEstate": {
+              "EstateName": "TAM VILLAS"
+            },
+            "EngStreet": {
+              "BuildingNoFrom": "25",
+              "StreetName": "SHA WAN DRIVE"
+            },
+            "EngDistrict": "SOUTHERN DISTRICT",
+            "Region": "HK"
+          },
+          "GeoAddress": "3114114160T20050430"
+        }
+      }
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [114.12696, 22.26668]
+    },
+    "properties": {
+      "Address": {
+        "PremisesAddress": {
+          "BuildingCsuInformation": {
+            "CsuId": "3112214204T20050430"
+          },
+          "ChiPremisesAddress": {
+            "Region": "香港",
+            "ChiDistrict": "南區",
+            "ChiStreet": {
+              "StreetName": "沙灣徑",
+              "BuildingNoFrom": "25"
+            },
+            "ChiEstate": {
+              "EstateName": "衡益邨"
+            },
+            "BuildingName": "譚益芳樓第２座"
+          },
+          "EngPremisesAddress": {
+            "BuildingName": "TAM TOWERS BLOCK 2",
+            "EngEstate": {
+              "EstateName": "TAM VILLAS"
+            },
+            "EngStreet": {
+              "BuildingNoFrom": "25",
+              "StreetName": "SHA WAN DRIVE"
+            },
+            "EngDistrict": "SOUTHERN DISTRICT",
+            "Region": "HK"
+          },
+          "GeoAddress": "3112214204T20050430"
+        }
+      }
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [114.1268, 22.26701]
+    },
+    "properties": {
+      "Address": {
+        "PremisesAddress": {
+          "BuildingCsuInformation": {
+            "CsuId": "3110814241T20050430"
+          },
+          "ChiPremisesAddress": {
+            "Region": "香港",
+            "ChiDistrict": "南區",
+            "ChiStreet": {
+              "StreetName": "沙灣徑",
+              "BuildingNoFrom": "25"
+            },
+            "ChiEstate": {
+              "EstateName": "衡益邨"
+            },
+            "BuildingName": "譚益芳樓第３座"
+          },
+          "EngPremisesAddress": {
+            "BuildingName": "TAM TOWERS BLOCK 3",
+            "EngEstate": {
+              "EstateName": "TAM VILLAS"
+            },
+            "EngStreet": {
+              "BuildingNoFrom": "25",
+              "StreetName": "SHA WAN DRIVE"
+            },
+            "EngDistrict": "SOUTHERN DISTRICT",
+            "Region": "HK"
+          },
+          "GeoAddress": "3110814241T20050430"
+        }
+      }
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [114.12641, 22.26763]
+    },
+    "properties": {
+      "Address": {
+        "PremisesAddress": {
+          "BuildingCsuInformation": {
+            "CsuId": "3106414295T20050430"
+          },
+          "ChiPremisesAddress": {
+            "Region": "香港",
+            "ChiDistrict": "南區",
+            "ChiStreet": {
+              "StreetName": "沙灣徑",
+              "BuildingNoFrom": "25"
+            },
+            "ChiEstate": {
+              "EstateName": "譚亦衡樓"
+            },
+            "BuildingName": "譚亦衡樓第４座"
+          },
+          "EngPremisesAddress": {
+            "BuildingName": "TAM GARDENS BLOCK 4",
+            "EngEstate": {
+              "EstateName": "TAM GARDENS"
+            },
+            "EngStreet": {
+              "BuildingNoFrom": "25",
+              "StreetName": "SHA WAN DRIVE"
+            },
+            "EngDistrict": "SOUTHERN DISTRICT",
+            "Region": "HK"
+          },
+          "GeoAddress": "3106414295T20050430"
+        }
+      }
+    }
+  },
+  {
+    "type": "Feature",
+    "geometry": {
+      "type": "Point",
+      "coordinates": [114.1264, 22.26711]
+    },
+    "properties": {
+      "Address": {
+        "PremisesAddress": {
+          "BuildingCsuInformation": {
+            "CsuId": "3106214263T20050430"
+          },
+          "ChiPremisesAddress": {
+            "Region": "香港",
+            "ChiDistrict": "南區",
+            "ChiStreet": {
+              "StreetName": "沙灣徑",
+              "BuildingNoFrom": "25"
+            },
+            "ChiEstate": {
+              "EstateName": "譚亦衡樓"
+            },
+            "BuildingName": "譚亦衡樓第５座"
+          },
+          "EngPremisesAddress": {
+            "BuildingName": "TAM GARDENS BLOCK 5",
+            "EngEstate": {
+              "EstateName": "TAM GARDENS"
+            },
+            "EngStreet": {
+              "BuildingNoFrom": "25",
+              "StreetName": "SHA WAN DRIVE"
+            },
+            "EngDistrict": "SOUTHERN DISTRICT",
+            "Region": "HK"
+          },
+          "GeoAddress": "3106214263T20050430"
+        }
+      }
+    }
+  }
+]
