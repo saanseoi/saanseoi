@@ -90,6 +90,7 @@ export async function prepareAls3dCollections(options: {
   rows: PreparedHkgovAlsRow[]
   publisherSources?: Iterable<AlsPublisherSource>
   aliasOwnerIds?: ReadonlyMap<string, string>
+  consolidatedParentVariants?: ReadonlyArray<PreparedHkgovAlsRow>
   writeOutput?: boolean
   skipCurationChecks?: boolean
   onGuardPassed?: (id: AlsAuditGuardId, count?: number) => void
@@ -128,6 +129,22 @@ export async function prepareAls3dCollections(options: {
         row,
       ])
     }
+  }
+  // Reviewed identity continuity can consolidate named and unnamed source variants.
+  // Retain each exact source parent key, but only for its surviving resolved owner.
+  const ownersById = new Map(options.rows.map(row => [row.id, row]))
+  for (const variant of options.consolidatedParentVariants ?? []) {
+    const owner = ownersById.get(variant.id)
+    if (!owner || !variant.engPremisesAddressJson || !variant.chiPremisesAddressJson)
+      continue
+    const key = parentKey(
+      variant.hkgovCsuId,
+      JSON.parse(variant.engPremisesAddressJson),
+      JSON.parse(variant.chiPremisesAddressJson),
+    )
+    const candidates = byKey.get(key) ?? []
+    if (!candidates.some(candidate => candidate.id === owner.id))
+      byKey.set(key, [...candidates, owner])
   }
   for (const { csu, en, zh, owner } of reviewedComplexInventoryParents(options.rows)) {
     const key = parentKey(csu, en, zh)

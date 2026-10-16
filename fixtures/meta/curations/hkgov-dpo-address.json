@@ -20394,6 +20394,36 @@
         "reviewSha256": "e6eac10ed71b8d1400cd4e0d1062660e385eb763f6e8d9b2a872cb1b4a1362dc",
         "notes": "Reconcile the already approved curated identity, not a new-development inference. Existing june-2025-reviewed-alias-34 explicitly selects current ID ss-c60806af-7dc7-501f-88d2-708a49c77a59 and aliases previous ID ss-cbaffbac-c79f-5807-916d-4a0a7fb105d1; authority is user-requested reuse on 2026-10-06. CSU, exact address, Chinese building name and coordinates match the approved target guard. No physical retirement."
       }
+    },
+    {
+      "previousIdentityKey": "HKGOV ALS PREMISE V1\u00003076715878T20050430\u0000CENTRAL WESTERN DISTRICT\u0000STREET\u0000VICTORIA ROAD\u000047\u0000\u0000S K H ST LUKE S CHURCH PASTORAL CENTRE\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
+      "currentIdentityKey": "HKGOV ALS PREMISE V1\u00003076715878T20050430\u0000CENTRAL WESTERN DISTRICT\u0000STREET\u0000VICTORIA ROAD\u000047\u0000\u0000\u0000\u0000\u0000\u0000\u0000HONG KONG SHENG KUNG HUI ST LUKE S CHURCH PASTORAL CENTRE\u0000\u0000",
+      "resolution": "keep-existing-id",
+      "review": {
+        "sourceVersion": "2025-06-20.0",
+        "reviewSha256": "aa7ccd9995af9981011b9f31c8b2dda74cf1ebd09568133c9424da4632b86860",
+        "notes": "Corrected level"
+      }
+    },
+    {
+      "previousIdentityKey": "HKGOV ALS PREMISE V1\u00001480927642P20240719\u0000TUEN MUN DISTRICT\u0000STREET\u0000TIN HAU ROAD\u000025\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
+      "currentIdentityKey": "HKGOV ALS PREMISE V1\u00001480927642P20240719\u0000TUEN MUN DISTRICT\u0000STREET\u0000TIN HAU ROAD\u000025\u0000\u0000\u0000\u0000\u0000\u0000\u0000YIP WO HOUSE\u0000\u0000",
+      "resolution": "keep-existing-id",
+      "review": {
+        "sourceVersion": "2025-06-20.0",
+        "reviewSha256": "aa7ccd9995af9981011b9f31c8b2dda74cf1ebd09568133c9424da4632b86860",
+        "notes": "added name"
+      }
+    },
+    {
+      "previousIdentityKey": "HKGOV ALS PREMISE V1\u00003581918483T20050430\u0000YAU TSIM MONG DISTRICT\u0000STREET\u0000JORDAN ROAD\u00006\u00008\u0000\u0000\u0000\u0000\u0000\u00008 JORDAN ROAD\u0000\u0000",
+      "currentIdentityKey": "HKGOV ALS PREMISE V1\u00003581918483T20050430\u0000YAU TSIM MONG DISTRICT\u0000STREET\u0000JORDAN ROAD\u00006\u00008\u0000\u0000\u0000\u0000\u0000\u00008 JORDAN\u0000\u0000",
+      "resolution": "keep-existing-id",
+      "review": {
+        "sourceVersion": "2025-06-20.0",
+        "reviewSha256": "aa7ccd9995af9981011b9f31c8b2dda74cf1ebd09568133c9424da4632b86860",
+        "notes": "corrected name"
+      }
     }
   ],
   "version": 1

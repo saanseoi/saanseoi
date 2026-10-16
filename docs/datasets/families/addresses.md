@@ -1763,3 +1763,15 @@ canonical identity in `june-2025-reviewed-alias-34`. Its earlier shortened Engli
 remains an alias of that identity. The exact CSU, address, Chinese name and coordinates
 match the reviewed target; this is identity reconciliation, not a construction-date
 inference or a physical retirement.
+
+The June 2025 identity review retains the predecessor IDs for St Luke’s Church Pastoral
+Centre at 47 Victoria Road, the newly named Yip Wo House address at 25 Tin Hau Road, and
+8 Jordan at 6–8 Jordan Road. These reviewed level and name corrections preserve
+continuity. Yip Wo House’s separately curated building inventory remains independently
+identified.
+
+When reviewed identity continuity consolidates multiple source address variants, 3D
+inventories retain the exact parent keys of those variants and resolve them to the
+surviving canonical owner. This preserves inventories whose publisher parent still omits
+a newly added building name. Unrelated owner IDs and ambiguous parent matches remain
+subject to review.

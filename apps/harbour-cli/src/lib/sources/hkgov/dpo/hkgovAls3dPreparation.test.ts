@@ -109,6 +109,48 @@ async function delivery(duplicate: boolean) {
   return { dir, rows }
 }
 
+test('reviewed consolidated source variants retain their exact 3D parent mapping', async () => {
+  const { dir, rows } = await delivery(false)
+  try {
+    const variant = rows[0]!
+    const owner = {
+      ...variant,
+      engPremisesAddressJson: JSON.stringify({ BuildingName: 'RENAMED HOUSE' }),
+      chiPremisesAddressJson: JSON.stringify({ BuildingName: '改名樓' }),
+    }
+    const membership: {
+      collections: AlsMembershipCollection[]
+      sources: AlsMembershipSource[]
+    } = { collections: [], sources: [] }
+    const options = {
+      sourceDir: dir,
+      sourceVersion: '2020-01-01.0',
+      outputFile: join(dir, 'prepared.parquet'),
+      rows: [owner],
+      writeOutput: false,
+    }
+    await expect(prepareAls3dCollections(options)).rejects.toThrow(
+      'ALS 3D parent review required',
+    )
+    await expect(
+      prepareAls3dCollections({
+        ...options,
+        consolidatedParentVariants: [{ ...variant, id: 'unrelated-owner' }],
+      }),
+    ).rejects.toThrow('ALS 3D parent review required')
+    await prepareAls3dCollections({
+      ...options,
+      consolidatedParentVariants: [variant, variant],
+      membership,
+    })
+    expect(membership.collections).toHaveLength(1)
+    expect(membership.collections[0]!.ownerId).toBe(owner.id)
+    expect(membership.sources[0]!.units).toEqual(['["1","101"]'])
+  } finally {
+    await rm(dir, { recursive: true, force: true })
+  }
+})
+
 test('output-free preparation captures both publisher unit tokens and resolved inventory membership', async () => {
   const { dir, rows } = await delivery(false)
   try {

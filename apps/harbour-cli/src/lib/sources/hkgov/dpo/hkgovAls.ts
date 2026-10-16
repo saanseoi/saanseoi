@@ -377,6 +377,8 @@ async function prepareHkgovAlsAddressParquetInternal(
     summary: row.identitySummary,
   }))
   const resolvedIdDistinctRows = consolidateRowsSharingResolvedId(rows)
+  const retainedResolvedRows = new Set(resolvedIdDistinctRows)
+  const consolidatedParentVariants = rows.filter(row => !retainedResolvedRows.has(row))
   rows.splice(0, rows.length, ...resolvedIdDistinctRows)
   for (const [alias, owner] of applyReviewedAlsIdentityAliases(
     rows,
@@ -413,6 +415,7 @@ async function prepareHkgovAlsAddressParquetInternal(
     outputFile,
     rows,
     aliasOwnerIds,
+    consolidatedParentVariants,
     writeOutput: options.writeOutput,
     skipCurationChecks: options.skipCurationChecks,
     onGuardPassed: auditGuards.passed,
