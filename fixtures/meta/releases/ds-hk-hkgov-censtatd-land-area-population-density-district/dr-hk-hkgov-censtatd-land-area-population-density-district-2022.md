@@ -2,7 +2,7 @@
 createdAt: "2026-07-27T00:00:00.000Z"
 updatedAt: "2026-07-27T00:00:00.000Z"
 dataset: "ds-hk-hkgov-censtatd-land-area-population-density-district"
-release: "dr-hk-hkgov-censtatd-division-statistic-land-area-population-density-district-2022"
+release: "dr-hk-hkgov-censtatd-land-area-population-density-district-2022"
 regionCode: "hk"
 source: "hkgov-censtatd"
 publicationDate: "2023-12-27"

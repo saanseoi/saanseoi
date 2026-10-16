@@ -166,8 +166,7 @@ describe('source records', () => {
 
   test('resolves the public parent to its statistics child without losing retained geometry', async () => {
     const sqlite = new Database(':memory:')
-    const code =
-      'dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021'
+    const code = 'dr-hk-hkgov-censtatd-housing-market-areas-building-groups-2021'
     const datasetCode = 'ds-hk-hkgov-censtatd-housing-market-areas-building-groups'
     sqlite.exec(`
       CREATE TABLE publishers(id, code);
@@ -260,7 +259,7 @@ describe('source records', () => {
       sources TEXT, sourceRecordId TEXT, versionHash TEXT, properties TEXT,
       validFromRelease TEXT, validToRelease TEXT, resourceReleaseId TEXT, geometryId TEXT DEFAULT 'geometry'
     )`)
-    const code = 'dr-hk-hkgov-censtatd-division-statistic-new-towns-2021'
+    const code = 'dr-hk-hkgov-censtatd-new-towns-2021'
     const insert = sqlite.query(
       'INSERT INTO hkgovCenstatdStatistics (sourceRecordId, versionHash, properties, validFromRelease, validToRelease, resourceReleaseId) VALUES (?, ?, ?, ?, ?, ?)',
     )
@@ -780,8 +779,7 @@ describe('source records', () => {
         }
       },
     } as never
-    const censtatdRelease =
-      'dr-hk-hkgov-censtatd-division-statistic-subdivided-units-district-2016'
+    const censtatdRelease = 'dr-hk-hkgov-censtatd-subdivided-units-district-2016'
 
     const result = await listSourceRecords({
       env: {
@@ -869,8 +867,7 @@ describe('source records', () => {
         ],
         type: 'Polygon',
       }
-      const censtatdRelease =
-        'dr-hk-hkgov-censtatd-division-statistic-subdivided-units-district-2016'
+      const censtatdRelease = 'dr-hk-hkgov-censtatd-subdivided-units-district-2016'
       const result = await listSourceRecords({
         env: {
           DB_SOURCE_HK_2025: sourceDatabase([]),

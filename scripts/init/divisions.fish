@@ -82,7 +82,7 @@ end
 # The three C&SD regional polygons reference SaanSeoi identities. Retain both
 # curated source editions before validating this geometry and reconciling v0.2.
 set -l censtatd_area_release_code \
-    dr-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-2023-H2
+    dr-hk-hkgov-censtatd-permanent-living-quarters-2023-H2
 if not init_is_completed_release "$censtatd_area_release_code::divisionStatistic"; or not init_is_completed_release "$censtatd_area_release_code::divisionArea"
     set -l censtatd_area_archive \
         "$saanseoi_init_repo/data/hkgov/csdi/archive/censtatd_rcd_1635933883228_46491/2023-Q4/81e2fd2c5aaeadaaf1c651a4b6d42f37f5cd7812fce2437303fa5054d978aa4a-source.zip"

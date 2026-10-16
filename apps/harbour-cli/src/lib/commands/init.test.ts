@@ -442,7 +442,7 @@ describe('initialisation commands', () => {
         source scripts/init/common.fish
         function init_load_completed_release_codes
           for resource_type in divisionStatistic division divisionArea
-            set -ga saanseoi_init_completed_release_codes "dr-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-2023-H2::$resource_type"
+            set -ga saanseoi_init_completed_release_codes "dr-hk-hkgov-censtatd-permanent-living-quarters-2023-H2::$resource_type"
           end
         end
         function init_run_step

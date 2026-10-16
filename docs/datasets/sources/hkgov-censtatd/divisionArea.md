@@ -186,12 +186,12 @@ an earlier cohort.
 ```text
 dataset  ds-hk-hkgov-censtatd-subdivided-units-district
 variant  hkgov-censtatd-landclipped  (2016 and 2021 census/by-census districts)
-releases dr-hk-hkgov-censtatd-division-statistic-subdivided-units-district-2016
-         dr-hk-hkgov-censtatd-division-statistic-subdivided-units-district-2021
+releases dr-hk-hkgov-censtatd-subdivided-units-district-2016
+         dr-hk-hkgov-censtatd-subdivided-units-district-2021
 
 dataset  ds-hk-hkgov-censtatd-population-households-district
 variant  hkgov-censtatd              (annual districts and Area/type polygons)
-release  dr-hk-hkgov-censtatd-division-statistic-population-households-district-2024
+release  dr-hk-hkgov-censtatd-population-households-district-2024
 ```
 
 The publisher's 2021 `CENSTATD:T` feature has a self-intersecting ring. The C&SD adapter

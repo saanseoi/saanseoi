@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import { readHkgovHadDistrictArchive } from '../../apps/harbour-cli/src/lib/sources/hkgov/had/hkgovHad'
 import { parseHkgovCenstatdDistrictGml } from '../../apps/harbour-cli/src/lib/sources/hkgov/censtatd/hkgovCenstatdGml'
-import identities from '../../fixtures/meta/curations/identity/dr-hk-hkgov-censtatd-division-statistic-subdivided-units-district-2021.json'
+import identities from '../../fixtures/meta/curations/identity/dr-hk-hkgov-censtatd-subdivided-units-district-2021.json'
 
 /** Review-only alternatives: never merged into active reference areas or hierarchy. */
 export async function governmentDistrictCandidates(root: string) {

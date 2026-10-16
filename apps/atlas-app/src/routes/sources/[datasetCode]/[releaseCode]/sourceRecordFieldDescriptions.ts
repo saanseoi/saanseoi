@@ -18,7 +18,7 @@ export const planningUnitFields: Record<string, string> = {
 export const datasetFields: Record<string, Record<string, string>> = {
   // C&SD simplified data specification, BG_21C and HMA_21C:
   // https://static.csdi.gov.hk/csdi-webpage/view/common/59db8193e184a4188049df9af8b5fdacab11411382f0caca323d6962d968ae6a
-  'hkgov-censtatd-division-statistic-housing-market-areas-building-groups': {
+  'hkgov-censtatd-housing-market-areas-building-groups': {
     bg: 'Publisher building group code.',
     bgZhHant: 'Building group name in Traditional Chinese.',
     bgEn: 'Building group name in English.',
@@ -30,7 +30,7 @@ export const datasetFields: Record<string, Record<string, string>> = {
   },
   // C&SD simplified data specification, DC_21C_SDU:
   // https://static.csdi.gov.hk/csdi-webpage/view/common/687dacd3427eeddea2d6f8ebfa47a599e47a86e87421205ffddf42d677f38e54
-  'hkgov-censtatd-division-statistic-subdivided-units-district': {
+  'hkgov-censtatd-subdivided-units-district': {
     objectId: 'Publisher feature object identifier.',
     shapeArea: 'Area calculated in the publisher’s source coordinate system.',
     shapeLength:
@@ -44,7 +44,7 @@ export const datasetFields: Record<string, Record<string, string>> = {
     sduOq: 'Number of occupied quarters with subdivided units.',
     sduPop: 'Number of persons living in subdivided units.',
   },
-  'hkgov-censtatd-division-statistic-permanent-living-quarters': {
+  'hkgov-censtatd-permanent-living-quarters': {
     areaZhHant: 'Geographic area name in Traditional Chinese.',
     areaEn:
       'Geographic area name in English: Hong Kong Island, Kowloon or New Territories.',
@@ -174,7 +174,7 @@ export function sourceRecordFieldDescription(
     if (common.includes(field))
       return (meanings as Record<string, Record<string, string>>)[field]?.[language]
     if (
-      /^dr-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district-/.test(
+      /^dr-hk-hkgov-censtatd-permanent-living-quarters-district-/.test(
         sourceReleaseCode,
       ) &&
       field === 'lq'

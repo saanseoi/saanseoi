@@ -198,7 +198,7 @@ describe('Planning Department native New Town SHP intake', () => {
       )
       const [bridgeFixture, divisionCodeFixture] = await Promise.all([
         readFixture<IdentifierBridgeFixture>(
-          'curations/identity/dr-hk-hkgov-censtatd-division-statistic-new-towns-2021.json',
+          'curations/identity/dr-hk-hkgov-censtatd-new-towns-2021.json',
         ),
         readFixture<DivisionCodeFixture>('divisionCodes/hkgov-pland-new-town.json'),
       ])

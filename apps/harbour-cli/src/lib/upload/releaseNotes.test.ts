@@ -146,6 +146,13 @@ describe('release-notes fixtures', () => {
       const source = content.match(/^source:\s*"([^"]+)"$/m)?.[1]
       expect(datasetCode, path).toBeTruthy()
       expect(releaseCode, path).toBeTruthy()
+      if (source === 'hkgov-censtatd') {
+        const sourceVersion = content.match(/^sourceVersion:\s*"([^"]+)"$/m)?.[1]
+        expect(releaseCode, path).toBe(
+          `${datasetCode?.replace(/^ds-/, 'dr-')}-${sourceVersion}`,
+        )
+        expect(path.endsWith(`/${releaseCode}.md`), path).toBe(true)
+      }
       if (!url) {
         // Source releases can provide local prose without an upstream notes URL.
         expect(content.split('---')[2]?.trim(), path).toBeTruthy()

@@ -16,8 +16,7 @@ test('reads verified upstream dates from release fixtures', async () => {
   expect(
     await readFixturePublicationDate({
       datasetCode: 'ds-hk-hkgov-censtatd-population-households-district',
-      releaseCode:
-        'dr-hk-hkgov-censtatd-division-statistic-population-households-district-2026-Q2',
+      releaseCode: 'dr-hk-hkgov-censtatd-population-households-district-2026-Q2',
       sourceVersion: '2026-Q2',
     }),
   ).toBeUndefined()

@@ -1,8 +1,8 @@
 {
-  "versionHash": "sha256:5d1468065ca240f3cca0fad90fabb2c7f3bc1d3fcbfaaf0f86f191f9a7039b6f",
+  "versionHash": "sha256:701430452c66039a3bf8a7821ce532a7ae7a9d1d1ce18269cd06287f934afb48",
   "sourceDatasetCode": "ds-hk-hkgov-censtatd-subdivided-units-district",
   "resourceType": "division",
-  "sourceReleaseCode": "dr-hk-hkgov-censtatd-division-statistic-subdivided-units-district-2021",
+  "sourceReleaseCode": "dr-hk-hkgov-censtatd-subdivided-units-district-2021",
   "cohortKey": "2021",
   "domain": "administrative",
   "authority": "hkgov-censtatd",

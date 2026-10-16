@@ -56,8 +56,7 @@ test('resolves churn metadata after a staged C&SD release is synced into a reuse
     {
       datasetCode: 'ds-hk-hkgov-censtatd-permanent-living-quarters',
       rawObjectKey: 'hk/hkgov-censtatd/2023-H2/division-statistic.parquet',
-      releaseCode:
-        'dr-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-2023-H2',
+      releaseCode: 'dr-hk-hkgov-censtatd-permanent-living-quarters-2023-H2',
       resourceReleaseId,
     },
     {
@@ -84,8 +83,7 @@ test('resolves churn metadata after a staged C&SD release is synced into a reuse
     {
       datasetCode: 'ds-hk-hkgov-censtatd-permanent-living-quarters',
       rawObjectKey: 'hk/hkgov-censtatd/2023-H2/division-statistic.parquet',
-      releaseCode:
-        'dr-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-2023-H2',
+      releaseCode: 'dr-hk-hkgov-censtatd-permanent-living-quarters-2023-H2',
       resourceReleaseId,
     },
     {
@@ -110,8 +108,7 @@ test('resolves churn metadata after a staged C&SD release is synced into a reuse
   `)
   const recoveryRoot = await mkdtemp(join(tmpdir(), 'staged-sync-recovery-'))
   try {
-    const releaseCode =
-      'dr-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-2023-H2'
+    const releaseCode = 'dr-hk-hkgov-censtatd-permanent-living-quarters-2023-H2'
     const directory = join(recoveryRoot, 'delivery')
     await prepareSqlDelivery(
       directory,
@@ -166,8 +163,7 @@ test('resolves churn metadata after a staged C&SD release is synced into a reuse
       {
         datasetCode: 'ds-hk-hkgov-censtatd-permanent-living-quarters',
         rawObjectKey: 'hk/hkgov-censtatd/2023-H2/division-area.parquet',
-        releaseCode:
-          'dr-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-2023-H2',
+        releaseCode: 'dr-hk-hkgov-censtatd-permanent-living-quarters-2023-H2',
         resourceReleaseId,
       },
       {

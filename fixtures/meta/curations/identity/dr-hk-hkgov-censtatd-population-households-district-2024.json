@@ -1,8 +1,8 @@
 {
-  "versionHash": "sha256:15eda88df63796eca11706145d45268a953884316922af7895bc90b2579dba40",
+  "versionHash": "sha256:93a962adbf3b697e9a9b9f60f209b2ee9dddde328c4778c344613bd1e57288fb",
   "sourceDatasetCode": "ds-hk-hkgov-censtatd-population-households-district",
   "resourceType": "division",
-  "sourceReleaseCode": "dr-hk-hkgov-censtatd-division-statistic-population-households-district-2024",
+  "sourceReleaseCode": "dr-hk-hkgov-censtatd-population-households-district-2024",
   "cohortKey": "2024",
   "domain": "administrative",
   "authority": "hkgov-censtatd",

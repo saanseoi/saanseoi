@@ -143,13 +143,12 @@ test('encodes compound materialisation release codes in source asset paths', () 
       datasetCode: 'ds-hk-hkgov-censtatd-district',
       fileName: 'division-area.gml.zip',
       publisherCode: 'hkgov-censtatd',
-      releaseCode:
-        'dr-hk-hkgov-censtatd-division-statistic-district-2016::divisionArea',
+      releaseCode: 'dr-hk-hkgov-censtatd-district-2016::divisionArea',
       sha256: 'a'.repeat(64),
     }),
   ).toBe(
     'by-source/hk/hkgov-censtatd/ds-hk-hkgov-censtatd-district/' +
-      'dr-hk-hkgov-censtatd-division-statistic-district-2016__divisionArea/' +
+      'dr-hk-hkgov-censtatd-district-2016__divisionArea/' +
       `${'a'.repeat(64)}-division-area.gml.zip`,
   )
 })

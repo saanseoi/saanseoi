@@ -1,8 +1,8 @@
 {
-  "versionHash": "sha256:8c12d590fb5c938a2cfa02fade1751c2712775920e18d61e199037554726c26f",
+  "versionHash": "sha256:195a96b07b411c6974e284bf484af44a52ff86c1a1f88c1526cc55b3783c0b6f",
   "sourceDatasetCode": "ds-hk-hkgov-censtatd-new-towns",
   "resourceType": "division",
-  "sourceReleaseCode": "dr-hk-hkgov-censtatd-division-statistic-new-towns-2021",
+  "sourceReleaseCode": "dr-hk-hkgov-censtatd-new-towns-2021",
   "cohortKey": "2021",
   "domain": "new-town",
   "authority": "hkgov-censtatd",
