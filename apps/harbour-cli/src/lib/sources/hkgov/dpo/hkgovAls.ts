@@ -415,6 +415,7 @@ async function prepareHkgovAlsAddressParquetInternal(
     outputFile,
     rows,
     aliasOwnerIds,
+    reviewedAliases,
     consolidatedParentVariants,
     writeOutput: options.writeOutput,
     skipCurationChecks: options.skipCurationChecks,

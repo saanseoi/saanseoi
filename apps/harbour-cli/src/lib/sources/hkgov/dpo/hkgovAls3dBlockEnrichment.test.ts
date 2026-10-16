@@ -7,6 +7,7 @@ import type { PreparedHkgovAlsRow } from './hkgovAlsTypes.ts'
 
 function owner() {
   return {
+    id: 'als-example',
     canonicalId: 'als-example',
     chiPremisesAddressJson: JSON.stringify({
       BuildingName: '示例樓',
@@ -138,7 +139,18 @@ test.each(['示例樓(6座)', '示例樓(第6座)', '示例樓（第6座）'])(
       zhHantBlockDescriptor: '座',
       zhHantBlockNumber: '6',
     }
-    suppressAls3dParentBlockDuplicate(canonical, duplicate)
+    const aliases = new Map([
+      ['earlier-alias', duplicate.id],
+      ['other-alias', 'other-owner'],
+    ])
+    suppressAls3dParentBlockDuplicate(canonical, duplicate, aliases)
+    expect(aliases.get('earlier-alias')).toBe(canonical.id)
+    expect(aliases.get(duplicate.id)).toBe(canonical.id)
+    expect(aliases.get('other-alias')).toBe('other-owner')
+    expect(JSON.parse(canonical.sources).reviewedIdentityAliases).toEqual([
+      'earlier-alias',
+      duplicate.id,
+    ])
     expect(JSON.parse(canonical.chiPremisesAddressJson!).BuildingName).toBe('示例樓')
     expect(canonical.zhHantBlockNumber).toBe('6')
     expect(canonical.zhHantFormattedAddress).not.toContain('第')

@@ -90,6 +90,7 @@ export async function prepareAls3dCollections(options: {
   rows: PreparedHkgovAlsRow[]
   publisherSources?: Iterable<AlsPublisherSource>
   aliasOwnerIds?: ReadonlyMap<string, string>
+  reviewedAliases?: Map<string, string>
   consolidatedParentVariants?: ReadonlyArray<PreparedHkgovAlsRow>
   writeOutput?: boolean
   skipCurationChecks?: boolean
@@ -355,7 +356,11 @@ export async function prepareAls3dCollections(options: {
         }
         const duplicate = duplicates[0]
         if (duplicate) {
-          suppressAls3dParentBlockDuplicate(structuralOwner, duplicate)
+          suppressAls3dParentBlockDuplicate(
+            structuralOwner,
+            duplicate,
+            options.reviewedAliases,
+          )
           suppressed2dIds.add(duplicate.id)
         }
         candidates = [structuralOwner]

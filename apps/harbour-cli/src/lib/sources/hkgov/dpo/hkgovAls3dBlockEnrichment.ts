@@ -164,6 +164,7 @@ export function enrichAls3dParentBlock(input: {
 export function suppressAls3dParentBlockDuplicate(
   owner: PreparedHkgovAlsRow,
   duplicate: PreparedHkgovAlsRow,
+  aliases?: Map<string, string>,
 ) {
   const enrichment = owner.als3dParentBlockEnrichment
   if (!enrichment || duplicate.id === owner.id) {
@@ -239,6 +240,23 @@ export function suppressAls3dParentBlockDuplicate(
     },
     sources: JSON.parse(duplicate.sources),
   })
+  // Earlier continuity may point at the variant removed by this exact match.
+  // Carry those aliases to the surviving owner, together with the variant ID.
+  if (aliases) {
+    for (const [alias, target] of aliases)
+      if (target === duplicate.id) aliases.set(alias, owner.id)
+    aliases.set(duplicate.id, owner.id)
+    const sources = JSON.parse(owner.sources)
+    sources.reviewedIdentityAliases = [
+      ...new Set([
+        ...(sources.reviewedIdentityAliases ?? []),
+        ...[...aliases]
+          .filter(([, target]) => target === owner.id)
+          .map(([alias]) => alias),
+      ]),
+    ]
+    owner.sources = JSON.stringify(sources)
+  }
   writeEnrichmentProvenance(owner)
 }
 

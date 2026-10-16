@@ -9,6 +9,7 @@ import {
   applyReviewedComplexPromotions,
   reviewedComplexInventoryParents,
 } from './hkgovAlsComplexPromotions'
+import { collectAlsReviewIssues } from './hkgovAlsReviewIssue'
 import { normaliseHkgovAlsFeature } from './hkgovAlsNormalisation'
 import type { DivisionLookupMaps, HkgovAlsFeature } from './hkgovAlsTypes'
 
@@ -56,6 +57,7 @@ const directories: Record<string, string> = {
   '2026-07-10.0': '20260710-1054-ALS-GeoJSON',
   '2026-07-22.0': '20260722-1931-ALS-GeoJSON',
   '2026-08-19.0': '20260819-1047-ALS-GeoJSON',
+  '2026-09-22.0': '20260922-1336-ALS-GeoJSON',
 }
 
 async function rowsFor(version: string) {
@@ -181,4 +183,18 @@ test('inventory ownership requires a unique matching CSU, estate and numbered bl
   expect(() => reviewedComplexInventoryParents([...rows, { ...owner }])).toThrow(
     'inventory owner changed',
   )
+})
+
+test('September retains publisher defaults and queues the changed complex interpretation', async () => {
+  const rows = await rowsFor('2026-09-22.0')
+  const before = structuredClone(rows)
+  collectAlsReviewIssues(issues => {
+    applyReviewedComplexPromotions(rows, '2026-09-22.0')
+    expect(rows).toEqual(before)
+    expect(issues).toHaveLength(1)
+    expect(issues[0]).toMatchObject({
+      code: 'unverified-curation',
+      decisionId: rule.id,
+    })
+  })
 })

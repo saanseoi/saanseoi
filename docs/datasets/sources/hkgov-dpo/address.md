@@ -1941,3 +1941,7 @@ features. Incomplete feature blocks are rejected.
 An until-revoked coordinate decision accepts the publisher returning exactly to the
 retained point, preserving that publisher geometry in provenance. A different third
 point still requires review.
+
+Exact bilingual 3D block-variant consolidation carries existing continuity aliases to
+the surviving address and retains the suppressed assertion in provenance. This does not
+approve an unreviewed estate interpretation.

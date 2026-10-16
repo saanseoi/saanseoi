@@ -2,6 +2,7 @@ import { strict as assert } from 'node:assert'
 import { buildDeterministicUuidV5 } from '@repo/db'
 import fixture from '../../../../../../../fixtures/meta/curations/hkgov-dpo-address-complex-promotions.json'
 import { als3dHash } from './hkgovAls3d'
+import { reportAlsReviewIssue } from './hkgovAlsReviewIssue'
 import {
   formatEnPremisesAddress,
   formatZhPremisesAddress,
@@ -60,7 +61,6 @@ export function applyReviewedComplexPromotions(
   version: string,
 ) {
   for (const rule of fixture.promotions) {
-    if (!rule.sourceVersions.includes(version)) continue
     const candidates = rows.filter(row => {
       const en = JSON.parse(row.engPremisesAddressJson ?? '{}')
       return (
@@ -71,6 +71,20 @@ export function applyReviewedComplexPromotions(
       )
     })
     if (!candidates.length) continue
+    if (!rule.sourceVersions.includes(version)) {
+      if (version > [...rule.sourceVersions].sort().at(-1)!)
+        reportAlsReviewIssue({
+          code: 'unverified-curation',
+          sourceVersion: version,
+          decisionId: rule.id,
+          curationFile: sourceFile,
+          decision: rule,
+          records: candidates.map(rowEvidence),
+          message:
+            'Complex promotion is outside verified coverage; retain publisher defaults pending review.',
+        })
+      continue
+    }
     assert.equal(
       candidates.length,
       1,
