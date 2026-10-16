@@ -1467,12 +1467,15 @@ the complex. Guarded archived publisher records preserve their original IDs and 
 Summerbreeze is a building; Sang On retains its valid frontages. Far East Bank Building
 continues as Silka Far East Hotel, with the two separate predecessor frontages recorded
 as aliases of the combined predecessor identity. The selected HSBC Building address owns
-the reviewed alias. Dorsett Kai Tak, CLP Headquarters, Peng Chau Rural Committee and
-Harbour Mansion remain distinct named premises. The Palm Springs and Royal Palms house
-IDs survive publisher address formatting changes. CUHK Medical Centre retains its
-complex classification. Lok Yuen retains both combined building frontages and seven
-separate shop/unit addresses beneath the matching frontage. AIA Hong Kong Tower has an
-explicit retirement approval; the decision does not assert an exact demolition date.
+the reviewed alias. Its unnamed 150–160 Castle Peak Road – Yuen Long frontage is
+coalesced only when both language labels and coordinates match the returned-source
+guard; its publisher assertion remains in reconciliation provenance. Dorsett Kai Tak,
+CLP Headquarters, Peng Chau Rural Committee and Harbour Mansion remain distinct named
+premises. The Palm Springs and Royal Palms house IDs survive publisher address
+formatting changes. CUHK Medical Centre retains its complex classification. Lok Yuen
+retains both combined building frontages and seven separate shop/unit addresses beneath
+the matching frontage. AIA Hong Kong Tower has an explicit retirement approval; the
+decision does not assert an exact demolition date.
 
 ### Explicit review outcomes
 

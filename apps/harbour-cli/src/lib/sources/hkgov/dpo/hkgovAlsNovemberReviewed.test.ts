@@ -31,7 +31,14 @@ const maps = {
 async function inputs(dir: string) {
   const out: HkgovAlsSourceFeature[] = []
   for (const file of new Set(rules.map(r => r.sourceFile))) {
-    const csus = new Set(rules.filter(r => r.sourceFile === file).flatMap(r => r.csus))
+    const csus = new Set(
+      rules
+        .filter(r => r.sourceFile === file)
+        .flatMap(r => [
+          ...r.csus,
+          r.evidence.feature.properties?.Address?.PremisesAddress?.GeoAddress,
+        ]),
+    )
     for await (const f of readAls3dFeatures(`data/hkgov/dpo/ALS/${dir}/${file}`)) {
       if (
         f.featureIndexOneBased !== 1 &&
@@ -88,6 +95,16 @@ test('November reviewed retentions preserve all approved identities and classifi
     d => d.startsWith('20251104') && d.endsWith('ALS-GeoJSON'),
   )!
   const rows = prepare(await inputs(dir), '2025-11-04.0')
+  // Production resolves the returned frontage to its published September ID
+  // before applying the reviewed reconciliation.
+  const hsbcFrontage = rows.find(r => r.hkgovCsuId === '2089333884T20050430')!
+  expect(hsbcFrontage.enBuildingName).toBeNull()
+  hsbcFrontage.id = 'ss-5b84163d-a936-591c-bf31-efde4de63b5e'
+  const changedFrontage = structuredClone(rows)
+  changedFrontage.find(r => r.id === hsbcFrontage.id)!.enFormattedAddress += ' changed'
+  expect(() =>
+    applyNovemberReviewedIdentityAliases(changedFrontage, '2025-11-04.0'),
+  ).toThrow('returned frontage changed')
   const aliases = applyNovemberReviewedIdentityAliases(rows, '2025-11-04.0')
   expect(rules).toHaveLength(126)
   for (const rule of rules)
@@ -103,6 +120,11 @@ test('November reviewed retentions preserve all approved identities and classifi
   expect(get(9).curatedGranularity).toBe('building')
   expect(get(40).enBuildingName).toBe('SILKA FAR EAST HOTEL HONG KONG')
   expect(get(53).id).toBe('ss-3b312a6c-e54e-5f69-ac84-a150afb33311')
+  const hsbcEvidence = JSON.parse(get(53).sources)
+    .hkgovAlsNovemberReviewedIdentityReconciliation.returnedPublisherAssertions
+  expect(hsbcEvidence).toHaveLength(1)
+  expect(hsbcEvidence[0].id).toBe('ss-5b84163d-a936-591c-bf31-efde4de63b5e')
+  expect(rows.some(r => r.id === hsbcEvidence[0].id)).toBe(false)
   expect(aliases.size).toBe(3)
   expect(get(109).enBuildingName).toBe('DORSETT KAI TAK HONG KONG')
   expect(get(113).enBuildingName).toBe('CLP HEADQUARTERS')

@@ -31781,8 +31781,8 @@
       "previousGuards": [
         {
           "id": "ss-5b84163d-a936-591c-bf31-efde4de63b5e",
-          "enFormattedAddress": "HSBC BUILDING YUEN LONG, 150-160 CASTLE PEAK ROAD - YUEN LONG, YUEN LONG DISTRICT, NT",
-          "zhHantFormattedAddress": "元朗滙豐大廈150160青山公路　－　元朗段元朗區新界",
+          "enFormattedAddress": "150-160 CASTLE PEAK ROAD - YUEN LONG, YUEN LONG DISTRICT, NT",
+          "zhHantFormattedAddress": "150160青山公路　－　元朗段元朗區新界",
           "coordinates": [
             114.02754,
             22.44425
