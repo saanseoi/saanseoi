@@ -143,13 +143,32 @@ export function buildSnapshotLineageCode(
     !hasMoreSpecificDivisionResourceType &&
     (normalisedDatasetCode.endsWith(`-${normalisedResourceType}`) ||
       normalisedDatasetCode.includes(`-${normalisedResourceType}-`))
-  const resourceTypeSegment = resourceTypeIsInDatasetCode
-    ? ''
-    : `-${normalisedResourceType}`
+  const resourceQualifiers: Partial<Record<ResourceType, string>> = {
+    divisionArea: 'area',
+    divisionBoundary: 'boundary',
+    divisionStatistic: 'stats',
+  }
+  const resourceQualifier = resourceQualifiers[resourceType] ?? normalisedResourceType
+  const resourceTypeSegment = resourceTypeIsInDatasetCode ? '' : `-${resourceQualifier}`
+  let variantQualifier = normaliseCodeSlug(variant)
+  // Compare whole tokens, omitting the dataset's region and resource marker.
+  // Keep unmatched scope such as landclipped, hma, or a census year.
+  const datasetScope = normalisedDatasetCode
+    .split('-')
+    .slice(1)
+    .filter(segment => segment !== 'division')
+  const variantScope = variantQualifier.split('-')
+  while (datasetScope.length && datasetScope[0] === variantScope[0]) {
+    datasetScope.shift()
+    variantScope.shift()
+  }
+  variantQualifier = variantScope.join('-')
   const variantSegment =
     variant.includes(':') ||
     (variant === 'saanseoi' && !normalisedDatasetCode.includes('saanseoi'))
-      ? `-${normaliseCodeSlug(variant)}`
+      ? variantQualifier
+        ? `-${variantQualifier}`
+        : ''
       : ''
   return `sl-${normalisedDatasetCode}${resourceTypeSegment}${variantSegment}`
 }

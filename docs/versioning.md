@@ -561,13 +561,21 @@ Example conceptual lineage codes:
 ```text
 sl-hk-overture-division
 sl-hk-hkgov-pland-division-pu
+sl-hk-hkgov-pland-division-pu-area-simplified
+sl-hk-hkgov-censtatd-subdivided-units-district-stats
+sl-hk-hkgov-censtatd-subdivided-units-district-area-landclipped-simplified
 ```
 
 The code is `sl-{primaryDatasetCode without the ds- prefix}`, with resource and variant
 qualifiers where needed to distinguish streams. The dataset code already carries source,
-region, and resource scope, so the lineage code does not repeat them. The separate
-lineage row stores `regionCode`, `resourceType`, `variant`, `primaryDatasetId`, and
-`identityMode` as queryable fields rather than asking consumers to parse the code.
+region, and resource scope, so the lineage code does not repeat them. Resource
+qualifiers are `area`, `boundary`, and `stats` for division areas, division boundaries,
+and division statistics; other resources use their resource name. A resource already
+represented in the dataset code needs no qualifier. Structured variants omit the source
+prefix shared with the dataset, retaining distinguishing scope such as `landclipped`,
+`hma`, census years, and `simplified`. The separate lineage row stores `regionCode`,
+`resourceType`, `variant`, `primaryDatasetId`, and `identityMode` as queryable fields
+rather than asking consumers to parse the code.
 
 Identity modes are:
 
@@ -600,9 +608,11 @@ public request selector.
 6. An API release set selects exact snapshot IDs from one or more lineages. A catalogue
    selects the release set; neither layer copies the lineage's entity data.
 
-The lineage code seeds its deterministic UUID. Snapshots reference that UUID, not the
-human-readable code. Once a stable API publishes a lineage, both its code and UUID must
-be treated as immutable; a genuinely different identity stream gets a new lineage.
+The lineage code seeds its deterministic UUID when the lineage is created. Subsequent
+lookups use the persisted ID rather than deriving it again from the code. Snapshots
+reference that UUID, not the human-readable code. Once a stable API publishes a lineage,
+both its code and UUID must be treated as immutable; a genuinely different identity
+stream gets a new lineage.
 
 ### Snapshot
 

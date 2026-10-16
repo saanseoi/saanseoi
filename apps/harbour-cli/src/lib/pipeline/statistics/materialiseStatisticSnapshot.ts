@@ -1,6 +1,5 @@
 import { datasetVariantForSource } from '@repo/core/codes'
 import {
-  buildDeterministicSnapshotLineageId,
   ensureDraftSnapshotForRelease,
   recordSnapshotAssembly,
   resolveAcceptedStatisticSnapshotParent,
@@ -11,7 +10,8 @@ import {
   waitForDatasetRecord,
 } from '@repo/core/db/metaRegistry'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
-import { buildSnapshotLineageCode } from '@repo/db'
+import { buildSnapshotLineageCode, metaSchema } from '@repo/db'
+import { eq } from 'drizzle-orm'
 
 import type { UploadTarget } from '../../cli/options.ts'
 
@@ -28,18 +28,24 @@ export async function resolveStatisticSnapshotPredecessors(args: {
       datasetCode: args.datasetCode,
     }),
   )
-  const lineageId = buildDeterministicSnapshotLineageId(lineageCode)
+  // A code rename preserves the persisted lineage ID and its history links.
+  const lineage = await args.metaDb
+    .select({ id: metaSchema.metaSnapshotLineages.id })
+    .from(metaSchema.metaSnapshotLineages)
+    .where(eq(metaSchema.metaSnapshotLineages.code, lineageCode))
+    .get()
   return Promise.all(
     args.referencePeriods.map(async referencePeriod => ({
       cohortKey: referencePeriod.code,
-      parentSnapshotId:
-        (
-          await resolveAcceptedStatisticSnapshotParent(
-            args.metaDb,
-            lineageId,
-            referencePeriod.code,
-          )
-        )?.id ?? null,
+      parentSnapshotId: lineage
+        ? ((
+            await resolveAcceptedStatisticSnapshotParent(
+              args.metaDb,
+              lineage.id,
+              referencePeriod.code,
+            )
+          )?.id ?? null)
+        : null,
     })),
   )
 }

@@ -7,7 +7,10 @@ import { createLocalHarbourDb } from '@repo/core/testing/localDb'
 import { ensureDraftSnapshotForRelease } from '@repo/core/db/metaRegistry'
 import { requireDefined } from '@repo/core/requireDefined'
 
-import { materialiseStatisticSnapshots } from './materialiseStatisticSnapshot'
+import {
+  materialiseStatisticSnapshots,
+  resolveStatisticSnapshotPredecessors,
+} from './materialiseStatisticSnapshot'
 
 const MIGRATIONS_DIR = resolve(import.meta.dir, '../../../../../../libs/db/migrations')
 const NOW = '2026-08-20T00:00:00.000Z'
@@ -142,6 +145,19 @@ INSERT INTO resourceReleases (id, sourceReleaseId, resourceType, code, status, i
       SELECT 'assembly',id,'release','sha256:${'0'.repeat(64)}',1,1,'completed' FROM snapshots;
       UPDATE snapshots SET status = 'published';
     `)
+    // Renaming the code must not require replacing the lineage's persisted ID.
+    const originalCode = sqlite.query('SELECT code FROM snapshotLineages').get() as {
+      code: string
+    }
+    sqlite.run("UPDATE snapshotLineages SET code = 'sl-renamed-statistics-stats'")
+    expect(
+      await resolveStatisticSnapshotPredecessors({
+        datasetCode: 'ds-renamed-statistics',
+        metaDb: db,
+        referencePeriods: [{ code: '2016', endYear: '2016' }],
+      }),
+    ).toEqual([{ cohortKey: '2016', parentSnapshotId: firstSnapshot.id }])
+    sqlite.run('UPDATE snapshotLineages SET code = ?', [originalCode.code])
     const snapshotCount = sqlite
       .query('SELECT count(*) AS count FROM snapshots')
       .get() as { count: number }

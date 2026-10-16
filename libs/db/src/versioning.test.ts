@@ -25,7 +25,7 @@ describe('snapshot identifiers', () => {
         'divisionArea',
         'hkgov-censtatd:2016',
       ),
-    ).toBe('sl-hk-hkgov-censtatd-division-area-district-hkgov-censtatd-2016')
+    ).toBe('sl-hk-hkgov-censtatd-division-area-district-2016')
   })
 
   test('qualifies a resource type omitted from a shared dataset code', () => {
@@ -35,7 +35,7 @@ describe('snapshot identifiers', () => {
         'divisionArea',
         'hkgov-pland-pu',
       ),
-    ).toBe('sl-hk-hkgov-pland-division-pu-division-area')
+    ).toBe('sl-hk-hkgov-pland-division-pu-area')
   })
 
   test('distinguishes geography from a shared division-statistic dataset', () => {
@@ -46,6 +46,35 @@ describe('snapshot identifiers', () => {
         'hkgov-censtatd-hma',
       ),
     ).toBe('sl-hk-hkgov-censtatd-housing-market-areas-building-groups-division')
+  })
+
+  test('keeps resource streams and geometry variants distinct without repeating the source', () => {
+    const dataset = 'ds-hk-hkgov-censtatd-subdivided-units-district'
+    const cases = [
+      ['divisionStatistic', 'official-statistics', 'stats'],
+      ['division', 'hkgov-censtatd', 'division'],
+      ['divisionArea', 'hkgov-censtatd', 'area'],
+      ['divisionBoundary', 'hkgov-censtatd', 'boundary'],
+      ['divisionArea', 'hkgov-censtatd:simplified', 'area-simplified'],
+      [
+        'divisionArea',
+        'hkgov-censtatd-landclipped:simplified',
+        'area-landclipped-simplified',
+      ],
+    ] as const
+    const codes = cases.map(([resource, variant, suffix]) => {
+      const code = buildSnapshotLineageCode(dataset, resource, variant)
+      expect(code).toBe(`sl-hk-hkgov-censtatd-subdivided-units-district-${suffix}`)
+      return code
+    })
+    expect(new Set(codes).size).toBe(cases.length)
+    expect(
+      buildSnapshotLineageCode(
+        'ds-hk-hkgov-pland-division-pu',
+        'divisionArea',
+        'hkgov-pland-pu:simplified',
+      ),
+    ).toBe('sl-hk-hkgov-pland-division-pu-area-simplified')
   })
 
   test('uses the source variant rather than a full dataset code in snapshot codes', () => {

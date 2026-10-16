@@ -1718,7 +1718,7 @@ describe('ensureDraftSnapshotForRelease', () => {
         resourceType: 'division',
       },
       {
-        code: 'sl-hk-hkgov-pland-division-pu-division-area',
+        code: 'sl-hk-hkgov-pland-division-pu-area',
         resourceType: 'divisionArea',
       },
     ])
@@ -1767,11 +1767,11 @@ describe('ensureDraftSnapshotForRelease', () => {
         .all(base.datasetId),
     ).toEqual([
       {
-        code: 'sl-hk-hkgov-censtatd-division-area-district-hkgov-censtatd-2016',
+        code: 'sl-hk-hkgov-censtatd-division-area-district-2016',
         variant: 'hkgov-censtatd:2016',
       },
       {
-        code: 'sl-hk-hkgov-censtatd-division-area-district-hkgov-censtatd-2021',
+        code: 'sl-hk-hkgov-censtatd-division-area-district-2021',
         variant: 'hkgov-censtatd:2021',
       },
     ])
