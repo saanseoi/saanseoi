@@ -77,41 +77,44 @@ describe('snapshot identifiers', () => {
     ).toBe('sl-hk-hkgov-pland-division-pu-area-simplified')
   })
 
-  test('uses the source variant rather than a full dataset code in snapshot codes', () => {
-    expect(buildSnapshotVersionCode('hk', 'division', '2006', 'hkgov-pland-pu')).toBe(
-      'ss-hk-division-hkgov-pland-pu-2006',
+  test('derives snapshot codes from their lineage without repeating dataset prefixes', () => {
+    const lineage = buildSnapshotLineageCode(
+      'ds-hk-hkgov-censtatd-population-households-district',
+      'divisionStatistic',
+      'ds-hk-hkgov-censtatd-population-households-district',
+    )
+    expect(buildSnapshotVersionCode(lineage, '2021')).toBe(
+      'ss-hk-hkgov-censtatd-population-households-district-stats-2021',
+    )
+    expect(buildSnapshotVersionCode('sl-hk-overture-division', '2026-09-23.0', 1)).toBe(
+      'ss-hk-overture-division-2026-09-23.0-r1',
     )
   })
 
-  test('normalises resource and variant segments in snapshot codes', () => {
-    expect(
-      buildSnapshotVersionCode('hk', 'divisionArea', '2006', 'hkgov-pland-new-town'),
-    ).toBe('ss-hk-division-area-hkgov-pland-new-town-2006')
+  test('keeps geometry variants and datasets distinct within the same cohort', () => {
+    const lineages = [
+      'sl-hk-hkgov-pland-division-pu-area',
+      'sl-hk-hkgov-pland-division-pu-area-simplified',
+      'sl-hk-hkgov-censtatd-permanent-living-quarters-area-simplified',
+      'sl-hk-hkgov-censtatd-subdivided-units-district-area-simplified',
+    ]
+    const codes = lineages.map(lineage => buildSnapshotVersionCode(lineage, '2021'))
+    expect(new Set(codes).size).toBe(lineages.length)
+    expect(codes[1]).toBe('ss-hk-hkgov-pland-division-pu-area-simplified-2021')
   })
 
-  test('normalises structured C&SD geometry variants in snapshot codes', () => {
-    expect(
-      buildSnapshotVersionCode('hk', 'divisionArea', '2021', 'hkgov-censtatd:2021'),
-    ).toBe('ss-hk-division-area-hkgov-censtatd-2021-2021')
-    expect(
-      buildSnapshotVersionCode(
-        'hk',
-        'divisionArea',
-        '2016',
-        'hkgov-censtatd:2016:simplified',
-      ),
-    ).toBe('ss-hk-division-area-hkgov-censtatd-2016-simplified-2016')
-  })
-
-  test('keeps exact period identity out of safe snapshot code segments', () => {
-    expect(
-      buildSnapshotVersionCode(
-        'hk',
-        'divisionStatistic',
-        '2024/25',
-        'official-statistics',
-      ),
-    ).toBe('ss-hk-division-statistic-official-statistics-2024-25')
+  test('normalises spanning periods and validates lineage and revision inputs', () => {
+    expect(buildSnapshotVersionCode('sl-hk-example-stats', '2024/25')).toBe(
+      'ss-hk-example-stats-2024-25',
+    )
+    expect(() => buildSnapshotVersionCode('ds-hk-example', '2021')).toThrow(
+      'sl- prefix',
+    )
+    for (const revision of [-1, 0.5, Number.NaN]) {
+      expect(() =>
+        buildSnapshotVersionCode('sl-hk-example-stats', '2021', revision),
+      ).toThrow('Invalid snapshot revision')
+    }
   })
 })
 

@@ -1644,7 +1644,7 @@ describe('ensureDraftSnapshotForRelease', () => {
 
     expect(firstSnapshot).toMatchObject({
       id: secondSnapshot.id,
-      code: 'ss-hk-division-2025-09-24.0',
+      code: 'ss-hk-overture-division-2025-09-24.0',
     })
     expect(firstSnapshot.id).toMatch(
       /^[0-9a-f]{8}-[0-9a-f]{4}-5[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/,
@@ -1671,7 +1671,7 @@ describe('ensureDraftSnapshotForRelease', () => {
       variant: 'hkgov-pland-pu',
     })
 
-    expect(snapshot.code).toBe('ss-hk-division-hkgov-pland-pu-2006')
+    expect(snapshot.code).toBe('ss-hk-hkgov-pland-division-pu-2006')
     expect(
       sqlite
         .query('SELECT code FROM snapshotLineages WHERE primaryDatasetId = ?')
@@ -1869,7 +1869,7 @@ describe('ensureDraftSnapshotForRelease', () => {
       sourceReleaseId: 'release-2025-09-24-correction',
     })
     expect(revisionOne).toMatchObject({
-      code: 'ss-hk-division-2025-09-24.0-r1',
+      code: 'ss-hk-overture-division-2025-09-24.0-r1',
       parentSnapshotId: revisionZero.id,
     })
     sqlite
@@ -1910,7 +1910,7 @@ describe('ensureDraftSnapshotForRelease', () => {
     })
 
     expect(revision).toMatchObject({
-      code: 'ss-hk-division-2025-09-24.0-r1',
+      code: 'ss-hk-overture-division-2025-09-24.0-r1',
       parentSnapshotId: first.id,
       status: 'draft',
     })
@@ -2012,7 +2012,7 @@ describe('ensureDraftSnapshotForRelease', () => {
           sourceReleaseId: 'source-c',
         })
         expect(c.parentSnapshotId).toBe(a.id)
-        expect(c.code).toBe('ss-hk-division-2026-r2')
+        expect(c.code).toBe('ss-hk-overture-division-2026-r2')
         expect(
           sqlite.query('SELECT status FROM snapshots WHERE id=?').get(b.id),
         ).toEqual({ status: 'published' })
@@ -2072,7 +2072,7 @@ describe('ensureDraftSnapshotForRelease', () => {
         sourceReleaseId: 'source-b',
       })
       expect(b.parentSnapshotId).toBeNull()
-      expect(b.code).toBe('ss-hk-division-2026-r1')
+      expect(b.code).toBe('ss-hk-overture-division-2026-r1')
     } finally {
       sqlite.close()
     }

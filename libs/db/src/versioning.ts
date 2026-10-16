@@ -101,24 +101,21 @@ export function extractReleaseDateFromSourceVersion(sourceVersion: string) {
 }
 
 export function buildSnapshotVersionCode(
-  regionCode: string,
-  resourceType: ResourceType,
+  lineageCode: string,
   cohortKey: string,
-  variant = 'default',
   revision = 0,
 ) {
   if (!Number.isInteger(revision) || revision < 0) {
     throw new Error(`Invalid snapshot revision="${revision}". Expected 0 or more.`)
   }
-
-  const normalisedVariant = normaliseCodeSlug(variant)
-  const variantSegment =
-    normalisedVariant === 'default' || normalisedVariant === 'overture'
-      ? ''
-      : `-${normalisedVariant}`
+  const lineage = normaliseCodeSlug(lineageCode)
+  if (!lineage.startsWith('sl-')) {
+    throw new Error(
+      `Invalid snapshot lineage code="${lineageCode}". Expected sl- prefix.`,
+    )
+  }
   const revisionSegment = revision === 0 ? '' : `-r${revision}`
-
-  return `ss-${normaliseCodeSlug(regionCode)}-${normaliseCodeSlug(resourceType)}${variantSegment}-${normaliseCohortCodeSegment(cohortKey)}${revisionSegment}`
+  return `ss-${lineage.slice(3)}-${normaliseCohortCodeSegment(cohortKey)}${revisionSegment}`
 }
 
 export function buildSnapshotLineageCode(

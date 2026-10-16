@@ -218,7 +218,7 @@ flowchart LR
   Publisher[Publisher fixture<br/>overture] --> Dataset[Dataset fixture<br/>ds-hk-overture-division]
   Dataset --> Release[Uploaded release<br/>dr-hk-overture-division-2025-09-24.0]
   Release --> Lineage[Lineage<br/>sl-hk-overture-division]
-  Lineage --> Snapshot[Snapshot<br/>ss-hk-division-2025-09-24.0]
+  Lineage --> Snapshot[Snapshot<br/>ss-hk-overture-division-2025-09-24.0]
 
   Source[Raw source or resource fixture] --> Release
   Bridge[Identifier bridge fixture<br/>release + cohort scoped] --> Snapshot
@@ -616,14 +616,17 @@ stream gets a new lineage.
 
 ### Snapshot
 
-A snapshot is an assembled resource state for one `(lineage, cohort, revision)`.
+A snapshot is an assembled resource state for one `(lineage, cohort, revision)`. Its
+code uses the lineage code with `ss-` in place of `sl-`, followed by the cohort and
+optional revision: `ss-{lineage scope}-{cohort}[-r{revision}]`. Source, region,
+resource, and variant qualifiers therefore follow the lineage naming convention.
 
 Examples:
 
 ```text
-ss-hk-division-2025-10-22.0
-ss-hk-division-2025-10-22.0-r1
-ss-hk-division-hkgov-pland-pu-2006
+ss-hk-overture-division-2025-10-22.0
+ss-hk-overture-division-2025-10-22.0-r1
+ss-hk-hkgov-pland-division-pu-2006
 ```
 
 Revision zero omits the `-r0` suffix. `-r1` means the same lineage and cohort were
@@ -981,7 +984,7 @@ paths do not imply one Worker deployment per API version.
 | Example                                     | Meaning                                                 |
 | ------------------------------------------- | ------------------------------------------------------- |
 | `sourceVersion=2025-10-22.1`                | Provider release or correction sequence                 |
-| `ss-hk-division-2025-10-22.0-r1`            | Second snapshot assembly for one lineage and cohort     |
+| `ss-hk-overture-division-2025-10-22.0-r1`   | Second snapshot assembly for one lineage and cohort     |
 | `data-hk-divisions-2006-r1--hkgov-pland-pu` | Second immutable domain composition for the 2006 cohort |
 | `catalog-hk-divisions-v0.1-2026-07-17.1`    | Second catalogue publication checkpoint on 17 July      |
 | `api-divisions-v0.1.1`                      | API contract/handler patch version                      |

@@ -3704,13 +3704,7 @@ export async function ensureDraftSnapshotForRelease(
   }
 
   const revision = latestForCohort ? latestForCohort.revision + 1 : 0
-  const snapshotCode = buildSnapshotVersionCode(
-    args.regionCode,
-    resourceType,
-    args.cohortKey,
-    variant,
-    revision,
-  )
+  const snapshotCode = buildSnapshotVersionCode(lineageCode, args.cohortKey, revision)
   const existing = await db
     .select({
       id: metaSnapshots.id,
