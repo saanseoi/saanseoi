@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:63993c4417a9c011db6bbb86cfef80952b8d782f0c91638bcfc1b1c9382f2779",
+  "versionHash": "sha256:cc983bde13a03229f9d4d9153987e8bfa543d6806c00e965dc911458d61f4a7d",
   "publisherCode": "saanseoi",
   "code": "ds-hk-saanseoi-division",
   "regionCode": "hk",
@@ -12,6 +12,7 @@
   ],
   "licenseCode": "ODbL",
   "attribution": "© SaanSeoi; OpenStreetMap contributors; Overture Maps Foundation",
+  "sourceUrl": "https://saanseoi.hk/sources/ds-hk-saanseoi-division",
   "schemaURL": null,
   "updatePolicy": {
     "allowUpdates": true

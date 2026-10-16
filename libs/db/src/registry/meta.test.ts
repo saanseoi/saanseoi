@@ -974,3 +974,15 @@ INSERT INTO resourceReleases (id, sourceReleaseId, code, resourceType, status) V
     db.close()
   }
 })
+
+test('datasets provide source URLs except the planned DPang dataset', () => {
+  for (const dataset of initialDatasets) {
+    if (dataset.code === 'ds-hk-dpang-street') continue
+    expect(dataset.sourceUrl, dataset.code).toBeTruthy()
+    expect(new URL(dataset.sourceUrl!).protocol).toMatch(/^https?:$/)
+  }
+  expect(
+    initialDatasets.find(dataset => dataset.code === 'ds-hk-saanseoi-division')
+      ?.sourceUrl,
+  ).toBe('https://saanseoi.hk/sources/ds-hk-saanseoi-division')
+})
