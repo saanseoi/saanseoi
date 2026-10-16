@@ -2,6 +2,7 @@ import { createHash, createHmac } from 'node:crypto'
 import { existsSync, statSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { Database, constants } from 'bun:sqlite'
+import { orderSampleColumns } from './columnOrder'
 
 export type Shard = { binding: string; path: string }
 type Row = Record<string, unknown>
@@ -683,7 +684,10 @@ export class ReviewDatabase {
               .all(...params) as Row[],
           )
         for (const record of candidates.slice(0, limit))
-          rows.push({ shard: binding, record: decode(record) })
+          rows.push({
+            shard: binding,
+            record: decode(orderSampleColumns(kind, table, record)),
+          })
       }
     }
     // Round-robin across physical shards; never let the first shard fill the view.

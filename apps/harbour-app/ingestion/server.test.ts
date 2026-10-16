@@ -332,3 +332,38 @@ test.each(['apiCompositionMembers', 'apiReleaseSetSnapshots'])(
     }
   },
 )
+
+test('samples follow declared schema order while retaining unexpected stored columns', () => {
+  const root = mkdtempSync(join(tmpdir(), 'ingestion-review-order-'))
+  roots.push(root)
+  const path = join(root, 'meta.sqlite')
+  const db = new Database(path)
+  db.exec(`CREATE TABLE datasets(extra TEXT, code TEXT, theme TEXT, id TEXT, resourceTypes TEXT);
+    ALTER TABLE datasets ADD COLUMN kind TEXT;
+    INSERT INTO datasets VALUES ('unexpected','dataset','stats','id','["divisionStatistic"]','district');`)
+  db.close()
+  const review = new ReviewDatabase([{ binding: 'DB_META', path }])
+  try {
+    const data = review.inspect('META', 'datasets', 'datasets', false, 4)
+    expect(Object.keys(data.samples[0]!.record)).toEqual([
+      'id',
+      'code',
+      'theme',
+      'resourceTypes',
+      'kind',
+      'extra',
+    ])
+    expect(data.samples[0]!.record.resourceTypes).toEqual(['divisionStatistic'])
+    expect(data.samples[0]!.record.extra).toBe('unexpected')
+    expect(data.schemas[0]!.columns.map(column => column.name)).toEqual([
+      'extra',
+      'code',
+      'theme',
+      'id',
+      'resourceTypes',
+      'kind',
+    ])
+  } finally {
+    review.close()
+  }
+})
