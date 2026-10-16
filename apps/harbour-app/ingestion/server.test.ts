@@ -267,7 +267,7 @@ test('offers only populated related tables; shared tables have one separate grou
   }
 })
 
-test('catalogue removes empty datasets and history operations produce distinct subsets', () => {
+test('catalogue removes empty datasets and history operations share one view', () => {
   const review = fixture([
     {
       binding: 'DB_HISTORY_HK_2026',
@@ -288,10 +288,7 @@ test('catalogue removes empty datasets and history operations produce distinct s
     expect(review.catalogue('HISTORY').groups).toEqual([
       { id: 'lineage', label: 'lineage-code' },
     ])
-    expect(review.subsets('HISTORY', 'lineage', 'records').map(s => s.label)).toEqual([
-      'operation: delete',
-      'operation: upsert',
-    ])
+    expect(review.subsets('HISTORY', 'lineage', 'records')).toEqual([])
     const snapshot = review.inspect('HISTORY', 'lineage', 'records', false)
     expect(snapshot.stable).toBe(true)
     const before = snapshot.revision
@@ -322,15 +319,15 @@ test('content sign-offs ignore unrelated writes and samples but track scoped row
     {
       binding: 'DB_HISTORY_HK_2026',
       sql: `
-    CREATE TABLE records(id TEXT, snapshotId TEXT, operation TEXT, value TEXT);
+    CREATE TABLE records(id TEXT, snapshotId TEXT, variant TEXT, value TEXT);
     CREATE TABLE unrelated(id TEXT);
-    INSERT INTO records VALUES ('a','snap','upsert','one'),('b','snap','delete','two'),('c','unrelated','upsert','three');
+    INSERT INTO records VALUES ('a','snap','primary','one'),('b','snap','secondary','two'),('c','unrelated','primary','three');
   `,
     },
   ])
   const writer = new Database(review.shards[1].path)
   const meta = new Database(review.shards[0].path)
-  const subset = JSON.stringify(['operation', 'upsert'])
+  const subset = JSON.stringify(['variant', 'primary'])
   const fingerprint = (summary = true, limit = 8) =>
     review.inspect('HISTORY', 'lineage', 'records', summary, limit, subset)
       .contentRevision
@@ -458,7 +455,7 @@ test('source review keeps open and closed records together without isCurrent sub
   }
 })
 
-test('HISTORY i18n tables review locales together while retaining operation subsets', () => {
+test('HISTORY i18n tables review locales and operations together', () => {
   const review = fixture([
     {
       binding: 'DB_HISTORY_HK_2026',
@@ -469,19 +466,28 @@ test('HISTORY i18n tables review locales together while retaining operation subs
   try {
     const subsets = review.subsets('HISTORY', 'lineage', 'divisionsI18n')
     expect(subsets.some(s => s.dimension === 'locale')).toBe(false)
-    expect(subsets.filter(s => s.dimension === 'operation').map(s => s.label)).toEqual([
-      'operation: delete',
-      'operation: upsert',
+    expect(subsets.some(s => s.dimension === 'operation')).toBe(false)
+    const data = review.inspect('HISTORY', 'lineage', 'divisionsI18n', false, 8)
+    expect(data.samples.map(s => s.record.locale).sort()).toEqual([
+      'en',
+      'en',
+      'zh-hant',
     ])
-    const data = review.inspect(
-      'HISTORY',
-      'lineage',
-      'divisionsI18n',
-      false,
-      8,
-      JSON.stringify(['operation', 'upsert']),
-    )
-    expect(data.samples.map(s => s.record.locale).sort()).toEqual(['en', 'zh-hant'])
+    expect(data.samples.map(s => s.record.operation).sort()).toEqual([
+      'delete',
+      'upsert',
+      'upsert',
+    ])
+    expect(() =>
+      review.inspect(
+        'HISTORY',
+        'lineage',
+        'divisionsI18n',
+        false,
+        8,
+        JSON.stringify(['operation', 'upsert']),
+      ),
+    ).toThrow('Unsupported subset')
     expect(() =>
       review.inspect(
         'HISTORY',
@@ -531,6 +537,103 @@ test('HISTORY reviews all lineage cohorts together without cohort-key subsets', 
     ).toThrow('Unsupported subset')
   } finally {
     meta.close()
+    review.close()
+  }
+})
+
+test('CURRENT hides history projections but keeps distinct tables and FK grouping through hidden projections', () => {
+  const review = fixture([
+    {
+      binding: 'DB_CURRENT',
+      sql: `CREATE TABLE places(id TEXT PRIMARY KEY,scopeId TEXT);
+      CREATE TABLE placesCells(id TEXT,scopeId TEXT,h3Cell TEXT);
+      CREATE TABLE streets(id TEXT PRIMARY KEY,scopeId TEXT);
+      CREATE TABLE streetsAddress(streetId TEXT REFERENCES streets(id),addressId TEXT);
+      CREATE TABLE statsDefinitionSets(id TEXT);
+      CREATE TABLE placeDivisionDefinitions(id TEXT);
+      CREATE TABLE operationState(id TEXT);
+      INSERT INTO places VALUES ('place','lineage'),('other-place','other');
+      INSERT INTO placesCells VALUES ('place','lineage','cell');
+      INSERT INTO streets VALUES ('street','lineage');
+      INSERT INTO streetsAddress VALUES ('street','address');
+      INSERT INTO statsDefinitionSets VALUES ('defs');
+      INSERT INTO placeDivisionDefinitions VALUES ('place-defs');
+      INSERT INTO operationState VALUES ('ready');`,
+    },
+    {
+      binding: 'DB_HISTORY_HK_2026',
+      sql: `CREATE TABLE places(id TEXT,snapshotId TEXT); INSERT INTO places VALUES ('place','snap');`,
+    },
+  ])
+  const meta = new Database(review.shards[0].path)
+  try {
+    meta.exec("INSERT INTO snapshotLineages VALUES ('other','other-lineage')")
+    expect(review.tables('CURRENT', 'lineage').map(t => t.name)).toEqual([
+      'placesCells',
+      'streetsAddress',
+    ])
+    expect(review.tables('CURRENT', SHARED_GROUP).map(t => t.name)).toEqual([
+      'operationState',
+    ])
+    expect(review.catalogue('CURRENT').groups.map(g => g.id)).toEqual([
+      'lineage',
+      SHARED_GROUP,
+    ])
+    expect(review.tables('HISTORY', 'lineage').map(t => t.name)).toEqual(['places'])
+    expect(
+      review.inspect('CURRENT', 'lineage', 'streetsAddress', false).samples[0]?.record
+        .addressId,
+    ).toBe('address')
+  } finally {
+    meta.close()
+    review.close()
+  }
+})
+
+test('CURRENT projection filtering does not depend on a populated HISTORY shard', () => {
+  const review = fixture([
+    {
+      binding: 'DB_CURRENT',
+      sql: `CREATE TABLE address2d(id TEXT,scopeId TEXT); INSERT INTO address2d VALUES ('address','lineage');
+      CREATE TABLE statsDefinitionSets(id TEXT); INSERT INTO statsDefinitionSets VALUES ('defs');`,
+    },
+  ])
+  try {
+    expect(review.tables('CURRENT', 'lineage')).toEqual([])
+    expect(review.tables('CURRENT', SHARED_GROUP)).toEqual([])
+    expect(review.catalogue('CURRENT').groups).toEqual([])
+  } finally {
+    review.close()
+  }
+})
+
+test('HISTORY reviews address granularities together', () => {
+  const review = fixture([
+    {
+      binding: 'DB_HISTORY_HK_2026',
+      sql: `CREATE TABLE address2d(id TEXT, snapshotId TEXT, granularity TEXT);
+      INSERT INTO address2d VALUES ('a','snap','building'),('b','snap','complex'),('c','snap','unknown');`,
+    },
+  ])
+  try {
+    expect(review.subsets('HISTORY', 'lineage', 'address2d')).toEqual([])
+    expect(
+      review
+        .inspect('HISTORY', 'lineage', 'address2d', false, 8)
+        .samples.map(s => s.record.granularity)
+        .sort(),
+    ).toEqual(['building', 'complex', 'unknown'])
+    expect(() =>
+      review.inspect(
+        'HISTORY',
+        'lineage',
+        'address2d',
+        false,
+        8,
+        JSON.stringify(['granularity', 'building']),
+      ),
+    ).toThrow('Unsupported subset')
+  } finally {
     review.close()
   }
 })

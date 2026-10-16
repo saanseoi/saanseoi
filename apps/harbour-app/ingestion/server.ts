@@ -1,3 +1,4 @@
+import { historyEventTables } from '../../../libs/db/src/historyEvents'
 import { createHash, createHmac } from 'node:crypto'
 import { existsSync, statSync } from 'node:fs'
 import { resolve } from 'node:path'
@@ -11,6 +12,16 @@ type Edge = { target: string; pairs: [string, string][] }
 const q = (name: string) => `"${name.replaceAll('"', '""')}"`
 export const SHARED_GROUP = '__shared__'
 const kinds = ['META', 'CURRENT', 'HISTORY', 'SOURCE']
+// These CURRENT payloads are reviewed in HISTORY. Serving scopes, publication
+// dependencies and omitted event metadata do not make them distinct review cases.
+// Keep the full FK graph so CURRENT-only tables can still resolve through them.
+const historyProjections = new Set<string>([
+  ...Object.values(historyEventTables).map(entry => entry.table),
+  'statsDefinitionSets',
+  'placeDivisionDefinitions',
+])
+const reviewableTable = (kind: string, table: string) =>
+  kind !== 'CURRENT' || !historyProjections.has(table)
 
 export async function discover(): Promise<Shard[]> {
   const root = resolve(import.meta.dirname, '../../..')
@@ -199,13 +210,16 @@ export class ReviewDatabase {
           }
           if (
             !shared &&
+            reviewableTable(kind, name) &&
             !this.filter(db, name, kind, graph).sql.includes('?1') &&
             db.query(`SELECT 1 FROM ${q(name)} LIMIT 1`).get()
           )
             shared = true
         }
       }
-      groups = groups.filter(g => available.has(g.id))
+      groups = groups.filter(g =>
+        kind === 'CURRENT' ? this.tables(kind, g.id).length > 0 : available.has(g.id),
+      )
       if (shared)
         groups.push({
           id: SHARED_GROUP,
@@ -364,6 +378,7 @@ export class ReviewDatabase {
       const names = this.names(db)
       const graph = this.edges(db, names)
       for (const name of names) {
+        if (!reviewableTable(kind, name)) continue
         const filter = this.filter(db, name, kind, graph)
         const scoped = filter.sql.includes('?1')
         if ((group === SHARED_GROUP) === scoped) continue
@@ -415,7 +430,11 @@ export class ReviewDatabase {
   }
 
   subsetExpression(db: Database, table: string, kind: string, column: string) {
-    if (kind === 'HISTORY' && table.endsWith('I18n') && column === 'locale')
+    if (
+      kind === 'HISTORY' &&
+      (['operation', 'granularity'].includes(column) ||
+        (table.endsWith('I18n') && column === 'locale'))
+    )
       throw new Error('Unsupported subset')
     // API membership rows share one shape; their routing values do not
     // define distinct review cases. Review these rows together across variants.
