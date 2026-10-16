@@ -1814,3 +1814,7 @@ September 2026 against the bilingual source components, coordinates and complete
 Shek Pik Sha Tsui Staff Mess retains its reviewed canonical identity in September 2026:
 its complete publisher record matches August, including the location guarded from
 April 2026. The September guard is explicit.
+
+East Terrace’s reviewed streetless-assertion coalescence covers September 2026. Both 2D
+assertions and both complete 3D source records match August, preserving the named owner
+and its single inventory.

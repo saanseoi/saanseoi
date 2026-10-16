@@ -316,17 +316,20 @@ function sharedBuildingRow(id: string, withStreet: boolean) {
   } as PreparedHkgovAlsRow
 }
 
-test('coalesces equivalent same-CSU shared-building assertions', () => {
-  const rows = [sharedBuildingRow('owner', true), sharedBuildingRow('alias', false)]
-  const mappings = coalesceAlsAliasedPremises(rows, '2026-08-19.0')
-  expect(mappings.get('alias')).toBe('owner')
-  expect(JSON.parse(rows[0]?.sources ?? '{}')).toMatchObject({
-    hkgovAlsAliasedPremiseCoalescence: {
-      id: 'sai-wan-estate-east-terrace-shared-building',
-      suppressedAddress: { addressId: 'alias' },
-    },
-  })
-})
+test.each(['2026-08-19.0', '2026-09-22.0'])(
+  'coalesces equivalent same-CSU shared-building assertions in %s',
+  version => {
+    const rows = [sharedBuildingRow('owner', true), sharedBuildingRow('alias', false)]
+    const mappings = coalesceAlsAliasedPremises(rows, version)
+    expect(mappings.get('alias')).toBe('owner')
+    expect(JSON.parse(rows[0]?.sources ?? '{}')).toMatchObject({
+      hkgovAlsAliasedPremiseCoalescence: {
+        id: 'sai-wan-estate-east-terrace-shared-building',
+        suppressedAddress: { addressId: 'alias' },
+      },
+    })
+  },
+)
 
 test('requires the paired publisher points to remain identical', () => {
   const owner = row({
