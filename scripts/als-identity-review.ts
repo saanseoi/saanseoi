@@ -36,6 +36,14 @@ const receipt = {
   address3dSha256: input.review.address3dSha256,
   previousFixtureSha256: createHash('sha256').update(before).digest('hex'),
   addedDecisionCount: merged.decisions.length - fixture.decisions.length,
+  unresolvedCaseCount: input.review.cases.filter(
+    item =>
+      !merged.decisions.some(
+        decision =>
+          decision.previousIdentityKey === item.previous.identityKey &&
+          decision.currentIdentityKey === item.current.identityKey,
+      ),
+  ).length,
 }
 await writeFile(
   resolve(directory, `${prefix}.review.json`),
@@ -55,7 +63,7 @@ if (flags.includes('--write')) {
   await writeFile(temporary, `${JSON.stringify(merged, null, 2)}\n`)
   await rename(temporary, fixturePath)
   console.log(
-    `Applied ${receipt.addedDecisionCount} reviewed identity decisions. Prepare the release again before continuing ingestion.`,
+    `Applied ${receipt.addedDecisionCount} reviewed identity decisions; ${receipt.unresolvedCaseCount} cases remain unresolved. Prepare the release again before continuing ingestion.`,
   )
 } else {
   console.log(

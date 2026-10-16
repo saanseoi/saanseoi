@@ -18,7 +18,7 @@ const record = (id: string, sourceVersion: string) => ({
   summary: { buildingName: id, longitude: '114.1', latitude: '22.3' },
 })
 const sealed = {
-  schemaVersion: 1,
+  schemaVersion: 1 as const,
   sourceVersion: '2024-07-31.0',
   preparedSha256: sha,
   address3dSha256: sha,
@@ -34,10 +34,9 @@ const sealed = {
 }
 const review = buildIdentityReview(sealed, sha)
 const exported = {
-  schemaVersion: 1,
+  schemaVersion: 1 as const,
   sourceVersion: review.sourceVersion,
   reviewSha256: sha,
-  reviewer: 'Test reviewer',
   decisions: [
     {
       caseId: 'new',
@@ -102,25 +101,23 @@ test('applies only the exact reviewed pair and retains rationale with existing d
   expect(result.decisions[0]).toEqual(fixture.decisions[0])
   expect(result.decisions[1]).toMatchObject({
     resolution: 'keep-existing-id',
-    review: { reviewer: 'Test reviewer', notes: exported.decisions[0]!.notes },
+    review: { notes: exported.decisions[0]!.notes },
   })
   expect(mergeIdentityDecisions(result, valid(), review)).toEqual(result)
 })
 
-test('rejects stale evidence, omitted cases, forged pairs, duplicates and missing rationale', () => {
+test('rejects stale evidence, forged pairs, duplicates and malformed notes', () => {
   for (const invalid of [
     { ...exported, reviewSha256: 'b'.repeat(64) },
     { ...exported, sourceVersion: '2024-08-21.0' },
-    { ...exported, decisions: [] },
     { ...exported, decisions: [...exported.decisions, ...exported.decisions] },
-    { ...exported, reviewer: '' },
     ...[
       { caseId: 'foreign' },
       { currentIdentityKey: 'forged' },
       { previousIdentityKey: 'forged' },
       { resolution: 'auto-approve' },
       { resolution: ['new-id'] },
-      { notes: ' ' },
+      { notes: 12 },
     ].map(patch => ({
       ...exported,
       decisions: [{ ...exported.decisions[0], ...patch }],
@@ -147,9 +144,9 @@ test('investigations export without approving ingestion and conflicts cannot ove
     },
     review,
   )
-  expect(() =>
-    mergeIdentityDecisions({ decisions: [] }, investigating, review),
-  ).toThrow('Unresolved')
+  expect(
+    mergeIdentityDecisions({ decisions: [] }, investigating, review).decisions,
+  ).toEqual([])
   expect(() =>
     mergeIdentityDecisions(
       {
@@ -165,12 +162,12 @@ test('investigations export without approving ingestion and conflicts cannot ove
       review,
     ),
   ).toThrow('conflicting')
-  expect(() =>
+  expect(
     mergeIdentityDecisions({ decisions: [] }, valid(), {
       ...review,
       otherIssueCount: 1,
-    }),
-  ).toThrow('Unresolved')
+    }).decisions,
+  ).toHaveLength(1)
 })
 
 test('rejects inconsistent sealed evidence and counts unsupported preparation issues', () => {
@@ -192,4 +189,67 @@ test('rejects inconsistent sealed evidence and counts unsupported preparation is
       sha,
     ).otherIssueCount,
   ).toBe(1)
+})
+
+test('accepts empty and partial exports without names or explanations, leaving omitted drift unresolved', () => {
+  const second = {
+    id: 'second',
+    previous: { ...record('older', '2024-07-25.0'), continuityKey: 'second-anchor' },
+    current: { ...record('second', '2024-07-31.0'), continuityKey: 'second-anchor' },
+  }
+  const partialReview = { ...review, cases: [...review.cases, second] }
+  expect(
+    validateIdentityReviewExport({ ...exported, decisions: [] }, partialReview)
+      .decisions,
+  ).toEqual([])
+  const { notes, ...choice } = exported.decisions[0]!
+  for (const optional of [{}, { notes: '' }, { notes: '  ' }]) {
+    const checked = validateIdentityReviewExport(
+      {
+        ...exported,
+        reviewer: 'Discard this name',
+        decisions: [{ ...choice, ...optional, reviewer: 'Discard this too' }],
+      },
+      partialReview,
+    )
+    expect(JSON.stringify(checked)).not.toContain('reviewer')
+    expect(checked.decisions[0]).not.toHaveProperty('notes')
+    const merged = mergeIdentityDecisions({ decisions: [] }, checked, partialReview)
+    expect(merged.decisions).toHaveLength(1)
+    const result = resolveHkgovAlsIdentityDrift(
+      partialReview.cases.map(c => c.current),
+      {
+        authority: 'hkgov-dpo',
+        version: 1,
+        entries: partialReview.cases.map(c => c.previous),
+      },
+      { authority: 'hkgov-dpo', version: 1, decisions: merged.decisions as any },
+    )
+    expect(result.candidates.map(c => c.current.id)).toEqual(['second'])
+  }
+})
+
+test('strips stored reviewer attribution while preserving decisions and optional notes', () => {
+  const decision = {
+    previousIdentityKey: 'old',
+    currentIdentityKey: 'new',
+    resolution: 'new-id',
+    review: {
+      sourceVersion: review.sourceVersion,
+      reviewSha256: sha,
+      reviewer: 'Remove me',
+      notes: 'Retain this evidence',
+    },
+  }
+  const merged = mergeIdentityDecisions(
+    { decisions: [decision] },
+    { ...exported, decisions: [] },
+    review,
+  )
+  expect(merged.decisions[0]?.review).toEqual({
+    sourceVersion: review.sourceVersion,
+    reviewSha256: sha,
+    notes: 'Retain this evidence',
+  })
+  expect(decision.review.reviewer).toBe('Remove me')
 })

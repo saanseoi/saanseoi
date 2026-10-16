@@ -19733,7 +19733,6 @@
       "review": {
         "sourceVersion": "2024-07-31.0",
         "reviewSha256": "39b3c5b46e542760bd1dcd2844dc225e8e77053245b6cd6b1f0f5ee032a6082b",
-        "reviewer": "Mart",
         "notes": "New corporate office"
       }
     },
@@ -19744,7 +19743,6 @@
       "review": {
         "sourceVersion": "2024-07-31.0",
         "reviewSha256": "39b3c5b46e542760bd1dcd2844dc225e8e77053245b6cd6b1f0f5ee032a6082b",
-        "reviewer": "Mart",
         "notes": "New development"
       }
     },
@@ -19755,7 +19753,6 @@
       "review": {
         "sourceVersion": "2024-07-31.0",
         "reviewSha256": "39b3c5b46e542760bd1dcd2844dc225e8e77053245b6cd6b1f0f5ee032a6082b",
-        "reviewer": "Mart",
         "notes": "still there"
       }
     },
@@ -19766,7 +19763,6 @@
       "review": {
         "sourceVersion": "2024-07-31.0",
         "reviewSha256": "39b3c5b46e542760bd1dcd2844dc225e8e77053245b6cd6b1f0f5ee032a6082b",
-        "reviewer": "Mart",
         "notes": "still there"
       }
     }

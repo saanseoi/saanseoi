@@ -1657,16 +1657,17 @@ shared contract and dataset discriminators on combined geometry snapshots.
 ### Local identity review
 
 The development map review reads sealed ALS identity changes, compares previous and
-current evidence, and saves explicit decisions with research notes. Browser drafts and
-exports are bound to the exact review digest. The validated importer preserves existing
-identity decisions, rejects conflicts and leaves unresolved investigations blocking. See
-the
+current evidence, and saves explicit decisions with optional research notes. Partial
+exports and imports retain selected decisions while omitted cases remain pending.
+Reviewer names are excluded from exports and fixtures. Browser drafts and exports are
+bound to the exact review digest. The validated importer preserves existing identity
+decisions, rejects conflicts and leaves unresolved investigations blocking. See the
 [local identity review workflow](../sources/hkgov-dpo/address.md#local-identity-review)
 for the page and application commands.
 
 The `2024-07-31.0` identity review records distinct IDs for 88WL and Terra, while
 retaining the predecessor IDs for Fu Tip Estate Social Service Building and Lingnan
-University's amenities building. Each decision retains its exact identity pair, reviewer
+University's amenities building. Each decision retains its exact identity pair, optional
 note and evidence digest.
 
 ALS SQL generation releases preparation audit copies, the input identity ledger and full

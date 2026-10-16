@@ -21,14 +21,13 @@ export type IdentityChoice = {
   previousIdentityKey: string
   currentIdentityKey: string
   resolution: 'keep-existing-id' | 'new-id' | 'investigate'
-  notes: string
+  notes?: string
 }
 
 export type IdentityReviewExport = {
   schemaVersion: 1
   sourceVersion: string
   reviewSha256: string
-  reviewer: string
   decisions: IdentityChoice[]
 }
 
@@ -101,7 +100,7 @@ export function buildIdentityReview(
   }
 }
 
-/** Used by browser import and CLI; stale, partial and foreign decisions cannot apply. */
+/** Validate any selected subset against the exact sealed evidence. */
 export function validateIdentityReviewExport(
   value: unknown,
   review: IdentityReview,
@@ -113,10 +112,8 @@ export function validateIdentityReviewExport(
     input.reviewSha256 !== review.reviewSha256
   )
     throw new Error('This export belongs to different or changed review evidence.')
-  if (typeof input.reviewer !== 'string' || !input.reviewer.trim())
-    throw new Error('Enter the reviewer name.')
-  if (!Array.isArray(input.decisions) || input.decisions.length !== review.cases.length)
-    throw new Error('Export must contain exactly one decision for every case.')
+  if (!Array.isArray(input.decisions))
+    throw new Error('Export must contain a decisions array.')
   const seen = new Set<string>()
   const decisions = input.decisions.map(value => {
     const choice = object(value)
@@ -132,17 +129,23 @@ export function validateIdentityReviewExport(
     if (
       typeof choice.resolution !== 'string' ||
       !['keep-existing-id', 'new-id', 'investigate'].includes(choice.resolution) ||
-      typeof choice.notes !== 'string' ||
-      !choice.notes.trim()
+      (choice.notes !== undefined && typeof choice.notes !== 'string')
     )
-      throw new Error('Choose a resolution and add an evidence note for every case.')
-    return choice as IdentityChoice
+      throw new Error('Choose a valid resolution; notes must be text when provided.')
+    return {
+      caseId: item.id,
+      previousIdentityKey: item.previous.identityKey,
+      currentIdentityKey: item.current.identityKey,
+      resolution: choice.resolution as IdentityChoice['resolution'],
+      ...(typeof choice.notes === 'string' && choice.notes.trim()
+        ? { notes: choice.notes.trim() }
+        : {}),
+    }
   })
   return {
     schemaVersion: 1,
     sourceVersion: review.sourceVersion,
     reviewSha256: review.reviewSha256,
-    reviewer: input.reviewer.trim(),
     decisions,
   }
 }
@@ -154,8 +157,7 @@ type StoredIdentityDecision = {
   review?: {
     sourceVersion: string
     reviewSha256: string
-    reviewer: string
-    notes: string
+    notes?: string
   }
 }
 
@@ -167,15 +169,22 @@ export function mergeIdentityDecisions<
   review: IdentityReview,
 ): Omit<T, 'decisions'> & { decisions: StoredIdentityDecision[] } {
   const checked = validateIdentityReviewExport(exported, review)
-  if (
-    review.otherIssueCount ||
-    checked.decisions.some(d => d.resolution === 'investigate')
-  )
-    throw new Error(
-      'Unresolved investigations or other review issues still block ingestion.',
-    )
-  const decisions: StoredIdentityDecision[] = [...fixture.decisions]
+  const decisions: StoredIdentityDecision[] = fixture.decisions.map(decision => ({
+    ...decision,
+    ...(decision.review
+      ? {
+          review: {
+            sourceVersion: decision.review.sourceVersion,
+            reviewSha256: decision.review.reviewSha256,
+            ...(decision.review.notes?.trim()
+              ? { notes: decision.review.notes.trim() }
+              : {}),
+          },
+        }
+      : {}),
+  }))
   for (const choice of checked.decisions) {
+    if (choice.resolution === 'investigate') continue
     const existing = decisions.find(
       d =>
         d.previousIdentityKey === choice.previousIdentityKey &&
@@ -190,12 +199,11 @@ export function mergeIdentityDecisions<
         previousIdentityKey: choice.previousIdentityKey,
         currentIdentityKey: choice.currentIdentityKey,
         resolution: choice.resolution,
-        // Keep the human rationale with the decision consumed by ingestion.
+        // Retain exact evidence and any optional note without personal attribution.
         review: {
           sourceVersion: checked.sourceVersion,
           reviewSha256: checked.reviewSha256,
-          reviewer: checked.reviewer,
-          notes: choice.notes.trim(),
+          ...(choice.notes ? { notes: choice.notes } : {}),
         },
       })
   }

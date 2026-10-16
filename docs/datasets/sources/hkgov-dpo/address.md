@@ -62,24 +62,26 @@ source version. The map compares previous and current coordinates, highlights ch
 address components and retains the full identity evidence. Shared coordinates use one
 labelled marker; a shared source anchor does not establish identity continuity.
 
-Each case requires an explicit identity resolution and evidence note. Drafts are saved
-in browser storage for the exact review digest. Exports include the reviewer, source
-version, identity pairs and evidence digest; importing an export with changed evidence
-fails. An investigation remains unresolved and cannot authorise ingestion.
+Cases use explicit identity resolutions with optional evidence notes. Drafts are saved
+in browser storage for the exact review digest. Any selected subset can be exported,
+including an empty set. Exports include the source version, identity pairs and evidence
+digest without reviewer names; importing changed evidence fails. Omitted cases and
+investigations remain unresolved and cannot authorise ingestion.
 
 Run `bun scripts/als-identity-review.ts /path/to/export.json` to validate an export and
 prepare a proposed identity fixture. This checks the prepared Parquet and 3D inventory
 digests as well as every identity pair. Add `--write` to apply the reviewed decisions to
 `fixtures/meta/curations/hkgov-dpo-address.json`; conflicting existing decisions are
-rejected. Reviewer notes and the evidence digest stay with each new decision. Prepare
-the release again before continuing ingestion. The web endpoint is read-only and is
-available only in development.
+rejected. Optional notes and the evidence digest stay with each new decision. Partial
+imports apply the resolved choices and leave other cases pending. Prepare the release
+again before continuing ingestion. The web endpoint is read-only and is available only
+in development.
 
 The reviewed `2024-07-31.0` identity changes give 88WL and Terra distinct identities,
-with the reviewer recording a new corporate office and a new development respectively.
-Fu Tip Estate Social Service Building and Lingnan University's amenities building retain
-their predecessor IDs. These decisions adopt the current source descriptions; they do
-not approve unrelated retirements. The exact identity pairs, reviewer notes and sealed
+with notes recording a new corporate office and a new development respectively. Fu Tip
+Estate Social Service Building and Lingnan University's amenities building retain their
+predecessor IDs. These decisions adopt the current source descriptions; they do not
+approve unrelated retirements. The exact identity pairs, optional notes and sealed
 evidence digest are retained in the identity fixture.
 
 Each chronological release runs in a fresh ingestion process. The coordinator waits for
