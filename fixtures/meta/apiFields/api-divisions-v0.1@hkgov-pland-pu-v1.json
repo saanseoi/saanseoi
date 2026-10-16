@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:3f077eca7fa4c64b226bf6ac1fe159f053629149cf9e957d698d4b6663e25b60",
+  "versionHash": "sha256:a3d2ac351138f5675ff131fa0a06a65c29a204335f22387a58e6ce40340e5c26",
   "apiVersion": "api-divisions-v0.1",
   "domainCode": "hkgov-pland-pu",
   "mappingVersion": 1,
@@ -26,13 +26,13 @@
         "ds-hk-hkgov-pland-division-pu"
       ],
       "anchorSnapshotVersions": [
-        "ss-hk-division-hkgov-pland-pu-2001"
+        "ss-hk-hkgov-pland-division-pu-2001"
       ]
     }
   ],
   "lineageAnchors": [
     {
-      "snapshotVersion": "ss-hk-division-hkgov-pland-pu-2001"
+      "snapshotVersion": "ss-hk-hkgov-pland-division-pu-2001"
     }
   ],
   "resources": [

@@ -12,7 +12,7 @@ import {
   listApiFieldFixtures,
   resolveApiFieldFixture,
 } from './apiFieldFixtures'
-import { computeVersionHash } from './versioning'
+import { buildSnapshotVersionCode, computeVersionHash } from './versioning'
 
 const overtureSourceSchemas = {
   'ds-hk-overture-division': '1.17.0',
@@ -54,7 +54,7 @@ describe('api field fixtures', () => {
       resolveApiFieldFixture({
         apiVersion: 'api-addresses-v0.1',
         domainCode: 'saanseoi',
-        lineageSnapshotVersions: ['ss-hk-address-hkgov-dpo-2026-07-22.0'],
+        lineageSnapshotVersions: ['ss-hk-hkgov-dpo-address-2026-07-22.0'],
         schemaVersion: 'sv-address-v1',
         rulesetVersion: 'rs-address-merge-v1',
         sourceSchemas: {
@@ -71,7 +71,7 @@ describe('api field fixtures', () => {
     const lookup = {
       apiVersion: 'api-addresses-v0.1',
       domainCode: 'saanseoi',
-      lineageSnapshotVersions: ['ss-hk-address-hkgov-dpo-2026-07-22.0'],
+      lineageSnapshotVersions: ['ss-hk-hkgov-dpo-address-2026-07-22.0'],
       schemaVersion: 'sv-address-v1',
       rulesetVersion: 'rs-address-merge-v1',
       sourceSchemas: {
@@ -180,7 +180,9 @@ describe('api field fixtures', () => {
         resolveApiFieldFixture({
           apiVersion: 'api-places-v0.1',
           domainCode: 'overture',
-          lineageSnapshotVersions: [`ss-hk-place-${cohort}`],
+          lineageSnapshotVersions: [
+            buildSnapshotVersionCode('sl-hk-overture-place', cohort),
+          ],
           schemaVersion: 'sv-place-v1',
           rulesetVersion: 'rs-place-merge-v1',
           sourceSchemas: {
@@ -198,9 +200,9 @@ describe('api field fixtures', () => {
       apiVersion: 'api-places-v0.1',
       domainCode: 'overture',
       lineageSnapshotVersions: [
-        'ss-hk-place-2025-09-24.0',
-        'ss-hk-place-2025-10-22.0',
-        'ss-hk-place-2025-12-17.0',
+        'ss-hk-overture-place-2025-09-24.0',
+        'ss-hk-overture-place-2025-10-22.0',
+        'ss-hk-overture-place-2025-12-17.0',
       ],
       schemaVersion: 'sv-place-v1',
       rulesetVersion: 'rs-place-merge-v1',
@@ -448,7 +450,7 @@ describe('api field fixtures', () => {
           schemaVersion: 'sv-statistics-v1',
           rulesetVersion: 'rs-division-statistic-merge-v1',
           lineageSnapshotVersions: [
-            `ss-hk-division-statistic-ds-hk-hkgov-censtatd-${anchor}-${period}`,
+            buildSnapshotVersionCode(`sl-hk-hkgov-censtatd-${anchor}-stats`, period),
           ],
           sourceSchemas,
         }
@@ -497,7 +499,7 @@ describe('api field fixtures', () => {
       resolveApiFieldFixture({
         apiVersion: 'api-divisions-v0.1',
         domainCode: 'geographic',
-        lineageSnapshotVersions: ['ss-hk-division-2025-09-24.0'],
+        lineageSnapshotVersions: ['ss-hk-overture-division-2025-09-24.0'],
         schemaVersion: 'sv-division-v1',
         rulesetVersion: 'rs-division-merge-v1',
         sourceSchemas: {
@@ -510,19 +512,19 @@ describe('api field fixtures', () => {
 
   test('selects native Overture mappings without the SaanSeoi regional companion', () => {
     const cohorts = [
-      { snapshotVersion: 'ss-hk-division-2025-09-24.0', version: '1.12.0' },
-      { snapshotVersion: 'ss-hk-division-2025-10-22.0', version: '1.13.0' },
-      { snapshotVersion: 'ss-hk-division-2025-11-19.0', version: '1.14.0' },
-      { snapshotVersion: 'ss-hk-division-2025-12-17.0', version: '1.15.0' },
-      { snapshotVersion: 'ss-hk-division-2026-01-21.0', version: '1.15.0' },
-      { snapshotVersion: 'ss-hk-division-2026-02-18.0', version: '1.16.0' },
-      { snapshotVersion: 'ss-hk-division-2026-03-18.0', version: '1.16.0' },
-      { snapshotVersion: 'ss-hk-division-2026-04-15.0', version: '1.16.0' },
-      { snapshotVersion: 'ss-hk-division-2026-05-20.0', version: '1.17.0' },
-      { snapshotVersion: 'ss-hk-division-2026-06-17.0', version: '1.17.0' },
-      { snapshotVersion: 'ss-hk-division-2026-06-24.0', version: '1.17.0' },
-      { snapshotVersion: 'ss-hk-division-2026-07-22.0', version: '1.18.0' },
-      { snapshotVersion: 'ss-hk-division-2026-08-19.0', version: '1.18.0' },
+      { snapshotVersion: 'ss-hk-overture-division-2025-09-24.0', version: '1.12.0' },
+      { snapshotVersion: 'ss-hk-overture-division-2025-10-22.0', version: '1.13.0' },
+      { snapshotVersion: 'ss-hk-overture-division-2025-11-19.0', version: '1.14.0' },
+      { snapshotVersion: 'ss-hk-overture-division-2025-12-17.0', version: '1.15.0' },
+      { snapshotVersion: 'ss-hk-overture-division-2026-01-21.0', version: '1.15.0' },
+      { snapshotVersion: 'ss-hk-overture-division-2026-02-18.0', version: '1.16.0' },
+      { snapshotVersion: 'ss-hk-overture-division-2026-03-18.0', version: '1.16.0' },
+      { snapshotVersion: 'ss-hk-overture-division-2026-04-15.0', version: '1.16.0' },
+      { snapshotVersion: 'ss-hk-overture-division-2026-05-20.0', version: '1.17.0' },
+      { snapshotVersion: 'ss-hk-overture-division-2026-06-17.0', version: '1.17.0' },
+      { snapshotVersion: 'ss-hk-overture-division-2026-06-24.0', version: '1.17.0' },
+      { snapshotVersion: 'ss-hk-overture-division-2026-07-22.0', version: '1.18.0' },
+      { snapshotVersion: 'ss-hk-overture-division-2026-08-19.0', version: '1.18.0' },
     ]
 
     for (const cohort of cohorts) {
@@ -552,7 +554,7 @@ describe('api field fixtures', () => {
     const fixture = resolveApiFieldFixture({
       apiVersion: 'api-divisions-v0.1',
       domainCode: 'geographic',
-      lineageSnapshotVersions: ['ss-hk-division-2025-09-24.0'],
+      lineageSnapshotVersions: ['ss-hk-overture-division-2025-09-24.0'],
       schemaVersion: 'sv-division-v1',
       rulesetVersion: 'rs-division-merge-v1',
       sourceSchemas: {
@@ -577,8 +579,8 @@ describe('api field fixtures', () => {
       apiVersion: 'api-divisions-v0.1',
       domainCode: 'geographic',
       lineageSnapshotVersions: [
-        'ss-hk-division-2025-09-24.0',
-        'ss-hk-division-2025-10-22.0',
+        'ss-hk-overture-division-2025-09-24.0',
+        'ss-hk-overture-division-2025-10-22.0',
       ],
       schemaVersion: 'sv-division-v1',
       rulesetVersion: 'rs-division-merge-v1',
@@ -601,7 +603,7 @@ describe('api field fixtures', () => {
     const fixture = resolveApiFieldFixture({
       apiVersion: 'api-divisions-v0.1',
       domainCode: 'geographic',
-      lineageSnapshotVersions: ['ss-hk-division-2025-09-24.0'],
+      lineageSnapshotVersions: ['ss-hk-overture-division-2025-09-24.0'],
       schemaVersion: 'sv-division-v1',
       rulesetVersion: 'rs-division-merge-v1',
       sourceSchemas: {
@@ -619,7 +621,7 @@ describe('api field fixtures', () => {
     const fixture = resolveApiFieldFixture({
       apiVersion: 'api-divisions-v0.1',
       domainCode: 'geographic',
-      lineageSnapshotVersions: ['ss-hk-division-2026-01-21.0'],
+      lineageSnapshotVersions: ['ss-hk-overture-division-2026-01-21.0'],
       schemaVersion: 'sv-division-v1',
       rulesetVersion: 'rs-division-merge-v1',
       sourceSchemas: {
@@ -632,16 +634,16 @@ describe('api field fixtures', () => {
 
     expect(fixture?.lineageAnchors).toContainEqual(
       expect.objectContaining({
-        snapshotVersion: 'ss-hk-division-2026-01-21.0',
+        snapshotVersion: 'ss-hk-overture-division-2026-01-21.0',
       }),
     )
   })
 
   test('keeps Overture mappings across every monthly 2026 release cohort', () => {
     const cohorts = [
-      { snapshotVersion: 'ss-hk-division-2026-03-18.0', version: '1.16.0' },
-      { snapshotVersion: 'ss-hk-division-2026-04-15.0', version: '1.16.0' },
-      { snapshotVersion: 'ss-hk-division-2026-06-17.0', version: '1.17.0' },
+      { snapshotVersion: 'ss-hk-overture-division-2026-03-18.0', version: '1.16.0' },
+      { snapshotVersion: 'ss-hk-overture-division-2026-04-15.0', version: '1.16.0' },
+      { snapshotVersion: 'ss-hk-overture-division-2026-06-17.0', version: '1.17.0' },
     ]
 
     for (const cohort of cohorts) {
@@ -669,37 +671,37 @@ describe('api field fixtures', () => {
     const fixtures = [
       {
         domainCode: 'hkgov-pland-pu',
-        snapshotVersion: 'ss-hk-division-hkgov-pland-pu-2001',
+        snapshotVersion: 'ss-hk-hkgov-pland-division-pu-2001',
         sourceDatasetCode: 'ds-hk-hkgov-pland-division-pu',
         sourceSchemaVersion: '1.0',
       },
       {
         domainCode: 'hkgov-pland-pu',
-        snapshotVersion: 'ss-hk-division-hkgov-pland-pu-2021',
+        snapshotVersion: 'ss-hk-hkgov-pland-division-pu-2021',
         sourceDatasetCode: 'ds-hk-hkgov-pland-division-pu',
         sourceSchemaVersion: '2.0',
       },
       {
         domainCode: 'hkgov-pland-new-town',
-        snapshotVersion: 'ss-hk-division-hkgov-pland-new-town-2006',
+        snapshotVersion: 'ss-hk-hkgov-pland-division-new-town-2006',
         sourceDatasetCode: 'ds-hk-hkgov-pland-division-new-town',
         sourceSchemaVersion: '1.0',
       },
       {
         domainCode: 'hkgov-pland-new-town',
-        snapshotVersion: 'ss-hk-division-hkgov-pland-new-town-2011',
+        snapshotVersion: 'ss-hk-hkgov-pland-division-new-town-2011',
         sourceDatasetCode: 'ds-hk-hkgov-pland-division-new-town',
         sourceSchemaVersion: '1.0',
       },
       {
         domainCode: 'hkgov-pland-new-town',
-        snapshotVersion: 'ss-hk-division-hkgov-pland-new-town-2016',
+        snapshotVersion: 'ss-hk-hkgov-pland-division-new-town-2016',
         sourceDatasetCode: 'ds-hk-hkgov-pland-division-new-town',
         sourceSchemaVersion: '1.0',
       },
       {
         domainCode: 'hkgov-pland-new-town',
-        snapshotVersion: 'ss-hk-division-hkgov-pland-new-town-2021',
+        snapshotVersion: 'ss-hk-hkgov-pland-division-new-town-2021',
         sourceDatasetCode: 'ds-hk-hkgov-pland-division-new-town',
         sourceSchemaVersion: '1.0',
       },
@@ -732,13 +734,13 @@ describe('api field fixtures', () => {
       apiVersion: 'api-divisions-v0.1',
       domainCode: 'geographic',
       lineageSnapshotVersions: [
-        'ss-hk-division-2025-09-24.0',
-        'ss-hk-division-2025-10-22.0',
-        'ss-hk-division-2025-11-19.0',
-        'ss-hk-division-2025-12-17.0',
-        'ss-hk-division-2026-02-18.0',
-        'ss-hk-division-2026-05-20.0',
-        'ss-hk-division-2026-06-17.0',
+        'ss-hk-overture-division-2025-09-24.0',
+        'ss-hk-overture-division-2025-10-22.0',
+        'ss-hk-overture-division-2025-11-19.0',
+        'ss-hk-overture-division-2025-12-17.0',
+        'ss-hk-overture-division-2026-02-18.0',
+        'ss-hk-overture-division-2026-05-20.0',
+        'ss-hk-overture-division-2026-06-17.0',
       ],
       schemaVersion: 'sv-division-v1',
       rulesetVersion: 'rs-division-merge-v1',
@@ -747,7 +749,7 @@ describe('api field fixtures', () => {
 
     expect(fixture?.lineageAnchors).toContainEqual(
       expect.objectContaining({
-        snapshotVersion: 'ss-hk-division-2026-05-20.0',
+        snapshotVersion: 'ss-hk-overture-division-2026-05-20.0',
       }),
     )
   })
@@ -757,18 +759,18 @@ describe('api field fixtures', () => {
       apiVersion: 'api-divisions-v0.1',
       domainCode: 'geographic',
       lineageSnapshotVersions: [
-        'ss-hk-division-2025-09-24.0',
-        'ss-hk-division-2025-10-22.0',
-        'ss-hk-division-2025-11-19.0',
-        'ss-hk-division-2025-12-17.0',
-        'ss-hk-division-2026-01-21.0',
-        'ss-hk-division-2026-02-18.0',
-        'ss-hk-division-2026-03-18.0',
-        'ss-hk-division-2026-04-15.0',
-        'ss-hk-division-2026-05-20.0',
-        'ss-hk-division-2026-06-17.0',
-        'ss-hk-division-2026-07-22.0',
-        'ss-hk-division-2026-08-19.0',
+        'ss-hk-overture-division-2025-09-24.0',
+        'ss-hk-overture-division-2025-10-22.0',
+        'ss-hk-overture-division-2025-11-19.0',
+        'ss-hk-overture-division-2025-12-17.0',
+        'ss-hk-overture-division-2026-01-21.0',
+        'ss-hk-overture-division-2026-02-18.0',
+        'ss-hk-overture-division-2026-03-18.0',
+        'ss-hk-overture-division-2026-04-15.0',
+        'ss-hk-overture-division-2026-05-20.0',
+        'ss-hk-overture-division-2026-06-17.0',
+        'ss-hk-overture-division-2026-07-22.0',
+        'ss-hk-overture-division-2026-08-19.0',
       ],
       schemaVersion: 'sv-division-v1',
       rulesetVersion: 'rs-division-merge-v1',
@@ -782,7 +784,7 @@ describe('api field fixtures', () => {
 
     expect(fixture?.lineageAnchors).toContainEqual(
       expect.objectContaining({
-        snapshotVersion: 'ss-hk-division-2026-08-19.0',
+        snapshotVersion: 'ss-hk-overture-division-2026-08-19.0',
       }),
     )
   })
@@ -801,7 +803,7 @@ describe('api field fixtures', () => {
       resolveApiFieldFixture({
         apiVersion: 'api-addresses-v0.1',
         domainCode: 'saanseoi',
-        lineageSnapshotVersions: ['ss-hk-address-hkgov-dpo-2025-08-20.0'],
+        lineageSnapshotVersions: ['ss-hk-hkgov-dpo-address-2025-08-20.0'],
         schemaVersion: 'sv-address-v1',
         rulesetVersion: 'rs-address-merge-v1',
         sourceSchemas: currentSourceSchemas,
@@ -812,14 +814,14 @@ describe('api field fixtures', () => {
       resolveApiFieldFixture({
         apiVersion: 'api-addresses-v0.1',
         domainCode: 'saanseoi',
-        lineageSnapshotVersions: ['ss-hk-address-hkgov-dpo-2025-09-24.0'],
+        lineageSnapshotVersions: ['ss-hk-hkgov-dpo-address-2025-09-24.0'],
         schemaVersion: 'sv-address-v1',
         rulesetVersion: 'rs-address-merge-v1',
         sourceSchemas: historicalSourceSchemas,
       })?.lineageAnchors,
     ).toContainEqual(
       expect.objectContaining({
-        snapshotVersion: 'ss-hk-address-hkgov-dpo-2025-09-24.0',
+        snapshotVersion: 'ss-hk-hkgov-dpo-address-2025-09-24.0',
       }),
     )
   })
@@ -829,7 +831,7 @@ describe('api field fixtures', () => {
       resolveApiFieldFixture({
         apiVersion: 'api-addresses-v0.1',
         domainCode: 'saanseoi',
-        lineageSnapshotVersions: ['ss-hk-address-hkgov-dpo-2025-01-23.0'],
+        lineageSnapshotVersions: ['ss-hk-hkgov-dpo-address-2025-01-23.0'],
         schemaVersion: 'sv-address-v1',
         rulesetVersion: 'rs-address-merge-v1',
         sourceSchemas: {
@@ -839,30 +841,30 @@ describe('api field fixtures', () => {
       })?.lineageAnchors,
     ).toContainEqual(
       expect.objectContaining({
-        snapshotVersion: 'ss-hk-address-hkgov-dpo-2025-01-23.0',
+        snapshotVersion: 'ss-hk-hkgov-dpo-address-2025-01-23.0',
       }),
     )
   })
 
   test('maps every supported ALS release to its selected Overture division schema', () => {
     const expectedDivisionSchemas = {
-      'ss-hk-address-hkgov-dpo-2025-01-23.0': '1.12.0',
-      'ss-hk-address-hkgov-dpo-2025-02-25.0': '1.12.0',
-      'ss-hk-address-hkgov-dpo-2025-03-21.0': '1.12.0',
-      'ss-hk-address-hkgov-dpo-2025-04-26.0': '1.12.0',
-      'ss-hk-address-hkgov-dpo-2025-05-22.0': '1.12.0',
-      'ss-hk-address-hkgov-dpo-2025-06-20.0': '1.12.0',
-      'ss-hk-address-hkgov-dpo-2025-08-13.0': '1.12.0',
-      'ss-hk-address-hkgov-dpo-2025-09-03.0': '1.12.0',
-      'ss-hk-address-hkgov-dpo-2025-11-04.0': '1.13.0',
-      'ss-hk-address-hkgov-dpo-2025-12-16.0': '1.14.0',
-      'ss-hk-address-hkgov-dpo-2026-02-04.0': '1.15.0',
-      'ss-hk-address-hkgov-dpo-2026-04-03.0': '1.16.0',
-      'ss-hk-address-hkgov-dpo-2026-04-22.0': '1.16.0',
-      'ss-hk-address-hkgov-dpo-2026-04-25.0': '1.16.0',
-      'ss-hk-address-hkgov-dpo-2026-07-08.0': '1.17.0',
-      'ss-hk-address-hkgov-dpo-2026-07-10.0': '1.17.0',
-      'ss-hk-address-hkgov-dpo-2026-07-22.0': '1.18.0',
+      'ss-hk-hkgov-dpo-address-2025-01-23.0': '1.12.0',
+      'ss-hk-hkgov-dpo-address-2025-02-25.0': '1.12.0',
+      'ss-hk-hkgov-dpo-address-2025-03-21.0': '1.12.0',
+      'ss-hk-hkgov-dpo-address-2025-04-26.0': '1.12.0',
+      'ss-hk-hkgov-dpo-address-2025-05-22.0': '1.12.0',
+      'ss-hk-hkgov-dpo-address-2025-06-20.0': '1.12.0',
+      'ss-hk-hkgov-dpo-address-2025-08-13.0': '1.12.0',
+      'ss-hk-hkgov-dpo-address-2025-09-03.0': '1.12.0',
+      'ss-hk-hkgov-dpo-address-2025-11-04.0': '1.13.0',
+      'ss-hk-hkgov-dpo-address-2025-12-16.0': '1.14.0',
+      'ss-hk-hkgov-dpo-address-2026-02-04.0': '1.15.0',
+      'ss-hk-hkgov-dpo-address-2026-04-03.0': '1.16.0',
+      'ss-hk-hkgov-dpo-address-2026-04-22.0': '1.16.0',
+      'ss-hk-hkgov-dpo-address-2026-04-25.0': '1.16.0',
+      'ss-hk-hkgov-dpo-address-2026-07-08.0': '1.17.0',
+      'ss-hk-hkgov-dpo-address-2026-07-10.0': '1.17.0',
+      'ss-hk-hkgov-dpo-address-2026-07-22.0': '1.18.0',
     }
 
     for (const [snapshotVersion, divisionSchemaVersion] of Object.entries(
@@ -894,8 +896,8 @@ describe('api field fixtures', () => {
       apiVersion: 'api-divisions-v0.1',
       domainCode: 'geographic',
       lineageSnapshotVersions: [
-        'ss-hk-division-2026-05-20.0',
-        'ss-hk-division-2026-06-17.0',
+        'ss-hk-overture-division-2026-05-20.0',
+        'ss-hk-overture-division-2026-06-17.0',
       ],
       schemaVersion: 'sv-division-v1',
       rulesetVersion: 'rs-division-merge-v1',
@@ -920,7 +922,7 @@ describe('api field fixtures', () => {
 
     expect(listApiFieldFixtures()[0]?.apiVersion).toBe('api-divisions-v0.1')
     expect(listApiFieldFixtures()[0]?.lineageAnchors[0]?.snapshotVersion).toBe(
-      'ss-hk-division-2025-09-24.0',
+      'ss-hk-overture-division-2025-09-24.0',
     )
     expect(listApiFieldFixtures()[0]?.fields[0]?.apiField).not.toBe('mutated')
   })
@@ -1101,20 +1103,20 @@ test('initial curated release resolves its retained ingredient composition for A
     domainCode: 'geographic',
     schemaVersion: 'sv-division-v1',
     rulesetVersion: 'rs-division-merge-v2',
-    lineageSnapshotVersions: ['ss-hk-division-saanseoi-2026-09-01.0'],
+    lineageSnapshotVersions: ['ss-hk-saanseoi-division-2026-09-01.0'],
     sourceSchemas,
   }
   expect(resolveApiFieldFixture(lookup)?.mappingVersion).toBe(3)
   expect(
     resolveApiFieldFixture({
       ...lookup,
-      lineageSnapshotVersions: ['ss-hk-division-saanseoi-2026-10-01.0'],
+      lineageSnapshotVersions: ['ss-hk-saanseoi-division-2026-10-01.0'],
     })?.mappingVersion,
   ).toBe(3)
   expect(
     resolveApiFieldFixture({
       ...lookup,
-      lineageSnapshotVersions: ['ss-hk-division-saanseoi-2026-09-01.9'],
+      lineageSnapshotVersions: ['ss-hk-saanseoi-division-2026-09-01.9'],
     }),
   ).toBeNull()
   const { 'ds-hk-hkgov-rvd-division': rvd, ...withoutRvd } = sourceSchemas

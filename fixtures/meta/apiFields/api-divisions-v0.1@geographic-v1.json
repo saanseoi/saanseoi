@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:c28d6b4be1581cda43a61ac6ac8c865bae38a782611ec5b311fdc1a96451b891",
+  "versionHash": "sha256:d48758bd08f0eee067d5624e16d07b21c2098917a39ccf3fdba42c25cb0e9eeb",
   "apiVersion": "api-divisions-v0.1",
   "domainCode": "geographic",
   "mappingVersion": 1,
@@ -65,16 +65,16 @@
         "ds-hk-overture-division"
       ],
       "anchorSnapshotVersions": [
-        "ss-hk-division-2025-09-24.0",
-        "ss-hk-division-2025-10-22.0",
-        "ss-hk-division-2025-11-19.0",
-        "ss-hk-division-2025-12-17.0",
-        "ss-hk-division-2026-01-21.0",
-        "ss-hk-division-saanseoi-2026-08-19.0",
-        "ss-hk-division-saanseoi-2026-08-19.0-r1",
-        "ss-hk-division-saanseoi-2026-08-19.0-r2",
-        "ss-hk-division-saanseoi-2026-08-19.0-r3",
-        "ss-hk-division-saanseoi-2026-08-19.0-r4"
+        "ss-hk-overture-division-2025-09-24.0",
+        "ss-hk-overture-division-2025-10-22.0",
+        "ss-hk-overture-division-2025-11-19.0",
+        "ss-hk-overture-division-2025-12-17.0",
+        "ss-hk-overture-division-2026-01-21.0",
+        "ss-hk-saanseoi-division-2026-08-19.0",
+        "ss-hk-saanseoi-division-2026-08-19.0-r1",
+        "ss-hk-saanseoi-division-2026-08-19.0-r2",
+        "ss-hk-saanseoi-division-2026-08-19.0-r3",
+        "ss-hk-saanseoi-division-2026-08-19.0-r4"
       ]
     },
     {
@@ -84,49 +84,49 @@
         "ds-hk-overture-division"
       ],
       "anchorSnapshotVersions": [
-        "ss-hk-division-2025-09-24.0",
-        "ss-hk-division-2025-10-22.0",
-        "ss-hk-division-2025-11-19.0",
-        "ss-hk-division-2025-12-17.0",
-        "ss-hk-division-2026-01-21.0",
-        "ss-hk-division-saanseoi-2026-08-19.0",
-        "ss-hk-division-saanseoi-2026-08-19.0-r1",
-        "ss-hk-division-saanseoi-2026-08-19.0-r2",
-        "ss-hk-division-saanseoi-2026-08-19.0-r3",
-        "ss-hk-division-saanseoi-2026-08-19.0-r4"
+        "ss-hk-overture-division-2025-09-24.0",
+        "ss-hk-overture-division-2025-10-22.0",
+        "ss-hk-overture-division-2025-11-19.0",
+        "ss-hk-overture-division-2025-12-17.0",
+        "ss-hk-overture-division-2026-01-21.0",
+        "ss-hk-saanseoi-division-2026-08-19.0",
+        "ss-hk-saanseoi-division-2026-08-19.0-r1",
+        "ss-hk-saanseoi-division-2026-08-19.0-r2",
+        "ss-hk-saanseoi-division-2026-08-19.0-r3",
+        "ss-hk-saanseoi-division-2026-08-19.0-r4"
       ]
     }
   ],
   "lineageAnchors": [
     {
-      "snapshotVersion": "ss-hk-division-2025-09-24.0"
+      "snapshotVersion": "ss-hk-overture-division-2025-09-24.0"
     },
     {
-      "snapshotVersion": "ss-hk-division-2025-10-22.0"
+      "snapshotVersion": "ss-hk-overture-division-2025-10-22.0"
     },
     {
-      "snapshotVersion": "ss-hk-division-2025-11-19.0"
+      "snapshotVersion": "ss-hk-overture-division-2025-11-19.0"
     },
     {
-      "snapshotVersion": "ss-hk-division-2025-12-17.0"
+      "snapshotVersion": "ss-hk-overture-division-2025-12-17.0"
     },
     {
-      "snapshotVersion": "ss-hk-division-2026-01-21.0"
+      "snapshotVersion": "ss-hk-overture-division-2026-01-21.0"
     },
     {
-      "snapshotVersion": "ss-hk-division-saanseoi-2026-08-19.0"
+      "snapshotVersion": "ss-hk-saanseoi-division-2026-08-19.0"
     },
     {
-      "snapshotVersion": "ss-hk-division-saanseoi-2026-08-19.0-r1"
+      "snapshotVersion": "ss-hk-saanseoi-division-2026-08-19.0-r1"
     },
     {
-      "snapshotVersion": "ss-hk-division-saanseoi-2026-08-19.0-r2"
+      "snapshotVersion": "ss-hk-saanseoi-division-2026-08-19.0-r2"
     },
     {
-      "snapshotVersion": "ss-hk-division-saanseoi-2026-08-19.0-r3"
+      "snapshotVersion": "ss-hk-saanseoi-division-2026-08-19.0-r3"
     },
     {
-      "snapshotVersion": "ss-hk-division-saanseoi-2026-08-19.0-r4"
+      "snapshotVersion": "ss-hk-saanseoi-division-2026-08-19.0-r4"
     }
   ],
   "resources": [

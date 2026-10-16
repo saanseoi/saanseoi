@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:12c97da58e74d2e77068940f864ba3eb0d8ae3ff30c2213f3d2753cc07328abb",
+  "versionHash": "sha256:5ecf5728cf322a0f09c9e8405f26c4f00c0eedadfecf7168a07eca05055c4965",
   "apiVersion": "api-divisions-v0.1",
   "domainCode": "hkgov-censtatd-hma",
   "mappingVersion": 1,
@@ -25,13 +25,13 @@
         "ds-hk-hkgov-censtatd-housing-market-areas-building-groups"
       ],
       "anchorSnapshotVersions": [
-        "ss-hk-division-hkgov-censtatd-hma-2021"
+        "ss-hk-hkgov-censtatd-housing-market-areas-building-groups-division-2021"
       ]
     }
   ],
   "lineageAnchors": [
     {
-      "snapshotVersion": "ss-hk-division-hkgov-censtatd-hma-2021"
+      "snapshotVersion": "ss-hk-hkgov-censtatd-housing-market-areas-building-groups-division-2021"
     }
   ],
   "resources": [

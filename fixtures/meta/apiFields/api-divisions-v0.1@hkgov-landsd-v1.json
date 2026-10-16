@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:3b84f3f84843c3fc2e6380c86ececdd8426916b819baa8aec6316794ea013a7a",
+  "versionHash": "sha256:ba99346b97d2227134a6baffcc8b10fa26a1659604c36f70ce25ac27a63909a5",
   "apiVersion": "api-divisions-v0.1",
   "domainCode": "hkgov-landsd",
   "mappingVersion": 1,
@@ -29,13 +29,13 @@
         "ds-hk-hkgov-landsd-division"
       ],
       "anchorSnapshotVersions": [
-        "ss-hk-division-hkgov-landsd-2026-06-10.0"
+        "ss-hk-hkgov-landsd-division-2026-06-10.0"
       ]
     }
   ],
   "lineageAnchors": [
     {
-      "snapshotVersion": "ss-hk-division-hkgov-landsd-2026-06-10.0"
+      "snapshotVersion": "ss-hk-hkgov-landsd-division-2026-06-10.0"
     }
   ],
   "resources": [
