@@ -223,7 +223,14 @@ export async function calculateAndStoreApiReleaseSetStats(
                   )),
                 ]
 
-    assertApiRecordChangeTotals(rows)
+    try {
+      assertApiRecordChangeTotals(rows)
+    } catch (error) {
+      throw new Error(
+        `API release ${apiReleaseSetId}, snapshot ${snapshotId}: ${error instanceof Error ? error.message : String(error)}`,
+        { cause: error },
+      )
+    }
 
     options.progress.update(1, {
       label: formatRunningPhaseLabel(colorTeal('Calculate'), colorRed('stats'), 1, 2),

@@ -367,6 +367,31 @@ test('exact historical Place dependencies replay independent locale shards and s
       { formattedAddress: 'Latest address', streetName: 'Latest street' },
       'en',
     )
+    // Equal content hashes on another branch must not duplicate the selected copy.
+    history(
+      before,
+      'address2d',
+      'other-branch',
+      'building',
+      {
+        granularity: 'building',
+        countryId: 'country',
+      },
+      '',
+      'a0:address2d',
+    )
+    history(
+      before,
+      'address2dI18n',
+      'other-branch',
+      'building',
+      {
+        formattedAddress: 'Initial address',
+        streetName: 'Initial street',
+      },
+      'en',
+      'a0:address2dI18n',
+    )
     insert(current, 'addressPublicationState', {
       scopeId: 'address-scope',
       snapshotId: 'a2',

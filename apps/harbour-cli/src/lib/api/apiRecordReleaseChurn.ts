@@ -178,5 +178,7 @@ export function assertApiRecordChangeTotals(
     row => row.category === 'records' && row.measure === 'count' && !row.dimension,
   )
   if (records && records.value !== totals.get('count'))
-    throw new Error('Aggregate record change count does not match primary records')
+    throw new Error(
+      `Aggregate record change count ${totals.get('count')} does not match primary records ${records.value}`,
+    )
 }

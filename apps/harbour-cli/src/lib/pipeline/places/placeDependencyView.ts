@@ -193,7 +193,7 @@ export class PlaceDependencyView {
       const table = historySchema[name]
       const columns = getTableColumns(table as SQLiteTable)
       const localised = type.endsWith('I18n')
-      const batchSize = getMaxItemsPerInClause(localised ? 3 : 2)
+      const batchSize = getMaxItemsPerInClause(localised ? 4 : 3)
       for (const versions of groups.values()) {
         for (let start = 0; start < versions.length; start += batchSize) {
           const selected = versions.slice(start, start + batchSize)
@@ -213,6 +213,7 @@ export class PlaceDependencyView {
                   and(
                     eq(columns[id]!, version.recordId),
                     eq(table.versionHash, version.versionHash),
+                    eq(table.snapshotId, version.snapshotId),
                     ...(localised ? [eq(columns.locale!, version.locale)] : []),
                   ),
                 ),
