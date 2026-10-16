@@ -7,7 +7,7 @@
       "id": "ap-lei-chau-estate-high-low-sections",
       "revision": 1,
       "sourceVersionFrom": "2024-07-25.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "complex": {
         "enName": "AP LEI CHAU ESTATE",
         "zhHantName": "鴨脷洲邨",
@@ -91,7 +91,7 @@
       "id": "model-housing-estate-kings-road",
       "revision": 2,
       "sourceVersionFrom": "2024-07-25.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "complex": {
         "enName": "MODEL HOUSING ESTATE",
         "zhHantName": "模範邨",
@@ -444,7 +444,7 @@
       "id": "chai-wan-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "CHAI WAN ESTATE",
@@ -493,7 +493,7 @@
       "id": "chak-on-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "CHAK ON ESTATE",
@@ -711,7 +711,7 @@
       "id": "cheung-fat-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "CHEUNG FAT ESTATE",
@@ -790,7 +790,7 @@
       "id": "cheung-hang-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "CHEUNG HANG ESTATE",
@@ -899,7 +899,7 @@
       "id": "cheung-hong-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "CHEUNG HONG ESTATE",
@@ -1113,7 +1113,7 @@
       "id": "cheung-kwai-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "CHEUNG KWAI ESTATE",
@@ -1402,7 +1402,7 @@
       "id": "cheung-lung-wai-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "CHEUNG LUNG WAI ESTATE",
@@ -1451,7 +1451,7 @@
       "id": "cheung-on-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "CHEUNG ON ESTATE",
@@ -1620,7 +1620,7 @@
       "id": "cheung-sha-wan-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "CHEUNG SHA WAN ESTATE",
@@ -1669,7 +1669,7 @@
       "id": "cheung-shan-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "CHEUNG SHAN ESTATE",
@@ -1733,7 +1733,7 @@
       "id": "cheung-wang-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "CHEUNG WANG ESTATE",
@@ -2090,7 +2090,7 @@
       "id": "choi-fai-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "CHOI FAI ESTATE",
@@ -2233,7 +2233,7 @@
       "id": "choi-ha-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "CHOI HA ESTATE",
@@ -2481,7 +2481,7 @@
       "id": "choi-ming-court",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "CHOI MING COURT",
@@ -2700,7 +2700,7 @@
       "id": "choi-wan-2-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "CHOI WAN (2) ESTATE",
@@ -2888,7 +2888,7 @@
       "id": "choi-yuen-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "CHOI YUEN ESTATE",
@@ -2997,7 +2997,7 @@
       "id": "chuk-yuen-south-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "CHUK YUEN SOUTH ESTATE",
@@ -3136,7 +3136,7 @@
       "id": "chun-shek-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "CHUN SHEK ESTATE",
@@ -3215,7 +3215,7 @@
       "id": "chun-yeung-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "CHUN YEUNG ESTATE",
@@ -3403,7 +3403,7 @@
       "id": "fai-ming-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "FAI MING ESTATE",
@@ -3452,7 +3452,7 @@
       "id": "fortune-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "FORTUNE ESTATE",
@@ -3685,7 +3685,7 @@
       "id": "fu-heng-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "FU HENG ESTATE",
@@ -3824,7 +3824,7 @@
       "id": "fu-shan-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "FU SHAN ESTATE",
@@ -3903,7 +3903,7 @@
       "id": "fu-tai-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "FU TAI ESTATE",
@@ -4087,7 +4087,7 @@
       "id": "fu-tip-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "FU TIP ESTATE",
@@ -4241,7 +4241,7 @@
       "id": "fu-tung-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "FU TUNG ESTATE",
@@ -4459,7 +4459,7 @@
       "id": "fung-tak-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "FUNG TAK ESTATE",
@@ -4583,7 +4583,7 @@
       "id": "fung-wah-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "FUNG WAH ESTATE",
@@ -4696,7 +4696,7 @@
       "id": "hau-tak-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "HAU TAK ESTATE",
@@ -4805,7 +4805,7 @@
       "id": "heng-on-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "HENG ON ESTATE",
@@ -4929,7 +4929,7 @@
       "id": "hin-fat-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "HIN FAT ESTATE",
@@ -4963,7 +4963,7 @@
       "id": "hin-keng-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "HIN KENG ESTATE",
@@ -5102,7 +5102,7 @@
       "id": "hin-yiu-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "HIN YIU ESTATE",
@@ -5136,7 +5136,7 @@
       "id": "hing-man-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "HING MAN ESTATE",
@@ -5200,7 +5200,7 @@
       "id": "hing-tin-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "HING TIN ESTATE",
@@ -5328,7 +5328,7 @@
       "id": "ho-man-tin-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "HO MAN TIN ESTATE",
@@ -5482,7 +5482,7 @@
       "id": "hoi-fu-court",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "HOI FU COURT",
@@ -5577,7 +5577,7 @@
       "id": "hoi-lai-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "HOI LAI ESTATE",
@@ -5825,7 +5825,7 @@
       "id": "hong-tung-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "HONG TUNG ESTATE",
@@ -5859,7 +5859,7 @@
       "id": "hung-fuk-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "HUNG FUK ESTATE",
@@ -6013,7 +6013,7 @@
       "id": "hung-hom-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "HUNG HOM ESTATE",
@@ -6107,7 +6107,7 @@
       "id": "ka-fuk-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "KA FUK ESTATE",
@@ -6171,7 +6171,7 @@
       "id": "kai-ching-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "KAI CHING ESTATE",
@@ -6280,7 +6280,7 @@
       "id": "kai-chuen-court",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "KAI CHUEN COURT",
@@ -6330,7 +6330,7 @@
       "id": "kai-tin-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "KAI TIN ESTATE",
@@ -6394,7 +6394,7 @@
       "id": "kai-yip-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "KAI YIP ESTATE",
@@ -6503,7 +6503,7 @@
       "id": "kam-peng-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "KAM PENG ESTATE",
@@ -6537,7 +6537,7 @@
       "id": "kin-ming-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "KIN MING ESTATE",
@@ -6800,7 +6800,7 @@
       "id": "king-lam-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "KING LAM ESTATE",
@@ -6924,7 +6924,7 @@
       "id": "ko-cheung-court",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "KO CHEUNG COURT",
@@ -7018,7 +7018,7 @@
       "id": "ko-yee-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "KO YEE ESTATE",
@@ -7097,7 +7097,7 @@
       "id": "kwai-chung-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "KWAI CHUNG ESTATE",
@@ -7356,7 +7356,7 @@
       "id": "kwai-fong-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "KWAI FONG ESTATE",
@@ -7555,7 +7555,7 @@
       "id": "kwai-hing-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "KWAI HING ESTATE",
@@ -7634,7 +7634,7 @@
       "id": "kwai-luen-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "KWAI LUEN ESTATE",
@@ -8100,7 +8100,7 @@
       "id": "kwong-tin-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "KWONG TIN ESTATE",
@@ -8179,7 +8179,7 @@
       "id": "kwong-yuen-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "KWONG YUEN ESTATE",
@@ -8551,7 +8551,7 @@
       "id": "lai-tsui-court",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "LAI TSUI COURT",
@@ -8601,7 +8601,7 @@
       "id": "lai-yiu-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "LAI YIU ESTATE",
@@ -8695,7 +8695,7 @@
       "id": "lam-tin-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "LAM TIN ESTATE",
@@ -9037,7 +9037,7 @@
       "id": "lei-tung-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "LEI TUNG ESTATE",
@@ -9270,7 +9270,7 @@
       "id": "lek-yuen-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "LEK YUEN ESTATE",
@@ -9394,7 +9394,7 @@
       "id": "leung-king-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "LEUNG KING ESTATE",
@@ -9533,7 +9533,7 @@
       "id": "lin-tsui-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "LIN TSUI ESTATE",
@@ -9890,7 +9890,7 @@
       "id": "lok-wah-south-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "LOK WAH SOUTH ESTATE",
@@ -9999,7 +9999,7 @@
       "id": "long-ching-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "LONG CHING ESTATE",
@@ -10048,7 +10048,7 @@
       "id": "long-shin-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "LONG SHIN ESTATE",
@@ -10112,7 +10112,7 @@
       "id": "lower-ngau-tau-kok-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "LOWER NGAU TAU KOK ESTATE",
@@ -10409,7 +10409,7 @@
       "id": "ma-tau-wai-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "MA TAU WAI ESTATE",
@@ -10503,7 +10503,7 @@
       "id": "mei-lam-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "MEI LAM ESTATE",
@@ -10721,7 +10721,7 @@
       "id": "mei-tung-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "MEI TUNG ESTATE",
@@ -10770,7 +10770,7 @@
       "id": "ming-tak-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "MING TAK ESTATE",
@@ -10819,7 +10819,7 @@
       "id": "mun-tung-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "MUN TUNG ESTATE",
@@ -10898,7 +10898,7 @@
       "id": "nam-cheong-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "NAM CHEONG ESTATE",
@@ -11022,7 +11022,7 @@
       "id": "nam-shan-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "NAM SHAN ESTATE",
@@ -11161,7 +11161,7 @@
       "id": "nga-ning-court",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "NGA NING COURT",
@@ -11225,7 +11225,7 @@
       "id": "ngan-wan-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "NGAN WAN ESTATE",
@@ -11980,7 +11980,7 @@
       "id": "on-tin-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "ON TIN ESTATE",
@@ -12029,7 +12029,7 @@
       "id": "on-ting-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "ON TING ESTATE",
@@ -12138,7 +12138,7 @@
       "id": "pak-tin-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "PAK TIN ESTATE",
@@ -12551,7 +12551,7 @@
       "id": "ping-tin-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "PING TIN ESTATE",
@@ -12690,7 +12690,7 @@
       "id": "po-heung-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "PO HEUNG ESTATE",
@@ -12739,7 +12739,7 @@
       "id": "po-lam-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "PO LAM ESTATE",
@@ -12863,7 +12863,7 @@
       "id": "po-shek-wu-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "PO SHEK WU ESTATE",
@@ -13066,7 +13066,7 @@
       "id": "sam-shing-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "SAM SHING ESTATE",
@@ -13551,7 +13551,7 @@
       "id": "shek-lei-i-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "SHEK LEI (I) ESTATE",
@@ -13585,7 +13585,7 @@
       "id": "shek-lei-ii-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "SHEK LEI (II) ESTATE",
@@ -13863,7 +13863,7 @@
       "id": "shek-pai-wan-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "SHEK PAI WAN ESTATE",
@@ -14002,7 +14002,7 @@
       "id": "shek-wai-kok-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "SHEK WAI KOK ESTATE",
@@ -14141,7 +14141,7 @@
       "id": "shek-yam-east-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "SHEK YAM EAST ESTATE",
@@ -14205,7 +14205,7 @@
       "id": "shek-yam-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "SHEK YAM ESTATE",
@@ -14269,7 +14269,7 @@
       "id": "sheung-lok-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "SHEUNG LOK ESTATE",
@@ -14457,7 +14457,7 @@
       "id": "shin-ming-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "SHIN MING ESTATE",
@@ -14795,7 +14795,7 @@
       "id": "shui-pin-wai-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "SHUI PIN WAI ESTATE",
@@ -14919,7 +14919,7 @@
       "id": "shun-lee-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "SHUN LEE ESTATE",
@@ -15043,7 +15043,7 @@
       "id": "shun-on-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "SHUN ON ESTATE",
@@ -15107,7 +15107,7 @@
       "id": "shun-tin-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "SHUN TIN ESTATE",
@@ -15291,7 +15291,7 @@
       "id": "siu-sai-wan-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "SIU SAI WAN ESTATE",
@@ -15704,7 +15704,7 @@
       "id": "sun-chui-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "SUN CHUI ESTATE",
@@ -15843,7 +15843,7 @@
       "id": "sun-tin-wai-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "SUN TIN WAI ESTATE",
@@ -16260,7 +16260,7 @@
       "id": "tai-ping-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "TAI PING ESTATE",
@@ -16767,7 +16767,7 @@
       "id": "tai-yuen-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "TAI YUEN ESTATE",
@@ -16891,7 +16891,7 @@
       "id": "tak-long-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "TAK LONG ESTATE",
@@ -17045,7 +17045,7 @@
       "id": "tak-tin-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "TAK TIN ESTATE",
@@ -17293,7 +17293,7 @@
       "id": "tin-ching-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "TIN CHING ESTATE",
@@ -17646,7 +17646,7 @@
       "id": "tin-king-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "TIN KING ESTATE",
@@ -17725,7 +17725,7 @@
       "id": "tin-ping-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "TIN PING ESTATE",
@@ -17849,7 +17849,7 @@
       "id": "tin-shui-1-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "TIN SHUI (1) ESTATE",
@@ -18067,7 +18067,7 @@
       "id": "tin-tsz-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "TIN TSZ ESTATE",
@@ -18146,7 +18146,7 @@
       "id": "tin-yan-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "TIN YAN ESTATE",
@@ -18285,7 +18285,7 @@
       "id": "tin-yat-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "TIN YAT ESTATE",
@@ -18766,7 +18766,7 @@
       "id": "tsing-yi-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "TSING YI ESTATE",
@@ -18845,7 +18845,7 @@
       "id": "tsui-lok-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "TSUI LOK ESTATE",
@@ -18879,7 +18879,7 @@
       "id": "tsui-ping-south-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "TSUI PING (SOUTH) ESTATE",
@@ -19003,7 +19003,7 @@
       "id": "tsui-wan-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "TSUI WAN ESTATE",
@@ -19082,7 +19082,7 @@
       "id": "tsz-hong-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "TSZ HONG ESTATE",
@@ -19176,7 +19176,7 @@
       "id": "tsz-lok-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "TSZ LOK ESTATE",
@@ -19360,7 +19360,7 @@
       "id": "tsz-man-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "TSZ MAN ESTATE",
@@ -19424,7 +19424,7 @@
       "id": "tung-tau-ii-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "TUNG TAU (II) ESTATE",
@@ -19743,7 +19743,7 @@
       "id": "tung-wui-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "TUNG WUI ESTATE",
@@ -19807,7 +19807,7 @@
       "id": "un-chau-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "UN CHAU ESTATE",
@@ -20160,7 +20160,7 @@
       "id": "wah-fu-i-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "WAH FU (I) ESTATE",
@@ -20468,7 +20468,7 @@
       "id": "wah-ha-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "WAH HA ESTATE",
@@ -20502,7 +20502,7 @@
       "id": "wah-kwai-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "WAH KWAI ESTATE",
@@ -20626,7 +20626,7 @@
       "id": "wah-lai-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "WAH LAI ESTATE",
@@ -20675,7 +20675,7 @@
       "id": "wah-ming-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "WAH MING ESTATE",
@@ -20799,7 +20799,7 @@
       "id": "wah-sum-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "WAH SUM ESTATE",
@@ -20848,7 +20848,7 @@
       "id": "wan-hon-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "WAN HON ESTATE",
@@ -20897,7 +20897,7 @@
       "id": "wan-tau-tong-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "WAN TAU TONG ESTATE",
@@ -21697,7 +21697,7 @@
       "id": "wo-lok-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "WO LOK ESTATE",
@@ -21881,7 +21881,7 @@
       "id": "wu-king-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "WU KING ESTATE",
@@ -21990,7 +21990,7 @@
       "id": "yan-on-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "YAN ON ESTATE",
@@ -22054,7 +22054,7 @@
       "id": "yan-tin-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "YAN TIN ESTATE",
@@ -22148,7 +22148,7 @@
       "id": "yat-tung-2-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "YAT TUNG (2) ESTATE",
@@ -22591,7 +22591,7 @@
       "id": "yau-tong-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "YAU TONG ESTATE",
@@ -22685,7 +22685,7 @@
       "id": "yee-ming-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "YEE MING ESTATE",
@@ -22828,7 +22828,7 @@
       "id": "yip-wong-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "YIP WONG ESTATE",
@@ -22862,7 +22862,7 @@
       "id": "yiu-on-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "YIU ON ESTATE",
@@ -22986,7 +22986,7 @@
       "id": "yiu-tung-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "YIU TUNG ESTATE",
@@ -23170,7 +23170,7 @@
       "id": "yue-wan-estate",
       "revision": 1,
       "sourceVersionFrom": "2026-08-19.0",
-      "sourceVersionTo": "2026-08-19.0",
+      "sourceVersionTo": "2026-09-22.0",
       "generatedBy": "build-als-verified-hierarchies",
       "complex": {
         "enName": "YUE WAN ESTATE",

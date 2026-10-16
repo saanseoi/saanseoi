@@ -17,7 +17,11 @@ import {
   assertApprovedEmptyInventory,
 } from './hkgovAlsApprovedEstateBatch'
 import { backfillAlsCoordinates } from './hkgovAlsCoordinateBackfills'
-import type { HkgovAlsFeature, DivisionLookupMaps } from './hkgovAlsTypes'
+import type {
+  HkgovAlsFeature,
+  DivisionLookupMaps,
+  PreparedHkgovAlsRow,
+} from './hkgovAlsTypes'
 
 const root = 'data/hkgov/dpo/ALS'
 const estates = [
@@ -304,3 +308,75 @@ test.skipIf(!existsSync(root))(
     }
   },
 )
+
+test('September Model Housing keeps shared inventories on building owners and distinct sections', async () => {
+  const base = `${root}/20260922-1336-ALS-GeoJSON`
+  const select = (f: HkgovAlsFeature) =>
+    f.properties?.Address?.PremisesAddress?.EngPremisesAddress?.EngEstate
+      ?.EstateName === 'MODEL HOUSING ESTATE'
+  const raw: HkgovAlsFeature[] = (
+    await Bun.file(`${base}/als_addresses_(eastern_district).geojson`).json()
+  ).features.filter(select)
+  const rows = raw.map((feature: HkgovAlsFeature, i: number) =>
+    normaliseHkgovAlsFeature(
+      feature,
+      'raw.geojson',
+      i + 1,
+      'test',
+      '2026-09-22.0',
+      maps,
+      true,
+      new Map(),
+      new Map(),
+      new Map(),
+    ),
+  )
+  const raw3d = (
+    await Bun.file(`${base}/als_addresses_3d_(public_rental_housing).geojson`).json()
+  ).features.filter(select)
+  const dir = await mkdtemp(join(tmpdir(), 'model-september-'))
+  try {
+    await writeFile(
+      join(dir, 'als_addresses_3d_test.geojson'),
+      JSON.stringify({ type: 'FeatureCollection', features: raw3d }, null, 2),
+    )
+    const outputFile = join(dir, 'output')
+    await prepareAls3dCollections({
+      sourceDir: dir,
+      sourceVersion: '2026-09-22.0',
+      outputFile,
+      rows,
+    })
+    const records = (await readFile(`${outputFile}.address3d.jsonl`, 'utf8'))
+      .trim()
+      .split('\n')
+      .map(line => JSON.parse(line))
+    for (const [name, units, sections] of [
+      ['MAN HONG HSE', 422, 6],
+      ['MAN KING HSE', 25, 3],
+    ] as const) {
+      const owner = rows.filter(
+        (r: any) =>
+          r.enBuildingName?.startsWith(name) && r.curatedGranularity === 'building',
+      )
+      expect(owner).toHaveLength(1)
+      const building = requireDefined(owner[0])
+      expect(
+        records
+          .filter(r => r.kind === 'collection' && r.address2dId === building.id)
+          .map(r => r.unitCount),
+      ).toEqual([units])
+      expect(
+        rows.filter((r: PreparedHkgovAlsRow) => r.parentAddressId === building.id),
+      ).toHaveLength(sections)
+    }
+    expect(records.filter(r => r.kind === 'source').map(r => r.properties)).toEqual(
+      raw3d.map(
+        (f: Parameters<typeof als3dSourcePayload>[0]) =>
+          als3dSourcePayload(f).properties,
+      ),
+    )
+  } finally {
+    await rm(dir, { recursive: true, force: true })
+  }
+})

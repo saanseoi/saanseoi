@@ -1922,3 +1922,10 @@ April 2026. The September guard is explicit.
 East Terrace’s reviewed streetless-assertion coalescence covers September 2026. Both 2D
 assertions and both complete 3D source records match August, preserving the named owner
 and its single inventory.
+
+September 2026 hierarchy coverage includes 141 relationships whose complete 2D and 3D
+publisher records match August. Model Housing Estate also retains its reviewed building
+and section ownership: its address components and inventories are unchanged, while Man
+King House uses the publisher’s updated location. Man Hong’s 422 units and Man King’s 25
+units belong to their building owners, with six and three distinct sections
+respectively.

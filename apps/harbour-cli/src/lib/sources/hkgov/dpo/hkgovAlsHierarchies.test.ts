@@ -223,7 +223,7 @@ test('changed street components, repeated same-CSU assertions and out-of-bounds 
     'ambiguous',
   )
   const future = premises()
-  expect(applyAlsAddressHierarchies(future, '2026-09-01.0').size).toBe(0)
+  expect(applyAlsAddressHierarchies(future, '2026-09-23.0').size).toBe(0)
   expect(future).toHaveLength(2)
 })
 
