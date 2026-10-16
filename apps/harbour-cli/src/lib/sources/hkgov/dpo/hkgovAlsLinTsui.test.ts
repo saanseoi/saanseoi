@@ -27,6 +27,7 @@ test('Lin Tsui materialises one enduring 288-unit owner and retains both raw ass
     ['20240725-1048-ALS-GeoJSON', '2024-07-25.0'],
     ['20260403-1056-ALS-GeoJSON', '2026-04-03.0'],
     ['20260819-1047-ALS-GeoJSON', '2026-08-19.0'],
+    ['20260922-1336-ALS-GeoJSON', '2026-09-22.0'],
   ]) {
     const base = `data/hkgov/dpo/ALS/${release}`
     const data = await Bun.file(

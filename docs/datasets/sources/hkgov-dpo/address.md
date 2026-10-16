@@ -1910,3 +1910,7 @@ When publisher evidence changes beyond a premise curation’s verified coverage,
 deferred-investigation policy records the unapplied curation and source records, leaving
 publisher defaults intact. Verified historical assertions and ambiguous premise matches
 still fail their guards.
+
+Lin Tsui’s existing identity and duplicate-suppression decision is verified through 22
+September 2026 against the bilingual source components, coordinates and complete
+288-unit inventory hash.
