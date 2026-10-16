@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:8688207d85a0bb9852cae65f514bca755a94e0505c821c94bd5062ae983bf874",
+  "versionHash": "sha256:883c5cafa38770e2915f62c699581e356045723525977ee21f86cbdb91d980c6",
   "apiVersion": "api-divisions-v0.2",
   "code": "comp-divisions-v2",
   "version": 2,
@@ -13,7 +13,7 @@
         "en": {
           "name": "Geographic",
           "descriptionShort": "Curated superset of geographical and administrative divisions.",
-          "description": "Curated 山水 hierarchy and areas, with Overture geometry fallback and selectable government area companions."
+          "description": "Curated SaanSeoi hierarchy and areas, with Overture geometry fallback and selectable government area companions."
         },
         "zh-hant": {
           "name": "地理分區",

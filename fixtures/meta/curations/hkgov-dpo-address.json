@@ -20295,6 +20295,95 @@
         "reviewSha256": "69d2186f2d9a21788381610b83e3aa811ee5508ac37628a4975b23d39121e76e",
         "notes": "New Development"
       }
+    },
+    {
+      "previousIdentityKey": "HKGOV ALS PREMISE V1\u00003376621676T20050430\u0000SHAM SHUI PO DISTRICT\u0000STREET\u0000LAI CHI KOK ROAD\u0000781\u0000\u0000\u0000\u0000\u0000\u0000\u0000WANG CHEONG FACTORY ESTATE BLK 1\u0000\u0000",
+      "currentIdentityKey": "HKGOV ALS PREMISE V1\u00003376621676T20050430\u0000SHAM SHUI PO DISTRICT\u0000STREET\u0000LAI CHI KOK ROAD\u0000781\u0000\u0000WANG CHEONG FACTORY ESTATE\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
+      "resolution": "new-id",
+      "review": {
+        "sourceVersion": "2024-11-13.0",
+        "reviewSha256": "96db2eb443c2de417859f3a8fe15537a89441fa6756a2683daf0c2a07e937344",
+        "notes": "New Development: the previous factory estate was cleared in January 2023 and demolition began in March 2023. Foundation contract 20230324 for replacement public housing was awarded on 20 May 2024 and the contractor reported foundation works in progress as at 30 September 2024, close to this November 2024 source change. Keep the replacement estate/site identity distinct from former Block 1; this does not assert a completed residential building. Sources: https://www.housingauthority.gov.hk/en/common/pdf/about-us/publications-and-statistics/publication-archive/corporate-plan/CP_2024-25.pdf ; https://www.housingauthority.gov.hk/en/common/pdf/business-partnerships/tenders/BP_Tender_Award_May.pdf ; https://www1.hkexnews.hk/listedco/listconews/sehk/2024/1209/2024120900219.pdf"
+      }
+    },
+    {
+      "previousIdentityKey": "HKGOV ALS PREMISE V1\u00003037514933T20050430\u0000SOUTHERN DISTRICT\u0000STREET\u0000MOUNT DAVIS ROAD\u000061\u0000\u0000THE UNIVERSITY OF HONG KONG\u0000\u0000\u0000\u00002\u0000FELIX VILLAS\u0000\u0000",
+      "currentIdentityKey": "HKGOV ALS PREMISE V1\u00003037514933T20050430\u0000SOUTHERN DISTRICT\u0000STREET\u0000MOUNT DAVIS ROAD\u000061\u0000\u0000FELIX VILLAS\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
+      "resolution": "keep-existing-id",
+      "review": {
+        "sourceVersion": "2024-12-12.0",
+        "reviewSha256": "b5a5225d48203dfb7b75792d0bc63aad16110abb6ea184a899140845cc7b459d",
+        "notes": "An exclusive housing estate owned by the University of Hong Kong, comprising eight mansions built in the 1920s."
+      }
+    },
+    {
+      "previousIdentityKey": "HKGOV ALS PREMISE V1\u00002906226095T20240925\u0000TSUEN WAN DISTRICT\u0000STREET\u0000CHAI WAN KOK STREET\u000023\u000033\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
+      "currentIdentityKey": "HKGOV ALS PREMISE V1\u00002906226095T20240925\u0000TSUEN WAN DISTRICT\u0000STREET\u0000CHAI WAN KOK STREET\u000023\u000033\u0000\u0000\u0000\u0000\u0000\u0000GDS HK3 DATA CENTER\u0000\u0000",
+      "resolution": "new-id",
+      "review": {
+        "sourceVersion": "2025-01-23.0",
+        "reviewSha256": "afaa7e435e395215131b024f8a483ec7f4b5604ca3a4516592d269ca2c1f9a09",
+        "notes": "New Development: Buildings Department March 2023 Monthly Digest, table 5.5 (printed page 24), records notification of commencement of general building and superstructure works for a 16-storey data centre over two basement levels at exact 23-33 Chai Wan Kok Street (major revision). This construction period is close to the January 2025 source-name addition and qualifies under the explicit construction-timing instruction. Source: https://www.bd.gov.hk/doc/en/whats-new/monthly-digests/Md2023e.zip . This decision does not assert an exact completion date."
+      }
+    },
+    {
+      "previousIdentityKey": "HKGOV ALS PREMISE V1\u00003660721093T20050430\u0000KOWLOON CITY DISTRICT\u0000STREET\u0000OXFORD ROAD\u00001D\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
+      "currentIdentityKey": "HKGOV ALS PREMISE V1\u00003660721093T20050430\u0000KOWLOON CITY DISTRICT\u0000STREET\u0000OXFORD ROAD\u00001D\u0000\u0000\u0000\u0000\u0000\u0000\u0000SHINE\u0000\u0000",
+      "resolution": "new-id",
+      "review": {
+        "sourceVersion": "2025-01-23.0",
+        "reviewSha256": "afaa7e435e395215131b024f8a483ec7f4b5604ca3a4516592d269ca2c1f9a09",
+        "notes": "Change the building name to 'Shine Skills Centre' . its the reprovisioned Campus"
+      }
+    },
+    {
+      "previousIdentityKey": "HKGOV ALS PREMISE V1\u00003301922122T20050430\u0000SHAM SHUI PO DISTRICT\u0000STREET\u0000WING HONG STREET\u00007\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
+      "currentIdentityKey": "HKGOV ALS PREMISE V1\u00003301922122T20050430\u0000SHAM SHUI PO DISTRICT\u0000STREET\u0000WING HONG STREET\u00007\u0000\u0000\u0000\u0000\u0000\u0000\u0000WEST GATE TOWER\u0000\u0000",
+      "resolution": "new-id",
+      "review": {
+        "sourceVersion": "2025-02-25.0",
+        "reviewSha256": "739fa5e161794c4e5b7111a5ac6460641fa5a5f1556c719898f535283a85260c",
+        "notes": "New Development"
+      }
+    },
+    {
+      "previousIdentityKey": "HKGOV ALS PREMISE V1\u00003301922122T20050430\u0000SHAM SHUI PO DISTRICT\u0000STREET\u0000WING HONG STREET\u00008\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
+      "currentIdentityKey": "HKGOV ALS PREMISE V1\u00003301922122T20050430\u0000SHAM SHUI PO DISTRICT\u0000STREET\u0000WING HONG STREET\u00008\u0000\u0000\u0000\u0000\u0000\u0000\u0000WEST GATE TOWER\u0000\u0000",
+      "resolution": "new-id",
+      "review": {
+        "sourceVersion": "2025-02-25.0",
+        "reviewSha256": "739fa5e161794c4e5b7111a5ac6460641fa5a5f1556c719898f535283a85260c",
+        "notes": "New Development"
+      }
+    },
+    {
+      "previousIdentityKey": "HKGOV ALS PREMISE V1\u00000861230406T20050430\u0000TUEN MUN DISTRICT\u0000STREET\u0000YUNG LONG ROAD\u000026\u0000\u0000BLACK POINT POWER STATION\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
+      "currentIdentityKey": "HKGOV ALS PREMISE V1\u00000861230406T20050430\u0000TUEN MUN DISTRICT\u0000STREET\u0000YUNG LONG ROAD\u000026\u0000\u0000BLACK POINT POWER STATION\u0000\u0000\u0000\u0000\u0000FUEL OIL TRANSFER PUMP HOUSE\u0000\u0000",
+      "resolution": "keep-existing-id",
+      "review": {
+        "sourceVersion": "2025-02-25.0",
+        "reviewSha256": "739fa5e161794c4e5b7111a5ac6460641fa5a5f1556c719898f535283a85260c"
+      }
+    },
+    {
+      "previousIdentityKey": "HKGOV ALS PREMISE V1\u00004704019819T20050430\u0000SAI KUNG DISTRICT\u0000STREET\u0000HANG HAU WING LUNG ROAD\u00008\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
+      "currentIdentityKey": "HKGOV ALS PREMISE V1\u00004704019819T20050430\u0000SAI KUNG DISTRICT\u0000STREET\u0000HANG HAU WING LUNG ROAD\u00008\u0000\u0000\u0000\u0000\u0000\u0000\u00008 HANG HAU WING LUNG ROAD HOUSE 3\u0000\u0000",
+      "resolution": "keep-existing-id",
+      "review": {
+        "sourceVersion": "2025-02-25.0",
+        "reviewSha256": "739fa5e161794c4e5b7111a5ac6460641fa5a5f1556c719898f535283a85260c",
+        "notes": "User instruction, 2026-10-16: correct structured building, house and block components for this existing address and its sibling entries. Preserve premise continuity; this is a component correction."
+      }
+    },
+    {
+      "previousIdentityKey": "HKGOV ALS PREMISE V1\u00003114114160T20050430\u0000SOUTHERN DISTRICT\u0000STREET\u0000SHA WAN DRIVE\u000025\u0000\u0000TAM VILLAS\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
+      "currentIdentityKey": "HKGOV ALS PREMISE V1\u00003114114160T20050430\u0000SOUTHERN DISTRICT\u0000STREET\u0000SHA WAN DRIVE\u000025\u0000\u0000TAM VILLAS\u0000\u0000\u0000\u0000\u0000TAM TOWERS BLOCK 1\u0000\u0000",
+      "resolution": "new-id",
+      "review": {
+        "sourceVersion": "2025-02-25.0",
+        "reviewSha256": "739fa5e161794c4e5b7111a5ac6460641fa5a5f1556c719898f535283a85260c",
+        "notes": "Component correction requested on 2026-10-16: Tam Towers with Block 1. Preserve the existing reviewed parent/child hierarchy (february-2025-group-071): the previous identity is the Tam Villas parent; the named block keeps its distinct child identity. This does not assert recent construction."
+      }
     }
   ],
   "version": 1

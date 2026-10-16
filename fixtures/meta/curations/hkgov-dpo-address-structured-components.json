@@ -1,0 +1,179 @@
+{
+  "version": 1,
+  "authority": "User instruction, 2026-10-16: separate house/block descriptors and numbers from building names at 8 Hang Hau Wing Lung Road and Tam Towers/Tam Gardens; retain street numbers and premise identities.",
+  "sourceVersionFrom": "2025-02-25.0",
+  "sourceVersionTo": "2026-09-22.0",
+  "rules": [
+    {
+      "id": "wing-lung-house-1",
+      "csu": "4705819814T20050430",
+      "sourceName": "8 HANG HAU WING LUNG ROAD HOUSE 1",
+      "hashes": [
+        "fce465acd3303e88ea632660f63d1e2dd67df4e9ba71201054eedd1c56f6ba07"
+      ],
+      "components": {
+        "en": {
+          "buildingName": null,
+          "blockDescriptor": "House",
+          "blockNumber": "1"
+        },
+        "zh-hant": {
+          "buildingName": null,
+          "blockDescriptor": "洋房",
+          "blockNumber": "1"
+        }
+      },
+      "sourceVersionTo": "2026-09-22.0"
+    },
+    {
+      "id": "wing-lung-house-2",
+      "csu": "4705019817T20050430",
+      "sourceName": "8 HANG HAU WING LUNG ROAD HOUSE 2",
+      "hashes": [
+        "a3b645d70c46199fd5597dbe7d7de8fe06641fb360d0ccfc2c3a8dbf51125c7f",
+        "064ce756a0cce7734b23980a1b89eb7c4602eccdc340cfe7dd1d7aced9d6f099"
+      ],
+      "components": {
+        "en": {
+          "buildingName": null,
+          "blockDescriptor": "House",
+          "blockNumber": "2"
+        },
+        "zh-hant": {
+          "buildingName": null,
+          "blockDescriptor": "洋房",
+          "blockNumber": "2"
+        }
+      },
+      "sourceVersionTo": "2026-09-22.0"
+    },
+    {
+      "id": "wing-lung-house-3",
+      "csu": "4704019819T20050430",
+      "sourceName": "8 HANG HAU WING LUNG ROAD HOUSE 3",
+      "hashes": [
+        "c5a5d06de93b89e3f12f0386d419643988c4c0ffa7f768049666cc99ee4f0111",
+        "40c8b5b27084eff13de4a73c3afa4af988ec7448f1bc617f0907e99e5dcb7eb6"
+      ],
+      "components": {
+        "en": {
+          "buildingName": null,
+          "blockDescriptor": "House",
+          "blockNumber": "3"
+        },
+        "zh-hant": {
+          "buildingName": null,
+          "blockDescriptor": "洋房",
+          "blockNumber": "3"
+        }
+      },
+      "sourceVersionTo": "2026-09-22.0"
+    },
+    {
+      "id": "tam-towers-block-1",
+      "csu": "3114114160T20050430",
+      "sourceName": "TAM TOWERS BLOCK 1",
+      "hashes": [
+        "4a99ac7c9fcb59ea85ca8771412099aaf3840ac07c662b57277e4aa798e03d5c"
+      ],
+      "components": {
+        "en": {
+          "buildingName": "Tam Towers",
+          "blockDescriptor": "Block",
+          "blockNumber": "1"
+        },
+        "zh-hant": {
+          "buildingName": "譚益芳樓",
+          "blockDescriptor": "座",
+          "blockNumber": "1"
+        }
+      },
+      "sourceVersionTo": "2026-02-04.0"
+    },
+    {
+      "id": "tam-towers-block-2",
+      "csu": "3112214204T20050430",
+      "sourceName": "TAM TOWERS BLOCK 2",
+      "hashes": [
+        "3d5bb3251a8668015ef3ab712738f8354008fda9cb0010dcd96b464fa58ec035"
+      ],
+      "components": {
+        "en": {
+          "buildingName": "Tam Towers",
+          "blockDescriptor": "Block",
+          "blockNumber": "2"
+        },
+        "zh-hant": {
+          "buildingName": "譚益芳樓",
+          "blockDescriptor": "座",
+          "blockNumber": "2"
+        }
+      },
+      "sourceVersionTo": "2026-02-04.0"
+    },
+    {
+      "id": "tam-towers-block-3",
+      "csu": "3110814241T20050430",
+      "sourceName": "TAM TOWERS BLOCK 3",
+      "hashes": [
+        "5cd33c838189b996c57d1a6ad3d3853f403377beccca2a677c73fe18f984048d"
+      ],
+      "components": {
+        "en": {
+          "buildingName": "Tam Towers",
+          "blockDescriptor": "Block",
+          "blockNumber": "3"
+        },
+        "zh-hant": {
+          "buildingName": "譚益芳樓",
+          "blockDescriptor": "座",
+          "blockNumber": "3"
+        }
+      },
+      "sourceVersionTo": "2026-02-04.0"
+    },
+    {
+      "id": "tam-gardens-block-4",
+      "csu": "3106414295T20050430",
+      "sourceName": "TAM GARDENS BLOCK 4",
+      "hashes": [
+        "e7a849e35757fe4f867c7a82e41bee0f314edf1ec35700fe08a00526482ae003",
+        "63d292f12c99eeae60de3c7488b3a605664e92d240f6f6ea27e6f7cf118e008e"
+      ],
+      "components": {
+        "en": {
+          "buildingName": "Tam Gardens",
+          "blockDescriptor": "Block",
+          "blockNumber": "4"
+        },
+        "zh-hant": {
+          "buildingName": "譚亦衡樓",
+          "blockDescriptor": "座",
+          "blockNumber": "4"
+        }
+      },
+      "sourceVersionTo": "2026-09-22.0"
+    },
+    {
+      "id": "tam-gardens-block-5",
+      "csu": "3106214263T20050430",
+      "sourceName": "TAM GARDENS BLOCK 5",
+      "hashes": [
+        "ac50072f5277c69e4bfb25bf299bbb7e5ee51274b77fca917f53d502bc523458"
+      ],
+      "components": {
+        "en": {
+          "buildingName": "Tam Gardens",
+          "blockDescriptor": "Block",
+          "blockNumber": "5"
+        },
+        "zh-hant": {
+          "buildingName": "譚亦衡樓",
+          "blockDescriptor": "座",
+          "blockNumber": "5"
+        }
+      },
+      "sourceVersionTo": "2026-02-04.0"
+    }
+  ]
+}

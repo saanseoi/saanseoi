@@ -1701,3 +1701,59 @@ distinct ID under the explicit review instruction. Evidence must match the exact
 and retain its source URLs and dates. An established building’s rename, ownership change
 or refurbishment alone does not establish a new development; unclear cases remain
 subject to review.
+
+The `2024-11-13.0` Wang Cheong Factory Estate site record receives a distinct ID from
+the former Block 1 under the construction-research instruction. Housing Authority’s
+[2024/25 corporate plan](https://www.housingauthority.gov.hk/en/common/pdf/about-us/publications-and-statistics/publication-archive/corporate-plan/CP_2024-25.pdf)
+records clearance in January 2023 and demolition starting in March 2023. Its
+[May 2024 contract awards](https://www.housingauthority.gov.hk/en/common/pdf/business-partnerships/tenders/BP_Tender_Award_May.pdf)
+record foundation contract 20230324 awarded on 20 May 2024; the contractor’s
+[2024 interim report](https://www1.hkexnews.hk/listedco/listconews/sehk/2024/1209/2024120900219.pdf)
+lists foundation works in progress as at 30 September 2024. This supports a distinct
+replacement-site identity around the November source change without asserting that a new
+residential building was complete. Exact identity keys, evidence URLs and the sealed
+review digest accompany the decision.
+
+The `2024-12-12.0` Felix Villas record at 61 Mount Davis Road retains its existing ID
+under the exported review decision. The source keeps the CSU and coordinates while
+removing Block 2 and moving Felix Villas into the estate name.
+[HKU’s staff quarters record](https://staffquarters.hku.hk/felix-villa) identifies eight
+houses built in 1922; this is a source-label correction for an established property. The
+decision retains the exact identity pair and sealed review digest.
+
+The `2025-01-23.0` GDS HK3 Data Center record at 23–33 Chai Wan Kok Street receives a
+distinct ID under the construction-research instruction. The Buildings Department’s
+[March 2023 Monthly Digest](https://www.bd.gov.hk/doc/en/whats-new/monthly-digests/Md2023e.zip),
+table 5.5 (printed page 24), records notification of commencement of general building
+and superstructure works for the data centre at that exact address. This construction
+period supports the January 2025 name addition as a new development without asserting an
+exact completion date. The decision retains the exact identity pair and sealed review
+digest.
+
+The January 2025 review assigns a distinct ID to the reprovisioned campus at 1D Oxford
+Road. Its English building name is curated as `Shine Skills Centre` through
+`hkgov-dpo-address-premise-renames.json`, independently of the identity decision. The
+correction covers verified publisher assertions from January 2025 onwards and updates
+the formatted address while preserving the original source names, Chinese name and
+geometry. Unexpected source evidence requires review.
+
+From the February 2025 release, `hkgov-dpo-address-structured-components.json` separates
+Houses 1–3 at 8 Hang Hau Wing Lung Road into house descriptors and references, leaving
+the street number as 8 and the building name empty. The separate unnamed source record
+at that location is not assigned a house number. Tam Towers uses its building name with
+Blocks 1–3; Tam Gardens uses its own name with Blocks 4–5. Chinese labels are split
+consistently, estate membership is retained, and formatted addresses do not repeat an
+identical estate and building name. Exact source-and-geometry hashes guard these
+component corrections. Publisher assertions and independently reviewed premise
+identities remain intact; published releases before February are not revised.
+
+The numbered Tam Towers and Tam Gardens Block 5 corrections end with February 2026, when
+those specific source assertions end. The later unnumbered Tam Towers representation is
+not assigned an inferred block number. Tam Villas retains its separate parent identity;
+Tam Towers Block 1 retains its distinct child identity.
+
+The April 2025 retirement approval for the SDM Jazz & Ballet Académie label is bound to
+its exact March membership record, including source ID, bilingual labels, coordinates
+and parent. Tamson Plaza retains its published March identity through the reviewed
+`THE 80|20` rename at 161 Wai Yip Street. These decisions do not infer demolition or a
+new development from a publisher name change.

@@ -392,6 +392,141 @@
           ]
         }
       ]
+    },
+    {
+      "id": "shine-skills-centre",
+      "authority": "User decision, 2026-10-16: use Shine Skills Centre for the reprovisioned campus at 1D Oxford Road; the January 2025 identity review independently selects a new ID.",
+      "csus": [
+        "3660721093T20050430"
+      ],
+      "sourceNames": [
+        "SHINE"
+      ],
+      "enName": "Shine Skills Centre",
+      "zhName": "展亮",
+      "preserveIdentity": true,
+      "assertions": [
+        {
+          "version": "2025-01-23.0",
+          "hashes": [
+            "5ef354a1c7500163e29ea3fbcbb4fe6799f79a294a0885092c181bd026d24b51"
+          ]
+        },
+        {
+          "version": "2025-02-25.0",
+          "hashes": [
+            "5ef354a1c7500163e29ea3fbcbb4fe6799f79a294a0885092c181bd026d24b51"
+          ]
+        },
+        {
+          "version": "2025-03-21.0",
+          "hashes": [
+            "5ef354a1c7500163e29ea3fbcbb4fe6799f79a294a0885092c181bd026d24b51"
+          ]
+        },
+        {
+          "version": "2025-04-26.0",
+          "hashes": [
+            "5ef354a1c7500163e29ea3fbcbb4fe6799f79a294a0885092c181bd026d24b51"
+          ]
+        },
+        {
+          "version": "2025-05-22.0",
+          "hashes": [
+            "5ef354a1c7500163e29ea3fbcbb4fe6799f79a294a0885092c181bd026d24b51"
+          ]
+        },
+        {
+          "version": "2025-06-20.0",
+          "hashes": [
+            "5ef354a1c7500163e29ea3fbcbb4fe6799f79a294a0885092c181bd026d24b51"
+          ]
+        },
+        {
+          "version": "2025-08-13.0",
+          "hashes": [
+            "5ef354a1c7500163e29ea3fbcbb4fe6799f79a294a0885092c181bd026d24b51"
+          ]
+        },
+        {
+          "version": "2025-08-28.0",
+          "hashes": [
+            "5ef354a1c7500163e29ea3fbcbb4fe6799f79a294a0885092c181bd026d24b51"
+          ]
+        },
+        {
+          "version": "2025-09-03.0",
+          "hashes": [
+            "5ef354a1c7500163e29ea3fbcbb4fe6799f79a294a0885092c181bd026d24b51"
+          ]
+        },
+        {
+          "version": "2025-11-04.0",
+          "hashes": [
+            "5ef354a1c7500163e29ea3fbcbb4fe6799f79a294a0885092c181bd026d24b51"
+          ]
+        },
+        {
+          "version": "2025-12-16.0",
+          "hashes": [
+            "5ef354a1c7500163e29ea3fbcbb4fe6799f79a294a0885092c181bd026d24b51"
+          ]
+        },
+        {
+          "version": "2026-02-04.0",
+          "hashes": [
+            "5ef354a1c7500163e29ea3fbcbb4fe6799f79a294a0885092c181bd026d24b51"
+          ]
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": [
+            "cb7734c6c967cdfeaf40ed53e7ceb1e352f20619a63f82dcb13c4124c258803a"
+          ]
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": [
+            "cb7734c6c967cdfeaf40ed53e7ceb1e352f20619a63f82dcb13c4124c258803a"
+          ]
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": [
+            "cb7734c6c967cdfeaf40ed53e7ceb1e352f20619a63f82dcb13c4124c258803a"
+          ]
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": [
+            "cb7734c6c967cdfeaf40ed53e7ceb1e352f20619a63f82dcb13c4124c258803a"
+          ]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": [
+            "cb7734c6c967cdfeaf40ed53e7ceb1e352f20619a63f82dcb13c4124c258803a"
+          ]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": [
+            "cb7734c6c967cdfeaf40ed53e7ceb1e352f20619a63f82dcb13c4124c258803a"
+          ]
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": [
+            "cb7734c6c967cdfeaf40ed53e7ceb1e352f20619a63f82dcb13c4124c258803a"
+          ]
+        },
+        {
+          "version": "2026-09-22.0",
+          "hashes": [
+            "cb7734c6c967cdfeaf40ed53e7ceb1e352f20619a63f82dcb13c4124c258803a"
+          ]
+        }
+      ]
     }
   ]
 }

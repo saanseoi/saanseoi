@@ -95,7 +95,7 @@
     },
     {
       "entry": 6,
-      "previousId": "ss-331c9202-40f2-5a4e-8a0b-0fc6fb61e5e7",
+      "previousId": "ss-43bee70a-8177-56f2-b6e5-f0a5ead297e7",
       "previousLabel": "SDM JAZZ & BALLET ACADEMIE, 6 CAMBRIDGE ROAD, KOWLOON CITY DISTRICT, KLN",
       "handling": "approve-retirement",
       "confidence": "human-reviewed",
@@ -147,7 +147,7 @@
     },
     {
       "entry": 9,
-      "previousId": "ss-643d002d-317a-54cc-8845-9cbf7e33097f",
+      "previousId": "ss-7e47d9a9-6bcb-56b7-a6f7-4b46f266c04e",
       "previousLabel": "TAMSON PLAZA, 161 WAI YIP STREET, KWUN TONG DISTRICT, KLN",
       "handling": "retain-reconcile",
       "confidence": "human-reviewed",
@@ -588,7 +588,7 @@
           null
         ]
       ],
-      "canonicalId": "ss-643d002d-317a-54cc-8845-9cbf7e33097f",
+      "canonicalId": "ss-7e47d9a9-6bcb-56b7-a6f7-4b46f266c04e",
       "retain": true,
       "coalesce": true,
       "application": {
