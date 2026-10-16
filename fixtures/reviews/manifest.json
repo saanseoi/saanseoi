@@ -123,6 +123,14 @@
       "sourceVersion": "2026-07-22.0"
     },
     {
+      "path": "fixtures/reviews/hkgov-dpo-address-investigations/2026-08-19.0-0258773270ff486994397b671d372d0de00baa0379a9ec4270fdde14b23fd52f.json",
+      "sha256": "96948be3fe24a1e1967a426c2b33880707e590373dd6a8ab381dc103c6b6110e",
+      "size": 8762839,
+      "objectKey": "evidence/sha256/96948be3fe24a1e1967a426c2b33880707e590373dd6a8ab381dc103c6b6110e",
+      "kind": "hkgov-dpo-address-investigations",
+      "sourceVersion": "2026-08-19.0"
+    },
+    {
       "path": "fixtures/reviews/hkgov-dpo-address-investigations/2026-08-19.0-05e67b2d2c7070f2e3c23da5e3804389dd32752bcb8c96d772895b10aec9c81a.json",
       "sha256": "768b674588c7913008782639273a2f14b40d85c0f5f25528ad0e4b6e49375a9e",
       "size": 10193100,
@@ -232,6 +240,14 @@
       "objectKey": "evidence/sha256/325be668e39265c717640b3af4c8e51b2a3b52a1ca25f451fb4b3c38c47caebb",
       "kind": "hkgov-dpo-address-investigations",
       "sourceVersion": "2026-07-22.0"
+    },
+    {
+      "path": "fixtures/reviews/hkgov-dpo-address-investigations/preparation-2026-08-19.0-1eb1b32202ee98a9937d09b3bb7c4a1b1c5da7be712045c2c78f84d8b012bec4.json",
+      "sha256": "a388b91ab6eda72d7f3ca8af614b126865ded963f7365b32ba4a056419271fa1",
+      "size": 260853,
+      "objectKey": "evidence/sha256/a388b91ab6eda72d7f3ca8af614b126865ded963f7365b32ba4a056419271fa1",
+      "kind": "hkgov-dpo-address-investigations",
+      "sourceVersion": "2026-08-19.0"
     },
     {
       "path": "fixtures/reviews/hkgov-dpo-address-investigations/preparation-2026-08-19.0-3924798be2628114430902c539dfa73de906eb7a0ae72a28788b0c9fa3edc559.json",
