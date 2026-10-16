@@ -1,3 +1,4 @@
+import { isDeepStrictEqual } from 'node:util'
 import { requireDefined } from '@repo/core/requireDefined'
 import { AssertionError, strict as assert } from 'node:assert'
 import fixture from '../../../../../../../fixtures/meta/curations/hkgov-dpo-address-coordinate-backfills.json'
@@ -61,11 +62,16 @@ export function backfillAlsCoordinates(
         'Point',
         `ALS coordinate backfill ${decision.id}: source geometry changed`,
       )
-      assert.deepEqual(
-        publisherGeometry.coordinates,
-        decision.previousCoordinates,
-        `ALS coordinate backfill ${decision.id}: source point changed`,
-      )
+      const returnedToRetainedPoint =
+        'retention' in decision &&
+        decision.retention === 'until-revoked' &&
+        isDeepStrictEqual(publisherGeometry.coordinates, decision.currentCoordinates)
+      if (!returnedToRetainedPoint)
+        assert.deepEqual(
+          publisherGeometry.coordinates,
+          decision.previousCoordinates,
+          `ALS coordinate backfill ${decision.id}: source point changed`,
+        )
     } catch (error) {
       if (!skipCurationChecks || !(error instanceof AssertionError)) throw error
       reportAlsCurationGuard(version, curationFile, decision.id, error)

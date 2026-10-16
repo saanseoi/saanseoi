@@ -1937,3 +1937,7 @@ historical targets still require an exact match.
 ALS 3D source features are read incrementally with file-stream backpressure, preserving
 UTF-8 text, source order and LF/CRLF line endings when processing pauses between
 features. Incomplete feature blocks are rejected.
+
+An until-revoked coordinate decision accepts the publisher returning exactly to the
+retained point, preserving that publisher geometry in provenance. A different third
+point still requires review.

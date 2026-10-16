@@ -319,3 +319,31 @@ test('coordinate backfill ranges never overlap for the same source premise', () 
     }
   }
 })
+
+test('a publisher return to an explicitly retained point preserves that point and rejects any third point', () => {
+  const version = '2026-09-22.0'
+  const decisions = fixture.backfills.filter(
+    d => d.sourceVersionFrom <= version && d.sourceVersionTo >= version,
+  )
+  const rows = decisions.map(rowFor)
+  const index = decisions.findIndex(
+    d => d.id === 'kwong-fuk-kwong-yan-original-point-until-revoked',
+  )
+  const decision = requireDefined(decisions[index])
+  const target = requireDefined(rows[index])
+  target.geometry = JSON.stringify({
+    type: 'Point',
+    coordinates: decision.currentCoordinates,
+  })
+  expect(backfillAlsCoordinates(rows, version).backfilled).toBe(decisions.length)
+  expect(JSON.parse(target.sources).hkgovAlsCoordinateBackfill).toMatchObject({
+    publisherGeometry: { coordinates: decision.currentCoordinates },
+    derivedGeometry: { coordinates: decision.currentCoordinates },
+  })
+  const changed = decisions.map(rowFor)
+  requireDefined(changed[index]).geometry = JSON.stringify({
+    type: 'Point',
+    coordinates: [0, 0],
+  })
+  expect(() => backfillAlsCoordinates(changed, version)).toThrow('source point changed')
+})
