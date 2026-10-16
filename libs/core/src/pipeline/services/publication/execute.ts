@@ -47,7 +47,7 @@ export async function beginSnapshotPublication(
 /** Resolve a completed local mirror, including an acknowledged deferred publication. */
 export async function getPreparedPublication(
   db: import('../../../lib/db/types').HarbourReadableDb,
-  table: import('./sql').PublicationTable,
+  table: import('./sql').PublicationTable | 'addressPublicationState',
   scopeId: string,
 ) {
   return (
@@ -67,7 +67,7 @@ export async function getPreparedPublication(
 /** Lookup reads retain logical revision selection while current records use stable keys. */
 export async function resolvePreparedPublicationScope(
   db: import('../../../lib/db/types').HarbourReadableDb,
-  table: import('./sql').PublicationTable,
+  table: import('./sql').PublicationTable | 'addressPublicationState',
   snapshotId: string,
 ) {
   const row = await db
@@ -228,7 +228,7 @@ export function guardSnapshotPublicationWrites<T extends object>(
 /** Metadata chooses the published predecessor; the local mirror proves acknowledged delivery. */
 export async function assertPublishedSnapshotMaterialised(
   db: import('../../../lib/db/types').HarbourReadableDb,
-  table: import('./sql').PublicationTable,
+  table: import('./sql').PublicationTable | 'addressPublicationState',
   snapshotId: string,
 ) {
   const row = await db

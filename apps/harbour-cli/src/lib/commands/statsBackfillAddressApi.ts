@@ -1,7 +1,7 @@
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import { replaceApiReleaseSetStats } from '@repo/core/pipeline/db/stats'
 
-import { buildAddressApiReleaseSetStatsForSnapshot } from '../api/apiReleaseSetStats.ts'
+import { buildHistoricalAddressApiReleaseSetStats } from '../api/apiReleaseSetStats.ts'
 import {
   buildAddressApiReleaseSetChurn,
   listAddressStatsReleases,
@@ -60,8 +60,9 @@ export async function runAddressApiStatsBackfillCommand(
         context.historyTargets,
         releaseSet.id,
       )
-      const rows = await buildAddressApiReleaseSetStatsForSnapshot(
-        context.currentDb as unknown as HarbourReadableDb,
+      const rows = await buildHistoricalAddressApiReleaseSetStats(
+        metaDb,
+        context.historyTargets,
         releaseSet.snapshotId,
         undefined,
         churn,

@@ -1,3 +1,4 @@
+import { PlaceDependencyView } from '../pipeline/places/placeDependencyView'
 import {
   buildApiRecordReleaseChurn,
   assertApiRecordChangeTotals,
@@ -198,8 +199,9 @@ export async function calculateAndStoreApiReleaseSetStats(
                   options.historyTargets ?? [],
                   apiReleaseSetId,
                 )
-                return buildAddressApiReleaseSetStatsForSnapshot(
-                  options.currentDb,
+                return buildHistoricalAddressApiReleaseSetStats(
+                  options.metaDb,
+                  options.historyTargets ?? [],
                   snapshotId,
                   options.addressQuality,
                   churn,
@@ -291,12 +293,39 @@ export async function calculateAndStoreApiReleaseSetStats(
   }
 }
 
+/** Historical releases must not borrow counts from the mutable serving scope. */
+export async function buildHistoricalAddressApiReleaseSetStats(
+  metaDb: HarbourReadableDb,
+  historyTargets: DivisionHistoryTarget[],
+  snapshotId: string,
+  quality?: AddressDivisionQualityCounts,
+  churn?: Parameters<typeof buildAddressApiReleaseSetStatsRows>[0]['churn'],
+) {
+  const view = await PlaceDependencyView.create({ metaDb, historyTargets })
+  try {
+    const db = await view.prepare(snapshotId)
+    return await buildAddressApiReleaseSetStatsForSnapshot(
+      db,
+      snapshotId,
+      quality,
+      churn,
+    )
+  } finally {
+    await view.close()
+  }
+}
+
 export async function buildAddressApiReleaseSetStatsForSnapshot(
   db: HarbourReadableDb,
   snapshotId: string,
   quality?: AddressDivisionQualityCounts,
   churn?: Parameters<typeof buildAddressApiReleaseSetStatsRows>[0]['churn'],
 ): Promise<ApiReleaseSetScopedStatsRow[]> {
+  const scopeId = await resolvePreparedPublicationScope(
+    db,
+    'addressPublicationState',
+    snapshotId,
+  )
   const [
     address2dCount,
     address2dI18nCount,
@@ -310,25 +339,25 @@ export async function buildAddressApiReleaseSetStatsForSnapshot(
     unmatchedAreaCount,
     unmatchedDistrictCount,
   ] = await Promise.all([
-    countRows(db, currentSchema.address2d, currentSchema.address2d.scopeId, snapshotId),
+    countRows(db, currentSchema.address2d, currentSchema.address2d.scopeId, scopeId),
     countRows(
       db,
       currentSchema.address2dI18n,
       currentSchema.address2dI18n.scopeId,
-      snapshotId,
+      scopeId,
     ),
-    countRows(db, currentSchema.address3d, currentSchema.address3d.scopeId, snapshotId),
+    countRows(db, currentSchema.address3d, currentSchema.address3d.scopeId, scopeId),
     countRows(
       db,
       currentSchema.address3dI18n,
       currentSchema.address3dI18n.scopeId,
-      snapshotId,
+      scopeId,
     ),
     countWhere(
       db,
       currentSchema.address2d,
       and(
-        eq(currentSchema.address2d.scopeId, snapshotId),
+        eq(currentSchema.address2d.scopeId, scopeId),
         sql`${currentSchema.address2d.streetId} IS NOT NULL`,
       ),
     ),
@@ -336,7 +365,7 @@ export async function buildAddressApiReleaseSetStatsForSnapshot(
       db,
       currentSchema.address2d,
       and(
-        eq(currentSchema.address2d.scopeId, snapshotId),
+        eq(currentSchema.address2d.scopeId, scopeId),
         sql`${currentSchema.address2d.districtId} IS NOT NULL`,
       ),
     ),
@@ -344,23 +373,23 @@ export async function buildAddressApiReleaseSetStatsForSnapshot(
       db,
       currentSchema.address2d,
       and(
-        eq(currentSchema.address2d.scopeId, snapshotId),
+        eq(currentSchema.address2d.scopeId, scopeId),
         sql`${currentSchema.address2d.areaId} IS NOT NULL`,
       ),
     ),
-    buildAddressComponentCounts(db, snapshotId),
+    buildAddressComponentCounts(db, scopeId),
     countGrouped(
       db,
       currentSchema.address2d,
       currentSchema.address2d.scopeId,
-      snapshotId,
+      scopeId,
       currentSchema.address2d.districtId,
     ),
     countWhere(
       db,
       currentSchema.address2d,
       and(
-        eq(currentSchema.address2d.scopeId, snapshotId),
+        eq(currentSchema.address2d.scopeId, scopeId),
         sql`${currentSchema.address2d.areaId} IS NULL`,
       ),
     ),
@@ -368,18 +397,18 @@ export async function buildAddressApiReleaseSetStatsForSnapshot(
       db,
       currentSchema.address2d,
       and(
-        eq(currentSchema.address2d.scopeId, snapshotId),
+        eq(currentSchema.address2d.scopeId, scopeId),
         sql`${currentSchema.address2d.districtId} IS NULL`,
       ),
     ),
   ])
-  const localeStats = await buildAddressLocaleStats(db, snapshotId, address2dCount)
+  const localeStats = await buildAddressLocaleStats(db, scopeId, address2dCount)
   const unitStats = await db
     .select({
       count: sql<number>`COALESCE(SUM(${currentSchema.address3d.unitCount}), 0)`,
     })
     .from(currentSchema.address3d)
-    .where(eq(currentSchema.address3d.scopeId, snapshotId))
+    .where(eq(currentSchema.address3d.scopeId, scopeId))
     .get()
 
   return buildAddressApiReleaseSetStatsRows({

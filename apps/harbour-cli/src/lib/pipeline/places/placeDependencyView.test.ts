@@ -1,3 +1,4 @@
+import { buildAddressApiReleaseSetStatsForSnapshot } from '../../api/apiReleaseSetStats'
 import { preparePlaceDivisionDefinitions } from './placeDivisionDefinitions'
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
@@ -390,6 +391,22 @@ test('exact historical Place dependencies replay independent locale shards and s
       db.query('SELECT total_changes() AS n').get(),
     )
     await view.prepare('a1')
+    const stats = await buildAddressApiReleaseSetStatsForSnapshot(view.db, 'a1')
+    expect(
+      stats.find(
+        row => row.category === 'records' && row.measure === 'count' && !row.dimension,
+      )?.value,
+    ).toBe(1)
+    // A real serving scope is independent from the immutable snapshot ID.
+    const servingStats = await buildAddressApiReleaseSetStatsForSnapshot(
+      createLocalHarbourDb(current),
+      'a2',
+    )
+    expect(
+      servingStats.find(
+        row => row.category === 'records' && row.measure === 'count' && !row.dimension,
+      )?.value,
+    ).toBe(0)
     expect(
       (
         await view.db

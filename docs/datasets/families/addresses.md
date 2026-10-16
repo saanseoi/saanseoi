@@ -1841,3 +1841,6 @@ point still requires review.
 Exact bilingual 3D block-variant consolidation carries existing continuity aliases to
 the surviving address and retains the suppressed assertion in provenance. This does not
 approve an unreviewed estate interpretation.
+
+Historical Address release statistics replay the exact retained snapshot, including its
+locale and inventory versions, independently of the current serving scope.
