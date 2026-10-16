@@ -50,7 +50,7 @@ const productionLabel = $derived(
   >
     <button
       type="button"
-      class="flex size-12 items-center justify-center rounded-xl transition hover:bg-surface-container focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-30"
+      class="flex size-12 items-center justify-center rounded-xl text-green-700 dark:text-green-400 transition hover:bg-surface-container focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-30"
       class:bg-surface-container-high={approved}
       aria-label={approvalLabel}
       title={approvalLabel}
@@ -62,7 +62,7 @@ const productionLabel = $derived(
     </button>
     <button
       type="button"
-      class="flex size-12 items-center justify-center rounded-xl transition hover:bg-surface-container focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-30"
+      class="flex size-12 items-center justify-center rounded-xl text-blue-700 dark:text-blue-400 transition hover:bg-surface-container focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-30"
       class:bg-surface-container-high={productionReview}
       aria-label={productionLabel}
       title={productionLabel}
@@ -74,7 +74,7 @@ const productionLabel = $derived(
     </button>
     <button
       type="button"
-      class="flex size-12 items-center justify-center rounded-xl transition hover:bg-surface-container focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-30"
+      class="flex size-12 items-center justify-center rounded-xl text-yellow-700 dark:text-yellow-400 transition hover:bg-surface-container focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-30"
       aria-label="Next unreviewed view"
       title={notice || 'Next unreviewed view'}
       disabled={busy}

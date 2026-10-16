@@ -5,7 +5,26 @@ import {
   toCompleteSample,
 } from '../../../atlas-app/src/lib/bits/pages/docs/components/releaseSamples/releaseSamplesPresentation'
 import type { Inspection } from './types'
-let { data }: { data: Inspection } = $props()
+let {
+  data,
+  approved,
+  productionReview,
+  staleApproval,
+}: {
+  data: Inspection
+  approved: boolean
+  productionReview: boolean
+  staleApproval: boolean
+} = $props()
+const reviewStatus = $derived(
+  productionReview
+    ? 'Production review'
+    : approved
+      ? 'Signed off'
+      : staleApproval
+        ? 'Sign-off outdated'
+        : 'Unreviewed',
+)
 let activeSampleIds = $state<string[] | null>(null)
 let selectedSampleIds = $state<string[] | null>(null)
 // Synthetic viewer IDs preserve duplicate physical rows and original record IDs.
@@ -25,7 +44,17 @@ const fields = $derived(groupAddressSamples(samples))
 </script>
 <section class="space-y-3" aria-label="Record samples">
   <div class="flex flex-wrap items-baseline justify-between gap-3">
-    <h2 class="text-xl font-semibold">{data.table}</h2>
+    <h2
+      class={`text-xl font-semibold ${productionReview ? 'text-blue-700 dark:text-blue-400' : approved ? 'text-green-700 dark:text-green-400' : staleApproval ? 'text-yellow-700 dark:text-yellow-400' : ''}`}
+      title={reviewStatus}
+    >
+      {data.table}
+      {#if approved || productionReview || staleApproval}
+        <span class="ml-2 text-sm font-normal">· {reviewStatus}</span>
+      {:else}
+        <span class="sr-only"> · {reviewStatus}</span>
+      {/if}
+    </h2>
     <p class="text-sm">
       {samples.length}
       samples · hover or select values to follow a record

@@ -55,9 +55,12 @@ Hover for action names; each button also has an accessible label. Navigation ski
 signed-off and production-review views across subsets, tables and groups within the
 selected shard type. Dropdowns still allow returning to a signed-off view; **Undo
 sign-off** reopens it. Progress is stored in this browser's local storage and
-synchronised between tabs on the same origin. It is not a shared team approval ledger. A
-conservative revision of the META and selected shard files (including WAL files)
-invalidates approvals after local database changes, even if an unrelated table changed.
+synchronised between tabs on the same origin. It is not a shared team approval ledger.
+Each sign-off fingerprints the schema and every matching row across the selected view’s
+physical shards, including duplicate rows. Changes to unrelated tables or rows outside
+the selected group/subset do not invalidate it. A changed fingerprint displays
+**Sign-off outdated**. Fingerprinting scans the complete view, independently of the
+sample count, and navigation verifies saved fingerprints before skipping reviewed views.
 Sign-off is unavailable when samples and counts came from different or changing
 revisions. Sample count and random resampling do not create separate views.
 

@@ -257,3 +257,46 @@ test('empty WAL housekeeping does not invalidate a data review revision', () => 
     review.close()
   }
 })
+
+test('content sign-offs ignore unrelated writes and samples but track scoped rows and schema', () => {
+  const review = fixture([
+    {
+      binding: 'DB_HISTORY_HK_2026',
+      sql: `
+    CREATE TABLE records(id TEXT, snapshotId TEXT, operation TEXT, value TEXT);
+    CREATE TABLE unrelated(id TEXT);
+    INSERT INTO records VALUES ('a','snap','upsert','one'),('b','snap','delete','two'),('c','unrelated','upsert','three');
+  `,
+    },
+  ])
+  const writer = new Database(review.shards[1].path)
+  const meta = new Database(review.shards[0].path)
+  const subset = JSON.stringify(['operation', 'upsert'])
+  const fingerprint = (summary = true, limit = 8) =>
+    review.inspect('HISTORY', 'lineage', 'records', summary, limit, subset)
+      .contentRevision
+  try {
+    const original = fingerprint()
+    expect(fingerprint(false, 1)).toBe(original)
+    expect(fingerprint(false, 20)).toBe(original)
+    writer.exec(
+      "INSERT INTO unrelated VALUES ('new'); UPDATE records SET value='changed' WHERE id IN ('b','c')",
+    )
+    meta.exec("UPDATE resourceReleases SET code='renamed'")
+    expect(fingerprint()).toBe(original)
+    writer.exec("UPDATE records SET value='changed' WHERE id='a'")
+    expect(fingerprint()).not.toBe(original)
+    writer.exec("UPDATE records SET value='one' WHERE id='a'")
+    expect(fingerprint()).toBe(original)
+    writer.exec("INSERT INTO records SELECT * FROM records WHERE id='a'")
+    expect(fingerprint()).not.toBe(original)
+    writer.exec('DELETE FROM records WHERE rowid=(SELECT max(rowid) FROM records)')
+    expect(fingerprint()).toBe(original)
+    writer.exec('ALTER TABLE records ADD COLUMN extra TEXT')
+    expect(fingerprint()).not.toBe(original)
+  } finally {
+    writer.close()
+    meta.close()
+    review.close()
+  }
+})

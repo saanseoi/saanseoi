@@ -52,13 +52,14 @@ const productionEntries = $derived(
 let controller: AbortController | undefined
 let planController: AbortController | undefined
 const key = $derived(viewKey(kind, group, table, subset))
-const approved = $derived(isApproved(signoffs, key, revision))
+const approved = $derived(isApproved(signoffs, key, data?.contentRevision ?? ''))
 const canApprove = $derived(
   Boolean(
     data &&
       summary &&
       data.stable &&
       summary.stable &&
+      data.contentRevision === summary.contentRevision &&
       data.revision === summary.revision &&
       data.revision === revision &&
       !error &&
@@ -123,9 +124,10 @@ function save() {
 function approvalLabel(target: string, slice: string) {
   if (needsProductionReview(productionReviews, kind, group, target))
     return ' · Production review'
-  return isApproved(signoffs, viewKey(kind, group, target, slice), revision)
-    ? ' ✓ Signed off'
-    : ''
+  const saved = signoffs[viewKey(kind, group, target, slice)]
+  if (target === table && slice === subset && data)
+    return approved ? ' ✓ Signed off' : saved ? ' · Sign-off outdated' : ''
+  return saved ? ' · Sign-off saved' : ''
 }
 async function loadSamples() {
   controller?.abort()
@@ -169,7 +171,10 @@ function checkConsistency() {
   if (
     data &&
     summary &&
-    (!data.stable || !summary.stable || data.revision !== summary.revision)
+    (!data.stable ||
+      !summary.stable ||
+      data.revision !== summary.revision ||
+      data.contentRevision !== summary.contentRevision)
   )
     notice =
       'The local data changed while this view loaded. Refresh samples before signing off.'
@@ -264,15 +269,20 @@ async function seek(
               ? 0
               : views.length - 1
         for (; vi >= 0 && vi < views.length; vi += direction) {
-          if (
-            onlyPending &&
-            isApproved(
-              signoffs,
-              viewKey(kind, targetGroup, targetTable, views[vi]),
-              revision,
+          const savedKey = viewKey(kind, targetGroup, targetTable, views[vi])
+          if (onlyPending && signoffs[savedKey]) {
+            const inspection = await get<Inspection>('summary', current.signal, {
+              group: targetGroup,
+              table: targetTable,
+              subset: views[vi],
+            })
+            if (current.signal.aborted) return
+            if (
+              inspection.stable &&
+              isApproved(signoffs, savedKey, inspection.contentRevision)
             )
-          )
-            continue
+              continue
+          }
           await show(
             targetGroup,
             targetTable,
@@ -406,7 +416,10 @@ function removeProductionReview(entry: ProductionReview) {
 }
 function approve() {
   if (!canApprove || productionReview) return
-  signoffs = { ...signoffs, [key]: { revision, signedAt: new Date().toISOString() } }
+  signoffs = {
+    ...signoffs,
+    [key]: { revision: data!.contentRevision, signedAt: new Date().toISOString() },
+  }
   save()
   void seek(1, 'view', true)
 }
@@ -484,7 +497,12 @@ onMount(() => {
     <p role="alert" class="text-red-700 dark:text-red-400">{error}</p>
   {:else if data}
     {#key `${kind}/${group}/${table}/${subset}`}
-      <SamplePanel {data} />
+      <SamplePanel
+        {data}
+        {approved}
+        {productionReview}
+        staleApproval={Boolean(signoffs[key]) && !approved}
+      />
     {/key}
   {:else}
     <p>{notice || 'No review groups are available.'}</p>

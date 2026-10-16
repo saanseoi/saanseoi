@@ -539,11 +539,16 @@ export class ReviewDatabase {
       throw new Error('META group must match table')
     const sources = selected.filter(s => this.names(s.db).includes(table))
     if (!sources.length) throw new Error('Unknown table')
+    const content = createHash('sha256').update(
+      JSON.stringify([kind, group, table, subset]),
+    )
     const rows: Array<{ shard: string; record: Row }> = []
     const schemas: Array<{ binding: string; columns: Column[] }> = []
     const columns = new Map<string, Column & { nulls: number; rows: number }>()
     const shards: Array<{ binding: string; count?: number; relation: string }> = []
-    for (const { db, binding } of sources) {
+    for (const { db, binding } of [...sources].sort((a, b) =>
+      a.binding.localeCompare(b.binding),
+    )) {
       const schema = this.columns(db, table)
       const filter =
         kind === 'META'
@@ -576,6 +581,29 @@ export class ReviewDatabase {
           ? [group]
           : []
       const where = `FROM ${q(table)} r WHERE (${filter.sql}) AND (${slice.sql})`
+      // Hash every matching raw row, including duplicates, independently of samples.
+      // Stable SQL ordering removes insertion/physical row order from the fingerprint.
+      content.update(JSON.stringify([binding, schema]))
+      const contentOrder = schema
+        .flatMap(c => [`r.${q(c.name)} COLLATE BINARY`, `typeof(r.${q(c.name)})`])
+        .join(', ')
+      const contentRows = db.query(`SELECT r.* ${where} ORDER BY ${contentOrder}`)
+      // Bun 1.4 supports statement-level integer precision; bundled types lag it.
+      ;(
+        contentRows as typeof contentRows & { safeIntegers(enabled: boolean): unknown }
+      ).safeIntegers(true)
+      for (const row of contentRows.iterate(...params)) {
+        content.update(
+          JSON.stringify(row, (_, value) =>
+            typeof value === 'bigint'
+              ? { integer: value.toString() }
+              : value instanceof Uint8Array
+                ? { blob: Buffer.from(value).toString('hex') }
+                : value,
+          ),
+        )
+        content.update('\n')
+      }
       if (summary) {
         const aggregates = schema
           .map((c, i) => `SUM(r.${q(c.name)} IS NULL) AS ${q(`n${i}`)}`)
@@ -664,6 +692,7 @@ export class ReviewDatabase {
       table,
       subset,
       revision,
+      contentRevision: `contents-v1:${content.digest('hex')}`,
       stable: revision === this.revision(kind),
       samples,
       shards,
