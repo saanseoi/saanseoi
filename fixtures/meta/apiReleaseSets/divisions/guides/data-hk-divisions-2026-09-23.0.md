@@ -301,7 +301,7 @@ The API returns a number of error codes. Here is how to recover from each one:
 # ZH-HANT
 
 <note title="已棄用的 API 端點">
-<orange>已棄用</orange> <black>/divisions/v0.1</black> API 端點已棄用。新整合請使用 <black>/divisions/v0.2</black> 及其 SaanSeoi inventory。此發布記錄 Overture inventory；其識別碼、層級及幾何選項屬於 v0.1。請參閱 [v0.2 指南](/apis/divisions/data-hk-divisions-2026-10-01.0?tab=guide)。
+<orange>已棄用</orange> <black>/divisions/v0.1</black> API 端點已棄用。新整合請使用 <black>/divisions/v0.2</black> 及其山水 inventory。此發布記錄 Overture inventory；其識別碼、層級及幾何選項屬於 v0.1。請參閱 [v0.2 指南](/apis/divisions/data-hk-divisions-2026-10-01.0?tab=guide)。
 </note>
 
 ## 使用 Divisions API
@@ -422,7 +422,7 @@ The API returns a number of error codes. Here is how to recover from each one:
 <black>profile=map</black> 或 <black>profile=full</black> 時會包含此資料。
 
 <note title="幾何資料品質">
-Overture 的幾何資料有已知品質問題。SaanSeoi 的目標之一，是為香港鄰里提供廣泛的共識幾何資料；現階段請按用途選擇最合適的配套資料集。例如，<black>include=areas:hkgov-had</black> 提供官方地區面積幾何資料。
+Overture 的幾何資料有已知品質問題。山水的目標之一，是為香港鄰里提供廣泛的共識幾何資料；現階段請按用途選擇最合適的配套資料集。例如，<black>include=areas:hkgov-had</black> 提供官方地區面積幾何資料。
 </note>
 
 以 <black>include=</black> 設定，從下列配套資料集選取額外幾何資料：
@@ -555,7 +555,7 @@ API 會傳回多種錯誤碼。以下說明各種情況的復原方法：
 # ZH-HANS
 
 <note title="已弃用的 API 端点">
-<orange>已弃用</orange> <black>/divisions/v0.1</black> API 端点已弃用。新集成请使用 <black>/divisions/v0.2</black> 及其 SaanSeoi inventory。此发布记录 Overture inventory；其标识符、层级及几何选项属于 v0.1。请参阅 [v0.2 指南](/apis/divisions/data-hk-divisions-2026-10-01.0?tab=guide)。
+<orange>已弃用</orange> <black>/divisions/v0.1</black> API 端点已弃用。新集成请使用 <black>/divisions/v0.2</black> 及其山水 inventory。此发布记录 Overture inventory；其标识符、层级及几何选项属于 v0.1。请参阅 [v0.2 指南](/apis/divisions/data-hk-divisions-2026-10-01.0?tab=guide)。
 </note>
 
 ## 使用 Divisions API
@@ -676,7 +676,7 @@ API 會傳回多種錯誤碼。以下說明各種情況的復原方法：
 <black>profile=map</black> 或 <black>profile=full</black> 时会包含此数据。
 
 <note title="几何数据质量">
-Overture 的几何数据有已知质量问题。SaanSeoi 的目标之一，是为香港邻里提供广泛的共识几何数据；现阶段请按用途选择最合适的配套数据集。例如，<black>include=areas:hkgov-had</black> 提供官方地区面积几何数据。
+Overture 的几何数据有已知质量问题。山水的目标之一，是为香港邻里提供广泛的共识几何数据；现阶段请按用途选择最合适的配套数据集。例如，<black>include=areas:hkgov-had</black> 提供官方地区面积几何数据。
 </note>
 
 以 <black>include=</black> 设置，从下列配套数据集选择额外几何数据：

@@ -64,12 +64,12 @@ The original point geometry is stored separately as `sourceGeometry` in
 
 ## 更新紀錄
 
-- 山水 | SaanSeoi 初始版本。
+- 山水初始版本。
 - 收錄地政總署地名資料庫的全部 2,706 筆記錄，涵蓋居住地、水文及地形名稱，並提供位置、官方名稱及別名。
 
 ## 版本控制
 
-此來源版本按發布者的歸檔日期編號。其不可變更的 SaanSeoi 版本為
+此來源版本按發布者的歸檔日期編號。其不可變更的山水版本為
 <black>{{ releaseVersion }}</black>。
 
 ## 幾何
@@ -85,7 +85,7 @@ The original point geometry is stored separately as `sourceGeometry` in
 
 ### 來源欄位的儲存方式
 
-來源屬性以 SaanSeoi 的 camelCase 欄位名稱儲存在來源記錄的 `properties`
+來源屬性以山水的 camelCase 欄位名稱儲存在來源記錄的 `properties`
 物件中。下表列出各欄位對應的發布者欄名。配對的名稱記錄以陣列儲存在
 `properties.placeNames`。
 
@@ -108,12 +108,12 @@ The original point geometry is stored separately as `sourceGeometry` in
 
 ## 更新记录
 
-- 山水 | SaanSeoi 初始版本。
+- 山水初始版本。
 - 收录地政总署地名数据库的全部 2,706 条记录，涵盖居住地、水文及地形名称，并提供位置、官方名称及别名。
 
 ## 版本控制
 
-此来源版本按发布者的归档日期编号。其不可变更的 SaanSeoi 版本为
+此来源版本按发布者的归档日期编号。其不可变更的山水版本为
 <black>{{ releaseVersion }}</black>。
 
 ## 几何
@@ -129,7 +129,7 @@ The original point geometry is stored separately as `sourceGeometry` in
 
 ### 来源字段的存储方式
 
-来源属性以 SaanSeoi 的 camelCase 字段名称存储在来源记录的 `properties`
+来源属性以山水的 camelCase 字段名称存储在来源记录的 `properties`
 对象中。下表列出各字段对应的发布者列名。匹配的名称记录以数组存储在
 `properties.placeNames`。
 

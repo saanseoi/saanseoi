@@ -137,13 +137,13 @@ Fields which are not exposed as part of the two-dimensional
 
 ## 更新紀錄
 
-- 山水 | SaanSeoi 初始版本
+- 山水初始版本
 - <orange>上游</orange> 數字政策辦公室地址查詢服務（ALS）於
   <black>{{publisherReleaseDate}}</black> 交付的二維地區 GeoJSON 資料
 
 ## 兼容性
 
-SaanSeoi 的 [Address](/docs#models/Address) 匯入 ALS 二維樓宇地址。來源模型為
+山水的 [Address](/docs#models/Address) 匯入 ALS 二維樓宇地址。來源模型為
 [ALS 資料字典](https://www.als.gov.hk/docs/Data_Dictionary_for_ALS_EN.pdf)
 所述的英文及繁體中文結構化 <black>PremisesAddress</black>。相對於 ALS delivery
 schema（`{{sourceSchemaVersion}}`），我們在以下方面有所偏離。獨立的公共租住房屋三維資料不屬於此二維資源。
@@ -240,13 +240,13 @@ schema（`{{sourceSchemaVersion}}`），我們在以下方面有所偏離。獨�
 
 ## 更新记录
 
-- 山水 | SaanSeoi 初始版本
+- 山水初始版本
 - <orange>上游</orange> 数字政策办公室地址查询服务（ALS）于
   <black>{{publisherReleaseDate}}</black> 交付的二维地区 GeoJSON 数据
 
 ## 兼容性
 
-SaanSeoi 的 [Address](/docs#models/Address) 导入 ALS 二维楼宇地址。来源模型为
+山水的 [Address](/docs#models/Address) 导入 ALS 二维楼宇地址。来源模型为
 [ALS 数据字典](https://www.als.gov.hk/docs/Data_Dictionary_for_ALS_EN.pdf)
 所述的英文及繁体中文结构化 <black>PremisesAddress</black>。相对于 ALS delivery
 schema（`{{sourceSchemaVersion}}`），我们在以下方面有所偏离。独立的公共租赁房屋三维数据不属于此二维资源。

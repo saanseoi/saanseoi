@@ -59,7 +59,7 @@ The reviewed mapping below is generated from this release's C&SD
 
 ## 變更記錄
 
-- 山水 | SaanSeoi 初始版本。
+- 山水初始版本。
 - <orange>上游</orange> 新增 [C&SD](saanseoi:zh-hant:definition/hkgov-censtatd/v1) 的
   {{ sourceVersion }}按區議會分區劃分的人口及住戶統計資料。
 
@@ -98,7 +98,7 @@ The reviewed mapping below is generated from this release's C&SD
 
 ## 变更记录
 
-- 山水 | SaanSeoi 初始版本。
+- 山水初始版本。
 - <orange>上游</orange> 新增 [C&SD](saanseoi:zh-hans:definition/hkgov-censtatd/v1) 的
   {{ sourceVersion }}按区议会分区划分的人口及住户统计数据。
 

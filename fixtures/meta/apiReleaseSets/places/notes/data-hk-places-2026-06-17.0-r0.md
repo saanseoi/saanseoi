@@ -78,10 +78,9 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 
 ## 備註與限制
 
-- Operating status 是發布者資料，並非 SaanSeoi 對 Place 開放狀態的獨立核實。
+- Operating status 是發布者資料，並非山水對 Place 開放狀態的獨立核實。
 
-- 此上游地理 filter 可在 cohort 之間移除 Place 記錄，卻不會確立 Division 歸屬：SaanSeoi
-  Division 關係仍只由已審核的 ALS 連結衍生，絕不由點幾何推斷。
+- 此上游地理 filter 可在 cohort 之間移除 Place 記錄，卻不會確立 Division 歸屬：山水 Division 關係仍只由已審核的 ALS 連結衍生，絕不由點幾何推斷。
 - H3 及全文索引是所選 Place snapshot 的衍生 projection。
 
 # ZH-HANS
@@ -108,8 +107,7 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 
 ## 备注与限制
 
-- Operating status 是发布者数据，并非 SaanSeoi 对 Place 开放状态的独立核实。
+- Operating status 是发布者数据，并非山水对 Place 开放状态的独立核实。
 
-- 此上游地理 filter 可在 cohort 之间移除 Place 记录，却不确立 Division 归属：SaanSeoi
-  Division 关系仍只由已审核的 ALS 链接派生，绝不由点几何推断。
+- 此上游地理 filter 可在 cohort 之间移除 Place 记录，却不确立 Division 归属：山水 Division 关系仍只由已审核的 ALS 链接派生，绝不由点几何推断。
 - H3 及全文索引是所选 Place snapshot 的派生 projection。

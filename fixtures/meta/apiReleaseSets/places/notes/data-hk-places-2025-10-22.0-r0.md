@@ -82,7 +82,7 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 
 ## 備註與限制
 
-- Operating status 是發布者資料，並非 SaanSeoi 對 Place 開放狀態的獨立核實。
+- Operating status 是發布者資料，並非山水對 Place 開放狀態的獨立核實。
 
 - 此項變更反映 Overture schema 新增欄位，並非 Places
   API 合約變更。比較不同 cohort 的類別值前，請閱讀連結的來源發布附註。
@@ -114,7 +114,7 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 
 ## 备注与限制
 
-- Operating status 是发布者数据，并非 SaanSeoi 对 Place 开放状态的独立核实。
+- Operating status 是发布者数据，并非山水对 Place 开放状态的独立核实。
 
 - 此项变更反映 Overture schema 新增字段，并非 Places
   API 合约变更。比较不同 cohort 的类别值前，请阅读链接的源发布说明。

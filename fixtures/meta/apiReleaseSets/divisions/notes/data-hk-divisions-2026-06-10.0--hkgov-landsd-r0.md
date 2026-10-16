@@ -48,7 +48,7 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 
 ## 更新紀錄
 
-- 山水 | SaanSeoi 對<i>地政總署</i>聚居地 domain 的初始發布。
+- 山水對<i>地政總署</i>聚居地 domain 的初始發布。
 - <orange>上游</orange> 加入日期為 <black>{{ cohortKey }}</black> 的地名資料庫。
 - 將 <black>PLACE_CLASS=Settlement</black>
   記錄發布為點區劃；其餘原生地名錄記錄仍保留於來源歷史。
@@ -80,7 +80,7 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 
 ## 更新记录
 
-- 山水 | SaanSeoi 对<i>地政总署</i>聚居地 domain 的初始发布。
+- 山水对<i>地政总署</i>聚居地 domain 的初始发布。
 - <orange>上游</orange> 加入日期为 <black>{{ cohortKey }}</black> 的地名数据库。
 - 将 <black>PLACE_CLASS=Settlement</black>
   记录发布为点区划；其余原生地名录记录仍保留于源历史。

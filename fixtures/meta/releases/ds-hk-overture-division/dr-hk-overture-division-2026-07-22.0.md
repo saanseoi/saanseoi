@@ -354,7 +354,7 @@ upload and trigger a schema review.
 
 ### 兼容性
 
-SaanSeoi 的 [Division](/docs#models/Division) 在可行範圍內保持與 Overture
+山水的 [Division](/docs#models/Division) 在可行範圍內保持與 Overture
 [division](https://docs.overturemaps.org/schema/reference/divisions/division/)
 類型的兼容性。然而，當本地化處理對香港具有意義時，我們會與來源模型有所不同。相對於 Overture
 schema（`{{sourceSchemaVersion}}`），我們在以下方面有所偏離：
@@ -477,9 +477,9 @@ village        195
 
 ### 兼容性
 
-SaanSeoi 的 [DivisionArea](/docs#models/DivisionArea) 在可行範圍內保持與 Overture 的
+山水的 [DivisionArea](/docs#models/DivisionArea) 在可行範圍內保持與 Overture 的
 [DivisionArea](https://docs.overturemaps.org/schema/reference/divisions/division_area/)
-類型兼容。此 Overture 變體旨在為 SaanSeoi 的 地理 [Division](/docs#models/Division)
+類型兼容。此 Overture 變體旨在為山水的 地理 [Division](/docs#models/Division)
 記錄提供預設的面積幾何。當標準模型更適合香港時，我們會偏離 Overture
 schema（`{{sourceSchemaVersion}}`）。
 
@@ -551,10 +551,9 @@ schema（`{{sourceSchemaVersion}}`）。
 
 ### 兼容性
 
-SaanSeoi 的 [DivisionBoundary](/docs#models/DivisionBoundary)
-在可行範圍內保持與 Overture 的
+山水的 [DivisionBoundary](/docs#models/DivisionBoundary) 在可行範圍內保持與 Overture 的
 [DivisionBoundary](https://docs.overturemaps.org/schema/reference/divisions/division_boundary/)
-類型兼容。此 Overture 變體旨在為 SaanSeoi 的 [Division](/docs#models/Division)
+類型兼容。此 Overture 變體旨在為山水的 [Division](/docs#models/Division)
 記錄提供預設的邊界幾何。邊界代表相同 subtype 區劃之間的界線。在香港，只有區級區劃具有邊界，因為這些是特區內唯一的正式行政級別。當標準模型更適合香港時，我們會偏離 Overture
 schema（`{{sourceSchemaVersion}}`）。
 
@@ -641,7 +640,7 @@ schema（`{{sourceSchemaVersion}}`）。
 
 ### 兼容性
 
-SaanSeoi 的 [Division](/docs#models/Division) 在可行范围内保持与 Overture
+山水的 [Division](/docs#models/Division) 在可行范围内保持与 Overture
 [division](https://docs.overturemaps.org/schema/reference/divisions/division/)
 类型的兼容性。然而，当本地化处理对香港具有意义时，我们会与来源模型有所不同。相对于 Overture
 schema（`{{sourceSchemaVersion}}`），我们在以下方面有所偏离：
@@ -764,9 +763,9 @@ village        195
 
 ### 兼容性
 
-SaanSeoi 的 [DivisionArea](/docs#models/DivisionArea) 在可行范围内保持与 Overture 的
+山水的 [DivisionArea](/docs#models/DivisionArea) 在可行范围内保持与 Overture 的
 [DivisionArea](https://docs.overturemaps.org/schema/reference/divisions/division_area/)
-类型兼容。此 Overture 变体旨在为 SaanSeoi 的 地理 [Division](/docs#models/Division)
+类型兼容。此 Overture 变体旨在为山水的 地理 [Division](/docs#models/Division)
 记录提供默认的面积几何。当标准模型更适合香港时，我们会偏离 Overture
 schema（`{{sourceSchemaVersion}}`）。
 
@@ -838,10 +837,9 @@ schema（`{{sourceSchemaVersion}}`）。
 
 ### 兼容性
 
-SaanSeoi 的 [DivisionBoundary](/docs#models/DivisionBoundary)
-在可行范围内保持与 Overture 的
+山水的 [DivisionBoundary](/docs#models/DivisionBoundary) 在可行范围内保持与 Overture 的
 [DivisionBoundary](https://docs.overturemaps.org/schema/reference/divisions/division_boundary/)
-类型兼容。此 Overture 变体旨在为 SaanSeoi 的 [Division](/docs#models/Division)
+类型兼容。此 Overture 变体旨在为山水的 [Division](/docs#models/Division)
 记录提供默认的边界几何。边界代表相同 subtype 区划之间的界线。在香港，只有区级区划具有边界，因为这些是特区内唯一的正式行政级别。当标准模型更适合香港时，我们会偏离 Overture
 schema（`{{sourceSchemaVersion}}`）。
 

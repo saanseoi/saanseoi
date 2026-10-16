@@ -74,7 +74,7 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 
 ## 備註與限制
 
-- Operating status 是發布者資料，並非 SaanSeoi 對 Place 開放狀態的獨立核實。
+- Operating status 是發布者資料，並非山水對 Place 開放狀態的獨立核實。
 
 - Matching 變更可在 cohort 之間新增、合併或移除發布者記錄，並不令 Overture
   ID 成為穩定的標準 Address ID。
@@ -102,7 +102,7 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 
 ## 备注与限制
 
-- Operating status 是发布者数据，并非 SaanSeoi 对 Place 开放状态的独立核实。
+- Operating status 是发布者数据，并非山水对 Place 开放状态的独立核实。
 
 - Matching 变更可在 cohort 之间新增、合并或移除发布者记录，并不令 Overture
   ID 成为稳定的标准 Address ID。

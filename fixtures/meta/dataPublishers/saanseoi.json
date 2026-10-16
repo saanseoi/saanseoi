@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:712bf625f45a5e3c40c689fa7c8d46bfce8f73a7dcc156df7e1f694d272346c5",
+  "versionHash": "sha256:6f2461086f41cba431c60de9ebeaeba1b2ef6a4d894e03ff10e4aea1ac77559e",
   "code": "saanseoi",
   "url": "https://saanseoi.hk",
   "i18n": {
@@ -9,14 +9,14 @@
       "description": "Handcrafted datasets by the SaanSeoi team."
     },
     "zh-hant": {
-      "name": "SaanSeoi",
-      "nameShort": "SaanSeoi",
-      "description": "由 SaanSeoi 團隊精心製作的數據集。"
+      "name": "山水",
+      "nameShort": "山水",
+      "description": "由山水團隊精心製作的數據集。"
     },
     "zh-hans": {
-      "name": "SaanSeoi",
-      "nameShort": "SaanSeoi",
-      "description": "由 SaanSeoi 团队精心制作的数据集。"
+      "name": "山水",
+      "nameShort": "山水",
+      "description": "由山水团队精心制作的数据集。"
     }
   }
 }

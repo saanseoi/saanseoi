@@ -48,7 +48,7 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 
 ## 更新紀錄
 
-- 山水 | SaanSeoi 對<i>規劃署</i>新市鎮 domain 的初始發布。
+- 山水對<i>規劃署</i>新市鎮 domain 的初始發布。
 
 ## 修訂紀錄
 
@@ -77,7 +77,7 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 
 ## 更新记录
 
-- 山水 | SaanSeoi 对<i>规划署</i>新市镇 domain 的初始发布。
+- 山水对<i>规划署</i>新市镇 domain 的初始发布。
 
 ## 修订记录
 

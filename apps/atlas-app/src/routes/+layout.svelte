@@ -3,6 +3,8 @@ import './app.css'
 import { dev } from '$app/env'
 import { page } from '$app/state'
 
+import { m } from '#lib/bits/internal/i18n.js'
+
 import favicon from '#lib/assets/favicon.svg'
 import { SiteHeader } from '#lib/bits/patterns/site-header/index.js'
 import { Page } from '#lib/bits/primitives/page/index.js'
@@ -17,7 +19,7 @@ let siteFooter = $derived(
 </script>
 
 <svelte:head>
-  <title>山水 | SaanSeoi</title>
+  <title>{m.saanseoi()}</title>
   <link rel="icon" href={favicon}>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">

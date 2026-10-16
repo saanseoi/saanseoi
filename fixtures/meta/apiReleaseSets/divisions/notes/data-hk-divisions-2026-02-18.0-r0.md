@@ -50,7 +50,7 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 ## 更新紀錄
 
 - <orange>上游</orange> Overture 更新 OSM 資料並新增
-  `admin_level`。SaanSeoi 會在可用時將其保留為 `overture.admin_level`
+  `admin_level`。山水會在可用時將其保留為 `overture.admin_level`
   相容性資料；我們已在推出前將該值回填至 API 提供的每個 Divisions 發布。
 
 ## 修訂紀錄
@@ -80,7 +80,7 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 ## 更新记录
 
 - <orange>上游</orange> Overture 更新 OSM 数据并新增
-  `admin_level`。SaanSeoi 会在可用时将其保留为 `overture.admin_level`
+  `admin_level`。山水会在可用时将其保留为 `overture.admin_level`
   兼容性资料；我们已在推出前将该值回填至 API 提供的每个 Divisions 发布。
 
 ## 修订记录

@@ -21,9 +21,9 @@ const copy = {
   },
   'zh-hant': {
     areaCode:
-      'SaanSeoi 為附錄大區編配的代碼：HK（港島）、KL（九龍）或 NT（新界），並非發布者編配的識別碼。',
+      '山水為附錄大區編配的代碼：HK（港島）、KL（九龍）或 NT（新界），並非發布者編配的識別碼。',
     districtCode:
-      'SaanSeoi 為附錄所列地區編配的代碼，亦標示分區或所包括地點所屬的地區；大區記錄沒有此欄位。',
+      '山水為附錄所列地區編配的代碼，亦標示分區或所包括地點所屬的地區；大區記錄沒有此欄位。',
     includedIn: '明確包括此地點的條目之 sourceRecordId，例如東涌列於大嶼山之內。',
     kind: '附錄條目類型：area（大區）、district（地區）、subdistrict（分區）或 included-locality（另一條目明確包括的地點）。表示刊物中的歸屬，並非法定邊界。',
     names: '從雙語附錄擷取的此條目英文及繁體中文名稱。',
@@ -38,9 +38,9 @@ const copy = {
   },
   'zh-hans': {
     areaCode:
-      'SaanSeoi 为附录大区分配的代码：HK（港岛）、KL（九龙）或 NT（新界），并非发布者分配的标识符。',
+      '山水为附录大区分配的代码：HK（港岛）、KL（九龙）或 NT（新界），并非发布者分配的标识符。',
     districtCode:
-      'SaanSeoi 为附录所列地区分配的代码，亦标示分区或所包括地点所属的地区；大区记录没有此字段。',
+      '山水为附录所列地区分配的代码，亦标示分区或所包括地点所属的地区；大区记录没有此字段。',
     includedIn: '明确包括此地点的条目之 sourceRecordId，例如东涌列于大屿山之内。',
     kind: '附录条目类型：area（大区）、district（地区）、subdistrict（分区）或 included-locality（另一条目明确包括的地点）。表示刊物中的归属，并非法定边界。',
     names: '从双语附录提取的此条目英文及繁体中文名称。',

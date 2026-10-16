@@ -116,7 +116,7 @@ under `properties`, where the source record remains available.
 
 ## 兼容性
 
-SaanSeoi 的 [Place](/docs#models/Place) 在可行範圍內保持與 Overture 的
+山水的 [Place](/docs#models/Place) 在可行範圍內保持與 Overture 的
 [place](https://docs.overturemaps.org/schema/reference/places/place/)
 類型兼容。Place 以具備本地化名稱、發布者分類、聯絡資料，以及可選香港政府地址查詢服務（ALS）背景資料的興趣點表示。當標準模型對香港更有意義時，我們會偏離 Overture
 schema（`{{sourceSchemaVersion}}`）。
@@ -201,7 +201,7 @@ schema（`{{sourceSchemaVersion}}`）。
 
 ## 兼容性
 
-SaanSeoi 的 [Place](/docs#models/Place) 在可行范围内保持与 Overture 的
+山水的 [Place](/docs#models/Place) 在可行范围内保持与 Overture 的
 [place](https://docs.overturemaps.org/schema/reference/places/place/)
 类型兼容。Place 以具备本地化名称、发布者分类、联系资料，以及可选香港政府地址查询服务（ALS）背景资料的兴趣点表示。当标准模型对香港更有意义时，我们会偏离 Overture
 schema（`{{sourceSchemaVersion}}`）。

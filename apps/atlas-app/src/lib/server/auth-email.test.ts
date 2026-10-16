@@ -32,7 +32,7 @@ describe('createAuthEmail', () => {
       'https://saanseoi.hk/api/auth/verify-email?token=abc',
     )
 
-    expect(email.subject).toBe('驗證你的 SaanSeoi 電郵地址')
+    expect(email.subject).toBe('驗證你的山水電郵地址')
     expect(email.text).toContain('請確認你的電郵地址')
     expect(email.html).toContain('驗證你的電郵地址')
     expect(email.html).toContain('你好：')

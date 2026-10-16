@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:b76c363278c019928f633b978e0bed9b30e2b78b1a8ef0d7d078e22e1120d1f0",
+  "versionHash": "sha256:8688207d85a0bb9852cae65f514bca755a94e0505c821c94bd5062ae983bf874",
   "apiVersion": "api-divisions-v0.2",
   "code": "comp-divisions-v2",
   "version": 2,
@@ -17,13 +17,13 @@
         },
         "zh-hant": {
           "name": "地理分區",
-          "descriptionShort": "SaanSeoi 地理及行政分區。",
-          "description": "SaanSeoi 審核的層級及範圍，並提供 Overture 後備幾何及政府範圍配套。"
+          "descriptionShort": "山水地理及行政分區。",
+          "description": "山水審核的層級及範圍，並提供 Overture 後備幾何及政府範圍配套。"
         },
         "zh-hans": {
           "name": "地理分区",
-          "descriptionShort": "SaanSeoi 地理及行政分区。",
-          "description": "SaanSeoi 审核的层级及范围，并提供 Overture 后备几何及政府范围配套。"
+          "descriptionShort": "山水地理及行政分区。",
+          "description": "山水审核的层级及范围，并提供 Overture 后备几何及政府范围配套。"
         }
       },
       "members": [

@@ -78,7 +78,7 @@ release's C&SD
 
 ## 變更記錄
 
-- 山水 | SaanSeoi 初始版本
+- 山水初始版本
 - <orange>上游</orange> 新增 [C&SD](saanseoi:zh-hant:definition/hkgov-censtatd/v1) 的
   {{ sourceVersion }} 年全港 18 個區議會分區的土地面積、人口及人口密度統計資料。
 
@@ -106,7 +106,7 @@ release's C&SD
 
 以下來源值會先轉換，然後透過 <black>data.attributes.*</black> 傳回。
 
-- `DC` - 此 C&SD 數值代碼會對應至 SaanSeoi 標準的 <black>divisionId</black> 及
+- `DC` - 此 C&SD 數值代碼會對應至山水標準的 <black>divisionId</black> 及
   <black>districtCode</black>。原始 C&SD 數值可透過 canonical
   <black>districtCode</black> 取得；原始 C&SD 值則保留在來源記錄的
   <black>properties</black> 中。
@@ -131,7 +131,7 @@ release's C&SD
 
 ## 变更记录
 
-- 山水 | SaanSeoi 初始版本
+- 山水初始版本
 - <orange>上游</orange> 新增 [C&SD](saanseoi:zh-hans:definition/hkgov-censtatd/v1) 的
   {{ sourceVersion }} 年全港 18 个区议会分区的土地面积、人口及人口密度统计资料。
 
@@ -159,7 +159,7 @@ release's C&SD
 
 以下来源值会先转换，然后通过 <black>data.attributes.*</black> 返回。
 
-- `DC` - 此 C&SD 数值代码会对应至 SaanSeoi 标准的 <black>divisionId</black> 及
+- `DC` - 此 C&SD 数值代码会对应至山水标准的 <black>divisionId</black> 及
   <black>districtCode</black>。原始 C&SD 数值可通过 canonical
   <black>districtCode</black> 取得；原始 C&SD 值保留在源记录的 <black>properties</black>
   中。

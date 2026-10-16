@@ -78,7 +78,7 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 
 ## 備註與限制
 
-- Operating status 是發布者資料，並非 SaanSeoi 對 Place 開放狀態的獨立核實。
+- Operating status 是發布者資料，並非山水對 Place 開放狀態的獨立核實。
 
 - 類別及 confidence 差異是上游來源變更，不是 Places
   API 合約變更，亦非對 Place 的獨立核實。
@@ -108,7 +108,7 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 
 ## 备注与限制
 
-- Operating status 是发布者数据，并非 SaanSeoi 对 Place 开放状态的独立核实。
+- Operating status 是发布者数据，并非山水对 Place 开放状态的独立核实。
 
 - 类别及 confidence 差异是上游源变更，不是 Places
   API 合约变更，也非对 Place 的独立核实。

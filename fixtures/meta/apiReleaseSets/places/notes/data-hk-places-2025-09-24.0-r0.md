@@ -63,7 +63,7 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 
 ## 更新紀錄
 
-- 山水 | SaanSeoi {{regionName:zh-Hant}} Places API 首個發布集。
+- 山水 {{regionName:zh-Hant}} Places API 首個發布集。
 - 將 <black>{{ cohortKey }}</black> 的 Overture Places snapshot 作為主要 Place
   collection 發布，並按 Places API composition 選取必要的地址及 Division 背景資料。
 - 將名稱、類別、品牌、地址及發布者溯源資料正規化為標準 Place 模型，同時保留原始 Overture 記錄供查閱。
@@ -83,7 +83,7 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 
 ## 備註與限制
 
-- Operating status 是發布者資料，並非 SaanSeoi 對 Place 開放狀態的獨立核實。
+- Operating status 是發布者資料，並非山水對 Place 開放狀態的獨立核實。
 
 - Place collection 以此 cohort 的 Overture Place 來源發布為基礎。可使用
   <black>/places/v0.1/sources?sourceRelease=dr-hk-overture-place-2025-09-24.0</black>
@@ -103,7 +103,7 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 
 ## 更新记录
 
-- 山水 | SaanSeoi {{regionName:zh-Hans}} Places API 首个发布集。
+- 山水 {{regionName:zh-Hans}} Places API 首个发布集。
 - 将 <black>{{ cohortKey }}</black> 的 Overture Places snapshot 作为主要 Place
   collection 发布，并按 Places API composition 选择必要的地址及 Division 背景数据。
 - 将名称、类别、品牌、地址及发布者溯源数据规范化为标准 Place 模型，同时保留原始 Overture 记录供查阅。
@@ -123,7 +123,7 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 
 ## 备注与限制
 
-- Operating status 是发布者数据，并非 SaanSeoi 对 Place 开放状态的独立核实。
+- Operating status 是发布者数据，并非山水对 Place 开放状态的独立核实。
 
 - Place collection 以此 cohort 的 Overture Place 源发布为基础。可使用
   <black>/places/v0.1/sources?sourceRelease=dr-hk-overture-place-2025-09-24.0</black>

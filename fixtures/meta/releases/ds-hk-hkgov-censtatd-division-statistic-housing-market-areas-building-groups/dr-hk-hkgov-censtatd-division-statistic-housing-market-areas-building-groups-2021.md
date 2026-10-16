@@ -88,7 +88,7 @@ The reviewed mapping below is generated from this release's C&SD
 
 ## 變更記錄
 
-- 山水 | SaanSeoi 初始版本。
+- 山水初始版本。
 - <orange>上游</orange> 新增 [C&SD](saanseoi:zh-hant:definition/hkgov-censtatd/v1) 的
   {{ sourceVersion }} 年人口普查房屋市場區及樓宇組群統計資料。
 
@@ -147,7 +147,7 @@ Division 及 Division Area 幾何。<black>BG_21C</black>
 
 ## 变更记录
 
-- 山水 | SaanSeoi 初始版本。
+- 山水初始版本。
 - <orange>上游</orange> 新增 [C&SD](saanseoi:zh-hans:definition/hkgov-censtatd/v1) 的
   {{ sourceVersion }} 年人口普查房屋市场区及楼宇组群统计数据。
 
@@ -158,7 +158,7 @@ Division 及 Division Area 幾何。<black>BG_21C</black>
 
 ## 兼容性
 
-SaanSeoi 保留 C&SD 的发布者断言，并将经审核的数值呈现为规范统计数据。它不会把发布者的属性架构公开为统计 API。
+山水保留 C&SD 的发布者断言，并将经审核的数值呈现为规范统计数据。它不会把发布者的属性架构公开为统计 API。
 
 ### 直接保留字段
 

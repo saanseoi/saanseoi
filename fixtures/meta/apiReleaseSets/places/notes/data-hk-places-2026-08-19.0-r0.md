@@ -87,7 +87,7 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 ## 備註與限制
 
 - 此來源棄用不會改變此發布的 Places API 合約：標準 category 及 taxonomy 欄位仍可用。
-- Operating status 是發布者資料，並非 SaanSeoi 對 Place 開放狀態的獨立核實。
+- Operating status 是發布者資料，並非山水對 Place 開放狀態的獨立核實。
 - H3 及全文索引是所選 Place snapshot 的衍生 projection。
 
 # ZH-HANS
@@ -119,5 +119,5 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 ## 备注与限制
 
 - 此源弃用不会改变此发布的 Places API 合约：标准 category 及 taxonomy 字段仍可用。
-- Operating status 是发布者数据，并非 SaanSeoi 对 Place 开放状态的独立核实。
+- Operating status 是发布者数据，并非山水对 Place 开放状态的独立核实。
 - H3 及全文索引是所选 Place snapshot 的派生 projection。

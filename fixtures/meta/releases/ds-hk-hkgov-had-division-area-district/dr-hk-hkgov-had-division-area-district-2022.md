@@ -91,7 +91,7 @@ auditability:
 
 ## 更新紀錄
 
-SaanSeoi 首次發佈，內容以已知最早的香港民政事務總署地區界線範圍資料發佈為基礎。
+山水首次發佈，內容以已知最早的香港民政事務總署地區界線範圍資料發佈為基礎。
 
 來源遵循
 [功能區域 FSDT 1.2 規格](https://static.csdi.gov.hk/csdi-webpage/download/common/f9f4daf727620fe453d5c551e7ce63523df27fc618862b5a35979fe309b79003)。
@@ -155,7 +155,7 @@ CSDI 識別引用記錄的發佈日期為 2022 年 3 月 14 日。本發佈保�
 
 ## 更新记录
 
-首次发布 SaanSeoi，内容以已知最早的香港民政事务总署地区界线范围资料发布为基础。
+首次发布山水，内容以已知最早的香港民政事务总署地区界线范围资料发布为基础。
 
 来源遵循
 [功能区域 FSDT 1.2 规范](https://static.csdi.gov.hk/csdi-webpage/download/common/f9f4daf727620fe453d5c551e7ce63523df27fc618862b5a35979fe309b79003)。

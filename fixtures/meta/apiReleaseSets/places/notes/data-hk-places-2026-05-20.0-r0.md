@@ -78,7 +78,7 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 
 ## 備註與限制
 
-- Operating status 是發布者資料，並非 SaanSeoi 對 Place 開放狀態的獨立核實。
+- Operating status 是發布者資料，並非山水對 Place 開放狀態的獨立核實。
 
 - Null operating
   status 是發布者資料，不代表 Place 已關閉或尚未核實。Confidence 變更同樣是上游來源變更。
@@ -108,7 +108,7 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 
 ## 备注与限制
 
-- Operating status 是发布者数据，并非 SaanSeoi 对 Place 开放状态的独立核实。
+- Operating status 是发布者数据，并非山水对 Place 开放状态的独立核实。
 
 - Null operating
   status 是发布者数据，不代表 Place 已关闭或尚未核实。Confidence 变更同样是上游源变更。

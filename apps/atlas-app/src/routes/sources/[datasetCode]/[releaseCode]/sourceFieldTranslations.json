@@ -856,8 +856,8 @@
   },
   "Names derived from explicit OpenStreetMap `name:<language>` tags, keyed by language. Each value is a name supplied by the source, not a SaanSeoi translation. Any language key may be absent; an empty object means no language-tagged names were supplied. The untagged `name` remains in `tags` without assigning it a language.": {
     "en": "Names derived from explicit OpenStreetMap `name:<language>` tags, keyed by language. Each value is a name supplied by the source, not a SaanSeoi translation. Any language key may be absent; an empty object means no language-tagged names were supplied. The untagged `name` remains in `tags` without assigning it a language.",
-    "zh-hant": "由 OpenStreetMap 明確的 `name:<language>` 標籤取得、以語言為鍵的名稱。每個值均由來源提供，並非 SaanSeoi 翻譯。任何語言鍵均可能缺省；空物件表示沒有具語言標籤的名稱。沒有標籤的 `name` 保留於 `tags`，不會指定語言。",
-    "zh-hans": "由 OpenStreetMap 明确的 `name:<language>` 标签取得、以语言为键的名称。每个值均由来源提供，并非 SaanSeoi 翻译。任何语言键均可能缺省；空物件表示没有具语言标签的名称。没有标签的 `name` 保留于 `tags`，不会指定语言。"
+    "zh-hant": "由 OpenStreetMap 明確的 `name:<language>` 標籤取得、以語言為鍵的名稱。每個值均由來源提供，並非山水翻譯。任何語言鍵均可能缺省；空物件表示沒有具語言標籤的名稱。沒有標籤的 `name` 保留於 `tags`，不會指定語言。",
+    "zh-hans": "由 OpenStreetMap 明确的 `name:<language>` 标签取得、以语言为键的名称。每个值均由来源提供，并非山水翻译。任何语言键均可能缺省；空物件表示没有具语言标签的名称。没有标签的 `name` 保留于 `tags`，不会指定语言。"
   },
   "English name, from `name:en`.": {
     "en": "English name, from `name:en`.",
@@ -896,8 +896,8 @@
   },
   "A name in another language or writing system identified by its key, for example `ja` (Japanese) or `yue-Latn-jyutping` (Cantonese in Jyutping romanisation). Keys are not limited to the languages used by the SaanSeoi interface.": {
     "en": "A name in another language or writing system identified by its key, for example `ja` (Japanese) or `yue-Latn-jyutping` (Cantonese in Jyutping romanisation). Keys are not limited to the languages used by the SaanSeoi interface.",
-    "zh-hant": "由鍵識別語言或文字系統的其他名稱，例如 `ja`（日語）或 `yue-Latn-jyutping`（粵拼）。鍵不限於 SaanSeoi 介面所用的語言。",
-    "zh-hans": "由键识别语言或文字系统的其他名称，例如 `ja`（日语）或 `yue-Latn-jyutping`（粤拼）。键不限于 SaanSeoi 介面所用的语言。"
+    "zh-hant": "由鍵識別語言或文字系統的其他名稱，例如 `ja`（日語）或 `yue-Latn-jyutping`（粵拼）。鍵不限於山水介面所用的語言。",
+    "zh-hans": "由键识别语言或文字系统的其他名称，例如 `ja`（日语）或 `yue-Latn-jyutping`（粤拼）。键不限于山水介面所用的语言。"
   },
   "Source attributes attached to the feature, including OpenStreetMap names, classifications and reference links where supplied. Keys use the retained source-record spelling. An empty object means the feature has no retained tags.": {
     "en": "Source attributes attached to the feature, including OpenStreetMap names, classifications and reference links where supplied. Keys use the retained source-record spelling. An empty object means the feature has no retained tags.",
@@ -946,7 +946,7 @@
   },
   "Provider and variant key for this geometry. Curated SaanSeoi geometry uses saanseoi; its land and territorial representations share this variant.": {
     "en": "Provider and variant key for this geometry. Curated SaanSeoi geometry uses saanseoi; its land and territorial representations share this variant.",
-    "zh-hant": "此幾何的提供者及變體鍵。策劃的 SaanSeoi 幾何使用 saanseoi；其陸地及領土表示共用此變體。",
-    "zh-hans": "此几何的提供者及变体键。策划的 SaanSeoi 几何使用 saanseoi；其陆地及领土表示共用此变体。"
+    "zh-hant": "此幾何的提供者及變體鍵。策劃的山水幾何使用 saanseoi；其陸地及領土表示共用此變體。",
+    "zh-hans": "此几何的提供者及变体键。策划的山水几何使用 saanseoi；其陆地及领土表示共用此变体。"
   }
 }

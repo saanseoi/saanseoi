@@ -52,7 +52,7 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 
 ## 更新紀錄
 
-- 山水 | SaanSeoi 初始版本
+- 山水初始版本
 - <orange>上游</orange> 數字政策辦公室地址查詢服務（ALS）於
   <black>{{publisherReleaseDate}}</black> 交付的二維地區 GeoJSON 資料
 
@@ -85,7 +85,7 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 
 ## 更新记录
 
-- 山水 | SaanSeoi 初始版本
+- 山水初始版本
 - <orange>上游</orange> 数字政策办公室地址查询服务（ALS）于
   <black>{{publisherReleaseDate}}</black> 交付的二维地区 GeoJSON 数据
 

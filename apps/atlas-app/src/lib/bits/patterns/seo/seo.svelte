@@ -1,7 +1,7 @@
 <script lang="ts">
 import { page } from '$app/state'
 
-import { getCurrentLocale } from '#lib/bits/internal/i18n.js'
+import { getCurrentLocale, m } from '#lib/bits/internal/i18n.js'
 
 type JsonLd = Record<string, unknown>
 
@@ -16,7 +16,7 @@ type Props = {
   structuredData?: JsonLd
 }
 
-const siteName = '山水 | SaanSeoi'
+let siteName = $derived(m.saanseoi())
 const siteUrl = 'https://saanseoi.hk'
 
 let {

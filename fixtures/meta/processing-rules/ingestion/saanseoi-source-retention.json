@@ -23,10 +23,10 @@
       "description": "Validate the reviewed SaanSeoi record identity and retain camelCase structural fields and geometry as a versioned source assertion."
     },
     "zh-hant": {
-      "description": "驗證已審核 SaanSeoi 記錄的識別碼，將結構欄位名稱統一為 camelCase，並將屬性及幾何保留為具版本的來源斷言。"
+      "description": "驗證已審核山水記錄的識別碼，將結構欄位名稱統一為 camelCase，並將屬性及幾何保留為具版本的來源斷言。"
     },
     "zh-hans": {
-      "description": "验证已审核 SaanSeoi 记录的识别码，将结构字段名称统一为 camelCase，并将属性及几何保留为具版本的来源断言。"
+      "description": "验证已审核山水记录的识别码，将结构字段名称统一为 camelCase，并将属性及几何保留为具版本的来源断言。"
     }
   }
 }

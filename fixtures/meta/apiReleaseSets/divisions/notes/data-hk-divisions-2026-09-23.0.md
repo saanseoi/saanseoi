@@ -57,7 +57,7 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 # ZH-HANT
 
 <note title="已棄用的 API 端點">
-<orange>已棄用</orange> <black>/divisions/v0.1</black> API 端點已棄用。新整合請使用 <black>/divisions/v0.2</black> 及其 SaanSeoi inventory。此發布記錄 Overture inventory；其識別碼、層級及幾何選項屬於 v0.1。請參閱 [v0.2 指南](/apis/divisions/data-hk-divisions-2026-10-01.0?tab=guide)。
+<orange>已棄用</orange> <black>/divisions/v0.1</black> API 端點已棄用。新整合請使用 <black>/divisions/v0.2</black> 及其山水 inventory。此發布記錄 Overture inventory；其識別碼、層級及幾何選項屬於 v0.1。請參閱 [v0.2 指南](/apis/divisions/data-hk-divisions-2026-10-01.0?tab=guide)。
 </note>
 
 ## 更新紀錄
@@ -94,7 +94,7 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 # ZH-HANS
 
 <note title="已弃用的 API 端点">
-<orange>已弃用</orange> <black>/divisions/v0.1</black> API 端点已弃用。新集成请使用 <black>/divisions/v0.2</black> 及其 SaanSeoi inventory。此发布记录 Overture inventory；其标识符、层级及几何选项属于 v0.1。请参阅 [v0.2 指南](/apis/divisions/data-hk-divisions-2026-10-01.0?tab=guide)。
+<orange>已弃用</orange> <black>/divisions/v0.1</black> API 端点已弃用。新集成请使用 <black>/divisions/v0.2</black> 及其山水 inventory。此发布记录 Overture inventory；其标识符、层级及几何选项属于 v0.1。请参阅 [v0.2 指南](/apis/divisions/data-hk-divisions-2026-10-01.0?tab=guide)。
 </note>
 
 ## 更新记录

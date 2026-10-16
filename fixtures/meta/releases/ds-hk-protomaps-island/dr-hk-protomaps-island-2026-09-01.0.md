@@ -54,7 +54,7 @@ curated names, island identities and boundaries are published separately in
 
 ## 更新記錄
 
-- 山水 | SaanSeoi 初始來源版本，收錄 2026 年 9 月 Protomaps 香港地圖的島嶼及海岸線資料。
+- 山水初始來源版本，收錄 2026 年 9 月 Protomaps 香港地圖的島嶼及海岸線資料。
 - 保留 **1,671 筆來源記錄**：764 筆 OpenStreetMap 島嶼要素及 907 筆海岸線陸地記錄。
 - 作為往後版本比較的基準。
 
@@ -83,7 +83,7 @@ OpenStreetMap 要素包括島嶼、小島及群島記錄。部分只有位置標
 
 ## 更新记录
 
-- 山水 | SaanSeoi 初始来源版本，收录 2026 年 9 月 Protomaps 香港地图的岛屿及海岸线资料。
+- 山水初始来源版本，收录 2026 年 9 月 Protomaps 香港地图的岛屿及海岸线资料。
 - 保留 **1,671 条来源记录**：764 条 OpenStreetMap 岛屿要素及 907 条海岸线陆地记录。
 - 作为以后版本比较的基准。
 

@@ -76,11 +76,11 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 - <orange>上游</orange> 使用 Overture
   [`2026-09-23.0`](/sources/ds-hk-overture-division/dr-hk-overture-division-2026-09-23.0?tab=changes)。保留的香港 Division 輸入中，199 個現有記錄新增 Wikidata
   ID，八個記錄的點幾何有變動；上游新增五個識別對象並移除四個。
-- <orange>SaanSeoi</orange>
+- <orange>山水</orange>
   恐龍坑保留為鄉郊地域，灣仔保留為半島，兩者沿用原有識別碼。木棉山村因屬建築物而排除；流浮山墟被移除，獨立的流浮山識別對象仍保留。
-- <orange>SaanSeoi</orange> 四小龍納入為 `microhood`，蚊坑及福樂村為 `hamlet`，水口為
+- <orange>山水</orange> 四小龍納入為 `microhood`，蚊坑及福樂村為 `hamlet`，水口為
   `macrohood`。羅馬廣場按廣場覆蓋政策排除。請參閱
-  [SaanSeoi 變動](/sources/ds-hk-saanseoi-division/dr-hk-saanseoi-division-2026-10-01.0?tab=changes)。
+  [山水變動](/sources/ds-hk-saanseoi-division/dr-hk-saanseoi-division-2026-10-01.0?tab=changes)。
 - <orange>幾何</orange> 使用 Protomaps
   [`2026-10-01.0`](/sources/ds-hk-protomaps-island/dr-hk-protomaps-island-2026-10-01.0?tab=changes)。六個島嶼的已確認別名即使被上游名稱標籤移除，仍然保留。地政總署
   `2026-06-10.0` 及差餉物業估價署 `2015-04-30.0` 仍為固定的名稱輸入。
@@ -101,14 +101,14 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 ## 備註與限制
 
 - 本版整理決定、覆蓋及輸入版本，請參閱
-  [SaanSeoi 來源附註]({{primarySourceReleaseUrl}})。記錄層級的 <black>sources</black>
-  透過 <black>profile=full</black> 提供；Audit 分頁描述處理證據。
+  [山水來源附註]({{primarySourceReleaseUrl}})。記錄層級的 <black>sources</black> 透過
+  <black>profile=full</black> 提供；Audit 分頁描述處理證據。
 - 預設 <black>inventory=saanseoi</black>
   提供 Division 識別碼、名稱、分類及層級。<black>inventory=overture</black>
   選取此發布保留的獨立 Overture inventory，不會將 Overture 記錄加入經整理的 inventory。
 - 已確認配對的識別對象保留 GERS 識別碼；新增的整理記錄使用 <black>ss-</black> 識別碼。
 - 已知區劃或層級關係不保證有多邊形。經整理的鄰里繪圖可能為概略範圍；如需法定或人口普查邊界，請使用官方政府配套。
-- 未限定的 <black>include=areas</black> 選取 inventory 的預設面，SaanSeoi 的預設為
+- 未限定的 <black>include=areas</black> 選取 inventory 的預設面，山水的預設為
   <black>saanseoi</black>。<black>include=boundaries</black>
   選取 Overture 地區邊界。限定的提供者仍為獨立選項。
 - 政府統計處配套描述其人口普查參考年份。請勿將 2016 或 2021 年人口普查幾何視為持續有效的行政邊界。
@@ -120,11 +120,11 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 - <orange>上游</orange> 使用 Overture
   [`2026-09-23.0`](/sources/ds-hk-overture-division/dr-hk-overture-division-2026-09-23.0?tab=changes)。保留的香港 Division 输入中，199 个现有记录新增 Wikidata
   ID，八个记录的点几何有变动；上游新增五个标识对象并移除四个。
-- <orange>SaanSeoi</orange>
+- <orange>山水</orange>
   恐龙坑保留为乡郊地域，湾仔保留为半岛，两者沿用原有标识符。木棉山村因属建筑物而排除；流浮山墟被移除，独立的流浮山标识对象仍保留。
-- <orange>SaanSeoi</orange> 四小龙纳入为 `microhood`，蚊坑及福乐村为 `hamlet`，水口为
+- <orange>山水</orange> 四小龙纳入为 `microhood`，蚊坑及福乐村为 `hamlet`，水口为
   `macrohood`。罗马广场按广场覆盖政策排除。请参阅
-  [SaanSeoi 变动](/sources/ds-hk-saanseoi-division/dr-hk-saanseoi-division-2026-10-01.0?tab=changes)。
+  [山水变动](/sources/ds-hk-saanseoi-division/dr-hk-saanseoi-division-2026-10-01.0?tab=changes)。
 - <orange>几何</orange> 使用 Protomaps
   [`2026-10-01.0`](/sources/ds-hk-protomaps-island/dr-hk-protomaps-island-2026-10-01.0?tab=changes)。六个岛屿的已确认别名即使被上游名称标签移除，仍然保留。地政总署
   `2026-06-10.0` 及差饷物业估价署 `2015-04-30.0` 仍为固定的名称输入。
@@ -145,14 +145,14 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 ## 备注与限制
 
 - 本版整理决定、覆盖及输入版本，请参阅
-  [SaanSeoi 源说明]({{primarySourceReleaseUrl}})。记录层级的 <black>sources</black> 通过
+  [山水源说明]({{primarySourceReleaseUrl}})。记录层级的 <black>sources</black> 通过
   <black>profile=full</black> 提供；Audit 选项卡描述处理证据。
 - 默认 <black>inventory=saanseoi</black>
   提供 Division 标识符、名称、分类及层级。<black>inventory=overture</black>
   选取此发布保留的独立 Overture inventory，不会将 Overture 记录加入经整理的 inventory。
 - 已确认匹配的标识对象保留 GERS 标识符；新增的整理记录使用 <black>ss-</black> 标识符。
 - 已知区划或层级关系不保证有多边形。经整理的邻里绘图可能为概略范围；如需法定或人口普查边界，请使用官方政府配套。
-- 未限定的 <black>include=areas</black> 选取 inventory 的默认面，SaanSeoi 的默认为
+- 未限定的 <black>include=areas</black> 选取 inventory 的默认面，山水的默认为
   <black>saanseoi</black>。<black>include=boundaries</black>
   选取 Overture 地区边界。限定的提供方仍为独立选项。
 - 政府统计处配套描述其人口普查参考年份。请勿将 2016 或 2021 年人口普查几何视为持续有效的行政边界。

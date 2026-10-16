@@ -512,10 +512,10 @@ The API returns a number of error codes. Here is how to recover from each one:
 {{apiKeyNote:zh-Hant}}
 
 <black>geographic</black> 的預設 inventory 是
-<black>saanseoi</black>。SaanSeoi 提供經整理的 Division 識別碼、名稱、分類及層級；此發布亦保留獨立的 Overture
+<black>saanseoi</black>。山水提供經整理的 Division 識別碼、名稱、分類及層級；此發布亦保留獨立的 Overture
 inventory 及相容幾何配套。
 
-本版準備及覆蓋詳情，請參閱 [SaanSeoi 來源附註]({{primarySourceReleaseUrl}})。使用
+本版準備及覆蓋詳情，請參閱 [山水來源附註]({{primarySourceReleaseUrl}})。使用
 <black>profile=full</black> 時，<black>sources</black> 指向保留的來源記錄。請使用
 [Divisions 來源記錄端點](/docs#tag/Sources/operation/listDivisionSourceRecordsV0)，提供必要的
 <black>sourceRelease</black> 參數，以查看其
@@ -589,7 +589,7 @@ inventory 及相容幾何配套。
 ```
 
 沿區劃 ID 讀取、搜尋、地理編碼或比較變動時，請使用相同的 inventory。兩個 inventory 中名稱相同，不保證識別對象或層級相同。已確認配對保留 Overture
-GERS 識別碼；SaanSeoi 新增記錄使用 <black>ss-</black> 識別碼。請保存回應的
+GERS 識別碼；山水新增記錄使用 <black>ss-</black> 識別碼。請保存回應的
 <black>links.permalink</black>，以保留已解析的發布、目錄及 inventory。
 
 ## 搜尋區劃
@@ -662,7 +662,7 @@ GERS 識別碼；SaanSeoi 新增記錄使用 <black>ss-</black> 識別碼。請�
 <black>profile=full</black> 時會包含此資料。點不表示區劃的覆蓋範圍。
 
 <note title="幾何資料品質">
-區劃的身份可以明確，但未必有多邊形。SaanSeoi 面包括經整理的繪圖、島嶼輪廓，以及行政或陸地裁切表示。鄰里繪圖可能為概略範圍。官方地區幾何請使用 <black>include=areas:hkgov-had</black>；人口普查分析請使用相應人口普查配套。提供某配套不保證每個區劃均有覆蓋。
+區劃的身份可以明確，但未必有多邊形。山水面包括經整理的繪圖、島嶼輪廓，以及行政或陸地裁切表示。鄰里繪圖可能為概略範圍。官方地區幾何請使用 <black>include=areas:hkgov-had</black>；人口普查分析請使用相應人口普查配套。提供某配套不保證每個區劃均有覆蓋。
 </note>
 
 以 <black>include=</black> 設定，從下列配套資料集選取額外幾何資料：
@@ -698,7 +698,7 @@ GERS 識別碼；SaanSeoi 新增記錄使用 <black>ss-</black> 識別碼。請�
    <black>overture</black>。這些邊界線涵蓋地區級區劃，不是每個經整理鄰里或島嶼的輪廓。
 
 <black>inventory=saanseoi&include=areas:overture</black>
-保留 SaanSeoi 識別碼及層級，同時要求相容的 Overture 面。<black>inventory=overture</black>
+保留山水識別碼及層級，同時要求相容的 Overture 面。<black>inventory=overture</black>
 亦會改變主要記錄。兩種請求均不會合併兩個 inventory。
 
 **簡化幾何資料**
@@ -935,10 +935,10 @@ API 會傳回多種錯誤碼。以下說明各種情況的復原方法：
 {{apiKeyNote:zh-Hans}}
 
 <black>geographic</black> 的默认 inventory 是
-<black>saanseoi</black>。SaanSeoi 提供经整理的 Division 标识符、名称、分类及层级；此发布亦保留独立的 Overture
+<black>saanseoi</black>。山水提供经整理的 Division 标识符、名称、分类及层级；此发布亦保留独立的 Overture
 inventory 及兼容几何配套。
 
-本版准备及覆盖详情，请参阅 [SaanSeoi 源说明]({{primarySourceReleaseUrl}})。使用
+本版准备及覆盖详情，请参阅 [山水源说明]({{primarySourceReleaseUrl}})。使用
 <black>profile=full</black> 时，<black>sources</black> 指向保留的源记录。请使用
 [Divisions 源记录端点](/docs#tag/Sources/operation/listDivisionSourceRecordsV0)，提供必要的
 <black>sourceRelease</black> 参数，以查看其
@@ -1012,7 +1012,7 @@ inventory 及兼容几何配套。
 ```
 
 沿区划 ID 读取、搜索、地理编码或比较变动时，请使用相同的 inventory。两个 inventory 中名称相同，不保证标识对象或层级相同。已确认匹配保留 Overture
-GERS 标识符；SaanSeoi 新增记录使用 <black>ss-</black> 标识符。请保存响应的
+GERS 标识符；山水新增记录使用 <black>ss-</black> 标识符。请保存响应的
 <black>links.permalink</black>，以保留已解析的发布、目录及 inventory。
 
 ## 搜索区划
@@ -1085,7 +1085,7 @@ GERS 标识符；SaanSeoi 新增记录使用 <black>ss-</black> 标识符。请�
 <black>profile=full</black> 时会包含此数据。点不表示区划的覆盖范围。
 
 <note title="几何数据质量">
-区划的身份可以明确，但未必有多边形。SaanSeoi 面包括经整理的绘图、岛屿轮廓，以及行政或陆地裁切表示。邻里绘图可能为概略范围。官方地区几何请使用 <black>include=areas:hkgov-had</black>；人口普查分析请使用相应人口普查配套。提供某配套不保证每个区划均有覆盖。
+区划的身份可以明确，但未必有多边形。山水面包括经整理的绘图、岛屿轮廓，以及行政或陆地裁切表示。邻里绘图可能为概略范围。官方地区几何请使用 <black>include=areas:hkgov-had</black>；人口普查分析请使用相应人口普查配套。提供某配套不保证每个区划均有覆盖。
 </note>
 
 以 <black>include=</black> 设置，从下列配套数据集选择额外几何数据：
@@ -1121,7 +1121,7 @@ GERS 标识符；SaanSeoi 新增记录使用 <black>ss-</black> 标识符。请�
    <black>overture</black>。这些边界线涵盖地区级区划，不是每个经整理邻里或岛屿的轮廓。
 
 <black>inventory=saanseoi&include=areas:overture</black>
-保留 SaanSeoi 标识符及层级，同时请求兼容的 Overture 面。<black>inventory=overture</black>
+保留山水标识符及层级，同时请求兼容的 Overture 面。<black>inventory=overture</black>
 亦会改变主要记录。两种请求均不会合并两个 inventory。
 
 **简化几何数据**

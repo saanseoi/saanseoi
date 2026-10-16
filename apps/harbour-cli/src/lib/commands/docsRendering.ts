@@ -225,7 +225,7 @@ function renderAddressNotesAndLimitations(markdown: string) {
   [Release scope table](#source-heading-release-scope) for publisher-specific quality,
   provenance, and compatibility details.`,
     'zh-Hant': `- Address collection 以此 cohort 的政府地址查詢服務來源發布為基礎。Address
-  ID 是 SaanSeoi 標準識別碼，並非 ALS CSU ID；如需保留的識別碼及來源證據，請使用
+  ID 是山水標準識別碼，並非 ALS CSU ID；如需保留的識別碼及來源證據，請使用
   <black>profile=full</black>。
 - 支援的 Overture Division
   snapshot 提供標準地理關係，不會取代 ALS 發布的地址文字或座標。
@@ -241,7 +241,7 @@ function renderAddressNotesAndLimitations(markdown: string) {
 - 全文及樓宇號碼搜尋索引是此不可變 release set 的衍生 projection。請參閱
   [發布範圍表](#source-heading-release-scope)連結的來源發布附註，以了解發布者特有的資料品質、溯源及相容性資料。`,
     'zh-Hans': `- Address collection 以此 cohort 的政府地址查询服务源发布为基础。Address
-  ID 是 SaanSeoi 标准标识符，并非 ALS CSU ID；如需保留的标识符及源证据，请使用
+  ID 是山水标准标识符，并非 ALS CSU ID；如需保留的标识符及源证据，请使用
   <black>profile=full</black>。
 - 支持的 Overture Division
   snapshot 提供标准地理关系，不会取代 ALS 发布的地址文本或坐标。
@@ -278,18 +278,18 @@ function renderAddressCurationPolicy(markdown: string) {
   historical record from shared names, coordinates, CSU IDs or similar-looking
   inventories. A missing <black>Address2D</black> or <black>Address3D</black> record is
   reconstructed only by an explicit, reviewed rule.`,
-    'zh-Hant': `- SaanSeoi 會正規化雙語格式及處所組成部分，然後只對身份延續、canonical 名稱、層級及
+    'zh-Hant': `- 山水會正規化雙語格式及處所組成部分，然後只對身份延續、canonical 名稱、層級及
   粒度、重複斷言、單位清單、保留項目及座標修正，套用已審核且有來源和發布範圍限制的整理。
 - 每項整理均有受影響來源斷言及發布的精確證據 guard。原始 ALS feature，以及被取代的
   組成部分、識別碼、單位清單及座標均會保留為 provenance。
-- SaanSeoi 不會根據相同名稱、座標、CSU ID 或相似的單位清單，推斷缺失處所、單位成員、
+- 山水不會根據相同名稱、座標、CSU ID 或相似的單位清單，推斷缺失處所、單位成員、
   層級關係或歷史記錄。缺失的 <black>Address2D</black> 或 <black>Address3D</black>
   記錄只會按明確且已審核的規則重建。`,
-    'zh-Hans': `- SaanSeoi 会规范化双语格式及场所组成部分，然后只对身份延续、canonical 名称、层级及
+    'zh-Hans': `- 山水会规范化双语格式及场所组成部分，然后只对身份延续、canonical 名称、层级及
   粒度、重复断言、单元清单、保留项目及坐标修正，应用已审核且有来源和发布范围限制的整理。
 - 每项整理均有受影响源断言及发布的精确证据 guard。原始 ALS feature，以及被替换的
   组成部分、标识符、单元清单及坐标均会保留为 provenance。
-- SaanSeoi 不会根据相同名称、坐标、CSU ID 或相似的单元清单，推断缺失场所、单元成员、
+- 山水不会根据相同名称、坐标、CSU ID 或相似的单元清单，推断缺失场所、单元成员、
   层级关系或历史记录。缺失的 <black>Address2D</black> 或 <black>Address3D</black>
   记录只会按明确且已审核的规则重建。`,
   } as const
@@ -340,13 +340,13 @@ function renderAddressKnownQualityIssues(markdown: string) {
   複合的 \`CsuId\`。
 - <black>CSU-ID</black> <u>不是</u> ALS 發布之間耐用的一對一地址識別碼。ALS 可在
   不改變樓宇、地址或單位清單的情況下，將處所更新為另一個 CSU；亦可在保留 CSU 時改變
-  其他來源斷言。因此 SaanSeoi 將其保留為來源證據；但跨發布追蹤身份會結合 GeoAddress
+  其他來源斷言。因此山水將其保留為來源證據；但跨發布追蹤身份會結合 GeoAddress
   及雙語處所組成部分，並在含糊或改變時進行[受保護審核](?tab=audit)。重複的 CSU 不一定
   位於同一位置：例如六個 \`HUNG FOOK BUILDING\` 斷言共用 \`2092834041P20050609\`；其中
   五個位於 E \`820929\`、N \`834040\`，而 \`38 FOOK TAK STREET\` 位於 E \`821279\`、
   N \`833717\`，相距 476.3 米。<black>CSU-ID</black> 至多只能視為身份及位置的指示。
 - 上游 ALS 來源在不同發布之間的覆蓋並不一致，經常暫時移除
-  <black>Address2D</black> 及 <black>Address3D</black>，其後才再次出現。SaanSeoi 只會
+  <black>Address2D</black> 及 <black>Address3D</black>，其後才再次出現。山水只會
   在已審核規則識別精確來源記錄、發布區間及佐證證據時，重建遺漏項目。`,
     'zh-Hans': `- <b>Building CSU-ID</b>（Common Spatial Unit ID）标识发布者的空间单元。它由
   <black>GEO_REFNO</black>、<black>POLY_TYPE</black> 及 <black>CREATE_DATE</black>
@@ -360,13 +360,13 @@ function renderAddressKnownQualityIssues(markdown: string) {
   复合的 \`CsuId\`。
 - <black>CSU-ID</black> <u>不是</u> ALS 发布之间耐用的一对一地址标识符。ALS 可在
   不改变楼宇、地址或单元清单的情况下，将场所更新为另一个 CSU；亦可在保留 CSU 时改变
-  其他源断言。因此 SaanSeoi 将其保留为源证据；但跨发布追踪身份会结合 GeoAddress
+  其他源断言。因此山水将其保留为源证据；但跨发布追踪身份会结合 GeoAddress
   及双语场所组成部分，并在含糊或改变时进行[受保护审核](?tab=audit)。重复的 CSU 不一定
   位于同一位置：例如六个 \`HUNG FOOK BUILDING\` 断言共用 \`2092834041P20050609\`；其中
   五个位于 E \`820929\`、N \`834040\`，而 \`38 FOOK TAK STREET\` 位于 E \`821279\`、
   N \`833717\`，相距 476.3 米。<black>CSU-ID</black> 至多只能视为身份及位置的指示。
 - 上游 ALS 源在不同发布之间的覆盖并不一致，经常暂时移除
-  <black>Address2D</black> 及 <black>Address3D</black>，其后才再次出现。SaanSeoi 只会
+  <black>Address2D</black> 及 <black>Address3D</black>，其后才再次出现。山水只会
   在已审核规则标识精确源记录、发布区间及佐证证据时，重建遗漏项目。`,
   } as const
 

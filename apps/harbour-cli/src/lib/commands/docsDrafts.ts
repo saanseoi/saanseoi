@@ -241,7 +241,7 @@ source releases contributed to this release set.
 
 ## 更新紀錄
 
-- 山水 | SaanSeoi 首個涵蓋 {{regionName:zh-Hant}} <black>{{ cohortKey }}</black>
+- 山水首個涵蓋 {{regionName:zh-Hant}} <black>{{ cohortKey }}</black>
   的地址 API 發布集。
 
 ## 修訂紀錄
@@ -250,7 +250,7 @@ source releases contributed to this release set.
 
 ## 發布範圍
 
-此不可變的 [release set](saanseoi:zh-hant:definition/release-set/v1) 透過 SaanSeoi
+此不可變的 [release set](saanseoi:zh-hant:definition/release-set/v1) 透過山水
 Addresses API 提供 {{regionName:zh-Hant}} 的選定 <black>{{ domainCode }}</black>
 地址記錄。它涵蓋 <black>{{ cohortKey }}</black> 來源 cohort：即為此 API 檢視處理的
 發布，而不一定是地址建立或最後更改的日期。
@@ -269,7 +269,7 @@ Addresses API 提供 {{regionName:zh-Hant}} 的選定 <black>{{ domainCode }}</b
 
 ## 更新记录
 
-- 山水 | SaanSeoi 首个涵盖 {{regionName:zh-Hans}} <black>{{ cohortKey }}</black>
+- 山水首个涵盖 {{regionName:zh-Hans}} <black>{{ cohortKey }}</black>
   的地址 API 发布集。
 
 ## 修订记录
@@ -278,7 +278,7 @@ Addresses API 提供 {{regionName:zh-Hant}} 的選定 <black>{{ domainCode }}</b
 
 ## 发布范围
 
-此不可变的 [release set](saanseoi:zh-hans:definition/release-set/v1) 通过 SaanSeoi
+此不可变的 [release set](saanseoi:zh-hans:definition/release-set/v1) 通过山水
 Addresses API 提供 {{regionName:zh-Hans}} 的选定 <black>{{ domainCode }}</black>
 地址记录。它涵盖 <black>{{ cohortKey }}</black> 来源 cohort：即为此 API 视图处理的
 发布，而不一定是地址创建或最后更改的日期。

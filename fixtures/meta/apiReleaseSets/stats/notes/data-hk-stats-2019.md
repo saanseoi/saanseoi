@@ -65,8 +65,8 @@ The following source releases contributed to this release set.
 
 ## 更新紀錄
 
-- 山水 | SaanSeoi 首個涵蓋 {{regionName:zh-Hant}} <black>{{ cohortKey }}</black>
-  參考期的 Statistics API 發布集。
+- 山水首個涵蓋 {{regionName:zh-Hant}} <black>{{ cohortKey }}</black> 參考期的 Statistics
+  API 發布集。
 
 ## 修訂紀錄
 
@@ -75,15 +75,15 @@ The following source releases contributed to this release set.
 
 ## 發布範圍
 
-此 [release](saanseoi:zh-hant:definition/release/v1) 透過 SaanSeoi Statistics API 提供
+此 [release](saanseoi:zh-hant:definition/release/v1) 透過山水 Statistics API 提供
 {{regionName:zh-Hant}} 的選定 <black>{{ domainCode }}</black> 統計資料。它涵蓋
 <black>{{ cohortKey }}</black> 參考期：即數值所描述的時間，而不一定是來源發布的日期。
 
 <black>{{ domainCode }}</black> [domain](saanseoi:zh-hant:definition/domain/v1)
-匯集香港特別行政區政府各部門發布的這些統計資料。SaanSeoi 不會原封不動地複製整個來源資料集，而是選取描述這個參考期的數值，並作為一個集合提供。每個數值均保留與其所屬來源發布的連結。
+匯集香港特別行政區政府各部門發布的這些統計資料。山水不會原封不動地複製整個來源資料集，而是選取描述這個參考期的數值，並作為一個集合提供。每個數值均保留與其所屬來源發布的連結。
 
 來源可以在其所描述的期間之後才發布。因此，它可能為 {{ cohortKey }}
-新增數值，或更正已包括在此的數值。無論哪種情況，SaanSeoi 都會發布這個發布集的新編號修訂版。較早的修訂版會保持不變，因此已儲存的結果總能追溯至所使用的版本。
+新增數值，或更正已包括在此的數值。無論哪種情況，山水都會發布這個發布集的新編號修訂版。較早的修訂版會保持不變，因此已儲存的結果總能追溯至所使用的版本。
 
 統計資料按其描述的期間組織。這表示即使已有較新的數值，較早的參考期仍然可用；較後發布的來源亦可在適當時為過往期間加入資料。
 
@@ -105,8 +105,8 @@ The following source releases contributed to this release set.
 
 ## 更新记录
 
-- 山水 | SaanSeoi 首个涵盖 {{regionName:zh-Hans}} <black>{{ cohortKey }}</black>
-  参考期的 Statistics API 发布集。
+- 山水首个涵盖 {{regionName:zh-Hans}} <black>{{ cohortKey }}</black> 参考期的 Statistics
+  API 发布集。
 
 ## 修订记录
 
@@ -115,15 +115,15 @@ The following source releases contributed to this release set.
 
 ## 发布范围
 
-此 [release](saanseoi:zh-hans:definition/release/v1) 通过 SaanSeoi Statistics API 提供
+此 [release](saanseoi:zh-hans:definition/release/v1) 通过山水 Statistics API 提供
 {{regionName:zh-Hans}} 的选定 <black>{{ domainCode }}</black> 统计数据。它涵盖
 <black>{{ cohortKey }}</black> 参考期：即数值所描述的时间，而不一定是来源发布的日期。
 
 <black>{{ domainCode }}</black> [domain](saanseoi:zh-hans:definition/domain/v1)
-汇集香港特别行政区政府各部门发布的这些统计数据。SaanSeoi 不会原封不动地复制整个来源数据集，而是选取描述这个参考期的数值，并作为一个集合提供。每个数值均保留与其所属来源发布的链接。
+汇集香港特别行政区政府各部门发布的这些统计数据。山水不会原封不动地复制整个来源数据集，而是选取描述这个参考期的数值，并作为一个集合提供。每个数值均保留与其所属来源发布的链接。
 
 来源可以在其所描述的期间之后才发布。因此，它可能为 {{ cohortKey }}
-新增数值，或更正已包括在此的数值。无论哪种情况，SaanSeoi 都会发布这个发布集的新编号修订版。较早的修订版会保持不变，因此已保存的结果总能追溯至所使用的版本。
+新增数值，或更正已包括在此的数值。无论哪种情况，山水都会发布这个发布集的新编号修订版。较早的修订版会保持不变，因此已保存的结果总能追溯至所使用的版本。
 
 统计数据按其描述的期间组织。这表示即使已有较新的数值，较早的参考期仍然可用；较后发布的来源也可在适当时为过往期间加入数据。
 
