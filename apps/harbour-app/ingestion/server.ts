@@ -415,6 +415,8 @@ export class ReviewDatabase {
   }
 
   subsetExpression(db: Database, table: string, kind: string, column: string) {
+    if (kind === 'HISTORY' && table.endsWith('I18n') && column === 'locale')
+      throw new Error('Unsupported subset')
     // API membership rows share one shape; their routing values do not
     // define distinct review cases. Review these rows together across variants.
     if (

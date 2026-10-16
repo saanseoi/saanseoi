@@ -457,3 +457,42 @@ test('source review keeps open and closed records together without isCurrent sub
     review.close()
   }
 })
+
+test('HISTORY i18n tables review locales together while retaining operation subsets', () => {
+  const review = fixture([
+    {
+      binding: 'DB_HISTORY_HK_2026',
+      sql: `CREATE TABLE divisionsI18n(id TEXT, snapshotId TEXT, locale TEXT, operation TEXT);
+      INSERT INTO divisionsI18n VALUES ('a','snap','en','upsert'),('a','snap','zh-hant','upsert'),('b','snap','en','delete');`,
+    },
+  ])
+  try {
+    const subsets = review.subsets('HISTORY', 'lineage', 'divisionsI18n')
+    expect(subsets.some(s => s.dimension === 'locale')).toBe(false)
+    expect(subsets.filter(s => s.dimension === 'operation').map(s => s.label)).toEqual([
+      'operation: delete',
+      'operation: upsert',
+    ])
+    const data = review.inspect(
+      'HISTORY',
+      'lineage',
+      'divisionsI18n',
+      false,
+      8,
+      JSON.stringify(['operation', 'upsert']),
+    )
+    expect(data.samples.map(s => s.record.locale).sort()).toEqual(['en', 'zh-hant'])
+    expect(() =>
+      review.inspect(
+        'HISTORY',
+        'lineage',
+        'divisionsI18n',
+        false,
+        8,
+        JSON.stringify(['locale', 'en']),
+      ),
+    ).toThrow('Unsupported subset')
+  } finally {
+    review.close()
+  }
+})
