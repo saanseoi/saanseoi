@@ -13,7 +13,7 @@ import {
 } from '@repo/core/pipeline/db/addressPublication'
 import { retainedDivisionScopeId } from '@repo/core/pipeline/services/publication/scope'
 import {
-  placeDivisionDefinitionsSql,
+  placeDivisionDisplaySql,
   placeAddressSnapshotSql,
 } from '@repo/core/pipeline/services/places/publicationDependencies'
 import { cleanupSnapshotByResourceType } from './snapshotCleanup'
@@ -63,7 +63,7 @@ test('Places and Addresses keep complete exact dependencies until every publicat
       JSON.parse(
         (
           db
-            .query(`SELECT ${placeDivisionDefinitionsSql()} AS value FROM places`)
+            .query(`SELECT ${placeDivisionDisplaySql()} AS value FROM places`)
             .get() as { value: string }
         ).value,
       )

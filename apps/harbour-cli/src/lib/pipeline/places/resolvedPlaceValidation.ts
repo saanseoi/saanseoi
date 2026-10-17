@@ -1,4 +1,4 @@
-import { placeDivisionDefinitionsSql } from '@repo/core/pipeline/services/places/publicationDependencies'
+import { placeDivisionDisplaySql } from '@repo/core/pipeline/services/places/publicationDependencies'
 import { placeDivisionFieldNames } from '@repo/db'
 import type { Database } from 'bun:sqlite'
 import { latLngToCell } from 'h3-js'
@@ -83,7 +83,7 @@ export async function validateResolvedPlaces(
     }
     if (count !== totalRows)
       throw new Error('Places staged membership differs from its declared row count.')
-    const actualDivisions = `SELECT p.scopeId,p.id AS placeId,entry.key AS divisionId, json_object('level',json_extract(entry.value,'$.level'),'locales',json_extract(entry.value,'$.locales')) AS definition FROM places p, json_each(${placeDivisionDefinitionsSql('p')}) entry`
+    const actualDivisions = `SELECT p.scopeId,p.id AS placeId,entry.key AS divisionId, json_object('level',json_extract(entry.value,'$.level'),'locales',json_extract(entry.value,'$.locales')) AS definition FROM places p, json_each(${placeDivisionDisplaySql('p')}) entry`
     for await (const row of readStagedJsonLines<EnrichedPlace>(path)) {
       const actual = db
         .query<Record<string, string | null>, [string, string]>(

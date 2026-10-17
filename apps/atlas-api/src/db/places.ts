@@ -1,7 +1,7 @@
 import { chunkArray } from '@repo/core/pipeline/utils.ts'
 import { placeDivisionFieldNames } from '@repo/db'
 import {
-  placeDivisionDefinitionsSql,
+  placeDivisionDisplaySql,
   placeAddressSnapshotSql,
 } from '@repo/core/pipeline/services/places/publicationDependencies'
 import { normalisePlaceBbox } from '@repo/core/pipeline/services/places/placeGeometry'
@@ -182,7 +182,7 @@ export async function listPlaceDivisions(db: CurrentDatabase, lookup: I18nLookup
       ...getTableColumns(places),
       definition: sql<
         import('@repo/db').PlaceDivisionDefinitionSet
-      >`json(${sql.raw(placeDivisionDefinitionsSql())})`.mapWith(
+      >`json(${sql.raw(placeDivisionDisplaySql())})`.mapWith(
         (value): import('@repo/db').PlaceDivisionDefinitionSet =>
           typeof value === 'string' ? JSON.parse(value) : value,
       ),
@@ -525,7 +525,7 @@ export async function listPlaceRecordsCurrent(
       ...Object.fromEntries(
         placeDivisionFieldNames.map(field => [field, places[field]]),
       ),
-      definition: sql<string | null>`${sql.raw(placeDivisionDefinitionsSql())}`,
+      definition: sql<string | null>`${sql.raw(placeDivisionDisplaySql())}`,
     })
     .from(places)
     .where(and(...buildPlaceConditions(lookup)))

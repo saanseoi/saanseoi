@@ -85,3 +85,19 @@ test('only acknowledged predecessor membership can authorise a deletion comparis
     await rm(directory, { recursive: true, force: true })
   }
 })
+
+test('retained Address scopes have deterministic safe membership paths', () => {
+  const scope = JSON.stringify(['lineage', 'snapshot', 'old'])
+  expect(addressMembershipMirrorFile(scope, 'old')).toMatch(
+    /^address-membership\/retained-[a-f0-9]{64}\/old\.json$/,
+  )
+  expect(addressMembershipMirrorFile(scope, 'old')).toBe(
+    addressMembershipMirrorFile(scope, 'old'),
+  )
+  expect(() => addressMembershipMirrorFile('../escape', 'old')).toThrow(
+    'Invalid Address membership identity',
+  )
+  expect(() => addressMembershipMirrorFile(scope, 'different')).toThrow(
+    'Invalid Address membership identity',
+  )
+})

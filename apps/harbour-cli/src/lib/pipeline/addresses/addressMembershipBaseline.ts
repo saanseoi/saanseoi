@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto'
 import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { Database } from 'bun:sqlite'
@@ -8,9 +9,28 @@ import {
 } from '../../sources/hkgov/dpo/hkgovAlsMembership.ts'
 
 export function addressMembershipMirrorFile(scopeId: string, snapshotId: string) {
-  if (![scopeId, snapshotId].every(value => /^[a-zA-Z0-9_-]+$/.test(value)))
-    throw new Error('Invalid Address membership identity.')
-  return `address-membership/${scopeId}/${snapshotId}.json`
+  const safe = (value: string) => /^[a-zA-Z0-9_-]+$/.test(value)
+  if (!safe(snapshotId)) throw new Error('Invalid Address membership identity.')
+  let directory = scopeId
+  if (!safe(scopeId)) {
+    let retained: unknown
+    try {
+      retained = JSON.parse(scopeId)
+    } catch {
+      throw new Error('Invalid Address membership identity.')
+    }
+    if (
+      !Array.isArray(retained) ||
+      retained.length !== 3 ||
+      typeof retained[0] !== 'string' ||
+      !safe(retained[0]) ||
+      retained[1] !== 'snapshot' ||
+      retained[2] !== snapshotId
+    )
+      throw new Error('Invalid Address membership identity.')
+    directory = `retained-${createHash('sha256').update(scopeId).digest('hex')}`
+  }
+  return `address-membership/${directory}/${snapshotId}.json`
 }
 
 /** A prepared sidecar never establishes the predecessor: only acknowledged delivery does. */

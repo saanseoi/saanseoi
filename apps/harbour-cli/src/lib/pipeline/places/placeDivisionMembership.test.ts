@@ -8,7 +8,7 @@ import {
   createDivisionMembership,
   divisionFields,
 } from '../divisions/divisionMembership'
-import { supportedPlaceMembership } from './placeDivisionDefinitions'
+import { supportedPlaceMembership } from './placeDivisionMembership'
 
 test('Place output consumes scalar references and excludes extra ancestor evidence without changing the shared resolver', () => {
   expect([...new Set(Object.values(divisionFields))].sort()).toEqual(

@@ -39,7 +39,7 @@ if [[ "$legacy_places" != "0" ]]; then
     bun x wrangler d1 execute "$@" --json --command "SELECT count(*) AS records FROM $dependency_table" >"$tmp_output"
     dependency_rows="$(python3 -c 'import json,sys; print(sum(row.get("records",0) for result in json.load(sys.stdin) for row in result.get("results",[])))' <"$tmp_output")"
     if [[ "$dependency_rows" != "0" ]]; then
-      echo "Publication dependencies require a reviewed rebuild of populated Place and Address projections, receipts and history; schema migrations were not applied." >&2
+      echo "Populated Place and Address data requires a reset and reinitialisation. Schema migrations were not applied." >&2
       exit 1
     fi
   done

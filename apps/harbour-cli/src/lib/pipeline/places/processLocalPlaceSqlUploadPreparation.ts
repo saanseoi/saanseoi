@@ -1,6 +1,6 @@
 import { createPlaceDivisionAttribution } from './placeDivisionAttribution'
 import { placeSources, type PlaceDependencySource } from './placeAttribution'
-import { supportedPlaceMembership } from './placeDivisionDefinitions'
+import { supportedPlaceMembership } from './placeDivisionMembership'
 import {
   readSnapshotDependencies,
   recordSnapshotDependencies,

@@ -13,7 +13,7 @@ import re
 from island_field_upgrade import MIGRATIONS as ISLAND_FIELD_MIGRATIONS, upgrade as upgrade_island_fields
 from history_producer_upgrade import MIGRATION as HISTORY_PRODUCER_MIGRATION, upgrade as upgrade_history_producers
 from inline_history_upgrade import MIGRATION as INLINE_HISTORY_MIGRATION, upgrade as upgrade_inline_history
-from place_storage_upgrade import MIGRATIONS as PLACE_STORAGE_MIGRATIONS, upgrade as upgrade_place_storage
+from place_publication_migration import MIGRATIONS as PLACE_PUBLICATION_MIGRATIONS, upgrade as upgrade_place_publications
 
 
 def quote(identifier):
@@ -132,8 +132,8 @@ def migrate(database_path, migrations_dir, backup_dir, table='d1_migrations', me
                     upgrade_inline_history(db, path.read_text(), statements, metadata)
                 elif name == HISTORY_PRODUCER_MIGRATION:
                     upgrade_history_producers(db, path.read_text(), statements, metadata)
-                elif name in PLACE_STORAGE_MIGRATIONS:
-                    upgrade_place_storage(db, name, path.read_text(), statements, metadata, history_databases)
+                elif name in PLACE_PUBLICATION_MIGRATIONS:
+                    upgrade_place_publications(db, name, path.read_text(), statements, metadata, history_databases)
                 else:
                     for statement in statements(path.read_text()):
                         db.execute(statement)

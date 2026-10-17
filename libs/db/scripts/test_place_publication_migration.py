@@ -1,6 +1,6 @@
 import sqlite3
 import unittest
-from place_storage_upgrade import PUBLICATION_DEPENDENCIES, upgrade
+from place_publication_migration import PUBLICATION_DEPENDENCIES, upgrade
 
 
 class PublicationMigrationTests(unittest.TestCase):
@@ -9,7 +9,7 @@ class PublicationMigrationTests(unittest.TestCase):
             with self.subTest(migration=migration), sqlite3.connect(':memory:') as db:
                 db.execute('CREATE TABLE places(id TEXT)')
                 db.execute("INSERT INTO places VALUES ('retained')")
-                with self.assertRaisesRegex(ValueError, 'reviewed rebuild'):
+                with self.assertRaisesRegex(ValueError, 'reset and reinitialisation'):
                     upgrade(db, migration, 'DROP TABLE places;', lambda sql: [sql])
                 self.assertEqual(db.execute('SELECT id FROM places').fetchall(), [('retained',)])
 
@@ -26,6 +26,6 @@ class PublicationMigrationTests(unittest.TestCase):
                 db.execute('CREATE TABLE places(id TEXT)')
                 db.execute(f'CREATE TABLE "{table}"(id TEXT)')
                 db.execute(f'INSERT INTO "{table}" VALUES (?)', ('retained',))
-                with self.assertRaisesRegex(ValueError, 'reviewed rebuild'):
+                with self.assertRaisesRegex(ValueError, 'reset and reinitialisation'):
                     upgrade(db, next(iter(PUBLICATION_DEPENDENCIES)), 'DROP TABLE places;', lambda sql: [sql])
                 self.assertEqual(db.execute('SELECT count(*) FROM places').fetchone()[0], 0)

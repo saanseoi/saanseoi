@@ -1861,3 +1861,8 @@ Cleanup requires every referencing Place and Address publication to advance or r
 It checks logical publication references even for empty snapshots, alongside physical
 Address foreign keys, inside the deletion transaction. Retained HISTORY is independent
 of CURRENT cleanup. Content hashes exclude physical storage scopes.
+
+For a clean local database, follow the
+[reset and rebuild workflow](../pipeline.md#local-pipeline-initialisation). Schema
+migrations create empty tables; initialisation publishes the dependency snapshots and
+rebuilds serving projections.

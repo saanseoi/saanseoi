@@ -12,18 +12,11 @@ content run through explicit migration hooks:
 
 - `inline_history_upgrade.py` reconstructs inline events from retained journals and
   verifies dictionary ownership against META.
-- `place_storage_upgrade.py` copies coordinates into GeoJSON Points, converts bounds to
-  `[west, south, east, north]`, and stores brand identity at
-  `identifiers.wikidata.brandId`. CURRENT geometry remains required; HISTORY deletion
-  events can retain null content. Version hashes and event identities are preserved.
-- The Places hooks share exact Division definitions and map retained associations to
-  supported scalar fields. Classification follows the selected snapshot's HISTORY
-  ancestry, using the configured META and HISTORY paths. Ambiguous memberships remain
-  null; island ancestry selects the most specific unambiguous landform. Existing HISTORY
-  Places without retained associations receive no inferred memberships.
+- `place_publication_migration.py` rejects populated Place or Address data when applying
+  publication dependency migrations. Use the
+  [local reset and rebuild workflow](../../../docs/datasets/pipeline.md#local-pipeline-initialisation).
 
-Invalid coordinates or bounds, conflicting definitions, missing revision evidence, and
-failed foreign-key checks roll back that database's entire pending batch. A failure
+Failed foreign-key checks roll back that database's entire pending batch. A failure
 stops subsequent databases; databases already completed retain their receipts. Rerunning
 the command skips migrations with committed receipts.
 

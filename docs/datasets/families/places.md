@@ -901,11 +901,13 @@ decision model supply no access hint. A supplied locale hint is retained in CURR
 HISTORY and participates in the locale content hash; address matching does not infer
 one.
 
-## Publication dependency schema rollout
+## Database initialisation
 
-The generated CURRENT and HISTORY migrations remove per-Place snapshot pointers and
-shared Division definition sets. Existing Place content hashes and Address dependency
-hashes require regeneration with publication-level dependency selection. Migration entry
-points reject populated Place tables: a reviewed rebuild from retained source and
-metadata must precede schema application. Generated DDL alone is not a data conversion.
-Backups and immutable source evidence remain outside CURRENT projection cleanup.
+Place publications select complete Division and Address snapshots. Populated databases
+require a reset and reinitialisation to establish publication dependencies and canonical
+content hashes.
+
+For a clean local database, follow the
+[reset and rebuild workflow](../pipeline.md#local-pipeline-initialisation). Schema
+migrations create empty tables; initialisation publishes the dependency snapshots and
+rebuilds serving projections.

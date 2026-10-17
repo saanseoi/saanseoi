@@ -213,6 +213,17 @@ local databases, runs the initialisers in dependency order, and prints one final
 initialisation summary. Places run after the official Addresses initialiser because its
 address member is resolved from the latest compatible reference snapshot.
 
+Before a full local reset, stop local ingestion, SQL delivery and development processes
+that use D1 or R2. The reset clears local database contents, local R2 storage, delivery
+plans and completed initialisation markers. Preserve any local-only evidence needed for
+the rebuild before running it. Production R2 objects are unaffected.
+
+`bun run db:reset:local` applies all schema migrations and synchronises metadata; it
+does not ingest dataset rows. `./bin/saanseoi init:local` performs the reset and the
+complete rebuild. Place publications select their Division, Address and supplementary
+Address snapshots; Address publications select their Division snapshot. Referenced
+projections remain in CURRENT until every dependent publication advances or retires.
+
 ## Production pipeline initialisation
 
 For a clean production baseline, use `./bin/saanseoi init:production`. This

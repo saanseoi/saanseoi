@@ -20,6 +20,9 @@ DROP TABLE IF EXISTS `streetNameChangeStreets`;
 DROP TABLE IF EXISTS `streetNameChanges`;
 DROP TABLE IF EXISTS `placesI18n`;
 DROP TABLE IF EXISTS `places`;
+-- Remove obsolete Place tables when resetting an existing database.
+DROP TABLE IF EXISTS `placesDivision`;
+DROP TABLE IF EXISTS `placeDivisionDefinitions`;
 DROP TABLE IF EXISTS `streetsI18n`;
 DROP TABLE IF EXISTS `streets`;
 DROP TABLE IF EXISTS `address3dUnitRefLookup`;
