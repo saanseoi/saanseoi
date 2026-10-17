@@ -85,9 +85,23 @@ export function alignBoundary(
   valid(snapped, 'Snapping the target to the reference')
   const overlay = (op: number) => SnapIfNeededOverlayOp.overlayOp(snapped, anchor, op)
   // Perfect inclusion or a non-overlapping neighbour, chosen explicitly by the user.
-  const result = overlay(
+  let result = overlay(
     relation === 'inside' ? OverlayOp.INTERSECTION : OverlayOp.DIFFERENCE,
   )
+  // Boundary-only contacts can accompany the polygonal intersection. They
+  // contribute no area and must not turn a valid coastline result into an error.
+  if (result.getGeometryType() === 'GeometryCollection') {
+    const polygons: Polygon['coordinates'][] = []
+    const collect = (shape: ReturnType<typeof reader.read>) => {
+      if (shape.getGeometryType() === 'Polygon')
+        polygons.push((writer.write(shape) as Polygon).coordinates)
+      else if (['GeometryCollection', 'MultiPolygon'].includes(shape.getGeometryType()))
+        for (let i = 0; i < shape.getNumGeometries(); i++)
+          collect(shape.getGeometryN(i))
+    }
+    collect(result)
+    result = reader.read({ type: 'MultiPolygon', coordinates: polygons })
+  }
   valid(
     result,
     relation === 'inside'

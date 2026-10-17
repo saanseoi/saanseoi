@@ -662,3 +662,20 @@ Canonical HISTORY events follow the shared
 [producer ownership contract](../../families/source-evidence.md#history-producer-ownership).
 The introducing snapshot retains its exact producing inputs; source attribution and
 field-level evidence identify the contributing publisher records.
+
+### Selected boundary cleanup
+
+The division editor selects polygon targets independently of division level.
+Shared-boundary cleanup operates on neighbouring selections and preserves their outer
+coverage. Containing selections require explicit outline alignment. Coastline snapping
+clips each selection to the detailed land geometry and aligns nearby edges within 5 m.
+The island / outline controls use an explicit fixed island or division reference and an
+Inside or Neighbour relationship; no hierarchy relationship is inferred from level
+numbers. Unselected drawings remain unchanged. Each successful operation retains a
+complete Undo snapshot.
+
+Coastline snapping runs in a cancellable background worker. Each selected drawing uses
+land clipped to its bounding box with a 10 m angular margin, beyond the 5 m snap limit,
+so crop edges cannot attract drawing vertices. Holes and land coverage are retained.
+Progress is reported per division; cancellation, failure or a two-minute timeout saves
+no partial results. The complete result is validated before saving with Undo.

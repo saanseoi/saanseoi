@@ -1148,18 +1148,17 @@ target, allowing mixed GeometryCollection intersection results to be processed.
 Drawn Polygon and MultiPolygon areas are supported through level 6, including import,
 export, pencil expansion and node editing. Level 6 point membership remains available
 when no area has been drawn. Starting a pencil drawing makes its level visible. L6
-drawings support selected-level cleanup, simplification and cross-level boundary
-alignment.
+drawings support selection-based cleanup, simplification and boundary alignment.
 
-Cross-level alignment uses an explicitly selected reference outline and relationship.
-Inside-reference alignment enforces containment; neighbour alignment creates a shared
-edge without interior overlap. Nearby edges align within a conservative 5 m limit,
-following reference bends and inserting shared nodes. The reference keeps its outline;
-other selected divisions retain their original working baselines. Distant ownership
-changes, collapsed rings and invalid geometry stop the whole operation. Alignment
-supports selected drawn divisions at levels 0–6 and has a complete pre-operation Undo.
-Level numbers alone do not establish a parent relationship. Alignment does not change
-stored hierarchy assignments.
+Outline alignment uses an explicitly selected island or division reference and
+relationship. Inside-reference alignment enforces containment; neighbour alignment
+creates a shared edge without interior overlap. Nearby edges align within a conservative
+5 m limit, following reference bends and inserting shared nodes. The reference keeps its
+outline; other selected divisions retain their original working baselines. Distant
+ownership changes, collapsed rings and invalid geometry stop the whole operation.
+Alignment supports selected drawn divisions at levels 0–6 and has a complete
+pre-operation Undo. Level numbers alone do not establish a parent relationship.
+Alignment does not change stored hierarchy assignments.
 
 Loading saved drawings preserves their division associations. Recovery exports include
 the current drawing, undo snapshot and retained browser history for the requested
@@ -1172,15 +1171,19 @@ growth and validity checks apply before saving. Same-level interior overlaps sav
 warnings on both polygons. Shared edges and cross-level containment are not flagged.
 Warnings are recomputed after edits and imports. The pre-operation backup supports Undo.
 
-The division-area review map cleans selected divisions at one level from unsimplified
-inputs. Simplification uses the same selection and verifies each selected drawing
-against its retained cleanup result. Unselected drawings remain untouched; their
-junction vertices remain fixed. The simplification level follows the last requested
-cleanup level. It nodes source and authoritative land boundaries together, polygonises
-the shared graph and assigns overlap faces in division-ID order. It preserves exact
-source coordinates and collinear nodes, except where clipping, noding or an accepted
-street snap changes a boundary. Only exact consecutive duplicates and ring closures are
-normalised; invalid self-intersections stop cleanup with diagnostics.
+The division-area review map cleans selected neighbouring divisions across levels from
+unsimplified inputs. Containing selections require explicit outline alignment rather
+than shared-face ownership. Coastline snapping is a separate action: each selected
+polygon is clipped independently, then nearby edges snap to the detailed coast within 5
+m. Island snapping uses the chosen island outline with the Inside relationship.
+Unselected island references remain unchanged. Simplification uses the same selection
+and verifies each selected drawing against its retained cleanup result. Unselected
+drawings remain untouched; their junction vertices remain fixed. Simplification has its
+own level selector. It nodes source and authoritative land boundaries together,
+polygonises the shared graph and assigns overlap faces in division-ID order. It
+preserves exact source coordinates and collinear nodes, except where clipping, noding or
+an accepted street snap changes a boundary. Only exact consecutive duplicates and ring
+closures are normalised; invalid self-intersections stop cleanup with diagnostics.
 
 The shared graph uses source boundaries, land boundaries and any explicit coverage
 boundary. Derived clipped boundaries are excluded from graph construction to avoid
@@ -1191,7 +1194,8 @@ area bound and vertex/midpoint checks against both outlines. This comparison doe
 round or change saved coordinates. Coverage diagnostics identify the nearest source
 boundary rather than the last division visited during validation.
 
-The coverage target defaults to the union of source polygons intersected with
+Shared-boundary cleanup preserves the union of the selected drawings. Coastline cleanup
+uses the union of source polygons intersected with
 `hongkong-2026-09-01.coastline-land.geojson`. Existing gaps therefore remain intentional
 unless a separate intended coverage polygon is supplied to the repair function.
 Unassigned faces in an explicit target are reported for ownership review. Cleanup does
@@ -2277,3 +2281,9 @@ no daily upstream check. Automatic monthly production is not yet wired into the 
 See [dataset update checks](../update.md) for source selection and
 [monthly production](../sources/saanseoi/division.md#monthly-production) for the
 publication requirements.
+
+Coastline snapping runs in a cancellable background worker. Each selected drawing uses
+land clipped to its bounding box with a 10 m angular margin, beyond the 5 m snap limit,
+so crop edges cannot attract drawing vertices. Holes and land coverage are retained.
+Progress is reported per division; cancellation, failure or a two-minute timeout saves
+no partial results. The complete result is validated before saving with Undo.

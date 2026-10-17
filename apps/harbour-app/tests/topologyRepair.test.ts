@@ -685,3 +685,82 @@ it('cleans L6 coast intersections containing an area and an isolated touching ed
   )
   expect(input.features[0]!.geometry.type).toBe('MultiPolygon')
 })
+
+it('cleans selected neighbours across levels without changing unselected drawings', () => {
+  const data = estimatedAreas(box(0, 1), box(1, 2), box(3, 4))
+  const mixed = {
+    ...inventory,
+    divisions: inventory.divisions.map((d, i) => ({ ...d, level: i === 0 ? 3 : 6 })),
+  }
+  const result = cleanEstimatedAreaGeometriesForLevel(
+    data,
+    mixed,
+    land(box(-1, 5)),
+    null,
+    undefined,
+    undefined,
+    new Set(['a', 'b']),
+  )
+  expect(result.levelCount).toBe(2)
+  expect(result.estimatedAreas.features[2]).toEqual(data.features[2])
+  expect(
+    result.estimatedAreas.features.slice(0, 2).every(f => f.properties.geometryCleanup),
+  ).toBe(true)
+})
+
+it('refuses nested selection before assigning away a contained division', () => {
+  const data = estimatedAreas(box(0, 3), box(1, 2))
+  const before = structuredClone(data)
+  expect(() =>
+    cleanEstimatedAreaGeometriesForLevel(data, inventory, land(box(-1, 4)), null),
+  ).toThrow('contains another')
+  expect(data).toEqual(before)
+})
+
+it('snaps a nearby inland edge out to the coastline, preserving other drawings', () => {
+  const data = estimatedAreas(box(0.00002, 1), box(2, 3))
+  const result = cleanEstimatedAreaGeometriesForLevel(
+    data,
+    inventory,
+    land(box(0, 1)),
+    null,
+    undefined,
+    undefined,
+    new Set(['a']),
+    true,
+  )
+  expect(Math.min(...points(result.estimatedAreas).map(p => p[0]!))).toBe(0)
+  expect(result.estimatedAreas.features[1]).toEqual(data.features[1])
+})
+
+it('does not snap inland drawings to artificial coastline crop edges', () => {
+  const data = estimatedAreas(box(0, 1))
+  const coast = land(
+    polygon([
+      [-10, -10],
+      [10, -10],
+      [10, 10],
+      [-10, 10],
+      [-10, -10],
+    ]),
+  )
+  const result = cleanEstimatedAreaGeometriesForLevel(
+    data,
+    inventory,
+    coast,
+    null,
+    undefined,
+    undefined,
+    new Set(['a']),
+    true,
+  )
+  expect(
+    points(result.estimatedAreas)
+      .map(p => p.join(','))
+      .sort(),
+  ).toEqual(
+    points(data)
+      .map(p => p.join(','))
+      .sort(),
+  )
+})

@@ -103,7 +103,7 @@ export function initialiseMapControls() {
   document.body.append(tools)
   toolbar.remove()
   cleanup!.querySelector('.section-note')!.textContent =
-    'Choose a target group, select polygons on the map or add matching results, then review the selection before running cleanup. Shared street edges snap within 5 m; endpoints and outer coverage stay fixed.'
+    'Select divisions on the map, then clean their shared boundaries or snap them to the coastline. Any division level can be selected.'
   const simplification = cleanup!.querySelector<HTMLDetailsElement>(
     '.simplification-tools',
   )!

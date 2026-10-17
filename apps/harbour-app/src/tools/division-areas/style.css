@@ -791,7 +791,7 @@ summary:focus-visible {
   gap: 7px 8px;
   align-items: end;
 }
-.alignment-controls h3 {
+.alignment-controls summary {
   margin: 0;
   font-size: 12px;
   color: #6ae3c1;
@@ -988,7 +988,16 @@ summary:focus-visible {
   margin-top: 10px;
 }
 .cleanup-panel .alignment-controls {
-  grid-template-columns: 1fr;
+  display: block;
+}
+.cleanup-panel .alignment-controls summary {
+  cursor: pointer;
+}
+.cleanup-panel .alignment-controls[open] > :not(summary) {
+  margin-top: 8px;
+}
+.cleanup-panel .alignment-controls button {
+  width: 100%;
 }
 .cleanup-panel .alignment-controls .section-note {
   grid-column: auto;

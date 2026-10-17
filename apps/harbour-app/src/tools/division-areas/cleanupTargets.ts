@@ -5,59 +5,46 @@ export function createCleanupTargets(actions: {
   selected: () => CleanupTarget[]
   add: (ids: string[]) => void
   remove: (id: string) => void
+  run: (operation: 'boundaries' | 'coast') => void
 }) {
   const get = (id: string) => document.getElementById(id)!
   const container = document.createElement('div')
   container.className = 'cleanup-targets'
-  const label = document.createElement('label')
-  label.textContent = 'Target group'
-  const group = document.createElement('select')
-  group.id = 'cleanup-target-group'
-  const groups = [
-    ['3', 'L3 · Towns'],
-    ['4', 'L4 · Neighbourhoods'],
-    ['5', 'L5 · Villages'],
-    ['6', 'L6 · Areas'],
-    ['islands', 'Islands'],
-  ]
-  for (const [value, title] of groups) group.add(new Option(title, value))
-  group.value = '4'
-  label.append(group)
+  const title = document.createElement('strong')
+  title.textContent = 'Selected divisions'
   const add = document.createElement('button')
   add.id = 'cleanup-add-matches'
   const run = document.createElement('button')
   run.id = 'cleanup-run'
+  const coast = document.createElement('button')
+  coast.id = 'cleanup-coast'
+  coast.textContent = 'Snap to coastline'
   const note = document.createElement('p')
   note.className = 'section-note'
   const list = document.createElement('div')
   list.className = 'cleanup-target-list'
   list.setAttribute('aria-label', 'Selected cleanup targets')
-  const legacy = [
+  for (const id of [
     'clean-town',
     'clean-level-4',
     'clean-level-5',
     'clean-level-6',
     'clean-islands',
-  ]
-  for (const id of legacy) get(id).hidden = true
-  const sourceButton = () =>
-    get(
-      legacy[groups.findIndex(([value]) => value === group.value)]!,
-    ) as HTMLButtonElement
+  ])
+    get(id).hidden = true
   const refresh = () => {
     const busy = (get('cleanup-select-mode') as HTMLInputElement).disabled
     const chosen = actions.selected()
     const ids = new Set(chosen.map(target => target.id))
-    const matches = actions
-      .candidates()
-      .filter(target => target.group === group.value && !ids.has(target.id))
-    const applicable = chosen.filter(target => target.group === group.value)
+    const matches = actions.candidates().filter(target => !ids.has(target.id))
     add.textContent = `Add matching results (${matches.length})`
     add.disabled = busy || !matches.length
-    group.disabled = busy
-    run.disabled = sourceButton().disabled
-    run.textContent = `${group.value === 'islands' ? 'Clip to coastline' : 'Clean boundaries'} (${applicable.length})`
-    note.textContent = `${applicable.length} targets in this group · ${chosen.length} selected in total. Adding results uses the current search, result filters and visible layers.`
+    run.disabled = busy || chosen.length < 2
+    coast.disabled = busy || !chosen.length
+    run.textContent = `Clean shared boundaries (${chosen.length})`
+    note.textContent = chosen.length
+      ? 'Click a selected polygon or its name below to remove it.'
+      : 'Click polygons on the map, or add the filtered results from visible layers.'
     list.replaceChildren(
       ...chosen.map(target => {
         const button = document.createElement('button')
@@ -69,20 +56,16 @@ export function createCleanupTargets(actions: {
       }),
     )
   }
-  group.onchange = refresh
-  add.onclick = () =>
-    actions.add(
-      actions
-        .candidates()
-        .filter(target => target.group === group.value)
-        .map(target => target.id),
-    )
-  run.onclick = () => sourceButton().click()
-  container.append(label, add, note, list, run)
+  add.onclick = () => actions.add(actions.candidates().map(target => target.id))
+  run.onclick = () => actions.run('boundaries')
+  coast.onclick = () => actions.run('coast')
+  container.append(title, note, add, list, run, coast)
   get('cleanup-selection-count').before(container)
   const observer = new MutationObserver(refresh)
-  for (const id of [...legacy, 'cleanup-select-mode'])
-    observer.observe(get(id), { attributes: true, attributeFilter: ['disabled'] })
+  observer.observe(get('cleanup-select-mode'), {
+    attributes: true,
+    attributeFilter: ['disabled'],
+  })
   observer.observe(get('cleanup-selection-count'), { childList: true })
   refresh()
 }

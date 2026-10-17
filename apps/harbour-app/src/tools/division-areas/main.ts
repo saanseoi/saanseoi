@@ -1,3 +1,4 @@
+import { runCoastlineTask } from './coastlineTask'
 import { renderCoverage } from './coverageSummary'
 import { createLayerControls, divisionLayerKey } from './layerControls'
 import { reviewedIslandOutlines } from './reviewedIslandOutlines'
@@ -1029,16 +1030,17 @@ islandCleanupButton.onclick = async () => {
     refreshCleanupControls()
   }
 }
-const alignmentControls = document.createElement('div')
+const alignmentControls = document.createElement('details')
 alignmentControls.className = 'alignment-controls'
-const alignmentTitle = document.createElement('h3')
-alignmentTitle.textContent = 'Align across levels'
+const alignmentTitle = document.createElement('summary')
+alignmentTitle.textContent = 'Snap to island / outline'
 const alignmentHelp = document.createElement('p')
 alignmentHelp.className = 'section-note'
 alignmentHelp.textContent =
-  'Keep the reference outline fixed. Align the other selected drawings within 5 m, adding shared nodes.'
+  'Choose an island or selected division. Its outline stays fixed; selected drawings snap within 5 m. Use Inside for island coastlines.'
 const alignmentReference = document.createElement('select')
 alignmentReference.setAttribute('aria-label', 'Alignment reference')
+alignmentReference.onchange = () => refreshCleanupControls()
 const alignmentRelation = document.createElement('select')
 alignmentRelation.setAttribute('aria-label', 'Alignment relationship')
 for (const [value, label] of [
@@ -1064,11 +1066,11 @@ alignmentButton.onclick = async () => {
   if (mode || cleanupBusy) return
   const anchorId = alignmentReference.value
   const selectedIds = new Set(cleanupSelection)
-  const anchor = estimatedAreas.features.find(f => f.properties.divisionId === anchorId)
-  const targets = estimatedAreas.features.filter(
-    f =>
-      selectedIds.has(f.properties.divisionId) && f.properties.divisionId !== anchorId,
-  )
+  const anchor = cleanupFeature(anchorId)
+  const targets = [...selectedIds]
+    .filter(id => id !== anchorId)
+    .map(cleanupFeature)
+    .filter((f): f is ReviewArea => Boolean(f))
   if (!anchor || !targets.length) {
     say('Select a reference and at least one other drawn division.')
     return
@@ -1100,6 +1102,11 @@ alignmentButton.onclick = async () => {
       referenceGeometry = result.reference
       updates.set(target.properties.divisionId, {
         ...adoptCurrentGeometryBaseline(target),
+        id: `saanseoi:${target.properties.divisionId}`,
+        properties: {
+          ...adoptCurrentGeometryBaseline(target).properties,
+          variant: 'saanseoi',
+        },
         geometry: result.geometry,
       })
     }
@@ -1112,21 +1119,31 @@ alignmentButton.onclick = async () => {
         ...feature,
         geometry: insertBoundaryNodes(feature.geometry, referenceNodes),
       })
-    updates.set(anchorId, {
-      ...adoptCurrentGeometryBaseline(anchor),
-      geometry: referenceGeometry,
-    })
+    if (
+      selectedIds.has(anchorId) &&
+      estimatedAreas.features.some(f => f.properties.divisionId === anchorId)
+    )
+      updates.set(anchorId, {
+        ...adoptCurrentGeometryBaseline(anchor),
+        geometry: referenceGeometry,
+      })
     const next = {
       ...estimatedAreas,
-      features: estimatedAreas.features.map(
-        f => updates.get(f.properties.divisionId) ?? f,
-      ),
+      features: [
+        ...estimatedAreas.features.map(f => updates.get(f.properties.divisionId) ?? f),
+        ...[...updates.values()].filter(
+          f =>
+            !estimatedAreas.features.some(
+              original => original.properties.divisionId === f.properties.divisionId,
+            ),
+        ),
+      ],
     }
     validateSaanseoiEstimatedAreas(next, inventory)
     await archiveGeometryBackup(key, previous)
     await commitGeometryOperation(next, previous)
     say(
-      `Aligned ${targets.length} selected divisions to ${divisionReviewName(byId.get(anchorId)!)} across levels. ${alignmentRelation.value === 'inside' ? 'Contained exactly within the reference.' : 'Nearby edges share the reference boundary.'} Undo restores all affected drawings.`,
+      `Aligned ${targets.length} selected divisions to ${divisionReviewName(byId.get(anchorId)!)}. ${alignmentRelation.value === 'inside' ? 'Contained exactly within the reference.' : 'Nearby edges share the reference boundary.'} Undo restores all affected drawings.`,
     )
   } catch (error) {
     say(
@@ -1325,24 +1342,40 @@ function refreshPolygonDisplaySources() {
 }
 function refreshCleanupControls() {
   const selectedReference = alignmentReference.value
-  const choices = estimatedAreas.features
-    .filter(f => cleanupSelection.has(f.properties.divisionId))
-    .sort(
-      (a, b) =>
-        (byId.get(a.properties.divisionId)?.level ?? 99) -
-        (byId.get(b.properties.divisionId)?.level ?? 99),
-    )
+  const choices = [
+    ...new Map(
+      [
+        ...[...cleanupSelection]
+          .map(cleanupFeature)
+          .filter((f): f is ReviewArea => Boolean(f)),
+        ...reference.features
+          .filter(f => isIsland(f.properties.divisionId))
+          .map(f => cleanupFeature(f.properties.divisionId)!),
+      ].map(f => [f.properties.divisionId, f]),
+    ).values(),
+  ].sort(
+    (a, b) =>
+      (byId.get(a.properties.divisionId)?.level ?? 99) -
+      (byId.get(b.properties.divisionId)?.level ?? 99),
+  )
   alignmentReference.replaceChildren(
     ...choices.map(f => {
       const option = document.createElement('option')
       option.value = f.properties.divisionId
-      option.textContent = divisionReviewName(byId.get(f.properties.divisionId)!)
+      option.textContent = `${isIsland(f.properties.divisionId) ? 'Island · ' : ''}${divisionReviewName(byId.get(f.properties.divisionId)!)}`
       return option
     }),
   )
   if (choices.some(f => f.properties.divisionId === selectedReference))
     alignmentReference.value = selectedReference
-  alignmentButton.disabled = cleanupBusy || Boolean(mode) || choices.length < 2
+  alignmentButton.disabled =
+    cleanupBusy ||
+    Boolean(mode) ||
+    !choices.some(
+      f =>
+        cleanupSelection.has(f.properties.divisionId) &&
+        f.properties.divisionId !== alignmentReference.value,
+    )
   alignmentReference.disabled = cleanupBusy || Boolean(mode)
   alignmentRelation.disabled = cleanupBusy || Boolean(mode)
 
@@ -2639,6 +2672,85 @@ async function persist(
   refreshList()
   if (selected) select(selected, false)
 }
+async function cleanSelectedAreas(operation: 'boundaries' | 'coast') {
+  if (mode || cleanupBusy || !cleanupSelection.size) return
+  cleanupBusy = true
+  refreshCleanupControls()
+  clearCleanupError()
+  try {
+    const previous = structuredClone(estimatedAreas)
+    const selectedIds = new Set(cleanupSelection)
+    let next = structuredClone(estimatedAreas)
+    for (const id of selectedIds) {
+      const feature = cleanupFeature(id)
+      if (feature && !next.features.some(f => f.properties.divisionId === id))
+        next.features.push({
+          ...structuredClone(feature),
+          id: `saanseoi:${id}`,
+          properties: { ...feature.properties, variant: 'saanseoi' },
+        })
+    }
+    if (operation === 'boundaries') {
+      const coverage = {
+        type: 'FeatureCollection' as const,
+        features: next.features.filter(f => selectedIds.has(f.properties.divisionId)),
+      }
+      next = cleanEstimatedAreaGeometriesForLevel(
+        next,
+        inventory,
+        coverage,
+        null,
+        await loadRoadCentrelines(),
+        undefined,
+        selectedIds,
+      ).estimatedAreas
+    } else {
+      const selectedAreas = {
+        ...next,
+        features: next.features.filter(f => selectedIds.has(f.properties.divisionId)),
+      }
+      const controller = new AbortController()
+      const cancel = document.createElement('button')
+      cancel.id = 'cancel-coastline-cleanup'
+      cancel.textContent = 'Cancel coastline snap'
+      cancel.onclick = () => controller.abort()
+      $('cleanup-coast').after(cancel)
+      say('Loading coastline for snapping… You can cancel without changing drawings.')
+      try {
+        const features = await runCoastlineTask(
+          selectedAreas,
+          {
+            ...inventory,
+            divisions: inventory.divisions.filter(d => selectedIds.has(d.id)),
+          },
+          controller.signal,
+          (completed, total) => say(`Snapping coastline ${completed + 1} of ${total}…`),
+        )
+        const updates = new Map(features.map(f => [f.properties.divisionId, f]))
+        next = {
+          ...next,
+          features: next.features.map(f => updates.get(f.properties.divisionId) ?? f),
+        }
+      } finally {
+        cancel.remove()
+      }
+    }
+    validateSaanseoiEstimatedAreas(next, inventory)
+    await archiveGeometryBackup(key, previous)
+    await commitGeometryOperation(next, previous)
+    say(
+      operation === 'coast'
+        ? 'Selected divisions clipped and snapped to the detailed coastline within 5 m. Undo restores all drawings.'
+        : 'Selected shared boundaries cleaned. Outer coverage preserved; matching street edges snap within 5 m. Undo restores all drawings.',
+    )
+  } catch (error) {
+    showCleanupError(error, 'Selected divisions')
+  } finally {
+    cleanupBusy = false
+    refreshCleanupControls()
+  }
+}
+
 async function cleanLevelEstimatedAreas(level: CleanupLevel) {
   if (mode || cleanupBusy) {
     say('Finish the current operation first.')
@@ -4208,6 +4320,7 @@ const cleanupTarget = (id: string) => {
   ]
 }
 createCleanupTargets({
+  run: operation => void cleanSelectedAreas(operation),
   candidates: () =>
     filtered()
       .filter(divisionVisible)

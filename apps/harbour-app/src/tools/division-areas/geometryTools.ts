@@ -1,3 +1,4 @@
+import { alignBoundary } from './boundaryAlignment'
 import { matchRoadChain } from './roadChainMatch'
 import { adoptCurrentGeometryBaseline } from './geometryBaseline'
 import GeometryFactory from 'jsts/org/locationtech/jts/geom/GeometryFactory.js'
@@ -188,10 +189,11 @@ export function cleanEstimatedAreaGeometriesForLevel(
   estimatedAreas: SaanseoiEstimatedAreas,
   inventory: ReviewInventory,
   land: LandFeatureCollection,
-  level: CleanupLevel,
+  level: CleanupLevel | null,
   roads?: RoadFeatureCollection,
   intendedArea?: PolygonalGeometry,
   selectedIds?: ReadonlySet<string>,
+  snapCoast = false,
 ): {
   estimatedAreas: SaanseoiEstimatedAreas
   levelCount: number
@@ -201,7 +203,11 @@ export function cleanEstimatedAreaGeometriesForLevel(
 } {
   const ids = new Set(
     inventory.divisions
-      .filter(d => d.level === level && (!selectedIds || selectedIds.has(d.id)))
+      .filter(
+        d =>
+          (level === null || d.level === level) &&
+          (!selectedIds || selectedIds.has(d.id)),
+      )
       .map(d => d.id),
   )
   const features = estimatedAreas.features
@@ -237,6 +243,7 @@ export function cleanEstimatedAreaGeometriesForLevel(
       snappedCount: 0,
       addedNodeCount: 0,
     }
+  const diagnosticLevel = level ?? 3
   let active = features[0]!
   let category = 'coastline clip'
   try {
@@ -247,20 +254,51 @@ export function cleanEstimatedAreaGeometriesForLevel(
       valid(g)
       return g
     })
+    if (level === null) {
+      for (let i = 0; i < inputs.length; i++)
+        for (let j = 0; j < i; j++)
+          if (
+            RelateOp.covers(inputs[i], inputs[j]) ||
+            RelateOp.covers(inputs[j], inputs[i])
+          )
+            throw Error(
+              'One selected division contains another. Use Align to an outline for containment; shared-boundary cleanup needs neighbouring divisions.',
+            )
+    }
     category = 'coastline clip'
     if (!land.features.length) throw Error('Coastline land data is empty')
-    const landShape = union(
-      land.features.map(f => {
-        const g = reader.read(normalise(f.geometry))
-        valid(g)
-        return g
-      }),
-    )
+    // Crop beyond the 5 m snap radius: artificial crop edges cannot attract a
+    // target vertex. Retain the land interior (including holes), not just edges.
+    const bounds = union(inputs).getEnvelopeInternal()
+    bounds.expandBy(10 / 111320)
+    const window = reader.read({
+      type: 'Polygon',
+      coordinates: [
+        [
+          [bounds.getMinX(), bounds.getMinY()],
+          [bounds.getMaxX(), bounds.getMinY()],
+          [bounds.getMaxX(), bounds.getMaxY()],
+          [bounds.getMinX(), bounds.getMaxY()],
+          [bounds.getMinX(), bounds.getMinY()],
+        ],
+      ],
+    })
+    const pieces: Shape[] = []
+    for (const feature of land.features) {
+      const shape = reader.read(normalise(feature.geometry))
+      if (snapCoast && !bounds.intersects(shape.getEnvelopeInternal())) continue
+      valid(shape)
+      const piece = snapCoast ? overlay(shape, window, OverlayOp.INTERSECTION) : shape
+      if (!piece.isEmpty() && piece.getArea() > 0) pieces.push(piece)
+    }
+    if (!pieces.length)
+      throw Error('No coastline land intersects the selected division.')
+    const landShape = union(pieces)
     valid(landShape)
     category = 'shared boundary'
     // A coast intersection may contain polygons plus isolated touching lines or
     // points. Coverage represents area, so normalise it before predicates/overlay.
-    const intended = reader.read(
+    let intended = reader.read(
       polygonal(
         overlay(
           intendedArea ? reader.read(normalise(intendedArea)) : union(inputs),
@@ -270,6 +308,12 @@ export function cleanEstimatedAreaGeometriesForLevel(
       ),
     )
     valid(intended)
+    if (snapCoast && features.length === 1) {
+      intended = reader.read(
+        alignBoundary(polygonal(landShape), polygonal(intended), 'inside').geometry,
+      )
+      valid(intended)
+    }
     let geometries: PolygonalGeometry[]
     if (features.length === 1 && !intendedArea) {
       // A single division only needs a land intersection. Do not route it through
@@ -294,7 +338,7 @@ export function cleanEstimatedAreaGeometriesForLevel(
         for (const it = invalidRings.iterator(); it.hasNext(); )
           positions.push(...shapeCoordinates(it.next()))
         fail(
-          level,
+          diagnosticLevel,
           active.properties.divisionId,
           'shared boundary',
           'Invalid ring in noded boundary graph',
@@ -311,7 +355,7 @@ export function cleanEstimatedAreaGeometriesForLevel(
         const owner = inputs.findIndex(g => RelateOp.covers(g, point))
         if (owner < 0)
           fail(
-            level,
+            diagnosticLevel,
             active.properties.divisionId,
             'shared boundary',
             'Unassigned intended coverage; supply an ownership decision for this gap',
@@ -323,7 +367,7 @@ export function cleanEstimatedAreaGeometriesForLevel(
         active = features[i]!
         if (!parts.length)
           fail(
-            level,
+            diagnosticLevel,
             active.properties.divisionId,
             RelateOp.intersects(inputs[i], landShape)
               ? 'shared boundary'
@@ -352,7 +396,7 @@ export function cleanEstimatedAreaGeometriesForLevel(
         try {
           valid(shape)
         } catch (error) {
-          fail(level, active.properties.divisionId, 'invalid ring', error, [])
+          fail(diagnosticLevel, active.properties.divisionId, 'invalid ring', error, [])
         }
         return shape
       })
@@ -361,7 +405,7 @@ export function cleanEstimatedAreaGeometriesForLevel(
         const water = overlay(shapes[i], landShape, OverlayOp.DIFFERENCE)
         if (!water.isEmpty())
           fail(
-            level,
+            diagnosticLevel,
             active.properties.divisionId,
             'coastline clip',
             'Polygon extends into water',
@@ -371,7 +415,7 @@ export function cleanEstimatedAreaGeometriesForLevel(
           const overlap = overlay(shapes[i], shapes[j], OverlayOp.INTERSECTION)
           if (overlap.getArea() > 0)
             fail(
-              level,
+              diagnosticLevel,
               active.properties.divisionId,
               'shared boundary',
               `Interior overlap with ${features[j]!.properties.divisionId}`,
@@ -394,7 +438,7 @@ export function cleanEstimatedAreaGeometriesForLevel(
           }))
           .sort((a, b) => a.distance - b.distance)[0]!
         fail(
-          level,
+          diagnosticLevel,
           features[closest.index]!.properties.divisionId,
           'shared boundary',
           'Coverage differs from intended land area',
@@ -436,7 +480,7 @@ export function cleanEstimatedAreaGeometriesForLevel(
                   cleaned.get(f.properties.divisionId)!,
                 ),
                 geometryCleanup: TOWN_GEOMETRY_CLEANUP_VERSION,
-                geometryCleanupLevel: level,
+                ...(level === null ? {} : { geometryCleanupLevel: level }),
                 geometryCleanupRoadSnapMetres: roads && features.length > 1 ? 5 : 0,
                 geometryCleanupCoastlineDetailMetres: 0,
               },
@@ -470,7 +514,12 @@ export function cleanEstimatedAreaGeometriesForLevel(
     const diagnostic =
       error instanceof GeometryCleanupError
         ? error
-        : new GeometryCleanupError(level, active.properties.divisionId, error, category)
+        : new GeometryCleanupError(
+            diagnosticLevel,
+            active.properties.divisionId,
+            error,
+            category,
+          )
     const division = inventory.divisions.find(d => d.id === diagnostic.divisionId)
     diagnostic.divisionName = division?.names.en ?? diagnostic.divisionId
     throw diagnostic
