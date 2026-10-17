@@ -950,14 +950,16 @@ describe('normaliseDivisionRow hierarchy', () => {
       ],
     })
 
-    expect(normalised.base.sources).toEqual([
-      {
-        publisher: 'overture',
-        property: 'properties.id',
-        dataset: 'overture',
-        recordId: 'division-with-feature-version',
-      },
-    ])
+    expect(normalised.base.sources).toEqual(
+      expect.arrayContaining([
+        {
+          publisher: 'overture',
+          property: 'properties.id',
+          dataset: 'overture',
+          recordId: 'division-with-feature-version',
+        },
+      ]),
+    )
   })
 
   test('normalises Overture hierarchy entries using division i18n lookup', () => {

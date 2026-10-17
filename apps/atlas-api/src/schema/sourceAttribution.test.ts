@@ -36,3 +36,17 @@ test('the public schema preserves preprocessed inherited attribution and member 
     }),
   ).not.toHaveProperty('upstreamOf')
 })
+
+test('canonical contributed fields survive the public schema and reject ambiguous lists', () => {
+  const source = {
+    publisher: 'saanseoi',
+    dataset: 'ds-hk-saanseoi-division',
+    recordId: 'shared',
+    properties: ['divisionCode', 'hierarchies', 'i18n.zh-hant.name'],
+  }
+  expect(SourceAttributionSchema.parse(source)).toEqual(source)
+  for (const properties of [[], ['class', 'class'], ['/class']])
+    expect(SourceAttributionSchema.safeParse({ ...source, properties }).success).toBe(
+      false,
+    )
+})

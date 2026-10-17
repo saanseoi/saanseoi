@@ -19,6 +19,7 @@ import type { ProducerSpecification } from './fieldLineageProducer'
 import { hierarchyProducer } from './fieldLineageHierarchyPreparation'
 
 const registryInputs = new Set([
+  'divisionCodeAssignments',
   'sourceVersion',
   'sourceReleaseId',
   'sourceReleaseCode',

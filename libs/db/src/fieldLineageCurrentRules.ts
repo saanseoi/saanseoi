@@ -631,6 +631,7 @@ export function currentDivisionFieldRule(
       'identifiers.wikidata.id',
       'sources',
       'hierarchies',
+      'divisionCode',
     ].includes(field) ||
       /^i18n\.[^.]+\.(name|nameAlts|nameRules|nameVariant)$/.test(field))
   )
@@ -723,14 +724,17 @@ export function currentDivisionFieldRule(
       'geographicDivisionClassification(resolveDivisionClass({ row, otClass, otSubtype, parentDivisionId }))?.category ?? null; specific classification curations and patches are separate candidates.',
     cartography:
       'materialiseDivisionCartography(effectiveClass); ignore optional publisher cartography in canonical output.',
-    geometry: 'parseWkbGeometry(row.geometry)',
+    geometry:
+      'parseWkbGeometry(row.geometry); native Overture geometry has no curated point fallback.',
+    divisionCode:
+      'Look up divisionCodeAssignments by divisionCodeDomain and canonical id; otherwise retain normalised.base.divisionCode or null.',
     identifiers: 'divisionIdentifiersWithWikidata(row.identifiers, row.wikidata)',
     'identifiers.wikidata.id':
       'divisionIdentifiersWithWikidata(row.identifiers, row.wikidata)?.wikidata?.id',
     sources:
-      'LandsD attribution identifies the native geo_name_id in ds-hk-hkgov-landsd-division; otherwise normaliseOvertureSources(row.sources).',
+      'LandsD attribution identifies the native geo_name_id in ds-hk-hkgov-landsd-division; otherwise preserve normaliseOvertureSources(row.sources) and append the executed SaanSeoi classification, hierarchy, cartography and assigned-code properties using the canonical Division ID.',
     hierarchies:
-      'normaliseDivisionHierarchies → enrich each correlated path with its recognised HK area → materialiseDivisionHierarchies; retain full correlated paths and category projections.',
+      'normaliseDivisionHierarchies → materialiseDivisionHierarchies; retain correlated paths and category projections. Editorial HK area insertion runs only during SaanSeoi preparation.',
     'relationships.areas':
       'Selected divisionArea records whose divisionId matches division.id, constrained by requested variants and release membership.',
     'relationships.boundaries':
@@ -753,7 +757,9 @@ export function currentDivisionFieldRule(
   return expressions[field]
     ? rule(
         division,
-        'normaliseDivisionRowInternal',
+        field === 'divisionCode'
+          ? 'processDivisionDataset'
+          : 'normaliseDivisionRowInternal',
         expressions[field]!,
         (
           {
@@ -782,6 +788,7 @@ export function currentDivisionFieldRule(
               'parent_division_id',
               'source',
             ],
+            divisionCode: ['id', 'divisionCodeAssignments'],
             cartography: ['effectiveClass'],
             geometry: ['geometry'],
             identifiers: ['identifiers', 'wikidata'],

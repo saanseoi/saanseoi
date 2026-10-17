@@ -25,6 +25,8 @@ export type SourceAttribution = {
    * precedence over a broader attribution for the property it identifies.
    */
   property?: string | null
+  /** Canonical field paths supplied by this contributor; omitted for whole-record attribution. */
+  properties?: string[]
   /** Stable upstream publisher code. */
   publisher: string
   /** Direct publisher through which this attribution was inherited; omitted for direct sources. */
@@ -42,6 +44,7 @@ export type SourceAttribution = {
 /** Member order for preprocessed and serialised canonical attribution. */
 export const sourceAttributionFieldOrder = [
   'property',
+  'properties',
   'publisher',
   'upstreamOf',
   'dataset',

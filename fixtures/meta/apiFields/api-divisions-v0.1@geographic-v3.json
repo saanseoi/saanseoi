@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:d6f6218748ba10fbf71066ebfe54662533ec19e780cfb7f2b7a0c0167335080d",
+  "versionHash": "sha256:65e7d669221b53763217ff419136bf52e91c0781fdfb9dad4f20eab3bf99678e",
   "apiVersion": "api-divisions-v0.1",
   "domainCode": "geographic",
   "mappingVersion": 3,
@@ -406,6 +406,20 @@
             {
               "origin": "source",
               "fieldPath": "properties.divisionIds"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.divisionCode",
+          "sourceDatasetCode": "ds-hk-saanseoi-division",
+          "resolverCode": "direct_copy",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "registry",
+              "fieldPath": "divisionCodes.divisionCode"
             }
           ]
         }

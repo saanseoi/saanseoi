@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:d48758bd08f0eee067d5624e16d07b21c2098917a39ccf3fdba42c25cb0e9eeb",
+  "versionHash": "sha256:3cbc939fd78403ad08baddef25c75d65fccc9014f9ca915a33c23921adb5d9c2",
   "apiVersion": "api-divisions-v0.1",
   "domainCode": "geographic",
   "mappingVersion": 1,
@@ -800,6 +800,20 @@
             {
               "origin": "registry",
               "fieldPath": "selectedDivisionSnapshot"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.divisionCode",
+          "sourceDatasetCode": "ds-hk-overture-division",
+          "resolverCode": "direct_copy",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "registry",
+              "fieldPath": "divisionCodes.divisionCode"
             }
           ]
         }

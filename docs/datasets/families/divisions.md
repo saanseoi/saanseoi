@@ -2126,14 +2126,25 @@ for class normalisation.
 
 ## Direct and inherited source attribution
 
-Canonical attribution members follow `SourceAttribution` order: `property`, `publisher`,
-`upstreamOf`, `dataset`, `recordId`, `updateTime`, `version`, `confidence`, `license`,
-omitting absent fields. Preprocessing marks sources inherited through Overture with
-`upstreamOf: "overture"`; Overture's own entries and other direct sources omit
-`upstreamOf`. For example, OpenStreetMap attribution carried by Overture uses
-`publisher: "openstreetmap"` and `upstreamOf: "overture"`. The relationship identifies
-the direct publisher, not a dataset or record ID. Prepared archives retain this member
-order.
+Canonical attribution members follow `SourceAttribution` order: `property`,
+`properties`, `publisher`, `upstreamOf`, `dataset`, `recordId`, `updateTime`, `version`,
+`confidence`, `license`, omitting absent fields. Preprocessing marks sources inherited
+through Overture with `upstreamOf: "overture"`; Overture's own entries and other direct
+sources omit `upstreamOf`. For example, OpenStreetMap attribution carried by Overture
+uses `publisher: "openstreetmap"` and `upstreamOf: "overture"`. The relationship
+identifies the direct publisher, not a dataset or record ID. Prepared archives retain
+this member order.
+
+A SaanSeoi Division contribution uses `publisher: "saanseoi"`, dataset
+`ds-hk-saanseoi-division` and the canonical Division ID, including a shared Overture ID.
+Its `properties` array lists canonical dot-separated field paths. The upstream
+`property` path remains in the upstream namespace. Classification (`class`, `level`,
+`category`), hierarchy materialisation and cartography are attributed when their
+policies execute; `divisionCode` is included when assigned. Prepared records attribute
+changed primary names per locale and actual additions to `nameAlts`; removing a name or
+alternative does not claim authorship of surviving publisher content. Projected Wikidata
+IDs and unchanged name rules retain upstream attribution. Empty property lists are
+invalid. Contributions participate in canonical content hashes.
 
 ### Authored geometry attribution
 
@@ -2157,8 +2168,9 @@ receipts retain operational update timestamps. Statistics definitions keyed by
 The PRC ancestry anchor uses division code `PRC`, Wikidata `Q148`, Overture Division
 record attribution and country cartography (`minZoom: 2`, `maxZoom: 6`,
 `prominence: 100`). Its fallback Point `[103, 35]` is authored canonical metadata,
-separate from retained native publisher geometry. Native materialisation and prepared
-SaanSeoi archives share the reviewed anchor metadata.
+separate from retained native publisher geometry. Only prepared SaanSeoi records may use
+this fallback Point. Native Overture materialisation retains the publisher Point or null
+when no Point is supplied.
 
 ## Current geographic crosswalk preparation
 

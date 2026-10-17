@@ -13,7 +13,7 @@ test('assembly preserves flat upstream attribution through its grouped evidence 
     {
       publisher: 'openstreetmap',
       dataset: 'OpenStreetMap',
-      property: '/names',
+      property: 'names',
       version: '123',
       confidence: 0.9,
     },

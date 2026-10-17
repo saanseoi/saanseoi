@@ -1,3 +1,7 @@
+import {
+  attributeDivisionProperties,
+  normalisedDivisionProperties,
+} from './divisionAttribution'
 import { parseI18nMeta } from '@repo/db'
 import { normaliseDivisionCartography } from './divisionCartography'
 import { prcCountryAnchor } from './prcCountryAnchor'
@@ -609,6 +613,12 @@ export async function processDivisionDataset(
             null,
         })
       }
+      if (message.source === 'overture' && normalised.base.divisionCode)
+        normalised.base.sources = attributeDivisionProperties(
+          normalised.base.sources,
+          normalised.base.id,
+          ['divisionCode'],
+        )
       const canonicalI18n = buildCanonicalDivisionApiI18n(normalised.i18n, branchCounts)
       if (message.source === 'overture' && message.resourceType === 'division') {
         processingActions.push(
@@ -1300,7 +1310,10 @@ function normaliseDivisionRowInternal(
       ),
       createdAt: now,
       divisionCode: countryAnchor?.divisionCode ?? null,
-      geometry: normalisedGeometry ?? countryAnchor?.geometry ?? null,
+      geometry:
+        normalisedGeometry ??
+        (options.editorial ? countryAnchor?.geometry : null) ??
+        null,
       hierarchies: hierarchyWithHongKongArea.hierarchy,
       id,
       identifiers: divisionIdentifiersWithWikidata(
@@ -1454,6 +1467,19 @@ export function normaliseDivisionRow(
     if (!options.editorial)
       normalised.base.hierarchies = divisionHierarchyContent(
         normalised.base.hierarchies,
+      )
+    if (
+      options.source?.source === 'overture' ||
+      row.source === 'overture' ||
+      (!options.source && !row.source)
+    )
+      normalised.base.sources = attributeDivisionProperties(
+        normalised.base.sources,
+        normalised.base.id,
+        [
+          ...normalisedDivisionProperties,
+          ...(normalised.base.divisionCode ? ['divisionCode'] : []),
+        ],
       )
     const sourceGeometry = normalised.base.geometry as GeoJsonGeometry | null
     const geometry = canonicalDivisionPoint(sourceGeometry, {

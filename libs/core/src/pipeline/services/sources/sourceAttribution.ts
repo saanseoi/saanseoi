@@ -45,6 +45,20 @@ export function readSourceAttributions(value: unknown): SourceAttribution[] {
     )
       throw new Error('Source property must be a dot-separated field path.')
     if (
+      item.properties !== undefined &&
+      (!Array.isArray(item.properties) ||
+        !item.properties.length ||
+        item.properties.some(
+          (path: unknown) =>
+            typeof path !== 'string' ||
+            !/^[A-Za-z][A-Za-z0-9_-]*(?:\.[A-Za-z0-9_-]+)*$/.test(path),
+        ) ||
+        new Set(item.properties).size !== item.properties.length)
+    )
+      throw new Error(
+        'Source properties must be unique, non-empty canonical field paths.',
+      )
+    if (
       item.confidence !== undefined &&
       (typeof item.confidence !== 'number' ||
         !Number.isFinite(item.confidence) ||

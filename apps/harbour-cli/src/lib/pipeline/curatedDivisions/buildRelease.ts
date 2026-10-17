@@ -1,3 +1,5 @@
+import { curatedDivisionAttribution } from '@repo/core/pipeline/services/divisions/curatedDivisionAttribution'
+import { normaliseDivisionRow } from '@repo/core/pipeline/services/divisions/division'
 import { boundaryPatchEvidence } from './boundaryPatchEvidence'
 import { scopedExclusions } from '@repo/core/pipeline/services/divisions/curationApplicability'
 import { preprocessingContext } from './preprocessingContext'
@@ -326,6 +328,22 @@ export async function buildCuratedDivisionRelease(
     row => row.locale !== 'zh-hans' || publisherHans.get(row.divisionId)?.has(row.name),
   )
   applyEditorialOwnership(data.divisions, data.areas, review.events)
+  const preparationSources = new Map(
+    data.divisions.map(row => [row.id, structuredClone(row.sources)]),
+  )
+  for (const row of data.divisions) {
+    const raw = baseline.get(row.id)
+    const native = raw
+      ? normaliseDivisionRow({ ...raw, hierarchies: [] }, { deferHierarchyGuard: true })
+      : null
+    row.sources = curatedDivisionAttribution(
+      { ...row, id: String(row.id) },
+      data.names
+        .filter(name => name.divisionId === row.id)
+        .map(name => ({ ...name, locale: String(name.locale) })),
+      native ? { geometry: native.base.geometry, names: native.i18n } : undefined,
+    )
+  }
   const curationHashes = Object.fromEntries(
     Object.entries(divisionCuration).map(([key, value]) => [key, digest(value)]),
   )
@@ -386,7 +404,7 @@ export async function buildCuratedDivisionRelease(
       ] as const
       return {
         ...preprocessingContext(
-          row,
+          { ...row, sources: preparationSources.get(row.id) },
           raw,
           currentOvertureIds.has(row.id) ? nativePin : acceptedOverturePin,
         ),

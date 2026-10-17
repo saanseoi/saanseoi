@@ -279,3 +279,14 @@ Automatic monthly production is not wired into `saanseoi update`. SaanSeoi has n
 upstream source check or daily polling policy; the updater reports the pending
 production integration separately. Explicit assembly and initialisation remain available
 for reviewed editions.
+
+## Authored field attribution
+
+Archive preparation compares final names and points with the accepted native ingredient
+for the same release. The canonical `sources` entry for `ds-hk-saanseoi-division` uses
+the canonical record ID and lists supplied fields in `properties`. It includes
+classification and hierarchy policies, assigned codes and explicitly supplied
+cartography. Changed primary names and added alternatives use locale-specific paths;
+deletion alone does not claim authorship. An overridden or derived point adds
+`geometry`; retaining the native point does not. Wikidata projection does not add
+SaanSeoi authorship. Detailed curation inputs remain in the preparation audit.

@@ -469,3 +469,13 @@ source audit's cartography table and is shared with SaanSeoi archive preparation
 Canonical cartography participates in content hashes and persists in CURRENT and
 HISTORY. Optional Overture cartography, including its publisher prominence scale and
 null zoom bounds, remains unchanged in SOURCE evidence.
+
+## Canonical field contributions
+
+Canonical Overture Divisions retain upstream geometry, including null geometry. Point
+and core-point overrides apply only to SaanSeoi preparation. Executed SaanSeoi
+classification, hierarchy and cartography policies add a source reference to
+`ds-hk-saanseoi-division`, using the Division ID and an explicit `properties` array.
+Assigned geographic codes add `divisionCode`. Upstream names and projected Wikidata
+identifiers retain their original attribution. Native SOURCE payloads remain publisher
+evidence; these contributions belong to canonical CURRENT and HISTORY.
