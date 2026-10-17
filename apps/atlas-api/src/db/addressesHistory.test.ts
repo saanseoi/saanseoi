@@ -49,7 +49,7 @@ INSERT INTO snapshots (id, snapshotLineageId, code, cohortKey, status, createdAt
     `)
     history.exec(`
       INSERT INTO address2d (
-        id, granularity, parentAddressId, countryId, districtId, landformId, geometry, identifiers, sources, versionHash, snapshotId, isCurrent, createdAt
+        id, granularity, parentAddressId, countryId, districtId, islandId, geometry, identifiers, sources, versionHash, snapshotId, isCurrent, createdAt
       ) VALUES (
         'historic-address', 'building', 'historic-complex', 'hk', 'district-central', 'hong-kong-island-landform', '{"type":"Point","coordinates":[114.1,22.3]}',
         '{"source":"historic"}',

@@ -54,7 +54,7 @@ test('spatial membership fills levels 3–6, separate islands and administrative
     macrohoodId: 'm',
     neighbourhoodId: 'n',
     microhoodId: 'u',
-    landformId: 'island',
+    islandId: 'island',
   })
 })
 

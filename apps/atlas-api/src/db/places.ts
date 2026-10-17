@@ -80,7 +80,7 @@ export type PlaceRecord = {
     villageId?: string | null
     microhoodId?: string | null
     hamletId?: string | null
-    landformId?: string | null
+    islandId?: string | null
     address2dId: string | null
     address3dId: string | null
     address3dUnitId?: string | null

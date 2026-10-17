@@ -474,7 +474,7 @@ export function canonicalAddress2dColumns<Required extends boolean>(
     ruralAreaId: text('ruralAreaId'),
     macrohoodId: text('macrohoodId'),
     townId: text('townId'),
-    landformId: text('landformId'),
+    islandId: text('islandId'),
     districtId: text('districtId'),
     areaId: text('areaId'),
     countryId: text('countryId'),
@@ -615,7 +615,7 @@ export const placeDivisionFieldNames = [
   'villageId',
   'microhoodId',
   'hamletId',
-  'landformId',
+  'islandId',
 ] as const
 
 export type PlaceDivisionField = (typeof placeDivisionFieldNames)[number]
@@ -640,7 +640,7 @@ export function placeDivisionColumns() {
     villageId: text('villageId'),
     microhoodId: text('microhoodId'),
     hamletId: text('hamletId'),
-    landformId: text('landformId'),
+    islandId: text('islandId'),
   }
 }
 

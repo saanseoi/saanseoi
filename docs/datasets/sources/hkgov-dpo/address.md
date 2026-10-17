@@ -1297,11 +1297,12 @@ curation and division dependencies still invalidate reuse when their contents ch
 
 ## Island association
 
-Preparation retains a direct canonical `landformId` when exact village/location-name and
+Preparation retains a direct canonical `islandId` when exact village/location-name and
 district evidence resolves to one individual island in the selected division snapshot.
-Ambiguous evidence stays unlinked. The derived association and its lookup snapshot are
-recorded separately from the retained ALS publisher assertion and do not change the
-supplied formatted address.
+Only `major_island`, `minor_island` and `islet` classes qualify; island groups and other
+landform classes are excluded. Ambiguous evidence stays unlinked. The derived
+association and its lookup snapshot are recorded separately from the retained ALS
+publisher assertion and do not change the supplied formatted address.
 
 ## Town associations
 

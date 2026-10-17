@@ -59,7 +59,7 @@ test('Place output consumes scalar references and excludes extra ancestor eviden
   const selected = supportedPlaceMembership(raw)
   expect(selected.divisionIds).toEqual(['country', 'district'])
   expect(selected.evidence.map(row => row.divisionId)).toEqual(['country', 'district'])
-  expect(selected.references.landformId).toBeNull()
+  expect(selected.references.islandId).toBeNull()
 })
 
 test('selected definitions share storage, reuse revisions independently and isolate content hashes', async () => {

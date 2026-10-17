@@ -3261,5 +3261,5 @@
   "openapi_places_village_id_description": "與此地點相關的村落識別碼；村落是具名的鄉郊聚落。",
   "openapi_places_microhood_id_description": "與此地點相關的小社區識別碼；小社區是社區內較小範圍的地方區域。",
   "openapi_places_hamlet_id_description": "與此地點相關的小村落識別碼；小村落是規模較小的鄉郊聚落。",
-  "openapi_places_landform_id_description": "與此地點相關的島嶼地形識別碼，可代表主要島嶼、次要島嶼或小島。此欄位表示實際島嶼地形，而非行政區域。"
+  "openapi_places_island_id_description": "與此地點相關的島嶼地形識別碼，可代表主要島嶼、次要島嶼或小島。此欄位表示實際島嶼地形，而非行政區域。"
 }

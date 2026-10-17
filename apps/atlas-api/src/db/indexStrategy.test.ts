@@ -29,7 +29,7 @@ test('Address division UNION preserves scoped identity, filters and global pagin
   const sqlite = migratedDatabase('current')
   const roles = [
     'countryId',
-    'landformId',
+    'islandId',
     'areaId',
     'districtId',
     'townId',

@@ -182,7 +182,7 @@ export type PreparedHkgovAlsRow = {
   microhoodId?: string | null
   hamletId?: string | null
   townId?: string | null
-  landformId?: string | null
+  islandId?: string | null
   areaId: string | null
   areaMatchStatus: HkgovAlsDivisionMatchStatus
   districtId: string | null

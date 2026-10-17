@@ -1,4 +1,7 @@
-import { geographicDivisionClassification, type DivisionHierarchies } from '@repo/db'
+import type { DivisionHierarchies } from '@repo/db'
+
+const isIslandClass = (value: string) =>
+  value === 'major_island' || value === 'minor_island' || value === 'islet'
 
 export type LandformLookup = Map<string, string | null>
 
@@ -19,15 +22,9 @@ export function addLandformLookup(
   const paths = hierarchy.full
   if (!paths.length) return
   const candidates = paths.map(path => {
-    const island =
-      geographicDivisionClassification(row.class)?.category === 'landform' &&
-      row.class !== 'island_group'
-        ? row.id
-        : path.findLast(
-            entry =>
-              geographicDivisionClassification(entry.class)?.category === 'landform' &&
-              entry.class !== 'island_group',
-          )?.id
+    const island = isIslandClass(row.class)
+      ? row.id
+      : path.findLast(entry => isIslandClass(entry.class))?.id
     const district = path.findLast(entry => entry.class === 'district')?.id
     return island && district ? { island, district } : null
   })

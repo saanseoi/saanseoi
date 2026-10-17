@@ -51,7 +51,7 @@ export function companionProducer(
       role: 'address',
       collection: 'address2d',
       fields:
-        'id,parentAddressId,geometry,divisionSnapshotId,countryId,landformId,areaId,districtId,townId,ruralAreaId,macrohoodId,villageId,neighbourhoodId,hamletId,microhoodId',
+        'id,parentAddressId,geometry,divisionSnapshotId,countryId,islandId,areaId,districtId,townId,ruralAreaId,macrohoodId,villageId,neighbourhoodId,hamletId,microhoodId',
     },
     officialAddressDefinitions: {
       role: 'address',

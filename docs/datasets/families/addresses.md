@@ -1285,9 +1285,11 @@ exclusion. Name or Address evidence cannot override an available polygon that ex
 the point.
 
 The canonical Address columns retain the resolved references in current and history
-storage. Preparation provenance records geometry, text and ancestry evidence alongside
-both snapshot IDs, separately from the untouched publisher payload. Supplementary
-Addresses inherit recorded references from their selected official base.
+storage. `islandId` identifies an individual `major_island`, `minor_island` or `islet`;
+island groups and other landform classes do not populate it. Preparation provenance
+records geometry, text and ancestry evidence alongside both snapshot IDs, separately
+from the untouched publisher payload. Supplementary Addresses inherit recorded
+references from their selected official base.
 
 `filter[division]` matches recorded country, area, district, town, hood, village, hamlet
 or landform IDs in list and search requests, including historical reads. The `landform`

@@ -59,7 +59,7 @@ const HISTORY_ADDRESS2D_VERSION_UPSERT_FIXED_VARIABLE_COUNT = 7
 const _SEEN_ADDRESS_ID_INSERT_COLUMN_COUNT = 1
 const ADDRESS_DIVISION_REFERENCE_COLUMNS = [
   'countryId',
-  'landformId',
+  'islandId',
   'areaId',
   'districtId',
   'townId',
@@ -122,7 +122,7 @@ type CurrentAddressVersionLookupRow = Pick<
   CurrentAddressVersionRow,
   | 'parentAddressId'
   | 'granularity'
-  | 'landformId'
+  | 'islandId'
   | 'areaId'
   | 'countryId'
   | 'createdAt'
@@ -208,7 +208,7 @@ function selectCurrentAddressVersionFields() {
     macrohoodId: historySchema.address2d.macrohoodId,
     townId: historySchema.address2d.townId,
     districtId: historySchema.address2d.districtId,
-    landformId: historySchema.address2d.landformId,
+    islandId: historySchema.address2d.islandId,
     areaId: historySchema.address2d.areaId,
     countryId: historySchema.address2d.countryId,
     createdAt: historySchema.address2d.createdAt,
@@ -596,7 +596,7 @@ export async function cloneAddressCurrentSnapshot(
             macrohoodId: currentSchema.address2d.macrohoodId,
             townId: currentSchema.address2d.townId,
             districtId: currentSchema.address2d.districtId,
-            landformId: currentSchema.address2d.landformId,
+            islandId: currentSchema.address2d.islandId,
             areaId: currentSchema.address2d.areaId,
             countryId: currentSchema.address2d.countryId,
             identifiers: currentSchema.address2d.identifiers,
@@ -730,7 +730,7 @@ export async function upsertAddressCurrentStates(
             macrohoodId: excluded('macrohoodId'),
             townId: excluded('townId'),
             districtId: excluded('districtId'),
-            landformId: excluded('landformId'),
+            islandId: excluded('islandId'),
             areaId: excluded('areaId'),
             countryId: excluded('countryId'),
             geometry: excluded('geometry'),
@@ -854,7 +854,7 @@ export async function materialiseReplayedAddressCurrentSnapshot(
     streetId: null,
     streetSnapshotId: null,
     countryId: resolveReplayedDivisionReference(base.countryId, divisionIds),
-    landformId: resolveReplayedDivisionReference(base.landformId, divisionIds),
+    islandId: resolveReplayedDivisionReference(base.islandId, divisionIds),
     areaId: resolveReplayedDivisionReference(base.areaId, divisionIds),
     districtId: resolveReplayedDivisionReference(base.districtId, divisionIds),
     townId: resolveReplayedDivisionReference(base.townId, divisionIds),
@@ -975,7 +975,7 @@ export async function insertAddressVersionRows(
             macrohoodId: row.macrohoodId,
             townId: row.townId,
             districtId: row.districtId,
-            landformId: row.landformId,
+            islandId: row.islandId,
             areaId: row.areaId,
             countryId: row.countryId,
             geometry: row.geometry,

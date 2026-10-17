@@ -281,7 +281,7 @@ async function prepareSupplementaryAddressesLocked(
   )
   const official = (await dependencyDb
     .select({
-      landformId: currentSchema.address2d.landformId,
+      islandId: currentSchema.address2d.islandId,
       areaId: currentSchema.address2d.areaId,
       countryId: currentSchema.address2d.countryId,
       districtId: currentSchema.address2d.districtId,
@@ -303,7 +303,7 @@ async function prepareSupplementaryAddressesLocked(
     )
     .all()) as unknown as Pick<
     typeof currentSchema.address2d.$inferSelect,
-    | 'landformId'
+    | 'islandId'
     | 'areaId'
     | 'countryId'
     | 'districtId'

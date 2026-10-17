@@ -50,7 +50,7 @@ export type AddressRecord = {
     granularity: typeof address2d.$inferSelect.granularity
     divisionRelationships: AddressDivisionRelationship[]
     countryId: string | null
-    landformId: string | null
+    islandId: string | null
     areaId: string | null
     districtId: string | null
     townId: string | null
@@ -129,7 +129,7 @@ type AddressRow = {
   parentAddressId: string | null
   granularity: typeof address2d.$inferSelect.granularity
   countryId: string | null
-  landformId: string | null
+  islandId: string | null
   areaId: string | null
   districtId: string | null
   townId: string | null
@@ -235,7 +235,7 @@ function mapAddressRow(row: AddressRow): AddressRecord {
       granularity: row.granularity,
       divisionRelationships: addressDivisionRelationshipsFromDedicatedIds(row),
       countryId: row.countryId,
-      landformId: row.landformId,
+      islandId: row.islandId,
       areaId: row.areaId,
       districtId: row.districtId,
       townId: row.townId,
@@ -255,7 +255,7 @@ export function addressDivisionRelationshipsFromDedicatedIds(
   row: Pick<
     AddressRow,
     | 'countryId'
-    | 'landformId'
+    | 'islandId'
     | 'areaId'
     | 'districtId'
     | 'townId'
@@ -269,7 +269,7 @@ export function addressDivisionRelationshipsFromDedicatedIds(
 ): AddressDivisionRelationship[] {
   const dedicatedRelationships = [
     ['country', row.countryId],
-    ['landform', row.landformId],
+    ['landform', row.islandId],
     ['area', row.areaId],
     ['district', row.districtId],
     ['town', row.townId],
@@ -297,7 +297,7 @@ function addressGeographicCondition() {
     macrohood: address2d.macrohoodId,
     neighbourhood: address2d.neighbourhoodId,
     microhood: address2d.microhoodId,
-    landform: address2d.landformId,
+    landform: address2d.islandId,
   }
   const all = sql`json_array(${sql.join(Object.values(roles), sql`, `)})`
   return geographicMembershipSql(all, undefined, targetClass => {
@@ -322,7 +322,7 @@ function buildAddressConditions(
     ? sql.join(
         [
           address2d.countryId,
-          address2d.landformId,
+          address2d.islandId,
           address2d.areaId,
           address2d.districtId,
           address2d.townId,
@@ -375,7 +375,7 @@ export async function getAddressRecordCurrent(
       parentAddressId: address2d.parentAddressId,
       granularity: address2d.granularity,
       countryId: address2d.countryId,
-      landformId: address2d.landformId,
+      islandId: address2d.islandId,
       areaId: address2d.areaId,
       districtId: address2d.districtId,
       townId: address2d.townId,
@@ -430,7 +430,7 @@ export async function listAddressRecordsCurrent(
       parentAddressId: address2d.parentAddressId,
       granularity: address2d.granularity,
       countryId: address2d.countryId,
-      landformId: address2d.landformId,
+      islandId: address2d.islandId,
       areaId: address2d.areaId,
       districtId: address2d.districtId,
       townId: address2d.townId,
@@ -489,7 +489,7 @@ export async function listAddressRecordsCurrentByIds(
       parentAddressId: address2d.parentAddressId,
       granularity: address2d.granularity,
       countryId: address2d.countryId,
-      landformId: address2d.landformId,
+      islandId: address2d.islandId,
       areaId: address2d.areaId,
       districtId: address2d.districtId,
       townId: address2d.townId,

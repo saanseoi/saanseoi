@@ -18,7 +18,7 @@ const buildBase = (sources: unknown) =>
     geometry: null,
     hamletId: null,
     id: 'address-1',
-    landformId: null,
+    islandId: null,
     parentAddressId: null,
     identifiers: null,
     ruralAreaId: null,
@@ -86,14 +86,14 @@ test('normalises landform division IDs with the existing address divisions', asy
     divisionSnapshotId: 'division-snapshot',
     enFormattedAddress: 'Example',
     countryId: 'country-hk',
-    landformId: 'island-hk',
+    islandId: 'island-hk',
     areaId: 'area-hk-island',
     districtId: 'district-central',
   })
 
   expect(normalised.base).toMatchObject({
     countryId: 'country-hk',
-    landformId: 'island-hk',
+    islandId: 'island-hk',
     areaId: 'area-hk-island',
     districtId: 'district-central',
   })
@@ -106,7 +106,7 @@ test('normalises landform division IDs with the existing address divisions', asy
       buildAddressBaseHashInput({
         id: 'address-1',
         ...normalised.base,
-        landformId: null,
+        islandId: null,
       }),
     ),
   )
@@ -397,7 +397,7 @@ test('prepared spatial and village references survive normalisation and affect v
     villageId: 'village',
     microhoodId: 'micro',
     hamletId: 'hamlet',
-    landformId: 'island',
+    islandId: 'island',
   }
   const prepared = {
     canonicalId: 'address',

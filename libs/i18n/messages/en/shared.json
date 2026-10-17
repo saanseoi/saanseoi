@@ -3258,5 +3258,5 @@
   "openapi_places_village_id_description": "Identifier of the village associated with the place: a named rural settlement.",
   "openapi_places_microhood_id_description": "Identifier of the microhood associated with the place: a small local area within a neighbourhood.",
   "openapi_places_hamlet_id_description": "Identifier of the hamlet associated with the place: a small rural settlement.",
-  "openapi_places_landform_id_description": "Identifier of the island landform associated with the place: a major island, minor island or islet. This describes the physical island rather than an administrative area."
+  "openapi_places_island_id_description": "Identifier of the island landform associated with the place: a major island, minor island or islet. This describes the physical island rather than an administrative area."
 }

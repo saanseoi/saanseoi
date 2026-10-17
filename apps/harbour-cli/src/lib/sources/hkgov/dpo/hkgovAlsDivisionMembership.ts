@@ -37,7 +37,7 @@ export function applyAlsDivisionMembership(
         areaId: row.areaId,
         districtId: row.districtId,
         townId: row.townId,
-        landformId: row.landformId,
+        islandId: row.islandId,
       },
       fallbackMethod: 'text',
     })

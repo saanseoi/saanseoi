@@ -57,3 +57,25 @@ test('does not choose an island from conflicting or incomplete branches', () => 
     expect(lookup.size).toBe(0)
   }
 })
+
+test('accepts individual island classes and excludes other landforms', () => {
+  for (const kind of [
+    'major_island',
+    'minor_island',
+    'islet',
+    'island_group',
+    'peninsula',
+  ]) {
+    const lookup: LandformLookup = new Map()
+    const island = { id: 'physical-feature', class: kind, name: null }
+    addLandformLookup(lookup, {
+      ...row('unused'),
+      id: island.id,
+      class: kind,
+      hierarchies: { full: [[path('unused')[0]!, island]] },
+    })
+    expect(
+      resolveAddressLandform(lookup, 'islands', [{ locale: 'en', name: 'Tung Chung' }]),
+    ).toBe(['major_island', 'minor_island', 'islet'].includes(kind) ? island.id : null)
+  }
+})

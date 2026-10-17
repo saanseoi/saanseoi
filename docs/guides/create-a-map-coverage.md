@@ -149,10 +149,10 @@ reference instructions state this distinction; basic marker and pagination examp
 consume canonical fields.
 
 Places Division relationships use supported scalar memberships: country, area, district,
-town, rural area, hoods, village, hamlet and the most-specific unambiguous landform.
-SAR, city and island-group ancestors are excluded. Code filters resolve descendants;
-`filter[adminCode]=HKSAR` selects the region. Full-profile scalar IDs and exact retained
-`include=divisions` revisions are described in the hand-over reference.
+town, rural area, hoods, village, hamlet and the most-specific unambiguous island
+(`islandId`). SAR, city and island-group ancestors are excluded. Code filters resolve
+descendants; `filter[adminCode]=HKSAR` selects the region. Full-profile scalar IDs and
+exact retained `include=divisions` revisions are described in the hand-over reference.
 
 Canonical source references may include `properties`, a non-empty list of contributed
 canonical field paths. This is distinct from the upstream `property` path. Division

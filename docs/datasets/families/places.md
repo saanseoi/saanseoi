@@ -794,11 +794,12 @@ current observation months derive from the selected completed publication. Publi
 receipts retain operational update timing.
 
 Places carry nullable `countryId`, `areaId`, `districtId`, `townId`, `ruralAreaId`,
-`macrohoodId`, `neighbourhoodId`, `villageId`, `microhoodId`, `hamletId` and
-`landformId`. SAR, city and island-group memberships do not enter Place relationships or
-newly prepared Division search text. The shared Address resolver remains unchanged:
-Places consume only its unambiguous `references`, including its most-specific landform.
+`macrohoodId`, `neighbourhoodId`, `villageId`, `microhoodId`, `hamletId` and `islandId`.
+SAR, city and island-group memberships do not enter Place relationships or newly
+prepared Division search text. The shared Address resolver remains unchanged: Places
+consume only its unambiguous `references`, including its most-specific island.
 Address-free Places resolve from the pinned polygons. Ambiguous peers remain null.
+Canonical provenance uses `islandId` in `sources[].properties` for this membership.
 
 `divisionDefinitionSetId` selects an immutable content-addressed row in
 `placeDivisionDefinitions`. Its definition maps only selected IDs to exact logical

@@ -542,7 +542,7 @@ function addressPointGeometry(value: unknown): AddressPointGeometry | null {
 function addressHierarchyIds(address: AddressRecord['address']) {
   return [
     address.countryId,
-    address.landformId,
+    address.islandId,
     address.areaId,
     address.districtId,
     address.townId,

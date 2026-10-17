@@ -5,7 +5,7 @@ import { address2d as historyAddress2d } from '../history/addresses'
 
 const divisionIdColumns = [
   'countryId',
-  'landformId',
+  'islandId',
   'areaId',
   'districtId',
   'townId',

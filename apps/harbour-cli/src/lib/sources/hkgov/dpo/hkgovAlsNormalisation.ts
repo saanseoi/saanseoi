@@ -209,7 +209,7 @@ export function normaliseHkgovAlsFeature(
     { locale: 'zh-hant', name: zhStreet.LocationName },
   ]
   const townId = resolveAddressTown(divisionMaps.towns, districtId, townNames)
-  const landformId = resolveAddressLandform(
+  const islandId = resolveAddressLandform(
     divisionMaps.landforms,
     districtId,
     landformNames,
@@ -287,10 +287,10 @@ export function normaliseHkgovAlsFeature(
             },
           }
         : {}),
-      ...(landformId
+      ...(islandId
         ? {
             landformAssociation: {
-              landformId,
+              islandId,
               divisionSnapshotId: divisionMaps.snapshotId,
               method: 'exact-locality-name-and-district',
               names: landformNames.filter(
@@ -331,7 +331,7 @@ export function normaliseHkgovAlsFeature(
     },
     divisionSnapshotId: divisionMaps.snapshotId,
     townId,
-    landformId,
+    islandId,
     areaId,
     areaMatchStatus: areaMatch.status,
     districtId,

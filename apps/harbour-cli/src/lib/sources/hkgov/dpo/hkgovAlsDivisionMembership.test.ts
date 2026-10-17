@@ -92,12 +92,12 @@ test('final ALS coordinate corrections, structured village names and islands rea
   expect(row).toMatchObject({
     townId: 'town',
     villageId: 'village',
-    landformId: 'island',
+    islandId: 'island',
   })
   expect(normaliseAddressRowForPipeline(row).base).toMatchObject({
     townId: 'town',
     villageId: 'village',
-    landformId: 'island',
+    islandId: 'island',
   })
   expect(JSON.parse(row.sources)).toMatchObject({
     hkgovAls: { sourceFile: 'original.geojson' },

@@ -73,7 +73,7 @@ const NORMALIZED_ROW_COLUMNS = [
   'macrohoodId',
   'townId',
   'districtId',
-  'landformId',
+  'islandId',
   'areaId',
   'countryId',
   'geometry',
@@ -128,7 +128,7 @@ const RESOLVED_ROW_COLUMNS = [
   'macrohoodId',
   'townId',
   'districtId',
-  'landformId',
+  'islandId',
   'areaId',
   'countryId',
   'geometry',
@@ -230,7 +230,7 @@ export function buildAddressSourceSqlImportFiles(
         macrohoodId: row.base.macrohoodId,
         townId: row.base.townId,
         districtId: row.base.districtId,
-        landformId: row.base.landformId,
+        islandId: row.base.islandId,
         areaId: row.base.areaId,
         countryId: row.base.countryId,
         geometry: jsonText(row.base.geometry),
@@ -404,7 +404,7 @@ export function buildAddressHistorySqlImportFile(
         macrohoodId: row.base.macrohoodId,
         townId: row.base.townId,
         districtId: row.base.districtId,
-        landformId: row.base.landformId,
+        islandId: row.base.islandId,
         areaId: row.base.areaId,
         countryId: row.base.countryId,
         geometry: jsonText(row.base.geometry),
@@ -498,7 +498,7 @@ export function buildAddressCurrentSqlImportFile(
         macrohoodId: row.base.macrohoodId,
         townId: row.base.townId,
         districtId: row.base.districtId,
-        landformId: row.base.landformId,
+        islandId: row.base.islandId,
         areaId: row.base.areaId,
         countryId: row.base.countryId,
         geometry: jsonText(row.base.geometry),
@@ -672,7 +672,7 @@ CREATE TABLE IF NOT EXISTS ${NORMALIZED_ROWS_TABLE} (
   macrohoodId TEXT,
   townId TEXT,
   districtId TEXT,
-  landformId TEXT,
+  islandId TEXT,
   areaId TEXT,
   countryId TEXT,
   geometry TEXT,
@@ -738,7 +738,7 @@ CREATE TABLE IF NOT EXISTS ${RESOLVED_ROWS_TABLE} (
   macrohoodId TEXT,
   townId TEXT,
   districtId TEXT,
-  landformId TEXT,
+  islandId TEXT,
   areaId TEXT,
   countryId TEXT,
   geometry TEXT,
@@ -883,12 +883,12 @@ function buildAddressHistoryApplySql(
 INSERT INTO address2d (
   id, versionHash, snapshotId, isCurrent, streetId,
   hamletId, microhoodId, villageId, neighbourhoodId, ruralAreaId, macrohoodId, townId,
-  districtId, landformId, areaId, countryId, geometry, identifiers, sources, parentAddressId, granularity, createdAt
+  districtId, islandId, areaId, countryId, geometry, identifiers, sources, parentAddressId, granularity, createdAt
 )
 SELECT
   r.addressId, r.versionHash, r.snapshotId,
   1, r.streetId, r.hamletId, r.microhoodId, r.villageId,
-  r.neighbourhoodId, r.ruralAreaId, r.macrohoodId, r.townId, r.districtId, r.landformId, r.areaId, r.countryId,
+  r.neighbourhoodId, r.ruralAreaId, r.macrohoodId, r.townId, r.districtId, r.islandId, r.areaId, r.countryId,
   r.geometry, r.identifiers, r.sources, r.parentAddressId, r.granularity, r.updatedAt
 FROM ${RESOLVED_ROWS_TABLE} r
 WHERE r.runId = ${run}
@@ -946,13 +946,13 @@ function buildAddressCurrentApplySql(runId: string) {
 
   return `
 INSERT INTO address2d (
-  scopeId, id, geometry, divisionSnapshotId, countryId, landformId, areaId,
+  scopeId, id, geometry, divisionSnapshotId, countryId, islandId, areaId,
   districtId, townId, ruralAreaId, macrohoodId, villageId, neighbourhoodId, hamletId,
   microhoodId, streetSnapshotId, streetId, identifiers, sources, parentAddressId, granularity, createdAt
 )
 SELECT
   r.snapshotId, r.addressId, r.geometry, r.divisionSnapshotId, r.countryId,
-  r.landformId, r.areaId, r.districtId, r.townId, r.ruralAreaId, r.macrohoodId, r.villageId, r.neighbourhoodId,
+  r.islandId, r.areaId, r.districtId, r.townId, r.ruralAreaId, r.macrohoodId, r.villageId, r.neighbourhoodId,
   r.hamletId, r.microhoodId, r.streetSnapshotId, r.streetId, r.identifiers,
   r.sources, r.parentAddressId, r.granularity, r.createdAt
 FROM ${RESOLVED_ROWS_TABLE} r
@@ -970,7 +970,7 @@ ON CONFLICT(scopeId, id) DO UPDATE SET
   macrohoodId = excluded.macrohoodId,
   townId = excluded.townId,
   districtId = excluded.districtId,
-  landformId = excluded.landformId,
+  islandId = excluded.islandId,
   areaId = excluded.areaId,
   countryId = excluded.countryId,
   geometry = excluded.geometry,
@@ -989,7 +989,7 @@ WHERE address2d.divisionSnapshotId IS NOT excluded.divisionSnapshotId
   OR address2d.macrohoodId IS NOT excluded.macrohoodId
   OR address2d.townId IS NOT excluded.townId
   OR address2d.districtId IS NOT excluded.districtId
-  OR address2d.landformId IS NOT excluded.landformId
+  OR address2d.islandId IS NOT excluded.islandId
   OR address2d.areaId IS NOT excluded.areaId
   OR address2d.countryId IS NOT excluded.countryId
   OR address2d.geometry IS NOT excluded.geometry

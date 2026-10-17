@@ -10,6 +10,7 @@ from pathlib import Path
 import sqlite3
 import re
 
+from island_field_upgrade import MIGRATIONS as ISLAND_FIELD_MIGRATIONS, upgrade as upgrade_island_fields
 from history_producer_upgrade import MIGRATION as HISTORY_PRODUCER_MIGRATION, upgrade as upgrade_history_producers
 from inline_history_upgrade import MIGRATION as INLINE_HISTORY_MIGRATION, upgrade as upgrade_inline_history
 from place_storage_upgrade import MIGRATIONS as PLACE_STORAGE_MIGRATIONS, upgrade as upgrade_place_storage
@@ -136,6 +137,8 @@ def migrate(database_path, migrations_dir, backup_dir, table='d1_migrations', me
                 else:
                     for statement in statements(path.read_text()):
                         db.execute(statement)
+                    if name in ISLAND_FIELD_MIGRATIONS:
+                        print(f'Renamed {upgrade_island_fields(db)} canonical island provenance records.', flush=True)
             db.execute(f'INSERT INTO {quote(table)} (name) VALUES (?)', (name,))
         violations = db.execute('PRAGMA foreign_key_check').fetchmany(10)
         if violations:

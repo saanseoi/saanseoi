@@ -12,9 +12,9 @@ export const divisionFields = {
   village: 'villageId',
   microhood: 'microhoodId',
   hamlet: 'hamletId',
-  major_island: 'landformId',
-  minor_island: 'landformId',
-  islet: 'landformId',
+  major_island: 'islandId',
+  minor_island: 'islandId',
+  islet: 'islandId',
 } as const
 export type DivisionField = (typeof divisionFields)[keyof typeof divisionFields]
 export type DivisionReferences = Partial<Record<DivisionField, string | null>>
@@ -184,7 +184,7 @@ export function createDivisionMembership(
             add(item.id, 'geometry')
         }
       }
-      const islands = candidates.get('landformId')
+      const islands = candidates.get('islandId')
       if (islands && islands.size > 1) {
         for (const id of [...islands.keys()])
           if (
@@ -301,7 +301,7 @@ export function createDivisionMembership(
         'villageId',
         'microhoodId',
         'hamletId',
-        'landformId',
+        'islandId',
       ] as const) {
         const id = input.fallback?.[field]
         if (

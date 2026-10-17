@@ -39,7 +39,7 @@ const address = (
     granularity: 'building',
     divisionRelationships: [],
     countryId: null,
-    landformId: null,
+    islandId: null,
     areaId: null,
     districtId: null,
     townId: null,

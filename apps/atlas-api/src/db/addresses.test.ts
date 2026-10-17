@@ -25,7 +25,7 @@ test('current address reads project every dedicated division ID as a relationshi
       CREATE TABLE address2d (
         scopeId TEXT, divisionSnapshotId TEXT, id TEXT, geometry TEXT,
         identifiers TEXT, sources TEXT, parentAddressId TEXT, granularity TEXT,
-        countryId TEXT, landformId TEXT, areaId TEXT,
+        countryId TEXT, islandId TEXT, areaId TEXT,
         districtId TEXT, townId TEXT, ruralAreaId TEXT, macrohoodId TEXT, neighbourhoodId TEXT,
         microhoodId TEXT, villageId TEXT, hamletId TEXT, createdAt TEXT, updatedAt TEXT
       );
@@ -34,7 +34,7 @@ test('current address reads project every dedicated division ID as a relationshi
       INSERT INTO divisionPublicationState
         VALUES ('division-scope', 'division-snapshot', 'current', 'token', 'ready', 'now');
       INSERT INTO address2d (
-        scopeId, divisionSnapshotId, id, granularity, countryId, landformId,
+        scopeId, divisionSnapshotId, id, granularity, countryId, islandId,
         areaId, districtId, townId, ruralAreaId, macrohoodId, neighbourhoodId, microhoodId,
         villageId, hamletId, createdAt) VALUES (
         'address-scope', 'division-scope', 'address-1', 'building', 'country-1',
@@ -74,15 +74,15 @@ test('search joins stable document scopes to the promoted snapshot and rejects a
     sqlite.exec(`CREATE TABLE addressPublicationState(scopeId TEXT PRIMARY KEY,snapshotId TEXT UNIQUE,status TEXT,publicationToken TEXT,preparedAt TEXT,updatedAt TEXT);
       INSERT INTO addressPublicationState VALUES ('scope:old','old','current','old','2026-01-01','2026-01-01'),('scope:new','new','current','new','2026-01-01','2026-01-01');
       CREATE TABLE addressSearchScopes(scopeId TEXT PRIMARY KEY, snapshotId TEXT);
-      CREATE TABLE address2d(scopeId TEXT, id TEXT, countryId TEXT, areaId TEXT, districtId TEXT, landformId TEXT, townId TEXT, ruralAreaId TEXT, macrohoodId TEXT, neighbourhoodId TEXT, microhoodId TEXT, villageId TEXT, hamletId TEXT);
+      CREATE TABLE address2d(scopeId TEXT, id TEXT, countryId TEXT, areaId TEXT, districtId TEXT, islandId TEXT, townId TEXT, ruralAreaId TEXT, macrohoodId TEXT, neighbourhoodId TEXT, microhoodId TEXT, villageId TEXT, hamletId TEXT);
       CREATE TABLE address2dI18n(scopeId TEXT,addressId TEXT,locale TEXT,formattedAddress TEXT,
         buildingName TEXT,buildingNumberExpression TEXT,buildingNumberFrom TEXT,buildingNumberTo TEXT,
         blockExpression TEXT,phaseExpression TEXT,estateName TEXT,streetName TEXT);
-      INSERT INTO address2d (scopeId,id,countryId,areaId,districtId,landformId,townId,ruralAreaId, macrohoodId,neighbourhoodId,microhoodId,villageId,hamletId)
+      INSERT INTO address2d (scopeId,id,countryId,areaId,districtId,islandId,townId,ruralAreaId, macrohoodId,neighbourhoodId,microhoodId,villageId,hamletId)
         VALUES('scope:old','a','hk',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL),('scope:new','a','hk',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
       INSERT INTO address2dI18n(scopeId,addressId,locale,formattedAddress) VALUES
         ('scope:old','a','en','Harbour Road'),('scope:new','a','en','Harbour Road');`)
-    sqlite.exec("UPDATE address2d SET landformId='island', townId='town'")
+    sqlite.exec("UPDATE address2d SET islandId='island', townId='town'")
     const db = drizzle({ client: sqlite }) as never
     const search = (snapshot: string) =>
       searchAddressIdsCurrent(db, {

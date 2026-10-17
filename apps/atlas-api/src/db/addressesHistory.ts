@@ -118,7 +118,7 @@ export async function listReplayedAddressRecords(args: {
           version.base,
         ),
         countryId: version.base.countryId,
-        landformId: version.base.landformId,
+        islandId: version.base.islandId,
         areaId: version.base.areaId,
         districtId: version.base.districtId,
         townId: version.base.townId,

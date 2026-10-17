@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:4cb267ee278ca664d3fcf175caf716cb42b696b2f7cf441a1df1cb1bae825fbc",
+  "versionHash": "sha256:34e54fb3b7a2aaad9bd1fcdc15fbf6b716b2b841a7feed2c19a8f8dde2ae3204",
   "apiVersion": "api-places-v0.1",
   "domainCode": "overture",
   "mappingVersion": 1,
@@ -942,7 +942,7 @@
       "confidence": 1
     },
     {
-      "apiField": "attributes.landformId",
+      "apiField": "attributes.islandId",
       "sourceDatasetCode": "ds-hk-overture-division",
       "inputs": [
         {

@@ -322,10 +322,10 @@ const PlaceSchema = z
       .openapi({
         description: openApiText('openapi_places_hamlet_id_description'),
       }),
-    landformId: IdSchema.nullable()
+    islandId: IdSchema.nullable()
       .optional()
       .openapi({
-        description: openApiText('openapi_places_landform_id_description'),
+        description: openApiText('openapi_places_island_id_description'),
       }),
     address2dId: z
       .string()
@@ -828,10 +828,10 @@ const PlaceCollectionAttributesSchema = z
       .openapi({
         description: openApiText('openapi_places_hamlet_id_description'),
       }),
-    landformId: IdSchema.nullable()
+    islandId: IdSchema.nullable()
       .optional()
       .openapi({
-        description: openApiText('openapi_places_landform_id_description'),
+        description: openApiText('openapi_places_island_id_description'),
       }),
     address2dId: IdSchema.nullable()
       .optional()

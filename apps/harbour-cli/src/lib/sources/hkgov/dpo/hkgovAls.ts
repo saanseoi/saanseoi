@@ -577,8 +577,8 @@ async function prepareHkgovAlsAddressParquetInternal(
           rows.map(row => row.townId ?? null),
         ),
         stringColumn(
-          'landformId',
-          rows.map(row => row.landformId ?? null),
+          'islandId',
+          rows.map(row => row.islandId ?? null),
         ),
         stringColumn(
           'areaId',

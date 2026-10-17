@@ -446,7 +446,7 @@ export function alsPreparedProducer(path: string): ProducerSpecification | null 
         symbol: 'addressDivisionRelationshipsFromDedicatedIds',
       },
       expression:
-        'Project non-empty canonical countryId, landformId, areaId, districtId, townId, ruralAreaId, macrohoodId, neighbourhoodId, microhoodId, villageId and hamletId; associate each with its declared role and retained divisionSnapshotId.',
+        'Project non-empty canonical countryId, islandId, areaId, districtId, townId, ruralAreaId, macrohoodId, neighbourhoodId, microhoodId, villageId and hamletId; associate each with its declared role and retained divisionSnapshotId.',
     }
   return null
 }

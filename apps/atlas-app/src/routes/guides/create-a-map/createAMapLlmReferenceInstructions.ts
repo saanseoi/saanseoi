@@ -657,10 +657,10 @@ timestamps; snapshot and resource-release provenance identify the selected conte
 
 Places relationships include supported country, area, district, locality, hood and
 landform IDs. SAR, city and island-group ancestors are excluded. Full profiles expose
-nullable scalar IDs from countryId through hamletId and landformId. Each ID refers to
+nullable scalar IDs from countryId through hamletId and islandId. Each ID refers to
 an associated Division: areaId identifies a broad area such as Kowloon; districtId
 identifies a district such as Sha Tin. Locality and hood IDs identify settlements and
-neighbourhoods at different scales. landformId identifies a physical island or islet,
+neighbourhoods at different scales. islandId identifies a physical island or islet,
 independently of administrative areas. Geographic code
 filters resolve through supported descendants; filter[adminCode]=HKSAR selects the
 whole region. include=divisions uses exact retained definition revisions.

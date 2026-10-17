@@ -151,7 +151,7 @@ export async function divisionResetBlockers(context: ResetReadContext) {
     await check(
       binding,
       `${label}: addresses reference divisions`,
-      'SELECT 1 FROM address2d WHERE countryId IS NOT NULL OR landformId IS NOT NULL OR areaId IS NOT NULL OR districtId IS NOT NULL OR townId IS NOT NULL OR ruralAreaId IS NOT NULL OR macrohoodId IS NOT NULL OR villageId IS NOT NULL OR neighbourhoodId IS NOT NULL OR hamletId IS NOT NULL OR microhoodId IS NOT NULL LIMIT 1',
+      'SELECT 1 FROM address2d WHERE countryId IS NOT NULL OR islandId IS NOT NULL OR areaId IS NOT NULL OR districtId IS NOT NULL OR townId IS NOT NULL OR ruralAreaId IS NOT NULL OR macrohoodId IS NOT NULL OR villageId IS NOT NULL OR neighbourhoodId IS NOT NULL OR hamletId IS NOT NULL OR microhoodId IS NOT NULL LIMIT 1',
     )
     await check(
       binding,

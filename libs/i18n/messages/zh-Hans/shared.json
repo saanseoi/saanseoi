@@ -3261,5 +3261,5 @@
   "openapi_places_village_id_description": "与此地点相关的村落标识符；村落是具名的乡郊聚落。",
   "openapi_places_microhood_id_description": "与此地点相关的小社区标识符；小社区是社区内较小范围的地方区域。",
   "openapi_places_hamlet_id_description": "与此地点相关的小村落标识符；小村落是规模较小的乡郊聚落。",
-  "openapi_places_landform_id_description": "与此地点相关的岛屿地形标识符，可代表主要岛屿、次要岛屿或小岛。此字段表示实际岛屿地形，而非行政区域。"
+  "openapi_places_island_id_description": "与此地点相关的岛屿地形标识符，可代表主要岛屿、次要岛屿或小岛。此字段表示实际岛屿地形，而非行政区域。"
 }
