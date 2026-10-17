@@ -3,8 +3,9 @@ set -euo pipefail
 
 repo_root="$(cd "$(dirname "$0")/../../.." && pwd)"
 persist_dir="$repo_root/.local/d1/dev"
-port=8787
-inspector_port=9249
+# Keep the API port aligned with api.atlas.localhost in /etc/caddy/Caddyfile.
+port=8791
+inspector_port=9250
 
 mkdir -p "$persist_dir"
 
