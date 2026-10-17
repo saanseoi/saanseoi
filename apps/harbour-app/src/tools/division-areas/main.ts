@@ -1,3 +1,4 @@
+import { polygonPartForEdit, replaceEditedRing } from './polygonPartSelection'
 import { readCheckboxSelection, writeCheckboxSelection } from './checkboxStorage'
 import { runCoastlineTask } from './coastlineTask'
 import {
@@ -485,6 +486,8 @@ let rectangleSelecting = false
 let selectedNodeIndices = new Set<number>()
 let mode: 'draw' | 'edit' | 'part' | 'move' | 'pencil' | null = null
 let editingPencilPath = false
+let selectedMapPosition: Position | null = null
+let editingPolygonPart = 0
 let originalGeometry: Polygon | MultiPolygon | null = null
 let movingGeometry: Polygon | MultiPolygon | null = null
 let moveOrigin: [number, number] | null = null
@@ -1203,7 +1206,7 @@ $('cleanup-clear-selection').onclick = () => {
   refreshList()
 }
 const handledCleanupEvents = new WeakSet<Event>()
-function chooseDivision(id: string, fly = true, event?: Event) {
+function chooseDivision(id: string, fly = true, event?: Event, position?: Position) {
   if (cleanupBusy) return
   if (cleanupSelectionMode.checked) {
     if (event && handledCleanupEvents.has(event)) return
@@ -1223,7 +1226,7 @@ function chooseDivision(id: string, fly = true, event?: Event) {
     else cleanupSelection.add(id)
     writeCheckboxSelection(cleanupSelectionKey, cleanupSelection)
   }
-  select(id, fly)
+  select(id, fly, position)
 }
 const layerVisibility = createLayerControls(
   $('level-toggles'),
@@ -2592,7 +2595,7 @@ function refreshCorePointMarker() {
     }
   })
 }
-function select(id: string, fly = true) {
+function select(id: string, fly = true, position?: Position) {
   if (mode) {
     say('Finish or cancel the current drawing before changing division.')
     return
@@ -2602,6 +2605,8 @@ function select(id: string, fly = true) {
     source('geometry-preview').setData({ type: 'FeatureCollection', features: [] })
   candidatePreview = null
   $<HTMLButtonElement>('copy-preview').disabled = true
+  if (position) selectedMapPosition = position
+  else if (selected !== id || fly) selectedMapPosition = null
   selected = id
   fillGeometryOptions(id)
   const d = byId.get(id)!
@@ -3138,9 +3143,7 @@ function deleteSelectedNodes() {
     const ring = [...remaining, [...remaining[0]!]]
     let geometry: Polygon | MultiPolygon = { type: 'Polygon', coordinates: [ring] }
     if (mode === 'edit' && originalGeometry) {
-      geometry = structuredClone(originalGeometry)
-      if (geometry.type === 'Polygon') geometry.coordinates[0] = ring
-      else geometry.coordinates[0]![0] = ring
+      geometry = replaceEditedRing(originalGeometry, editingPolygonPart, ring)
     }
     const candidate: SaanseoiEstimatedAreas = {
       ...estimatedAreas,
@@ -3359,12 +3362,15 @@ function start(next: typeof mode) {
   streetSelection = []
   clearAdjoinMarkers()
   originalGeometry = next === 'move' ? moveGeometry : (editGeometry ?? partGeometry)
+  editingPolygonPart = editGeometry
+    ? polygonPartForEdit(editGeometry, selectedMapPosition)
+    : 0
   vertices =
     next === 'edit' && originalGeometry
       ? structuredClone(
           originalGeometry.type === 'Polygon'
             ? originalGeometry.coordinates[0]!.slice(0, -1)
-            : originalGeometry.coordinates[0]![0]!.slice(0, -1),
+            : originalGeometry.coordinates[editingPolygonPart]![0]!.slice(0, -1),
         )
       : []
   movingGeometry =
@@ -3543,9 +3549,7 @@ async function finish() {
       coordinates: [ring],
     })
   if (mode === 'edit' && originalGeometry) {
-    geometry = structuredClone(originalGeometry)
-    if (geometry.type === 'Polygon') geometry.coordinates[0] = ring
-    else geometry.coordinates[0]![0] = ring
+    geometry = replaceEditedRing(originalGeometry, editingPolygonPart, ring)
   }
   const next: SaanseoiEstimatedAreas = {
     ...estimatedAreas,
@@ -4302,7 +4306,10 @@ await basemapReady
         .find(feature => feature.properties?.divisionId || feature.properties?.id)
       const id = feature?.properties?.divisionId ?? feature?.properties?.id
       if (!id) continue
-      chooseDivision(String(id), false, event.originalEvent)
+      chooseDivision(String(id), false, event.originalEvent, [
+        event.lngLat.lng,
+        event.lngLat.lat,
+      ])
       return
     }
   })
