@@ -711,9 +711,9 @@ Overture Places dataset metadata declares EPSG:4326 for source geometry.
 Retained publisher properties use camelCase names, including nested attribution fields,
 while language dictionary keys and source values remain intact. API field provenance
 pairs original Overture paths with retained locations. Canonical Places attribution is
-wrapped as `{ "overture": [...] }`; the full profile exposes this publisher object.
-Localisation and reviewed address decisions are processing inputs rather than direct
-copies of publisher objects.
+an array of publisher and dataset references exposed by the full profile. Localisation
+and reviewed address decisions are processing inputs rather than direct copies of
+publisher objects.
 
 Source storage and public records use `properties` for retained attributes. API-field
 inputs reference this path through the shared dataset-scoped `publisherFields` mapping.
@@ -928,3 +928,23 @@ CURRENT publication receipt. Locale rows count only when their Place remains in 
 selected snapshot. Interrupted statistics writes can be recovered locally with
 `./bin/saanseoi stats:backfill-places --target local`; this updates presentation
 statistics without changing snapshot membership or release revisions.
+
+## Supporting Address and Division contributions
+
+Canonical Place attribution retains Overture's publisher entries and adds scoped
+supporting-record contributions. Selected 2D Address sources contribute `address2dId`;
+selected 3D collection sources contribute `address3dId` and, when populated,
+`address3dUnitId`. Their original source record IDs are retained. Derived Address
+records without a publisher reference use their owning dataset and canonical record ID.
+Division references use the publisher and primary dataset of the exact pinned Division
+snapshot, with the Division ID as `recordId` and populated scalar references in
+`properties`.
+
+Supporting attribution is included in the base content hash before caching. Publisher
+observation dates and versions remain excluded from that hash. Address source changes
+invalidate enrichment reuse, including changes to a selected 3D collection's sources.
+Coordinate and locale corrections remain processing fixes rather than source authorship.
+
+The current Overture input and review-decision contract contain no `accessHint` input.
+The nullable canonical locale field preserves a supplied hint through CURRENT, HISTORY
+and locale hashing; it is not inferred from matching.

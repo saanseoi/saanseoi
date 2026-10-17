@@ -114,7 +114,8 @@ export async function buildPlaceSql(
   for (const row of input.places) {
     const place = row.place
     const sourceId = publisherPlaceId(place)
-    const resolvedSources = normaliseOvertureAttribution(place.sources.overture)
+    const resolvedSources =
+      row.sources ?? normaliseOvertureAttribution(place.sources.overture)
     const retained = await prepareRecordEvidence('places', place.id, {
       ...(place.sources.placeIdentity
         ? { placeIdentity: place.sources.placeIdentity }

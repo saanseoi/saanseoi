@@ -157,3 +157,9 @@ SAR, city and island-group ancestors are excluded. Code filters resolve descenda
 Canonical source references may include `properties`, a non-empty list of contributed
 canonical field paths. This is distinct from the upstream `property` path. Division
 records use it to identify SaanSeoi enrichment without replacing upstream attribution.
+
+Place supporting-record attribution scopes `sources[].properties` to populated Address
+and Division references. Original Address source IDs are retained where available;
+derived Address records use their canonical ID in the owning dataset. Division entries
+use the dataset owning the pinned snapshot and the referenced Division ID. Null links
+add no contribution. Coordinate and text corrections remain processing decisions.

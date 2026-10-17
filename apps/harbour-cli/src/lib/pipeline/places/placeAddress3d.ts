@@ -144,6 +144,7 @@ export async function loadCollection(
 ) {
   return db
     .select({
+      sources: currentSchema.address3d.sources,
       id: currentSchema.address3d.id,
       address2dId: currentSchema.address3d.address2dId,
       unresolvedSectionIds: currentSchema.address3d.unresolvedSectionIds,

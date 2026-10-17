@@ -27,6 +27,7 @@ export type UploadResult = {
 }
 
 export type EnrichedPlace = {
+  sources?: import('@repo/db').SourceAttribution[]
   projection?: { cells: { h3Level: number; h3Cell: string }[]; i18nHashes: string[] }
   place: NormalisedPlace
   /** Curated Place geometry used by the public Place projection, if overridden. */

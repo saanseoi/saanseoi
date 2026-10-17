@@ -228,6 +228,8 @@ test('enrichment reuses unchanged records across releases with fresh dates and i
           addressSnapshotId,
           divisionSnapshotId: 'divisions',
           divisionAreaSnapshotId: 'areas',
+          addressSource: { publisher: 'hkgov-dpo', dataset: 'ds-hk-hkgov-dpo-address' },
+          divisionSource: { publisher: 'saanseoi', dataset: 'ds-hk-saanseoi-division' },
         },
         places(),
         resolutions(),
@@ -268,6 +270,13 @@ test('per-record enrichment validates missing, added, edited and removed 3D coll
                   id: 'collection',
                   address2dId: 'building',
                   unresolvedSectionIds: [],
+                  sources: [
+                    {
+                      publisher: 'hkgov-dpo',
+                      dataset: 'ds-hk-hkgov-dpo-address',
+                      recordId: sourceRecordId,
+                    },
+                  ],
                   units: [
                     {
                       id: unit,
@@ -282,6 +291,7 @@ test('per-record enrichment validates missing, added, edited and removed 3D coll
       }),
     }),
   } as unknown as HarbourReadableDb
+  let sourceRecordId = 'original'
   let computed = 0
   const place = normaliseOverturePlace(source, '2026-01')
   assert(place)
@@ -312,9 +322,12 @@ test('per-record enrichment validates missing, added, edited and removed 3D coll
     expect((await run()).address3dUnitId).toBe('first')
     unit = 'edited'
     expect((await run()).address3dUnitId).toBe('edited')
+    sourceRecordId = 'corrected-source'
+    await run()
+    expect(computed).toBe(4)
     unit = null
     expect((await run()).address3dId).toBeNull()
-    expect(computed).toBe(4)
+    expect(computed).toBe(5)
   } finally {
     cache.close()
     await rm(root, { recursive: true, force: true })

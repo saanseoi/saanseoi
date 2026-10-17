@@ -239,6 +239,19 @@ describe('Places SQL materialisation', () => {
       historyRows: [],
       places: [
         {
+          sources: [
+            {
+              publisher: 'openstreetmap',
+              upstreamOf: 'overture',
+              dataset: 'openstreetmap',
+            },
+            {
+              publisher: 'overture',
+              dataset: 'ds-hk-overture-place',
+              recordId: 'publisher-place',
+              properties: ['address2dId'],
+            },
+          ],
           effectiveLng: 114.2,
           effectiveLat: 22.4,
           address2dId: 'supplementary-address',
@@ -277,6 +290,7 @@ describe('Places SQL materialisation', () => {
                 brandNameVariant: null,
                 brandNameAlts: null,
                 freeformAddress: '1 Example Road',
+                accessHint: 'Entrance on the first floor',
                 meta: null,
               },
             ],
@@ -297,6 +311,26 @@ describe('Places SQL materialisation', () => {
       history.exec(statements.join('\n'))
     sqlite.exec(result.currentSql.join('\n'))
     expect(result.changes).toEqual([])
+    for (const db of [sqlite, history]) {
+      const row = db.query<{ sources: string }, []>('SELECT sources FROM places').get()!
+      expect(JSON.parse(row.sources)).toEqual([
+        {
+          publisher: 'openstreetmap',
+          upstreamOf: 'overture',
+          dataset: 'openstreetmap',
+        },
+        {
+          publisher: 'overture',
+          dataset: 'ds-hk-overture-place',
+          recordId: 'publisher-place',
+          properties: ['address2dId'],
+        },
+      ])
+    }
+    for (const db of [sqlite, history])
+      expect(db.query('SELECT accessHint FROM placesI18n').get()).toEqual({
+        accessHint: 'Entrance on the first floor',
+      })
 
     expect(sqlite.query('SELECT COUNT(*) AS count FROM overturePlaces').get()).toEqual({
       count: 1,
@@ -356,8 +390,11 @@ describe('Places SQL materialisation', () => {
         .get(),
     ).toEqual(i18nVersionHash)
     expect(i18nVersionHash.versionHash).not.toBe(placeVersionHash.versionHash)
-    expect(sqlite.query('SELECT freeformAddress, meta FROM placesI18n').get()).toEqual({
+    expect(
+      sqlite.query('SELECT freeformAddress, accessHint, meta FROM placesI18n').get(),
+    ).toEqual({
       freeformAddress: '1 Example Road',
+      accessHint: 'Entrance on the first floor',
       meta: null,
     })
     expect(

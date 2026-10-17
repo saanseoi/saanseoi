@@ -1,3 +1,4 @@
+import { readPlaceSnapshotSource } from './placeAttribution'
 import {
   deliverRecordEvidence,
   readRetainedProvenanceObject,
@@ -334,6 +335,14 @@ export async function processLocalPlaceSqlUpload(
         }),
       stagedPlaces.includedRows,
     )
+    const divisionSource = await readPlaceSnapshotSource(
+      metaDb,
+      snapshots.divisionSnapshotId,
+    )
+    const addressSource = await readPlaceSnapshotSource(
+      metaDb,
+      snapshots.addressSnapshotId,
+    )
     const stagedEnrichedPlaces = await runPlaceProgressPhase(
       progress,
       'Match and enrich',
@@ -341,7 +350,7 @@ export async function processLocalPlaceSqlUpload(
       reportProgress =>
         stageEnrichedPlaces(
           dependencyView.db,
-          snapshots,
+          { ...snapshots, divisionSource, addressSource },
           readStagedJsonLines<NormalisedPlace>(identities.path),
           canonicalAddressResolutions(
             supplementary.resolutionPath,

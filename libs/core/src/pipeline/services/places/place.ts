@@ -193,6 +193,7 @@ export async function hashNormalisedPlace(place: NormalisedPlace) {
 export async function hashPlaceMaterialisation(
   place: NormalisedPlace,
   references: {
+    sources?: import('@repo/db').SourceAttribution[]
     addressSnapshotId: string
     divisionSnapshotId: string
     addressId: string | null
@@ -210,7 +211,9 @@ export async function hashPlaceMaterialisation(
 ) {
   return createHash({
     id: place.id,
-    sources: recordContent(normaliseOvertureAttribution(place.sources.overture)),
+    sources: recordContent(
+      references.sources ?? normaliseOvertureAttribution(place.sources.overture),
+    ),
     lng: references.effectiveLng ?? place.lng,
     lat: references.effectiveLat ?? place.lat,
     bbox: place.bbox,

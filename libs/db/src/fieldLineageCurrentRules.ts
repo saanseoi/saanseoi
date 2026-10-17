@@ -437,10 +437,13 @@ export function currentPlaceFieldRule(apiField: string): CurrentFieldRule | null
       'apps/harbour-cli/src/lib/pipeline/places/processLocalPlaceSqlUploadRows.ts',
       'buildPlaceSql',
       'previousIdentity?.row.versionHash === contentHash ? (previousIdentity.row.sources ?? resolvedSources) : resolvedSources',
-      ['place', 'divisionAssociation', 'previousIdentity', 'contentHash'],
+      ['resolvedSources', 'previousIdentity', 'contentHash'],
       {
         steps: [
-          'resolvedSources normalises native upstream attribution using the registered publisher/dataset mapping; per-record decisions are retained in R2.',
+          'resolvedSources combines registered native upstream attribution with populated Address and Division references before hashing and caching.',
+          'Retain selected Address source identities, scoped to address2dId, address3dId and address3dUnitId. Derived Addresses without publisher references use their owning dataset and canonical record ID.',
+          'Attribute populated scalar Division fields to the primary dataset of the pinned Division snapshot and the referenced Division ID.',
+          'Null Address links contribute no source. Coordinate and text corrections remain processing fixes; per-record decisions are retained in R2.',
         ],
       },
     )

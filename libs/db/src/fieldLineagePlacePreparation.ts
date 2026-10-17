@@ -168,11 +168,33 @@ export function placePreparedSpecification(path: string) {
         implementation: { path: rows, symbol: 'buildPlaceSql' },
         expression: 'previousIdentity?.row.versionHash',
       }
+    case 'resolvedSources':
+      return {
+        inputs: [
+          'place',
+          'selectedAddress',
+          'selectedAddress3dCollections',
+          'divisionMembership',
+        ],
+        implementation: {
+          path: 'apps/harbour-cli/src/lib/pipeline/places/placeAttribution.ts',
+          symbol: 'placeSources',
+        },
+        expression:
+          'placeSources(place.sources.overture, addressSources, pinnedDivisionSource, divisionReferences)',
+        steps: [
+          'Retain registered upstream publisher attribution.',
+          'Scope selected Address source identities to populated address2dId, address3dId and address3dUnitId fields. Derived Address records without publisher references use their owning dataset and canonical record ID.',
+          'Use the publisher and primary dataset of the exact pinned Division snapshot, the referenced Division ID and populated scalar field names.',
+          'Keep coordinate corrections and localisation as processing fixes; null links add no contribution.',
+        ],
+      }
     case 'contentHash':
       return {
         inputs: [
           'place',
           'effectiveCoordinates',
+          'resolvedSources',
           'address2dId',
           'unitReference',
           'divisionMembership',
@@ -183,6 +205,7 @@ export function placePreparedSpecification(path: string) {
         expression: 'createHash(canonicalBaseContent)',
         steps: [
           'Hash id, effective coordinates, publisher bbox, operatingStatus, basicCategory, taxonomyPrimary/Hierarchy/Alternates, identifiers, websites, socials, emails, phones, addresses and confidence.',
+          'Include resolved upstream and supporting-record attribution, excluding observation dates and versions.',
           'Include retained Place identity evidence so source-ID transitions and the latest matching inputs survive historical replay.',
           'Include addressDependencyHash, address2dId, all three nullable Address3D references, supported scalar Division references and their exact selected names and levels. Equivalent revision reissues reuse independent definition pointers.',
           'Localised fields, first/last seen months, source payload, publication snapshot IDs and timestamps are not independent base-content hash fields. Locales have separate content hashes.',

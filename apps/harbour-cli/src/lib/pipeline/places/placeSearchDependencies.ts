@@ -1,3 +1,4 @@
+import { placeAddressSources } from './placeAttribution'
 import type { HarbourReadableDb } from '@repo/core/db/types'
 import { createHash } from '@repo/core/pipeline/utils'
 import { currentSchema, and, eq, sql } from '@repo/db'
@@ -23,6 +24,7 @@ type DivisionDefinition = Omit<
 export function createPlaceSearchDependencies(
   db: HarbourReadableDb,
   supplementary?: { snapshotId: string; addresses: SupplementaryRows },
+  addressSource?: import('./placeAttribution').PlaceDependencySource,
 ) {
   const supplementaryById = new Map(
     supplementary?.addresses.map(row => [row.current.id, row]),
@@ -127,6 +129,7 @@ export function createPlaceSearchDependencies(
     divisionIds: string[]
     locales: string[]
   }): Promise<{
+    addressSources: import('@repo/db').SourceAttribution[]
     addressDependencyHash: string | null
     searchDependencies: Record<string, SearchText>
     divisionDefinitions: Record<string, DivisionDefinition>
@@ -289,6 +292,28 @@ export function createPlaceSearchDependencies(
         streetText: translated?.streetName ?? '',
       }
     }
-    return { addressDependencyHash, searchDependencies, divisionDefinitions }
+    return {
+      addressSources: [
+        ...placeAddressSources(
+          address?.base.sources,
+          input.addressId ? ['address2dId'] : [],
+          addressSource && input.addressId
+            ? { ...addressSource, recordId: input.addressId }
+            : undefined,
+        ),
+        ...placeAddressSources(
+          address?.collection?.sources,
+          input.address3dId
+            ? ['address3dId', ...(input.address3dUnitId ? ['address3dUnitId'] : [])]
+            : [],
+          addressSource && input.address3dId
+            ? { ...addressSource, recordId: input.address3dId }
+            : undefined,
+        ),
+      ],
+      addressDependencyHash,
+      searchDependencies,
+      divisionDefinitions,
+    }
   }
 }

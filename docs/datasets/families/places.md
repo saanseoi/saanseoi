@@ -526,9 +526,9 @@ SaanSeoi Division sources in their API-field mapping signature, alongside ALS, O
 Divisions and Places. Publication validates this exact source composition and its
 publisher schema ranges.
 
-The full Places profile returns publisher attribution as `sources: { overture: [...] }`.
-Retained source properties use camelCase keys while field provenance pairs those keys
-with original publisher paths. Localisation alternatives, access hints, trust metadata,
+The full Places profile returns an attribution array in `sources`. Retained source
+properties use camelCase keys while field provenance pairs those keys with original
+publisher paths. Localisation alternatives, access hints, trust metadata,
 first/last-seen months and full-profile snapshot/address references have explicit
 inputs. Processing rules resolve against the definitions captured by the selected
 releases.
@@ -869,3 +869,24 @@ CURRENT publication receipt. Locale rows count only when their Place remains in 
 selected snapshot. Interrupted statistics writes can be recovered locally with
 `./bin/saanseoi stats:backfill-places --target local`; this updates presentation
 statistics without changing snapshot membership or release revisions.
+
+## Supporting-record attribution
+
+Place `sources[].properties` identifies populated canonical references supplied by
+supporting records. Address contributions retain the selected Address record's original
+publisher, dataset and source record IDs for `address2dId`, `address3dId` and
+`address3dUnitId`. Derived Address records without a publisher reference use their
+owning dataset and canonical record ID; an existing publisher record ID is never
+replaced. Division contributions identify the dataset that owns the pinned Division
+snapshot and the referenced Division ID, scoped to populated scalar fields such as
+`districtId`.
+
+These contributions are resolved before materialisation hashing and caching. Historical
+preparation uses the exact dependency snapshots; null and deferred Address links add no
+Address contribution. Coordinate corrections, localisation and reviewed matching remain
+processing decisions. There is no separate SaanSeoi Places dataset.
+
+`accessHint` is a nullable locale value. The current Overture normaliser and review
+decision model supply no access hint. A supplied locale hint is retained in CURRENT and
+HISTORY and participates in the locale content hash; address matching does not infer
+one.

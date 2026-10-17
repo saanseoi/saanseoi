@@ -1,3 +1,4 @@
+import { placeSources, type PlaceDependencySource } from './placeAttribution'
 import { supportedPlaceMembership } from './placeDivisionDefinitions'
 import {
   readSnapshotDependencies,
@@ -337,6 +338,8 @@ export async function* readStagedJsonLines<T>(path: string) {
 export async function stageEnrichedPlaces(
   currentDb: HarbourReadableDb,
   snapshots: {
+    addressSource: PlaceDependencySource
+    divisionSource: PlaceDependencySource
     addressSnapshotId: string
     divisionSnapshotId: string
     divisionAreaSnapshotId?: string
@@ -355,6 +358,7 @@ export async function stageEnrichedPlaces(
 ): Promise<StagedEnrichedPlaces> {
   const addresses = await currentDb
     .select({
+      sources: currentSchema.address2d.sources,
       areaId: currentSchema.address2d.areaId,
       countryId: currentSchema.address2d.countryId,
       districtId: currentSchema.address2d.districtId,
@@ -421,7 +425,11 @@ export async function stageEnrichedPlaces(
   const supplementaryById = new Map(
     supplementary.addresses.map(row => [row.current.id, row.current]),
   )
-  const resolveDependencies = createPlaceSearchDependencies(currentDb, supplementary)
+  const resolveDependencies = createPlaceSearchDependencies(
+    currentDb,
+    supplementary,
+    snapshots.addressSource,
+  )
   const path = resolve(releaseRoot, ENRICHED_PLACES_FILE)
   const generate = async (
     observe?: PlaceAddress3dReadObserver,
@@ -494,6 +502,8 @@ export async function stageEnrichedPlaces(
               addressId,
               addressSnapshotId,
               snapshots.divisionSnapshotId,
+              snapshots.divisionSource,
+              snapshots.addressSource,
               address ?? null,
               referencedDivisionIds,
               divisionAssociation,
@@ -510,7 +520,7 @@ export async function stageEnrichedPlaces(
                       observer,
                     )
                   : null
-              const dependencies = await resolveDependencies({
+              const { addressSources, ...dependencies } = await resolveDependencies({
                 addressSnapshotId,
                 addressId,
                 divisionSnapshotId: snapshots.divisionSnapshotId,
@@ -518,7 +528,14 @@ export async function stageEnrichedPlaces(
                 locales: place.i18n.map(value => value.locale),
                 ...unitReference,
               })
+              const sources = placeSources(
+                place.sources.overture,
+                addressSources,
+                snapshots.divisionSource,
+                divisionReferences,
+              )
               const result = {
+                sources,
                 place,
                 ...(geometryOverridden ? { effectiveLng, effectiveLat } : {}),
                 addressSnapshotId: addressId ? addressSnapshotId : null,
@@ -531,6 +548,7 @@ export async function stageEnrichedPlaces(
                 divisionAssociation,
                 ...dependencies,
                 versionHash: await hashPlaceMaterialisation(place, {
+                  sources,
                   addressSnapshotId,
                   divisionSnapshotId: snapshots.divisionSnapshotId,
                   addressId,
