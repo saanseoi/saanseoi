@@ -1,3 +1,5 @@
+import { readCheckboxSelection, writeCheckboxSelection } from './checkboxStorage'
+
 export const layerGroups = [
   {
     title: 'Admin',
@@ -51,8 +53,12 @@ export function divisionLayerKey(
   return division.class ?? ''
 }
 
-export function createLayerControls(host: HTMLElement, changed: () => void) {
-  const enabled = new Set<string>([
+export function createLayerControls(
+  host: HTMLElement,
+  changed: () => void,
+  storageKey: string,
+) {
+  const enabled = readCheckboxSelection(storageKey, [
     'rural_area',
     'macrohood',
     'island-custom',
@@ -73,6 +79,7 @@ export function createLayerControls(host: HTMLElement, changed: () => void) {
       input.onchange = () => {
         if (input.checked) enabled.add(key)
         else enabled.delete(key)
+        writeCheckboxSelection(storageKey, enabled)
         changed()
       }
       label.append(input, title)
@@ -85,10 +92,12 @@ export function createLayerControls(host: HTMLElement, changed: () => void) {
   governmentLabel.id = 'government-district-control'
   const governmentInput = document.createElement('input')
   governmentInput.type = 'checkbox'
+  governmentInput.checked = enabled.has('hkgov-censtatd-2024')
   governmentInput.setAttribute('aria-label', 'C&SD 2024')
   governmentInput.onchange = () => {
     if (governmentInput.checked) enabled.add('hkgov-censtatd-2024')
     else enabled.delete('hkgov-censtatd-2024')
+    writeCheckboxSelection(storageKey, enabled)
     changed()
   }
   governmentLabel.append(governmentInput, 'C&SD 2024')
@@ -100,6 +109,7 @@ export function createLayerControls(host: HTMLElement, changed: () => void) {
       enabled.add(key)
       const input = inputs.get(key)
       if (input) input.checked = true
+      writeCheckboxSelection(storageKey, enabled)
     },
   }
 }

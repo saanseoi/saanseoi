@@ -1,3 +1,4 @@
+import { GeometryCleanupError } from './geometryTools'
 import type {
   ReviewInventory,
   SaanseoiEstimatedAreas,
@@ -44,7 +45,19 @@ export function runCoastlineTask(
       else {
         finish()
         if (result.type === 'complete') resolve(result.features)
-        else reject(new Error(result.message))
+        else if (result.diagnostic) {
+          const detail = result.diagnostic
+          const error = new GeometryCleanupError(
+            detail.level,
+            detail.divisionId,
+            new Error(result.message),
+            detail.contextLabel,
+          )
+          error.coordinates.splice(0, error.coordinates.length, ...detail.coordinates)
+          error.divisionName = detail.divisionName
+          error.coordinateRole = detail.coordinateRole
+          reject(error)
+        } else reject(new Error(result.message))
       }
     }
     if (signal.aborted) abort()

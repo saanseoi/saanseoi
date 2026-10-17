@@ -1,4 +1,4 @@
-import { alignBoundary } from './boundaryAlignment'
+import { alignBoundary, BoundaryAlignmentError } from './boundaryAlignment'
 import { matchRoadChain } from './roadChainMatch'
 import { adoptCurrentGeometryBaseline } from './geometryBaseline'
 import GeometryFactory from 'jsts/org/locationtech/jts/geom/GeometryFactory.js'
@@ -48,6 +48,8 @@ function errorText(error: unknown) {
 }
 
 function errorCoordinates(error: unknown): Position[] {
+  if (error instanceof BoundaryAlignmentError && error.coordinate)
+    return [error.coordinate]
   const coordinates: Position[] = [],
     seen = new Set<string>()
   const numeric = '[+-]?(?:\\d+(?:\\.\\d*)?|\\.\\d+)(?:[eE][+-]?\\d+)?'
@@ -309,6 +311,7 @@ export function cleanEstimatedAreaGeometriesForLevel(
     )
     valid(intended)
     if (snapCoast && features.length === 1) {
+      category = 'coastline snap'
       intended = reader.read(
         alignBoundary(polygonal(landShape), polygonal(intended), 'inside').geometry,
       )

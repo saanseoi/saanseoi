@@ -1,3 +1,4 @@
+import { BoundaryAlignmentError } from '../src/tools/division-areas/boundaryAlignment'
 import { describe, expect, it } from 'vitest'
 import GeometryFactory from 'jsts/org/locationtech/jts/geom/GeometryFactory.js'
 import GeoJSONReader from 'jsts/org/locationtech/jts/io/GeoJSONReader.js'
@@ -53,6 +54,21 @@ const estimatedArea = (id: string, geometry: Polygon) => ({
 const positions = (geometry: Polygon): Position[] => geometry.coordinates.flat(1)
 
 describe('town estimated geometry cleanup', () => {
+  it('retains the precise self-intersection location from coastline alignment', () => {
+    const coordinate = [114.1836134, 22.4418849]
+    const error = new GeometryCleanupError(
+      4,
+      'hood-id',
+      new BoundaryAlignmentError(
+        'Snapping the target to the reference is invalid: Self-intersection at 114.1836134, 22.4418849.',
+        coordinate,
+      ),
+      'coastline snap',
+    )
+    expect(error.coordinates).toEqual([coordinate])
+    expect(error.category).toBe('coastline snap')
+  })
+
   it('extracts failing nodes from a JTS non-noded intersection', () => {
     const error = new GeometryCleanupError(
       4,

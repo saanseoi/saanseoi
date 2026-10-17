@@ -1,4 +1,7 @@
-import { cleanEstimatedAreaGeometriesForLevel } from './geometryTools'
+import {
+  cleanEstimatedAreaGeometriesForLevel,
+  GeometryCleanupError,
+} from './geometryTools'
 import type {
   ReviewInventory,
   SaanseoiEstimatedAreas,
@@ -35,6 +38,17 @@ self.onmessage = async (
   } catch (error) {
     self.postMessage({
       type: 'error',
+      diagnostic:
+        error instanceof GeometryCleanupError
+          ? {
+              level: error.level,
+              divisionId: error.divisionId,
+              coordinates: error.coordinates,
+              contextLabel: error.contextLabel,
+              divisionName: error.divisionName,
+              coordinateRole: error.coordinateRole,
+            }
+          : undefined,
       message: error instanceof Error ? error.message : String(error),
     })
   }

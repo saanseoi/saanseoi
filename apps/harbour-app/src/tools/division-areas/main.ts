@@ -1,3 +1,4 @@
+import { readCheckboxSelection, writeCheckboxSelection } from './checkboxStorage'
 import { runCoastlineTask } from './coastlineTask'
 import {
   CITY_BOUNDARY_IDS,
@@ -1190,12 +1191,15 @@ alignmentButton.onclick = async () => {
     refreshCleanupControls()
   }
 }
-const cleanupSelection = new Set<string>()
+const cleanupSelectionKey = `${key}:selected-divisions`
+const cleanupSelection = readCheckboxSelection(cleanupSelectionKey)
+for (const id of cleanupSelection) if (!byId.has(id)) cleanupSelection.delete(id)
 const cleanupSelectionMode = $<HTMLInputElement>('cleanup-select-mode')
 cleanupSelectionMode.onchange = () => refreshList()
 $('cleanup-clear-selection').onclick = () => {
   if (cleanupBusy) return
   cleanupSelection.clear()
+  writeCheckboxSelection(cleanupSelectionKey, cleanupSelection)
   refreshList()
 }
 const handledCleanupEvents = new WeakSet<Event>()
@@ -1217,10 +1221,15 @@ function chooseDivision(id: string, fly = true, event?: Event) {
     }
     if (cleanupSelection.has(id)) cleanupSelection.delete(id)
     else cleanupSelection.add(id)
+    writeCheckboxSelection(cleanupSelectionKey, cleanupSelection)
   }
   select(id, fly)
 }
-const layerVisibility = createLayerControls($('level-toggles'), () => refreshList())
+const layerVisibility = createLayerControls(
+  $('level-toggles'),
+  () => refreshList(),
+  `${key}:visible-division-layers`,
+)
 const showPolygonDisplay = $<HTMLInputElement>('show-polygon-display')
 function layerKey(division: ReviewDivision) {
   return divisionLayerKey(
@@ -4389,11 +4398,13 @@ createCleanupTargets({
   add: ids => {
     if (mode || cleanupBusy) return
     for (const id of ids) cleanupSelection.add(id)
+    writeCheckboxSelection(cleanupSelectionKey, cleanupSelection)
     refreshList()
   },
   remove: id => {
     if (mode || cleanupBusy) return
     cleanupSelection.delete(id)
+    writeCheckboxSelection(cleanupSelectionKey, cleanupSelection)
     refreshList()
   },
 })
