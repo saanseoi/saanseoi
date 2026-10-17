@@ -7,13 +7,27 @@ import type {
   SaanseoiEstimatedAreas,
 } from '../../../../../libs/core/src/pipeline/services/divisions/geographicReview'
 
+let coastline:
+  | Promise<Parameters<typeof cleanEstimatedAreaGeometriesForLevel>[2]>
+  | undefined
+function loadCoastline() {
+  coastline ??= fetch('/__division-review/assets/coastline-land.geojson')
+    .then(response => {
+      if (!response.ok) throw Error('Coastline land data unavailable')
+      return response.json()
+    })
+    .catch(error => {
+      coastline = undefined
+      throw error
+    })
+  return coastline
+}
+
 self.onmessage = async (
   event: MessageEvent<{ areas: SaanseoiEstimatedAreas; inventory: ReviewInventory }>,
 ) => {
   try {
-    const response = await fetch('/__division-review/assets/coastline-land.geojson')
-    if (!response.ok) throw Error('Coastline land data unavailable')
-    const land = await response.json()
+    const land = await loadCoastline()
     const { areas, inventory } = event.data
     const features: SaanseoiEstimatedAreas['features'] = []
     for (const [index, feature] of areas.features.entries()) {

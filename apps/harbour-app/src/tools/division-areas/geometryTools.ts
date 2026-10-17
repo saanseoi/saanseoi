@@ -5,6 +5,7 @@ import GeometryFactory from 'jsts/org/locationtech/jts/geom/GeometryFactory.js'
 import ArrayList from 'jsts/java/util/ArrayList.js'
 import GeoJSONReader from 'jsts/org/locationtech/jts/io/GeoJSONReader.js'
 import GeoJSONWriter from 'jsts/org/locationtech/jts/io/GeoJSONWriter.js'
+import SnapIfNeededOverlayOp from 'jsts/org/locationtech/jts/operation/overlay/snap/SnapIfNeededOverlayOp.js'
 import OverlayOp from 'jsts/org/locationtech/jts/operation/overlay/OverlayOp.js'
 import UnaryUnionOp from 'jsts/org/locationtech/jts/operation/union/UnaryUnionOp.js'
 import Polygonizer from 'jsts/org/locationtech/jts/operation/polygonize/Polygonizer.js'
@@ -141,7 +142,8 @@ function union(items: Shape[]): Shape {
   })
   return UnaryUnionOp.union(list)
 }
-const overlay = (a: Shape, b: Shape, op: number) => OverlayOp.overlayOp(a, b, op)
+const overlay = (a: Shape, b: Shape, op: number) =>
+  SnapIfNeededOverlayOp.overlayOp(a, b, op)
 function polygonal(g: Shape): PolygonalGeometry {
   const parts: Polygon[] = []
   const visit = (part: Shape) => {
@@ -187,6 +189,21 @@ export function mergePolygonPart(
 }
 
 /** An explicit intended area is required to distinguish missing coverage from intentional holes. */
+const coastlineIndexes = new WeakMap<LandFeatureCollection, STRtree>()
+function coastlineIndex(land: LandFeatureCollection) {
+  let index = coastlineIndexes.get(land)
+  if (!index) {
+    index = new STRtree()
+    for (const feature of land.features) {
+      const shape = reader.read(normalise(feature.geometry))
+      valid(shape)
+      index.insert(shape.getEnvelopeInternal(), shape)
+    }
+    coastlineIndexes.set(land, index)
+  }
+  return index
+}
+
 export function cleanEstimatedAreaGeometriesForLevel(
   estimatedAreas: SaanseoiEstimatedAreas,
   inventory: ReviewInventory,
@@ -286,10 +303,11 @@ export function cleanEstimatedAreaGeometriesForLevel(
       ],
     })
     const pieces: Shape[] = []
-    for (const feature of land.features) {
-      const shape = reader.read(normalise(feature.geometry))
-      if (snapCoast && !bounds.intersects(shape.getEnvelopeInternal())) continue
-      valid(shape)
+    const landShapes: Shape[] = snapCoast
+      ? coastlineIndex(land).query(bounds).toArray()
+      : land.features.map(feature => reader.read(normalise(feature.geometry)))
+    for (const shape of landShapes) {
+      if (!snapCoast) valid(shape)
       const piece = snapCoast ? overlay(shape, window, OverlayOp.INTERSECTION) : shape
       if (!piece.isEmpty() && piece.getArea() > 0) pieces.push(piece)
     }
@@ -406,7 +424,7 @@ export function cleanEstimatedAreaGeometriesForLevel(
       for (let i = 0; i < shapes.length; i++) {
         active = features[i]!
         const water = overlay(shapes[i], landShape, OverlayOp.DIFFERENCE)
-        if (!water.isEmpty())
+        if (!water.isEmpty() && !isBoundaryRoundoff(water, shapes[i], landShape))
           fail(
             diagnosticLevel,
             active.properties.divisionId,

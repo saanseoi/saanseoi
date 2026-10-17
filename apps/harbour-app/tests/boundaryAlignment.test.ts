@@ -98,3 +98,24 @@ it('preserves an interior hole during containment alignment', () => {
   const result = alignBoundary(parent, child, 'inside')
   expect((result.geometry as Polygon).coordinates).toHaveLength(2)
 })
+
+it('does not disturb a detailed coastline that is already aligned', () => {
+  const coastline: Polygon = {
+    type: 'Polygon',
+    coordinates: [
+      [
+        [114, 22],
+        [114.01, 22],
+        [114.01, 22.005],
+        [114.00999, 22.00501],
+        [114.01, 22.00502],
+        [114.01, 22.01],
+        [114, 22.01],
+        [114, 22],
+      ],
+    ],
+  }
+  const result = alignBoundary(coastline, structuredClone(coastline), 'inside')
+  // The narrow notch must survive rather than being snapped shut or removed.
+  expect(JSON.stringify(result.geometry)).toContain('[114.00999,22.00501]')
+})

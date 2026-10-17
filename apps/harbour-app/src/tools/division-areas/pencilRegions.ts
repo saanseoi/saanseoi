@@ -290,32 +290,59 @@ export function expandPencilStroke(original: AreaGeometry, stroke: Position[]) {
   }
 }
 
-/** Interior overlaps only: shared edges and cross-level containment are expected. */
-export function sameLevelOverlapWarnings(
-  boundaries: Array<PencilBoundary & { level: number | null }>,
-) {
-  const warnings = new Map<string, string[]>()
-  const shapes = boundaries.map(b => reader.read(b.geometry))
-  for (let i = 0; i < boundaries.length; i++)
-    for (let j = 0; j < i; j++) {
-      const a = boundaries[i]!,
-        b = boundaries[j]!
-      if (
-        a.level === null ||
-        a.level !== b.level ||
-        !shapes[i].getEnvelopeInternal().intersects(shapes[j].getEnvelopeInternal())
+/** Reuse topology for unchanged geometry; only pairs touching an edit need overlays. */
+export function createSameLevelOverlapWarnings() {
+  let shapes = new Map<string, { signature: string; shape: any; revision: number }>()
+  let pairs = new Map<string, boolean>()
+  let revision = 0
+  return (boundaries: Array<PencilBoundary & { level: number | null }>) => {
+    const next = new Map<string, { signature: string; shape: any; revision: number }>()
+    for (const boundary of boundaries) {
+      const signature = JSON.stringify(boundary.geometry)
+      const old = shapes.get(boundary.id)
+      next.set(
+        boundary.id,
+        old?.signature === signature
+          ? old
+          : {
+              signature,
+              shape: reader.read(boundary.geometry),
+              revision: ++revision,
+            },
       )
-        continue
-      if (
-        SnapIfNeededOverlayOp.overlayOp(
-          shapes[i],
-          shapes[j],
-          OverlayOp.INTERSECTION,
-        ).getArea() <= 1e-16
-      )
-        continue
-      warnings.set(a.id, [...(warnings.get(a.id) ?? []), b.name])
-      warnings.set(b.id, [...(warnings.get(b.id) ?? []), a.name])
     }
-  return warnings
+    const warnings = new Map<string, string[]>()
+    const nextPairs = new Map<string, boolean>()
+    for (let i = 0; i < boundaries.length; i++)
+      for (let j = 0; j < i; j++) {
+        const a = boundaries[i]!,
+          b = boundaries[j]!
+        if (a.level === null || a.level !== b.level) continue
+        const left = next.get(a.id)!,
+          right = next.get(b.id)!
+        if (
+          !left.shape
+            .getEnvelopeInternal()
+            .intersects(right.shape.getEnvelopeInternal())
+        )
+          continue
+        const key = [left.revision, right.revision].sort((a, b) => a - b).join(':')
+        const overlap =
+          pairs.get(key) ??
+          SnapIfNeededOverlayOp.overlayOp(
+            left.shape,
+            right.shape,
+            OverlayOp.INTERSECTION,
+          ).getArea() > 1e-16
+        nextPairs.set(key, overlap)
+        if (!overlap) continue
+        warnings.set(a.id, [...(warnings.get(a.id) ?? []), b.name])
+        warnings.set(b.id, [...(warnings.get(b.id) ?? []), a.name])
+      }
+    shapes = next
+    pairs = nextPairs
+    return warnings
+  }
 }
+
+export const sameLevelOverlapWarnings = createSameLevelOverlapWarnings()

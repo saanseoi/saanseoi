@@ -1178,7 +1178,6 @@ alignmentButton.onclick = async () => {
         ),
       ],
     }
-    validateSaanseoiEstimatedAreas(next, inventory)
     await archiveGeometryBackup(key, previous)
     await commitGeometryOperation(next, previous)
     say(
@@ -2718,8 +2717,8 @@ async function persist(
     cleanupBackup = null
     localStorage.removeItem(`${key}:before-topology-cleanup`)
   }
-  refreshList()
   if (selected) select(selected, false)
+  else refreshList()
 }
 async function cleanSelectedAreas(operation: 'boundaries' | 'coast') {
   if (mode || cleanupBusy || !cleanupSelection.size) return
@@ -2784,7 +2783,6 @@ async function cleanSelectedAreas(operation: 'boundaries' | 'coast') {
         cancel.remove()
       }
     }
-    validateSaanseoiEstimatedAreas(next, inventory)
     await archiveGeometryBackup(key, previous)
     await commitGeometryOperation(next, previous)
     say(
@@ -2886,8 +2884,8 @@ async function commitGeometryOperation(
   source('estimatedAreas')?.setData(estimatedAreas)
   clearSimplificationPreview()
   refreshPolygonDisplaySources()
-  refreshList()
   if (selected) select(selected, false)
+  else refreshList()
   refreshCleanupControls()
 }
 async function simplifyLevelEstimatedAreas() {

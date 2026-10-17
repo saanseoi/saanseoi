@@ -727,6 +727,19 @@ so crop edges cannot attract drawing vertices. Holes and land coverage are retai
 Progress is reported per division; cancellation, failure or a two-minute timeout saves
 no partial results. The complete result is validated before saving with Undo.
 
+### Editor geometry performance
+
+The editor reuses label positions and same-level overlap results for unchanged
+geometries. Geometry-content keys retain this reuse across immutable edits and Undo;
+changed geometries invalidate their labels and affected overlap pairs. Coastline work
+runs in a reusable worker with a spatial index of the loaded land polygons. Cancellation
+terminates that worker and leaves the saved drawings unchanged.
+
+Coastline alignment preserves vertices and segments already on the reference boundary.
+The snap radius is at most 5 m and is reduced when dense coastal detail would produce
+invalid topology. Water and coverage checks tolerate only machine-precision boundary
+round-off; they do not permit measurable extensions into water or simplify coastlines.
+
 ### Spatial hierarchy tolerances
 
 Hierarchy intersections and uncovered remainders below 10 m² are suppressed only when

@@ -4,6 +4,8 @@ import type {
   SaanseoiEstimatedAreas,
 } from '../../../../../libs/core/src/pipeline/services/divisions/geographicReview'
 
+let idleWorker: Worker | null = null
+
 /** Termination interrupts synchronous topology work without touching saved drawings. */
 export function runCoastlineTask(
   areas: SaanseoiEstimatedAreas,
@@ -12,11 +14,17 @@ export function runCoastlineTask(
   progress: (completed: number, total: number) => void,
 ): Promise<SaanseoiEstimatedAreas['features']> {
   return new Promise((resolve, reject) => {
-    const worker = new Worker(new URL('./coastlineWorker.ts', import.meta.url), {
-      type: 'module',
-    })
-    const finish = () => {
-      worker.terminate()
+    const worker =
+      idleWorker ??
+      new Worker(new URL('./coastlineWorker.ts', import.meta.url), {
+        type: 'module',
+      })
+    idleWorker = null
+    const finish = (reuse = false) => {
+      worker.onmessage = null
+      worker.onerror = null
+      if (reuse) idleWorker = worker
+      else worker.terminate()
       signal.removeEventListener('abort', abort)
       clearTimeout(timeout)
     }
@@ -43,7 +51,7 @@ export function runCoastlineTask(
       const result = event.data
       if (result.type === 'progress') progress(result.completed, result.total)
       else {
-        finish()
+        finish(result.type === 'complete')
         if (result.type === 'complete') resolve(result.features)
         else if (result.diagnostic) {
           const detail = result.diagnostic

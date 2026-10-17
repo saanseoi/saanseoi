@@ -42,3 +42,32 @@ it('restores worker diagnostics so the map can highlight the failing division an
   })
   expect(terminate).toHaveBeenCalledOnce()
 })
+
+it('reuses a successful worker and terminates it when the next task is cancelled', async () => {
+  const terminate = vi.fn()
+  let creates = 0,
+    calls = 0
+  class WorkerStub {
+    onmessage?: ((event: { data: unknown }) => void) | null
+    onerror?: unknown
+    constructor() {
+      creates++
+    }
+    terminate = terminate
+    postMessage() {
+      if (++calls === 1) this.onmessage?.({ data: { type: 'complete', features: [] } })
+    }
+  }
+  vi.stubGlobal('Worker', WorkerStub)
+  const args = [
+    {} as Parameters<typeof runCoastlineTask>[0],
+    {} as Parameters<typeof runCoastlineTask>[1],
+  ] as const
+  await runCoastlineTask(...args, new AbortController().signal, vi.fn())
+  const controller = new AbortController()
+  const pending = runCoastlineTask(...args, controller.signal, vi.fn())
+  controller.abort()
+  await expect(pending).rejects.toThrow('cancelled')
+  expect(creates).toBe(1)
+  expect(terminate).toHaveBeenCalledOnce()
+})

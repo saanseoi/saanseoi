@@ -52,22 +52,37 @@ export function largestPolygonLabelPoint(geometry: Polygon | MultiPolygon): Posi
   return polygonLabelPoint(geometry)
 }
 
-/** Converts each displayed area into exactly one label anchor. */
-export function polygonDisplayLabelData<Properties extends GeoJsonProperties>(
-  data: FeatureCollection<Polygon | MultiPolygon, Properties>,
-): FeatureCollection<Point, Properties> {
-  return {
-    type: 'FeatureCollection',
-    features: data.features.map(
-      (feature): Feature<Point, Properties> => ({
+/** Cache by geometry content so immutable edits and Undo can reuse unchanged labels. */
+export function createPolygonDisplayLabelData(
+  locate: typeof largestPolygonLabelPoint = largestPolygonLabelPoint,
+) {
+  let cache = new Map<string, { signature: string; coordinates: Position }>()
+  return <Properties extends GeoJsonProperties>(
+    data: FeatureCollection<Polygon | MultiPolygon, Properties>,
+  ): FeatureCollection<Point, Properties> => {
+    const next = new Map<string, { signature: string; coordinates: Position }>()
+    const features = data.features.map((feature, index): Feature<Point, Properties> => {
+      const key = String(feature.id ?? feature.properties?.divisionId ?? index)
+      const signature = JSON.stringify(feature.geometry)
+      const previous = cache.get(key)
+      const entry =
+        previous?.signature === signature
+          ? previous
+          : {
+              signature,
+              coordinates: locate(feature.geometry),
+            }
+      next.set(key, entry)
+      return {
         type: 'Feature',
         id: feature.id,
         properties: feature.properties,
-        geometry: {
-          type: 'Point',
-          coordinates: largestPolygonLabelPoint(feature.geometry),
-        },
-      }),
-    ),
+        geometry: { type: 'Point', coordinates: [...entry.coordinates] },
+      }
+    })
+    cache = next
+    return { type: 'FeatureCollection', features }
   }
 }
+
+export const polygonDisplayLabelData = createPolygonDisplayLabelData()

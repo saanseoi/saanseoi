@@ -2,7 +2,7 @@ import type { Polygon, MultiPolygon, Position } from 'geojson'
 import GeoJSONReader from 'jsts/org/locationtech/jts/io/GeoJSONReader.js'
 import GeoJSONWriter from 'jsts/org/locationtech/jts/io/GeoJSONWriter.js'
 import GeometryFactory from 'jsts/org/locationtech/jts/geom/GeometryFactory.js'
-import GeometrySnapper from 'jsts/org/locationtech/jts/operation/overlay/snap/GeometrySnapper.js'
+import { boundarySegmentIndex, snapBoundaryVertices } from './indexedBoundarySnap'
 import OverlayOp from 'jsts/org/locationtech/jts/operation/overlay/OverlayOp.js'
 import SnapIfNeededOverlayOp from 'jsts/org/locationtech/jts/operation/overlay/snap/SnapIfNeededOverlayOp.js'
 import IsValidOp from 'jsts/org/locationtech/jts/operation/valid/IsValidOp.js'
@@ -55,33 +55,39 @@ export function alignBoundary(
   // Conservative angular tolerance: neither axis can move more than the metre limit.
   const tolerance = metres / 111320
   const projected: Position[] = []
+  const nearbySegments = boundarySegmentIndex(reference)
   for (const p of rings(target).flat()) {
     let best: Position | null = null,
       distance = tolerance
-    for (const ring of rings(reference))
-      for (let i = 1; i < ring.length; i++) {
-        const a = ring[i - 1]!,
-          b = ring[i]!,
-          dx = b[0]! - a[0]!,
-          dy = b[1]! - a[1]!,
-          length = dx * dx + dy * dy
-        if (!length) continue
-        const t = Math.max(
-          0,
-          Math.min(1, ((p[0]! - a[0]!) * dx + (p[1]! - a[1]!) * dy) / length),
-        )
-        const q = [a[0]! + t * dx, a[1]! + t * dy]
-        const d = Math.hypot(p[0]! - q[0]!, p[1]! - q[1]!)
-        if (d <= distance) {
-          best = q
-          distance = d
-        }
+    for (const { a, b } of nearbySegments(p, tolerance)) {
+      const dx = b[0]! - a[0]!,
+        dy = b[1]! - a[1]!,
+        length = dx * dx + dy * dy
+      if (!length) continue
+      const t = Math.max(
+        0,
+        Math.min(1, ((p[0]! - a[0]!) * dx + (p[1]! - a[1]!) * dy) / length),
+      )
+      const q = [a[0]! + t * dx, a[1]! + t * dy]
+      const d = Math.hypot(p[0]! - q[0]!, p[1]! - q[1]!)
+      if (d <= distance) {
+        best = q
+        distance = d
       }
+    }
     if (best) projected.push(best)
   }
   const nodedReference = insertBoundaryNodes(reference, projected)
   const anchor = reader.read(nodedReference)
-  const snapped = new GeometrySnapper(original).snapTo(anchor, tolerance)
+  let snapped = reader.read(
+    snapBoundaryVertices(target, nodedReference, tolerance, reference),
+  )
+  // Dense bays and narrow channels may not admit the full 5 m snap radius.
+  // Reduce displacement rather than repairing topology by deleting polygon parts.
+  for (let attempt = 1; !IsValidOp.isValid(snapped) && attempt <= 6; attempt++)
+    snapped = reader.read(
+      snapBoundaryVertices(target, nodedReference, tolerance / 5 ** attempt, reference),
+    )
   valid(snapped, 'Snapping the target to the reference')
   const overlay = (op: number) => SnapIfNeededOverlayOp.overlayOp(snapped, anchor, op)
   // Perfect inclusion or a non-overlapping neighbour, chosen explicitly by the user.
