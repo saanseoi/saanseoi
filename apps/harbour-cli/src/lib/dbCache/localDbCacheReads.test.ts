@@ -175,6 +175,18 @@ INSERT INTO snapshots (id, snapshotLineageId, status, revision, cohortKey) VALUE
     expect(await completed()).toEqual(['landsd', 'landsd-older'])
     current.exec("UPDATE divisionPublicationState SET status = 'current'")
     expect(await completed()).toEqual(['landsd', 'landsd-older'])
+    current
+      .query('UPDATE divisionPublicationState SET scopeId = ?')
+      .run(JSON.stringify(['lineage', 'snapshot', 'snapshot']))
+    expect(await completed()).toEqual(['landsd', 'landsd-older'])
+    current.exec('UPDATE divisionPublicationState SET preparedAt = NULL')
+    expect(await completed()).toEqual(['landsd-older'])
+    current.exec("UPDATE divisionPublicationState SET preparedAt = 'complete'")
+    current
+      .query('UPDATE divisionPublicationState SET scopeId = ?')
+      .run(JSON.stringify(['lineage', 'snapshot', 'another-snapshot']))
+    expect(await completed()).toEqual(['landsd-older'])
+    current.exec("UPDATE divisionPublicationState SET scopeId = 'lineage'")
     for (const mutation of [
       "UPDATE divisionPublicationState SET publicationToken = ''",
       "UPDATE divisionPublicationState SET publicationToken = 'delivery', scopeId = 'wrong-lineage'",

@@ -1,3 +1,7 @@
+import { buildDeterministicSnapshotId } from '@repo/core/db/metaRegistry'
+import reviewPins from '../../../../../../fixtures/meta/datasetInputs/saanseoi-division-review.json'
+import releasePins from '../../../../../../fixtures/meta/datasetInputs/saanseoi-division-release-inputs.json'
+import hierarchyPins from '../../../../../../fixtures/meta/datasetInputs/native-division-administrative-hierarchy.json'
 import { releaseFixtureSchemaSql } from '../../../../../../libs/core/src/testing/releaseFixtures'
 import { expect, test } from 'bun:test'
 import { Database } from 'bun:sqlite'
@@ -66,5 +70,16 @@ INSERT INTO resourceReleases (id, sourceReleaseId, code, resourceType, status) V
     ).toEqual([])
   } finally {
     sqlite.close()
+  }
+})
+
+test('Overture source pins resolve to fresh revision-zero snapshot identities', () => {
+  for (const fixture of [reviewPins, releasePins, hierarchyPins]) {
+    for (const source of fixture.sourceReleases) {
+      if (!source.snapshotId) continue
+      expect(source.snapshotId).toBe(
+        buildDeterministicSnapshotId(source.releaseCode.replace(/^dr-/, 'ss-')),
+      )
+    }
   }
 })

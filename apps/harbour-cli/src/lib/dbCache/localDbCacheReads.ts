@@ -2,7 +2,10 @@ import { existsSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { Database as SQLiteDatabase } from 'bun:sqlite'
 import { eq, metaSchema, or, type MetaDatabase } from '@repo/db'
-import { publicationScopeId } from '@repo/core/pipeline/services/publication/scope'
+import {
+  publicationScopeId,
+  retainedDivisionScopeId,
+} from '@repo/core/pipeline/services/publication/scope'
 import type { UploadTarget } from '../cli/options.ts'
 import {
   mapLocalTargetPaths,
@@ -247,7 +250,7 @@ export async function findIncompletePublishedReleases(
         const receipt = currentSqlite
           .query(
             `SELECT 1 FROM ${quoteSqlIdentifier(receiptTable)}
-             WHERE snapshotId = ? AND scopeId = ?
+             WHERE snapshotId = ? AND scopeId IN (?, ?)
                AND preparedAt IS NOT NULL AND publicationToken <> ''
                AND status IN ('publishing', 'current')`,
           )
@@ -258,6 +261,13 @@ export async function findIncompletePublishedReleases(
               snapshot.snapshotLineageId,
               snapshot.cohortKey,
             ),
+            release.resourceType === 'division'
+              ? retainedDivisionScopeId(snapshot.snapshotLineageId, snapshot.snapshotId)
+              : publicationScopeId(
+                  release.resourceType,
+                  snapshot.snapshotLineageId,
+                  snapshot.cohortKey,
+                ),
           )
         if (
           !receipt &&
