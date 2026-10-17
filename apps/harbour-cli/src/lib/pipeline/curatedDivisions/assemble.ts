@@ -1,3 +1,4 @@
+import { CONTAINMENT_NUMERICAL_TOLERANCE_DEGREES } from '@repo/core/pipeline/services/divisions/containmentTolerance'
 import { applyDivisionClassificationPatch } from '@repo/core/pipeline/services/divisions/divisionClassificationPatch'
 import {
   canonicalDivisionPoint,
@@ -590,13 +591,23 @@ function assembleCuratedDivisionsInternal(input: {
     division.geometry =
       typeof division.geometry === 'string' ? JSON.stringify(point) : point
   }
-  resolveCuratedHierarchies(
+  const hierarchySpatialAudit = resolveCuratedHierarchies(
     [...divisions.values()],
     outputAreas,
     names,
     new Map(groupGeometry.map(group => [group.divisionId, new Set(group.memberIds)])),
   )
-  const annotateContainment = createFullContainmentAnnotator(containmentAreas)
+  const annotateContainment = createFullContainmentAnnotator(
+    containmentAreas,
+    (divisionId, ancestorId) => {
+      hierarchySpatialAudit.push({
+        divisionId,
+        ancestorIds: [ancestorId],
+        reason: 'numerical-containment',
+        toleranceDegrees: CONTAINMENT_NUMERICAL_TOLERANCE_DEGREES,
+      })
+    },
+  )
   for (const division of divisions.values()) {
     const hierarchy =
       typeof division.hierarchies === 'string'
@@ -615,6 +626,7 @@ function assembleCuratedDivisionsInternal(input: {
     islandGroups: groupGeometry.map(({ geometry: _, ...group }) => group),
     aliases: Object.fromEntries(aliases),
     nameAliasAudit,
+    hierarchySpatialAudit,
     pointGuards: pointGuard.snapshot(),
   }
 }

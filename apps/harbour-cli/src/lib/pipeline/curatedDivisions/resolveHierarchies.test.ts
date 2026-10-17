@@ -274,3 +274,90 @@ test('point-only children do not acquire a remainder branch', () => {
     ['district', 'macro'],
   ])
 })
+
+const hkBox = (w: number, e: number, north = 22.001) => ({
+  type: 'Polygon',
+  coordinates: [
+    [
+      [w, 22],
+      [e, 22],
+      [e, north],
+      [w, north],
+      [w, 22],
+    ],
+  ],
+})
+
+test('tiny incidental overlap is audited, while a meaningful overlap remains a parent', () => {
+  const divisions: any[] = [
+    row('sliver', 'hood', 'macrohood', 4),
+    row('real', 'hood', 'macrohood', 4),
+    row('child', 'hood', 'neighbourhood', 5),
+  ]
+  const audit = resolveCuratedHierarchies(
+    divisions,
+    [
+      { divisionId: 'child', geometry: hkBox(114, 114.001) },
+      { divisionId: 'sliver', geometry: hkBox(114.001 - 0.0000004, 114.002) },
+      { divisionId: 'real', geometry: hkBox(114.001 - 0.000002, 114.002) },
+    ],
+    [],
+  )
+  expect(divisions[2].hierarchies.full.flat().map((e: any) => e.id)).toEqual(['real'])
+  expect(audit).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({
+        divisionId: 'child',
+        ancestorIds: ['sliver'],
+        reason: 'small-overlap',
+      }),
+    ]),
+  )
+  expect(
+    audit.find(e => e.divisionId === 'child' && e.reason === 'small-overlap')!
+      .areaSquareMetres,
+  ).toBeLessThan(10)
+})
+
+test('a tiny island wholly inside a broad town retains its island relationship', () => {
+  const divisions: any[] = [
+    row('islet', 'landform', 'islet', null),
+    row('town', 'locality', 'town', 3),
+  ]
+  resolveCuratedHierarchies(
+    divisions,
+    [
+      { divisionId: 'islet', geometry: hkBox(114.0001, 114.00012, 22.00002) },
+      { divisionId: 'town', geometry: hkBox(114, 114.001) },
+    ],
+    [],
+  )
+  expect(divisions[1].hierarchies.landform.flat().map((e: any) => e.id)).toEqual([
+    'islet',
+  ])
+})
+
+test('a small remainder is audited instead of creating a parentless branch', () => {
+  const divisions: any[] = [
+    row('parent', 'hood', 'macrohood', 4),
+    row('child', 'hood', 'neighbourhood', 5),
+  ]
+  const audit = resolveCuratedHierarchies(
+    divisions,
+    [
+      { divisionId: 'parent', geometry: hkBox(114, 114.001) },
+      { divisionId: 'child', geometry: hkBox(114, 114.0010004) },
+    ],
+    [],
+  )
+  expect(divisions[1].hierarchies.full.map((p: any[]) => p.map(e => e.id))).toEqual([
+    ['parent'],
+  ])
+  expect(audit).toEqual([
+    expect.objectContaining({
+      divisionId: 'child',
+      reason: 'small-remainder',
+      ancestorIds: ['parent'],
+    }),
+  ])
+})

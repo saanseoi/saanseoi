@@ -2287,3 +2287,10 @@ land clipped to its bounding box with a 10 m angular margin, beyond the 5 m snap
 so crop edges cannot attract drawing vertices. Holes and land coverage are retained.
 Progress is reported per division; cancellation, failure or a two-minute timeout saves
 no partial results. The complete result is validated before saving with Undo.
+
+Curated spatial hierarchy generation suppresses intersections and uncovered remainders
+only when both below 10 m² and below 1% of the smaller relevant area. Full containment
+allows numerical boundary differences within `1e-9` degrees without changing geometry.
+Preparation retains each suppression and numerical containment acceptance in the
+`hierarchy-spatial-decisions` audit. See the
+[spatial hierarchy tolerances](../sources/saanseoi/divisionArea.md#spatial-hierarchy-tolerances).

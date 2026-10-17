@@ -19,6 +19,7 @@ export type PreparationEvidence = {
   boundaryPatches?: import('./boundaryPatchEvidence').BoundaryPatchEvidence[]
   geometryEvidence: unknown
   updateDecisions: unknown[]
+  hierarchySpatialAudit?: import('./hierarchySpatialAudit').HierarchySpatialAudit[]
   nameAliasAudit?: import('./nameAliasAudit').AliasRuleAudit[]
 }
 
@@ -104,6 +105,15 @@ export async function retainCuratedPreparationAudit(
             recordsAffected: evidence.outputs.divisions ?? 0,
             decisions: { prepared: evidence.outputs.divisions ?? 0 },
             fixtures: [
+              ...(evidence.hierarchySpatialAudit
+                ? [
+                    {
+                      type: 'hierarchy-spatial-decisions',
+                      document: { entries: evidence.hierarchySpatialAudit },
+                      arrayKey: 'entries',
+                    },
+                  ]
+                : []),
               ...(evidence.boundaryPatches
                 ? [
                     {

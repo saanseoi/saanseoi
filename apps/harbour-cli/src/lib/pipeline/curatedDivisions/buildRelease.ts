@@ -439,6 +439,7 @@ export async function buildCuratedDivisionRelease(
     geometryEvidence,
     updateDecisions: review.events,
     nameAliasAudit: data.nameAliasAudit,
+    hierarchySpatialAudit: data.hierarchySpatialAudit,
   }
   const rules = finishPreparationRules(preparation, preparationCounts, baseline)
   rules.guards.push(...data.pointGuards)

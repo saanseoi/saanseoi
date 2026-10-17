@@ -679,3 +679,18 @@ land clipped to its bounding box with a 10 m angular margin, beyond the 5 m snap
 so crop edges cannot attract drawing vertices. Holes and land coverage are retained.
 Progress is reported per division; cancellation, failure or a two-minute timeout saves
 no partial results. The complete result is validated before saving with Undo.
+
+### Spatial hierarchy tolerances
+
+Hierarchy intersections and uncovered remainders below 10 m² are suppressed only when
+also below 1% of the smaller relevant area. Intersections compare the child and parent;
+remainders compare their branch area. A tiny island fully covered by a town therefore
+retains its relationship. Cities, towns and influence zones need not be contained by one
+island. Distinct supported island branches remain independent.
+
+Whole-area containment permits numerical boundary differences within `1e-9` degrees
+(approximately 0.1 mm in Hong Kong). This does not alter stored coordinates or excuse
+metre-scale drawing errors. The preparation audit retains `hierarchy-spatial-decisions`
+with division and ancestor IDs, suppressed areas and fractions, or the numerical
+containment tolerance. These entries support review for every prepared edition rather
+than claiming an issue is new without comparing previous evidence.

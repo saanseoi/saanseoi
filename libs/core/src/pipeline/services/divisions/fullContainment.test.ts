@@ -115,3 +115,26 @@ test('missing, empty and invalid geometry produce unknown and clear stale eviden
   expect(result.full[0]![0]!.containment_geometry).toBeUndefined()
   expect(hierarchy.full[0]![0]!.full_containment).toBe(true)
 })
+
+test('numerical coincidence is tolerated without accepting real protrusions or moving coordinates', () => {
+  const parent = box(114, 22, 114.001, 22.001)
+  const child = box(114, 22, 114.001 + 1e-10, 22.001)
+  const before = JSON.stringify(child)
+  const tolerated: string[] = []
+  const annotate = createFullContainmentAnnotator(
+    new Map([
+      ['child', [child]],
+      ['parent', [parent]],
+    ]),
+    (id, ancestor) => tolerated.push(`${id}/${ancestor}`),
+  )
+  const result = annotate('child', {
+    full: [[{ id: 'parent', class: 'district', name: null }]],
+  })
+  expect(result.full[0]![0]!.full_containment).toBe(true)
+  expect(tolerated).toEqual(['child/parent'])
+  expect(JSON.stringify(child)).toBe(before)
+  expect(
+    relation([box(114, 22, 114.001 + 1e-6, 22.001)], [parent]).full_containment,
+  ).toBe(false)
+})

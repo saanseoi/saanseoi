@@ -1,7 +1,7 @@
 import GeoJSONReader from 'jsts/org/locationtech/jts/io/GeoJSONReader.js'
 import GeometryFactory from 'jsts/org/locationtech/jts/geom/GeometryFactory.js'
 import IsValidOp from 'jsts/org/locationtech/jts/operation/valid/IsValidOp.js'
-import RelateOp from 'jsts/org/locationtech/jts/operation/relate/RelateOp.js'
+import { createNumericalContainmentCheck } from './containmentTolerance'
 import UnaryUnionOp from 'jsts/org/locationtech/jts/operation/union/UnaryUnionOp.js'
 import type {
   DivisionHierarchies,
@@ -10,7 +10,11 @@ import type {
 import { containmentGeometryHash, type ContainmentArea } from './containmentGeometry'
 
 /** Offline only: validate whole polygons, including holes, concavities and all parts. */
-export function createFullContainmentAnnotator(areas: Map<string, ContainmentArea[]>) {
+export function createFullContainmentAnnotator(
+  areas: Map<string, ContainmentArea[]>,
+  onTolerated?: (divisionId: string, ancestorId: string) => void,
+) {
+  const coversWithNumericalTolerance = createNumericalContainmentCheck()
   const reader = new GeoJSONReader(new GeometryFactory())
   const prepared = new Map<string, { geometry: any; hash: string } | null>()
   const assertions = new Map<
@@ -59,7 +63,11 @@ export function createFullContainmentAnnotator(areas: Map<string, ContainmentAre
             if (child && parent && divisionId !== ancestor.id) {
               try {
                 assertion = {
-                  full_containment: RelateOp.covers(parent.geometry, child.geometry),
+                  full_containment: coversWithNumericalTolerance(
+                    parent.geometry,
+                    child.geometry,
+                    () => onTolerated?.(divisionId, ancestor.id),
+                  ),
                   containment_geometry: { division: child.hash, ancestor: parent.hash },
                 }
               } catch {

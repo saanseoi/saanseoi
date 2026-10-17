@@ -1,3 +1,10 @@
+import {
+  hierarchyAreaSquareMetres,
+  MIN_HIERARCHY_OVERLAP_SQUARE_METRES,
+  MIN_HIERARCHY_OVERLAP_FRACTION,
+  isNegligibleHierarchyArea,
+  type HierarchySpatialAudit,
+} from './hierarchySpatialAudit'
 import { belongsInFullHierarchy } from '@repo/core/pipeline/services/divisions/divisionHierarchies.ts'
 import { buildDisplayName, type DisplayNameLocales } from '@repo/core/displayName'
 import GeoJSONReader from 'jsts/org/locationtech/jts/io/GeoJSONReader.js'
@@ -21,6 +28,13 @@ export function resolveCuratedHierarchies(
   names: Row[],
   groupMembership: ReadonlyMap<string, ReadonlySet<string>> = new Map(),
 ) {
+  const audit: HierarchySpatialAudit[] = []
+  const measuredAreas = new WeakMap<object, number>()
+  const measuredArea = (geometry: any) => {
+    if (!measuredAreas.has(geometry))
+      measuredAreas.set(geometry, hierarchyAreaSquareMetres(geometry))
+    return measuredAreas.get(geometry)!
+  }
   const reader = new GeoJSONReader(new GeometryFactory())
   const byId = new Map(divisions.map(row => [row.id, row]))
   const parts = new Map<string, any[]>()
@@ -77,7 +91,7 @@ export function resolveCuratedHierarchies(
     if (point) return RelateOp.covers(b, a) ? a : null
     const intersection = polygonal(OverlayOp.intersection(a, b))
     // Boundary contact alone is not geographic ancestry.
-    return intersection.getArea() > 1e-14 ? intersection : null
+    return intersection.getArea() > 0 ? intersection : null
   }
   for (const child of divisions) {
     if (child.class === 'country' || child.class === 'sar') continue
@@ -125,7 +139,27 @@ export function resolveCuratedHierarchies(
       branches = branches.flatMap(branch => {
         const matches = parents.flatMap(parent => {
           const geometry = clip(branch.geometry, shapes.get(parent.id), isPoint)
-          return geometry ? [{ path: [...branch.path, entry(parent)], geometry }] : []
+          if (!geometry) return []
+          if (!isPoint) {
+            const area = measuredArea(geometry)
+            const smallerArea = Math.min(
+              measuredArea(subject),
+              measuredArea(shapes.get(parent.id)),
+            )
+            if (isNegligibleHierarchyArea(area, smallerArea)) {
+              audit.push({
+                divisionId: child.id,
+                ancestorIds: [parent.id],
+                reason: 'small-overlap',
+                areaThresholdSquareMetres: MIN_HIERARCHY_OVERLAP_SQUARE_METRES,
+                fractionThreshold: MIN_HIERARCHY_OVERLAP_FRACTION,
+                areaSquareMetres: area,
+                fractionOfSmallerArea: area / smallerArea,
+              })
+              return []
+            }
+          }
+          return [{ path: [...branch.path, entry(parent)], geometry }]
         })
         if (!matches.length) return [branch]
         if (isPoint) return matches
@@ -133,14 +167,28 @@ export function resolveCuratedHierarchies(
         // into subsequent tiers with its existing ancestry, keeping paths spatially
         // correlated rather than treating an intersection as complete coverage.
         let remainder = branch.geometry
-        for (const parent of parents) {
+        const accepted = new Set(matches.map(match => match.path.at(-1)!.id))
+        for (const parent of parents.filter(parent => accepted.has(parent.id))) {
           const parentShape = shapes.get(parent.id)
           if (!overlaps(remainder, parentShape)) continue
           remainder = OverlayOp.difference(remainder, parentShape)
           if (remainder.isEmpty()) break
         }
-        if (remainder.getArea() > 1e-14)
-          matches.push({ path: branch.path, geometry: remainder })
+        if (remainder.getArea() > 0) {
+          const area = measuredArea(remainder)
+          const branchArea = measuredArea(branch.geometry)
+          if (isNegligibleHierarchyArea(area, branchArea))
+            audit.push({
+              divisionId: child.id,
+              ancestorIds: [...accepted],
+              reason: 'small-remainder',
+              areaThresholdSquareMetres: MIN_HIERARCHY_OVERLAP_SQUARE_METRES,
+              fractionThreshold: MIN_HIERARCHY_OVERLAP_FRACTION,
+              areaSquareMetres: area,
+              fractionOfSmallerArea: area / branchArea,
+            })
+          else matches.push({ path: branch.path, geometry: remainder })
+        }
         return matches
       })
     }
@@ -197,4 +245,5 @@ export function resolveCuratedHierarchies(
     )
     division.hierarchies = hierarchy
   }
+  return audit
 }
