@@ -196,7 +196,11 @@ export function canonicalDivisionGeometryColumns<Required extends boolean>(
 ) {
   return {
     id: text('id').notNull(),
-    variant: requiredColumn(text('variant').default('overture'), required),
+    // Deletion events contain identity only; HISTORY must not invent provenance.
+    variant: requiredColumn(
+      required ? text('variant').default('overture') : text('variant'),
+      required,
+    ),
     bbox: jsonText('bbox'),
     geometry: jsonTextOrBinary('geometry'),
     sources: jsonText('sources'),

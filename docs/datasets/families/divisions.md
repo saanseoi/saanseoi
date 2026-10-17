@@ -1093,7 +1093,9 @@ Parent replay follows the recorded shard assignments, including earlier annual s
 Retained historical parents remain usable after their serving current scope advances.
 Remote replay exports events by their exact record and introducing snapshot keys and
 inserts missing versions without rewriting existing content. Snapshot deletion events
-affect membership only; they do not close or delete retained geometry versions.
+affect membership only; they do not close or delete retained geometry versions. Area and
+boundary deletion events have a null `variant`: identity-only events carry no geometry
+payload or publisher variant. Upsert events retain their explicit variant.
 
 Geometry uses the same local candidate compiler for native delivery and remote replay.
 C&SD companion contributions merge within their cohort; ordinary complete geometry

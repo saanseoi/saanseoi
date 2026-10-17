@@ -564,9 +564,11 @@ Canonical HISTORY stores a changed component once, with its introducing `snapsho
 `operation`, content hash and payload in the same row. Unchanged components inherit the
 selected parent. Deletions append identity-only tombstones, and ancestor rows remain
 immutable. Reversions and independent branch changes have distinct introducing events.
-The read-only `historyEvents` view stores no additional membership rows. Snapshot reads
-resolve ancestry before filtering and use the exact introducing snapshot to fetch
-content. SOURCE release validity and interpretation evidence remain separate.
+Area deletion events have a null `variant`; live geometry upserts retain their PlanD
+publisher variant. The read-only `historyEvents` view stores no additional membership
+rows. Snapshot reads resolve ancestry before filtering and use the exact introducing
+snapshot to fetch content. SOURCE release validity and interpretation evidence remain
+separate.
 
 ## Division label cartography
 
