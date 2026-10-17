@@ -5,7 +5,7 @@ import MaximumInscribedCircle from 'jsts/org/locationtech/jts/algorithm/construc
 import IsValidOp from 'jsts/org/locationtech/jts/operation/valid/IsValidOp.js'
 import RelateOp from 'jsts/org/locationtech/jts/operation/relate/RelateOp.js'
 
-/** Place generated labels away from edges and holes in the largest connected part. */
+/** Prefer a contained bounds centre; otherwise maximise clearance in the largest part. */
 export function polygonLabelPoint(geometry: Polygon | MultiPolygon): [number, number] {
   const reader = new GeoJSONReader(new GeometryFactory())
   const shape = reader.read(geometry)
@@ -17,6 +17,12 @@ export function polygonLabelPoint(geometry: Polygon | MultiPolygon): [number, nu
     if (part.getArea() > largest.getArea()) largest = part
   }
   const bounds = largest.getEnvelopeInternal()
+  const centre: [number, number] = [
+    (bounds.getMinX() + bounds.getMaxX()) / 2,
+    (bounds.getMinY() + bounds.getMaxY()) / 2,
+  ]
+  if (RelateOp.contains(largest, reader.read({ type: 'Point', coordinates: centre })))
+    return centre
   const tolerance = Math.max(
     Math.min(bounds.getWidth(), bounds.getHeight()) * 1e-4,
     1e-9,
