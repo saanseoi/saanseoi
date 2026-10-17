@@ -48,12 +48,12 @@ test('Places stats replay ancestors, exact introducing snapshots and base deleti
         .run(id, id)
       history
         .query(`INSERT INTO placesI18n(placeId,snapshotId,locale,versionHash,name,meta)
-        VALUES (?,'old','en',?,'Historical name','{}')`)
+        VALUES (?,'old','en',?,'Historical name','{"isLocaleInferred":true}')`)
         .run(id, id)
     }
     // Repeated hash in a descendant must not duplicate the inherited row.
     history.exec(`INSERT INTO placesI18n(placeId,snapshotId,locale,versionHash,name,meta)
-      VALUES ('kept','new','en','kept','Historical name','{}');
+      VALUES ('kept','new','en','kept','Historical name','{"isLocaleInferred":true}');
       INSERT INTO places(id,snapshotId,operation) VALUES ('deleted','new','delete')`)
     const input = [{ bindingName: 'DB_HISTORY', db: createLocalHarbourDb(history) }]
     for (const [snapshot, count] of [
