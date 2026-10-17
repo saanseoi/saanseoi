@@ -10,6 +10,9 @@ import { SiteHeader } from '#lib/bits/patterns/site-header/index.js'
 import { Page } from '#lib/bits/primitives/page/index.js'
 
 let currentUrl = $derived(page.shallow?.url ?? page.url)
+let titlePrefix = $derived(
+  dev ? 'ᴰᴱⱽ ' : currentUrl.hostname === 'preview.saanseoi.hk' ? 'ᴾᴿᴱⱽᴵᴱᵂ ' : '',
+)
 let { children, data } = $props()
 let hideNav = $derived(currentUrl.searchParams.has('hideNav'))
 let isLandingPage = $derived(page.route.id === '/')
@@ -19,7 +22,7 @@ let siteFooter = $derived(
 </script>
 
 <svelte:head>
-  <title>{m.saanseoi()}</title>
+  <title>{titlePrefix}{m.saanseoi()}</title>
   <link rel="icon" href={favicon}>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
