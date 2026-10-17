@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:65e7d669221b53763217ff419136bf52e91c0781fdfb9dad4f20eab3bf99678e",
+  "versionHash": "sha256:2dab107c7f3af53355708af37c3c805e6f19cfa0a41188f9e4f4a36b355f6508",
   "apiVersion": "api-divisions-v0.1",
   "domainCode": "geographic",
   "mappingVersion": 3,
@@ -159,6 +159,23 @@
     {
       "datasetCodes": [
         "ds-hk-hkgov-censtatd-permanent-living-quarters",
+        "ds-hk-hkgov-censtatd-subdivided-units-district",
+        "ds-hk-hkgov-had-division-area-district",
+        "ds-hk-hkgov-landsd-division",
+        "ds-hk-hkgov-rvd-division",
+        "ds-hk-overture-division",
+        "ds-hk-protomaps-island",
+        "ds-hk-saanseoi-division"
+      ],
+      "anchorSnapshotVersions": [
+        "ss-hk-saanseoi-division-2026-09-01.0",
+        "ss-hk-saanseoi-division-2026-10-01.0"
+      ]
+    },
+    {
+      "datasetCodes": [
+        "ds-hk-hkgov-censtatd-permanent-living-quarters-district",
+        "ds-hk-hkgov-censtatd-population-households-district",
         "ds-hk-hkgov-censtatd-subdivided-units-district",
         "ds-hk-hkgov-had-division-area-district",
         "ds-hk-hkgov-landsd-division",
