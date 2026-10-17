@@ -1,5 +1,9 @@
-import { listReplayedDivisionRecords } from './divisions'
-import { placeDivisionFieldNames, type PlaceDivisionDefinitionSet } from '@repo/db'
+import {
+  readPlacePublicationDependencies,
+  resolvePlaceAddressSnapshot,
+  replayPlaceDivisionDefinitions,
+} from '@repo/core/pipeline/services/places/dependencyReplay'
+import { placeDivisionFieldNames } from '@repo/db'
 import { parseI18nMeta } from '@repo/db'
 import type { RequestedApiLocaleSelection } from '@repo/core/apiLocales'
 import { resolveSnapshotReplayPlan } from '@repo/core/db/metaRegistry'
@@ -167,27 +171,19 @@ export async function listReplayedPlaceRecords(args: {
         localeIsSelected(args.localeSelection, version.locale),
     ) as never,
   )
-  const definitions = new Map<string, PlaceDivisionDefinitionSet>()
-  for (const row of places) {
-    if (!row.divisionDefinitionSetId || definitions.has(row.divisionDefinitionSetId))
-      continue
-    for (const db of Object.values(args.historyDbsByBinding)) {
-      const table = historySchema.placeDivisionDefinitions
-      const set = await db
-        .select()
-        .from(table)
-        .where(eq(table.id, row.divisionDefinitionSetId))
-        .get()
-      if (set) {
-        definitions.set(row.divisionDefinitionSetId, set.definition)
-        break
-      }
-    }
-    if (!definitions.has(row.divisionDefinitionSetId))
-      throw new Error(
-        `Missing exact Place definition set ${row.divisionDefinitionSetId}.`,
-      )
-  }
+  const selected = await readPlacePublicationDependencies(
+    args.metaDb as never,
+    args.snapshotId,
+  )
+  const definitions =
+    args.resolveDivisions === false
+      ? {}
+      : await replayPlaceDivisionDefinitions(
+          args.metaDb as never,
+          shards as never,
+          selected.division,
+          places.flatMap(recordedDivisionIds),
+        )
   const localisedByPlace = new Map<string, Record<string, PlaceLocaleValue>>()
   for (const row of localised) {
     const values = localisedByPlace.get(row.placeId) ?? {}
@@ -195,67 +191,8 @@ export async function listReplayedPlaceRecords(args: {
     localisedByPlace.set(row.placeId, values)
   }
 
-  // Older immutable evidence remains intact; only supported classes enter public relationships.
-  const legacyIds = new Map<string, string[]>()
-  for (const row of places) {
-    if (row.divisionDefinitionSetId || recordedDivisionIds(row).length) continue
-    const association = (
-      row.sources as {
-        divisionAssociation?: {
-          divisionSnapshotId?: string
-          evidence?: { divisionId: string }[]
-        }
-      } | null
-    )?.divisionAssociation
-    const evidence = association?.evidence ?? []
-    const divisionSnapshotId =
-      association?.divisionSnapshotId ?? args.divisionSnapshotId
-    if (!evidence.length) continue
-    const ids = [...new Set(evidence.map(entry => entry.divisionId))]
-    const divisionPlan = await resolveSnapshotReplayPlan(
-      args.metaDb as never,
-      divisionSnapshotId,
-    )
-    const divisionVersions = await resolveSnapshotVersionState(
-      divisionPlan,
-      shards as never,
-      ['division'],
-      ids,
-    )
-    const divisions = await listReplayedDivisionRecords(
-      divisionVersions.values() as never,
-      divisionSnapshotId,
-      { mode: 'none', locales: [] },
-    )
-    if (divisions.length !== ids.length)
-      throw new Error(`Missing exact historical Place Division classes for ${row.id}.`)
-    legacyIds.set(
-      row.id,
-      divisions
-        .filter(record =>
-          [
-            'country',
-            'area',
-            'district',
-            'town',
-            'rural_area',
-            'macrohood',
-            'neighbourhood',
-            'village',
-            'microhood',
-            'hamlet',
-            'major_island',
-            'minor_island',
-            'islet',
-          ].includes(record.division.class),
-        )
-        .map(record => record.division.id),
-    )
-  }
-  const idsFor = (row: HistoryPlace) =>
-    legacyIds.get(row.id) ?? recordedDivisionIds(row)
   return places
-    .filter(row => matchesGeographicMembership(idsFor(row)))
+    .filter(row => matchesGeographicMembership(recordedDivisionIds(row)))
     .map(row => {
       const i18n = Object.fromEntries(
         Object.entries(localisedByPlace.get(row.id) ?? {}).filter(([locale]) =>
@@ -265,6 +202,7 @@ export async function listReplayedPlaceRecords(args: {
       return {
         place: {
           ...row,
+          addressSnapshotId: resolvePlaceAddressSnapshot(selected, row.addressRole),
           lng: row.geometry!.coordinates[0],
           lat: row.geometry!.coordinates[1],
 
@@ -272,8 +210,12 @@ export async function listReplayedPlaceRecords(args: {
           bbox: normalisePlaceBbox(row.bbox),
         },
         i18n,
-        divisionDefinitions: definitions.get(row.divisionDefinitionSetId ?? '') ?? {},
-        divisionIds: args.resolveDivisions === false ? [] : idsFor(row),
+        divisionDefinitions: Object.fromEntries(
+          recordedDivisionIds(row).flatMap(id =>
+            definitions[id] ? [[id, definitions[id]]] : [],
+          ),
+        ),
+        divisionIds: args.resolveDivisions === false ? [] : recordedDivisionIds(row),
       } as PlaceRecord
     })
 }

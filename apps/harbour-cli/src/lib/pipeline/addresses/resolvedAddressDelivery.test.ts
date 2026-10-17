@@ -69,6 +69,15 @@ test('combined Address planning seals only final changes and rejects incomplete 
     opened.DB_META!.exec(
       `CREATE TABLE IF NOT EXISTS dataShards (${shards.columns.map(column => `"${column.name}" ${column.getSQLType()}`).join(',')})`,
     )
+    current.exec(
+      "INSERT INTO divisionPublicationState(scopeId,snapshotId,status,publicationToken,preparedAt) VALUES('division','division','current','dt','ready')",
+    )
+    for (const id of ['snapshot', 'snapshot2', 'snapshot3'])
+      opened
+        .DB_META!.query(
+          "INSERT INTO snapshotDependencies(snapshotId,role,dependencySnapshotId) VALUES (?,'division','division')",
+        )
+        .run(id)
     const bindings = Object.fromEntries(
       Object.keys(files).map(name => [name, { databaseId: name, databaseName: name }]),
     )

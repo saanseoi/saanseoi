@@ -68,7 +68,7 @@ And it writes release-level stats rows in meta:
 
 The division resourceType does not itself populate:
 
-- scalar Place memberships and shared `placeDivisionDefinitions` sets
+- scalar Place memberships resolved against publication-level Division dependencies
 
 The Place pipeline owns these references and retains their exact logical revisions.
 

@@ -1,3 +1,4 @@
+import { readSnapshotDependencies } from '@repo/core/pipeline/db/snapshotDependencies'
 import type { Database } from 'bun:sqlite'
 import type { AddressPublicationReceipt } from '@repo/core/pipeline/db/addressPublication'
 import {
@@ -52,8 +53,15 @@ export async function deliverResolvedAddressSqlPhase(
         )
       let previous: AddressPublicationReceipt | null = null
       let validationSql = '0'
+      const dependencies = await readSnapshotDependencies(
+        input.context.metaDb as never,
+        input.snapshotId,
+      )
+      if (!dependencies.division)
+        throw new Error('Address publication requires an exact Division dependency.')
       const publication = addressPublicationDelivery({
         owner: {
+          divisionSnapshotId: dependencies.division,
           scopeId: input.scopeId,
           snapshotId: input.snapshotId,
           publicationToken: crypto.randomUUID(),

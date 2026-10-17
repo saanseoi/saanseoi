@@ -1,5 +1,9 @@
-import { placeDivisionFieldNames, type PlaceDivisionDefinitionSet } from '@repo/db'
-import { preparePlaceDivisionDefinitions } from '../../pipeline/places/placeDivisionDefinitions'
+import { placeDivisionFieldNames } from '@repo/db'
+import {
+  readPlacePublicationDependencies,
+  resolvePlaceAddressSnapshot,
+  replayPlaceDivisionDefinitions,
+} from '@repo/core/pipeline/services/places/dependencyReplay'
 import type { Database } from 'bun:sqlite'
 import {
   resolveSnapshotReplayPlan,
@@ -16,17 +20,13 @@ import { PlaceDependencyView } from '../../pipeline/places/placeDependencyView.t
 import { canonicalPlaceJson } from '../../pipeline/places/placeHistory.ts'
 import { createPlaceSearchDependencies } from '../../pipeline/places/placeSearchDependencies.ts'
 import { PLACE_H3_LEVELS } from '../../pipeline/places/processLocalPlaceSqlUploadConfig.ts'
-import {
-  type PlaceDivisionLink,
-  restorePlaceDivisionLinks,
-  readRetainedPlaceDefinitionSet,
-} from './placeDivisionLinks.ts'
+import { restorePlaceDivisionLinks } from './placeDivisionLinks.ts'
 import { resolveValidatedProjectionVersions } from './projectionReplay.ts'
 
 export type PlaceRollbackBase = Partial<
   Record<import('@repo/db').PlaceDivisionField, string | null>
 > & {
-  divisionDefinitionSetId?: string | null
+  addressRole: 'address' | 'supplementaryAddress' | null
   id: string
   lng: number
   lat: number
@@ -47,14 +47,24 @@ type Input = {
 
 /** Reconstruct derived rows locally; publication and FTS remain the caller's responsibility. */
 export async function restorePlaceDerivedRows(input: Input) {
+  const selected = await readPlacePublicationDependencies(
+    input.metaDb,
+    input.snapshotId,
+  )
   const bases = new Map(
     (
       input.current
         .query(
-          "SELECT *,json_extract(geometry, '$.coordinates[0]') lng,json_extract(geometry, '$.coordinates[1]') lat,addressSnapshotId,addressDependencyHash,address2dId,address3dId,address3dUnitId FROM places WHERE scopeId=?",
+          "SELECT *,json_extract(geometry, '$.coordinates[0]') lng,json_extract(geometry, '$.coordinates[1]') lat,addressDependencyHash,address2dId,address3dId,address3dUnitId FROM places WHERE scopeId=?",
         )
         .all(input.scopeId) as PlaceRollbackBase[]
-    ).map(row => [row.id, row]),
+    ).map(row => [
+      row.id,
+      {
+        ...row,
+        addressSnapshotId: resolvePlaceAddressSnapshot(selected, row.addressRole),
+      },
+    ]),
   )
   const locales = input.current
     .query('SELECT placeId,locale,searchDependencyText FROM placesI18n WHERE scopeId=?')
@@ -132,70 +142,11 @@ export async function restorePlaceDerivedRows(input: Input) {
       shards,
       bases,
       locales,
-      links,
       view,
       dependencies,
     )
-    const linksByPlace = new Map<string, PlaceDivisionLink[]>()
-    for (const link of links.values()) {
-      const entries = linksByPlace.get(link.placeId) ?? []
-      entries.push(link)
-      linksByPlace.set(link.placeId, entries)
-    }
     input.current.transaction(() => {
       input.current.query('DELETE FROM placesCells WHERE scopeId=?').run(input.scopeId)
-      for (const base of bases.values()) {
-        const entries = linksByPlace.get(base.id) ?? []
-        const definition: PlaceDivisionDefinitionSet = Object.fromEntries(
-          entries.map(link => [
-            link.divisionId,
-            { divisionSnapshotId: link.divisionSnapshotId, ...link.definition },
-          ]),
-        )
-        const references = Object.fromEntries(
-          entries.flatMap(link => (link.field ? [[link.field, link.divisionId]] : [])),
-        )
-        if (!base.divisionDefinitionSetId || entries.some(link => link.field)) {
-          const prepared = preparePlaceDivisionDefinitions(
-            references,
-            definition,
-            '',
-            definition,
-          )
-          base.divisionDefinitionSetId = prepared.id
-          Object.assign(base, prepared.scalars)
-        }
-        if (base.divisionDefinitionSetId) {
-          input.current
-            .query(
-              'INSERT INTO placeDivisionDefinitions(id,definition) VALUES (?,?) ON CONFLICT DO NOTHING',
-            )
-            .run(base.divisionDefinitionSetId, canonicalPlaceJson(definition))
-          const stored = input.current
-            .query<{ definition: string }, [string]>(
-              'SELECT definition FROM placeDivisionDefinitions WHERE id=?',
-            )
-            .get(base.divisionDefinitionSetId)
-          if (
-            !stored ||
-            canonicalPlaceJson(JSON.parse(stored.definition)) !==
-              canonicalPlaceJson(definition)
-          )
-            throw new Error(
-              `Conflicting exact Place Division definition set ${base.divisionDefinitionSetId}.`,
-            )
-          input.current
-            .query(
-              `UPDATE places SET divisionDefinitionSetId=?,${placeDivisionFieldNames.map(field => `"${field}"=?`).join(',')} WHERE scopeId=? AND id=?`,
-            )
-            .run(
-              base.divisionDefinitionSetId,
-              ...placeDivisionFieldNames.map(field => base[field] ?? null),
-              input.scopeId,
-              base.id,
-            )
-        }
-      }
       const insertCell = input.current.query(
         'INSERT INTO placesCells(scopeId,id,h3Level,h3Cell) VALUES (?,?,?,?)',
       )
@@ -224,20 +175,12 @@ async function validateLocaleDependencies(
   shards: ReadonlyMap<string, ReplayShard>,
   bases: ReadonlyMap<string, PlaceRollbackBase>,
   locales: Locale[],
-  links: ReadonlyMap<string, PlaceDivisionLink>,
   view: PlaceDependencyView,
   dependencies: ReturnType<typeof createPlaceSearchDependencies>,
 ) {
   const versions = await resolveSnapshotVersionState(plan, shards, ['placeI18n'])
   const originPlans = new Map<string, Promise<SnapshotReplayStep[]>>()
   const originBases = new Map<string, Promise<PlaceRollbackBase>>()
-  const linksByPlace = new Map<string, PlaceDivisionLink[]>()
-  for (const link of links.values()) {
-    const group = linksByPlace.get(link.placeId) ?? []
-    group.push(link)
-    linksByPlace.set(link.placeId, group)
-  }
-  const definitionSets = new Map<string, PlaceDivisionDefinitionSet>()
   for (const locale of locales) {
     const key = `placeI18n\u0000${locale.placeId}\u0000${locale.locale}`
     const version = versions.get(key)
@@ -341,17 +284,18 @@ async function validateLocaleDependencies(
         locales: [locale.locale],
       })
     ).searchDependencies[locale.locale]
-    if (
-      base.divisionDefinitionSetId &&
-      !definitionSets.has(base.divisionDefinitionSetId)
+    const originSelection = await readPlacePublicationDependencies(
+      input.metaDb,
+      original.snapshotId,
     )
-      definitionSets.set(
-        base.divisionDefinitionSetId,
-        await readRetainedPlaceDefinitionSet(shards, base.divisionDefinitionSetId),
-      )
-    const originalDefinitions = base.divisionDefinitionSetId
-      ? Object.values(definitionSets.get(base.divisionDefinitionSetId)!)
-      : (linksByPlace.get(locale.placeId) ?? []).map(link => link.definition)
+    const originalDefinitions = Object.values(
+      await replayPlaceDivisionDefinitions(
+        input.metaDb,
+        shards,
+        originSelection.division,
+        placeDivisionFieldNames.flatMap(field => (base[field] ? [base[field]!] : [])),
+      ),
+    )
     const names = originalDefinitions.flatMap(definition =>
       definition.locales
         .filter(value => value.locale.toLowerCase() === locale.locale.toLowerCase())

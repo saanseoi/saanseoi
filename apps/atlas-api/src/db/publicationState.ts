@@ -86,7 +86,49 @@ export async function getPublicationReadiness(
     )
     .all()
   if (rows.length !== ids.length) return null
-  return JSON.stringify(rows.sort((a, b) => a.snapshotId.localeCompare(b.snapshotId)))
+  let dependencies: Array<{
+    family: string
+    snapshotId: string | null
+    publicationToken: string | null
+    updatedAt: string | null
+  }> = []
+  if (family === 'place' || family === 'address') {
+    const direct =
+      family === 'place'
+        ? sql`SELECT 'division' family, divisionSnapshotId snapshotId FROM selected
+          UNION SELECT 'address', addressSnapshotId FROM selected
+          UNION SELECT 'address', supplementaryAddressSnapshotId FROM selected WHERE supplementaryAddressSnapshotId IS NOT NULL`
+        : sql`SELECT 'division' family, divisionSnapshotId snapshotId FROM selected`
+    // One bounded query checks every direct and transitive serving dependency.
+    dependencies = await db
+      .select({
+        family: sql<string>`family`,
+        snapshotId: sql<string | null>`snapshotId`,
+        publicationToken: sql<string | null>`publicationToken`,
+        updatedAt: sql<string | null>`updatedAt`,
+      })
+      .from(sql`(
+      WITH selected AS (SELECT * FROM ${table} WHERE snapshotId IN (SELECT value FROM json_each(${JSON.stringify(ids)}))),
+      direct AS (${direct}),
+      required AS (SELECT * FROM direct UNION SELECT 'division', a.divisionSnapshotId FROM direct r LEFT JOIN addressPublicationState a ON a.snapshotId=r.snapshotId WHERE r.family='address'),
+      ready AS (
+        SELECT 'division' family,snapshotId,publicationToken,updatedAt FROM divisionPublicationState WHERE status='current' AND preparedAt IS NOT NULL AND publicationToken<>''
+        UNION ALL SELECT 'address',snapshotId,publicationToken,updatedAt FROM addressPublicationState WHERE status='current' AND preparedAt IS NOT NULL AND publicationToken<>''
+      )
+      SELECT r.family,r.snapshotId,p.publicationToken,p.updatedAt FROM required r LEFT JOIN ready p ON p.family=r.family AND p.snapshotId=r.snapshotId
+    )`)
+      .all()
+    if (dependencies.some(row => !row.snapshotId || !row.publicationToken)) return null
+  }
+  dependencies.sort(
+    (a, b) =>
+      a.family.localeCompare(b.family) ||
+      (a.snapshotId ?? '').localeCompare(b.snapshotId ?? ''),
+  )
+  return JSON.stringify([
+    rows.sort((a, b) => a.snapshotId.localeCompare(b.snapshotId)),
+    dependencies,
+  ])
 }
 
 /** A published companion displaced within its scope can be replayed from history. */

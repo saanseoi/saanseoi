@@ -134,91 +134,86 @@ test('physical Address scope references protect Street and Division dependencies
   }
 })
 
-test.each(['obsolete', 'scope'])(
-  'retained logical Place dependency %s does not pin Address or Division current rows',
-  async logicalSnapshotId => {
+test.each([
+  'addressSnapshotId',
+  'supplementaryAddressSnapshotId',
+  'divisionSnapshotId',
+])(
+  'Place publication %s protects exact current dependencies, including empty Places scopes',
+  async column => {
     const f = fixture()
     try {
-      for (const family of ['address', 'division'] as const) {
-        f.receipt(family)
-        f.row(family)
-      }
-      f.sqlite
-        .query(
-          "INSERT INTO places(scopeId,id,resourceReleaseId,geometry,firstSeenMonth,addressSnapshotId) VALUES ('dependent','place','release',json_object('type','Point','coordinates',json_array(114,22)),'2026-01',?)",
-        )
-        .run(logicalSnapshotId)
-      const definition = JSON.stringify({
-        division: {
-          divisionSnapshotId: logicalSnapshotId,
-          level: 1,
-          locales: [{ locale: 'en', name: 'Retained division' }],
-        },
-      })
-      f.sqlite
-        .query('INSERT INTO placeDivisionDefinitions(id,definition) VALUES (?,?)')
-        .run('set', definition)
+      const family = column === 'divisionSnapshotId' ? 'division' : 'address'
+      f.receipt(family)
+      f.row(family)
       f.sqlite.exec(
-        "UPDATE places SET districtId='division',divisionDefinitionSetId='set'",
+        `INSERT INTO placePublicationState(scopeId,snapshotId,${column}) VALUES('p','p1','obsolete'),('q','q1','obsolete')`,
       )
-      for (const family of ['address', 'division'] as const)
-        expect(await f.clean(family)).toBe(true)
-      expect(f.sqlite.query('SELECT addressSnapshotId FROM places').get()).toEqual({
-        addressSnapshotId: logicalSnapshotId,
-      })
-      expect(
-        f.sqlite
-          .query(
-            "SELECT json_extract(d.definition,'$.division.divisionSnapshotId') divisionSnapshotId,d.definition FROM places p JOIN placeDivisionDefinitions d ON d.id=p.divisionDefinitionSetId",
-          )
-          .get(),
-      ).toEqual({ divisionSnapshotId: logicalSnapshotId, definition })
+      expect(await f.clean(family)).toBe(false)
+      f.sqlite.exec(
+        `UPDATE placePublicationState SET ${column}='next' WHERE scopeId='p'`,
+      )
+      expect(await f.clean(family)).toBe(false)
+      f.sqlite.exec(
+        `UPDATE placePublicationState SET ${column}='next' WHERE scopeId='q'`,
+      )
+      expect(await f.clean(family)).toBe(true)
     } finally {
       f.sqlite.close()
     }
   },
 )
 
-test.each(['replacement', 'new-token', 'interrupted', 'search', 'dependent'] as const)(
-  'cleanup rechecks %s acquisition after its precheck',
-  async race => {
-    let acquired = false
-    const family =
-      race === 'search' || race === 'dependent' ? 'division' : 'divisionArea'
-    const f = fixture((sqlite, query) => {
-      if (!acquired && query.startsWith('delete from')) {
-        acquired = true
-        if (race === 'search')
-          sqlite.exec(
-            "INSERT INTO divisionSearchScopes(scopeId,snapshotId) VALUES ('search','obsolete')",
-          )
-        else if (race === 'dependent')
-          sqlite.exec(
-            "INSERT INTO address2d(scopeId,id,divisionSnapshotId) VALUES ('dependent','address','scope')",
-          )
-        else
-          sqlite.exec(
-            `UPDATE divisionAreaPublicationState SET ${race === 'replacement' ? "snapshotId='replacement'" : race === 'new-token' ? "publicationToken='new-owner'" : "preparedAt=NULL,status='publishing'"}`,
-          )
-      }
-    })
-    try {
-      f.receipt(family)
-      f.row(family)
-      expect(await f.clean(family)).toBe(false)
-      expect(acquired).toBe(true)
-      const table = family === 'division' ? 'divisions' : 'divisionAreas'
-      expect(f.sqlite.query(`SELECT count(*) AS n FROM ${table}`).get()).toEqual({
-        n: 1,
-      })
-      expect(
-        f.sqlite.query(`SELECT count(*) AS n FROM ${family}PublicationState`).get(),
-      ).toEqual({ n: 1 })
-    } finally {
-      f.sqlite.close()
+test.each([
+  'replacement',
+  'new-token',
+  'interrupted',
+  'search',
+  'dependent',
+  'publication',
+] as const)('cleanup rechecks %s acquisition after its precheck', async race => {
+  let acquired = false
+  const family =
+    race === 'search' || race === 'dependent' || race === 'publication'
+      ? 'division'
+      : 'divisionArea'
+  const f = fixture((sqlite, query) => {
+    if (!acquired && query.startsWith('delete from')) {
+      acquired = true
+      if (race === 'search')
+        sqlite.exec(
+          "INSERT INTO divisionSearchScopes(scopeId,snapshotId) VALUES ('search','obsolete')",
+        )
+      else if (race === 'publication')
+        sqlite.exec(
+          "INSERT INTO placePublicationState(scopeId,snapshotId,status,publicationToken,divisionSnapshotId) VALUES ('place','place-snapshot','publishing','owner','obsolete')",
+        )
+      else if (race === 'dependent')
+        sqlite.exec(
+          "INSERT INTO address2d(scopeId,id,divisionSnapshotId) VALUES ('dependent','address','scope')",
+        )
+      else
+        sqlite.exec(
+          `UPDATE divisionAreaPublicationState SET ${race === 'replacement' ? "snapshotId='replacement'" : race === 'new-token' ? "publicationToken='new-owner'" : "preparedAt=NULL,status='publishing'"}`,
+        )
     }
-  },
-)
+  })
+  try {
+    f.receipt(family)
+    f.row(family)
+    expect(await f.clean(family)).toBe(false)
+    expect(acquired).toBe(true)
+    const table = family === 'division' ? 'divisions' : 'divisionAreas'
+    expect(f.sqlite.query(`SELECT count(*) AS n FROM ${table}`).get()).toEqual({
+      n: 1,
+    })
+    expect(
+      f.sqlite.query(`SELECT count(*) AS n FROM ${family}PublicationState`).get(),
+    ).toEqual({ n: 1 })
+  } finally {
+    f.sqlite.close()
+  }
+})
 
 test('failed cleanup rolls back companion deletions and preserves its receipt', async () => {
   const f = fixture()

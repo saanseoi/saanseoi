@@ -197,6 +197,7 @@ export async function hashPlaceMaterialisation(
     addressSnapshotId: string
     divisionSnapshotId: string
     addressId: string | null
+    addressRole?: 'address' | 'supplementaryAddress' | null
     divisionIds: string[]
     divisionAssociation?: unknown
     divisionReferences?: Partial<Record<string, string | null>>
@@ -232,12 +233,12 @@ export async function hashPlaceMaterialisation(
     placeIdentity: place.sources.placeIdentity?.evidence ?? null,
     addressDependencyHash: references.addressDependencyHash ?? null,
     addressId: references.addressId,
+    addressRole: references.addressId ? (references.addressRole ?? 'address') : null,
     address3dId: references.address3dId ?? null,
     address3dUnitId: references.address3dUnitId ?? null,
     address3dMembership: references.address3dMembership ?? null,
     divisionIds: [...new Set(references.divisionIds)].sort(),
     divisionReferences: references.divisionReferences ?? null,
-    divisionDefinitions: references.divisionDefinitions ?? null,
   })
 }
 

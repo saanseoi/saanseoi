@@ -27,19 +27,10 @@ export const places = sqliteTable(
     primaryKey({
       columns: [table.scopeId, table.id],
     }),
-    // Logical Address references are validated against immutable history during preparation.
-    check(
-      'places_address_snapshot_required_chk',
-      sql`${table.addressSnapshotId} IS NOT NULL OR (${table.address2dId} IS NULL AND ${table.address3dId} IS NULL)`,
-    ),
     check(
       'places_address3d_unit_reference_chk',
       sql`(${table.address3dId} IS NULL AND ${table.address3dUnitId} IS NULL AND ${table.address3dMembership} IS NULL) OR (${table.address3dId} IS NOT NULL AND ${table.address3dUnitId} IS NOT NULL AND ${table.address3dMembership} IS NOT NULL AND ${table.address2dId} IS NOT NULL)`,
     ),
-    foreignKey({
-      columns: [table.divisionDefinitionSetId],
-      foreignColumns: [placeDivisionDefinitions.id],
-    }),
     ...placeDivisionFieldNames.map(field =>
       index(`places_${field}_id_idx`).on(table.scopeId, table[field], table.id),
     ),
@@ -69,14 +60,6 @@ export const placesI18n = sqliteTable(
     index('placesI18n_name_idx').on(table.locale, table.name),
   ],
 )
-
-/** Content-addressed exact dependency sets, shared across Places and retained scopes. */
-export const placeDivisionDefinitions = sqliteTable('placeDivisionDefinitions', {
-  id: text('id').primaryKey().notNull(),
-  definition: text('definition', { mode: 'json' })
-    .$type<import('../shared').PlaceDivisionDefinitionSet>()
-    .notNull(),
-})
 
 export const placesCells = sqliteTable(
   'placesCells',

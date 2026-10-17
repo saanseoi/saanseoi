@@ -422,15 +422,10 @@ export function currentPlaceFieldRule(apiField: string): CurrentFieldRule | null
     )
   if (field === 'addressSnapshotId')
     return rule(
-      'apps/harbour-cli/src/lib/pipeline/places/processLocalPlaceSqlUploadRows.ts',
-      'buildPlaceSql',
-      'address2dId ? (previousIdentity?.row.address2dId === address2dId && previousIdentity.row.addressDependencyHash === addressDependencyHash ? previousIdentity.row.addressSnapshotId : selectedAddressSnapshotId) : null',
-      [
-        'address2dId',
-        'previousIdentity',
-        'addressDependencyHash',
-        'selectedAddressSnapshotId',
-      ],
+      'libs/core/src/pipeline/services/places/publicationDependencies.ts',
+      'placeAddressSnapshotSql',
+      'addressRole selects addressSnapshotId or supplementaryAddressSnapshotId from the selected Place publication receipt; an unlinked Place returns null.',
+      ['addressRole', 'placePublicationState'],
     )
   if (field === 'sources')
     return rule(
@@ -480,7 +475,7 @@ export function currentPlaceFieldRule(apiField: string): CurrentFieldRule | null
           'Select the supplementary Address snapshot for supplementary resolutions; otherwise the selected official Address snapshot.',
           'Resolve Division membership at effective coordinates with Address fallback.',
           'Resolve Address3D only for an accepted non-supplementary Address.',
-          'For addressSnapshotId, buildPlaceSql preserves the predecessor snapshot when address2dId and addressDependencyHash are unchanged; otherwise it uses the newly selected companion. With no address2dId it stores null.',
+          'The Place stores its Address role and IDs. Its selected publication supplies the exact official or supplementary Address snapshot; unchanged Place content inherits the publication dependency without a row update.',
         ],
       },
     )

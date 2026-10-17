@@ -145,7 +145,6 @@ DROP TABLE IF EXISTS `addressesFts_content`;
 DROP TABLE IF EXISTS `addressesFts_docsize`;
 DROP TABLE IF EXISTS `addressesFts_config`;
 DROP TABLE IF EXISTS `placesI18n`;
-DROP TABLE IF EXISTS `placeDivisionDefinitions`;
 DROP TABLE IF EXISTS `placesCells`;
 DROP TABLE IF EXISTS `places`;
 DROP TABLE IF EXISTS `__streetsI18n_backup`;

@@ -40,7 +40,14 @@ function scopedPublicationState(name: string) {
 export const divisionPublicationState = scopedPublicationState(
   'divisionPublicationState',
 )
-export const placePublicationState = scopedPublicationState('placePublicationState')
+export const placePublicationState = sqliteTable('placePublicationState', {
+  scopeId: text('scopeId').primaryKey(),
+  snapshotId: text('snapshotId').notNull().unique(),
+  divisionSnapshotId: text('divisionSnapshotId'),
+  addressSnapshotId: text('addressSnapshotId'),
+  supplementaryAddressSnapshotId: text('supplementaryAddressSnapshotId'),
+  ...publicationStateColumns(),
+})
 export const streetPublicationState = scopedPublicationState('streetPublicationState')
 export const divisionAreaPublicationState = scopedPublicationState(
   'divisionAreaPublicationState',

@@ -154,6 +154,13 @@ remain unchanged in source evidence. Planning cohorts replace the rows and local
 in their current publication scope, including when a cohort has no history parent.
 Historical membership remains scoped to its selected snapshot.
 
+Place and Address publications each select one complete Division snapshot. Replacing a
+Division publication preserves its complete CURRENT projection and receipt in a retained
+scope while dependent publications still select it. Cleanup may remove that projection
+only after every Place and Address publication has advanced or retired. Unchanged Place
+rows inherit the dependency selected by their publication; advancing a publication does
+not require rewriting those rows.
+
 SaanSeoi preparation owns editorial patches and curated source selection. It writes
 final names, taxonomy, hierarchy and geometry into the published SaanSeoi archive;
 canonical materialisation reads that prepared contract.

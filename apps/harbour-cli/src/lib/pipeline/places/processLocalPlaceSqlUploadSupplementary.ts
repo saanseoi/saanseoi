@@ -1,3 +1,4 @@
+import { readSnapshotDependencies } from '@repo/core/pipeline/db/snapshotDependencies'
 import {
   mkdir,
   open,
@@ -101,6 +102,7 @@ type PrepareSupplementaryAddressesInput = {
     snapshotId: string
     addressSnapshotId: string
     divisionSnapshotId: string
+    divisionAreaSnapshotId?: string
   }
   places: Iterable<NormalisedPlace> | AsyncIterable<NormalisedPlace>
   placeIdentities?: ReadonlyMap<string, PlaceIdentityDecision>
@@ -375,7 +377,8 @@ async function prepareSupplementaryAddressesLocked(
     const rows = (await (target.db as HarbourReadableDb)
       .select({
         address2dId: historySchema.places.address2dId,
-        addressSnapshotId: historySchema.places.addressSnapshotId,
+        addressRole: historySchema.places.addressRole,
+        snapshotId: historySchema.places.snapshotId,
         addresses: historySchema.places.addresses,
         createdAt: historySchema.places.createdAt,
         id: historySchema.places.id,
@@ -433,7 +436,12 @@ async function prepareSupplementaryAddressesLocked(
           previous?.address2dId
             ? {
                 addressId: previous.address2dId,
-                addressSnapshotId: previous.addressSnapshotId,
+                addressSnapshotId:
+                  previous.snapshotId && previous.addressRole
+                    ? (await readSnapshotDependencies(db, previous.snapshotId))[
+                        previous.addressRole
+                      ]
+                    : undefined,
                 fingerprint: addressFingerprint(
                   Array.isArray(previous.addresses)
                     ? previous.addresses.filter(
@@ -635,7 +643,10 @@ async function prepareSupplementaryAddressesLocked(
       .from(currentSchema.divisionPublicationState)
       .where(
         and(
-          eq(currentSchema.divisionPublicationState.scopeId, selectedDivision.scopeId),
+          eq(
+            currentSchema.divisionPublicationState.snapshotId,
+            input.snapshots.divisionSnapshotId,
+          ),
           isNotNull(currentSchema.divisionPublicationState.preparedAt),
         ),
       )
@@ -757,7 +768,13 @@ async function prepareSupplementaryAddressesLocked(
       snapshotId: snapshot.id,
       resourceType: 'address',
       anchorReleaseId: input.resourceReleaseId,
-      dependencies: { address: input.snapshots.addressSnapshotId },
+      dependencies: {
+        address: input.snapshots.addressSnapshotId,
+        division: input.snapshots.divisionSnapshotId,
+        ...(input.snapshots.divisionAreaSnapshotId
+          ? { divisionArea: input.snapshots.divisionAreaSnapshotId }
+          : {}),
+      },
     })
     const environment = input.targets.environment
     const historyShard = await resolveShardForTypeRegionYear(

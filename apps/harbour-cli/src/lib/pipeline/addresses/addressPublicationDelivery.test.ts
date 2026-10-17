@@ -1,3 +1,5 @@
+import { loadMigrationSql } from '../../../../../../libs/core/src/testing/metaFixtures'
+import { resolve } from 'node:path'
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { addressPublicationDelivery } from './addressPublicationDelivery.ts'
@@ -6,14 +8,18 @@ import type { NetStatement } from '../local/netSqlitePlanTypes.ts'
 
 function fixture() {
   const db = new Database(':memory:')
-  db.exec(`CREATE TABLE addressPublicationState(scopeId TEXT PRIMARY KEY,snapshotId TEXT UNIQUE,status TEXT NOT NULL,
-    publicationToken TEXT NOT NULL,preparedAt TEXT,createdAt TEXT NOT NULL,updatedAt TEXT NOT NULL);
-    CREATE TABLE address2d(id TEXT PRIMARY KEY,value TEXT);
-    INSERT INTO address2d VALUES ('a','old');
-    INSERT INTO addressPublicationState VALUES ('scope','old','current','old-token','ready','old','old');`)
+  db.exec(
+    loadMigrationSql(resolve(import.meta.dir, '../../../../../../libs/db/migrations'), [
+      'current',
+    ]),
+  )
+  db.exec(`INSERT INTO address2d(scopeId,id,divisionSnapshotId,granularity) VALUES ('scope','a','division','old');
+    INSERT INTO addressPublicationState(scopeId,snapshotId,status,publicationToken,preparedAt,createdAt,updatedAt) VALUES ('scope','old','current','old-token','ready','old','old');`)
   const state = () =>
     db
-      .query<AddressPublicationReceipt, []>('SELECT * FROM addressPublicationState')
+      .query<AddressPublicationReceipt, []>(
+        "SELECT * FROM addressPublicationState WHERE scopeId='scope'",
+      )
       .get()
   const plan = (snapshotId: string, publicationToken: string) => {
     const previous = state()
@@ -22,7 +28,7 @@ function fixture() {
       owner: { scopeId: 'scope', snapshotId, publicationToken },
       target: { databaseId: 'current', bindingName: 'DB_CURRENT' },
       previous: () => previous,
-      validation: () => '(SELECT count(*) FROM address2d) = 1',
+      validation: () => "(SELECT count(*) FROM address2d WHERE scopeId='scope') = 1",
       capture: async (_target, bytes) => {
         batches.push(JSON.parse(new TextDecoder().decode(bytes)))
       },
@@ -34,7 +40,12 @@ function fixture() {
       for (const statement of batch) db.query(statement.sql).run(...statement.params)
     })()
   const mutation = Buffer.from(
-    JSON.stringify([{ sql: "UPDATE address2d SET value = 'new'", params: [] }]),
+    JSON.stringify([
+      {
+        sql: "UPDATE address2d SET granularity = 'new' WHERE scopeId='scope'",
+        params: [],
+      },
+    ]),
   )
   return { db, state, plan, execute, mutation }
 }
@@ -56,7 +67,11 @@ test('Address delivery gates reads before mutation and records preparation only 
       status: 'publishing',
       preparedAt: null,
     })
-    expect(f.db.query('SELECT value FROM address2d').get()).toEqual({ value: 'old' })
+    expect(
+      f.db
+        .query("SELECT granularity AS value FROM address2d WHERE scopeId='scope'")
+        .get(),
+    ).toEqual({ value: 'old' })
     f.execute(p.batches[1]!)
     expect(f.state()?.preparedAt).toBeNull()
     f.execute(p.batches[2]!)
@@ -83,7 +98,11 @@ test('concurrent and stale Address deliveries cannot mutate or complete another 
     f.execute(a.batches[0]!)
     for (const batch of b.batches)
       expect(() => f.execute(batch)).toThrow('integer overflow')
-    expect(f.db.query('SELECT value FROM address2d').get()).toEqual({ value: 'old' })
+    expect(
+      f.db
+        .query("SELECT granularity AS value FROM address2d WHERE scopeId='scope'")
+        .get(),
+    ).toEqual({ value: 'old' })
     f.execute(a.batches[1]!)
     f.execute(a.batches[2]!)
     expect(() => f.execute(a.batches[1]!)).toThrow('integer overflow')
@@ -102,7 +121,11 @@ test('empty and unchanged Address releases touch only publication metadata', asy
     await next.complete()
     expect(next.batches).toHaveLength(2)
     for (const batch of next.batches) f.execute(batch)
-    expect(f.db.query('SELECT value FROM address2d').get()).toEqual({ value: 'old' })
+    expect(
+      f.db
+        .query("SELECT granularity AS value FROM address2d WHERE scopeId='scope'")
+        .get(),
+    ).toEqual({ value: 'old' })
     expect(f.state()).toMatchObject({ snapshotId: 'new', status: 'publishing' })
   } finally {
     f.db.close()

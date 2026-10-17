@@ -147,25 +147,5 @@ export async function loadCurrentPlaceHistory(
     throw new Error(
       'Missing exact Place predecessor content: locale membership differs from its serving scope.',
     )
-  const definitions = await ownership.currentDb
-    .select({
-      placeId: currentSchema.places.id,
-      definition: currentSchema.placeDivisionDefinitions.definition,
-    })
-    .from(currentSchema.places)
-    .innerJoin(
-      currentSchema.placeDivisionDefinitions,
-      eq(
-        currentSchema.places.divisionDefinitionSetId,
-        currentSchema.placeDivisionDefinitions.id,
-      ),
-    )
-    .where(eq(currentSchema.places.scopeId, ownership.scopeId))
-    .all()
-  for (const row of definitions) {
-    const state = states.get(row.placeId)
-    if (!state) throw new Error(`Place definitions without base ${row.placeId}.`)
-    state.divisionDefinitions = row.definition
-  }
   return [...states.values()]
 }

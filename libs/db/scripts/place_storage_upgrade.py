@@ -14,7 +14,8 @@ import sqlite3
 CURRENT_SPATIAL = '20261014183554_clean_morbius/migration.sql'
 HISTORY_SPATIAL = '20261014182916_flippant_young_avengers/migration.sql'
 CURRENT_DIVISIONS = '20261015030749_thankful_rocket_racer/migration.sql'
-MIGRATIONS = {CURRENT_SPATIAL, HISTORY_SPATIAL, CURRENT_DIVISIONS}
+PUBLICATION_DEPENDENCIES = {'20261017055022_sturdy_chimera/migration.sql', '20261017055029_cool_wallflower/migration.sql'}
+MIGRATIONS = {CURRENT_SPATIAL, HISTORY_SPATIAL, CURRENT_DIVISIONS, *PUBLICATION_DEPENDENCIES}
 
 FIELDS = dict(country='countryId', area='areaId', district='districtId',
               town='townId', rural_area='ruralAreaId', macrohood='macrohoodId',
@@ -191,6 +192,12 @@ def upgrade(db, name, sql, split_statements, metadata=None, history_databases=()
                                        ('upgrade_place_identifiers', 1, identifiers)]:
         db.create_function(function, count, callback, deterministic=True)
     original_count = db.execute('SELECT count(*) FROM places').fetchone()[0]
+    if name in PUBLICATION_DEPENDENCIES:
+        existing = {row[0] for row in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+        dependent_tables = ('places', 'placePublicationState', 'addressPublicationState', 'address2d')
+        if any(db.execute(f'SELECT 1 FROM "{table}" LIMIT 1').fetchone()
+               for table in dependent_tables if table in existing):
+            raise ValueError('Publication dependencies require a reviewed rebuild of populated Place and Address projections, receipts and history; schema migration was not applied.')
     if name == CURRENT_DIVISIONS:
         division_sets(db, metadata, history_databases)
     for statement in split_statements(sql):

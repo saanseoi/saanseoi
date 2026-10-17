@@ -102,6 +102,17 @@ export async function captureNetSqlitePlan<T>(input: NetSqlitePlanInput<T>) {
     }
     reportPhase('generate candidate databases')
     const result = await input.generate(candidates)
+    if (input.prepareBaseline) {
+      for (const [binding, path] of Object.entries(baselines)) {
+        const baseline = new Database(path)
+        try {
+          baseline.exec('PRAGMA foreign_keys=ON')
+          baseline.transaction(() => input.prepareBaseline!(binding, baseline))()
+        } finally {
+          baseline.close()
+        }
+      }
+    }
     // Generation is finished. Release its prepared statements and native caches
     // before opening the exact diff readers and replay databases.
     for (const [binding, candidate] of Object.entries(candidates)) {

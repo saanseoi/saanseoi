@@ -1,3 +1,5 @@
+import { loadMigrationSql } from '../../../testing/metaFixtures'
+import { resolve } from 'node:path'
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { splitSqlStatements } from '../addresses/sqlImportStages'
@@ -23,7 +25,9 @@ const receipt = {
 function database() {
   const db = new Database(':memory:')
   db.exec(
-    `CREATE TABLE divisionPublicationState(scopeId TEXT PRIMARY KEY, snapshotId TEXT UNIQUE NOT NULL, status TEXT NOT NULL, publicationToken TEXT NOT NULL, preparedAt TEXT, createdAt TEXT NOT NULL, updatedAt TEXT NOT NULL); CREATE TABLE divisions(scopeId TEXT, id TEXT);`,
+    loadMigrationSql(resolve(import.meta.dir, '../../../../../db/migrations'), [
+      'current',
+    ]),
   )
   return db
 }
@@ -101,7 +105,11 @@ test('advancing a scope gates its stable rows and rejects stale predecessor toke
   }
   execute(db, buildBeginPublicationSql(next))
   expect(
-    db.query('SELECT snapshotId, status FROM divisionPublicationState').all(),
+    db
+      .query(
+        "SELECT snapshotId, status FROM divisionPublicationState WHERE scopeId='lineage'",
+      )
+      .all(),
   ).toEqual([{ snapshotId: 'next', status: 'publishing' }])
   expect(() =>
     execute(

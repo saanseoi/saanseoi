@@ -186,10 +186,10 @@ test('Place associations consume only their actual dependencies', () => {
     'divisionMembership',
   ])
   expect(currentPlaceFieldRule('attributes.addressSnapshotId')!.expression).toContain(
-    'previousIdentity.row.addressSnapshotId',
+    'Place publication receipt',
   )
   expect(currentPlaceFieldRule('attributes.sources')!.inputs).toContain(
-    'divisionAssociation',
+    'resolvedSources',
   )
 })
 

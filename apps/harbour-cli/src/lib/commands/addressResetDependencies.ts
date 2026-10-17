@@ -1,5 +1,5 @@
 import type { HarbourReadableDb } from '@repo/core/db/types'
-import { and, currentSchema, historySchema, metaSchema, or, sql } from '@repo/db'
+import { and, metaSchema, or, sql } from '@repo/db'
 
 type Context = {
   metaDb: HarbourReadableDb
@@ -92,21 +92,5 @@ export async function officialAddressResetDependencyBlockers(
     .get()
   if (retainedAnchor || retainedDependency)
     blockers.push('Other snapshots retain official Address assembly dependencies')
-  for (const [label, db, places] of [
-    ['current', context.currentDb, currentSchema.places],
-    ...context.historyTargets.map(
-      target => [target.bindingName, target.db, historySchema.places] as const,
-    ),
-  ] as const) {
-    if (
-      await db
-        .select({ id: places.id })
-        .from(places)
-        .where(member(places.addressSnapshotId, owned.snapshotIds))
-        .limit(1)
-        .get()
-    )
-      blockers.push(`${label}: Places retain exact official Address dependencies`)
-  }
   return blockers
 }

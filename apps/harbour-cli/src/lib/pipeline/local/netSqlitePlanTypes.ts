@@ -25,6 +25,8 @@ export type NetSqlitePlanInput<T> = {
       excludedTables?: string[]
     }
   >
+  /** Apply the same guarded transition emitted before the captured row delta. */
+  prepareBaseline?: (binding: string, db: Database) => void
   generate: (candidates: Record<string, { db: Database; path: string }>) => Promise<T>
   append: (target: SqlDeliveryTarget, bytes: Uint8Array, kind: 'bound') => Promise<void>
   onProgress?: (phase: string) => void

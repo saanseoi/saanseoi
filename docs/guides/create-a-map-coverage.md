@@ -163,3 +163,9 @@ and Division references. Original Address source IDs are retained where availabl
 derived Address records use their canonical ID in the owning dataset. Division entries
 use the dataset owning the pinned snapshot and the referenced Division ID. Null links
 add no contribution. Coordinate and text corrections remain processing decisions.
+
+The Places reference section explains publication-level Division and Address selection.
+Inherited Place content uses the dependencies of the selected publication; relationship
+lookups retain the recorded snapshot rather than substituting an independently newer
+Address or Division release. The public map profile and pagination contract are
+unchanged.

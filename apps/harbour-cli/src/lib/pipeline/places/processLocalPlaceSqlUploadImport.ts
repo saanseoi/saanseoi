@@ -172,6 +172,7 @@ export async function importPlaceSqlBatches(
     throw new Error('Place publication requires its snapshot lineage.')
   const publication: PublicationPreparation = {
     table: 'placePublicationState',
+    dependencies: input.snapshots,
     scopeId: input.snapshots.snapshotLineageId,
     snapshotId: input.snapshots.snapshotId,
     publicationToken: required(input.message.resourceReleaseId, 'resourceReleaseId'),
@@ -331,21 +332,19 @@ export function insertSqlParts(
   return [
     `INSERT INTO "${table}" (${entries.map(([key]) => `"${key}"`).join(', ')}) VALUES `,
     `(${entries.map(([, value]) => sqlValue(value)).join(', ')})`,
-    table === 'placeDivisionDefinitions'
-      ? ' ON CONFLICT DO NOTHING;'
-      : ` ON CONFLICT DO UPDATE SET ${updates.map(([key]) => `"${key}" = excluded."${key}"`).join(', ')}${
-          preserveOpenVersion
-            ? ` WHERE "${table}".isCurrent <> 1 OR "${table}".validToRelease IS NOT NULL`
-            : currentProjection
-              ? ` WHERE ${currentRowChangedSqlText(
-                  table,
-                  entries.map(([key]) => key),
-                  table === 'places'
-                    ? ['createdAt', 'updatedAt', 'resourceReleaseId', 'lastSeenMonth']
-                    : undefined,
-                )}`
-              : ''
-        };`,
+    ` ON CONFLICT DO UPDATE SET ${updates.map(([key]) => `"${key}" = excluded."${key}"`).join(', ')}${
+      preserveOpenVersion
+        ? ` WHERE "${table}".isCurrent <> 1 OR "${table}".validToRelease IS NOT NULL`
+        : currentProjection
+          ? ` WHERE ${currentRowChangedSqlText(
+              table,
+              entries.map(([key]) => key),
+              table === 'places'
+                ? ['createdAt', 'updatedAt', 'resourceReleaseId', 'lastSeenMonth']
+                : undefined,
+            )}`
+          : ''
+    };`,
   ]
 }
 

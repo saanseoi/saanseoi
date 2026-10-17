@@ -1,3 +1,8 @@
+import {
+  retainPublicationSql,
+  releaseRetainedReceiptSql,
+  finishRetainedPublicationSql,
+} from '../services/publication/retention'
 export type AddressPublicationReceipt = {
   scopeId: string
   snapshotId: string
@@ -11,6 +16,7 @@ export type AddressPublicationOwner = {
   scopeId: string
   snapshotId: string
   publicationToken: string
+  divisionSnapshotId?: string
 }
 
 const literal = (value: string) => `'${value.replaceAll("'", "''")}'`
@@ -36,13 +42,17 @@ AND addressPublicationState.publicationToken = ${literal(previous.publicationTok
 AND addressPublicationState.preparedAt IS NOT NULL
 AND addressPublicationState.status IN ('current', 'publishing')`
     : '0'
-  return `INSERT INTO addressPublicationState
+  return `${owner.divisionSnapshotId ? `SELECT CASE WHEN EXISTS (SELECT 1 FROM divisionPublicationState WHERE snapshotId=${literal(owner.divisionSnapshotId)} AND preparedAt IS NOT NULL AND publicationToken<>'') THEN 1 ELSE abs(-9223372036854775808) END;` : ''}
+${retainPublicationSql({ ...owner, family: 'address', previous })}
+${releaseRetainedReceiptSql({ ...owner, family: 'address' })}
+INSERT INTO addressPublicationState
 (scopeId, snapshotId, status, publicationToken, preparedAt, createdAt, updatedAt)
 VALUES (${literal(owner.scopeId)}, ${literal(owner.snapshotId)}, 'publishing', ${literal(owner.publicationToken)}, NULL, datetime('now'), datetime('now'))
 ON CONFLICT(scopeId) DO UPDATE SET snapshotId = excluded.snapshotId, status = 'publishing',
 publicationToken = excluded.publicationToken, preparedAt = NULL, updatedAt = excluded.updatedAt
 WHERE ${previousMatch};
-${buildAddressPublicationGuardSql(owner)}`
+${buildAddressPublicationGuardSql(owner)}
+${owner.divisionSnapshotId ? `UPDATE addressPublicationState SET divisionSnapshotId=${literal(owner.divisionSnapshotId)} WHERE snapshotId=${literal(owner.snapshotId)} AND publicationToken=${literal(owner.publicationToken)};` : ''}`
 }
 
 /** Delivery evidence only. Publication finalisation separately certifies published readiness. */
@@ -52,7 +62,8 @@ export function buildPrepareAddressPublicationSql(
 ) {
   return `${buildAddressPublicationGuardSql(owner)}
 SELECT CASE WHEN (${validationSql}) THEN 1 ELSE abs(-9223372036854775808) END;
-UPDATE addressPublicationState SET preparedAt = datetime('now'), updatedAt = datetime('now')
+${finishRetainedPublicationSql({ ...owner, family: 'address' })}
+UPDATE addressPublicationState SET ${owner.divisionSnapshotId ? `divisionSnapshotId=${literal(owner.divisionSnapshotId)}, ` : ''}preparedAt = datetime('now'), updatedAt = datetime('now')
 WHERE scopeId = ${literal(owner.scopeId)} AND snapshotId = ${literal(owner.snapshotId)}
 AND publicationToken = ${literal(owner.publicationToken)} AND status = 'publishing' AND preparedAt IS NULL;`
 }

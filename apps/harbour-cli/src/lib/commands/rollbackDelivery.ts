@@ -1,3 +1,9 @@
+import {
+  retainPublicationSql,
+  releaseRetainedReceiptSql,
+  finishRetainedPublicationSql,
+} from '@repo/core/pipeline/services/publication/retention.ts'
+import { splitSqlStatements } from '@repo/core/pipeline/services/addresses/sqlImportStages'
 import type { Database } from 'bun:sqlite'
 import {
   captureNetSqlitePlan,
@@ -22,6 +28,11 @@ export type RollbackClaim = {
   previous: { snapshotId: string; publicationToken: string } | null
   snapshotId: string | null
   publicationToken: string
+  dependencies?: {
+    divisionSnapshotId?: string
+    addressSnapshotId?: string
+    supplementaryAddressSnapshotId?: string
+  }
   statistics?: { datasetCode: string; referencePeriodCode: string }
 }
 
@@ -105,9 +116,54 @@ function beginClaim(claim: RollbackClaim, timestamp: string): NetStatement[] {
   if (!snapshotId) throw new Error('Cannot remove an unowned rollback scope.')
   return [
     statement(buildPublicationAssertionSql(expected)),
+    ...(!claim.snapshotId &&
+    previous &&
+    (claim.table === 'divisionPublicationState' ||
+      claim.table === 'addressPublicationState')
+      ? [
+          statement(
+            buildPublicationAssertionSql(
+              claim.table === 'divisionPublicationState'
+                ? `NOT EXISTS(SELECT 1 FROM placePublicationState WHERE divisionSnapshotId=${rollbackLiteral(previous.snapshotId)}) AND NOT EXISTS(SELECT 1 FROM addressPublicationState WHERE divisionSnapshotId=${rollbackLiteral(previous.snapshotId)})`
+                : `NOT EXISTS(SELECT 1 FROM placePublicationState WHERE addressSnapshotId=${rollbackLiteral(previous.snapshotId)} OR supplementaryAddressSnapshotId=${rollbackLiteral(previous.snapshotId)})`,
+            ),
+          ),
+        ]
+      : []),
+
+    ...((claim.table === 'divisionPublicationState' ||
+      claim.table === 'addressPublicationState') &&
+    claim.snapshotId
+      ? splitSqlStatements(
+          retainPublicationSql({
+            ...claim,
+            snapshotId: claim.snapshotId,
+            family: claim.table === 'divisionPublicationState' ? 'division' : 'address',
+          }) +
+            '\n' +
+            releaseRetainedReceiptSql({
+              ...claim,
+              snapshotId: claim.snapshotId,
+              family:
+                claim.table === 'divisionPublicationState' ? 'division' : 'address',
+            }),
+        ).map(statement)
+      : []),
     statement(
       `INSERT INTO ${table}(scopeId,snapshotId,status,publicationToken,preparedAt,createdAt,updatedAt) VALUES(${scope},${rollbackLiteral(snapshotId)},'publishing',${rollbackLiteral(claim.publicationToken)},NULL,${rollbackLiteral(timestamp)},${rollbackLiteral(timestamp)}) ON CONFLICT(scopeId) DO UPDATE SET snapshotId=excluded.snapshotId,status='publishing',publicationToken=excluded.publicationToken,preparedAt=NULL,updatedAt=excluded.updatedAt`,
     ),
+    ...(claim.dependencies
+      ? [
+          statement(
+            `UPDATE ${table} SET ${Object.entries(claim.dependencies)
+              .map(
+                ([column, value]) =>
+                  `${column}=${value ? rollbackLiteral(value) : 'NULL'}`,
+              )
+              .join(',')} WHERE scopeId=${scope}`,
+          ),
+        ]
+      : []),
     rollbackClaimsGuard([claim]),
   ]
 }
@@ -250,6 +306,27 @@ export async function captureRollbackDelivery(input: {
       },
     },
     limits: { maxStatements: 60, maxPayloadBytes: 4 * 1024 * 1024 - 16_384 },
+    prepareBaseline: (binding, db) => {
+      if (binding !== 'DB_CURRENT' || !prepared) return
+      for (const claim of prepared.claims) {
+        if (
+          !claim.snapshotId ||
+          (claim.table !== 'divisionPublicationState' &&
+            claim.table !== 'addressPublicationState')
+        )
+          continue
+        const preservation = splitSqlStatements(
+          retainPublicationSql({
+            ...claim,
+            snapshotId: claim.snapshotId,
+            family: claim.table === 'divisionPublicationState' ? 'division' : 'address',
+          }),
+        )
+        // Reconstruction preserves rows without moving the acknowledged receipt.
+        // The emitted claim performs the identical copy before its keyed delta.
+        for (const sql of preservation.slice(0, -1)) db.exec(sql)
+      }
+    },
     generate: async candidates => {
       const current = candidates.DB_CURRENT!.db
       const meta = candidates.DB_META!.db
@@ -285,6 +362,21 @@ export async function captureRollbackDelivery(input: {
           )
           continue
         }
+        if (
+          claim.snapshotId &&
+          (claim.table === 'divisionPublicationState' ||
+            claim.table === 'addressPublicationState')
+        )
+          finalise.push(
+            ...splitSqlStatements(
+              finishRetainedPublicationSql({
+                ...claim,
+                snapshotId: claim.snapshotId,
+                family:
+                  claim.table === 'divisionPublicationState' ? 'division' : 'address',
+              }),
+            ).map(statement),
+          )
         finalise.push(
           statement(
             claim.snapshotId

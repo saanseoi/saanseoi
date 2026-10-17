@@ -211,7 +211,7 @@ test('unchanged canonical Places retain their content provenance across release 
         resourceReleaseId: 'release-original',
         createdAt: 'original',
         address2dId: null,
-        addressSnapshotId: null,
+        addressRole: null,
         addresses: null,
       },
     }

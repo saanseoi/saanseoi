@@ -1,3 +1,7 @@
+import {
+  retainPublicationSql,
+  releaseRetainedReceiptSql,
+} from '@repo/core/pipeline/services/publication/retention'
 import { defineRelations } from 'drizzle-orm'
 import type { Database } from 'bun:sqlite'
 import { drizzle } from 'drizzle-orm/bun-sqlite'
@@ -21,6 +25,9 @@ type Receipt = {
   preparedAt: string | null
   status: string
   updatedAt: string
+  divisionSnapshotId?: string
+  addressSnapshotId?: string
+  supplementaryAddressSnapshotId?: string
 }
 
 function required<T>(value: T | undefined, name: string): T {
@@ -60,6 +67,7 @@ export async function captureResolvedSqlPlan<T>(input: {
   allowPreparedDraftMerge?: (result: NoInfer<T>, snapshotId: string) => boolean
   onProgress?: (phase: string) => void
 }) {
+  const baselineTransitions: string[] = []
   const publications: ReturnType<typeof scopedPublicationDelivery>[] = []
   const retainedSql: Array<{ binding: string; sql: string }> = []
   let retainedPayloads: Array<{ binding: string; bytes: Uint8Array }> = []
@@ -87,6 +95,11 @@ export async function captureResolvedSqlPlan<T>(input: {
     ),
     limits: { maxStatements: 60, maxPayloadBytes: 4 * 1024 * 1024 - 4096 },
     append,
+    prepareBaseline: (binding, db) => {
+      if (binding === 'DB_CURRENT')
+        for (const statement of baselineTransitions)
+          if (statement.trim()) db.exec(statement)
+    },
     generate: async raw => {
       const candidates = Object.fromEntries(
         Object.entries(raw).map(([binding, value]) => [
@@ -147,6 +160,15 @@ export async function captureResolvedSqlPlan<T>(input: {
         for (const row of rows) {
           const previous =
             previousRows.find(previous => previous.scopeId === row.scopeId) ?? null
+          if (
+            !previous &&
+            previousRows.some(
+              old =>
+                old.snapshotId === row.snapshotId &&
+                old.publicationToken === row.publicationToken,
+            )
+          )
+            continue
           if (JSON.stringify(previous) === JSON.stringify(row)) continue
           ownedScopes.set(table, [...(ownedScopes.get(table) ?? []), row.scopeId])
           if (row.status !== 'publishing' || !row.preparedAt || !row.publicationToken)
@@ -155,6 +177,17 @@ export async function captureResolvedSqlPlan<T>(input: {
             )
           const preparation: PublicationPreparation = {
             table,
+            ...(table === 'placePublicationState' &&
+            row.divisionSnapshotId &&
+            row.addressSnapshotId
+              ? {
+                  dependencies: {
+                    divisionSnapshotId: row.divisionSnapshotId,
+                    addressSnapshotId: row.addressSnapshotId,
+                    supplementaryAddressSnapshotId: row.supplementaryAddressSnapshotId,
+                  },
+                }
+              : {}),
             scopeId: row.scopeId,
             snapshotId: row.snapshotId,
             publicationToken: row.publicationToken,
@@ -162,6 +195,12 @@ export async function captureResolvedSqlPlan<T>(input: {
             previous,
             allowPreparedDraftMerge:
               input.allowPreparedDraftMerge?.(value, row.snapshotId) === true,
+          }
+          if (table === 'divisionPublicationState') {
+            baselineTransitions.push(
+              retainPublicationSql({ ...preparation, family: 'division' }),
+              releaseRetainedReceiptSql({ ...preparation, family: 'division' }),
+            )
           }
           const counts =
             input.targets.DB_CURRENT?.tables

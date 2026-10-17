@@ -86,6 +86,7 @@ function fixture() {
     binding = 'old',
     source = 'source',
     divisionSnapshotId = 'division-a',
+    addressSnapshotId = 'address',
   ) {
     const snapshotId = `revision-${++revision}`
     const input: BuildPlaceSqlInput = {
@@ -106,7 +107,7 @@ function fixture() {
       snapshots: {
         snapshotId,
         snapshotLineageId: 'scope',
-        addressSnapshotId: 'address',
+        addressSnapshotId,
         divisionSnapshotId,
       },
       places,
@@ -327,14 +328,20 @@ test('Places preserve exact dependency pointers on unchanged content and isolate
         streetText: '',
       },
     }
-    await f.run([row])
+    await f.run([row], 'old', 'source', 'division-a', row.addressSnapshotId)
     row.addressSnapshotId = 'address-b'
     if (!row.searchDependencies.en) throw new Error('English dependencies missing')
     row.searchDependencies.en.addressSnapshotId = 'address-b'
-    const same = await f.run([row])
+    const same = await f.run(
+      [row],
+      'old',
+      'source',
+      'division-a',
+      row.addressSnapshotId,
+    )
     expect(same.historySqlByBinding.size).toBe(0)
-    expect(f.current.query('SELECT addressSnapshotId FROM places').get()).toEqual({
-      addressSnapshotId: 'address-a',
+    expect(f.current.query('SELECT addressRole FROM places').get()).toEqual({
+      addressRole: 'address',
     })
     expect(
       f.current
@@ -344,7 +351,13 @@ test('Places preserve exact dependency pointers on unchanged content and isolate
         .get(),
     ).toEqual({ revision: 'address-a' })
     row.searchDependencies.en.divisionText = 'Revised Division translation'
-    const revised = await f.run([row], 'new')
+    const revised = await f.run(
+      [row],
+      'new',
+      'source',
+      'division-a',
+      row.addressSnapshotId,
+    )
     expect(revised.changes).toEqual([])
     expect(
       getDatabase(f.databases, 'new')
@@ -358,8 +371,8 @@ test('Places preserve exact dependency pointers on unchanged content and isolate
         )
         .get(),
     ).toEqual({ revision: 'address-b' })
-    expect(f.current.query('SELECT addressSnapshotId FROM places').get()).toEqual({
-      addressSnapshotId: 'address-a',
+    expect(f.current.query('SELECT addressRole FROM places').get()).toEqual({
+      addressRole: 'address',
     })
   } finally {
     f.close()
@@ -407,62 +420,29 @@ test('base edits retain locale versions and retirement excludes another current 
   }
 })
 
-test('Places retain historical Division definitions and only update links when their contents change', async () => {
+test('Division revisions do not add per-Place snapshot pointers or definition sets', async () => {
   const f = fixture()
   try {
     const row = await place()
     row.divisionIds = ['district']
     row.divisionReferences = { districtId: 'district' }
-    row.divisionDefinitions = {
-      district: {
-        level: 3,
-        locales: [
-          { locale: 'en', name: 'Original district' },
-          { locale: 'zh-hant', name: '原文' },
-        ],
-      },
-    }
-    f.current.exec(
-      "PRAGMA foreign_keys=ON; CREATE TABLE divisionLinkWrites(operation TEXT); CREATE TRIGGER divisionLinkUpdated AFTER UPDATE OF divisionDefinitionSetId ON places WHEN old.divisionDefinitionSetId IS NOT new.divisionDefinitionSetId BEGIN INSERT INTO divisionLinkWrites VALUES('update'); END; CREATE TRIGGER divisionLinkDeleted AFTER DELETE ON places BEGIN INSERT INTO divisionLinkWrites VALUES('delete'); END",
-    )
-    // No current Division row or publication receipt exists for this exact old revision.
     await f.run([row])
-    const district = row.divisionDefinitions.district
-    if (!district) throw new Error('District definition missing')
-    district.locales.reverse()
+    const before = f.current.query('SELECT * FROM places').all()
     const same = await f.run([row], 'old', 'source', 'division-b')
     expect(same.historySqlByBinding.size).toBe(0)
+    expect(f.current.query('SELECT * FROM places').all()).toEqual(before)
     expect(
       f.current
-        .query(
-          "SELECT json_extract(d.definition,'$.district.divisionSnapshotId') divisionSnapshotId FROM places p JOIN placeDivisionDefinitions d ON d.id=p.divisionDefinitionSetId",
-        )
+        .query("SELECT name FROM sqlite_schema WHERE name='placeDivisionDefinitions'")
         .get(),
-    ).toEqual({ divisionSnapshotId: 'division-a' })
-    expect(f.current.query('SELECT * FROM divisionLinkWrites').all()).toEqual([])
-    const revisedDistrict = district.locales.find(locale => locale.locale === 'en')
-    if (!revisedDistrict) throw new Error('English district locale missing')
-    revisedDistrict.name = 'Revised district'
-    row.versionHash = 'revised-definition'
-    await f.run([row], 'old', 'source', 'division-b')
-    expect(
-      f.current
-        .query(
-          "SELECT json_extract(d.definition,'$.district.divisionSnapshotId') divisionSnapshotId FROM places p JOIN placeDivisionDefinitions d ON d.id=p.divisionDefinitionSetId",
-        )
-        .get(),
-    ).toEqual({ divisionSnapshotId: 'division-b' })
-    expect(f.current.query('SELECT * FROM divisionLinkWrites').all()).toEqual([
-      { operation: 'update' },
-    ])
+    ).toBeNull()
     row.divisionIds = []
     row.divisionReferences = {}
     row.versionHash = 'removed-membership'
     await f.run([row])
-    expect(f.current.query('SELECT * FROM divisionLinkWrites').all()).toEqual([
-      { operation: 'update' },
-      { operation: 'update' },
-    ])
+    expect(f.current.query('SELECT districtId FROM places').get()).toEqual({
+      districtId: null,
+    })
   } finally {
     f.close()
   }
@@ -473,7 +453,7 @@ test('forward Places ingest after rollback compares the restored predecessor and
   try {
     const row = await place()
     await f.run([row])
-    const tables = ['placeDivisionDefinitions', 'places', 'placesI18n', 'placesCells']
+    const tables = ['places', 'placesI18n', 'placesCells']
     const restoredRows = new Map(
       tables.map(table => [
         table,
@@ -620,6 +600,18 @@ test('spatial membership evidence leaves public Places and is referenced by the 
       expect(stored.address2dId).toBeNull()
       expect(stored.association).toBeNull()
     }
+  } finally {
+    f.close()
+  }
+})
+
+test('Places reject Address rows outside their selected publication dependency', async () => {
+  const f = fixture()
+  try {
+    const row = await place()
+    row.address2dId = 'building'
+    row.addressSnapshotId = 'unselected'
+    await expect(f.run([row])).rejects.toThrow('selected publication dependency')
   } finally {
     f.close()
   }

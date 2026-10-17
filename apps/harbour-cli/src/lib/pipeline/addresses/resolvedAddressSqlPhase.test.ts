@@ -1,3 +1,5 @@
+import { loadMigrationSql } from '../../../../../../libs/core/src/testing/metaFixtures'
+import { createLocalHarbourDb } from '../../../../../../libs/core/src/testing/localDb'
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { mkdtemp, rm } from 'node:fs/promises'
@@ -13,8 +15,13 @@ test('supplementary Address native delivery resolves guarded net changes and res
   const root = await mkdtemp(join(tmpdir(), 'address-publication-native-'))
   const path = join(root, 'current.sqlite')
   const db = new Database(path)
+  const meta = new Database(':memory:')
+  meta.exec(
+    "CREATE TABLE snapshotDependencies(snapshotId,role,dependencySnapshotId); INSERT INTO snapshotDependencies VALUES('new','division','division')",
+  )
   const binding = createLocalExecBinding(db, 'DB_CURRENT')
   const context = {
+    metaDb: createLocalHarbourDb(meta),
     currentBinding: binding,
     state: {
       target: 'local',
@@ -33,17 +40,14 @@ test('supplementary Address native delivery resolves guarded net changes and res
     expectedCount: 1,
   }
   try {
-    const timestamps =
-      "createdAt TEXT NOT NULL DEFAULT 'old',updatedAt TEXT NOT NULL DEFAULT 'old'"
-    db.exec(`CREATE TABLE addressPublicationState(scopeId TEXT PRIMARY KEY,snapshotId TEXT UNIQUE,status TEXT NOT NULL,
-      publicationToken TEXT NOT NULL,preparedAt TEXT,${timestamps});
-      CREATE TABLE address2d(scopeId TEXT,id TEXT,parentAddressId TEXT,${timestamps},PRIMARY KEY(scopeId,id));
-      CREATE TABLE address2dI18n(scopeId TEXT,addressId TEXT,locale TEXT,formattedAddress TEXT,buildingName TEXT,estateName TEXT,streetName TEXT,phaseName TEXT,blockExpression TEXT,buildingNumberFrom TEXT,buildingNumberTo TEXT,buildingNumberConnector TEXT,${timestamps},PRIMARY KEY(scopeId,addressId,locale));
-      CREATE TABLE address2dBuildingNumberLookup(scopeId TEXT,addressId TEXT,buildingNumber TEXT,numericStem TEXT,evidence TEXT,derivation TEXT,${timestamps},PRIMARY KEY(scopeId,addressId,buildingNumber));
-      CREATE TABLE address3d(scopeId TEXT,id TEXT,address2dId TEXT,unresolvedSectionIds TEXT,units TEXT,unitCount INTEGER,${timestamps},PRIMARY KEY(scopeId,id));
-      CREATE TABLE address3dI18n(scopeId TEXT,address3dId TEXT,locale TEXT,units TEXT,${timestamps},PRIMARY KEY(scopeId,address3dId,locale));
-      INSERT INTO addressPublicationState(scopeId,snapshotId,status,publicationToken,preparedAt) VALUES ('scope','old','current','old-token','prepared');
-      INSERT INTO address2d(scopeId,id) VALUES ('scope','a');
+    db.exec(
+      loadMigrationSql(join(import.meta.dir, '../../../../../../libs/db/migrations'), [
+        'current',
+      ]),
+    )
+    db.exec(`INSERT INTO divisionPublicationState(scopeId,snapshotId,status,publicationToken,preparedAt) VALUES('division','division','current','dt','ready');
+      INSERT INTO addressPublicationState(scopeId,snapshotId,status,publicationToken,preparedAt,divisionSnapshotId) VALUES ('scope','old','current','old-token','prepared','division');
+      INSERT INTO address2d(scopeId,id,divisionSnapshotId) VALUES ('scope','a','division');
       INSERT INTO address2dI18n(scopeId,addressId,locale,formattedAddress) VALUES ('scope','a','en','Example address');`)
     await deliverResolvedAddressSqlPhase(phase, async () => {
       await executeSqlText(
@@ -58,7 +62,7 @@ test('supplementary Address native delivery resolves guarded net changes and res
     expect(
       db
         .query(
-          'SELECT snapshotId,status,preparedAt IS NOT NULL AS complete FROM addressPublicationState',
+          'SELECT snapshotId,status,preparedAt IS NOT NULL AS complete FROM addressPublicationState WHERE scopeId="scope"',
         )
         .get(),
     ).toEqual({ snapshotId: 'new', status: 'publishing', complete: 1 })
@@ -72,6 +76,7 @@ test('supplementary Address native delivery resolves guarded net changes and res
       db.query('SELECT count(*) AS n FROM address2dBuildingNumberLookup').get(),
     ).toEqual({ n: 1 })
   } finally {
+    meta.close()
     db.close()
     await rm(root, { recursive: true, force: true })
     await rm(dirname(sqlDeliveryPhaseDirectory(phase)), {

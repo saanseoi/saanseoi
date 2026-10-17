@@ -111,10 +111,10 @@ test('Planning canonical reuse and local/remote current delivery skip an unchang
     )
     db.exec('PRAGMA foreign_keys=ON')
     db.exec(`CREATE TABLE writes(operation TEXT,id TEXT);
-      CREATE TRIGGER divisions_write AFTER INSERT ON divisions BEGIN INSERT INTO writes VALUES('insert',NEW.id); END;
+      CREATE TRIGGER divisions_write AFTER INSERT ON divisions WHEN NEW.scopeId='lineage' BEGIN INSERT INTO writes VALUES('insert',NEW.id); END;
       CREATE TRIGGER divisions_update AFTER UPDATE ON divisions BEGIN INSERT INTO writes VALUES('update',NEW.id); END;
       CREATE TRIGGER divisions_delete AFTER DELETE ON divisions BEGIN INSERT INTO writes VALUES('delete',OLD.id); END;
-      CREATE TRIGGER names_write AFTER INSERT ON divisionsI18n BEGIN INSERT INTO writes VALUES('insert-locale',NEW.divisionId); END;
+      CREATE TRIGGER names_write AFTER INSERT ON divisionsI18n WHEN NEW.scopeId='lineage' BEGIN INSERT INTO writes VALUES('insert-locale',NEW.divisionId); END;
       CREATE TRIGGER names_update AFTER UPDATE ON divisionsI18n BEGIN INSERT INTO writes VALUES('update-locale',NEW.divisionId); END;`)
   }
   const db = drizzle({ client: mirror, relations: defineRelations(currentSchema) })

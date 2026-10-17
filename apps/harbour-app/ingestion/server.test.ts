@@ -550,14 +550,12 @@ test('CURRENT hides history projections but keeps distinct tables and FK groupin
       CREATE TABLE streets(id TEXT PRIMARY KEY,scopeId TEXT);
       CREATE TABLE streetsAddress(streetId TEXT REFERENCES streets(id),addressId TEXT);
       CREATE TABLE statsDefinitionSets(id TEXT);
-      CREATE TABLE placeDivisionDefinitions(id TEXT);
       CREATE TABLE operationState(id TEXT);
       INSERT INTO places VALUES ('place','lineage'),('other-place','other');
       INSERT INTO placesCells VALUES ('place','lineage','cell');
       INSERT INTO streets VALUES ('street','lineage');
       INSERT INTO streetsAddress VALUES ('street','address');
       INSERT INTO statsDefinitionSets VALUES ('defs');
-      INSERT INTO placeDivisionDefinitions VALUES ('place-defs');
       INSERT INTO operationState VALUES ('ready');`,
     },
     {

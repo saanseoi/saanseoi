@@ -61,6 +61,8 @@ async function setup() {
   const source = clients.DB_SOURCE_HK_2025
   const meta = clients.DB_META
   if (!current || !history || !source || !meta) throw new Error('Missing test database')
+  current.exec(`INSERT INTO divisionPublicationState(scopeId,snapshotId,status,publicationToken,preparedAt) VALUES('division','division','current','token','ready');
+    INSERT INTO addressPublicationState(scopeId,snapshotId,status,publicationToken,preparedAt,divisionSnapshotId) VALUES('address','address','current','token','ready','division');`)
   const context = {
     currentDb: drizzle({ client: current, relations: defineRelations(currentSchema) }),
     historyDb: drizzle({ client: history, relations: defineRelations(historySchema) }),
@@ -134,6 +136,24 @@ async function setup() {
     planningMeta
       .query('INSERT INTO snapshotShardAssignments VALUES (?,?)')
       .run(snapshotId, 'history')
+    const planningCurrent = planningClients.DB_CURRENT!
+    for (const row of rows)
+      for (const [id, definition] of Object.entries(row.divisionDefinitions ?? {})) {
+        planningCurrent
+          .query(
+            "INSERT INTO divisions(scopeId,id,class,level,hierarchies) VALUES('division',?,'district',?,'{}') ON CONFLICT(scopeId,id) DO UPDATE SET level=excluded.level",
+          )
+          .run(id, definition.level)
+        planningCurrent
+          .query("DELETE FROM divisionsI18n WHERE scopeId='division' AND divisionId=?")
+          .run(id)
+        for (const l of definition.locales)
+          planningCurrent
+            .query(
+              "INSERT INTO divisionsI18n(scopeId,divisionId,locale,name) VALUES('division',?,?,?)",
+            )
+            .run(id, l.locale, l.name)
+      }
     const path = join(root, `rows-${revision}.jsonl`)
     await Bun.write(path, rows.map(row => JSON.stringify(row)).join('\n'))
     const input: BuildPlaceSqlInput = {
@@ -532,9 +552,11 @@ test('scalar definition edits mutate only their selected Places and search docum
     ).toEqual(docs)
     await prepare(a, 'selected', 'Revised district')
     const edited = await f.run(3, [a, b])
-    expect(edited.mutationSummary.tables.DB_CURRENT?.places?.updated).toBe(1)
+    expect(edited.mutationSummary.tables.DB_CURRENT?.places?.updated ?? 0).toBe(0)
     expect(edited.mutationSummary.tables.DB_CURRENT?.placesI18n?.updated).toBe(1)
-    expect(edited.mutationSummary.tables.DB_HISTORY_HK_2025?.places?.inserted).toBe(1)
+    expect(
+      edited.mutationSummary.tables.DB_HISTORY_HK_2025?.places?.inserted ?? 0,
+    ).toBe(0)
     edited.execute()
     sync(3)
     expect(

@@ -1949,3 +1949,16 @@ approve an unreviewed estate interpretation.
 
 Historical Address release statistics replay the exact retained snapshot, including its
 locale and inventory versions, independently of the current serving scope.
+
+## Serving dependency retention
+
+Each Address publication records one exact `divisionSnapshotId` on its CURRENT receipt,
+matching its immutable snapshot dependency. Replacing a Division projection retains the
+complete previous projection and redirects existing Address foreign keys to its retained
+scope before changing any Division content. Replacing an Address projection also retains
+its complete rows for Place publications that select that snapshot.
+
+Cleanup requires every referencing Place and Address publication to advance or retire.
+It checks logical publication references even for empty snapshots, alongside physical
+Address foreign keys, inside the deletion transaction. Retained HISTORY is independent
+of CURRENT cleanup. Content hashes exclude physical storage scopes.

@@ -18,7 +18,6 @@ const kinds = ['META', 'CURRENT', 'HISTORY', 'SOURCE']
 const historyProjections = new Set<string>([
   ...Object.values(historyEventTables).map(entry => entry.table),
   'statsDefinitionSets',
-  'placeDivisionDefinitions',
 ])
 const reviewableTable = (kind: string, table: string) =>
   kind !== 'CURRENT' || !historyProjections.has(table)
@@ -305,7 +304,6 @@ export class ReviewDatabase {
     // Content-addressed definition references are logical joins without SQL FKs.
     for (const [parent, child, column] of [
       ['statsDefinitionSets', 'statsRecords', 'definitionSetId'],
-      ['placeDivisionDefinitions', 'places', 'divisionDefinitionSetId'],
     ]) {
       if (
         graph.has(parent) &&

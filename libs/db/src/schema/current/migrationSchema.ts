@@ -15,7 +15,6 @@ export * from './streetGeometry'
 export {
   places,
   placesI18n,
-  placeDivisionDefinitions,
   placesCells,
   placeSearchScopes,
 } from './places'

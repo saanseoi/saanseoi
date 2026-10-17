@@ -654,6 +654,9 @@ array ordered west, south, east, north. In full-profile responses, identifiers.w
 identifies the brand; do not treat it as a venue Wikidata identity. lastSeenMonth is the
 observation month of the selected completed publication. Content responses omit serving-write
 timestamps; snapshot and resource-release provenance identify the selected content.
+A Place publication selects one Division revision and its Address companions. Resolve
+relationships using the recorded snapshot references, including inherited Place content;
+do not substitute the latest independent Address or Division release.
 
 Places relationships include supported country, area, district, locality, hood and
 landform IDs. SAR, city and island-group ancestors are excluded. Full profiles expose

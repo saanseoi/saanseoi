@@ -556,6 +556,10 @@ export async function stageEnrichedPlaces(
                   addressSnapshotId,
                   divisionSnapshotId: snapshots.divisionSnapshotId,
                   addressId,
+                  addressRole:
+                    resolution.tier === 'supplementary'
+                      ? 'supplementaryAddress'
+                      : 'address',
                   divisionIds: referencedDivisionIds,
                   divisionReferences,
                   divisionDefinitions: dependencies.divisionDefinitions,

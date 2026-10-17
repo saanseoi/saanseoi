@@ -66,7 +66,7 @@ export type PlaceHistoryRow = Pick<
   PlaceVersionRow,
   | 'id'
   | 'address2dId'
-  | 'addressSnapshotId'
+  | 'addressRole'
   | 'addresses'
   | 'createdAt'
   | 'firstSeenMonth'
@@ -105,6 +105,7 @@ export type BuildPlaceSqlInput = {
     addressSnapshotId: string
     divisionSnapshotId: string
     divisionAreaSnapshotId?: string
+    supplementaryAddressSnapshotId?: string
     snapshotId: string
     snapshotLineageId: string
   }

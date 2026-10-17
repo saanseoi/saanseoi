@@ -1,3 +1,4 @@
+import { currentSchema, getTableColumns } from '@repo/db'
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { mkdtemp, rm } from 'node:fs/promises'
@@ -23,6 +24,22 @@ async function fixture(run: (db: Database, path: string) => Promise<void>) {
       INSERT INTO divisionsI18n VALUES('scope','a','en','A','old'),('scope','a','zh-Hant','甲','old');
       CREATE TABLE divisionPublicationState(scopeId TEXT PRIMARY KEY,snapshotId TEXT UNIQUE,publicationToken TEXT,status TEXT,preparedAt TEXT,createdAt TEXT,updatedAt TEXT);
       INSERT INTO divisionPublicationState VALUES('scope','old','old-token','current','old','old','old');`)
+    for (const table of [currentSchema.divisions, currentSchema.divisionsI18n]) {
+      const name = table === currentSchema.divisions ? 'divisions' : 'divisionsI18n'
+      const existing = new Set(
+        db
+          .query<{ name: string }, []>(`PRAGMA table_info(${name})`)
+          .all()
+          .map(row => row.name),
+      )
+      for (const column of Object.values(getTableColumns(table)))
+        if (!existing.has(column.name))
+          db.exec(`ALTER TABLE ${name} ADD "${column.name}" TEXT`)
+    }
+    db.exec(
+      'CREATE TABLE address2d(scopeId TEXT,id TEXT,divisionSnapshotId TEXT,PRIMARY KEY(scopeId,id))',
+    )
+    db.exec("INSERT INTO address2d VALUES('address','building','scope')")
     await run(db, path)
   } finally {
     db.close()
@@ -89,7 +106,11 @@ test('resolved release delivers only one changed locale and separate publication
       db.query("SELECT name,updatedAt FROM divisions WHERE scopeId='other'").get(),
     ).toEqual({ name: 'B', updatedAt: 'old' })
     expect(
-      db.query('SELECT status,preparedAt FROM divisionPublicationState').get(),
+      db
+        .query(
+          "SELECT status,preparedAt FROM divisionPublicationState WHERE scopeId='scope'",
+        )
+        .get(),
     ).toEqual({ status: 'publishing', preparedAt: 'new' })
   })
 })

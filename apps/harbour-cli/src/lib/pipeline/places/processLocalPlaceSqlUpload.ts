@@ -398,7 +398,10 @@ export async function processLocalPlaceSqlUpload(
       sourceBindingNames: context.sourceTargets.map(target => target.bindingName),
       datasetId,
       message,
-      snapshots,
+      snapshots: {
+        ...snapshots,
+        supplementaryAddressSnapshotId: supplementary.snapshotId,
+      },
       publicationPrevious,
       places: [],
       historyRows,

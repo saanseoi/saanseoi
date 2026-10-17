@@ -1,3 +1,4 @@
+import { resolvePlaceAddressSnapshot } from '@repo/core/pipeline/services/places/dependencyReplay'
 import { seedSnapshotProducerFixtures } from '../../../../libs/core/src/testing/snapshotFixtures'
 import { insertFixtureSnapshot } from '../../../../libs/core/src/testing/snapshotFixtures'
 import { expect, test } from 'bun:test'
@@ -121,7 +122,7 @@ test('replays Place text and spatial divisions from the selected version without
     for (const versionHash of ['place-old-hash', 'place-new-hash']) {
       run(
         history,
-        'INSERT INTO places (id,resourceReleaseId,addressSnapshotId,address2dId,geometry,bbox,basicCategory,sources,firstSeenMonth,lastSeenMonth,versionHash,snapshotId,isCurrent,createdAt) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
+        'INSERT INTO places (id,resourceReleaseId,addressRole,address2dId,geometry,bbox,basicCategory,sources,firstSeenMonth,lastSeenMonth,versionHash,snapshotId,isCurrent,createdAt) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
         [
           'place-1',
           versionHash === 'place-old-hash' ? 'release-old' : 'release-new',
@@ -204,6 +205,14 @@ test('replays Place text and spatial divisions from the selected version without
       )
     }
 
+    run(
+      meta,
+      "INSERT INTO snapshotDependencies(snapshotId,role,dependencySnapshotId) VALUES('place-snapshot-old','address','address-snapshot-old'),('place-snapshot-old','division','division-snapshot-old'),('address-snapshot-old','division','division-snapshot-old')",
+    )
+    run(
+      history,
+      "UPDATE places SET countryId='division-country-old', districtId='division-district-old' WHERE id='place-1'",
+    )
     seedSnapshotProducerFixtures(meta)
     const records = await listReplayedPlaceRecords({
       divisionSnapshotId: 'division-snapshot-old',
@@ -281,6 +290,21 @@ test('historical Places resolve independently inherited locales across years and
     old = init('history'),
     next = init('history')
   try {
+    for (const [id, resourceType] of [
+      ['address', 'address'],
+      ['division', 'division'],
+    ] as const)
+      insertFixtureSnapshot(meta, {
+        id,
+        code: id,
+        resourceType,
+        cohortKey: '2025',
+        status: 'published',
+      })
+    run(
+      meta,
+      "INSERT INTO snapshotDependencies(snapshotId,role,dependencySnapshotId) VALUES('address','division','division')",
+    )
     for (const [snapshot, parent, binding, year] of [
       ['base', null, 'old', '2025'],
       ['edited', 'base', 'next', '2026'],
@@ -296,6 +320,11 @@ test('historical Places resolve independently inherited locales across years and
         createdAt: TIMESTAMP,
         updatedAt: TIMESTAMP,
       })
+      run(
+        meta,
+        "INSERT INTO snapshotDependencies(snapshotId,role,dependencySnapshotId) VALUES (?,'address','address'),(?,'division','division')",
+        [snapshot, snapshot],
+      )
       run(
         meta,
         'INSERT OR IGNORE INTO dataShards(id,shardType,regionCode,year,environment,databaseName,databaseId,bindingName,status,versionHash,createdAt,updatedAt) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)',
@@ -388,4 +417,16 @@ test('historical Places resolve independently inherited locales across years and
     old.close()
     next.close()
   }
+})
+
+test('historical Places reject a supplementary Address role without its selected snapshot', () => {
+  expect(() =>
+    resolvePlaceAddressSnapshot({ address: 'official' }, 'supplementaryAddress'),
+  ).toThrow('no selected publication dependency')
+  expect(
+    resolvePlaceAddressSnapshot(
+      { address: 'official', supplementaryAddress: 'supplementary' },
+      'supplementaryAddress',
+    ),
+  ).toBe('supplementary')
 })

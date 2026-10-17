@@ -41,7 +41,7 @@ const history = (place: NormalisedPlace): PlaceHistoryState => ({
     versionHash: 'before',
     resourceReleaseId: 'before',
     address2dId: null,
-    addressSnapshotId: null,
+    addressRole: null,
   },
 })
 

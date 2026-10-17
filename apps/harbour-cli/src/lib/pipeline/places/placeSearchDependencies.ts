@@ -165,6 +165,7 @@ export function createPlaceSearchDependencies(
           Object.entries(base).filter(
             ([name]) =>
               ![
+                'scopeId',
                 'snapshotId',
                 'divisionSnapshotId',
                 'streetSnapshotId',
@@ -184,7 +185,8 @@ export function createPlaceSearchDependencies(
             .map(row =>
               Object.fromEntries(
                 Object.entries(row).filter(
-                  ([name]) => !['snapshotId', 'createdAt', 'updatedAt'].includes(name),
+                  ([name]) =>
+                    !['scopeId', 'snapshotId', 'createdAt', 'updatedAt'].includes(name),
                 ),
               ),
             )

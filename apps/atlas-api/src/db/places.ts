@@ -1,6 +1,9 @@
 import { chunkArray } from '@repo/core/pipeline/utils.ts'
 import { placeDivisionFieldNames } from '@repo/db'
-import { placeDivisionDefinitions } from '@repo/db/currentSchema'
+import {
+  placeDivisionDefinitionsSql,
+  placeAddressSnapshotSql,
+} from '@repo/core/pipeline/services/places/publicationDependencies'
 import { normalisePlaceBbox } from '@repo/core/pipeline/services/places/placeGeometry'
 import { parseI18nMeta } from '@repo/db'
 import { geographicMembershipSql } from '../lib/geographicFilterContext'
@@ -131,7 +134,7 @@ export async function getPlaceCurrent(db: CurrentDatabase, lookup: PlaceLookup) 
     .select({
       ...getTableColumns(places),
       snapshotId: sql<string>`${lookup.snapshotId}`,
-      addressSnapshotId: places.addressSnapshotId,
+      addressSnapshotId: sql<string | null>`${sql.raw(placeAddressSnapshotSql())}`,
     })
     .from(places)
     .where(
@@ -177,13 +180,14 @@ export async function listPlaceDivisions(db: CurrentDatabase, lookup: I18nLookup
   const row = await db
     .select({
       ...getTableColumns(places),
-      definition: placeDivisionDefinitions.definition,
+      definition: sql<
+        import('@repo/db').PlaceDivisionDefinitionSet
+      >`json(${sql.raw(placeDivisionDefinitionsSql())})`.mapWith(
+        (value): import('@repo/db').PlaceDivisionDefinitionSet =>
+          typeof value === 'string' ? JSON.parse(value) : value,
+      ),
     })
     .from(places)
-    .innerJoin(
-      placeDivisionDefinitions,
-      eq(places.divisionDefinitionSetId, placeDivisionDefinitions.id),
-    )
     .where(
       and(
         publicationScopeCondition('place', places.scopeId, [lookup.snapshotId]),
@@ -492,7 +496,7 @@ export async function listPlaceRecordsCurrent(
       snapshotId: publicationLogicalSnapshot('place', places.scopeId),
       id: places.id,
       resourceReleaseId: places.resourceReleaseId,
-      addressSnapshotId: places.addressSnapshotId,
+      addressSnapshotId: sql<string | null>`${sql.raw(placeAddressSnapshotSql())}`,
       address2dId: places.address2dId,
       address3dId: places.address3dId,
       address3dUnitId: places.address3dUnitId,
@@ -521,9 +525,7 @@ export async function listPlaceRecordsCurrent(
       ...Object.fromEntries(
         placeDivisionFieldNames.map(field => [field, places[field]]),
       ),
-      definition: sql<
-        string | null
-      >`(select definition from ${placeDivisionDefinitions} where id = ${places.divisionDefinitionSetId})`,
+      definition: sql<string | null>`${sql.raw(placeDivisionDefinitionsSql())}`,
     })
     .from(places)
     .where(and(...buildPlaceConditions(lookup)))

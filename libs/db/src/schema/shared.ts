@@ -650,7 +650,7 @@ export function canonicalPlaceColumns<Required extends boolean>(required: Requir
     resourceReleaseId: requiredColumn(text('resourceReleaseId'), required),
     /** Content identity of the referenced Address, selected unit and their localisations. */
     addressDependencyHash: text('addressDependencyHash'),
-    addressSnapshotId: text('addressSnapshotId'),
+    addressRole: text('addressRole', { enum: ['address', 'supplementaryAddress'] }),
     address2dId: text('address2dId'),
     address3dId: text('address3dId'),
     address3dUnitId: text('address3dUnitId'),
@@ -658,7 +658,6 @@ export function canonicalPlaceColumns<Required extends boolean>(required: Requir
       enum: ['established', 'unresolved'],
     }),
     ...placeDivisionColumns(),
-    divisionDefinitionSetId: text('divisionDefinitionSetId'),
     geometry: requiredColumn(
       jsonText<{ type: 'Point'; coordinates: [number, number] }>('geometry'),
       required,

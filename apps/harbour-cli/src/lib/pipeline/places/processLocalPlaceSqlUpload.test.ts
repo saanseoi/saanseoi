@@ -158,7 +158,7 @@ describe('Places SQL materialisation', () => {
         PRIMARY KEY (sourceRecordId, versionHash)
       );
       CREATE TABLE places (
-        scopeId TEXT, id TEXT, resourceReleaseId TEXT, addressSnapshotId TEXT, addressDependencyHash TEXT,
+        scopeId TEXT, id TEXT, resourceReleaseId TEXT, addressRole TEXT, addressDependencyHash TEXT,
         address2dId TEXT, address3dId TEXT, address3dUnitId TEXT, address3dMembership TEXT, geometry TEXT, bbox TEXT,
         operatingStatus TEXT, basicCategory TEXT, taxonomyPrimary TEXT,
         taxonomyHierarchy TEXT, taxonomyAlternates TEXT, identifiers TEXT,
@@ -172,17 +172,16 @@ describe('Places SQL materialisation', () => {
         brandNameVariant TEXT, brandNameAlts TEXT, freeformAddress TEXT, accessHint TEXT,
         meta TEXT, searchDependencyText TEXT, createdAt TEXT, updatedAt TEXT
       );
-      CREATE TABLE placeDivisionDefinitions(id TEXT PRIMARY KEY,definition TEXT);
       CREATE TABLE placesCells (scopeId TEXT, id TEXT, h3Level INTEGER, h3Cell TEXT);
     `)
 
-    for (const field of [...placeDivisionFieldNames, 'divisionDefinitionSetId'])
+    for (const field of [...placeDivisionFieldNames])
       sqlite.exec(`ALTER TABLE places ADD "${field}" TEXT`)
     const history = new Database(':memory:')
     history.exec(`
 
       CREATE TABLE places (
-        id TEXT, resourceReleaseId TEXT, addressSnapshotId TEXT, addressDependencyHash TEXT, address2dId TEXT,
+        id TEXT, resourceReleaseId TEXT, addressRole TEXT, addressDependencyHash TEXT, address2dId TEXT,
         address3dId TEXT, address3dUnitId TEXT, address3dMembership TEXT, geometry TEXT, bbox TEXT, operatingStatus TEXT,
         basicCategory TEXT, taxonomyPrimary TEXT, taxonomyHierarchy TEXT,
         taxonomyAlternates TEXT, identifiers TEXT, websites TEXT, socials TEXT,
@@ -203,10 +202,7 @@ describe('Places SQL materialisation', () => {
       CREATE VIEW historyEvents AS SELECT snapshotId,'place' AS recordType,id AS recordId,'' AS locale,versionHash,operation,sourceReleaseId FROM places UNION ALL SELECT snapshotId,'placeI18n',placeId,locale,versionHash,operation,sourceReleaseId FROM placesI18n;
     `)
 
-    history.exec(
-      'CREATE TABLE placeDivisionDefinitions(id TEXT PRIMARY KEY,definition TEXT)',
-    )
-    for (const field of [...placeDivisionFieldNames, 'divisionDefinitionSetId'])
+    for (const field of [...placeDivisionFieldNames])
       history.exec(`ALTER TABLE places ADD "${field}" TEXT`)
 
     const result = await buildPlaceSql({
@@ -234,6 +230,7 @@ describe('Places SQL materialisation', () => {
         snapshotLineageId: 'place-lineage',
         addressSnapshotId: 'address-2026',
         divisionSnapshotId: 'division-2026',
+        supplementaryAddressSnapshotId: 'supplementary-snapshot',
         snapshotId: 'place-2026',
       },
       historyRows: [],
@@ -368,10 +365,8 @@ describe('Places SQL materialisation', () => {
       lat: 22.4,
     })
     for (const db of [sqlite, history]) {
-      expect(
-        db.query('SELECT addressSnapshotId, address2dId FROM places').get(),
-      ).toEqual({
-        addressSnapshotId: 'supplementary-snapshot',
+      expect(db.query('SELECT addressRole, address2dId FROM places').get()).toEqual({
+        addressRole: 'supplementaryAddress',
         address2dId: 'supplementary-address',
       })
     }

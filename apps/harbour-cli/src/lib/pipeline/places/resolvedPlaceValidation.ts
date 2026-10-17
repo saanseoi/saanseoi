@@ -1,3 +1,4 @@
+import { placeDivisionDefinitionsSql } from '@repo/core/pipeline/services/places/publicationDependencies'
 import { placeDivisionFieldNames } from '@repo/db'
 import type { Database } from 'bun:sqlite'
 import { latLngToCell } from 'h3-js'
@@ -82,7 +83,7 @@ export async function validateResolvedPlaces(
     }
     if (count !== totalRows)
       throw new Error('Places staged membership differs from its declared row count.')
-    const actualDivisions = `SELECT p.scopeId,p.id AS placeId,entry.key AS divisionId, json_object('level',json_extract(entry.value,'$.level'),'locales',json_extract(entry.value,'$.locales')) AS definition FROM places p JOIN placeDivisionDefinitions d ON d.id=p.divisionDefinitionSetId, json_each(d.definition) entry`
+    const actualDivisions = `SELECT p.scopeId,p.id AS placeId,entry.key AS divisionId, json_object('level',json_extract(entry.value,'$.level'),'locales',json_extract(entry.value,'$.locales')) AS definition FROM places p, json_each(${placeDivisionDefinitionsSql('p')}) entry`
     for await (const row of readStagedJsonLines<EnrichedPlace>(path)) {
       const actual = db
         .query<Record<string, string | null>, [string, string]>(
@@ -123,7 +124,7 @@ export async function validateResolvedPlaces(
       db
         .query(`SELECT 1 FROM places p JOIN expectedPlaces e ON p.id=e.id WHERE p.scopeId=? AND (
       p.address2dId IS NOT e.address2dId OR p.address3dId IS NOT e.address3dId OR p.address3dUnitId IS NOT e.address3dUnitId
-      OR p.addressDependencyHash IS NOT e.addressDependencyHash OR (p.address2dId IS NOT NULL AND p.addressSnapshotId IS NULL)) LIMIT 1`)
+      OR p.addressDependencyHash IS NOT e.addressDependencyHash OR (p.address2dId IS NOT NULL AND p.addressRole IS NULL)) LIMIT 1`)
         .get(scopeId)
     )
       throw new Error(

@@ -21,10 +21,11 @@ import { divisions } from './divisions'
 import { streets } from './streets'
 import { publicationStateColumns } from './publicationState'
 
-/** One mutable serving projection per lineage; historical snapshots replay history. */
+/** Serving and dependency-retained Address projections. */
 export const addressPublicationState = sqliteTable('addressPublicationState', {
   scopeId: text('scopeId').primaryKey(),
   snapshotId: text('snapshotId').notNull().unique(),
+  divisionSnapshotId: text('divisionSnapshotId'),
   ...publicationStateColumns(),
 })
 

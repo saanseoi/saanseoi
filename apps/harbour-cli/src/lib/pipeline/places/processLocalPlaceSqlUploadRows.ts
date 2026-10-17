@@ -1,4 +1,4 @@
-import { preparePlaceDivisionDefinitions } from './placeDivisionDefinitions'
+import { placeDivisionFieldNames } from '@repo/db'
 import { placePoint } from '@repo/core/pipeline/services/places/placeGeometry'
 import type { HarbourReadableDb } from '@repo/core/db/types'
 import { publisherPlaceId } from '@repo/core/pipeline/services/places/place'
@@ -132,11 +132,19 @@ export async function buildPlaceSql(
     const previousLocales = new Map(
       previous?.locales?.map(state => [state.row.locale, state]) ?? [],
     )
-    const addressSnapshotId = row.address2dId
-      ? previous?.row.address2dId === row.address2dId &&
-        previous.row.addressDependencyHash === row.addressDependencyHash
-        ? previous.row.addressSnapshotId
-        : (row.addressSnapshotId ?? input.snapshots.addressSnapshotId)
+    if (
+      row.address2dId &&
+      (!row.addressSnapshotId ||
+        (row.addressSnapshotId !== input.snapshots.addressSnapshotId &&
+          row.addressSnapshotId !== input.snapshots.supplementaryAddressSnapshotId))
+    )
+      throw new Error(
+        'Place Address does not belong to a selected publication dependency.',
+      )
+    const addressRole = row.address2dId
+      ? row.addressSnapshotId === input.snapshots.supplementaryAddressSnapshotId
+        ? 'supplementaryAddress'
+        : 'address'
       : null
     const firstSeenMonth =
       typeof previous?.row.firstSeenMonth === 'string'
@@ -181,26 +189,20 @@ export async function buildPlaceSql(
       throw new Error(
         `Place Division IDs differ from scalar references for ${place.id}.`,
       )
-    const divisionSet = preparePlaceDivisionDefinitions(
-      row.divisionReferences ?? {},
-      row.divisionDefinitions ?? {},
-      input.snapshots.divisionSnapshotId,
-      previous?.divisionDefinitions,
+    const scalars = Object.fromEntries(
+      placeDivisionFieldNames.map(field => [
+        field,
+        row.divisionReferences?.[field] ?? null,
+      ]),
     )
-    if (divisionSet.id)
-      currentInserts.add('placeDivisionDefinitions', {
-        id: divisionSet.id,
-        definition: divisionSet.definition,
-      })
     currentInserts.add('places', {
-      ...divisionSet.scalars,
-      divisionDefinitionSetId: divisionSet.id,
+      ...scalars,
       scopeId,
       id: place.id,
       resourceReleaseId: unchanged
         ? previous.row.resourceReleaseId
         : input.message.resourceReleaseId,
-      addressSnapshotId,
+      addressRole,
       addressDependencyHash: row.addressDependencyHash ?? null,
       address2dId: row.address2dId,
       address3dId: row.address3dId,
@@ -295,25 +297,17 @@ export async function buildPlaceSql(
       if (place.i18n.some(row => row.locale === previousLocale.row.locale)) continue
       retireLocale(previousLocale)
     }
-    publicationCounts.divisionLinks += Object.keys(divisionSet.definition).length
+    publicationCounts.divisionLinks += supportedIds.length
 
     if (previous?.row.versionHash !== row.versionHash) {
-      if (divisionSet.id)
-        historyStatements(input.activeHistoryBindingName).push(
-          insertSql('placeDivisionDefinitions', {
-            id: divisionSet.id,
-            definition: divisionSet.definition,
-          }),
-        )
       historyStatements(input.activeHistoryBindingName).push(
         placeHistoryInsertSql(
           'places',
           {
             id: place.id,
-            ...divisionSet.scalars,
-            divisionDefinitionSetId: divisionSet.id,
+            ...scalars,
             resourceReleaseId: input.message.resourceReleaseId,
-            addressSnapshotId,
+            addressRole,
             addressDependencyHash: row.addressDependencyHash ?? null,
             address2dId: row.address2dId,
             address3dId: row.address3dId,

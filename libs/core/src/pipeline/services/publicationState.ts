@@ -113,7 +113,7 @@ export async function finalisePublishedResources(
         publicationScopeId(family, snapshot.lineage, snapshot.cohort) !==
           receipt.scopeId &&
         !(
-          family === 'division' &&
+          (family === 'division' || family === 'address') &&
           retainedDivisionScopeId(snapshot.lineage, receipt.snapshotId) ===
             receipt.scopeId
         )

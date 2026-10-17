@@ -1,3 +1,5 @@
+import { retainPublicationSql } from '@repo/core/pipeline/services/publication/retention.ts'
+import { splitSqlStatements } from '@repo/core/pipeline/services/addresses/sqlImportStages'
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { mkdtemp, rm, readFile, writeFile } from 'node:fs/promises'
@@ -65,6 +67,16 @@ async function fixture() {
       tables,
       append,
       prepare: async candidate => {
+        if (!remove) {
+          const preservation = splitSqlStatements(
+            retainPublicationSql({
+              ...claim,
+              snapshotId: 'old',
+              family: 'division',
+            }),
+          )
+          for (const sql of preservation.slice(0, -1)) candidate.exec(sql)
+        }
         if (remove) {
           candidate.query("DELETE FROM divisionsI18n WHERE scopeId='scope'").run()
           candidate.query("DELETE FROM divisions WHERE scopeId='scope'").run()
@@ -287,32 +299,18 @@ test('sealed rollback reconciles lost local progress from receipts without repea
   }
 })
 
-test('Places rollback delivers shared definitions before scalars and resumes interrupted or unacknowledged payloads', async () => {
-  const { preparePlaceDivisionDefinitions } = await import(
-    '../pipeline/places/placeDivisionDefinitions'
-  )
+test('Places rollback restores scalar memberships and resumes interrupted or unacknowledged payloads', async () => {
   const { buildPlaceSearchSyncSql } = await import(
     '@repo/core/pipeline/services/places/searchIndex'
   )
   const f = await fixture()
   try {
-    const definitions = (id: string) =>
-      preparePlaceDivisionDefinitions(
-        { districtId: id },
-        { [id]: { level: 2, locales: [{ locale: 'en', name: id }] } },
-        id,
-      )
-    const newer = definitions('new-district'),
-      older = definitions('old-district')
-    f.current
-      .query('INSERT INTO placeDivisionDefinitions(id,definition) VALUES (?,?)')
-      .run(newer.id, JSON.stringify(newer.definition))
     for (const scope of ['place-scope', 'other-place']) {
       f.current
         .query(
-          "INSERT INTO places(scopeId,id,resourceReleaseId,geometry,firstSeenMonth,districtId,divisionDefinitionSetId) VALUES(?,'p','release','{}','2026-01','new-district',?)",
+          "INSERT INTO places(scopeId,id,resourceReleaseId,geometry,firstSeenMonth,districtId) VALUES(?,'p','release','{}','2026-01','new-district')",
         )
-        .run(scope, newer.id)
+        .run(scope)
       f.current
         .query(
           "INSERT INTO placesI18n(scopeId,placeId,locale,name,searchDependencyText) VALUES(?,'p','en','Place',?)",
@@ -364,7 +362,6 @@ test('Places rollback delivers shared definitions before scalars and resumes int
           context: f.context,
           append,
           tables: [
-            { name: 'placeDivisionDefinitions', ignoredColumns: [] },
             ...['places', 'placesI18n'].map(name => ({
               name,
               ignoredColumns: ['createdAt'],
@@ -372,14 +369,9 @@ test('Places rollback delivers shared definitions before scalars and resumes int
             })),
           ],
           prepare: async candidate => {
-            candidate
-              .query('INSERT INTO placeDivisionDefinitions(id,definition) VALUES (?,?)')
-              .run(older.id, JSON.stringify(older.definition))
-            candidate
-              .query(
-                "UPDATE places SET districtId='old-district',divisionDefinitionSetId=? WHERE scopeId='place-scope'",
-              )
-              .run(older.id)
+            candidate.exec(
+              "UPDATE places SET districtId='old-district' WHERE scopeId='place-scope'",
+            )
             candidate.exec(
               "UPDATE placesI18n SET searchDependencyText=json_set(searchDependencyText,'$.divisionText','old-district') WHERE scopeId='place-scope'",
             )
@@ -415,11 +407,9 @@ test('Places rollback delivers shared definitions before scalars and resumes int
     await runNativeSqlDelivery(directory, { files: f.files })
     expect(
       f.current
-        .query(
-          "SELECT districtId,divisionDefinitionSetId FROM places WHERE scopeId='place-scope'",
-        )
+        .query("SELECT districtId FROM places WHERE scopeId='place-scope'")
         .get(),
-    ).toEqual({ districtId: 'old-district', divisionDefinitionSetId: older.id })
+    ).toEqual({ districtId: 'old-district' })
     expect(f.current.query('PRAGMA foreign_key_check').all()).toEqual([])
     expect(
       f.current.query("SELECT rowid,* FROM places WHERE scopeId='other-place'").get(),

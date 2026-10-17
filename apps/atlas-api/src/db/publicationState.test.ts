@@ -34,6 +34,16 @@ for (const family of families) {
         `INSERT INTO ${table} VALUES ('selected','publishing','generation-1',NULL,'same-time')`,
       )
       expect(await getPublicationReadiness(db, family, ['selected'])).toBeNull()
+      if (family === 'address' || family === 'place') {
+        sqlite.exec(`ALTER TABLE ${table} ADD divisionSnapshotId TEXT; UPDATE ${table} SET divisionSnapshotId='division-dependency';
+          CREATE TABLE divisionPublicationState(snapshotId PRIMARY KEY,status,publicationToken,preparedAt,updatedAt);
+          INSERT INTO divisionPublicationState VALUES('division-dependency','current','dt','ready','now');`)
+        if (family === 'place')
+          sqlite.exec(`ALTER TABLE ${table} ADD addressSnapshotId TEXT; ALTER TABLE ${table} ADD supplementaryAddressSnapshotId TEXT;
+          UPDATE ${table} SET addressSnapshotId='address-dependency';
+          CREATE TABLE addressPublicationState(snapshotId PRIMARY KEY,status,publicationToken,preparedAt,updatedAt,divisionSnapshotId);
+          INSERT INTO addressPublicationState VALUES('address-dependency','current','at','ready','now','division-dependency');`)
+      }
       sqlite.exec(`UPDATE ${table} SET status='current'`)
       expect(await getPublicationReadiness(db, family, ['selected'])).toBeNull()
       sqlite.exec(`UPDATE ${table} SET preparedAt='prepared'`)

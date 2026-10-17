@@ -77,12 +77,6 @@ function createPlacesResetCurrentDb() {
         "INSERT INTO placesCells(scopeId,id,h3Level,h3Cell) VALUES(?,'place',5,'cell')",
       )
       .run(scope)
-    sqlite.exec(
-      "INSERT OR IGNORE INTO placeDivisionDefinitions(id,definition) VALUES('set','{}')",
-    )
-    sqlite
-      .query('UPDATE places SET divisionDefinitionSetId=? WHERE scopeId=?')
-      .run('set', scope)
   }
   return { db: createLocalHarbourDb(sqlite), sqlite }
 }

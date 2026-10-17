@@ -21,12 +21,12 @@ time and is not a synthetic locale or stable ID.
 
 Place scalar memberships resolve from the effective point and pinned DivisionArea
 polygons, with compatible Address fallback. SAR, city and island-group ancestors are
-excluded. Exact levels, locale names and independently inherited logical revision
-pointers use shared content-addressed `placeDivisionDefinitions` sets, selected by
-`divisionDefinitionSetId`. New base versions retain their set in the HISTORY shard.
-Historical reads and rollback use this evidence independently of live serving scopes.
-Locale search text retains its own original dependency versions for fresh and
-incremental FTS.
+excluded. All Division IDs resolve against the single Division snapshot selected by the
+Place publication. The publication also selects its official and supplementary Address
+snapshots; `addressRole` chooses the relevant companion for each linked Place. CURRENT
+retains complete referenced projections until all dependants advance. Historical reads
+and rollback use immutable publication dependencies and inherited content versions.
+Locale search text retains its own original evidence for fresh and incremental FTS.
 
 ## ZH-HANT
 

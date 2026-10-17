@@ -801,22 +801,28 @@ consume only its unambiguous `references`, including its most-specific island.
 Address-free Places resolve from the pinned polygons. Ambiguous peers remain null.
 Canonical provenance uses `islandId` in `sources[].properties` for this membership.
 
-`divisionDefinitionSetId` selects an immutable content-addressed row in
-`placeDivisionDefinitions`. Its definition maps only selected IDs to exact logical
-Division revisions, levels and locale names. Each unchanged definition inherits its own
-pointer; a set may therefore contain multiple revisions. Two Places with the same
-selected definitions share one row. Equivalent releases preserve pointers and cause no
-base, locale or FTS mutation. A selected name or level change affects only Places using
-that definition. Canonical hashes include supported references and selected definition
-content, excluding assembly revision IDs. A new base content version carries its shared
-set into its HISTORY shard. Empty sets also have a content address.
+Each Place publication selects one complete Division snapshot and its official and
+supplementary Address snapshots. `placePublicationState` records these exact logical
+references; immutable `snapshotDependencies` records the same selection for historical
+replay. Place rows retain scalar Division IDs and an `addressRole` selecting the
+appropriate Address companion. Display names and levels resolve from the publication's
+Division snapshot, including when the Place content version is inherited.
 
-CURRENT retains shared sets across serving-scope retirement. Rollback reads and checks
-sets across retained HISTORY shards, delivers them before referencing bases, and uses
-each locale version's original base definitions to validate its independent search text.
-Older immutable evidence is preserved; public replay filters its recorded IDs through
-exact historical Division classes, excluding SAR, city and island-group relationships.
-`searchDependencyText` supplies both fresh and incremental FTS.
+Unchanged Place rows do not require a write when a publication advances its dependency
+snapshots. Selected names affect locale search text independently; snapshot identifiers
+and Division display definitions do not enter the Place base content hash. Address
+content hashes exclude physical storage scopes. `searchDependencyText` supplies both
+fresh and incremental FTS and retains its original evidence for replay validation.
+
+Before replacing a Division or Address serving projection, delivery retains its complete
+rows and receipt under a snapshot-specific scope. Existing Address foreign keys continue
+to identify the retained Division projection. CURRENT cleanup checks all Place
+publication references, including supplementary Addresses and unfinished publications,
+and all Address publication references to Divisions. A dependency remains until every
+referencing publication advances or is retired. Cleanup removes dependent Address
+projections before Division projections and rechecks references inside the atomic
+deletion batch. HISTORY remains available for replay. Current reads require complete
+dependency receipts.
 
 Scalar filters deduplicate matches before counts and pagination. Covering indexes use
 `(scopeId, scalarId, id)`: all eleven measured filters otherwise read the whole scope. A
@@ -894,3 +900,12 @@ processing decisions. There is no separate SaanSeoi Places dataset.
 decision model supply no access hint. A supplied locale hint is retained in CURRENT and
 HISTORY and participates in the locale content hash; address matching does not infer
 one.
+
+## Publication dependency schema rollout
+
+The generated CURRENT and HISTORY migrations remove per-Place snapshot pointers and
+shared Division definition sets. Existing Place content hashes and Address dependency
+hashes require regeneration with publication-level dependency selection. Migration entry
+points reject populated Place tables: a reviewed rebuild from retained source and
+metadata must precede schema application. Generated DDL alone is not a data conversion.
+Backups and immutable source evidence remain outside CURRENT projection cleanup.

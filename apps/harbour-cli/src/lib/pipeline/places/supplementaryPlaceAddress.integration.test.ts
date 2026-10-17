@@ -160,7 +160,7 @@ INSERT INTO snapshots(id, code, cohortKey, status, snapshotLineageId) VALUES
       .insert(currentSchema.divisionPublicationState)
       .values({
         scopeId: 'division',
-        snapshotId: 'division-serving-newer',
+        snapshotId: 'division-selected',
         status: 'current',
         publicationToken: 'division-fixture',
         preparedAt: '2025-08-19T00:00:00Z',
@@ -246,6 +246,7 @@ INSERT INTO snapshots(id, code, cohortKey, status, snapshotLineageId) VALUES
       curationPath,
       entryLedgerPath,
       context: {
+        metaDb: db,
         state: {
           target: 'local',
           dbCacheDir: root,

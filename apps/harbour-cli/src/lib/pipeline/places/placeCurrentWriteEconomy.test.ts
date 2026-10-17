@@ -22,9 +22,11 @@ test('Places delivery writes only current content changes and removals, with rec
         join(import.meta.dir, '../../../../../../libs/db/migrations'),
         ['current'],
       )
-      const tables = ['places', 'placesI18n', 'placesCells', 'placeDivisionDefinitions']
+      const tables = ['places', 'placesI18n', 'placesCells']
       for (const db of [f.remote, local]) {
         db.exec(migrationSql)
+        db.exec(`INSERT INTO divisionPublicationState(scopeId,snapshotId,status,publicationToken,preparedAt) VALUES('division','division','current','token','ready');
+          INSERT INTO addressPublicationState(scopeId,snapshotId,status,publicationToken,preparedAt,divisionSnapshotId) VALUES('address','address','current','token','ready','division');`)
         db.exec(
           'PRAGMA foreign_keys=ON; CREATE TABLE audit(tableName TEXT, operation TEXT);',
         )
@@ -134,9 +136,6 @@ test('Places delivery writes only current content changes and removals, with rec
       expect(
         local.query('SELECT count(*) n FROM places WHERE districtId IS NOT NULL').get(),
       ).toEqual({ n: 2 })
-      expect(
-        local.query('SELECT count(*) n FROM placeDivisionDefinitions').get(),
-      ).toEqual({ n: 1 })
       for (const db of [f.remote, local]) db.exec('DELETE FROM audit')
       const reissued = structuredClone(initial)
       for (const row of reissued) row.place.lastSeenMonth = '2026-10'

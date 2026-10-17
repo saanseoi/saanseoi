@@ -8,10 +8,7 @@ import {
   createDivisionMembership,
   divisionFields,
 } from '../divisions/divisionMembership'
-import {
-  preparePlaceDivisionDefinitions,
-  supportedPlaceMembership,
-} from './placeDivisionDefinitions'
+import { supportedPlaceMembership } from './placeDivisionDefinitions'
 
 test('Place output consumes scalar references and excludes extra ancestor evidence without changing the shared resolver', () => {
   expect([...new Set(Object.values(divisionFields))].sort()).toEqual(
@@ -62,36 +59,14 @@ test('Place output consumes scalar references and excludes extra ancestor eviden
   expect(selected.references.islandId).toBeNull()
 })
 
-test('selected definitions share storage, reuse revisions independently and isolate content hashes', async () => {
+test('Place content hashes exclude the publication Division revision and display definitions', async () => {
   const candidates = {
     a: { level: 1, locales: [{ locale: 'en', name: 'Area' }] },
     d: { level: 2, locales: [{ locale: 'en', name: 'District' }] },
   }
   const refs = { areaId: 'a', districtId: 'd' }
-  const first = preparePlaceDivisionDefinitions(refs, candidates, 'old')
-  expect(preparePlaceDivisionDefinitions(refs, candidates, 'old').id).toBe(first.id)
-  const reissued = preparePlaceDivisionDefinitions(
-    refs,
-    candidates,
-    'new',
-    first.definition,
-  )
-  expect(reissued).toEqual(first)
   const changed = structuredClone(candidates)
   changed.d.level = 3
-  const next = preparePlaceDivisionDefinitions(refs, changed, 'new', first.definition)
-  expect(next.id).not.toBe(first.id)
-  expect(next.definition.a?.divisionSnapshotId).toBe('old')
-  expect(next.definition.d?.divisionSnapshotId).toBe('new')
-  const unrelated = preparePlaceDivisionDefinitions({ areaId: 'a' }, candidates, 'old')
-  expect(
-    preparePlaceDivisionDefinitions(
-      { areaId: 'a' },
-      changed,
-      'new',
-      unrelated.definition,
-    ),
-  ).toEqual(unrelated)
   const place = normaliseOverturePlace(
     {
       id: 'p',
@@ -117,7 +92,7 @@ test('selected definitions share storage, reuse revisions independently and isol
   ).toBe(hash)
   expect(
     await hashPlaceMaterialisation(place, { ...input, divisionDefinitions: changed }),
-  ).not.toBe(hash)
+  ).toBe(hash)
   expect(
     await hashPlaceMaterialisation(place, {
       ...input,

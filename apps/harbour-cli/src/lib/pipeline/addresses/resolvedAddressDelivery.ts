@@ -1,3 +1,4 @@
+import { readSnapshotDependencies } from '@repo/core/pipeline/db/snapshotDependencies'
 import type { Database } from 'bun:sqlite'
 import type { DatasetProcessingMessage } from '@repo/core'
 import type { SnapshotReplayStep } from '@repo/core/db/metaRegistry'
@@ -130,8 +131,15 @@ export async function captureResolvedAddressDelivery(input: {
   const metaPayloads: Uint8Array[] = []
   let previous: AddressPublicationReceipt | null = null
   let validationSql = '0'
+  const dependencies = await readSnapshotDependencies(
+    input.metaDb as never,
+    input.snapshotId,
+  )
+  if (!dependencies.division)
+    throw new Error('Address publication requires an exact Division dependency.')
   const publication = addressPublicationDelivery({
     owner: {
+      divisionSnapshotId: dependencies.division,
       scopeId: input.scopeId,
       snapshotId: input.snapshotId,
       publicationToken: crypto.randomUUID(),

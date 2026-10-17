@@ -1,3 +1,6 @@
+import { readSnapshotDependencies } from '@repo/core/pipeline/db/snapshotDependencies'
+import { retainPublicationSql } from '@repo/core/pipeline/services/publication/retention.ts'
+import { splitSqlStatements } from '@repo/core/pipeline/services/addresses/sqlImportStages'
 import { defineRelations } from 'drizzle-orm'
 import { resolve } from 'node:path'
 import { mkdir, writeFile } from 'node:fs/promises'
@@ -57,7 +60,7 @@ const familyTables: Record<RollbackResourceType, string[]> = {
     'address3d',
     'address3dI18n',
   ],
-  place: ['places', 'placesI18n', 'placesCells', 'placeDivisionDefinitions'],
+  place: ['places', 'placesI18n', 'placesCells'],
   street: [
     'streets',
     'streetsI18n',
@@ -110,10 +113,8 @@ export async function prepareReconstructedRollback(input: {
   const tables: NetTablePolicy[] = families.flatMap(family =>
     familyTables[family].map(name => ({
       name,
-      ignoredColumns: ['statsDefinitionSets', 'placeDivisionDefinitions'].includes(name)
-        ? []
-        : ['createdAt'],
-      ...(['statsDefinitionSets', 'placeDivisionDefinitions'].includes(name)
+      ignoredColumns: ['statsDefinitionSets'].includes(name) ? [] : ['createdAt'],
+      ...(['statsDefinitionSets'].includes(name)
         ? {}
         : {
             rowScope: {
@@ -288,6 +289,32 @@ export async function prepareReconstructedRollback(input: {
           snapshotId: scope.to?.id ?? null,
           publicationToken: crypto.randomUUID(),
         }
+        if (scope.to && (scope.family === 'address' || scope.family === 'place')) {
+          const selected = await readSnapshotDependencies(metaDb, scope.to.id)
+          if (!selected.division || (scope.family === 'place' && !selected.address))
+            throw new Error('Rollback requires exact publication dependencies.')
+          claim.dependencies = {
+            divisionSnapshotId: selected.division,
+            ...(scope.family === 'place'
+              ? {
+                  addressSnapshotId: selected.address,
+                  supplementaryAddressSnapshotId: selected.supplementaryAddress,
+                }
+              : {}),
+          }
+        }
+        if (scope.to && (scope.family === 'division' || scope.family === 'address')) {
+          // Clone before reconstruction, retaining the acknowledged receipt for
+          // the sealed claim. Delivery repeats the same preservation atomically.
+          const preservation = splitSqlStatements(
+            retainPublicationSql({
+              ...claim,
+              snapshotId: scope.to.id,
+              family: scope.family,
+            }),
+          )
+          for (const sql of preservation.slice(0, -1)) current.exec(sql)
+        }
         claims.push(claim)
         for (const policy of tables)
           if (familyForTable(policy.name) === scope.family)
@@ -321,9 +348,7 @@ export async function prepareReconstructedRollback(input: {
           current.exec('PRAGMA foreign_keys=OFF')
           try {
             current.transaction(() => {
-              for (const name of familyTables[scope.family]
-                .filter(name => name !== 'placeDivisionDefinitions')
-                .toReversed())
+              for (const name of familyTables[scope.family].toReversed())
                 current
                   .query(`DELETE FROM "${name}" WHERE "${scopeColumn(name)}"=?`)
                   .run(scope.scopeId)

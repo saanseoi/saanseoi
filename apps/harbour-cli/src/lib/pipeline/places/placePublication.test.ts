@@ -16,6 +16,9 @@ test('streamed empty Places delivery validates every projection table before pre
         'current',
       ]),
     )
+    current.exec(
+      "INSERT INTO divisionPublicationState(scopeId,snapshotId,status,publicationToken,preparedAt) VALUES('d','division','current','dt','ready'); INSERT INTO addressPublicationState(scopeId,snapshotId,status,publicationToken,preparedAt,divisionSnapshotId) VALUES('a','address','current','at','ready','division')",
+    )
     const path = join(root, 'places.jsonl')
     await Bun.write(path, '')
     const targets = {

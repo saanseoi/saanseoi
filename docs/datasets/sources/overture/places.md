@@ -884,16 +884,18 @@ canonical rows; source records retain native bounds. `brand.wikidata` maps to
 
 Complete publications establish the current observation month without rewriting
 unchanged serving rows. Immutable content versions retain their recorded observation
-month. Exact Division names and levels are shared by logical revision and identity;
-Place links retain that revision independently of the live Division scope.
+month. Each Place publication selects one complete Division snapshot and exact official
+and supplementary Address snapshots. Scalar Division IDs and `addressRole` on the Place
+resolve through that publication's dependency receipts. Names and levels come from the
+selected Division projection; historical reads use the same snapshot selection from
+immutable metadata. Publication changes alone do not rewrite unchanged Place rows.
 
-Exact Division names and levels use shared content-addressed `placeDivisionDefinitions`
-sets. Each member retains its logical revision independently, reusing equivalent
-predecessor definitions. The Place base stores `divisionDefinitionSetId`; new HISTORY
-base versions carry the selected set into the same shard. Rollback delivers the shared
-sets and validates each locale against its own historical base. Fresh and incremental
-FTS use locale-row `searchDependencyText`. No mutable Division serving scope substitutes
-for the selected historical revision.
+Division and Address delivery retain complete replaced projections while serving Place
+or Address publications depend on them. Cleanup checks publication references, including
+empty and unfinished publications, before removing a CURRENT projection. Locale search
+text retains its own original evidence for fresh and incremental FTS. Address dependency
+hashes exclude physical storage scopes; Division display definitions are resolved
+through the publication and do not enter the Place base hash.
 
 Canonical HISTORY events follow the shared
 [producer ownership contract](../../families/source-evidence.md#history-producer-ownership).

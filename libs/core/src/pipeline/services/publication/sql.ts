@@ -1,3 +1,8 @@
+import {
+  retainPublicationSql,
+  releaseRetainedReceiptSql,
+  finishRetainedPublicationSql,
+} from './retention'
 /** Publication receipts describe complete snapshots, never observation membership. */
 export type PublicationTable =
   | 'divisionPublicationState'
@@ -15,6 +20,11 @@ export type PublicationIdentity = {
 export type PublicationPreparation = PublicationIdentity & {
   scopeId: string
   timestamp: string
+  dependencies?: {
+    divisionSnapshotId: string
+    addressSnapshotId: string
+    supplementaryAddressSnapshotId?: string
+  }
   /** The exact acknowledged predecessor captured while the delivery plan is sealed. */
   previous?: { snapshotId: string; publicationToken: string } | null
   /** Validated draft-only geometry assembly may accept another completed contributor. */
@@ -53,10 +63,24 @@ export function buildBeginPublicationSql(input: PublicationPreparation) {
       : '0'
   return [
     'SELECT 1 /* saanseoi-audit-commit:start */;',
+    ...(input.table === 'divisionPublicationState'
+      ? [
+          retainPublicationSql({ ...input, family: 'division' }),
+          releaseRetainedReceiptSql({ ...input, family: 'division' }),
+        ]
+      : []),
     `INSERT INTO ${tableName(input.table)} (scopeId, snapshotId, status, publicationToken, preparedAt, createdAt, updatedAt) VALUES (${literal(input.scopeId)}, ${literal(input.snapshotId)}, 'publishing', ${literal(input.publicationToken)}, NULL, ${literal(input.timestamp)}, ${literal(input.timestamp)}) ON CONFLICT(scopeId) DO UPDATE SET snapshotId = excluded.snapshotId, status = 'publishing', publicationToken = excluded.publicationToken, preparedAt = NULL, updatedAt = excluded.updatedAt WHERE ${previous};`,
     buildPublicationAssertionSql(
       `EXISTS (SELECT 1 FROM ${tableName(input.table)} WHERE scopeId = ${literal(input.scopeId)} AND snapshotId = ${literal(input.snapshotId)} AND publicationToken = ${literal(input.publicationToken)} AND status = 'publishing' AND preparedAt IS NULL)`,
     ),
+    ...(input.table === 'placePublicationState' && input.dependencies
+      ? [
+          buildPublicationAssertionSql(
+            `EXISTS (SELECT 1 FROM divisionPublicationState WHERE snapshotId=${literal(input.dependencies.divisionSnapshotId)} AND preparedAt IS NOT NULL AND publicationToken<>'') AND EXISTS (SELECT 1 FROM addressPublicationState WHERE snapshotId=${literal(input.dependencies.addressSnapshotId)} AND divisionSnapshotId=${literal(input.dependencies.divisionSnapshotId)} AND preparedAt IS NOT NULL AND publicationToken<>'')${input.dependencies.supplementaryAddressSnapshotId ? ` AND EXISTS (SELECT 1 FROM addressPublicationState WHERE snapshotId=${literal(input.dependencies.supplementaryAddressSnapshotId)} AND divisionSnapshotId=${literal(input.dependencies.divisionSnapshotId)} AND preparedAt IS NOT NULL AND publicationToken<>'')` : ''}`,
+          ),
+          `UPDATE placePublicationState SET divisionSnapshotId=${literal(input.dependencies.divisionSnapshotId)}, addressSnapshotId=${literal(input.dependencies.addressSnapshotId)}, supplementaryAddressSnapshotId=${input.dependencies.supplementaryAddressSnapshotId ? literal(input.dependencies.supplementaryAddressSnapshotId) : 'NULL'} WHERE snapshotId=${literal(input.snapshotId)} AND publicationToken=${literal(input.publicationToken)};`,
+        ]
+      : []),
     'SELECT 1 /* saanseoi-audit-commit:end */;',
   ].join('\n')
 }
@@ -69,6 +93,9 @@ export function buildCompletePublicationSql(
     'SELECT 1 /* saanseoi-audit-commit:start */;',
     buildPublicationGuardSql(input),
     ...(input.validationSql ? [buildPublicationAssertionSql(input.validationSql)] : []),
+    ...(input.table === 'divisionPublicationState'
+      ? [finishRetainedPublicationSql({ ...input, family: 'division' })]
+      : []),
     `UPDATE ${tableName(input.table)} SET preparedAt = ${literal(input.timestamp)}, updatedAt = ${literal(input.timestamp)} WHERE snapshotId = ${literal(input.snapshotId)} AND publicationToken = ${literal(input.publicationToken)} AND status = 'publishing' AND preparedAt IS NULL;`,
     'SELECT 1 /* saanseoi-audit-commit:end */;',
   ].join('\n')

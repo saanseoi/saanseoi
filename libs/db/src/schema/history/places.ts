@@ -44,6 +44,3 @@ export const placesI18n = sqliteTable(
     ),
   ],
 )
-
-// Immutable dependency sets travel with the content shard for exact replay.
-export { placeDivisionDefinitions } from '../current/places'
