@@ -56,7 +56,7 @@ export function placeSources(
   upstream: unknown[],
   addressSources: SourceAttribution[],
   divisionSource: PlaceDependencySource,
-  references: Partial<Record<string, string | null>>,
+  referenceSources: Partial<Record<string, string | null>>,
 ): SourceAttribution[] {
   const contributions = new Map<string, SourceAttribution>()
   const add = (source: SourceAttribution) => {
@@ -74,7 +74,7 @@ export function placeSources(
     )
   }
   for (const source of addressSources) add(source)
-  for (const [property, recordId] of Object.entries(references)) {
+  for (const [property, recordId] of Object.entries(referenceSources)) {
     if (recordId) add({ ...divisionSource, recordId, properties: [property] })
   }
   return [

@@ -879,8 +879,11 @@ publisher, dataset and source record IDs for `address2dId`, `address3dId` and
 `address3dUnitId`. Derived Address records without a publisher reference use their
 owning dataset and canonical record ID; an existing publisher record ID is never
 replaced. Division contributions identify the dataset that owns the pinned Division
-snapshot and the referenced Division ID, scoped to populated scalar fields such as
-`districtId`.
+snapshot. The containing Division record supplies its own ID and the populated scalar
+IDs established by every canonical hierarchy path on that record. These fields share
+that record’s `recordId`; ancestor records are not separate contributions when the
+containing record supplies their IDs. Independent associations, such as an island,
+retain separate contributions when no selected record supplies them.
 
 These contributions are resolved before materialisation hashing and caching. Historical
 preparation uses the exact dependency snapshots; null and deferred Address links add no

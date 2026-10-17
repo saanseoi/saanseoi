@@ -948,3 +948,7 @@ Coordinate and locale corrections remain processing fixes rather than source aut
 The current Overture input and review-decision contract contain no `accessHint` input.
 The nullable canonical locale field preserves a supplied hint through CURRENT, HISTORY
 and locale hashing; it is not inferred from matching.
+
+Division source attribution groups populated hierarchy IDs under the containing Division
+record that supplies them. Only IDs agreed by every canonical hierarchy path on that
+record are credited to it; independent associations retain their own sources.

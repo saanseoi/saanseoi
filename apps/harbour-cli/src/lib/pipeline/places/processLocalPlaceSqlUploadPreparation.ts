@@ -1,3 +1,4 @@
+import { createPlaceDivisionAttribution } from './placeDivisionAttribution'
 import { placeSources, type PlaceDependencySource } from './placeAttribution'
 import { supportedPlaceMembership } from './placeDivisionDefinitions'
 import {
@@ -419,6 +420,7 @@ export async function stageEnrichedPlaces(
     .where(eq(currentSchema.divisionAreas.scopeId, geometryReceipt.scopeId))
     .all()
   const membership = createDivisionMembership(divisions, areas)
+  const divisionAttribution = createPlaceDivisionAttribution(divisions)
   const addressById = new Map(addresses.map(row => [row.id, row]))
   if (!supplementary)
     throw new Error('Places require supplementary address analysis before enrichment.')
@@ -483,6 +485,7 @@ export async function stageEnrichedPlaces(
               }),
             )
             const divisionReferences = association.references
+            const divisionReferenceSources = divisionAttribution(association)
             const referencedDivisionIds = association.divisionIds
             const divisionAssociation = {
               divisionSnapshotId: snapshots.divisionSnapshotId,
@@ -498,6 +501,7 @@ export async function stageEnrichedPlaces(
             } = place
             const identity = recordCacheKey([
               stablePlace,
+              divisionReferenceSources,
               resolution.tier,
               addressId,
               addressSnapshotId,
@@ -532,7 +536,7 @@ export async function stageEnrichedPlaces(
                 place.sources.overture,
                 addressSources,
                 snapshots.divisionSource,
-                divisionReferences,
+                divisionReferenceSources,
               )
               const result = {
                 sources,
@@ -588,7 +592,7 @@ export async function stageEnrichedPlaces(
     db: currentDb,
     identity: sha256(
       JSON.stringify({
-        contract: ['places-enrichment-v5-scalar-divisions', recordCache?.contract],
+        contract: ['places-enrichment-v6-division-attribution', recordCache?.contract],
         places: await deliveryFileSha256(sourcePath),
         resolutions: await deliveryFileSha256(supplementary.resolutionPath),
         snapshots,
