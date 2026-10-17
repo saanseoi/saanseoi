@@ -13,16 +13,26 @@ import {
 const record = (id: string, values: Record<string, string>, datasetCode = 'a') =>
   ({
     id,
+    snapshotId: 'snapshot',
+    sourceReleaseId: 'source-release',
+    operation: 'upsert',
+    versionHash: `record-${datasetCode}-${id}`,
+    isCurrent: true,
+    createdAt: '2025-01-01T00:00:00.000Z',
     datasetCode,
     values,
     referencePeriodCode: '2025',
+    referencePeriodStart: null,
+    referencePeriodEnd: null,
+    referencePeriodGranularity: 'year',
+    referencePeriodEndYear: '2025',
     geography: { kind: 'district', code: id },
     divisionId: null,
     fieldSources: [],
     fieldDefinitionHashes: Object.fromEntries(
       Object.keys(values).map(field => [field, `definition-${datasetCode}-${field}`]),
     ),
-  }) as StatisticsStatsData['records'][number]
+  }) satisfies StatisticsStatsData['records'][number]
 const field = (fieldName: string, datasetCode = 'a') =>
   ({
     datasetCode,
