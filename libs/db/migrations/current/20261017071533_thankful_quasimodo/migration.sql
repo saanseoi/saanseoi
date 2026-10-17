@@ -13,7 +13,7 @@ CREATE TABLE `address2d` (
 	`ruralAreaId` text,
 	`macrohoodId` text,
 	`townId` text,
-	`landformId` text,
+	`islandId` text,
 	`districtId` text,
 	`areaId` text,
 	`countryId` text,
@@ -23,7 +23,7 @@ CREATE TABLE `address2d` (
 	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	CONSTRAINT `address2d_pk` PRIMARY KEY(`scopeId`, `id`),
 	CONSTRAINT `address2d_divisionSnapshotId_countryId_divisions_fk` FOREIGN KEY (`divisionSnapshotId`,`countryId`) REFERENCES `divisions`(`scopeId`,`id`),
-	CONSTRAINT `address2d_divisionSnapshotId_landformId_divisions_fk` FOREIGN KEY (`divisionSnapshotId`,`landformId`) REFERENCES `divisions`(`scopeId`,`id`),
+	CONSTRAINT `address2d_divisionSnapshotId_islandId_divisions_fk` FOREIGN KEY (`divisionSnapshotId`,`islandId`) REFERENCES `divisions`(`scopeId`,`id`),
 	CONSTRAINT `address2d_divisionSnapshotId_areaId_divisions_fk` FOREIGN KEY (`divisionSnapshotId`,`areaId`) REFERENCES `divisions`(`scopeId`,`id`),
 	CONSTRAINT `address2d_divisionSnapshotId_districtId_divisions_fk` FOREIGN KEY (`divisionSnapshotId`,`districtId`) REFERENCES `divisions`(`scopeId`,`id`),
 	CONSTRAINT `address2d_divisionSnapshotId_townId_divisions_fk` FOREIGN KEY (`divisionSnapshotId`,`townId`) REFERENCES `divisions`(`scopeId`,`id`),
@@ -53,7 +53,7 @@ CREATE TABLE `address2dI18n` (
 	`scopeId` text NOT NULL,
 	`addressId` text NOT NULL,
 	`locale` text NOT NULL,
-	`meta` text DEFAULT '{"isLocaleInferred":false}' NOT NULL,
+	`meta` text,
 	`formattedAddress` text NOT NULL,
 	`buildingName` text,
 	`buildingNumberExpression` text,
@@ -92,7 +92,7 @@ CREATE TABLE `address3dI18n` (
 	`scopeId` text NOT NULL,
 	`address3dId` text NOT NULL,
 	`locale` text NOT NULL,
-	`meta` text DEFAULT '{"isLocaleInferred":false}' NOT NULL,
+	`meta` text,
 	`units` text NOT NULL,
 	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	CONSTRAINT `address3dI18n_pk` PRIMARY KEY(`scopeId`, `address3dId`, `locale`),
@@ -102,6 +102,7 @@ CREATE TABLE `address3dI18n` (
 CREATE TABLE `addressPublicationState` (
 	`scopeId` text PRIMARY KEY,
 	`snapshotId` text NOT NULL UNIQUE,
+	`divisionSnapshotId` text,
 	`status` text DEFAULT 'publishing' NOT NULL,
 	`publicationToken` text DEFAULT '' NOT NULL,
 	`preparedAt` text,
@@ -114,11 +115,6 @@ CREATE TABLE `addressSearchScopes` (
 	`snapshotId` text NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE `placeDivisionDefinitions` (
-	`id` text PRIMARY KEY,
-	`definition` text NOT NULL
-);
---> statement-breakpoint
 CREATE TABLE `placeSearchScopes` (
 	`scopeId` text PRIMARY KEY,
 	`snapshotId` text NOT NULL
@@ -129,7 +125,7 @@ CREATE TABLE `places` (
 	`id` text NOT NULL,
 	`resourceReleaseId` text NOT NULL,
 	`addressDependencyHash` text,
-	`addressSnapshotId` text,
+	`addressRole` text,
 	`address2dId` text,
 	`address3dId` text,
 	`address3dUnitId` text,
@@ -144,8 +140,7 @@ CREATE TABLE `places` (
 	`villageId` text,
 	`microhoodId` text,
 	`hamletId` text,
-	`landformId` text,
-	`divisionDefinitionSetId` text,
+	`islandId` text,
 	`geometry` text NOT NULL,
 	`bbox` text,
 	`operatingStatus` text,
@@ -164,8 +159,6 @@ CREATE TABLE `places` (
 	`firstSeenMonth` text NOT NULL,
 	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	CONSTRAINT `places_pk` PRIMARY KEY(`scopeId`, `id`),
-	CONSTRAINT `fk_places_divisionDefinitionSetId_placeDivisionDefinitions_id_fk` FOREIGN KEY (`divisionDefinitionSetId`) REFERENCES `placeDivisionDefinitions`(`id`),
-	CONSTRAINT "places_address_snapshot_required_chk" CHECK("addressSnapshotId" IS NOT NULL OR ("address2dId" IS NULL AND "address3dId" IS NULL)),
 	CONSTRAINT "places_address3d_unit_reference_chk" CHECK(("address3dId" IS NULL AND "address3dUnitId" IS NULL AND "address3dMembership" IS NULL) OR ("address3dId" IS NOT NULL AND "address3dUnitId" IS NOT NULL AND "address3dMembership" IS NOT NULL AND "address2dId" IS NOT NULL))
 );
 --> statement-breakpoint
@@ -191,7 +184,7 @@ CREATE TABLE `placesI18n` (
 	`brandNameAlts` text,
 	`freeformAddress` text,
 	`accessHint` text,
-	`meta` text DEFAULT '{"isLocaleInferred":false}' NOT NULL,
+	`meta` text,
 	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	CONSTRAINT `placesI18n_pk` PRIMARY KEY(`scopeId`, `placeId`, `locale`),
 	CONSTRAINT `placesI18n_scopeId_placeId_places_fk` FOREIGN KEY (`scopeId`,`placeId`) REFERENCES `places`(`scopeId`,`id`) ON DELETE CASCADE
@@ -226,7 +219,7 @@ CREATE TABLE `divisionsI18n` (
 	`nameVariant` text,
 	`nameAlts` text,
 	`nameRules` text,
-	`meta` text DEFAULT '{"isLocaleInferred":false}' NOT NULL,
+	`meta` text,
 	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	CONSTRAINT `divisionsI18n_pk` PRIMARY KEY(`scopeId`, `divisionId`, `locale`),
 	CONSTRAINT `divisionsI18n_scopeId_divisionId_divisions_fk` FOREIGN KEY (`scopeId`,`divisionId`) REFERENCES `divisions`(`scopeId`,`id`) ON DELETE CASCADE
@@ -262,7 +255,7 @@ CREATE TABLE `streetsI18n` (
 	`scopeId` text NOT NULL,
 	`streetId` text NOT NULL,
 	`locale` text NOT NULL,
-	`meta` text DEFAULT '{"isLocaleInferred":false}' NOT NULL,
+	`meta` text,
 	`name` text NOT NULL,
 	`base` text,
 	`designator` text,
@@ -386,7 +379,7 @@ CREATE TABLE `statsFieldsI18n` (
 	`locale` text NOT NULL,
 	`name` text NOT NULL,
 	`description` text,
-	`meta` text DEFAULT '{"isLocaleInferred":false}' NOT NULL,
+	`meta` text,
 	`versionHash` text DEFAULT '' NOT NULL,
 	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	CONSTRAINT `statsFieldsI18n_pk` PRIMARY KEY(`datasetCode`, `fieldName`, `locale`, `versionHash`)
@@ -406,7 +399,7 @@ CREATE TABLE `statsMeasuresI18n` (
 	`locale` text NOT NULL,
 	`name` text NOT NULL,
 	`description` text,
-	`meta` text DEFAULT '{"isLocaleInferred":false}' NOT NULL,
+	`meta` text,
 	`versionHash` text DEFAULT '' NOT NULL,
 	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	CONSTRAINT `statsMeasuresI18n_pk` PRIMARY KEY(`datasetCode`, `measureCode`, `locale`, `versionHash`)
@@ -416,7 +409,6 @@ CREATE TABLE `statsRecords` (
 	`id` text PRIMARY KEY NOT NULL,
 	`datasetCode` text NOT NULL,
 	`sourceReleaseId` text NOT NULL,
-	`sourceFeatureRef` text NOT NULL,
 	`divisionId` text,
 	`referencePeriodCode` text NOT NULL,
 	`referencePeriodStart` text,
@@ -424,7 +416,7 @@ CREATE TABLE `statsRecords` (
 	`referencePeriodGranularity` text NOT NULL,
 	`referencePeriodEndYear` text NOT NULL,
 	`geography` text NOT NULL,
-	`fieldSources` text DEFAULT '{}' NOT NULL,
+	`fieldSources` text DEFAULT '[]' NOT NULL,
 	`definitionSetId` text NOT NULL,
 	`values` text NOT NULL,
 	`versionHash` text DEFAULT '' NOT NULL,
@@ -436,7 +428,7 @@ CREATE TABLE `statsValuesI18n` (
 	`dimensionCode` text NOT NULL,
 	`valueCode` text NOT NULL,
 	`locale` text NOT NULL,
-	`meta` text DEFAULT '{"isLocaleInferred":false}' NOT NULL,
+	`meta` text,
 	`name` text NOT NULL,
 	`versionHash` text DEFAULT '' NOT NULL,
 	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
@@ -476,6 +468,9 @@ CREATE TABLE `divisionPublicationState` (
 CREATE TABLE `placePublicationState` (
 	`scopeId` text PRIMARY KEY,
 	`snapshotId` text NOT NULL UNIQUE,
+	`divisionSnapshotId` text,
+	`addressSnapshotId` text,
+	`supplementaryAddressSnapshotId` text,
 	`status` text DEFAULT 'publishing' NOT NULL,
 	`publicationToken` text DEFAULT '' NOT NULL,
 	`preparedAt` text,
@@ -532,7 +527,7 @@ CREATE TABLE `divisionGeographicMemberships` (
 );
 --> statement-breakpoint
 CREATE INDEX `address2d_countryId_scope_id_idx` ON `address2d` (`countryId`,`scopeId`,`id`) WHERE "address2d"."countryId" IS NOT NULL;--> statement-breakpoint
-CREATE INDEX `address2d_landformId_scope_id_idx` ON `address2d` (`landformId`,`scopeId`,`id`) WHERE "address2d"."landformId" IS NOT NULL;--> statement-breakpoint
+CREATE INDEX `address2d_islandId_scope_id_idx` ON `address2d` (`islandId`,`scopeId`,`id`) WHERE "address2d"."islandId" IS NOT NULL;--> statement-breakpoint
 CREATE INDEX `address2d_areaId_scope_id_idx` ON `address2d` (`areaId`,`scopeId`,`id`) WHERE "address2d"."areaId" IS NOT NULL;--> statement-breakpoint
 CREATE INDEX `address2d_districtId_scope_id_idx` ON `address2d` (`districtId`,`scopeId`,`id`) WHERE "address2d"."districtId" IS NOT NULL;--> statement-breakpoint
 CREATE INDEX `address2d_townId_scope_id_idx` ON `address2d` (`townId`,`scopeId`,`id`) WHERE "address2d"."townId" IS NOT NULL;--> statement-breakpoint
@@ -560,7 +555,7 @@ CREATE INDEX `places_neighbourhoodId_id_idx` ON `places` (`scopeId`,`neighbourho
 CREATE INDEX `places_villageId_id_idx` ON `places` (`scopeId`,`villageId`,`id`);--> statement-breakpoint
 CREATE INDEX `places_microhoodId_id_idx` ON `places` (`scopeId`,`microhoodId`,`id`);--> statement-breakpoint
 CREATE INDEX `places_hamletId_id_idx` ON `places` (`scopeId`,`hamletId`,`id`);--> statement-breakpoint
-CREATE INDEX `places_landformId_id_idx` ON `places` (`scopeId`,`landformId`,`id`);--> statement-breakpoint
+CREATE INDEX `places_islandId_id_idx` ON `places` (`scopeId`,`islandId`,`id`);--> statement-breakpoint
 CREATE INDEX `places_resourceReleaseId_idx` ON `places` (`resourceReleaseId`);--> statement-breakpoint
 CREATE INDEX `places_category_id_idx` ON `places` (`scopeId`,`basicCategory`,`id`);--> statement-breakpoint
 CREATE INDEX `places_taxonomy_id_idx` ON `places` (`scopeId`,`taxonomyPrimary`,`id`);--> statement-breakpoint

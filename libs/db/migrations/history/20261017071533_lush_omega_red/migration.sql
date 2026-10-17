@@ -10,7 +10,7 @@ CREATE TABLE `address2d` (
 	`ruralAreaId` text,
 	`macrohoodId` text,
 	`townId` text,
-	`landformId` text,
+	`islandId` text,
 	`districtId` text,
 	`areaId` text,
 	`countryId` text,
@@ -44,7 +44,7 @@ CREATE TABLE `address2dBuildingNumberLookup` (
 CREATE TABLE `address2dI18n` (
 	`addressId` text NOT NULL,
 	`locale` text NOT NULL,
-	`meta` text DEFAULT '{"isLocaleInferred":false}',
+	`meta` text,
 	`formattedAddress` text,
 	`buildingName` text,
 	`buildingNumberExpression` text,
@@ -66,7 +66,7 @@ CREATE TABLE `address2dI18n` (
 	`isCurrent` integer DEFAULT true NOT NULL,
 	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	CONSTRAINT `address2dI18n_pk` PRIMARY KEY(`addressId`, `snapshotId`, `locale`),
-	CONSTRAINT "address2dI18n_history_event_check" CHECK(("operation" = 'delete' and "versionHash" is null) or ("operation" = 'upsert' and "versionHash" is not null and "formattedAddress" is not null and "meta" is not null))
+	CONSTRAINT "address2dI18n_history_event_check" CHECK(("operation" = 'delete' and "versionHash" is null) or ("operation" = 'upsert' and "versionHash" is not null and "formattedAddress" is not null))
 );
 --> statement-breakpoint
 CREATE TABLE `address3d` (
@@ -89,7 +89,7 @@ CREATE TABLE `address3d` (
 CREATE TABLE `address3dI18n` (
 	`address3dId` text NOT NULL,
 	`locale` text NOT NULL,
-	`meta` text DEFAULT '{"isLocaleInferred":false}',
+	`meta` text,
 	`units` text,
 	`snapshotId` text NOT NULL,
 	`operation` text DEFAULT 'upsert' NOT NULL,
@@ -97,12 +97,12 @@ CREATE TABLE `address3dI18n` (
 	`isCurrent` integer DEFAULT true NOT NULL,
 	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	CONSTRAINT `address3dI18n_pk` PRIMARY KEY(`address3dId`, `snapshotId`, `locale`),
-	CONSTRAINT "address3dI18n_history_event_check" CHECK(("operation" = 'delete' and "versionHash" is null) or ("operation" = 'upsert' and "versionHash" is not null and "units" is not null and "meta" is not null))
+	CONSTRAINT "address3dI18n_history_event_check" CHECK(("operation" = 'delete' and "versionHash" is null) or ("operation" = 'upsert' and "versionHash" is not null and "units" is not null))
 );
 --> statement-breakpoint
 CREATE TABLE `divisionAreas` (
 	`id` text NOT NULL,
-	`variant` text DEFAULT 'overture',
+	`variant` text,
 	`bbox` text,
 	`geometry` text,
 	`sources` text,
@@ -122,7 +122,7 @@ CREATE TABLE `divisionAreas` (
 --> statement-breakpoint
 CREATE TABLE `divisionBoundaries` (
 	`id` text NOT NULL,
-	`variant` text DEFAULT 'overture',
+	`variant` text,
 	`bbox` text,
 	`geometry` text,
 	`sources` text,
@@ -168,26 +168,21 @@ CREATE TABLE `divisionsI18n` (
 	`nameVariant` text,
 	`nameAlts` text,
 	`nameRules` text,
-	`meta` text DEFAULT '{"isLocaleInferred":false}',
+	`meta` text,
 	`snapshotId` text NOT NULL,
 	`operation` text DEFAULT 'upsert' NOT NULL,
 	`versionHash` text,
 	`isCurrent` integer DEFAULT true NOT NULL,
 	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	CONSTRAINT `divisionsI18n_pk` PRIMARY KEY(`divisionId`, `snapshotId`, `locale`),
-	CONSTRAINT "divisionsI18n_history_event_check" CHECK(("operation" = 'delete' and "versionHash" is null) or ("operation" = 'upsert' and "versionHash" is not null and "meta" is not null))
-);
---> statement-breakpoint
-CREATE TABLE `placeDivisionDefinitions` (
-	`id` text PRIMARY KEY,
-	`definition` text NOT NULL
+	CONSTRAINT "divisionsI18n_history_event_check" CHECK(("operation" = 'delete' and "versionHash" is null) or ("operation" = 'upsert' and "versionHash" is not null))
 );
 --> statement-breakpoint
 CREATE TABLE `places` (
 	`id` text NOT NULL,
 	`resourceReleaseId` text,
 	`addressDependencyHash` text,
-	`addressSnapshotId` text,
+	`addressRole` text,
 	`address2dId` text,
 	`address3dId` text,
 	`address3dUnitId` text,
@@ -202,8 +197,7 @@ CREATE TABLE `places` (
 	`villageId` text,
 	`microhoodId` text,
 	`hamletId` text,
-	`landformId` text,
-	`divisionDefinitionSetId` text,
+	`islandId` text,
 	`geometry` text,
 	`bbox` text,
 	`operatingStatus` text,
@@ -242,7 +236,7 @@ CREATE TABLE `placesI18n` (
 	`brandNameAlts` text,
 	`freeformAddress` text,
 	`accessHint` text,
-	`meta` text DEFAULT '{"isLocaleInferred":false}',
+	`meta` text,
 	`snapshotId` text NOT NULL,
 	`operation` text DEFAULT 'upsert' NOT NULL,
 	`versionHash` text,
@@ -288,14 +282,14 @@ CREATE TABLE `statsFieldsI18n` (
 	`locale` text NOT NULL,
 	`name` text,
 	`description` text,
-	`meta` text DEFAULT '{"isLocaleInferred":false}',
+	`meta` text,
 	`snapshotId` text NOT NULL,
 	`operation` text DEFAULT 'upsert' NOT NULL,
 	`versionHash` text,
 	`isCurrent` integer DEFAULT true NOT NULL,
 	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	CONSTRAINT `statsFieldsI18n_pk` PRIMARY KEY(`datasetCode`, `fieldName`, `locale`, `snapshotId`),
-	CONSTRAINT "statsFieldsI18n_history_event_check" CHECK(("operation" = 'delete' and "versionHash" is null) or ("operation" = 'upsert' and "versionHash" is not null and "name" is not null and "meta" is not null))
+	CONSTRAINT "statsFieldsI18n_history_event_check" CHECK(("operation" = 'delete' and "versionHash" is null) or ("operation" = 'upsert' and "versionHash" is not null and "name" is not null))
 );
 --> statement-breakpoint
 CREATE TABLE `statsMeasures` (
@@ -316,20 +310,19 @@ CREATE TABLE `statsMeasuresI18n` (
 	`locale` text NOT NULL,
 	`name` text,
 	`description` text,
-	`meta` text DEFAULT '{"isLocaleInferred":false}',
+	`meta` text,
 	`snapshotId` text NOT NULL,
 	`operation` text DEFAULT 'upsert' NOT NULL,
 	`versionHash` text,
 	`isCurrent` integer DEFAULT true NOT NULL,
 	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	CONSTRAINT `statsMeasuresI18n_pk` PRIMARY KEY(`datasetCode`, `measureCode`, `locale`, `snapshotId`),
-	CONSTRAINT "statsMeasuresI18n_history_event_check" CHECK(("operation" = 'delete' and "versionHash" is null) or ("operation" = 'upsert' and "versionHash" is not null and "name" is not null and "meta" is not null))
+	CONSTRAINT "statsMeasuresI18n_history_event_check" CHECK(("operation" = 'delete' and "versionHash" is null) or ("operation" = 'upsert' and "versionHash" is not null and "name" is not null))
 );
 --> statement-breakpoint
 CREATE TABLE `statsRecords` (
 	`id` text NOT NULL,
 	`datasetCode` text,
-	`sourceFeatureRef` text,
 	`divisionId` text,
 	`referencePeriodCode` text,
 	`referencePeriodStart` text,
@@ -337,7 +330,7 @@ CREATE TABLE `statsRecords` (
 	`referencePeriodGranularity` text,
 	`referencePeriodEndYear` text,
 	`geography` text,
-	`fieldSources` text DEFAULT '{}',
+	`fieldSources` text DEFAULT '[]',
 	`definitionSetId` text,
 	`values` text,
 	`snapshotId` text NOT NULL,
@@ -346,7 +339,7 @@ CREATE TABLE `statsRecords` (
 	`isCurrent` integer DEFAULT true NOT NULL,
 	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	CONSTRAINT `statsRecords_pk` PRIMARY KEY(`id`, `snapshotId`),
-	CONSTRAINT "statsRecords_history_event_check" CHECK(("operation" = 'delete' and "versionHash" is null) or ("operation" = 'upsert' and "versionHash" is not null and "datasetCode" is not null and "sourceFeatureRef" is not null and "referencePeriodCode" is not null and "referencePeriodGranularity" is not null and "referencePeriodEndYear" is not null and "geography" is not null and "fieldSources" is not null and "definitionSetId" is not null and "values" is not null))
+	CONSTRAINT "statsRecords_history_event_check" CHECK(("operation" = 'delete' and "versionHash" is null) or ("operation" = 'upsert' and "versionHash" is not null and "datasetCode" is not null and "referencePeriodCode" is not null and "referencePeriodGranularity" is not null and "referencePeriodEndYear" is not null and "geography" is not null and "fieldSources" is not null and "definitionSetId" is not null and "values" is not null))
 );
 --> statement-breakpoint
 CREATE TABLE `statsValuesI18n` (
@@ -354,7 +347,7 @@ CREATE TABLE `statsValuesI18n` (
 	`dimensionCode` text NOT NULL,
 	`valueCode` text NOT NULL,
 	`locale` text NOT NULL,
-	`meta` text DEFAULT '{"isLocaleInferred":false}',
+	`meta` text,
 	`name` text,
 	`snapshotId` text NOT NULL,
 	`operation` text DEFAULT 'upsert' NOT NULL,
@@ -362,7 +355,7 @@ CREATE TABLE `statsValuesI18n` (
 	`isCurrent` integer DEFAULT true NOT NULL,
 	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	CONSTRAINT `statsValuesI18n_pk` PRIMARY KEY(`datasetCode`, `dimensionCode`, `valueCode`, `locale`, `snapshotId`),
-	CONSTRAINT "statsValuesI18n_history_event_check" CHECK(("operation" = 'delete' and "versionHash" is null) or ("operation" = 'upsert' and "versionHash" is not null and "name" is not null and "meta" is not null))
+	CONSTRAINT "statsValuesI18n_history_event_check" CHECK(("operation" = 'delete' and "versionHash" is null) or ("operation" = 'upsert' and "versionHash" is not null and "name" is not null))
 );
 --> statement-breakpoint
 CREATE TABLE `streetGeometry` (
@@ -450,7 +443,7 @@ CREATE TABLE `streets` (
 CREATE TABLE `streetsI18n` (
 	`streetId` text NOT NULL,
 	`locale` text NOT NULL,
-	`meta` text DEFAULT '{"isLocaleInferred":false}',
+	`meta` text,
 	`name` text,
 	`base` text,
 	`designator` text,
@@ -464,7 +457,7 @@ CREATE TABLE `streetsI18n` (
 	`isCurrent` integer DEFAULT true NOT NULL,
 	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	CONSTRAINT `streetsI18n_pk` PRIMARY KEY(`streetId`, `snapshotId`, `locale`),
-	CONSTRAINT "streetsI18n_history_event_check" CHECK(("operation" = 'delete' and "versionHash" is null) or ("operation" = 'upsert' and "versionHash" is not null and "name" is not null and "meta" is not null))
+	CONSTRAINT "streetsI18n_history_event_check" CHECK(("operation" = 'delete' and "versionHash" is null) or ("operation" = 'upsert' and "versionHash" is not null and "name" is not null))
 );
 --> statement-breakpoint
 CREATE INDEX `address2d_history_event_snapshot_idx` ON `address2d` (`snapshotId`);--> statement-breakpoint

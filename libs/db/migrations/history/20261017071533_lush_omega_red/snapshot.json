@@ -1,8 +1,8 @@
 {
   "version": "7",
   "dialect": "sqlite",
-  "id": "139159bd-e3e5-4b7c-9ccb-f7042c2c5529",
-  "prevIds": ["0977fd10-4a1f-4761-a55a-be3f4bc416e6"],
+  "id": "d4377176-3fdf-48de-9466-d9abf5daed69",
+  "prevIds": ["00000000-0000-0000-0000-000000000000"],
   "ddl": [
     {
       "name": "address2d",
@@ -38,10 +38,6 @@
     },
     {
       "name": "divisionsI18n",
-      "entityType": "tables"
-    },
-    {
-      "name": "placeDivisionDefinitions",
       "entityType": "tables"
     },
     {
@@ -220,7 +216,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "landformId",
+      "name": "islandId",
       "entityType": "columns",
       "table": "address2d"
     },
@@ -1456,26 +1452,6 @@
     },
     {
       "type": "text",
-      "notNull": false,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "id",
-      "entityType": "columns",
-      "table": "placeDivisionDefinitions"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "definition",
-      "entityType": "columns",
-      "table": "placeDivisionDefinitions"
-    },
-    {
-      "type": "text",
       "notNull": true,
       "autoincrement": false,
       "default": null,
@@ -1510,7 +1486,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "addressSnapshotId",
+      "name": "addressRole",
       "entityType": "columns",
       "table": "places"
     },
@@ -1660,17 +1636,7 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "landformId",
-      "entityType": "columns",
-      "table": "places"
-    },
-    {
-      "type": "text",
-      "notNull": false,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "divisionDefinitionSetId",
+      "name": "islandId",
       "entityType": "columns",
       "table": "places"
     },
@@ -3724,13 +3690,6 @@
       "name": "streetsI18n_pk",
       "entityType": "pks",
       "table": "streetsI18n"
-    },
-    {
-      "columns": ["id"],
-      "nameExplicit": false,
-      "name": "placeDivisionDefinitions_pk",
-      "table": "placeDivisionDefinitions",
-      "entityType": "pks"
     },
     {
       "columns": ["id"],

@@ -149,7 +149,6 @@ DROP TABLE IF EXISTS `placesCells`;
 DROP TABLE IF EXISTS `places`;
 -- Remove obsolete Place tables when resetting an existing database.
 DROP TABLE IF EXISTS `placesDivision`;
-DROP TABLE IF EXISTS `placeDivisionDefinitions`;
 DROP TABLE IF EXISTS `__streetsI18n_backup`;
 DROP TABLE IF EXISTS `__streetsAddress_backup`;
 DROP TABLE IF EXISTS `__new_streets`;

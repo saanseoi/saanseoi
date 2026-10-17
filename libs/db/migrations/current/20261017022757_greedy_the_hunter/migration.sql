@@ -1,1 +1,0 @@
-ALTER TABLE `statsRecords` DROP COLUMN `sourceFeatureRef`;

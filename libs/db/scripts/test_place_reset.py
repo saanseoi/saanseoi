@@ -1,7 +1,6 @@
 """Exercise generated schema replay and reset against disposable SQLite files."""
 import importlib.util
 from pathlib import Path
-import shutil
 import sqlite3
 import tempfile
 import unittest
@@ -19,17 +18,9 @@ class PlaceResetTests(unittest.TestCase):
                 with self.subTest(family=family, reset=reset), tempfile.TemporaryDirectory() as tmp:
                     root = Path(tmp)
                     migrations = ROOT / 'migrations' / family
-                    old = root / 'old'
-                    for path in sorted(migrations.glob('*/migration.sql')):
-                        if path.parent.name >= '20261017055000':
-                            break
-                        target = old / path.parent.name / path.name
-                        target.parent.mkdir(parents=True, exist_ok=True)
-                        shutil.copyfile(path, target)
                     database = root / 'reset.sqlite'
-                    runner.migrate(database, old, root / 'backups')
+                    runner.migrate(database, migrations, root / 'backups')
                     with sqlite3.connect(database) as db:
-                        db.execute("INSERT INTO placeDivisionDefinitions(id,definition) VALUES ('retained','{}')")
                         db.commit()
                         db.executescript((ROOT / 'scripts/sql' / f'drop-{reset}-db.sql').read_text())
                         self.assertEqual(db.execute("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'").fetchall(), [])
@@ -40,7 +31,6 @@ class PlaceResetTests(unittest.TestCase):
                         schema = "SELECT type,name,sql FROM sqlite_master WHERE name NOT LIKE 'sqlite_%' ORDER BY type,name"
                         self.assertEqual(db.execute(schema).fetchall(), expected.execute(schema).fetchall())
                         tables = {r[0] for r in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
-                        self.assertNotIn('placeDivisionDefinitions', tables)
                         self.assertNotIn('placesDivision', tables)
                         columns = lambda table: {r[1] for r in db.execute(f'PRAGMA table_info({table})')}
                         self.assertIn('addressRole', columns('places'))
