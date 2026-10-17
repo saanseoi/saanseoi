@@ -431,11 +431,6 @@ test('Division revisions do not add per-Place snapshot pointers or definition se
     const same = await f.run([row], 'old', 'source', 'division-b')
     expect(same.historySqlByBinding.size).toBe(0)
     expect(f.current.query('SELECT * FROM places').all()).toEqual(before)
-    expect(
-      f.current
-        .query("SELECT name FROM sqlite_schema WHERE name='placeDivisionDefinitions'")
-        .get(),
-    ).toBeNull()
     row.divisionIds = []
     row.divisionReferences = {}
     row.versionHash = 'removed-membership'

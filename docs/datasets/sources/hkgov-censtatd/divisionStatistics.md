@@ -811,12 +811,9 @@ settings, engine version and coverage geometry IDs because neighbouring polygons
 coverage simplification. Statistics-only changes do not create new derivative
 identities.
 
-Populated local databases require the data conversion around the generated schema:
-`bun libs/db/scripts/migrate-censtatd-geometry.ts --rehearse <sqlite> <backup-directory>`,
-then the same command with `--apply`. Each shard is backed up under a writer lock;
-conversion preserves every release assertion, verifies reconstructed evidence and
-foreign keys, and records the migration in the same transaction. Empty databases use
-ordinary migration generation and application. This command targets local SQLite only.
+Initialise local databases with the generated schema baselines and the
+[local reset and rebuild workflow](../../pipeline.md#local-pipeline-initialisation). The
+ingestion pipeline establishes release assertions and geometry references.
 
 ## Source record ID composition
 
