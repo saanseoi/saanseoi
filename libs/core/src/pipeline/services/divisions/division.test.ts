@@ -953,7 +953,7 @@ describe('normaliseDivisionRow hierarchy', () => {
     expect(normalised.base.sources).toEqual([
       {
         publisher: 'overture',
-        property: '/properties/id',
+        property: 'properties.id',
         dataset: 'overture',
         recordId: 'division-with-feature-version',
       },

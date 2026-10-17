@@ -710,11 +710,12 @@ block preparation; public attribution is not a substitute for private identity e
 ## Record attribution and evidence
 
 Canonical `sources` is an array with required `publisher` and `dataset` fields. The
-upstream `property` JSON Pointer is preserved; optional record ID, update time, record
-version, confidence and licence are retained only when supplied. Native dataset names
-resolve through `fixtures/meta/sourceAttributions/overture.json`. Unknown names require
-an explicit mapping. No ingestion release is added to the attribution. The retained
-Places releases include AllThePlaces (`alltheplaces`) and DAC (`dac`), identified by
+upstream `property` is converted from JSON Pointer to a dot-separated path in the
+publisher’s field namespace; optional record ID, update time, record version, confidence
+and licence are retained only when supplied. Native dataset names resolve through
+`fixtures/meta/sourceAttributions/overture.json`. Unknown names require an explicit
+mapping. No ingestion release is added to the attribution. The retained Places releases
+include AllThePlaces (`alltheplaces`) and DAC (`dac`), identified by
 [Overture’s attribution catalogue](https://docs.overturemaps.org/attribution/). Their
 record references, licences and property pointers remain as supplied by Overture.
 

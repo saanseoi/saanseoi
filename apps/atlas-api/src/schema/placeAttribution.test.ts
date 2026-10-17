@@ -15,12 +15,12 @@ test('source attribution requires publisher and dataset identities', () => {
     ]).success,
   ).toBe(true)
 })
-test('source attribution excludes release and processing evidence and validates pointers', () => {
+test('source attribution excludes release and processing evidence and validates dot paths', () => {
   for (const extra of [
     { release: '2026-09' },
     { versionHash: 'hash' },
     { divisionAssociation: {} },
-    { property: 'name' },
+    { property: 'name..primary' },
     { property: '/bad~token' },
   ])
     expect(
@@ -29,7 +29,7 @@ test('source attribution excludes release and processing evidence and validates 
     ).toBe(false)
   expect(
     PlaceSourcesSchema.safeParse([
-      { publisher: 'meta', dataset: 'meta', property: '/a~1b/0' },
+      { publisher: 'meta', dataset: 'meta', property: 'properties.names.common.lfn' },
     ]).success,
   ).toBe(true)
 })

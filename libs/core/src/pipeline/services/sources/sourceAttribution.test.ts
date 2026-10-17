@@ -42,7 +42,7 @@ test('preserves native attribution and excludes processing metadata', () => {
       upstreamOf: 'overture',
       dataset: 'meta',
       recordId: '123',
-      property: '/a~1b/~0',
+      property: 'a\\/b.~',
       version: '3',
       confidence: 0.8,
     },
@@ -140,7 +140,7 @@ test('attributes Maps Entity Variant Names to Overture under the explicit policy
     {
       publisher: 'overture',
       dataset: 'overture',
-      property: '/properties/names/primary',
+      property: 'properties.names.primary',
       recordId: 'R913110',
       license: 'CC0-1.0',
     },

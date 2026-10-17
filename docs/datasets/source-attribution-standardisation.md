@@ -15,10 +15,13 @@ required non-empty code strings. Optional fields are `property`, `recordId`,
 `updateTime`, `version`, `confidence` and `license`. `version` is the upstream record
 version; attribution carries no ingestion release IDs or content hashes.
 
-`property` preserves the publisher's RFC 6901 JSON Pointer in its original field
-namespace. Absent, null or empty applies to the whole record; a more specific pointer
-wins over broader attribution. Record attribution retains this upstream qualification
-without introducing internal field contributions or processing decisions.
+`property` uses a dot-separated path in the publisher's original field namespace.
+Overture JSON Pointers are decoded at ingestion: `/properties/names/common/lfn` becomes
+`properties.names.common.lfn`. Array indices are numeric path segments. Literal dots,
+slashes and backslashes within keys are backslash-escaped; `\e` represents an empty key.
+Absent, null or empty applies to the whole record; a more specific path wins over
+broader attribution. Record attribution retains this upstream qualification without
+introducing internal field contributions or processing decisions.
 
 `fixtures/meta/sourceAttributions/overture.json` maps observed native dataset names to
 stable upstream dataset names and publisher codes. These upstream datasets are not
@@ -106,5 +109,5 @@ requires flat attribution arrays. Retained-row conversion still requires snapsho
 replay, R2 evidence verification, cache invalidation, rollback receipts and fresh API
 reads. Do not reset a scope with a publication in progress. The native dataset “Maps
 Entity Variant Names” maps to Overture attribution by explicit policy, preserving its
-property pointer, record reference and licence. This policy does not establish the
-original publisher’s ownership.
+property path, record reference and licence. This policy does not establish the original
+publisher’s ownership.

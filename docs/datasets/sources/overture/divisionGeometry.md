@@ -446,10 +446,10 @@ snapshots and API release membership remain unchanged.
 ## Canonical source attribution
 
 Canonical attribution normalises native Overture source items through
-`fixtures/meta/sourceAttributions/overture.json`, preserving upstream JSON Pointers and
-optional record metadata. Unknown publisher identities block normalisation. Synthetic
-area unions collect their constituent areas' attribution; processing markers are
-excluded from `sources`.
+`fixtures/meta/sourceAttributions/overture.json`, converting upstream JSON Pointers to
+dot-separated property paths and preserving optional record metadata. Unknown publisher
+identities block normalisation. Synthetic area unions collect their constituent areas'
+attribution; processing markers are excluded from `sources`.
 
 The native “Maps Entity Variant Names” dataset maps to `publisher: overture` and
 `dataset: overture` by explicit attribution policy. Its property pointer, record

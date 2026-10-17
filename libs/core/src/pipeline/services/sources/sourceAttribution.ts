@@ -1,5 +1,7 @@
 import {
   orderSourceAttribution,
+  sourcePropertyPathPattern,
+  sourcePropertyPathFromPointer,
   sourceAttributionFieldOrder,
   type SourceAttribution,
 } from '@repo/db'
@@ -38,9 +40,10 @@ export function readSourceAttributions(value: unknown): SourceAttribution[] {
         throw new Error(`Source ${field} must be a string.`)
     if (
       item.property != null &&
-      (typeof item.property !== 'string' || !pointer.test(item.property))
+      (typeof item.property !== 'string' ||
+        !sourcePropertyPathPattern.test(item.property))
     )
-      throw new Error('Source property must be an RFC 6901 JSON Pointer.')
+      throw new Error('Source property must be a dot-separated field path.')
     if (
       item.confidence !== undefined &&
       (typeof item.confidence !== 'number' ||
@@ -75,7 +78,10 @@ export function normaliseOvertureAttribution(value: unknown): SourceAttribution[
         (typeof source.property !== 'string' || !pointer.test(source.property))
       )
         throw new Error('Source property must be an RFC 6901 JSON Pointer.')
-      result.property = source.property as string | null
+      result.property =
+        source.property === null
+          ? null
+          : sourcePropertyPathFromPointer(source.property as string)
     }
     for (const [upstream, field] of [
       ['record_id', 'recordId'],

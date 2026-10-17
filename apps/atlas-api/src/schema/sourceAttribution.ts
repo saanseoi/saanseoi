@@ -1,12 +1,9 @@
+import { sourcePropertyPathPattern } from '@repo/db'
 import { z } from '@hono/zod-openapi'
 
 export const SourceAttributionSchema = z
   .strictObject({
-    property: z
-      .string()
-      .regex(/^(?:\/(?:[^~/]|~[01])*)*$/)
-      .nullable()
-      .optional(),
+    property: z.string().regex(sourcePropertyPathPattern).nullable().optional(),
     publisher: z.string().min(1).describe('Upstream publisher code.'),
     upstreamOf: z
       .string()
@@ -24,7 +21,7 @@ export const SourceAttributionSchema = z
   })
   .openapi('SourceAttribution', {
     description:
-      'An upstream publisher and dataset reference. The optional property is an upstream RFC 6901 JSON Pointer; absent, null or empty applies to the whole record. More specific attribution takes precedence.',
+      'An upstream publisher and dataset reference. The optional property is a dot-separated upstream field path (literal dots, slashes and backslashes are backslash-escaped; an empty key is represented by \\e); absent, null or empty applies to the whole record. More specific attribution takes precedence.',
   })
 
 export const SourcesSchema = z
