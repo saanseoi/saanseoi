@@ -334,3 +334,35 @@ test('partial district and city/hood paths are complementary point memberships',
     ).resolve([2, 2]).status,
   ).toBe('ambiguous')
 })
+
+test('returns every published polygon for a division with detached areas', () => {
+  const first = area('detached', 0, 10)
+  const second = { ...area('detached', 20, 30), id: 'second-area' }
+  const resolver = createDivisionResolver([division('detached')], [first, second])
+  const result = resolver.resolve([25, 5], true)
+  expect(result.selectedAncestryIds).toContain('detached')
+  expect(result.memberships[0]?.geometry).toEqual({
+    type: 'MultiPolygon',
+    coordinates: [
+      [
+        [
+          [0, 0],
+          [10, 0],
+          [10, 10],
+          [0, 10],
+          [0, 0],
+        ],
+      ],
+      [
+        [
+          [20, 0],
+          [30, 0],
+          [30, 10],
+          [20, 10],
+          [20, 0],
+        ],
+      ],
+    ],
+  })
+  expect(resolver.resolve([25, 5]).memberships[0]).not.toHaveProperty('geometry')
+})

@@ -1332,6 +1332,18 @@ describe('atlas-api', () => {
     })
   })
 
+  test('v0.2 geocode reaches query validation before the division ID route', async () => {
+    const { env } = createEnv({ AUTH_MODE: 'disabled' })
+    const response = await app.fetch(
+      new Request('http://localhost/divisions/v0.2/geocode?lat=invalid&lng=114.15'),
+      env,
+    )
+    expect(response.status).toBe(422)
+    expect(response.headers.get('content-type')).toContain('application/vnd.api+json')
+    const body = (await response.json()) as { errors: Array<{ status: string }> }
+    expect(body.errors[0]?.status).toBe('422')
+  })
+
   test('GET /divisions/v0.1 permits an absent API key when the local bypass is enabled', async () => {
     const { env } = createEnv({ AUTH_MODE: 'disabled' })
     const res = await app.fetch(new Request('http://localhost/divisions/v0.1'), env)

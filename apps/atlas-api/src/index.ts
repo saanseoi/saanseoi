@@ -785,11 +785,12 @@ app.openapiRoutes([
   divisionInventoriesRoute,
   divisionChangesV02Route,
   divisionChangeDefinitionV02Route,
+  // Literal geocoding paths must precede the division ID route.
+  ...geocodingRoutes,
   ...divisionRoutes,
   divisionChangesRoute,
   divisionChangeDefinitionRoute,
   ...addressRoutes,
-  ...geocodingRoutes,
   ...placeRoutes,
   ...managedAssetRoutes,
   ...styleRoutes,

@@ -342,6 +342,12 @@ export async function uploadSourceReleaseAsset(
     extname(input.filePath).toLowerCase() !== '.parquet'
   )
     throw new Error('Resource source archives must be Parquet.')
+  // Planning identity and area resources share one native publisher release.
+  const releaseCode =
+    role === 'releaseSourceArchive' &&
+    ['hkgov-pland-pu', 'hkgov-pland-new-town'].includes(input.publisherCode)
+      ? input.releaseCode.replace('-division-area-', '-division-')
+      : input.releaseCode
   const retained = await prepareSourceReleaseAsset(input)
   try {
     const contentHash = retained.sha256
@@ -352,7 +358,7 @@ export async function uploadSourceReleaseAsset(
       releaseCode:
         role === 'resourceSourceArchive'
           ? `${input.releaseCode}__${role}`
-          : input.releaseCode,
+          : releaseCode,
       sha256: contentHash,
     })
     const retrievedAt = (options.now ?? (() => new Date()))().toISOString()
@@ -372,7 +378,7 @@ export async function uploadSourceReleaseAsset(
       ...(retained.original ? { original: retained.original } : {}),
       ...(retained.packaging ? { packaging: retained.packaging } : {}),
       provenance: {
-        releaseCode: input.releaseCode,
+        releaseCode,
         sourceVersion: input.sourceVersion,
       },
     }
@@ -401,7 +407,7 @@ export async function uploadSourceReleaseAsset(
       releaseCode:
         role === 'resourceSourceArchive'
           ? `${input.releaseCode}__${role}`
-          : input.releaseCode,
+          : releaseCode,
       sha256: manifestHash,
     })
     await mkdir(SOURCE_PACKAGE_CACHE_ROOT, { recursive: true })

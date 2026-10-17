@@ -1,3 +1,4 @@
+import { preparedNewTownArea } from '../../../pipeline/divisions/processLocalHkgovPlandDivisionSqlUploadPreparation'
 import { describe, expect, test } from 'bun:test'
 import { mkdtemp, readFile, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
@@ -247,6 +248,39 @@ describe('Planning Department native New Town SHP intake', () => {
         file,
         metadata: await parquetMetadataAsync(file),
       })
+      await prepareHkgovPlandNewTownNativeShpZip({
+        inputFile: resolve(
+          REPO_ROOT,
+          'data/hkgov/csdi/archive/pland_rcd_1634023103904_16865/2023-Q4/source.zip',
+        ),
+        outputFile: join(outputDir, 'area.parquet'),
+        sourceVersion: '2021',
+        resourceType: 'divisionArea',
+      })
+      const areas = await parquetReadObjects({
+        file: await asyncBufferFromFile(join(outputDir, 'area.parquet')),
+        compressors,
+      })
+      for (const row of preparedRows) {
+        const point = parseWkbGeometry(row.geometry)
+        if (point?.type !== 'Point') throw new Error('Expected New Town Point.')
+        const area = areas.find(area => area.division_id === row.id)
+        expect(area).toBeDefined()
+        expect(area).not.toHaveProperty('source_properties')
+        const polygon = parseWkbGeometry(area!.geometry)
+        if (!polygon) throw new Error('Expected New Town polygon.')
+        expect(preparedNewTownArea(row)).toEqual(polygon)
+        expect(
+          canonicalDivisionPoint(point, { id: String(row.id), area: polygon }),
+        ).toEqual(point)
+        const [x, y] = point.coordinates
+        expect(typeof row.bbox === 'string' ? JSON.parse(row.bbox) : row.bbox).toEqual([
+          x,
+          y,
+          x,
+          y,
+        ])
+      }
       const prepared = preparedRows.find(
         row =>
           jsonRecord(row.identifiers)['PLAND:NEWTOWN'] === 'tsuen-wan-tsing-yi-area',

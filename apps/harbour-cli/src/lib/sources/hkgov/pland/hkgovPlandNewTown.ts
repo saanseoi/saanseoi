@@ -1,3 +1,4 @@
+import { planningArchivePoint } from './planningArchiveGeometry'
 import { composeSourceRecordId } from '@repo/core/sourceRecordIdentity'
 import { datasetSourceRecordIdentity } from '@repo/core/pipeline/services/sources/datasetSourceRecordIdentity'
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
@@ -213,6 +214,9 @@ function writeDivisionParquet(
   rows: NewTownRow[],
   sourceVersion: string,
 ) {
+  const points = rows.map(row =>
+    planningArchivePoint(canonicalDivisionId(row, sourceVersion), row.geometry),
+  )
   parquetWriteFile({
     filename: outputFile,
     rowGroupSize: 1000,
@@ -247,14 +251,10 @@ function writeDivisionParquet(
         rows.map(() => 'newtown'),
         false,
       ),
-      jsonColumn(
-        'geometry',
-        rows.map(row => row.geometry),
-        false,
-      ),
+      jsonColumn('geometry', points, false),
       jsonColumn(
         'bbox',
-        rows.map(row => bbox(row.geometry)),
+        points.map(point => bbox(point)),
         false,
       ),
       jsonColumn(
@@ -387,18 +387,6 @@ function writeDivisionAreaParquet(
         rows.map(row => [{ dataset: 'hkgov-pland-new-town', newTownId: row.id }]),
         false,
       ),
-      jsonColumn(
-        'source_properties',
-        rows.map(row => ({
-          i18n: i18nRows(row),
-          newtown_id: row.id,
-          source_geometry: row.originalGeometry,
-          source_geometry_bbox: bbox(row.originalGeometry),
-          was_geometry_repaired: row.repaired,
-          sourceFeature: row.sourceFeature,
-        })),
-        false,
-      ),
       stringColumn(
         'source_schema_version',
         rows.map(() => '1.0'),
@@ -528,6 +516,7 @@ function bbox(geometry: GeoJsonGeometry): [number, number, number, number] {
 }
 
 function collectPositions(geometry: GeoJsonGeometry): GeoJsonPosition[] {
+  if (geometry.type === 'Point') return [geometry.coordinates]
   if (geometry.type === 'Polygon') return geometry.coordinates.flat()
   if (geometry.type === 'MultiPolygon') return geometry.coordinates.flat(2)
   return []
@@ -556,4 +545,9 @@ function booleanColumn(name: string, data: boolean[], nullable = true) {
 
 function jsonColumn<T>(name: string, data: T[], nullable = true) {
   return { data, name, nullable, type: 'JSON' as const }
+}
+
+/** Reconstruct the canonical area from retained publisher evidence for hierarchy inference. */
+export function newTownCanonicalArea(geometry: GeoJsonGeometry): GeoJsonGeometry {
+  return repairGeometryIfInvalid(geometry, 0).geometry
 }

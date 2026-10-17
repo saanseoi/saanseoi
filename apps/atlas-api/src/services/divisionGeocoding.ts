@@ -374,6 +374,21 @@ export function createDivisionResolver(
     const membership = [...new Set([...matched, ...allPaths.flat()])].sort()
     const resource = (id: string) => {
       const record = byId.get(id)
+      // Return every published area used by containment, including detached parts.
+      const geometries = (areasById.get(id) ?? []).map(area => area.geometry)
+      const geometry: Polygon | MultiPolygon | null =
+        geometries.length === 1
+          ? geometries[0]!
+          : geometries.length
+            ? {
+                type: 'MultiPolygon',
+                coordinates: geometries.flatMap(geometry =>
+                  geometry.type === 'Polygon'
+                    ? [geometry.coordinates]
+                    : geometry.coordinates,
+                ),
+              }
+            : null
       return {
         id,
         category: classification(id).category,
@@ -382,9 +397,7 @@ export function createDivisionResolver(
         names: record?.i18n ?? {},
         evidence:
           id === namedId ? 'name' : containingIds.has(id) ? 'containment' : 'hierarchy',
-        ...(withGeometry
-          ? { geometry: index.find(area => area.id === id)?.geometry ?? null }
-          : {}),
+        ...(withGeometry ? { geometry } : {}),
       }
     }
     const ambiguous =
