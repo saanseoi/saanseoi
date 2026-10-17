@@ -1,5 +1,10 @@
 # Addresses dataset family
 
+ALS history comparison replays the selected predecessor only for the canonical IDs in
+each ingestion chunk. Prepared identities and reviewed aliases are authoritative; a
+shared street address cannot merge distinct ALS owners. Parent deletion events and
+locale changes remain part of that scoped replay.
+
 Canonical identifiers use publisher → camelCase identifier type → unchanged value,
 including `hkgov-dpo.csuId`, `hkgov-dpo.geoAddress` and `saanseoi.curationId`. The
 Address and Division APIs share the identifier schema.

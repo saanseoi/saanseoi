@@ -1115,6 +1115,7 @@ export async function getAddressVersionMapForSnapshotDbs(
   dbs: HarbourReadableDb[],
   snapshotId: string | null,
   options: AddressVersionLookupOptions,
+  recordIds?: readonly string[],
 ) {
   if (!snapshotId) return new Map<string, AddressVersionSnapshot>()
   const plan = await resolveSnapshotReplayPlan(metaDb, snapshotId)
@@ -1122,6 +1123,7 @@ export async function getAddressVersionMapForSnapshotDbs(
     dbs,
     plan.map(step => step.snapshotId),
     ['address2d', 'address2dI18n'],
+    recordIds,
   )
   const versions: ResolvedSnapshotVersion[] = [...groups].flatMap(
     ([db, events], index) =>

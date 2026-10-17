@@ -1,5 +1,10 @@
 # HKGov DPO ALS addresses
 
+ALS history comparison replays the selected predecessor only for the canonical IDs in
+each ingestion chunk. Prepared identities and reviewed aliases are authoritative; a
+shared street address cannot merge distinct ALS owners. Parent deletion events and
+locale changes remain part of that scoped replay.
+
 Retained source assertions use
 [distinct validity periods for recurring content](../../families/source-evidence.md#recurring-source-validity-periods).
 An unchanged open occurrence continues; returning content starts a new occurrence.
