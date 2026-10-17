@@ -302,7 +302,7 @@ export function buildStatisticsStatsRows(
     add(
       'unverified_field_labels',
       selected.filter(row =>
-        Object.values(row.meta.fields ?? {}).some(
+        Object.values(row.meta?.fields ?? {}).some(
           field => field?.origin === 'ai-translated' && field.isHumanVerified !== true,
         ),
       ).length,

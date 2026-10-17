@@ -140,7 +140,7 @@ export async function replaceCurrentI18n(
       nameRules: null,
       createdAt: now,
 
-      meta: { isLocaleInferred: false },
+      meta: null,
     })),
   )
   await replaceDivisionCurrentI18n(db, snapshotId, ids, rows)
@@ -204,7 +204,7 @@ export async function insertHistoryI18nRows(
       snapshotId,
       isCurrent: true,
       createdAt: now,
-      meta: { isLocaleInferred: false },
+      meta: null,
     })),
   )
   let processedRows = 0

@@ -20,7 +20,7 @@ import { buildSupplementaryAddressRows } from './supplementaryPlaceAddressRows.t
 import policy from './testFixtures/supplementaryAddressPolicy.json'
 
 const english = {
-  meta: { isLocaleInferred: false },
+  meta: null,
   ...parsedAddressSeed(),
   addressId: 'als-example',
   locale: 'en',
@@ -243,7 +243,7 @@ test('unlinked decisions survive unit changes but reopen a changed 2D address', 
 
 test('review note omits missing components and previous links; candidate uses the DB formatted address', () => {
   const candidate = {
-    meta: { isLocaleInferred: false },
+    meta: null,
     addressId: english.addressId,
     score: 120,
     distanceMetres: 12.4,

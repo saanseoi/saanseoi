@@ -610,9 +610,7 @@ export async function buildPlaceStatsRows(
         brandNameAlts: row.brandNameAlts,
         brandNameVariant: row.brandNameVariant as string[] | null,
         freeformAddress: row.freeformAddress,
-        meta: (row.meta ?? {
-          isLocaleInferred: false,
-        }) as PlaceI18nRecord['meta'],
+        meta: (row.meta ?? {}) as PlaceI18nRecord['meta'],
       })),
     })),
   )

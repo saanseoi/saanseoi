@@ -74,7 +74,7 @@ export function applyCuratedDivisionNames(id: string, names: CuratedName[]) {
         nameAlts: null,
         nameVariant: null,
         nameRules: null,
-        meta: { isLocaleInferred: false },
+        meta: null,
       }
       result.push(row)
     }

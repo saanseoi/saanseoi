@@ -77,7 +77,6 @@ test('counts dataset-qualified fields, literal availability and localisation wit
         description: null,
         name: 'Population',
         meta: {
-          isLocaleInferred: false,
           fields: { name: { origin: 'ai-translated', isHumanVerified: false } },
         },
       },

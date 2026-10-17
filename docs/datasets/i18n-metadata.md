@@ -11,7 +11,6 @@ each locale value.
       "name": "Beispiel",
       "description": "Beschreibung",
       "meta": {
-        "isLocaleInferred": false,
         "fields": {
           "name": { "origin": "human-translated", "translatorId": "translator-123" },
           "description": { "origin": "ai-translated", "isHumanVerified": true }
@@ -22,9 +21,10 @@ each locale value.
 }
 ```
 
-`isLocaleInferred` is required and describes the assignment of the locale. An unchanged
-publisher name can have an inferred locale while its name origin is `provided`. It does
-not imply translation or name generation.
+`isLocaleInferred` is optional and describes the assignment of the locale. Only `true`
+is stored; omission means `false`. NULL metadata also means a non-inferred locale, with
+unknown field provenance. An unchanged publisher name can have an inferred locale while
+its name origin is `provided`. It does not imply translation or name generation.
 
 `fields` is keyed by the actual localised field name, such as `name`, `brandName`,
 `description` or `freeformAddress`. Each recorded field has an `origin`:
@@ -44,14 +44,15 @@ identify its reviewer. These attributes are optional and must be grounded in ret
 evidence.
 
 An omitted field entry means its origin is unknown. It never implies publisher text,
-human verification or translation. Empty metadata defaults contain only
-`isLocaleInferred: false`; producers record known field origins explicitly. Runtime
-validation rejects invalid origins, non-boolean flags and empty translator identities.
+human verification or translation. Metadata with no remaining information is stored as
+SQL NULL in relational rows and JSON null inside locale values. Empty `fields` objects
+are omitted. Producers record known field origins explicitly. Runtime validation rejects
+invalid origins, non-boolean flags and empty translator identities.
 
-CURRENT holds live locale metadata. HISTORY upserts require metadata; deletion events
-can leave it null. Canonical hashes and comparisons include metadata, so a change to
-origin, verification or translator identity creates a new locale version even when its
-text is identical. JSON key ordering must not create a content revision.
+CURRENT and HISTORY both allow NULL metadata, including HISTORY upserts. Canonical
+hashes and comparisons include metadata, so a change to origin, verification or
+translator identity creates a new locale version even when its text is identical. JSON
+key ordering must not create a content revision.
 
 The physical storage choice remains independent of this contract. Relational locale rows
 retain their locale/name indexes and independent history. Nested JSON values are
@@ -63,5 +64,6 @@ canonical localisation rule projects that evidence into `meta.fields` for name a
 description. Publisher and authored origins map to `provided`; machine and human
 translations remain distinct. Missing source origin evidence remains unrecorded.
 
-The schema migration uses empty metadata defaults and does not reconstruct historical
-provenance. Reset and re-ingest the local datasets before assessing their metadata.
+The representation backfill removes explicit false locale-inference flags without
+reconstructing provenance or issuing new revisions. It preserves IDs, retained version
+hashes and all recorded origins, verification flags and translator identities.

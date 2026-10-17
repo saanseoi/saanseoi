@@ -621,6 +621,8 @@ receipts retain operational update timestamps. Statistics definitions keyed by
 ## Localisation metadata
 
 Locale values carry the shared [localisation metadata](../i18n-metadata.md) contract.
+Omitted `meta.isLocaleInferred` means false; only true is stored. Metadata with no
+remaining information is NULL, and omitted field provenance remains unknown.
 `meta.isLocaleInferred` records language assignment, while `meta.fields` records each
 field's origin, optional human verification and optional translator identity. Metadata
 participates in canonical content hashes and retained locale revisions.

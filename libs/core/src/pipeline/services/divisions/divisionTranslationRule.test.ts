@@ -11,7 +11,6 @@ test('ignores automated translations in every locale and retains publisher and h
       nameRules: null,
       nameVariant: null,
       meta: {
-        isLocaleInferred: false,
         fields: { name: { origin: 'provided' as const } },
       },
     },

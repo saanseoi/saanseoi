@@ -260,7 +260,7 @@ export function buildDivisionStatsFromSnapshots(
     if (!locale) continue
     if (row.name != null) {
       add(localeStats.count, locale, row.divisionId)
-      const provenance = row.meta.fields?.name?.origin
+      const provenance = row.meta?.fields?.name?.origin
       if (provenance)
         add(
           provenance === 'inferred'

@@ -212,7 +212,7 @@ export async function buildCuratedDivisionRelease(
         divisionId: division.id,
         locale,
         name,
-        meta: { isLocaleInferred: false, fields: { name: { origin: 'provided' } } },
+        meta: { fields: { name: { origin: 'provided' } } },
       })
   }
   const administrativeAreas = buildAdministrativeAreas({

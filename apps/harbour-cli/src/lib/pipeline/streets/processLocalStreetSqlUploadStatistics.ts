@@ -47,7 +47,7 @@ export function buildStreetStats(
         hasAltName: false,
         hasName: Boolean(item.name),
         locale: item.locale,
-        meta: { isLocaleInferred: false },
+        meta: null,
       })),
     )
     for (const districtId of street.districtIds) increment(districtCounts, districtId)

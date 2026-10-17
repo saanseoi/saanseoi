@@ -1714,7 +1714,7 @@ export function buildOvertureDivisionLocaleProcessingActions(input: {
     sourceNames: JSON.parse(JSON.stringify(input.rawNames ?? null)),
     normalisedI18n: input.sourceI18n,
   }
-  const inferredI18n = input.sourceI18n.filter(row => row.meta.isLocaleInferred)
+  const inferredI18n = input.sourceI18n.filter(row => row.meta?.isLocaleInferred)
   const sourceLocales = new Set(input.sourceI18n.map(row => row.locale))
   const fallbackI18n = input.canonicalI18n.flatMap(row => {
     if (sourceLocales.has(row.locale)) return []
@@ -1774,9 +1774,9 @@ function isDivisionI18nFallbackSource(
     source.name === fallback.name &&
     source.nameAlts === fallback.nameAlts &&
     source.nameRules === fallback.nameRules &&
-    source.meta.fields?.name?.origin === fallback.meta.fields?.name?.origin &&
+    source.meta?.fields?.name?.origin === fallback.meta?.fields?.name?.origin &&
     source.nameVariant === fallback.nameVariant &&
-    source.meta.isLocaleInferred === fallback.meta.isLocaleInferred
+    source.meta?.isLocaleInferred === fallback.meta?.isLocaleInferred
   )
 }
 
@@ -1871,7 +1871,9 @@ export function normaliseDivisionI18n(
       nameRules: nameRules.length > 0 ? nameRules : null,
       nameVariant: values.length > 0 ? values : null,
       meta: {
-        isLocaleInferred: localisedInferredFlags.get(locale) ?? false,
+        ...(localisedInferredFlags.get(locale)
+          ? { isLocaleInferred: true as const }
+          : {}),
         fields: { name: { origin: 'provided' as const } },
       } as import('@repo/db').I18nMeta,
     } satisfies DivisionI18nPayload

@@ -1,3 +1,4 @@
+import { parseI18nMeta } from '@repo/db'
 import { buildDeterministicUuidV5 } from '@repo/db'
 import { stringifyGeoJson } from '@repo/db/geoJsonSerialisation'
 import type { DatasetProcessingMessage } from '../../../types'
@@ -250,7 +251,7 @@ export function buildAddressSourceSqlImportFiles(
       NORMALIZED_I18N_COLUMNS,
       sourceRows.flatMap(row =>
         row.i18n.map(localised => ({
-          meta: jsonText(localised.meta),
+          meta: jsonText(parseI18nMeta(localised.meta)),
           runId,
           sourceRecordId: row.sourceId,
           locale: localised.locale,
@@ -421,7 +422,7 @@ export function buildAddressHistorySqlImportFile(
       RESOLVED_I18N_COLUMNS,
       artefact.rows.flatMap(row =>
         row.i18n.map(localised => ({
-          meta: jsonText(localised.meta),
+          meta: jsonText(parseI18nMeta(localised.meta)),
           runId,
           addressId: row.addressId,
           versionHash: row.versionHash,
@@ -518,7 +519,7 @@ export function buildAddressCurrentSqlImportFile(
       RESOLVED_I18N_COLUMNS,
       artefact.rows.flatMap(row =>
         row.i18n.map(localised => ({
-          meta: jsonText(localised.meta),
+          meta: jsonText(parseI18nMeta(localised.meta)),
           runId,
           addressId: row.addressId,
           versionHash: row.versionHash,

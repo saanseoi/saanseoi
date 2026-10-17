@@ -80,7 +80,7 @@ export const statsMeasuresI18n = sqliteTable(
   'statsMeasuresI18n',
   { ...canonicalStatsMeasureI18nColumns(false), ...historyStatisticVersioning },
   table => [
-    ...historyEventConstraints(table, ['name', 'meta']),
+    ...historyEventConstraints(table, ['name']),
     primaryKey({
       columns: [table.datasetCode, table.measureCode, table.locale, table.snapshotId],
     }),
@@ -91,7 +91,7 @@ export const statsFieldsI18n = sqliteTable(
   'statsFieldsI18n',
   { ...canonicalStatsFieldI18nColumns(false), ...historyStatisticVersioning },
   table => [
-    ...historyEventConstraints(table, ['name', 'meta']),
+    ...historyEventConstraints(table, ['name']),
     primaryKey({
       columns: [table.datasetCode, table.fieldName, table.locale, table.snapshotId],
     }),
@@ -102,7 +102,7 @@ export const statsValuesI18n = sqliteTable(
   'statsValuesI18n',
   { ...canonicalStatsValueI18nColumns(false), ...historyStatisticVersioning },
   table => [
-    ...historyEventConstraints(table, ['name', 'meta']),
+    ...historyEventConstraints(table, ['name']),
     primaryKey({
       columns: [
         table.datasetCode,

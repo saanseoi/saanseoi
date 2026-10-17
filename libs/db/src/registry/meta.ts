@@ -1144,10 +1144,7 @@ function normaliseTranslationMeta<T extends { meta?: I18nMeta }>(
       locale,
       {
         ...value,
-        meta:
-          value.meta === undefined
-            ? { isLocaleInferred: false }
-            : parseI18nMeta(value.meta),
+        meta: value.meta === undefined ? null : parseI18nMeta(value.meta),
       },
     ]),
   )

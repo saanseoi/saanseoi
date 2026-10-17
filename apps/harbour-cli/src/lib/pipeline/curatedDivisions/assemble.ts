@@ -254,7 +254,7 @@ function assembleCuratedDivisionsInternal(input: {
             divisionId: id,
             locale,
             name,
-            meta: { isLocaleInferred: false, fields: { name: { origin: 'provided' } } },
+            meta: { fields: { name: { origin: 'provided' } } },
           })
     }
     const selected = divisions.get(id)!

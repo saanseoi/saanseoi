@@ -9,7 +9,7 @@ test('patch primary name replaces the curated name and retains unrelated locales
     nameAlts: null,
     nameVariant: null,
     nameRules: null,
-    meta: { isLocaleInferred: false },
+    meta: null,
   }))
   const result = applyDivisionNamePatch('division', curated, {
     class: 'macrohood',

@@ -25,7 +25,7 @@ const name = (id: string, value: string, extra = {}) =>
     divisionId: id,
     locale: 'en',
     name: value,
-    meta: { isLocaleInferred: false, fields: { name: { origin: 'provided' } } },
+    meta: { fields: { name: { origin: 'provided' } } },
     ...extra,
   }) as unknown as DivisionStatsSnapshot['names'][number]
 const totals = (rows: ReturnType<typeof buildDivisionStatsFromSnapshots>) =>
@@ -130,7 +130,6 @@ test('name ordering and provenance do not create content churn', () => {
       name('a', '甲', { locale: 'zh-hant' }),
       name('a', 'A', {
         meta: {
-          isLocaleInferred: false,
           fields: { name: { origin: 'human-translated' } },
         },
       }),

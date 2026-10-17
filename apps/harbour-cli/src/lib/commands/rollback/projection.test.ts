@@ -112,7 +112,7 @@ function historyRow(
   insert(db, table, {
     ...(table === 'divisionsI18n'
       ? {
-          meta: { isLocaleInferred: false },
+          meta: null,
         }
       : {}),
     ...(table === 'address2dI18n' ? { formattedAddress: 'Building 5A-5C' } : {}),

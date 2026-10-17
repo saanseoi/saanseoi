@@ -27,7 +27,7 @@ export const divisionsI18n = sqliteTable(
     ...historyI18nVersioning,
   },
   table => [
-    ...historyEventConstraints(table, ['meta']),
+    ...historyEventConstraints(table, []),
     primaryKey({
       columns: [table.divisionId, table.snapshotId, table.locale],
     }),

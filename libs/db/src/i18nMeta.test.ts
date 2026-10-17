@@ -17,29 +17,44 @@ test('locale inference, field origin and human verification remain independent',
 })
 
 test('unrecorded origin and verification remain absent', () => {
-  expect(parseI18nMeta({ isLocaleInferred: false })).toEqual({
-    isLocaleInferred: false,
-  })
+  expect(parseI18nMeta(null)).toBeNull()
   expect(
     parseI18nMeta({ isLocaleInferred: false, fields: { name: { origin: 'inferred' } } })
-      .fields?.name,
+      ?.fields?.name,
   ).not.toHaveProperty('isHumanVerified')
 })
 
 test.each([
-  null,
-  {},
+  [[]],
+  false,
   { isLocaleInferred: 1 },
   { isLocaleInferred: false, fields: [] },
   { isLocaleInferred: false, fields: { name: { origin: 'unknown' } } },
   {
-    isLocaleInferred: false,
     fields: { name: { origin: 'provided', isHumanVerified: 'true' } },
   },
   {
-    isLocaleInferred: false,
     fields: { name: { origin: 'human-translated', translatorId: ' ' } },
   },
 ])('rejects malformed localisation metadata %#', value => {
   expect(() => parseI18nMeta(value)).toThrow()
+})
+
+test.each([
+  undefined,
+  null,
+  {},
+  { isLocaleInferred: false },
+  { fields: {} },
+  { isLocaleInferred: false, fields: {} },
+])('empty metadata is NULL %#', value => {
+  expect(parseI18nMeta(value)).toBeNull()
+})
+test('compaction preserves explicit provenance and verification', () => {
+  expect(
+    parseI18nMeta({
+      isLocaleInferred: false,
+      fields: { name: { origin: 'provided', isHumanVerified: false } },
+    }),
+  ).toEqual({ fields: { name: { origin: 'provided', isHumanVerified: false } } })
 })

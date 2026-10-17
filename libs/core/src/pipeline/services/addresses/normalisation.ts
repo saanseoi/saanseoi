@@ -1,3 +1,4 @@
+import { parseI18nMeta } from '@repo/db'
 import type { AddressI18nPayload, AddressRow } from '@repo/db/currentSchema'
 import ruleFixture from '../../../../../../fixtures/meta/processing-rules/assembly/address-normalisation.json'
 import {
@@ -132,7 +133,7 @@ function normalisePreparedHkgovAddressRow(
 
   if (asNonEmptyString(row.enFormattedAddress)) {
     i18n.push({
-      meta: { isLocaleInferred: false },
+      meta: null,
       addressId: sourceId,
       locale: 'en',
       formattedAddress: requireText(
@@ -153,7 +154,7 @@ function normalisePreparedHkgovAddressRow(
 
   if (asNonEmptyString(row.zhHantFormattedAddress)) {
     i18n.push({
-      meta: { isLocaleInferred: false },
+      meta: null,
       addressId: sourceId,
       locale: 'zh-hant',
       formattedAddress: requireText(
@@ -311,7 +312,7 @@ export function buildAddressI18nHashInput(
     },
 ) {
   return {
-    meta: row.meta ?? { isLocaleInferred: false },
+    meta: parseI18nMeta(row.meta),
     addressId: row.addressId,
     locale: row.locale,
     formattedAddress: row.formattedAddress,

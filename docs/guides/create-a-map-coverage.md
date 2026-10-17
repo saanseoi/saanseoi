@@ -22,7 +22,8 @@ provenance without exposing serving-write timestamps.
 
 Places full-profile locale values expose `i18n.{locale}.meta`. The hand-over
 instructions distinguish locale inference from field origin and human verification;
-marker clients can use names without requiring metadata.
+omitted locale inference means false, empty metadata is null, and absent field
+provenance means unknown. Marker clients can use names without requiring metadata.
 
 Place provenance uses `attributes.resourceReleaseId` for the processed resource release
 and `snapshotId` for the canonical snapshot. The hand-over instructions describe these

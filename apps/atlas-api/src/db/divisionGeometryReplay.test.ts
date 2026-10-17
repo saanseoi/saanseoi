@@ -284,7 +284,7 @@ const divisionRecord: DivisionRecord = {
   },
   i18n: {
     en: {
-      meta: { isLocaleInferred: false },
+      meta: null,
       name: 'District A',
     },
   },

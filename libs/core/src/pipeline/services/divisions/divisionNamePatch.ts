@@ -32,7 +32,7 @@ export function applyDivisionNamePatch(
           ...(patch.nameEn ? [patch.nameEn] : []),
           ...(patch.nameAltsEn ?? []),
         ],
-        meta: { isLocaleInferred: false },
+        meta: null,
       })
     let zhHant = i18n.find(entry => entry.locale === 'zh-hant')
     if (!zhHant && patch.nameAltsZhHant) {
@@ -43,7 +43,7 @@ export function applyDivisionNamePatch(
         nameAlts: null,
         nameRules: null,
         nameVariant: null,
-        meta: { isLocaleInferred: false },
+        meta: null,
       }
       i18n.push(zhHant)
     }

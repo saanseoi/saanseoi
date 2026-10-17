@@ -53,7 +53,7 @@ const address = (
   },
   i18n: {
     en: {
-      meta: { isLocaleInferred: false },
+      meta: null,
       formattedAddress: name,
       buildingName: name,
     },

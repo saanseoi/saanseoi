@@ -298,7 +298,7 @@ test('exact historical Place dependencies replay independent locale shards and s
       'country',
       {
         name: 'Historic country',
-        meta: { isLocaleInferred: false },
+        meta: null,
       },
       'en',
     )

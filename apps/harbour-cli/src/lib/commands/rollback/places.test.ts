@@ -175,7 +175,7 @@ async function fixture() {
     'division-name',
     {
       name: 'County',
-      meta: { isLocaleInferred: false },
+      meta: null,
     },
     'en',
   )

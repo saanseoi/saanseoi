@@ -108,7 +108,7 @@ export async function buildSupplementaryAddressRows(input: {
     }
     const i18n = entry.values.map(value => ({
       ...value,
-      meta: value.meta ?? { isLocaleInferred: false },
+      meta: value.meta ?? null,
       addressId: id,
     }))
     const versionHash = await createHash(canonical)

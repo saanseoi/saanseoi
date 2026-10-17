@@ -220,7 +220,7 @@ function streetRows(query: string, values: unknown[] = []): unknown[][] {
       ['en', 'Central Wan Chai Bypass'],
       ['zh-Hant', '中環灣仔繞道'],
     ].map(([locale, name]) => [
-      JSON.stringify({ isLocaleInferred: false }),
+      JSON.stringify(null),
       description,
       locale,
       name,
@@ -433,7 +433,7 @@ function streetRows(query: string, values: unknown[] = []): unknown[][] {
         ...localizations('street-version-1', null).map(row => [
           'landsd-street-notice-example',
           row[2],
-          JSON.stringify({ isLocaleInferred: false }),
+          JSON.stringify(null),
           row[3],
           null,
           null,
@@ -453,7 +453,7 @@ function streetRows(query: string, values: unknown[] = []): unknown[][] {
           row => [
             'landsd-street-notice-example',
             row[2],
-            JSON.stringify({ isLocaleInferred: false }),
+            JSON.stringify(null),
             row[3],
             null,
             null,
@@ -476,7 +476,7 @@ function streetRows(query: string, values: unknown[] = []): unknown[][] {
         ).map(row => [
           'landsd-street-notice-example',
           row[2],
-          JSON.stringify({ isLocaleInferred: false }),
+          JSON.stringify(null),
           row[3],
           null,
           null,

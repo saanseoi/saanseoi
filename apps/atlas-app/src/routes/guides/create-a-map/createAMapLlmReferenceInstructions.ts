@@ -641,7 +641,7 @@ crosswalk is ready. Overlap fractions must not be used as population weights.
 ## Localisation metadata
 
 For the Places full profile, inspect \`attributes.i18n.{locale}.meta\`.
-\`isLocaleInferred\` describes language assignment. Each recorded entry in
+\`isLocaleInferred\` describes language assignment; omission means false. Empty metadata is null. Each recorded entry in
 \`fields\` has an \`origin\` of provided, inferred, ai-translated or human-translated,
 with optional \`isHumanVerified\` and \`translatorId\`. Human verification is
 independent of translation origin. Omitted field metadata is unknown. Marker rendering

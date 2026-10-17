@@ -1,3 +1,4 @@
+import { parseI18nMeta } from '@repo/db'
 import type { DatasetProcessingMessage } from '@repo/core'
 import { divisionLocaleContent } from '@repo/core/pipeline/db/divisionHistory'
 import { buildSourceReleaseId } from '@repo/core/pipeline/db/source'
@@ -184,7 +185,7 @@ export async function buildDivisionHistorySqlFile(
             nameAlts: localised.nameAlts ?? null,
             nameRules: jsonText(localised.nameRules),
             createdAt: record.base.createdAt,
-            meta: jsonText(localised.meta),
+            meta: jsonText(parseI18nMeta(localised.meta)),
           })),
         )),
       )
@@ -327,7 +328,7 @@ export async function buildDivisionCurrentSqlFile(
             nameRules: jsonText(localised.nameRules),
             createdAt: record.base.createdAt,
 
-            meta: jsonText(localised.meta),
+            meta: jsonText(parseI18nMeta(localised.meta)),
           })),
       )
     }

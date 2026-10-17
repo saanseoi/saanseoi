@@ -704,7 +704,7 @@ test('curated assembly applies dedicated aliases with name provenance', () => {
         nameAlts: null,
         nameVariant: '["West Kowloon"]',
         nameRules: null,
-        meta: { isLocaleInferred: false },
+        meta: null,
       },
     ],
     areas: [],

@@ -277,9 +277,7 @@ describe('Places SQL materialisation', () => {
                 brandNameVariant: null,
                 brandNameAlts: null,
                 freeformAddress: '1 Example Road',
-                meta: {
-                  isLocaleInferred: false,
-                },
+                meta: null,
               },
             ],
             localeConflicts: [],
@@ -360,9 +358,7 @@ describe('Places SQL materialisation', () => {
     expect(i18nVersionHash.versionHash).not.toBe(placeVersionHash.versionHash)
     expect(sqlite.query('SELECT freeformAddress, meta FROM placesI18n').get()).toEqual({
       freeformAddress: '1 Example Road',
-      meta: JSON.stringify({
-        isLocaleInferred: false,
-      }),
+      meta: null,
     })
     expect(
       sqlite.query('SELECT properties, sourceGeometry FROM overturePlaces').get(),

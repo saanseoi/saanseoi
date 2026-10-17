@@ -216,7 +216,9 @@ export function applyPlaceTranslationApplications(
       )
       if (!row) continue
       ;(row as Record<string, unknown>)[application.field] = application.text
-      const meta = (row as PlaceI18nRecord).meta
+      const localised = row as PlaceI18nRecord
+      localised.meta ??= {}
+      const meta = localised.meta
       meta.fields ??= {}
       meta.fields[application.field] = {
         origin: application.provenance,

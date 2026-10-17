@@ -336,13 +336,13 @@ export function collectionStatements(
   ]
   for (const [locale, units] of Object.entries(locales)) {
     const localeVersionHash = als3dHash({
-      meta: { isLocaleInferred: false, fields: { units: { origin: 'provided' } } },
+      meta: { fields: { units: { origin: 'provided' } } },
       address3dId: base.id,
       locale,
       units,
     })
     const fields = {
-      meta: { isLocaleInferred: false, fields: { units: { origin: 'provided' } } },
+      meta: { fields: { units: { origin: 'provided' } } },
       address3dId: base.id,
       locale,
       units,

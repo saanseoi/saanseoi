@@ -268,7 +268,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
         currentDb
           .insert(currentSchema.address2dI18n)
           .values({
-            meta: { isLocaleInferred: false },
+            meta: null,
             scopeId: `scope:${snapshotId}`,
             addressId: id,
             locale,
@@ -365,7 +365,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
     expect(all.body.data[2]?.attributes.granularity).toBe('unknown')
     expect(all.body.data[0]?.attributes.i18n).toEqual({
       en: {
-        meta: { isLocaleInferred: false },
+        meta: null,
         formattedAddress: 'Harbour a',
         buildingName: 'Harbour',
         buildingNumberExpression: '20',
@@ -383,7 +383,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
         streetName: null,
       },
       'zh-hant': {
-        meta: { isLocaleInferred: false },
+        meta: null,
         formattedAddress: 'Harbour a',
         buildingName: 'Harbour',
         buildingNumberExpression: '20',
@@ -436,11 +436,11 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
     )
     expect(compact.status === 200 && compact.body.data.attributes.i18n).toEqual({
       en: {
-        meta: { isLocaleInferred: false },
+        meta: null,
         formattedAddress: 'Harbour b',
       },
       'zh-hant': {
-        meta: { isLocaleInferred: false },
+        meta: null,
         formattedAddress: 'Harbour b',
       },
     })
@@ -693,7 +693,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
         units: [unit],
         i18n: {
           en: {
-            meta: { isLocaleInferred: false },
+            meta: null,
             units: { unit: { unitExpression: 'FLAT 01', floorExpression: '1/F' } },
           },
         },

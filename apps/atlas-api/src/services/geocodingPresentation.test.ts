@@ -45,7 +45,7 @@ test('JSON:API relationships keep category branches ordered and names concise', 
   expect(output.included[0]!.attributes.i18n).toEqual({
     en: {
       name: 'hk',
-      meta: { isLocaleInferred: false },
+      meta: null,
     },
   })
   expect(output.data[0]!.meta).toBeUndefined()

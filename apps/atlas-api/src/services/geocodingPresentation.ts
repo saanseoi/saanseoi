@@ -70,9 +70,7 @@ export function presentGeocoding(
           const names = Object.fromEntries(
             Object.entries(member.names).map(([locale, name]) => [
               locale,
-              full
-                ? name
-                : { name: name.name, meta: name.meta ?? { isLocaleInferred: false } },
+              full ? name : { name: name.name, meta: name.meta ?? null },
             ]),
           )
           const attributes: Record<string, unknown> = {
@@ -113,7 +111,7 @@ export function presentGeocoding(
               i18n: Object.fromEntries(
                 Object.entries(member.names).map(([locale, value]) => [
                   locale,
-                  { name: value.name, meta: value.meta ?? { isLocaleInferred: false } },
+                  { name: value.name, meta: value.meta ?? null },
                 ]),
               ),
             },

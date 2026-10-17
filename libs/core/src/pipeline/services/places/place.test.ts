@@ -60,9 +60,7 @@ describe('Overture place normalisation', () => {
         brandNameAlts: null,
         brandNameVariant: null,
         freeformAddress: null,
-        meta: expect.objectContaining({
-          isLocaleInferred: false,
-        }),
+        meta: expect.objectContaining({}),
       }),
       expect.objectContaining({
         locale: 'zh-hant',

@@ -83,7 +83,7 @@ test('curated archive preserves locale rows, ancestry evidence and upstream rele
           divisionId: 'child',
           locale: 'zh-hant',
           name: '四小龍',
-          meta: { isLocaleInferred: false, fields: { name: { origin: 'provided' } } },
+          meta: { fields: { name: { origin: 'provided' } } },
         },
       ],
     ),
@@ -101,7 +101,7 @@ test('curated archive preserves locale rows, ancestry evidence and upstream rele
   expect(result.i18n[0]).toMatchObject({
     locale: 'zh-hant',
     name: '四小龍',
-    meta: { isLocaleInferred: false },
+    meta: { fields: { name: { origin: 'provided' } } },
   })
   expect(manifest.sourceReleases).toEqual(sourceReleases)
 })
@@ -219,7 +219,7 @@ test('curated records enter ordinary SQL preparation without adding upstream fix
         names: {
           'zh-hant': {
             name: '四小龍',
-            meta: { isLocaleInferred: false },
+            meta: null,
           },
         },
       },
@@ -256,7 +256,7 @@ test('curated records enter ordinary SQL preparation without adding upstream fix
   expect(state.records[0]!.canonicalI18n[0]).toMatchObject({
     locale: 'zh-hant',
     name: '四小龍',
-    meta: { isLocaleInferred: false },
+    meta: null,
   })
 })
 

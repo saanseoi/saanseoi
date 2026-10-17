@@ -323,7 +323,7 @@ export function buildLocaleStatsRows(statsAccumulator: LocaleStatsAccumulator) {
 }
 
 function resolveNameOrigin(row: LocalisedStatsRow): I18nOrigin | undefined {
-  return row.meta.fields?.name?.origin
+  return row.meta?.fields?.name?.origin
 }
 
 /**
@@ -983,7 +983,7 @@ export function hasNameRegression<
     }
 
     const currentNames = getNameSet(current)
-    const previousPrimaryName = !previous.meta.isLocaleInferred ? previous.name : null
+    const previousPrimaryName = !previous.meta?.isLocaleInferred ? previous.name : null
 
     if (previousPrimaryName && !currentNames.has(previousPrimaryName)) {
       return true
@@ -1277,7 +1277,7 @@ function hasTrackedNames(row: {
   name: string | null
   nameAlts: string | null
 }) {
-  return Boolean((!row.meta.isLocaleInferred && row.name) || row.nameAlts)
+  return Boolean((!row.meta?.isLocaleInferred && row.name) || row.nameAlts)
 }
 
 function getNameSet(row: { name: string | null; nameAlts: string | null }) {

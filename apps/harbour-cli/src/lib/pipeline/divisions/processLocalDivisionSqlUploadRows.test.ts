@@ -67,10 +67,10 @@ test('a returning base version keeps distinct localisation provenance versions',
       .query(
         "SELECT versionHash, json_extract(meta, '$.isLocaleInferred') AS isLocaleInferred FROM divisionsI18n ORDER BY isLocaleInferred",
       )
-      .all() as Array<{ versionHash: string; isLocaleInferred: number }>
+      .all() as Array<{ versionHash: string; isLocaleInferred: number | null }>
     expect(rows).toHaveLength(2)
     expect(rows[0]!.versionHash).not.toBe(rows[1]!.versionHash)
-    expect(rows.map(row => row.isLocaleInferred)).toEqual([0, 1])
+    expect(rows.map(row => row.isLocaleInferred)).toEqual([null, 1])
   } finally {
     db.close()
   }

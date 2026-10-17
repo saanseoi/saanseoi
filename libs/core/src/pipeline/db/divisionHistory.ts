@@ -1,3 +1,4 @@
+import { parseI18nMeta } from '@repo/db'
 import { historySchema } from '@repo/db'
 import type { DivisionI18nPayload } from '@repo/db/currentSchema'
 import { and, eq, or } from 'drizzle-orm'
@@ -52,7 +53,7 @@ export function divisionLocaleContent(row: DivisionI18nPayload) {
     nameAlts: row.nameAlts ?? null,
     nameRules: row.nameRules ?? null,
     nameVariant: row.nameVariant ?? null,
-    meta: row.meta,
+    meta: parseI18nMeta(row.meta),
   }
 }
 

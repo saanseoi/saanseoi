@@ -34,14 +34,14 @@ test.each(['scope-a', 'scope-b'] as const)(
         )
       const values: SupplementaryValues[] = [
         {
-          meta: { isLocaleInferred: false },
+          meta: null,
           locale: 'en',
           formattedAddress: 'Pavilion, 20 Example Road',
           buildingName: 'Pavilion',
           streetName: 'Example Road',
         },
         {
-          meta: { isLocaleInferred: false },
+          meta: null,
           locale: 'zh-hant',
           formattedAddress: '示例路20號涼亭',
           buildingName: '涼亭',

@@ -1,5 +1,5 @@
 import type { StatisticFieldSources } from '../statisticFieldSources'
-import { parseI18nMeta, type I18nMeta } from '../i18nMeta'
+import { compactLocaleJson, parseI18nMeta, type I18nMeta } from '../i18nMeta'
 import type { NotNull } from 'drizzle-orm'
 import { sql } from 'drizzle-orm'
 import type { SQLiteColumnBuilder } from 'drizzle-orm/sqlite-core'
@@ -84,8 +84,10 @@ export type StreetEvidenceAsset = EvidenceAsset<StreetEvidenceAssetRole>
 export const jsonText = <T = unknown>(name: string) =>
   customType<{ data: T; driverData: string }>({
     dataType: () => 'text',
-    fromDriver: value => JSON.parse(value) as T,
-    toDriver: value => stringifyGeoJson(value),
+    fromDriver: value =>
+      (name === 'i18n' ? compactLocaleJson(JSON.parse(value)) : JSON.parse(value)) as T,
+    toDriver: value =>
+      stringifyGeoJson(name === 'i18n' ? compactLocaleJson(value) : value),
   })(name)
 
 /**
@@ -761,12 +763,14 @@ function requiredColumn<T extends SQLiteColumnBuilder, Required extends boolean>
     : T
 }
 
-/** Live rows have explicit locale metadata; deletion events contain identity only. */
-function i18nMetaColumn<Required extends boolean>(required: Required) {
-  const column = customType<{ data: I18nMeta; driverData: string }>({
+/** NULL metadata means a supplied locale with unknown field provenance. */
+function i18nMetaColumn<Required extends boolean>(_required: Required) {
+  return customType<{ data: I18nMeta; driverData: string | null }>({
     dataType: () => 'text',
-    fromDriver: value => parseI18nMeta(JSON.parse(value)),
-    toDriver: value => JSON.stringify(parseI18nMeta(value)),
-  })('meta').default({ isLocaleInferred: false })
-  return requiredColumn(column, required)
+    fromDriver: value => parseI18nMeta(value === null ? null : JSON.parse(value)),
+    toDriver: value => {
+      const meta = parseI18nMeta(value)
+      return meta === null ? null : JSON.stringify(meta)
+    },
+  })('meta')
 }

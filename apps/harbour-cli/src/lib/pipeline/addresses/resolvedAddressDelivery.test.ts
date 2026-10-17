@@ -174,7 +174,7 @@ test('combined Address planning seals only final changes and rejects incomplete 
           },
           i18n: [
             {
-              meta: { isLocaleInferred: false },
+              meta: null,
               addressId: 'a',
               snapshotId: 'snapshot',
               locale: 'en',

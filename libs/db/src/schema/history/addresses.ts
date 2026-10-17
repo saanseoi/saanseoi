@@ -33,7 +33,7 @@ export const address2dI18n = sqliteTable(
     ...historyI18nVersioning,
   },
   table => [
-    ...historyEventConstraints(table, ['formattedAddress', 'meta']),
+    ...historyEventConstraints(table, ['formattedAddress']),
     primaryKey({
       columns: [table.addressId, table.snapshotId, table.locale],
     }),
@@ -89,7 +89,7 @@ export const address3dI18n = sqliteTable(
     ...historyI18nVersioning,
   },
   table => [
-    ...historyEventConstraints(table, ['units', 'meta']),
+    ...historyEventConstraints(table, ['units']),
     primaryKey({
       columns: [table.address3dId, table.snapshotId, table.locale],
     }),

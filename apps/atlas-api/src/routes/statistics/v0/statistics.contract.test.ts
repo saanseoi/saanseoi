@@ -376,17 +376,23 @@ describe('Statistics API responses through the Worker route', () => {
               fieldName: 'totalPopulation',
               i18n: {
                 en: {
-                  meta: { isLocaleInferred: false },
+                  meta: {
+                    fields: { name: { origin: 'provided', isHumanVerified: true } },
+                  },
                   name: 'Total population',
                   description: 'Number of people.',
                 },
                 'zh-hant': {
-                  meta: { isLocaleInferred: false },
+                  meta: {
+                    fields: { name: { origin: 'provided', isHumanVerified: true } },
+                  },
                   name: '總人口',
                   description: '人口數目。',
                 },
                 'zh-hans': {
-                  meta: { isLocaleInferred: false },
+                  meta: {
+                    fields: { name: { origin: 'provided', isHumanVerified: true } },
+                  },
                   name: '总人口',
                   description: '人口数目。',
                 },

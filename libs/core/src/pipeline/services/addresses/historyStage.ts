@@ -247,7 +247,7 @@ export async function buildResolvedAddressChunkArtefact(
         )
     changedI18nVersionRows.push(
       ...changedLocales.map(localised => ({
-        meta: localised.meta ?? { isLocaleInferred: false },
+        meta: localised.meta ?? null,
         addressId: localised.addressId,
         locale: localised.locale,
         formattedAddress: localised.formattedAddress,

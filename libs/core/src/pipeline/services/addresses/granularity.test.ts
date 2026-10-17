@@ -12,7 +12,7 @@ import {
 import { createHash } from '../../utils'
 
 const value = {
-  meta: { isLocaleInferred: false },
+  meta: null,
   locale: 'en',
   formattedAddress: '134 Example Road',
   buildingNumberFrom: '134',
@@ -206,7 +206,7 @@ test('fingerprints ignore locale row order but retain changed evidence', () => {
   const bilingual = [
     ...values,
     {
-      meta: { isLocaleInferred: false },
+      meta: null,
       locale: 'zh-hant',
       formattedAddress: '示例道134號',
     },

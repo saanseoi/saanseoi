@@ -22,7 +22,7 @@ export function division(
     },
     i18n: {
       en: {
-        meta: { isLocaleInferred: false },
+        meta: null,
         name: id,
       },
     },

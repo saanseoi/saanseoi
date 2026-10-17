@@ -35,7 +35,7 @@ test('Division current writes insert, change and remove only the affected rows w
     locale: language,
     name: `${divisionId}-${language}`,
     createdAt: timestamp,
-    meta: { isLocaleInferred: false, fields: { name: { origin: 'provided' } } },
+    meta: { fields: { name: { origin: 'provided' } } },
   })
   const changes = () =>
     (client.query('SELECT total_changes() AS count').get() as { count: number }).count

@@ -30,7 +30,6 @@ export function buildLandsdSourceStats(
           hasName: Boolean(names.official),
           hasAltName: names.alias.length > 0,
           meta: {
-            isLocaleInferred: false,
             fields: { name: { origin: 'provided' as const } },
           },
         }),

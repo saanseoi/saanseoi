@@ -716,7 +716,6 @@ const IncludedStatisticResourceSchema = z.union([
                     name: 'Public rental housing',
                     description: 'Public rental housing',
                     meta: {
-                      isLocaleInferred: false,
                       fields: { name: { origin: 'ai-translated' } },
                     },
                   },
@@ -724,7 +723,6 @@ const IncludedStatisticResourceSchema = z.union([
                     name: '公共租住房屋',
                     description: '公共租住房屋',
                     meta: {
-                      isLocaleInferred: false,
                       fields: { name: { origin: 'ai-translated' } },
                     },
                   },

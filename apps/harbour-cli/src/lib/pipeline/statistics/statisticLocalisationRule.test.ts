@@ -14,7 +14,6 @@ test('publisher text does not imply human verification', () => {
     origin: { kind: 'publisher' },
   })
   expect(row.meta).toEqual({
-    isLocaleInferred: false,
     fields: { name: { origin: 'provided' }, description: { origin: 'provided' } },
   })
 })
@@ -29,18 +28,16 @@ test('machine origin survives human verification', () => {
       sourceDescription: '人口數目',
     },
   })
-  expect(row.meta.fields?.name).toEqual({
+  expect(row.meta?.fields?.name).toEqual({
     origin: 'ai-translated',
     isHumanVerified: true,
   })
-  expect(row.meta.fields?.description).toEqual({
+  expect(row.meta?.fields?.description).toEqual({
     origin: 'ai-translated',
     isHumanVerified: true,
   })
 })
 
 test('missing source origin remains unknown', () => {
-  expect(statisticLocalisationRule.execute(label).meta).toEqual({
-    isLocaleInferred: false,
-  })
+  expect(statisticLocalisationRule.execute(label).meta).toBeNull()
 })

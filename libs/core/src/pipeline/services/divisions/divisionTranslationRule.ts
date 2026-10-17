@@ -33,7 +33,6 @@ export const divisionTranslationRule = registerRule(
                 nameRules: null,
                 nameVariant: [localised.name],
                 meta: {
-                  isLocaleInferred: false,
                   fields: {
                     name: {
                       origin:

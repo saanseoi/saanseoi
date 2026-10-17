@@ -453,7 +453,7 @@ function seedHistory(sqlite: Database) {
   )
   run(
     sqlite,
-    `INSERT INTO statsMeasuresI18n (snapshotId,datasetCode,measureCode,locale,name,description,meta,versionHash,isCurrent,createdAt) VALUES ('snapshot-statistics', ?, ?, ?, ?, ?,json_object('isLocaleInferred',json('false'),'fields',json_object('name',json_object('origin','provided','isHumanVerified',json(CASE ? WHEN 1 THEN 'true' ELSE 'false' END)))), ?, ?, ?)`,
+    `INSERT INTO statsMeasuresI18n (snapshotId,datasetCode,measureCode,locale,name,description,meta,versionHash,isCurrent,createdAt) VALUES ('snapshot-statistics', ?, ?, ?, ?, ?,json_object('fields',json_object('name',json_object('origin','provided','isHumanVerified',json(CASE ? WHEN 1 THEN 'true' ELSE 'false' END)))), ?, ?, ?)`,
     [
       HISTORICAL_DATASET_CODE,
       'households',
@@ -468,7 +468,7 @@ function seedHistory(sqlite: Database) {
   )
   run(
     sqlite,
-    `INSERT INTO statsFieldsI18n (snapshotId,datasetCode,fieldName,locale,name,description,meta,versionHash,isCurrent,createdAt) VALUES ('snapshot-statistics', ?, ?, ?, ?, ?,json_object('isLocaleInferred',json('false'),'fields',json_object('name',json_object('origin','provided','isHumanVerified',json(CASE ? WHEN 1 THEN 'true' ELSE 'false' END)))), ?, ?, ?)`,
+    `INSERT INTO statsFieldsI18n (snapshotId,datasetCode,fieldName,locale,name,description,meta,versionHash,isCurrent,createdAt) VALUES ('snapshot-statistics', ?, ?, ?, ?, ?,json_object('fields',json_object('name',json_object('origin','provided','isHumanVerified',json(CASE ? WHEN 1 THEN 'true' ELSE 'false' END)))), ?, ?, ?)`,
     [
       HISTORICAL_DATASET_CODE,
       'households',
@@ -547,7 +547,7 @@ function seedHistory(sqlite: Database) {
   )
   run(
     sqlite,
-    `INSERT INTO statsMeasuresI18n (snapshotId,datasetCode,measureCode,locale,name,description,meta,versionHash,isCurrent,createdAt) VALUES ('snapshot-statistics', ?, ?, ?, ?, ?,json_object('isLocaleInferred',json('false'),'fields',json_object('name',json_object('origin','provided','isHumanVerified',json(CASE ? WHEN 1 THEN 'true' ELSE 'false' END)))), ?, ?, ?)`,
+    `INSERT INTO statsMeasuresI18n (snapshotId,datasetCode,measureCode,locale,name,description,meta,versionHash,isCurrent,createdAt) VALUES ('snapshot-statistics', ?, ?, ?, ?, ?,json_object('fields',json_object('name',json_object('origin','provided','isHumanVerified',json(CASE ? WHEN 1 THEN 'true' ELSE 'false' END)))), ?, ?, ?)`,
     [
       DATASET_CODE,
       'totalPopulation',
@@ -579,7 +579,7 @@ function seedHistory(sqlite: Database) {
   )
   run(
     sqlite,
-    `INSERT INTO statsFieldsI18n (snapshotId,datasetCode,fieldName,locale,name,description,meta,versionHash,isCurrent,createdAt) VALUES ('snapshot-statistics', ?, ?, ?, ?, ?,json_object('isLocaleInferred',json('false'),'fields',json_object('name',json_object('origin','provided','isHumanVerified',json(CASE ? WHEN 1 THEN 'true' ELSE 'false' END)))), ?, ?, ?)`,
+    `INSERT INTO statsFieldsI18n (snapshotId,datasetCode,fieldName,locale,name,description,meta,versionHash,isCurrent,createdAt) VALUES ('snapshot-statistics', ?, ?, ?, ?, ?,json_object('fields',json_object('name',json_object('origin','provided','isHumanVerified',json(CASE ? WHEN 1 THEN 'true' ELSE 'false' END)))), ?, ?, ?)`,
     [
       DATASET_CODE,
       'totalPopulation',
@@ -594,13 +594,13 @@ function seedHistory(sqlite: Database) {
   )
   const translations = [
     {
-      meta: { isLocaleInferred: false },
+      meta: null,
       locale: 'zh-Hant',
       name: '總人口',
       description: '人口數目。',
     },
     {
-      meta: { isLocaleInferred: false },
+      meta: null,
       locale: 'zh-Hans',
       name: '总人口',
       description: '人口数目。',
@@ -609,7 +609,7 @@ function seedHistory(sqlite: Database) {
   for (const translation of translations) {
     run(
       sqlite,
-      `INSERT INTO statsFieldsI18n (snapshotId,datasetCode,fieldName,locale,name,description,meta,versionHash,isCurrent,createdAt) VALUES ('snapshot-statistics', ?, ?, ?, ?, ?,json_object('isLocaleInferred',json('false'),'fields',json_object('name',json_object('origin','provided','isHumanVerified',json(CASE ? WHEN 1 THEN 'true' ELSE 'false' END)))), ?, ?, ?)`,
+      `INSERT INTO statsFieldsI18n (snapshotId,datasetCode,fieldName,locale,name,description,meta,versionHash,isCurrent,createdAt) VALUES ('snapshot-statistics', ?, ?, ?, ?, ?,json_object('fields',json_object('name',json_object('origin','provided','isHumanVerified',json(CASE ? WHEN 1 THEN 'true' ELSE 'false' END)))), ?, ?, ?)`,
       [
         DATASET_CODE,
         'totalPopulation',

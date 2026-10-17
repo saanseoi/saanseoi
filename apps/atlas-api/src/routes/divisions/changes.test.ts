@@ -175,7 +175,7 @@ function fixture() {
 
         isCurrent: 0,
         createdAt: stamp,
-        meta: { isLocaleInferred: false },
+        meta: null,
       })
     } else {
       insert(current, 'divisions', { ...base, scopeId: snapshot })
@@ -185,7 +185,7 @@ function fixture() {
         locale: 'en',
         name: label,
         createdAt: stamp,
-        meta: { isLocaleInferred: false },
+        meta: null,
       })
     }
   }

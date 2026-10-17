@@ -33,9 +33,7 @@ test('does not translate Place names or freeform addresses', async () => {
       brandNameAlts: null,
       brandNameVariant: null,
       freeformAddress: null,
-      meta: {
-        isLocaleInferred: false,
-      },
+      meta: null,
     })
     let translationCalls = 0
 

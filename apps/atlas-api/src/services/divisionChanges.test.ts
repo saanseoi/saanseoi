@@ -239,7 +239,7 @@ test('metadata-only names and hierarchy labels refresh without geocoding', async
       attributes: {
         names: {
           en: {
-            meta: { isLocaleInferred: false },
+            meta: null,
             name: 'New label',
           },
         },
@@ -416,7 +416,7 @@ test('default feed omits polygons and supplies immutable geometry links', async 
   expect(body.data[0]!.after!.geometry).toContain('definitionHash=')
   expect(body.data[0]!.after!.attributes.names).toEqual({
     en: {
-      meta: { isLocaleInferred: false },
+      meta: null,
       name: 'a',
     },
   })

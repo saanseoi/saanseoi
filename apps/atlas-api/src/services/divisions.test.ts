@@ -110,14 +110,14 @@ const baseRecord: DivisionRecord = {
   },
   i18n: {
     en: {
-      meta: { isLocaleInferred: false },
+      meta: null,
       name: 'A Kung Ngam',
       nameVariant: ['A Kung Ngam'],
       nameAlts: ['A Kung-Ngam'],
       nameRules: [{ value: 'A Kung-Ngam', variant: 'alternate' }],
     },
     'zh-hant': {
-      meta: { isLocaleInferred: false },
+      meta: null,
       name: '阿公岩',
       nameVariant: ['阿公岩', '阿公岩 A Kung Ngam'],
       nameAlts: ['阿公岩 A Kung Ngam'],
@@ -143,7 +143,7 @@ const includedRecordsById: Record<string, DivisionRecord> = {
     },
     i18n: {
       'zh-hant': {
-        meta: { isLocaleInferred: false },
+        meta: null,
         name: '中國',
       },
     },
@@ -164,7 +164,7 @@ const includedRecordsById: Record<string, DivisionRecord> = {
     },
     i18n: {
       en: {
-        meta: { isLocaleInferred: false },
+        meta: null,
         name: 'Hong Kong SAR',
       },
     },
@@ -185,7 +185,7 @@ const includedRecordsById: Record<string, DivisionRecord> = {
     },
     i18n: {
       'zh-hant': {
-        meta: { isLocaleInferred: false },
+        meta: null,
         name: '東區',
       },
     },
@@ -599,11 +599,11 @@ describe('division services', () => {
           hierarchies,
           i18n: {
             en: {
-              meta: { isLocaleInferred: false },
+              meta: null,
               name: 'A Kung Ngam',
             },
             'zh-hant': {
-              meta: { isLocaleInferred: false },
+              meta: null,
               name: '阿公岩',
             },
           },
@@ -671,13 +671,13 @@ describe('division services', () => {
           ],
           i18n: {
             en: {
-              meta: { isLocaleInferred: false },
+              meta: null,
               name: 'A Kung Ngam',
               nameAlts: ['A Kung-Ngam'],
               nameRules: [{ value: 'A Kung-Ngam', variant: 'alternate' }],
             },
             'zh-hant': {
-              meta: { isLocaleInferred: false },
+              meta: null,
               name: '阿公岩',
               nameAlts: ['阿公岩 A Kung Ngam'],
               nameRules: [{ value: '阿公岩 A Kung Ngam', variant: 'alternate' }],

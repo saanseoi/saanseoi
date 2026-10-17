@@ -29,7 +29,7 @@ export const streetsI18n = sqliteTable(
     ...historyI18nVersioning,
   },
   table => [
-    ...historyEventConstraints(table, ['name', 'meta']),
+    ...historyEventConstraints(table, ['name']),
     primaryKey({
       columns: [table.streetId, table.snapshotId, table.locale],
     }),

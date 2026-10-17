@@ -190,7 +190,7 @@ function dependencies() {
         unitCode: 'person',
         i18n: {
           en: {
-            meta: { isLocaleInferred: false },
+            meta: null,
             name: 'Total population',
             description: null,
           },
@@ -215,7 +215,7 @@ function dependencies() {
         },
         i18n: {
           en: {
-            meta: { isLocaleInferred: false },
+            meta: null,
             name: 'Central and Western District',
           },
         },
@@ -618,7 +618,7 @@ describe('Statistics service', () => {
             unitCode: 'person',
             i18n: {
               en: {
-                meta: { isLocaleInferred: false },
+                meta: null,
                 name: 'Total population',
                 description: null,
               },

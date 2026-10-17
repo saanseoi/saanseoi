@@ -14,19 +14,22 @@ export type I18nFieldMeta = {
   translatorId?: string
 }
 export type I18nMeta<Field extends string = string> = {
-  isLocaleInferred: boolean
+  /** Omission means false. */
+  isLocaleInferred?: true
   /** Omitted fields have unknown origin; absence never implies publisher-provided text. */
   fields?: Partial<Record<Field, I18nFieldMeta>>
-}
+} | null
 
 /** Validate metadata at JSON and ingestion boundaries without discarding future field names. */
 export function parseI18nMeta(value: unknown): I18nMeta {
-  if (!value || typeof value !== 'object' || Array.isArray(value))
+  if (value == null) return null
+  if (typeof value !== 'object' || Array.isArray(value))
     throw new Error('Invalid i18n meta')
   const row = value as Record<string, unknown>
-  if (typeof row.isLocaleInferred !== 'boolean')
+  if (row.isLocaleInferred !== undefined && typeof row.isLocaleInferred !== 'boolean')
     throw new Error('Invalid i18n meta.isLocaleInferred')
-  const meta: I18nMeta = { isLocaleInferred: row.isLocaleInferred }
+  const meta: NonNullable<I18nMeta> =
+    row.isLocaleInferred === true ? { isLocaleInferred: true } : {}
   if (row.fields !== undefined) {
     if (!row.fields || typeof row.fields !== 'object' || Array.isArray(row.fields))
       throw new Error('Invalid i18n meta.fields')
@@ -58,15 +61,27 @@ export function parseI18nMeta(value: unknown): I18nMeta {
       }
     }
   }
-  return meta
+  if (meta.fields && !Object.keys(meta.fields).length) delete meta.fields
+  return Object.keys(meta).length ? meta : null
 }
 
 /** Metadata for explicitly labelled publisher or authored fields. */
 export function providedI18nMeta(fields: string[]): I18nMeta {
-  return {
-    isLocaleInferred: false,
+  return parseI18nMeta({
     fields: Object.fromEntries(
       fields.map(field => [field, { origin: 'provided' as const }]),
     ),
-  }
+  })
+}
+
+/** Normalise metadata inside locale-keyed JSON, including nested locale collections. */
+export function compactLocaleJson(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(compactLocaleJson)
+  if (!value || typeof value !== 'object') return value
+  return Object.fromEntries(
+    Object.entries(value).map(([key, item]) => [
+      key,
+      key === 'meta' ? parseI18nMeta(item) : compactLocaleJson(item),
+    ]),
+  )
 }

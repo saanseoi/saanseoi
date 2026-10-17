@@ -69,7 +69,7 @@ export function normaliseCuratedDivision(row: Record<string, unknown>) {
       locale,
       nameRules: json(value.nameRules) ?? null,
       nameVariant: json(value.nameVariant) ?? null,
-      meta: parseI18nMeta(json(value.meta) ?? { isLocaleInferred: false }),
+      meta: parseI18nMeta(json(value.meta) ?? null),
     })) as DivisionI18nPayload[],
     overtureHongKongDivisionClassificationCorrection: null,
     overtureHongKongAreaHierarchyAssignment: null,

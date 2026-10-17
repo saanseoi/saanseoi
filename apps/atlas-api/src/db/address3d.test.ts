@@ -83,7 +83,7 @@ test('historical unit reads replay the selected owner coverage and ignore newer 
         await historyDb
           .insert(historySchema.address3dI18n)
           .values({
-            meta: { isLocaleInferred: false },
+            meta: null,
             ...version,
             address3dId: 'collection',
             locale,

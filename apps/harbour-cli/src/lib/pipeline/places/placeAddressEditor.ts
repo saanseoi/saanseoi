@@ -127,7 +127,6 @@ export function localiseEditedAddress(
             { origin: 'provided' as const, isHumanVerified: true },
           ]),
         ),
-        isLocaleInferred: false,
       },
     },
     {
@@ -139,7 +138,6 @@ export function localiseEditedAddress(
             { origin: 'ai-translated' as const },
           ]),
         ),
-        isLocaleInferred: false,
       },
     },
   ]

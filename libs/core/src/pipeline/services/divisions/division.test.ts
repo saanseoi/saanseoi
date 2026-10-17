@@ -822,7 +822,6 @@ describe('normaliseDivisionRow i18n', () => {
           nameAlts: '西人村',
           nameRules: [{ value: '西人村', variant: 'alternate' }],
           meta: {
-            isLocaleInferred: false,
             fields: { name: { origin: 'provided' as const } },
           },
         }),
@@ -1298,7 +1297,6 @@ describe('normaliseDivisionI18nForStorage', () => {
         nameRules: null,
         nameVariant: null,
         meta: {
-          isLocaleInferred: false,
           fields: { name: { origin: 'provided' as const } },
         },
       },
@@ -1308,7 +1306,6 @@ describe('normaliseDivisionI18nForStorage', () => {
         divisionId: 'division-provenance',
         locale: 'en',
         meta: {
-          isLocaleInferred: false,
           fields: { name: { origin: 'provided' as const } },
         },
       }),
@@ -1321,7 +1318,6 @@ describe('normaliseDivisionI18nForStorage', () => {
           {
             ...incoming[0],
             meta: {
-              isLocaleInferred: false,
               fields: { name: { origin: 'provided' as const } },
             },
           },

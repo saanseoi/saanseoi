@@ -181,7 +181,7 @@ async function fixture(
         await c
           .insert(currentSchema.address2dI18n)
           .values({
-            meta: { isLocaleInferred: false },
+            meta: null,
             scopeId: id,
             addressId: 'address',
             locale: 'en',
@@ -222,7 +222,7 @@ async function fixture(
             divisionId: 'division',
             locale: 'en',
             name: cohort === '2025-01-01.0' ? 'Old Village' : 'New Village',
-            meta: { isLocaleInferred: false },
+            meta: null,
           })
           .run()
       }
@@ -372,7 +372,7 @@ test.each(['preview', 'production'] as const)(
               i18n: {
                 en: {
                   name: 'Old Village',
-                  meta: { isLocaleInferred: false },
+                  meta: null,
                 },
               },
             }),

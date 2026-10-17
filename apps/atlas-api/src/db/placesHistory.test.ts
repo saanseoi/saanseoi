@@ -263,7 +263,7 @@ test('replays Place text and spatial divisions from the selected version without
       },
       i18n: {
         en: {
-          meta: { isLocaleInferred: false },
+          meta: null,
           name: 'Old Place Name',
           freeformAddress: 'Old Address Text',
         },

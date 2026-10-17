@@ -213,3 +213,7 @@ Canonical locale rows store metadata in `meta`. See the shared
 [localisation metadata contract](../../i18n-metadata.md) for field origins, locale
 inference and verification. Source evidence remains separate from the canonical metadata
 projection.
+
+Locale metadata stores `isLocaleInferred` only when true. Omission means false; metadata
+with no remaining information is NULL. This default does not establish a field origin:
+missing field provenance remains unknown.

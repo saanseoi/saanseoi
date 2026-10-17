@@ -47,7 +47,7 @@ test('Division SQL delivers only changed current records and localisations acros
         nameVariant: null,
         nameAlts: null,
         nameRules: null,
-        meta: { isLocaleInferred: false, fields: { name: { origin: 'provided' } } },
+        meta: { fields: { name: { origin: 'provided' } } },
       },
     ],
     i18nVersionHash: id,

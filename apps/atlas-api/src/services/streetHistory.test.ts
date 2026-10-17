@@ -34,7 +34,7 @@ test('Street versions retain deletion details and inherited names from inline to
       deletedAt: '2026-01-02',
       i18n: [
         {
-          meta: { isLocaleInferred: false },
+          meta: null,
           locale: 'en',
           name: 'Example Road',
           description: null,

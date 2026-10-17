@@ -478,7 +478,7 @@ export function buildPlaceLocalisationStatistics(
         if (!value) continue
         stats.valueCount += 1
         const provenanceField: PlaceI18nField = field === 'brandName' ? 'brand' : field
-        const origin = row.meta.fields?.[field]?.origin
+        const origin = row.meta?.fields?.[field]?.origin
         if (origin === 'ai-translated') stats.aiTranslatedCount += 1
         else if (origin === 'human-translated') stats.humanTranslatedCount += 1
         else if (origin === 'inferred') stats.inferredCount += 1
@@ -541,7 +541,9 @@ function mergePlaceI18n(
         brand.length > 1 ? brand.slice(1).map(value => value.value) : null,
       freeformAddress: addresses[0]?.value ?? null,
       meta: {
-        isLocaleInferred: values.some(value => value.inferred),
+        ...(values.some(value => value.inferred)
+          ? { isLocaleInferred: true as const }
+          : {}),
         fields: Object.fromEntries([
           ...(name.length ? [['name', { origin: 'provided' as const }]] : []),
           ...(brand.length ? [['brandName', { origin: 'provided' as const }]] : []),

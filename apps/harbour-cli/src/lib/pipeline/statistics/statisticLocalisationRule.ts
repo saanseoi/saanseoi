@@ -1,3 +1,4 @@
+import { parseI18nMeta } from '@repo/db'
 import { registerRule, ruleDeclarationFromFixture } from '@repo/core/provenance'
 import declaration from '../../../../../../fixtures/meta/processing-rules/assembly/statistic-localisation.json'
 import type { CenstatdFieldLocalisation } from './censtatdMeasureCurationTypes'
@@ -13,8 +14,7 @@ export const statisticLocalisationRule = registerRule(
     locale: localisation.locale,
     name: localisation.name,
     description: localisation.description,
-    meta: {
-      isLocaleInferred: false,
+    meta: parseI18nMeta({
       ...(localisation.origin
         ? {
             fields: Object.fromEntries(
@@ -37,6 +37,6 @@ export const statisticLocalisationRule = registerRule(
             ),
           }
         : {}),
-    },
+    }),
   }),
 )

@@ -201,7 +201,7 @@ INSERT INTO snapshots(id, code, cohortKey, status, snapshotLineageId) VALUES
     currentDb
       .insert(currentSchema.address2dI18n)
       .values({
-        meta: { isLocaleInferred: false },
+        meta: null,
         scopeId: officialScopeId,
         addressId: 'als-citygate',
         locale: 'en',

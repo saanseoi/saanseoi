@@ -19,12 +19,13 @@ export const I18nFieldMetaSchema = z
 
 export const I18nMetaSchema = z
   .object({
-    isLocaleInferred: z.boolean().openapi({
-      description: 'Whether the locale was inferred rather than explicitly supplied.',
+    isLocaleInferred: z.literal(true).optional().openapi({
+      description: 'Present only when the locale was inferred. Omission means false.',
     }),
     fields: z.record(z.string(), I18nFieldMetaSchema.optional()).optional().openapi({
       description:
         'Metadata keyed by the localised field name. Omitted fields have unknown origin.',
     }),
   })
+  .nullable()
   .openapi('I18nMeta')

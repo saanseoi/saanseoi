@@ -62,7 +62,7 @@ const locale = (language: string, id = 'a'): DivisionI18nPayload => ({
   nameAlts: null,
   nameRules: null,
   nameVariant: null,
-  meta: { isLocaleInferred: false, fields: { name: { origin: 'provided' } } },
+  meta: { fields: { name: { origin: 'provided' } } },
 })
 
 function fixture() {
@@ -264,7 +264,6 @@ test('core Division writes inherit unchanged base/locales and close only changed
           ...locale('en'),
           name: 'New English name',
           meta: {
-            isLocaleInferred: false,
             fields: { name: { origin: 'human-translated' as const } },
           },
         },
@@ -548,7 +547,6 @@ test('locale content identity includes name provenance independently of base fie
       divisionLocaleContent({
         ...provided,
         meta: {
-          isLocaleInferred: false,
           fields: { name: { origin: 'human-translated' } },
         },
       }),
@@ -636,7 +634,6 @@ test('locale identity retains translator and verification changes with unchanged
     nameVariant: null,
     nameRules: null,
     meta: {
-      isLocaleInferred: false,
       fields: {
         name: { origin: 'ai-translated' as const, translatorId: 'translator-a' },
       },
@@ -649,7 +646,7 @@ test('locale identity retains translator and verification changes with unchanged
         ...row,
         meta: {
           ...row.meta,
-          fields: { name: { ...row.meta.fields.name, isHumanVerified: true } },
+          fields: { name: { ...row.meta?.fields.name, isHumanVerified: true } },
         },
       }),
     ),
@@ -660,7 +657,7 @@ test('locale identity retains translator and verification changes with unchanged
         ...row,
         meta: {
           ...row.meta,
-          fields: { name: { ...row.meta.fields.name, translatorId: 'translator-b' } },
+          fields: { name: { ...row.meta?.fields.name, translatorId: 'translator-b' } },
         },
       }),
     ),
@@ -670,8 +667,7 @@ test('locale identity retains translator and verification changes with unchanged
       divisionLocaleContent({
         ...row,
         meta: {
-          fields: row.meta.fields,
-          isLocaleInferred: false,
+          fields: row.meta?.fields,
         },
       }),
     ),
