@@ -986,6 +986,14 @@ a complete delivery receipt for the matching current scope, together with its so
 membership and shard assignments. Completed empty snapshots are valid. Superseded
 releases remain skippable after their current projection has been cleaned up.
 
+### Planning Unit ingestion archives
+
+Planning Unit ingestion archives separate canonical identity geometry from area
+geometry: Division archives contain validated interior Points and Point bounds, while
+DivisionArea archives contain polygons and polygon bounds. Native cell evidence belongs
+to the Division source-ingestion hand-off; DivisionArea attribution references those
+cells by ID without embedding another copy of their publisher geometries.
+
 ## Source record response
 
 The [source record contract](../source-records.md) exposes publisher attributes in

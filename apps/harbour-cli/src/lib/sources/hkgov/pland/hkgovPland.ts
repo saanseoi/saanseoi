@@ -16,6 +16,7 @@ import IsValidOp from 'jsts/org/locationtech/jts/operation/valid/IsValidOp.js'
 
 import { buildDeterministicUuidV5, canonicalGeneratedId } from '@repo/db'
 import type { GeoJsonGeometry, GeoJsonPosition } from '@repo/core/pipeline/geojson'
+import { planningArchivePoint } from './planningArchiveGeometry'
 
 const HKGOV_PLAND_SOURCE = 'hkgov-pland-pu'
 // UUIDv5 namespace derived once from the repository's canonical-division
@@ -418,6 +419,7 @@ function writeDivisionParquet(
   rows: PlanningDivision[],
   sourceVersion: string,
 ) {
+  const points = rows.map(row => planningArchivePoint(row.id, row.geometry))
   writeParquetFile(outputFile, {
     rowGroupSize: 5000,
     // hyparquet 1.26 cannot read the GeoParquet column-statistics metadata
@@ -455,14 +457,10 @@ function writeDivisionParquet(
         rows.map(row => row.level),
         false,
       ),
-      geometryColumn(
-        'geometry',
-        rows.map(row => row.geometry),
-        false,
-      ),
+      geometryColumn('geometry', points, false),
       jsonColumn(
         'bbox',
-        rows.map(row => row.bbox),
+        points.map(point => calculateBbox(point)),
         false,
       ),
       jsonColumn(
@@ -588,11 +586,6 @@ function writeDivisionAreaParquet(
       jsonColumn(
         'repaired_source_feature_ids',
         rows.map(row => row.repairedSourceFeatureIds),
-        false,
-      ),
-      jsonColumn(
-        'source_properties',
-        rows.map(row => row.sourceProperties),
         false,
       ),
       stringColumn(
@@ -798,6 +791,7 @@ function calculateBbox(geometry: GeoJsonGeometry): [number, number, number, numb
 }
 
 function collectPositions(geometry: GeoJsonGeometry): GeoJsonPosition[] {
+  if (geometry.type === 'Point') return [geometry.coordinates]
   if (geometry.type === 'Polygon') return geometry.coordinates.flat()
   if (geometry.type === 'MultiPolygon') return geometry.coordinates.flat(2)
   return []

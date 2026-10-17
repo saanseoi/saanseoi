@@ -204,6 +204,13 @@ division fields and retained in release processing actions.
 
 ## Geometry policy
 
+Planning Unit preparation derives and validates an interior Point for each Division
+before writing its Parquet archive. The Division archive's `geometry` and `bbox`
+describe that Point. DivisionArea archives retain the corresponding polygons and polygon
+bounds. Native cell properties and original publisher geometries are carried once in the
+Division hand-off for source-table ingestion. DivisionArea archives retain
+`source_cell_ids` for attribution and do not duplicate `source_properties`.
+
 Only Polygon and MultiPolygon source geometry is accepted. The input artefacts have no
 material same-TPU overlap. Six known source cells have ring self-intersections: two in
 2006, one in 2011, one in 2016, and two in 2021. The approved adapter policy stores the
