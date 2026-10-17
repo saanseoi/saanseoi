@@ -218,6 +218,11 @@ reconciliation includes all published deferred cohorts in a new catalogue checkp
 including when no draft release sets remain. Existing checkpoints and published
 release-set membership remain immutable.
 
+Initialisation completion checks accept prepared Division receipts in either the lineage
+scope or the exact retained snapshot scope. Both require the matching snapshot, a
+non-empty publication token and a preparation timestamp. A retained projection can
+therefore be reused when resuming ingestion without creating a new release revision.
+
 Curated assembly groups canonical upstream attribution by publisher only within its
 evidence workspace. Archive preparation restores the flat attribution array and
 preserves upstream property, version, confidence and licence fields.
@@ -1945,6 +1950,10 @@ input versions from the owning release's `sourceReleases` manifest, including wh
 reading historical editions. Each dataset has one selected version across its resource
 types. Duplicate resource pins, mixed versions, unpinned dataset references and embedded
 reference versions fail archive validation. Native publisher attribution is preserved.
+
+Pinned Overture snapshot IDs use the deterministic identity of the corresponding
+revision-zero snapshot code. Clean initialisation must resolve each pin to a published
+primary snapshot with the exact release version and archive hash.
 
 Record fingerprints include dataset attribution and editorial ownership, while release
 pins remain outside record content. An upstream pin advance alone preserves the record
