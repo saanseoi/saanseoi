@@ -421,6 +421,17 @@ export function deriveHierarchyPatch(
     if (administrative.length) hierarchy.administrative = [administrative]
     if (landforms.length) hierarchy.landform = [landforms]
     if (localities.length) hierarchy.locality = [localities]
+    else if (inferFromPoint && point && hierarchy.locality) {
+      // A current city polygon disproves retained city ancestry outside its extent.
+      // Preserve other provisional ancestors and cities whose geometry is unavailable.
+      hierarchy.locality = hierarchy.locality
+        .map(path =>
+          path.filter(
+            ancestor => ancestor.class !== 'city' || !byDivision.has(ancestor.id),
+          ),
+        )
+        .filter(path => path.length)
+    }
     // Preserve correlated fallback paths; inferred paths are a single deterministic chain.
     if (selected.length) {
       const adminPaths = hierarchy.administrative?.length

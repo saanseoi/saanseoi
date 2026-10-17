@@ -317,11 +317,26 @@ Hong Kong Island, Kowloon and New Territories administrative areas have determin
 SaanSeoi UUIDs and district-union geometry. Kowloon city retains its source UUID
 `17009785-57fd-4e5b-af86-2d27352e4718`; Kowloon area uses
 `ss-bb5c7e0a-fd09-5416-8bb8-9593c90280fb`. The `KL` statistical code identifies the
-area, not the city. Kowloon city and area share the same district-union geometry. Hong
-Kong city retains its source identity and geometry when present; its missing identity or
-geometry is reconstructed from Central and Western, Wan Chai and Eastern districts. Hong
-Kong Island area also includes Southern District. Publisher assertions remain unchanged
-and reconstruction evidence is retained separately.
+area, not the city. Hong Kong Island area includes Southern District. Source fallback
+geometry reconstructs a missing Hong Kong city extent from Central and Western, Wan Chai
+and Eastern districts; authored SaanSeoi city polygons take precedence over source and
+fallback geometry.
+
+SaanSeoi city polygons represent curated settlement extents, not administrative
+boundaries or a measured built-up footprint. Kowloon city is clipped to coastline land
+and excludes all overlapping `rural_area` drawings, including Lei Yue Mun and Clear
+Water Bay. Hong Kong city uses the Hong Kong Island administrative area's land polygon,
+subtracts all `rural_area` drawings and the Repulse Bay, Chung Hom Kok, Ma Hang,
+Stanley, Tung Tau Wan, Bluff Head, Tai Tam Tau, Tai Long Wan, Cape Collinson and Tai Tam
+Gap drawings, and retains only the connected Hong Kong Island component containing its
+core point plus Ap Lei Chau. Other islands and detached remnants are excluded. Hills and
+open land within the retained component remain part of the city. These authored
+boundaries are review inputs; published releases retain their pinned geometry until a
+new Division/DivisionArea edition is built and ingested.
+
+Archive preparation recalculates locality ancestry from these accepted city polygons.
+The editor derives its point-membership preview on load and removes disproved
+provisional city ancestors when the current polygon excludes the division point.
 
 The current/history schema requires these materialised paths. Populated databases need a
 separately authorised rebuild and reingestion; generated schema migrations do not

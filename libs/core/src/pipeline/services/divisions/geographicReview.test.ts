@@ -56,6 +56,24 @@ const estimatedAreas = (features: ReviewArea[]): SaanseoiEstimatedAreas => ({
   variant: 'saanseoi',
   features,
 })
+test('revised city polygons remove disproved provisional city ancestry outside their extent', () => {
+  const city = { ...division('city', 1, 'locality'), class: 'city' }
+  const child = division('outside', 6)
+  child.hierarchies.locality = [[{ id: city.id, class: 'city', name: 'City' }]]
+  const inputs = { ...inventory, divisions: [city, child] }
+  const derive = (features: ReviewArea[]) =>
+    deriveHierarchyPatch(inputs, [], estimatedAreas(features), true).entries.find(
+      entry => entry.divisionId === child.id,
+    )!
+  expect(derive([square('city', 1)]).hierarchies.locality).toEqual([])
+  expect(derive([square('city', 3)]).hierarchies.locality?.[0]?.[0]?.id).toBe('city')
+  expect(derive([]).hierarchies.locality?.[0]?.[0]?.id).toBe('city')
+  expect(
+    derive([square('city', 3)])
+      .hierarchies.full.flat()
+      .some(e => e.class === 'city'),
+  ).toBe(false)
+})
 test('point evidence assigns level 6 without needing a level-6 polygon, with deterministic overlap resolution', () => {
   const features = [square('large', 8), square('small', 4)]
   const derive = (fs: ReviewArea[]) =>

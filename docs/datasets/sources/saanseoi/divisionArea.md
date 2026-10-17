@@ -587,6 +587,53 @@ reassign Hung Lung Hang, Tai Tam, Hong Kong Island's Shek O and Kowloon's Lei Yu
 Their existing identities and geometry are retained. Rural-area ancestry participates in
 spatial hierarchy assembly and remains in both `locality` and `full` paths.
 
+### Curated city extents
+
+The authored city polygons in `division-geometry.json` define settlement extents for
+review and SaanSeoi archive preparation. They are not administrative boundaries or a
+building-coverage measurement; hills and open land inside the retained extent are
+included.
+
+- **Kowloon** (`17009785-57fd-4e5b-af86-2d27352e4718`): intersect its authored extent
+  with the retained `hongkong-2026-09-01.coastline-land.geojson` land mask, then
+  subtract the union of all authored `rural_area` polygons. This excludes the
+  overlapping parts of Lei Yue Mun and Clear Water Bay. Preserve coastline detail and
+  the resulting land components without adding water connections.
+- **Hong Kong** (`7f99b544-4e68-4574-98d8-ca4de48a0607`): start from the Hong Kong
+  Island administrative area's land geometry
+  (`ss-25cec859-44f3-5e1d-a72b-952f804e56ab`). Subtract the union of all authored
+  `rural_area` polygons and 淺水灣 Repulse Bay, 舂坎角 Chung Hom Kok, 馬坑 Ma
+  Hang, 赤柱 Stanley, 東頭灣 Tung Tau Wan, 黃麻角 Bluff Head, 大潭頭 Tai Tam
+  Tau, 大浪灣 Tai Long Wan, 歌連臣角 Cape Collinson and 大潭峽 Tai Tam Gap. Keep the
+  single connected component containing the city's reviewed core point and the component
+  containing the retained 鴨脷洲 Ap Lei Chau island point. Remove all other islands and
+  detached remnants. The result has exactly two polygon components, with no artificial
+  bridge across the channel.
+
+Boolean operations use the full WGS84 geometry without simplification or buffering. The
+authored fixture retains the preceding drawings as editing evidence. Input changes
+require an explicit re-evaluation of this editorial extent; opening the editor does not
+silently regenerate city boundaries. The editor applies the explicitly requested
+`city-land-extents-2026-10-17` revision once per browser cohort, replacing only these
+two saved city drawings from the fixture. It archives the preceding drawings and retains
+them in Undo; subsequent edits and Undo survive reloads. The separate
+`kowloon-exclude-rural-2026-10-17` revision applies the rural-area exclusions only to
+Kowloon, preserving subsequent Hong Kong city edits. The
+`hong-kong-exclude-tai-long-wan-2026-10-17` revision applies the Tai Long Wan exclusion
+only to Hong Kong city. The `hong-kong-exclude-collinson-gap-2026-10-17` revision
+applies the Cape Collinson and Tai Tam Gap exclusions only to Hong Kong city. Other
+browser drawings remain authoritative. Publication requires building and ingesting a new
+immutable Division/DivisionArea edition.
+
+Archive preparation recalculates the category hierarchies from the accepted authored
+polygons using spatially correlated branches. Polygon divisions use area intersections;
+point-only divisions use point membership. The editor derives its point-based hierarchy
+preview on load after restoring saved drawings and applying accepted city revisions.
+With provisional ancestry enabled, a current city polygon removes a retained city
+ancestor when the division point lies outside it, including when no locality matches.
+Cities without available polygon evidence retain their provisional status. The editor
+preview does not replace archive preparation's polygon-overlap hierarchy calculation.
+
 Preparation excludes every city and the Hong Kong Island landform from stored `full`
 paths after deriving the separate category hierarchies. The `locality` and `landform`
 paths preserve those ancestors. This applies to spatially resolved paths and retained

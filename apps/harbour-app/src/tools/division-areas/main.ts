@@ -1,4 +1,12 @@
 import { runCoastlineTask } from './coastlineTask'
+import {
+  CITY_BOUNDARY_IDS,
+  CITY_BOUNDARY_REVISION,
+  KOWLOON_RURAL_REVISION,
+  HONG_KONG_TAI_LONG_WAN_REVISION,
+  HONG_KONG_COLLINSON_GAP_REVISION,
+  revisedCityBoundaries,
+} from './cityBoundaryRevision'
 import { renderCoverage } from './coverageSummary'
 import { createLayerControls, divisionLayerKey } from './layerControls'
 import { reviewedIslandOutlines } from './reviewedIslandOutlines'
@@ -63,7 +71,6 @@ import * as maplibregl from 'maplibre-gl'
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
 import { BASEMAP_ATTRIBUTION, createMapStyleFragment } from '@repo/basemap'
 import {
-  deriveHierarchyPatch,
   containsReviewPoint,
   divisionReviewName,
   reviewAreaBounds,
@@ -433,6 +440,34 @@ try {
     localStorage.setItem(tseungKwanORestoreKey, 'applied')
     startupMessage =
       'Restored Tseung Kwan O from the 26 September download. All other drawings retained; previous state backed up.'
+  }
+  for (const [revision, ids] of [
+    [CITY_BOUNDARY_REVISION, CITY_BOUNDARY_IDS],
+    [KOWLOON_RURAL_REVISION, [CITY_BOUNDARY_IDS[0]]],
+    [HONG_KONG_TAI_LONG_WAN_REVISION, [CITY_BOUNDARY_IDS[1]]],
+    [HONG_KONG_COLLINSON_GAP_REVISION, [CITY_BOUNDARY_IDS[1]]],
+  ] as const) {
+    const cityRevisionKey = `${key}:${revision}`
+    if (localStorage.getItem(cityRevisionKey)) continue
+    const next = revisedCityBoundaries(estimatedAreas, seed, ids)
+    if (next !== estimatedAreas) {
+      validateSaanseoiEstimatedAreas(next, inventory)
+      await archiveGeometryBackup(key, estimatedAreas)
+      await writeGeometryState(key, next, estimatedAreas)
+      restoredUndo = estimatedAreas
+      estimatedAreas = next
+      const message =
+        revision === HONG_KONG_COLLINSON_GAP_REVISION
+          ? 'Excluded Cape Collinson and Tai Tam Gap from Hong Kong city.'
+          : revision === HONG_KONG_TAI_LONG_WAN_REVISION
+            ? 'Excluded Tai Long Wan from Hong Kong city.'
+            : revision === KOWLOON_RURAL_REVISION
+              ? 'Excluded rural areas from Kowloon city.'
+              : 'Applied the revised Kowloon and Hong Kong city land boundaries.'
+      startupMessage = `${startupMessage ? `${startupMessage} ` : ''}${message} Previous drawings are available in Undo and backup history.`
+    }
+    // Apply once so subsequent drawing edits and Undo survive reloads.
+    localStorage.setItem(cityRevisionKey, 'applied')
   }
 } catch (error) {
   say(
@@ -3533,30 +3568,54 @@ async function finish() {
     reportDrawingError(e)
   }
 }
+let hierarchyWorker: Worker | null = null
 function derive() {
   if (mode) {
     say('Finish or cancel the drawing first.')
     return
   }
+  hierarchyWorker?.terminate()
+  const worker = new Worker(new URL('./hierarchyWorker.ts', import.meta.url), {
+    type: 'module',
+  })
+  hierarchyWorker = worker
+  const sourceAreas = estimatedAreas
+  const retainProvisional = $<HTMLInputElement>('provisional').checked
   say('Deriving membership…')
-  setTimeout(() => {
-    try {
-      patch = deriveHierarchyPatch(
-        inventory,
-        reference.features,
-        estimatedAreas,
-        $<HTMLInputElement>('provisional').checked,
-      )
-      if (selected) select(selected, false)
-      const count = (s: string) => patch!.entries.filter(e => e.status === s).length
-      say(
-        `${patch.entries.length} decisions · ${count('geometry')} geometry · ${count('provisional')} provisional · ${count('unresolved')} unresolved. Overlaps choose the smallest containing area, then ID.`,
-      )
-    } catch (e) {
-      say(String(e))
+  worker.onerror = event => {
+    worker.terminate()
+    if (hierarchyWorker !== worker) return
+    hierarchyWorker = null
+    say(event.message || 'Hierarchy calculation failed.')
+  }
+  worker.onmessage = event => {
+    worker.terminate()
+    if (hierarchyWorker !== worker) return
+    hierarchyWorker = null
+    if (
+      sourceAreas !== estimatedAreas ||
+      retainProvisional !== $<HTMLInputElement>('provisional').checked
+    )
+      return
+    if (event.data.error) {
+      say(event.data.error)
+      return
     }
-  }, 20)
+    patch = event.data.patch as HierarchyPatch
+    if (selected) select(selected, false)
+    const count = (s: string) => patch!.entries.filter(e => e.status === s).length
+    say(
+      `${patch.entries.length} decisions · ${count('geometry')} geometry · ${count('provisional')} provisional · ${count('unresolved')} unresolved. Overlaps choose the smallest containing area, then ID.`,
+    )
+  }
+  worker.postMessage({
+    inventory,
+    reference: reference.features,
+    areas: sourceAreas,
+    retainProvisional,
+  })
 }
+
 function download(name: string, data: unknown) {
   const url = URL.createObjectURL(
     new Blob([`${JSON.stringify(data, null, 2)}\n`], { type: 'application/json' }),
@@ -4271,6 +4330,7 @@ await basemapReady
   if (requestedDivision && byId.has(requestedDivision)) select(requestedDivision)
   else if (selected) select(selected, false)
   say(startupMessage ?? '')
+  derive()
 }
 map.on('error', event => say(`Map resource error: ${event.error.message}`))
 document.addEventListener('keydown', event => {
