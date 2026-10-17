@@ -2,12 +2,24 @@ import { resolve } from 'node:path'
 import { defineConfig } from 'vitest/config'
 import { svelte } from '@sveltejs/vite-plugin-svelte'
 import tailwindcss from '@tailwindcss/vite'
+import { paraglideVitePlugin } from '@inlang/paraglide-js'
 import { ingestionPlugin } from './ingestionPlugin.ts'
 import { reviewInputsPlugin } from './reviewInputsPlugin.ts'
 
 export default defineConfig({
   appType: 'mpa',
-  plugins: [svelte(), tailwindcss(), ingestionPlugin(), reviewInputsPlugin()],
+  plugins: [
+    paraglideVitePlugin({
+      project: resolve(import.meta.dirname, '../../libs/i18n/project.inlang'),
+      outdir: resolve(import.meta.dirname, '../../libs/i18n/src/paraglide'),
+      emitTsDeclarations: true,
+      outputStructure: 'locale-modules',
+    }),
+    svelte(),
+    tailwindcss(),
+    ingestionPlugin(),
+    reviewInputsPlugin(),
+  ],
   resolve: {
     alias: [
       {
