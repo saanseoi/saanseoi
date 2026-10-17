@@ -859,3 +859,10 @@ identified brand rather than an individually identified venue. Existing name,
 localisation provenance and change statistics accompany these dimensions. The Stats view
 uses category bars, the shared district map and field-coverage widgets; detailed
 category lists expose their remaining rows on expansion.
+
+Historical API statistics replay the selected snapshot's canonical Place and locale
+versions from HISTORY into a disposable database. They do not depend on the mutable
+CURRENT publication receipt. Locale rows count only when their Place remains in the
+selected snapshot. Interrupted statistics writes can be recovered locally with
+`./bin/saanseoi stats:backfill-places --target local`; this updates presentation
+statistics without changing snapshot membership or release revisions.

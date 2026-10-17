@@ -214,7 +214,11 @@ export async function calculateAndStoreApiReleaseSetStats(
                   apiReleaseSetId,
                 )
               : [
-                  ...(await buildPlaceStatsRows(options.currentDb, snapshotId)),
+                  ...(await buildHistoricalPlaceApiReleaseSetStats(
+                    options.metaDb,
+                    options.historyTargets ?? [],
+                    snapshotId,
+                  )),
                   ...(await buildApiRecordReleaseChurn(
                     options.metaDb,
                     options.historyTargets ?? [],
@@ -297,6 +301,20 @@ export async function calculateAndStoreApiReleaseSetStats(
       options.releaseCode,
     )
     throw error
+  }
+}
+
+/** Reconstruct canonical Places content independently of the mutable serving scope. */
+export async function buildHistoricalPlaceApiReleaseSetStats(
+  metaDb: HarbourReadableDb,
+  historyTargets: DivisionHistoryTarget[],
+  snapshotId: string,
+) {
+  const view = await PlaceDependencyView.create({ metaDb, historyTargets })
+  try {
+    return await buildPlaceStatsRows(await view.preparePlaces(snapshotId), snapshotId)
+  } finally {
+    await view.close()
   }
 }
 

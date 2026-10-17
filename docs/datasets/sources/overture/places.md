@@ -920,3 +920,10 @@ measured separately. See
 for the complete dimensions, denominators and missing-value semantics. These metrics are
 calculated during ingestion and API publication, including a fresh database reset and
 initialisation; they do not require a separate backfill step.
+
+Historical API statistics replay the selected snapshot's canonical Place and locale
+versions from HISTORY into a disposable database. They do not depend on the mutable
+CURRENT publication receipt. Locale rows count only when their Place remains in the
+selected snapshot. Interrupted statistics writes can be recovered locally with
+`./bin/saanseoi stats:backfill-places --target local`; this updates presentation
+statistics without changing snapshot membership or release revisions.

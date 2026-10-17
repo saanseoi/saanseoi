@@ -1,3 +1,4 @@
+import { runPlaceApiStatsBackfillCommand } from './lib/commands/statsBackfillPlaceApi.ts'
 import { runGeographicCrosswalkCommand } from './lib/commands/geographicCrosswalk'
 import { disposeRemoteR2 } from './lib/storage/remoteR2.ts'
 import { runStatisticsApiStatsBackfillCommand } from './lib/commands/statsBackfillStatisticsApi.ts'
@@ -115,6 +116,9 @@ async function main() {
       return
     case 'stats:backfill-geometry':
       await runGeometryStatsBackfillCommand(args, target, printUsage)
+      return
+    case 'stats:backfill-places':
+      await runPlaceApiStatsBackfillCommand(args, target, printUsage)
       return
     case 'stats:backfill-addresses':
       await runAddressApiStatsBackfillCommand(args, target, printUsage)

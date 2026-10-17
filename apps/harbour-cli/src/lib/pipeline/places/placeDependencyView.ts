@@ -27,6 +27,9 @@ import {
 } from './placeSnapshotDependencies.ts'
 
 const tables = {
+  places: currentSchema.places,
+  placesI18n: currentSchema.placesI18n,
+  placePublicationState: currentSchema.placePublicationState,
   address2d: currentSchema.address2d,
   address2dI18n: currentSchema.address2dI18n,
   address3d: currentSchema.address3d,
@@ -39,6 +42,8 @@ const tables = {
   divisionPublicationState: currentSchema.divisionPublicationState,
 }
 const components = [
+  ['place', 'places', 'id'],
+  ['placeI18n', 'placesI18n', 'placeId'],
   ['address2d', 'address2d', 'id'],
   ['address2dI18n', 'address2dI18n', 'addressId'],
   ['address3d', 'address3d', 'id'],
@@ -142,8 +147,31 @@ export class PlaceDependencyView {
     }
   }
 
+  async preparePlaces(snapshotId: string) {
+    if (this.snapshots.has(snapshotId)) return this.db
+    this.sqlite.exec('BEGIN')
+    try {
+      await this.hydrate(snapshotId, ['place', 'placeI18n'])
+      // Inherited locale versions must not resurrect deleted base records.
+      this.sqlite
+        .query(`DELETE FROM placesI18n WHERE scopeId = ? AND NOT EXISTS (
+        SELECT 1 FROM places WHERE places.scopeId = placesI18n.scopeId
+        AND places.id = placesI18n.placeId
+      )`)
+        .run(snapshotId)
+      this.receipt('placePublicationState', snapshotId)
+      this.sqlite.exec('COMMIT')
+      this.snapshots.add(snapshotId)
+      return this.db
+    } catch (error) {
+      if (this.sqlite.inTransaction) this.sqlite.exec('ROLLBACK')
+      throw error
+    }
+  }
+
   private receipt(
     table:
+      | 'placePublicationState'
       | 'addressPublicationState'
       | 'divisionPublicationState'
       | 'divisionAreaPublicationState',
