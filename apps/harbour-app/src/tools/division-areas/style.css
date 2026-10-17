@@ -1406,3 +1406,48 @@ summary:focus-visible {
   font-weight: 400;
   line-height: 20px;
 }
+
+.status-toast {
+  position: fixed;
+  z-index: 10;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+  box-sizing: border-box;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  width: min(520px, calc(100% - 32px));
+  padding: 14px 16px;
+  border: 1px solid #548477;
+  border-radius: 10px;
+  background: #102c35;
+  box-shadow: 0 6px 24px #0006;
+}
+.status-toast[hidden] {
+  display: none;
+}
+.status-toast #status {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  max-height: 40dvh;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.status-toast .status-toast-dismiss {
+  flex: 0 0 28px;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  margin: 0;
+  font-size: 22px;
+  line-height: 1;
+}
+.status-toast-error {
+  background: #641d2a;
+  border-color: #ff5368;
+}
+.status-toast-error #status {
+  color: white;
+}

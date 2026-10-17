@@ -89,7 +89,7 @@ export function initialiseMapControls() {
   const statsTitle = document.createElement('summary')
   statsTitle.textContent = 'Stats'
   stats.append(statsTitle, get('coverage'))
-  inventory.append(projectTools, stats, get('status'), get('overview'))
+  inventory.append(projectTools, stats, get('overview'))
   get('ancestry').hidden = true
   for (const id of ['show-polygon-display', 'only-visible-layers', 'missing-area']) {
     const input = get<HTMLInputElement>(id)

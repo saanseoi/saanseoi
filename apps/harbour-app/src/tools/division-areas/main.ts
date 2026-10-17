@@ -1,3 +1,4 @@
+import { createStatusToast } from './statusToast'
 import { polygonPartForEdit, replaceEditedRing } from './polygonPartSelection'
 import { readCheckboxSelection, writeCheckboxSelection } from './checkboxStorage'
 import { runCoastlineTask } from './coastlineTask'
@@ -88,13 +89,7 @@ import './style.css'
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) =>
   document.getElementById(id)! as T
-const say = (message: string, tone: 'info' | 'error' = 'info') => {
-  const status = $('status')
-  status.textContent = message
-  status.hidden = !message
-  status.classList.toggle('status-error', tone === 'error')
-  status.setAttribute('aria-live', tone === 'error' ? 'assertive' : 'polite')
-}
+const say = createStatusToast($('status'))
 const moveButton = document.createElement('button')
 moveButton.id = 'move'
 moveButton.textContent = 'Move geometry'
