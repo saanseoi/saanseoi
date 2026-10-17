@@ -71,8 +71,10 @@ test('current address reads project every dedicated division ID as a relationshi
 test('search joins stable document scopes to the promoted snapshot and rejects an unindexed selection', async () => {
   const sqlite = new Database(':memory:')
   try {
-    sqlite.exec(`CREATE TABLE addressPublicationState(scopeId TEXT PRIMARY KEY,snapshotId TEXT UNIQUE,status TEXT,publicationToken TEXT,preparedAt TEXT,updatedAt TEXT);
-      INSERT INTO addressPublicationState VALUES ('scope:old','old','current','old','2026-01-01','2026-01-01'),('scope:new','new','current','new','2026-01-01','2026-01-01');
+    sqlite.exec(`CREATE TABLE divisionPublicationState(scopeId TEXT PRIMARY KEY,snapshotId TEXT UNIQUE,status TEXT,publicationToken TEXT,preparedAt TEXT,updatedAt TEXT);
+      INSERT INTO divisionPublicationState VALUES ('division','division','current','token','ready','now');
+      CREATE TABLE addressPublicationState(scopeId TEXT PRIMARY KEY,divisionSnapshotId TEXT DEFAULT 'division',snapshotId TEXT UNIQUE,status TEXT,publicationToken TEXT,preparedAt TEXT,updatedAt TEXT);
+      INSERT INTO addressPublicationState(scopeId,snapshotId,status,publicationToken,preparedAt,updatedAt) VALUES ('scope:old','old','current','old','2026-01-01','2026-01-01'),('scope:new','new','current','new','2026-01-01','2026-01-01');
       CREATE TABLE addressSearchScopes(scopeId TEXT PRIMARY KEY, snapshotId TEXT);
       CREATE TABLE address2d(scopeId TEXT, id TEXT, countryId TEXT, areaId TEXT, districtId TEXT, islandId TEXT, townId TEXT, ruralAreaId TEXT, macrohoodId TEXT, neighbourhoodId TEXT, microhoodId TEXT, villageId TEXT, hamletId TEXT);
       CREATE TABLE address2dI18n(scopeId TEXT,addressId TEXT,locale TEXT,formattedAddress TEXT,

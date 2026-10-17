@@ -155,6 +155,17 @@ function seedMeta(sqlite: Database) {
       PUBLISHED_AT,
     ],
   )
+  for (const [snapshotId, dependencySnapshotId, role] of [
+    [PLACE_SNAPSHOT, ADDRESS_SNAPSHOT, 'address'],
+    [PLACE_SNAPSHOT, DIVISION_SNAPSHOT, 'division'],
+    [ADDRESS_SNAPSHOT, DIVISION_SNAPSHOT, 'division'],
+  ] as const) {
+    run(
+      sqlite,
+      'INSERT INTO snapshotDependencies (snapshotId,dependencySnapshotId,role) VALUES (?,?,?)',
+      [snapshotId, dependencySnapshotId, role],
+    )
+  }
   const releaseSetSnapshots: Array<[string, string, string]> = [
     [PLACE_SNAPSHOT, 'overture', 'primary'],
     [DIVISION_SNAPSHOT, 'overture', 'lookup'],
@@ -391,11 +402,11 @@ function seedHistory(sqlite: Database) {
     )
     run(
       sqlite,
-      'INSERT INTO places (id,resourceReleaseId,addressSnapshotId,address2dId,geometry,bbox,operatingStatus,basicCategory,taxonomyPrimary,taxonomyHierarchy,taxonomyAlternates,websites,confidence,sources,firstSeenMonth,lastSeenMonth,versionHash,snapshotId,isCurrent,createdAt) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
+      'INSERT INTO places (id,resourceReleaseId,addressRole,address2dId,geometry,bbox,operatingStatus,basicCategory,taxonomyPrimary,taxonomyHierarchy,taxonomyAlternates,websites,confidence,sources,firstSeenMonth,lastSeenMonth,versionHash,snapshotId,isCurrent,createdAt) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
       [
         id,
         'release-overture-2026-08-19',
-        ADDRESS_SNAPSHOT,
+        'address',
         addressId,
         JSON.stringify({ type: 'Point', coordinates: [point[0], point[1]] }),
         JSON.stringify([...point, ...point]),
@@ -449,6 +460,7 @@ function createFixtureEnvironment(
     for (const [family, snapshotId] of [
       ['place', PLACE_SNAPSHOT],
       ['division', DIVISION_SNAPSHOT],
+      ['address', ADDRESS_SNAPSHOT],
     ] as const) {
       run(
         currentSqlite,
@@ -456,6 +468,14 @@ function createFixtureEnvironment(
         [snapshotId, `scope:${snapshotId}`, PUBLISHED_AT],
       )
     }
+    run(
+      currentSqlite,
+      'UPDATE placePublicationState SET divisionSnapshotId=?,addressSnapshotId=?',
+      [DIVISION_SNAPSHOT, ADDRESS_SNAPSHOT],
+    )
+    run(currentSqlite, 'UPDATE addressPublicationState SET divisionSnapshotId=?', [
+      DIVISION_SNAPSHOT,
+    ])
   } else {
     metaSqlite.exec(`INSERT INTO apiReleaseSets
       (id,code,regionCode,domainCode,cohortKey,revision,effectiveFrom,schemaVersion,rulesetVersion,versionHash,createdAt,updatedAt)

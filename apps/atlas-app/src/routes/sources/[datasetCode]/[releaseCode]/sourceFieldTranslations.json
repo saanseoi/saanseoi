@@ -948,5 +948,10 @@
     "en": "Provider and variant key for this geometry. Curated SaanSeoi geometry uses saanseoi; its land and territorial representations share this variant.",
     "zh-hant": "此幾何的提供者及變體鍵。策劃的山水幾何使用 saanseoi；其陸地及領土表示共用此變體。",
     "zh-hans": "此几何的提供者及变体键。策划的山水几何使用 saanseoi；其陆地及领土表示共用此变体。"
+  },
+  "Canonical field paths supplied by this contributor.": {
+    "en": "Canonical field paths supplied by this contributor.",
+    "zh-hant": "此貢獻者提供的標準欄位路徑。",
+    "zh-hans": "此贡献者提供的标准字段路径。"
   }
 }

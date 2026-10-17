@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'bun:test'
+import { sourcePropertyPathPattern } from '@repo/db'
 
 import app, { sortOperations } from './index'
 import type { AppBindings } from './types'
@@ -2219,7 +2220,10 @@ describe('atlas-api', () => {
       required: ['publisher', 'dataset'],
       additionalProperties: false,
       properties: {
-        property: { type: ['string', 'null'], pattern: '^(?:\\/(?:[^~/]|~[01])*)*$' },
+        property: {
+          type: ['string', 'null'],
+          pattern: sourcePropertyPathPattern.source,
+        },
       },
     })
     expect(divisionResource?.properties?.links?.allOf?.[1]?.description).toBe(
@@ -2631,7 +2635,7 @@ describe('atlas-api', () => {
     }
 
     expect(res.status).toBe(200)
-    expect(body.info.description).toContain('SaanSeoi API 的目錄')
+    expect(body.info.description).toContain('山水 API 的目錄')
     expect(body.info.description).not.toContain('__saanseoi_openapi_i18n__')
     expect(body.tags?.find(tag => tag.name === 'API Releases')?.description).toContain(
       '歷史發布版本',

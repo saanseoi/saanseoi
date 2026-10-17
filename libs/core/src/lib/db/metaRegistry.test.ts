@@ -2833,10 +2833,10 @@ INSERT INTO snapshots (id, snapshotLineageId, status) VALUES
 ('snapshot-published-boundary-variant', 'fixture-lineage-' || 'snapshot-published-boundary-variant', 'published');
 
       INSERT INTO apiReleaseSets (id, code) VALUES
-        ('release-set-default', 'ss-hk-division-2026-05-20.0'),
-        ('release-set-historical-cohort', 'ss-hk-division-2026-04-20.0'),
-        ('release-set-retained-revision', 'ss-hk-division-2026-03-20.0'),
-        ('release-set-draft', 'ss-hk-division-2026-06-20.0');
+        ('release-set-default', 'ss-hk-overture-division-2026-05-20.0'),
+        ('release-set-historical-cohort', 'ss-hk-overture-division-2026-04-20.0'),
+        ('release-set-retained-revision', 'ss-hk-overture-division-2026-03-20.0'),
+        ('release-set-draft', 'ss-hk-overture-division-2026-06-20.0');
 
       INSERT INTO apiVersionReleaseSets (id, apiReleaseSetId, status) VALUES
         ('version-default', 'release-set-default', 'current'),
@@ -3008,7 +3008,7 @@ describe('resolvePublishedSnapshotForResourceTypeRegionCohortKey', () => {
       INSERT OR IGNORE INTO snapshotLineages (id,code,resourceType,regionCode,variant,identityMode,versionHash,createdAt,updatedAt) VALUES ('fixture-lineage-' || 'overture-division-2025','fixture-lineage-' || 'overture-division-2025','division','hk','overture','persistent','fixture','2026-01-01T00:00:00.000Z','2026-01-01T00:00:00.000Z');
 UPDATE snapshotLineages SET resourceType='division' WHERE id='fixture-lineage-' || 'overture-division-2025' AND resourceType IS NULL;
 INSERT INTO snapshots (id, snapshotLineageId, code, cohortKey, status, publishedAt, createdAt) VALUES
-('overture-division-2025', 'fixture-lineage-' || 'overture-division-2025', 'ss-hk-division-2025-09-24.0', '2025-09-24.0', 'published', 1758672000000, 1758672000000);
+('overture-division-2025', 'fixture-lineage-' || 'overture-division-2025', 'ss-hk-overture-division-2025-09-24.0', '2025-09-24.0', 'published', 1758672000000, 1758672000000);
       UPDATE sourceReleases SET datasetId='dataset-overture-division' WHERE id=(SELECT sourceReleaseId FROM resourceReleases WHERE id='release-overture-division-2025');
 INSERT INTO sourceReleases(id,datasetId) SELECT 'source-' || 'release-overture-division-2025', 'dataset-overture-division' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-overture-division-2025');
 INSERT INTO resourceReleases(id,sourceReleaseId,resourceType,status) SELECT 'release-overture-division-2025', 'source-' || 'release-overture-division-2025', (SELECT l.resourceType FROM snapshots s JOIN snapshotLineages l ON l.id=s.snapshotLineageId WHERE s.id='overture-division-2025'), 'current' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-overture-division-2025');
@@ -3040,7 +3040,7 @@ INSERT INTO snapshotResourceReleases (snapshotId,resourceReleaseId,role)
       ),
     ).resolves.toEqual({
       id: 'overture-division-2025',
-      code: 'ss-hk-division-2025-09-24.0',
+      code: 'ss-hk-overture-division-2025-09-24.0',
       resourceType: 'division',
       status: 'published',
     })
@@ -3405,8 +3405,8 @@ UPDATE snapshotLineages SET resourceType='division' WHERE id='fixture-lineage-' 
 INSERT OR IGNORE INTO snapshotLineages (id,code,resourceType,regionCode,variant,identityMode,versionHash,createdAt,updatedAt) VALUES ('fixture-lineage-' || 'other-earlier','fixture-lineage-' || 'other-earlier','division','hk','default','persistent','fixture','2026-01-01T00:00:00.000Z','2026-01-01T00:00:00.000Z');
 UPDATE snapshotLineages SET resourceType='division' WHERE id='fixture-lineage-' || 'other-earlier' AND resourceType IS NULL;
 INSERT INTO snapshots (id, snapshotLineageId, code, cohortKey, status, publishedAt, createdAt) VALUES
-('overture-first', 'fixture-lineage-' || 'overture-first', 'ss-hk-division-2025-09-24.0', '2025-09-24.0', 'published', 1758672000000, 1758672000000),
-('overture-later', 'fixture-lineage-' || 'overture-later', 'ss-hk-division-2026-02-18.0', '2026-02-18.0', 'published', 1771372800000, 1771372800000),
+('overture-first', 'fixture-lineage-' || 'overture-first', 'ss-hk-overture-division-2025-09-24.0', '2025-09-24.0', 'published', 1758672000000, 1758672000000),
+('overture-later', 'fixture-lineage-' || 'overture-later', 'ss-hk-overture-division-2026-02-18.0', '2026-02-18.0', 'published', 1771372800000, 1771372800000),
 ('other-earlier', 'fixture-lineage-' || 'other-earlier', 'ss-hk-division-2024-01', '2024-01', 'published', 1704067200000, 1704067200000);
 
       UPDATE sourceReleases SET datasetId='dataset-overture-division' WHERE id=(SELECT sourceReleaseId FROM resourceReleases WHERE id='release-overture-first');
@@ -3434,7 +3434,7 @@ INSERT INTO snapshotResourceReleases (snapshotId, resourceReleaseId, role) VALUE
       ),
     ).resolves.toEqual({
       id: 'overture-first',
-      code: 'ss-hk-division-2025-09-24.0',
+      code: 'ss-hk-overture-division-2025-09-24.0',
       cohortKey: '2025-09-24.0',
       resourceType: 'division',
       status: 'published',
@@ -3459,8 +3459,8 @@ UPDATE snapshotLineages SET resourceType='division' WHERE id='fixture-lineage-' 
 INSERT OR IGNORE INTO snapshotLineages (id,code,resourceType,regionCode,variant,identityMode,versionHash,createdAt,updatedAt) VALUES ('fixture-lineage-' || 'overture-second','fixture-lineage-' || 'overture-second','division','hk','default','persistent','fixture','2026-01-01T00:00:00.000Z','2026-01-01T00:00:00.000Z');
 UPDATE snapshotLineages SET resourceType='division' WHERE id='fixture-lineage-' || 'overture-second' AND resourceType IS NULL;
 INSERT INTO snapshots (id, snapshotLineageId, code, cohortKey, status, publishedAt, createdAt) VALUES
-('overture-first', 'fixture-lineage-' || 'overture-first', 'ss-hk-division-2025-09-24.0', '2025-09-24.0', 'published', 1758672000000, 1758672000000),
-('overture-second', 'fixture-lineage-' || 'overture-second', 'ss-hk-division-2026-01-21.0', '2026-01-21.0', 'published', 1768953600000, 1768953600000);
+('overture-first', 'fixture-lineage-' || 'overture-first', 'ss-hk-overture-division-2025-09-24.0', '2025-09-24.0', 'published', 1758672000000, 1758672000000),
+('overture-second', 'fixture-lineage-' || 'overture-second', 'ss-hk-overture-division-2026-01-21.0', '2026-01-21.0', 'published', 1768953600000, 1768953600000);
       UPDATE sourceReleases SET datasetId='dataset-overture-division' WHERE id=(SELECT sourceReleaseId FROM resourceReleases WHERE id='release-overture-first');
 INSERT INTO sourceReleases(id,datasetId) SELECT 'source-' || 'release-overture-first', 'dataset-overture-division' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-overture-first');
 INSERT INTO resourceReleases(id,sourceReleaseId,resourceType,status) SELECT 'release-overture-first', 'source-' || 'release-overture-first', (SELECT l.resourceType FROM snapshots s JOIN snapshotLineages l ON l.id=s.snapshotLineageId WHERE s.id='overture-first'), 'current' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-overture-first');
@@ -3505,7 +3505,7 @@ INSERT OR IGNORE INTO snapshotLineages (id,code,resourceType,regionCode,variant,
 UPDATE snapshotLineages SET resourceType='division' WHERE id='fixture-lineage-' || 'overture-future' AND resourceType IS NULL;
 INSERT INTO snapshots (id, snapshotLineageId, code, cohortKey, status, publishedAt, createdAt) VALUES
 ('overture-earlier', 'fixture-lineage-' || 'overture-earlier', 'ss-hk-division-2023-06-01.0', '2023-06-01.0', 'published', 1685577600000, 1685577600000),
-('overture-future', 'fixture-lineage-' || 'overture-future', 'ss-hk-division-2025-09-24.0', '2025-09-24.0', 'published', 1758672000000, 1758672000000);
+('overture-future', 'fixture-lineage-' || 'overture-future', 'ss-hk-overture-division-2025-09-24.0', '2025-09-24.0', 'published', 1758672000000, 1758672000000);
       UPDATE sourceReleases SET datasetId='dataset-overture-division' WHERE id=(SELECT sourceReleaseId FROM resourceReleases WHERE id='release-overture-earlier');
 INSERT INTO sourceReleases(id,datasetId) SELECT 'source-' || 'release-overture-earlier', 'dataset-overture-division' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-overture-earlier');
 INSERT INTO resourceReleases(id,sourceReleaseId,resourceType,status) SELECT 'release-overture-earlier', 'source-' || 'release-overture-earlier', (SELECT l.resourceType FROM snapshots s JOIN snapshotLineages l ON l.id=s.snapshotLineageId WHERE s.id='overture-earlier'), 'current' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-overture-earlier');
@@ -3587,8 +3587,8 @@ UPDATE snapshotLineages SET resourceType='division' WHERE id='fixture-lineage-' 
 INSERT OR IGNORE INTO snapshotLineages (id,code,resourceType,regionCode,variant,identityMode,versionHash,createdAt,updatedAt) VALUES ('fixture-lineage-' || 'snapshot-had','fixture-lineage-' || 'snapshot-had','division','hk','default','persistent','fixture','2026-01-01T00:00:00.000Z','2026-01-01T00:00:00.000Z');
 UPDATE snapshotLineages SET resourceType='division' WHERE id='fixture-lineage-' || 'snapshot-had' AND resourceType IS NULL;
 INSERT INTO snapshots (id, snapshotLineageId, code, status, createdAt) VALUES
-('snapshot-overture-2025-r0', 'fixture-lineage-' || 'snapshot-overture-2025-r0', 'ss-hk-division-2025-r0', 'published', 1),
-('snapshot-overture-2025-r1', 'fixture-lineage-' || 'snapshot-overture-2025-r1', 'ss-hk-division-2025-r1', 'published', 1),
+('snapshot-overture-2025-r0', 'fixture-lineage-' || 'snapshot-overture-2025-r0', 'ss-hk-overture-division-2025-r0', 'published', 1),
+('snapshot-overture-2025-r1', 'fixture-lineage-' || 'snapshot-overture-2025-r1', 'ss-hk-overture-division-2025-r1', 'published', 1),
 ('snapshot-overture-2026', 'fixture-lineage-' || 'snapshot-overture-2026', 'ss-hk-division-2026', 'published', 1),
 ('snapshot-had', 'fixture-lineage-' || 'snapshot-had', 'ss-hk-division-had', 'published', 1);
 
@@ -3684,9 +3684,9 @@ UPDATE snapshotLineages SET resourceType='address' WHERE id='fixture-lineage-' |
 INSERT OR IGNORE INTO snapshotLineages (id,code,resourceType,regionCode,variant,identityMode,versionHash,createdAt,updatedAt) VALUES ('fixture-lineage-' || 'snapshot-division','fixture-lineage-' || 'snapshot-division','division','hk','default','persistent','fixture','2026-01-01T00:00:00.000Z','2026-01-01T00:00:00.000Z');
 UPDATE snapshotLineages SET resourceType='division' WHERE id='fixture-lineage-' || 'snapshot-division' AND resourceType IS NULL;
 INSERT INTO snapshots (id, snapshotLineageId, code, cohortKey, status, publishedAt, validFrom, validTo, updatedAt) VALUES
-('snapshot-address', 'fixture-lineage-' || 'snapshot-address', 'ss-hk-address-hkgov-dpo-2025-09-03.0', '2025-09-24.0', 'draft', null, null, null, 1760000000000),
+('snapshot-address', 'fixture-lineage-' || 'snapshot-address', 'ss-hk-hkgov-dpo-address-2025-09-03.0', '2025-09-24.0', 'draft', null, null, null, 1760000000000),
 ('snapshot-place-address', 'fixture-lineage-' || 'snapshot-place-address', 'ss-hk-address-2025-09-24.0--overture-places', '2025-09-24.0', 'published', 1760000000000, 1760000000000, null, 1760000000000),
-('snapshot-division', 'fixture-lineage-' || 'snapshot-division', 'ss-hk-division-2025-09-24.0', '2025-09-24.0', 'published', 1760000000000, 1760000000000, null, 1760000000000);
+('snapshot-division', 'fixture-lineage-' || 'snapshot-division', 'ss-hk-overture-division-2025-09-24.0', '2025-09-24.0', 'published', 1760000000000, 1760000000000, null, 1760000000000);
 
       INSERT INTO apiReleaseSets (
         id, apiVersionId, code, regionCode, domainCode, cohortKey,
@@ -3841,8 +3841,8 @@ UPDATE snapshotLineages SET resourceType='division' WHERE id='fixture-lineage-' 
 INSERT OR IGNORE INTO snapshotLineages (id,code,resourceType,regionCode,variant,identityMode,versionHash,createdAt,updatedAt) VALUES ('fixture-lineage-' || 'snapshot-new','fixture-lineage-' || 'snapshot-new','division','hk','default','persistent','fixture','2026-01-01T00:00:00.000Z','2026-01-01T00:00:00.000Z');
 UPDATE snapshotLineages SET resourceType='division' WHERE id='fixture-lineage-' || 'snapshot-new' AND resourceType IS NULL;
 INSERT INTO snapshots (id, snapshotLineageId, parentSnapshotId, code, status, publishedAt, validFrom, validTo, updatedAt) VALUES
-('snapshot-curated', 'fixture-lineage-' || 'snapshot-curated', null, 'ss-hk-division-2026-05-20.0', 'draft', null, null, null, 1760000000000),
-('snapshot-new', 'fixture-lineage-' || 'snapshot-new', 'snapshot-curated', 'ss-hk-division-2026-06-17.0', 'draft', null, null, null, 1760000000000);
+('snapshot-curated', 'fixture-lineage-' || 'snapshot-curated', null, 'ss-hk-overture-division-2026-05-20.0', 'draft', null, null, null, 1760000000000),
+('snapshot-new', 'fixture-lineage-' || 'snapshot-new', 'snapshot-curated', 'ss-hk-overture-division-2026-06-17.0', 'draft', null, null, null, 1760000000000);
 
       INSERT INTO apiReleaseSets (
         id, apiVersionId, regionCode, domainCode, cohortKey, schemaVersion, rulesetVersion, status, publishedAt, validFrom, validTo, updatedAt
@@ -4195,7 +4195,7 @@ UPDATE snapshotLineages SET resourceType='division' WHERE id='fixture-lineage-' 
 INSERT OR IGNORE INTO snapshotLineages (id,code,resourceType,regionCode,variant,identityMode,versionHash,createdAt,updatedAt) VALUES ('fixture-lineage-' || 'snapshot-censtatd','fixture-lineage-' || 'snapshot-censtatd','division','hk','default','persistent','fixture','2026-01-01T00:00:00.000Z','2026-01-01T00:00:00.000Z');
 UPDATE snapshotLineages SET resourceType='division' WHERE id='fixture-lineage-' || 'snapshot-censtatd' AND resourceType IS NULL;
 INSERT INTO snapshots (id, snapshotLineageId, code, status, publishedAt, validFrom, validTo, updatedAt) VALUES
-('snapshot-overture', 'fixture-lineage-' || 'snapshot-overture', 'ss-hk-division-2025-09-24.0', 'draft', null, null, null, 1760000000000),
+('snapshot-overture', 'fixture-lineage-' || 'snapshot-overture', 'ss-hk-overture-division-2025-09-24.0', 'draft', null, null, null, 1760000000000),
 ('snapshot-censtatd', 'fixture-lineage-' || 'snapshot-censtatd', 'ss-hk-division-area-hkgov-censtatd-2016', 'draft', null, null, null, 1760000000000);
 
       INSERT INTO apiReleaseSets (
@@ -4304,7 +4304,7 @@ INSERT INTO snapshotResourceReleases (snapshotId, resourceReleaseId, role) VALUE
       INSERT OR IGNORE INTO snapshotLineages (id,code,resourceType,regionCode,variant,identityMode,versionHash,createdAt,updatedAt) VALUES ('fixture-lineage-' || 'snapshot-new','fixture-lineage-' || 'snapshot-new','division','hk','default','persistent','fixture','2026-01-01T00:00:00.000Z','2026-01-01T00:00:00.000Z');
 UPDATE snapshotLineages SET resourceType='division' WHERE id='fixture-lineage-' || 'snapshot-new' AND resourceType IS NULL;
 INSERT INTO snapshots (id, snapshotLineageId, code, status, publishedAt, validFrom, validTo, updatedAt) VALUES
-('snapshot-new', 'fixture-lineage-' || 'snapshot-new', 'ss-hk-division-2026-07-15.0', 'draft', null, null, null, 1760000000000);
+('snapshot-new', 'fixture-lineage-' || 'snapshot-new', 'ss-hk-overture-division-2026-07-15.0', 'draft', null, null, null, 1760000000000);
 
       INSERT INTO apiReleaseSets (
         id, apiVersionId, schemaVersion, rulesetVersion, status, publishedAt, validFrom, validTo, updatedAt
@@ -4388,8 +4388,8 @@ UPDATE snapshotLineages SET resourceType='division' WHERE id='fixture-lineage-' 
 INSERT OR IGNORE INTO snapshotLineages (id,code,resourceType,regionCode,variant,identityMode,versionHash,createdAt,updatedAt) VALUES ('fixture-lineage-' || 'snapshot-new','fixture-lineage-' || 'snapshot-new','division','hk','default','persistent','fixture','2026-01-01T00:00:00.000Z','2026-01-01T00:00:00.000Z');
 UPDATE snapshotLineages SET resourceType='division' WHERE id='fixture-lineage-' || 'snapshot-new' AND resourceType IS NULL;
 INSERT INTO snapshots (id, snapshotLineageId, parentSnapshotId, code, status, publishedAt, validFrom, validTo, updatedAt) VALUES
-('snapshot-fixture-anchor', 'fixture-lineage-' || 'snapshot-fixture-anchor', null, 'ss-hk-division-2026-05-20.0', 'published', 1760000000000, null, null, 1760000000000),
-('snapshot-new', 'fixture-lineage-' || 'snapshot-new', 'snapshot-fixture-anchor', 'ss-hk-division-2026-06-24.0', 'draft', null, null, null, 1760000000000);
+('snapshot-fixture-anchor', 'fixture-lineage-' || 'snapshot-fixture-anchor', null, 'ss-hk-overture-division-2026-05-20.0', 'published', 1760000000000, null, null, 1760000000000),
+('snapshot-new', 'fixture-lineage-' || 'snapshot-new', 'snapshot-fixture-anchor', 'ss-hk-overture-division-2026-06-24.0', 'draft', null, null, null, 1760000000000);
 
       INSERT INTO apiReleaseSets (
         id, apiVersionId, schemaVersion, rulesetVersion, status, publishedAt, validFrom, validTo, updatedAt
@@ -4463,8 +4463,8 @@ UPDATE snapshotLineages SET resourceType='division' WHERE id='fixture-lineage-' 
 INSERT OR IGNORE INTO snapshotLineages (id,code,resourceType,regionCode,variant,identityMode,versionHash,createdAt,updatedAt) VALUES ('fixture-lineage-' || 'snapshot-new','fixture-lineage-' || 'snapshot-new','division','hk','default','persistent','fixture','2026-01-01T00:00:00.000Z','2026-01-01T00:00:00.000Z');
 UPDATE snapshotLineages SET resourceType='division' WHERE id='fixture-lineage-' || 'snapshot-new' AND resourceType IS NULL;
 INSERT INTO snapshots (id, snapshotLineageId, parentSnapshotId, code, status, publishedAt, validFrom, validTo, updatedAt) VALUES
-('snapshot-fixture-anchor', 'fixture-lineage-' || 'snapshot-fixture-anchor', null, 'ss-hk-division-2026-05-20.0', 'published', 1760000000000, null, null, 1760000000000),
-('snapshot-new', 'fixture-lineage-' || 'snapshot-new', 'snapshot-fixture-anchor', 'ss-hk-division-2026-06-24.0', 'draft', null, null, null, 1760000000000);
+('snapshot-fixture-anchor', 'fixture-lineage-' || 'snapshot-fixture-anchor', null, 'ss-hk-overture-division-2026-05-20.0', 'published', 1760000000000, null, null, 1760000000000),
+('snapshot-new', 'fixture-lineage-' || 'snapshot-new', 'snapshot-fixture-anchor', 'ss-hk-overture-division-2026-06-24.0', 'draft', null, null, null, 1760000000000);
 
       INSERT INTO apiReleaseSets (
         id, apiVersionId, schemaVersion, rulesetVersion, status, publishedAt, validFrom, validTo, updatedAt

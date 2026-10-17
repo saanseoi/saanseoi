@@ -11,13 +11,19 @@ test('Place search follows scope promotion and refuses an unindexed snapshot', a
     const db = drizzle({ client: sqlite }) as unknown as Parameters<
       typeof searchPlacesFts
     >[0]
+    sqlite.exec(`
+      CREATE TABLE divisionPublicationState(scopeId TEXT PRIMARY KEY,snapshotId TEXT,status TEXT,publicationToken TEXT,preparedAt TEXT,updatedAt TEXT);
+      INSERT INTO divisionPublicationState VALUES ('division','division','current','token','ready','now');
+      CREATE TABLE addressPublicationState(scopeId TEXT PRIMARY KEY,snapshotId TEXT,divisionSnapshotId TEXT,status TEXT,publicationToken TEXT,preparedAt TEXT,updatedAt TEXT);
+      INSERT INTO addressPublicationState VALUES ('address','address','division','current','token','ready','now');
+    `)
     const lookup = { snapshotId: 'latest', query: 'Shop', locale: 'en' as const }
     await expect(searchPlacesFts(db, lookup)).rejects.toThrow(
       'Place search is not ready',
     )
     sqlite.exec(`
-      CREATE TABLE placePublicationState(scopeId TEXT PRIMARY KEY,snapshotId TEXT UNIQUE,status TEXT,publicationToken TEXT,preparedAt TEXT,updatedAt TEXT);
-      INSERT INTO placePublicationState VALUES ('physical-places','latest','current','token','2026-01-01','2026-01-01');
+      CREATE TABLE placePublicationState(scopeId TEXT PRIMARY KEY,snapshotId TEXT UNIQUE,divisionSnapshotId TEXT DEFAULT 'division',addressSnapshotId TEXT DEFAULT 'address',supplementaryAddressSnapshotId TEXT,status TEXT,publicationToken TEXT,preparedAt TEXT,updatedAt TEXT);
+      INSERT INTO placePublicationState(scopeId,snapshotId,status,publicationToken,preparedAt,updatedAt) VALUES ('physical-places','latest','current','token','2026-01-01','2026-01-01');
       CREATE TABLE placeSearchScopes(scopeId TEXT PRIMARY KEY, snapshotId TEXT);
       CREATE TABLE places(scopeId TEXT,id TEXT,resourceReleaseId TEXT);
       INSERT INTO places VALUES ('physical-places','shop','latest-release');

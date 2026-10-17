@@ -85,7 +85,7 @@ test.each([false, true])(
       updatedAt: '2026-06-05T00:00:00.000Z',
     })
     seedSnapshot(sqlite, {
-      code: 'ss-hk-division-2026-01-21.0',
+      code: 'ss-hk-overture-division-2026-01-21.0',
       resourceReleaseId: 'release-dr-hk-overture-division-2026-01-21.0',
       status: 'published',
       timestamp: 1762300800000,
@@ -105,7 +105,7 @@ test.each([false, true])(
       updatedAt: '2026-06-05T00:01:00.000Z',
     })
     seedSnapshot(sqlite, {
-      code: 'ss-hk-division-2026-02-18.0',
+      code: 'ss-hk-overture-division-2026-02-18.0',
       resourceReleaseId: 'release-dr-hk-overture-division-2026-02-18.0',
       status: 'draft',
       timestamp: 1762300860000,
@@ -237,7 +237,7 @@ test('waits briefly for imported snapshot metadata before publishing', async () 
   seedCompletedAudits(sqlite)
   setTimeout(() => {
     seedSnapshot(sqlite, {
-      code: 'ss-hk-division-2026-02-18.0',
+      code: 'ss-hk-overture-division-2026-02-18.0',
       resourceReleaseId,
       status: 'draft',
       timestamp: 1762300860000,
@@ -287,7 +287,7 @@ test('revokes the superseded dataset only for corrected same-release publishes',
     updatedAt: '2026-06-05T00:00:00.000Z',
   })
   seedSnapshot(sqlite, {
-    code: 'ss-hk-division-2026-02-18.0',
+    code: 'ss-hk-overture-division-2026-02-18.0',
     resourceReleaseId: 'release-dr-hk-overture-division-2026-02-18.0',
     status: 'published',
     timestamp: 1762300800000,
@@ -312,7 +312,7 @@ test('revokes the superseded dataset only for corrected same-release publishes',
     )
     .run('1.16.0', 'release-dr-hk-overture-division-2026-02-18.1')
   seedSnapshot(sqlite, {
-    code: 'ss-hk-division-2026-02-18.1',
+    code: 'ss-hk-overture-division-2026-02-18.1',
     resourceReleaseId: 'release-dr-hk-overture-division-2026-02-18.1',
     status: 'draft',
     timestamp: 1762300860000,
@@ -391,7 +391,7 @@ test('rebuilds a published Geographic snapshot into a new API release-set revisi
     updatedAt: '2026-06-05T00:00:00.000Z',
   })
   seedSnapshot(sqlite, {
-    code: 'ss-hk-division-2026-07-22.0',
+    code: 'ss-hk-overture-division-2026-07-22.0',
     resourceReleaseId,
     snapshotId: firstSnapshotId,
     status: 'draft',
@@ -406,7 +406,7 @@ test('rebuilds a published Geographic snapshot into a new API release-set revisi
   const firstPublication = await handlePublishDataset(db, { resourceReleaseId })
 
   seedSnapshot(sqlite, {
-    code: 'ss-hk-division-2026-07-22.0-r1',
+    code: 'ss-hk-overture-division-2026-07-22.0-r1',
     resourceReleaseId,
     snapshotId: rebuiltSnapshotId,
     status: 'draft',
@@ -495,6 +495,7 @@ test.each([
       WHERE domainCode='geographic' AND resourceType='division' LIMIT 1`)
         .run(variant, variant)
       const version = variant === 'hkgov-landsd' ? '2026-06-10.0' : '2021'
+      const snapshotCode = `ss-hk-${datasetCode.slice('ds-hk-'.length)}${variant === 'hkgov-censtatd-hma' ? '-division' : ''}-${version}`
       sqlite
         .query(`INSERT INTO sourceReleases(id,datasetId,code,sourceVersion,sourceSchemaVersion,cohortKey,status)
       VALUES('native-source',?,'native-source',?,'1.0',?,'staged')`)
@@ -520,7 +521,7 @@ test.each([
         })
       }
       seedSnapshot(sqlite, {
-        code: `ss-hk-division-${variant}-${version}`,
+        code: snapshotCode,
         cohortKey: version,
         datasetId: dataset.id,
         resourceReleaseId: 'native-release',
@@ -530,7 +531,7 @@ test.each([
         resourceReleaseId: 'native-release',
       })
       seedSnapshot(sqlite, {
-        code: `ss-hk-division-${variant}-${version}-r1`,
+        code: `${snapshotCode}-r1`,
         cohortKey: version,
         datasetId: dataset.id,
         resourceReleaseId: 'native-release',
@@ -577,7 +578,7 @@ test('marks the superseded dataset historic for same-cohort releases with differ
     updatedAt: '2026-06-05T00:00:00.000Z',
   })
   seedSnapshot(sqlite, {
-    code: 'ss-hk-division-2026-06-17.0',
+    code: 'ss-hk-overture-division-2026-06-17.0',
     resourceReleaseId: 'release-dr-hk-overture-division-2026-06-17.0',
     status: 'published',
     timestamp: 1762300800000,
@@ -602,7 +603,7 @@ test('marks the superseded dataset historic for same-cohort releases with differ
     )
     .run('1.17.0', 'release-dr-hk-overture-division-2026-06-24.0')
   seedSnapshot(sqlite, {
-    code: 'ss-hk-division-2026-06-24.0',
+    code: 'ss-hk-overture-division-2026-06-24.0',
     resourceReleaseId: 'release-dr-hk-overture-division-2026-06-24.0',
     status: 'draft',
     timestamp: 1762300860000,

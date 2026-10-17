@@ -183,7 +183,7 @@ INSERT INTO resourceReleases (id, sourceReleaseId, resourceType, code, status, i
   `)
 
   seedSnapshot(sqlite, {
-    code: 'ss-hk-division-2025-09-24.0',
+    code: 'ss-hk-overture-division-2025-09-24.0',
     cohortKey,
     resourceReleaseId: division.resourceReleaseId,
     status: 'published',
@@ -539,15 +539,15 @@ INSERT INTO resourceReleases (id, sourceReleaseId, resourceType, code, status, i
       variant: 'hkgov-had',
     },
     {
-      code: 'ss-hk-division-2025-09-24.0',
-      variant: 'overture',
-    },
-    {
       code: 'ss-hk-division-area-2025-09-24.0',
       variant: 'overture',
     },
     {
       code: 'ss-hk-division-boundary-2025-09-24.0',
+      variant: 'overture',
+    },
+    {
+      code: 'ss-hk-overture-division-2025-09-24.0',
       variant: 'overture',
     },
   ])

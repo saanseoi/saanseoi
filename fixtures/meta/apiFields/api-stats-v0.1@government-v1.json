@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:1b154129a95cd7867e645f3e27266bb8a7b20a9daa37752774f2c2e2ed04c668",
+  "versionHash": "sha256:47f49bc82ba3939ad8e9f12f382bf34a68d9c951774c8beb17fb0500ffc53b82",
   "apiVersion": "api-stats-v0.1",
   "domainCode": "government",
   "mappingVersion": 1,
@@ -7045,36 +7045,6 @@
           ]
         },
         {
-          "apiField": "attributes.sourceFeatureRef",
-          "sourceDatasetCode": "ds-hk-hkgov-censtatd-population-households-district",
-          "resolverCode": "compose_source_feature_ref",
-          "contributionType": "resolver-input",
-          "priority": 0,
-          "confidence": 1,
-          "inputs": [
-            {
-              "origin": "constant",
-              "value": "hkgov-censtatd"
-            },
-            {
-              "origin": "registry",
-              "fieldPath": "dataset.code"
-            },
-            {
-              "origin": "registry",
-              "fieldPath": "sourceRelease.sourceVersion"
-            },
-            {
-              "origin": "intermediate",
-              "fieldPath": "acquisition.layerName"
-            },
-            {
-              "origin": "intermediate",
-              "fieldPath": "acquisition.featureId"
-            }
-          ]
-        },
-        {
           "apiField": "relationships.division",
           "sourceDatasetCode": "ds-hk-hkgov-censtatd-population-households-district",
           "resolverCode": "lookup_fk",
@@ -9453,36 +9423,6 @@
             {
               "origin": "registry",
               "fieldPath": "resourceRelease.id"
-            }
-          ]
-        },
-        {
-          "apiField": "attributes.sourceFeatureRef",
-          "sourceDatasetCode": "ds-hk-hkgov-censtatd-housing-market-areas-building-groups",
-          "resolverCode": "compose_source_feature_ref",
-          "contributionType": "resolver-input",
-          "priority": 0,
-          "confidence": 1,
-          "inputs": [
-            {
-              "origin": "constant",
-              "value": "hkgov-censtatd"
-            },
-            {
-              "origin": "registry",
-              "fieldPath": "dataset.code"
-            },
-            {
-              "origin": "registry",
-              "fieldPath": "sourceRelease.sourceVersion"
-            },
-            {
-              "origin": "intermediate",
-              "fieldPath": "acquisition.layerName"
-            },
-            {
-              "origin": "intermediate",
-              "fieldPath": "acquisition.featureId"
             }
           ]
         },
@@ -12281,36 +12221,6 @@
             {
               "origin": "registry",
               "fieldPath": "resourceRelease.id"
-            }
-          ]
-        },
-        {
-          "apiField": "attributes.sourceFeatureRef",
-          "sourceDatasetCode": "ds-hk-hkgov-censtatd-major-housing-estates",
-          "resolverCode": "compose_source_feature_ref",
-          "contributionType": "resolver-input",
-          "priority": 0,
-          "confidence": 1,
-          "inputs": [
-            {
-              "origin": "constant",
-              "value": "hkgov-censtatd"
-            },
-            {
-              "origin": "registry",
-              "fieldPath": "dataset.code"
-            },
-            {
-              "origin": "registry",
-              "fieldPath": "sourceRelease.sourceVersion"
-            },
-            {
-              "origin": "intermediate",
-              "fieldPath": "acquisition.layerName"
-            },
-            {
-              "origin": "intermediate",
-              "fieldPath": "acquisition.featureId"
             }
           ]
         },
@@ -16840,36 +16750,6 @@
           ]
         },
         {
-          "apiField": "attributes.sourceFeatureRef",
-          "sourceDatasetCode": "ds-hk-hkgov-censtatd-new-towns",
-          "resolverCode": "compose_source_feature_ref",
-          "contributionType": "resolver-input",
-          "priority": 0,
-          "confidence": 1,
-          "inputs": [
-            {
-              "origin": "constant",
-              "value": "hkgov-censtatd"
-            },
-            {
-              "origin": "registry",
-              "fieldPath": "dataset.code"
-            },
-            {
-              "origin": "registry",
-              "fieldPath": "sourceRelease.sourceVersion"
-            },
-            {
-              "origin": "intermediate",
-              "fieldPath": "acquisition.layerName"
-            },
-            {
-              "origin": "intermediate",
-              "fieldPath": "acquisition.featureId"
-            }
-          ]
-        },
-        {
           "apiField": "relationships.division",
           "sourceDatasetCode": "ds-hk-hkgov-censtatd-new-towns",
           "resolverCode": "lookup_fk",
@@ -17380,36 +17260,6 @@
           ]
         },
         {
-          "apiField": "attributes.sourceFeatureRef",
-          "sourceDatasetCode": "ds-hk-hkgov-censtatd-permanent-living-quarters",
-          "resolverCode": "compose_source_feature_ref",
-          "contributionType": "resolver-input",
-          "priority": 0,
-          "confidence": 1,
-          "inputs": [
-            {
-              "origin": "constant",
-              "value": "hkgov-censtatd"
-            },
-            {
-              "origin": "registry",
-              "fieldPath": "dataset.code"
-            },
-            {
-              "origin": "registry",
-              "fieldPath": "sourceRelease.sourceVersion"
-            },
-            {
-              "origin": "intermediate",
-              "fieldPath": "acquisition.layerName"
-            },
-            {
-              "origin": "intermediate",
-              "fieldPath": "acquisition.featureId"
-            }
-          ]
-        },
-        {
           "apiField": "relationships.division",
           "sourceDatasetCode": "ds-hk-hkgov-censtatd-permanent-living-quarters",
           "resolverCode": "lookup_fk",
@@ -17663,36 +17513,6 @@
             {
               "origin": "registry",
               "fieldPath": "resourceRelease.id"
-            }
-          ]
-        },
-        {
-          "apiField": "attributes.sourceFeatureRef",
-          "sourceDatasetCode": "ds-hk-hkgov-censtatd-permanent-living-quarters-district",
-          "resolverCode": "compose_source_feature_ref",
-          "contributionType": "resolver-input",
-          "priority": 0,
-          "confidence": 1,
-          "inputs": [
-            {
-              "origin": "constant",
-              "value": "hkgov-censtatd"
-            },
-            {
-              "origin": "registry",
-              "fieldPath": "dataset.code"
-            },
-            {
-              "origin": "registry",
-              "fieldPath": "sourceRelease.sourceVersion"
-            },
-            {
-              "origin": "intermediate",
-              "fieldPath": "acquisition.layerName"
-            },
-            {
-              "origin": "intermediate",
-              "fieldPath": "acquisition.featureId"
             }
           ]
         },
@@ -18005,36 +17825,6 @@
           ]
         },
         {
-          "apiField": "attributes.sourceFeatureRef",
-          "sourceDatasetCode": "ds-hk-hkgov-censtatd-subdivided-units-district",
-          "resolverCode": "compose_source_feature_ref",
-          "contributionType": "resolver-input",
-          "priority": 0,
-          "confidence": 1,
-          "inputs": [
-            {
-              "origin": "constant",
-              "value": "hkgov-censtatd"
-            },
-            {
-              "origin": "registry",
-              "fieldPath": "dataset.code"
-            },
-            {
-              "origin": "registry",
-              "fieldPath": "sourceRelease.sourceVersion"
-            },
-            {
-              "origin": "intermediate",
-              "fieldPath": "acquisition.layerName"
-            },
-            {
-              "origin": "intermediate",
-              "fieldPath": "acquisition.featureId"
-            }
-          ]
-        },
-        {
           "apiField": "relationships.division",
           "sourceDatasetCode": "ds-hk-hkgov-censtatd-subdivided-units-district",
           "resolverCode": "lookup_fk",
@@ -18319,36 +18109,6 @@
             {
               "origin": "registry",
               "fieldPath": "resourceRelease.id"
-            }
-          ]
-        },
-        {
-          "apiField": "attributes.sourceFeatureRef",
-          "sourceDatasetCode": "ds-hk-hkgov-censtatd-land-area-population-density-district",
-          "resolverCode": "compose_source_feature_ref",
-          "contributionType": "resolver-input",
-          "priority": 0,
-          "confidence": 1,
-          "inputs": [
-            {
-              "origin": "constant",
-              "value": "hkgov-censtatd"
-            },
-            {
-              "origin": "registry",
-              "fieldPath": "dataset.code"
-            },
-            {
-              "origin": "registry",
-              "fieldPath": "sourceRelease.sourceVersion"
-            },
-            {
-              "origin": "intermediate",
-              "fieldPath": "acquisition.layerName"
-            },
-            {
-              "origin": "intermediate",
-              "fieldPath": "acquisition.featureId"
             }
           ]
         },

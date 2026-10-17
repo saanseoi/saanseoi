@@ -227,6 +227,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
         .values({
           scopeId: `scope:${snapshotId}`,
           snapshotId: snapshotId,
+          divisionSnapshotId,
           status: 'current',
           publicationToken: snapshotId,
           preparedAt: '2026-01-01',

@@ -172,7 +172,7 @@ test('requires retained processing audits for Addresses and Places before publis
         .run('3.2', resourceReleaseId)
     }
     seedSnapshot(sqlite, {
-      code: `ss-hk-${datasetType === 'address' ? 'address-hkgov-dpo' : datasetType}-${sourceVersion}`,
+      code: `ss-hk-${datasetType === 'address' ? 'hkgov-dpo-address' : 'overture-place'}-${sourceVersion}`,
       datasetId,
       resourceType: datasetType,
       resourceReleaseId,
@@ -224,7 +224,7 @@ test('requires retained processing audits for Addresses and Places before publis
         )
         .get(divisionReleaseId) as { datasetId: string }
       seedSnapshot(sqlite, {
-        code: 'ss-hk-division-2026-06-17.0',
+        code: 'ss-hk-overture-division-2026-06-17.0',
         cohortKey: '2026-06',
         datasetId: divisionDataset.datasetId,
         resourceReleaseId: divisionReleaseId,
@@ -556,14 +556,14 @@ test('requires retained processing audits for Addresses and Places before publis
             if (supplementarySnapshotCode === null)
               throw new Error('Expected the Overture supplementary Address snapshot.')
             return [
+              { code: 'ss-hk-overture-division-2026-06-17.0', role: 'lookup' },
               { code: supplementarySnapshotCode, role: 'supplementary' },
-              { code: 'ss-hk-division-2026-06-17.0', role: 'lookup' },
             ]
           })()
         : [
             { code: 'ss-hk-address-historical-selection', role: 'lookup' },
-            { code: 'ss-hk-address-overture-places-2026-06', role: 'lookup' },
             { code: 'ss-hk-division-historical-selection', role: 'lookup' },
+            { code: 'ss-hk-overture-place-address-2026-06', role: 'lookup' },
           ]
     expect(supportingSnapshots).toEqual(expectedSupportingSnapshots)
   }

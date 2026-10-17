@@ -163,6 +163,7 @@ async function fixture(
           .values({
             scopeId: id,
             snapshotId: snapshot,
+            divisionSnapshotId: `divisions-${cohort}-snapshot`,
             status: 'current',
             publicationToken: id,
             preparedAt: '2026-09-01',
