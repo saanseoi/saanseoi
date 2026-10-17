@@ -5,7 +5,7 @@
   "releaseSet": "data-hk-divisions-2026-08-19.0",
   "sourceReleases": [
     {
-      "snapshotId": "0b3f31ef-9583-570e-941b-7900b2babdf9",
+      "snapshotId": "2c7b8430-aec9-502b-8921-5fbcedbf7c41",
       "datasetCode": "ds-hk-overture-division",
       "releaseCode": "dr-hk-overture-division-2026-08-19.0",
       "sourceVersion": "2026-08-19.0",
@@ -15,7 +15,7 @@
       "releaseNotesUrl": "https://docs.overturemaps.org/blog/2026/08/19/release-notes/#divisions"
     },
     {
-      "snapshotId": "aeefc085-03d2-55e4-9d4e-3012ee48bea3",
+      "snapshotId": "2aacd912-01ad-59d3-89e5-70e9e5f3464a",
       "datasetCode": "ds-hk-overture-division",
       "releaseCode": "dr-hk-overture-division-area-2026-08-19.0",
       "sourceVersion": "2026-08-19.0",

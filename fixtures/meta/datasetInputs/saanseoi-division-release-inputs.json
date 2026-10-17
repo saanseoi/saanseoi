@@ -3,7 +3,7 @@
   "purpose": "Additional exact publisher archives eligible for monthly SaanSeoi assembly. Select the latest pin on or before the edition date alongside the editorial review pins.",
   "sourceReleases": [
     {
-      "snapshotId": "2258a1b5-b974-5154-b9a5-0a7c486ae85d",
+      "snapshotId": "875f86ba-a5b9-5cb9-98f7-13e90d1278e8",
       "datasetCode": "ds-hk-overture-division",
       "releaseCode": "dr-hk-overture-division-2026-09-23.0",
       "sourceVersion": "2026-09-23.0",
@@ -13,7 +13,7 @@
       "releaseNotesUrl": "https://docs.overturemaps.org/blog/2026/09/23/release-notes/#divisions"
     },
     {
-      "snapshotId": "d8017b0c-2401-56ee-a388-5e75a758860a",
+      "snapshotId": "ec76330e-1dbc-50e1-b93d-770fa697b055",
       "datasetCode": "ds-hk-overture-division",
       "releaseCode": "dr-hk-overture-division-area-2026-09-23.0",
       "sourceVersion": "2026-09-23.0",
