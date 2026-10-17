@@ -1,4 +1,10 @@
 <script lang="ts">
+import { onMount } from 'svelte'
+import {
+  columnSortStorageKey,
+  readPreference,
+  savePreference,
+} from './navigationStorage'
 import type { Inspection } from './types'
 let {
   data,
@@ -6,6 +12,10 @@ let {
   error,
 }: { data: Inspection | null; loading: boolean; error: string } = $props()
 let sort = $state('nulls-desc')
+onMount(() => {
+  const saved = readPreference(columnSortStorageKey)
+  if (saved && ['nulls-desc', 'nulls-asc', 'name'].includes(saved)) sort = saved
+})
 const columns = $derived(
   [...(data?.columns ?? [])].sort((a, b) =>
     sort === 'name'
@@ -23,7 +33,11 @@ const columns = $derived(
       >Sort columns
       <select
         class="ml-2 rounded border border-outline-variant bg-surface p-2"
-        bind:value={sort}
+        value={sort}
+        onchange={e => {
+          sort = e.currentTarget.value
+          savePreference(columnSortStorageKey, sort)
+        }}
       >
         <option value="nulls-desc">Most nulls first</option>
         <option value="nulls-asc">Fewest nulls first</option>

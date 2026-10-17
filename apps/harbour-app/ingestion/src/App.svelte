@@ -1,5 +1,12 @@
 <script lang="ts">
 import { onMount } from 'svelte'
+import {
+  navigationStorageKey,
+  readNavigation,
+  readPreference,
+  savePreference,
+  type ReviewNavigationSelection,
+} from './navigationStorage'
 import ReviewNavigation from './ReviewNavigation.svelte'
 import ReviewProgress from './ReviewProgress.svelte'
 import ProductionReviewQueue from './ProductionReviewQueue.svelte'
@@ -144,6 +151,10 @@ function approvalLabel(target: string, slice: string) {
   return saved ? ' · Sign-off saved' : ''
 }
 async function loadSamples() {
+  savePreference(
+    navigationStorageKey,
+    JSON.stringify({ kind, group, table, subset, limit }),
+  )
   controller?.abort()
   const current = new AbortController()
   controller = current
@@ -340,7 +351,11 @@ async function selectTable(value: string) {
     }
   }
 }
-async function selectGroup(value: string, targetTable?: string) {
+async function selectGroup(
+  value: string,
+  targetTable?: string,
+  restored?: ReviewNavigationSelection,
+) {
   const current = startPlan()
   group = value
   table = ''
@@ -357,7 +372,8 @@ async function selectGroup(value: string, targetTable?: string) {
       return
     }
     const chosen = targetTable
-      ? available.find(t => t.name === targetTable)
+      ? (available.find(t => t.name === targetTable) ??
+        (restored ? available[0] : undefined))
       : available[0]
     if (!chosen) {
       navigating = false
@@ -366,7 +382,11 @@ async function selectGroup(value: string, targetTable?: string) {
       return
     }
     const slices = await plannedSubsets(value, chosen.name, current.signal)
-    await show(value, chosen.name, '', available, slices, current.signal)
+    const restoredSubset =
+      restored?.table === chosen.name && slices.some(s => s.id === restored.subset)
+        ? restored.subset
+        : ''
+    await show(value, chosen.name, restoredSubset, available, slices, current.signal)
   } catch (e) {
     if (!current.signal.aborted) {
       error = message(e)
@@ -374,7 +394,11 @@ async function selectGroup(value: string, targetTable?: string) {
     }
   }
 }
-async function selectKind(value: string, target?: ProductionReview) {
+async function selectKind(
+  value: string,
+  target?: ProductionReview,
+  restored?: ReviewNavigationSelection,
+) {
   const current = startPlan()
   kind = value
   group = ''
@@ -402,6 +426,8 @@ async function selectKind(value: string, target?: ProductionReview) {
         notice =
           'This queued group has no populated local view. It remains pending production review.'
       }
+    } else if (restored && groups.some(g => g.id === restored.group)) {
+      await selectGroup(restored.group, restored.table, restored)
     } else if (groups.length) await seek(1, 'view', true, true)
     else navigating = false
   } catch (e) {
@@ -463,7 +489,9 @@ onMount(() => {
       productionReviews = readProductionReviews(event.newValue)
   }
   window.addEventListener('storage', update)
-  void selectKind(kind)
+  const restored = readNavigation(readPreference(navigationStorageKey))
+  if (restored) limit = restored.limit
+  void selectKind(restored?.kind ?? kind, undefined, restored ?? undefined)
   return () => {
     controller?.abort()
     planController?.abort()
