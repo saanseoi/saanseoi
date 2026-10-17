@@ -21,7 +21,6 @@ export const statsRecords = sqliteTable(
   table => [
     ...historyEventConstraints(table, [
       'datasetCode',
-      'sourceFeatureRef',
       'referencePeriodCode',
       'referencePeriodGranularity',
       'referencePeriodEndYear',

@@ -217,7 +217,6 @@ type StatisticResourcePayload = {
       NonNullable<StatisticFieldDefinition['comparability']>
     >
     sourceReleaseId?: string
-    sourceFeatureRef?: string
     fieldSources?: StatisticRecord['fieldSources']
     fieldDefinitionHashes: StatisticRecord['fieldDefinitionHashes']
     createdAt?: string
@@ -402,7 +401,6 @@ function createStatisticResource(args: {
       ...(args.routeState.profile === 'full'
         ? {
             sourceReleaseId: args.record.sourceReleaseId,
-            sourceFeatureRef: args.record.sourceFeatureRef,
             fieldSources: args.record.fieldSources,
             createdAt: args.record.createdAt,
           }

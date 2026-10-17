@@ -77,7 +77,6 @@ export type StatisticRecord = {
   id: string
   datasetCode: string
   sourceReleaseId: string
-  sourceFeatureRef: string
   divisionId: string | null
   referencePeriodCode: string
   referencePeriodStart: string | null
@@ -289,7 +288,6 @@ export async function listStatisticRecordsForGeography(
             id: statsRecords.id,
             datasetCode: statsRecords.datasetCode,
             sourceReleaseId: statisticProducerColumn(lookup.selection),
-            sourceFeatureRef: statsRecords.sourceFeatureRef,
             divisionId: statsRecords.divisionId,
             referencePeriodCode: statsRecords.referencePeriodCode,
             referencePeriodStart: statsRecords.referencePeriodStart,

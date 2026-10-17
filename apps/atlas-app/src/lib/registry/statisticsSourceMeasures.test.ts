@@ -49,9 +49,9 @@ test('source catalogue preserves unchanged reissue counts and frozen definitions
     history.exec(`INSERT INTO statsDefinitionSets (id,fieldDefinitionHashes) VALUES
       ('frozen','{"population":"f1","landArea":"retained-other-field"}'),
       ('future','{"population":"f2"}');
-      INSERT INTO statsRecords (snapshotId,id,datasetCode,sourceFeatureRef,referencePeriodCode,referencePeriodGranularity,referencePeriodEndYear,"values",geography,isCurrent,versionHash,definitionSetId,fieldSources) VALUES
-      ('base','packed','dataset','source-feature','2025','year','2025','{"population":"12","landArea":"5"}','{}',0,'v1','frozen','[]'),
-      ('future','packed','dataset','source-feature','2025','year','2025','{"population":"13"}','{}',1,'v2','future','[]');
+      INSERT INTO statsRecords (snapshotId,id,datasetCode,referencePeriodCode,referencePeriodGranularity,referencePeriodEndYear,"values",geography,isCurrent,versionHash,definitionSetId,fieldSources) VALUES
+      ('base','packed','dataset','2025','year','2025','{"population":"12","landArea":"5"}','{}',0,'v1','frozen','[]'),
+      ('future','packed','dataset','2025','year','2025','{"population":"13"}','{}',1,'v2','future','[]');
       INSERT INTO statsFields (snapshotId,operation,datasetCode,fieldName,versionHash,sourceField,statisticKind,aggregation,unitCode,valueKind) VALUES
         ('base','upsert','dataset','population','f1','t_pop','count','total','person','numeric'),
         ('future','upsert','dataset','population','f2','t_pop','count','total','person','numeric');

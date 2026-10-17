@@ -11,8 +11,6 @@ const statistic = {
   id: 'statistic-population-2021',
   datasetCode: 'ds-hk-hkgov-censtatd-population-households-district',
   sourceReleaseId: 'release-statistics-2021',
-  sourceFeatureRef:
-    'hkgov-censtatd/ds-hk-hkgov-censtatd-population-households-district/2021/District:1',
   divisionId: 'division-central-western',
   referencePeriodCode: '2021',
   referencePeriodStart: null,
@@ -48,8 +46,6 @@ const majorHousingEstateStatistic = {
   ...statistic,
   id: 'statistic-major-housing-estate-population-2021',
   datasetCode: 'ds-hk-hkgov-censtatd-major-housing-estates',
-  sourceFeatureRef:
-    'hkgov-censtatd/ds-hk-hkgov-censtatd-major-housing-estates/2021/HousingEstate:1',
   divisionId: null,
   geography: { kind: 'housing-estate', code: 'estate-1' },
 } as const
@@ -58,7 +54,6 @@ const newTownStatistic = {
   ...statistic,
   id: 'statistic-new-town-population-2021',
   datasetCode: 'ds-hk-hkgov-censtatd-new-towns',
-  sourceFeatureRef: 'hkgov-censtatd/ds-hk-hkgov-censtatd-new-towns/2021/NewTown:1',
   divisionId: 'division-new-town-shatin',
   geography: {
     kind: 'new-town',
@@ -467,8 +462,6 @@ describe('Statistics service', () => {
       datasetCode: 'ds-hk-hkgov-censtatd-land-area-population-density-district',
       referencePeriodCode: '2024',
       referencePeriodEndYear: '2024',
-      sourceFeatureRef:
-        'hkgov-censtatd/ds-hk-hkgov-censtatd-land-area-population-density-district/2024/Density:11',
       geography: {
         kind: 'district',
         code: '11',
@@ -937,6 +930,7 @@ test('full statistics responses expose compact property-scoped source entries', 
   })
   expect(result.status).toBe(200)
   if (result.status !== 200) return
+  expect(result.body.data[0]?.attributes).not.toHaveProperty('sourceFeatureRef')
   expect(result.body.data[0]?.attributes.fieldSources).toEqual([
     {
       property: '',

@@ -1,4 +1,9 @@
-import { compactStatisticFieldSources, type StatisticSource } from '@repo/db'
+import {
+  compactStatisticFieldSources,
+  expandStatisticFieldSources,
+  type StatisticFieldSources,
+  type StatisticSource,
+} from '@repo/db'
 import type { CanonicalStatsGeography } from '@repo/db'
 import {
   recordIdentifier,
@@ -17,8 +22,10 @@ export type RetainedStatisticsInput = {
   fieldsI18n: RetainedSqlRow[]
   measures: RetainedSqlRow[]
   measuresI18n: RetainedSqlRow[]
-  sourceVersion: string
-  sourceProperties: (sourceFeatureRef: string) => Record<string, unknown>
+  sourceProperties: (source: StatisticSource) => {
+    sourceVersion: string
+    properties: Record<string, unknown>
+  }
 }
 
 /** Repack reviewed canonical values without rerunning field curation or translation. */
@@ -43,33 +50,53 @@ export function packRetainedStatistics(input: RetainedStatisticsInput) {
   }> = []
   for (const row of input.records) {
     const datasetCode = required(row.datasetCode, 'datasetCode')
-    const sourceFeatureRef = required(row.sourceFeatureRef, 'sourceFeatureRef')
+    const values = object(row.values) as Record<string, string>
+    const sources = expandStatisticFieldSources(
+      (typeof row.fieldSources === 'string'
+        ? JSON.parse(row.fieldSources)
+        : row.fieldSources) as StatisticFieldSources,
+      Object.keys(values),
+    )
     const referencePeriodCode = required(row.referencePeriodCode, 'referencePeriodCode')
     const geography = object(row.geography) as CanonicalStatsGeography
     if (geography.kind === 'building-group' || geography.kind === 'publisher-feature') {
-      const derived = statisticSourceGeography({
-        datasetCode,
-        sourceFeatureRef,
-        sourceVersion: input.sourceVersion,
-        properties: input.sourceProperties(sourceFeatureRef),
-      })
-      if (
-        derived.kind !== geography.kind ||
-        (geography.kind !== 'publisher-feature' &&
-          (derived.code !== geography.code ||
-            derived.class !== geography.class ||
-            (geography.namespace !== undefined &&
-              derived.namespace !== geography.namespace)))
+      const uniqueSources = new Map(
+        Object.values(sources).map(source => [JSON.stringify(source), source]),
       )
-        throw new Error(
-          `Retained geography disagrees with its source profile: ${sourceFeatureRef}.`,
+      let resolvedGeography: CanonicalStatsGeography | undefined
+      for (const source of uniqueSources.values()) {
+        const { sourceFeatureRef } = source
+        const retained = input.sourceProperties(source)
+        const derived = statisticSourceGeography({
+          datasetCode,
+          sourceFeatureRef,
+          sourceVersion: retained.sourceVersion,
+          properties: retained.properties,
+        })
+        if (
+          derived.kind !== geography.kind ||
+          (geography.kind !== 'publisher-feature' &&
+            (derived.code !== geography.code ||
+              derived.class !== geography.class ||
+              (geography.namespace !== undefined &&
+                derived.namespace !== geography.namespace)))
         )
-      if (geography.kind === 'building-group' && !derived.namespace) {
-        throw new Error(
-          `Retained Building Group has no source Housing Market Area: ${sourceFeatureRef}.`,
+          throw new Error(
+            `Retained geography disagrees with its source profile: ${sourceFeatureRef}.`,
+          )
+        if (geography.kind === 'building-group' && !derived.namespace) {
+          throw new Error(
+            `Retained Building Group has no source Housing Market Area: ${sourceFeatureRef}.`,
+          )
+        }
+        if (
+          resolvedGeography &&
+          hashStatisticContent(resolvedGeography) !== hashStatisticContent(derived)
         )
+          throw new Error(`Conflicting source geographies for ${row.id}.`)
+        resolvedGeography = derived
+        Object.assign(geography, derived)
       }
-      Object.assign(geography, derived)
     }
     const id = recordIdentifier({ datasetCode, referencePeriodCode, geography })
     const record = records.get(id) ?? {
@@ -89,7 +116,6 @@ export function packRetainedStatistics(input: RetainedStatisticsInput) {
         'referencePeriodGranularity',
       ),
       sourceReleaseId: required(row.sourceReleaseId, 'sourceReleaseId'),
-      sourceFeatureRef,
       fieldDefinitionHashes: {},
       fieldSources: {},
       values: {},
@@ -100,7 +126,6 @@ export function packRetainedStatistics(input: RetainedStatisticsInput) {
     ) {
       throw new Error(`Conflicting reviewed geography metadata for ${id}.`)
     }
-    const values = object(row.values) as Record<string, string>
     for (const [field, value] of Object.entries(values)) {
       if (typeof value !== 'string')
         throw new Error(`Statistic ${id}/${field} is not exact text.`)
@@ -113,10 +138,7 @@ export function packRetainedStatistics(input: RetainedStatisticsInput) {
         throw new Error(`Missing retained definition ${datasetCode}/${field}.`)
       record.values[field] = value
       record.fieldDefinitionHashes[field] = definition
-      record.fieldSources[field] = {
-        sourceFeatureRef,
-        sourceReleaseId: record.sourceReleaseId,
-      }
+      record.fieldSources[field] = sources[field]!
     }
     records.set(id, record)
     mappings.push({

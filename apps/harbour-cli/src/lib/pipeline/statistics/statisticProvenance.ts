@@ -169,7 +169,9 @@ export async function retainStatisticProvenance(
   const sourceRefs = new Set(source.map(s => s.sourceFeatureRef))
   const duplicateSources = source.length - sourceRefs.size
   const orphanOutputs = canonical.records.filter(
-    r => !sourceRefs.has(r.sourceFeatureRef),
+    r =>
+      r.fieldSources.length === 0 ||
+      r.fieldSources.some(source => !sourceRefs.has(source.sourceFeatureRef)),
   ).length
   const guard = (
     id: string,

@@ -115,6 +115,7 @@ test('retained Statistics profiles agree with period selection and identifier ex
       },
     ])
     expect(result.records).toHaveLength(1)
+    expect(result.records[0]).not.toHaveProperty('sourceFeatureRef')
     expect(result.records[0]).toMatchObject({
       referencePeriodCode: period,
       geography: { kind },
@@ -183,8 +184,8 @@ test('packed Statistics keep first-series identity and per-field source identity
   const inputs = [row('z', { households: '20' }), row('a', { population: '100' })]
   const result = normaliseHkgovCenstatdStatistics(inputs)
   expect(result.records).toHaveLength(1)
+  expect(result.records[0]).not.toHaveProperty('sourceFeatureRef')
   expect(result.records[0]).toMatchObject({
-    sourceFeatureRef: 'a',
     sourceReleaseId: 'a-release',
     values: { population: '100', households: '20' },
     fieldSources: compactStatisticFieldSources({

@@ -127,7 +127,6 @@ const pack = (
   id,
   versionHash,
   datasetCode,
-  sourceFeatureRef: `publisher/${id}`,
   divisionId: null,
   referencePeriodCode: period,
   referencePeriodStart: '2021-01-01',
@@ -365,13 +364,10 @@ test('Statistics rollback restores exact inherited packs and immutable dictionar
     ])
     expect(
       f.current
-        .query(
-          'SELECT sourceReleaseId,sourceFeatureRef,fieldSources FROM statsRecords WHERE id=?',
-        )
+        .query('SELECT sourceReleaseId,fieldSources FROM statsRecords WHERE id=?')
         .get('inherited'),
     ).toEqual({
       sourceReleaseId: 'a-release',
-      sourceFeatureRef: 'publisher/inherited',
       fieldSources:
         '[{"property":"","sourceReleaseId":"original-release","sourceFeatureRef":"publisher/inherited"}]',
     })

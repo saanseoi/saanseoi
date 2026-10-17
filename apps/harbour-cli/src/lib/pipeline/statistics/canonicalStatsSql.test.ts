@@ -21,7 +21,7 @@ describe('buildCanonicalStatsSqlBatches', () => {
       referencePeriodEndYear: '2016',
       referencePeriodGranularity: 'year',
       referencePeriodStart: null,
-      sourceFeatureRef: 'feature',
+
       sourceReleaseId: 'release',
       updatedAt: '2026-08-18T00:00:00.000Z',
       values: {},
@@ -50,7 +50,7 @@ describe('buildCanonicalStatsSqlBatches', () => {
       referencePeriodEndYear: '2021',
       referencePeriodGranularity: 'year',
       referencePeriodStart: null,
-      sourceFeatureRef: `feature:${index}`,
+
       sourceReleaseId: 'release',
       updatedAt: '2026-08-18T00:00:00.000Z',
       values: { population: { numericValue: String(index) } },
@@ -82,7 +82,7 @@ describe('buildCanonicalStatsSqlBatches', () => {
       referencePeriodEndYear: '2021',
       referencePeriodGranularity: 'year',
       referencePeriodStart: null,
-      sourceFeatureRef: `feature:${index}`,
+
       sourceReleaseId: 'release',
       updatedAt: '2026-08-18T00:00:00.000Z',
       values: {},
@@ -115,7 +115,7 @@ describe('buildCanonicalStatsSqlBatches', () => {
       referencePeriodEndYear: '2021',
       referencePeriodGranularity: 'year',
       referencePeriodStart: null,
-      sourceFeatureRef: 'feature',
+
       sourceReleaseId: 'release',
       updatedAt: '2026-08-18T00:00:00.000Z',
       values: {},
@@ -161,7 +161,7 @@ describe('buildCanonicalStatsSqlBatches', () => {
       referencePeriodEnd: null,
       referencePeriodGranularity: 'year',
       referencePeriodStart: null,
-      sourceFeatureRef: 'feature',
+
       sourceReleaseId: 'release-2026',
       updatedAt: '2026-08-20T00:00:00.000Z',
       values: {},
@@ -295,7 +295,7 @@ function packedRecord({ id }: { id: string }) {
     referencePeriodEndYear: '2024',
     referencePeriodGranularity: 'year',
     referencePeriodStart: null,
-    sourceFeatureRef: 'district:one',
+
     sourceReleaseId: 'release',
     updatedAt: '2026-09-12T00:00:00.000Z',
     values: { publisherPayload: 'x'.repeat(100_000) },
@@ -317,7 +317,7 @@ const currentRecordsTableSql = `
   CREATE TABLE statsDefinitionSets(id TEXT PRIMARY KEY, fieldDefinitionHashes TEXT NOT NULL);
   CREATE TABLE statsRecords (
     id TEXT PRIMARY KEY, datasetCode TEXT NOT NULL, sourceReleaseId TEXT NOT NULL,
-    sourceFeatureRef TEXT NOT NULL, divisionId TEXT, referencePeriodCode TEXT NOT NULL,
+    divisionId TEXT, referencePeriodCode TEXT NOT NULL,
     referencePeriodStart TEXT, referencePeriodEnd TEXT,
     referencePeriodGranularity TEXT NOT NULL, referencePeriodEndYear TEXT NOT NULL,
     geography TEXT NOT NULL, fieldSources TEXT NOT NULL,
@@ -330,7 +330,7 @@ const historyRecordsTableSql = `
   CREATE TABLE statsDefinitionSets(id TEXT PRIMARY KEY, fieldDefinitionHashes TEXT NOT NULL);
   CREATE TABLE statsRecords (
     id TEXT NOT NULL, datasetCode TEXT NOT NULL,
-    sourceFeatureRef TEXT NOT NULL, divisionId TEXT, referencePeriodCode TEXT NOT NULL,
+    divisionId TEXT, referencePeriodCode TEXT NOT NULL,
     referencePeriodStart TEXT, referencePeriodEnd TEXT,
     referencePeriodGranularity TEXT NOT NULL, referencePeriodEndYear TEXT NOT NULL,
     geography TEXT NOT NULL, fieldSources TEXT NOT NULL,

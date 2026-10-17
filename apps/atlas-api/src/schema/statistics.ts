@@ -250,17 +250,6 @@ const StatisticResourceSchema = z
             ),
             examples: ['746adfc8-d598-576e-9359-da45869bbc2d'],
           }),
-        sourceFeatureRef: z
-          .string()
-          .optional()
-          .openapi({
-            description: openApiText(
-              'openapi_statistics_source_feature_ref_description',
-            ),
-            examples: [
-              'hkgov-censtatd/ds-hk-hkgov-censtatd-permanent-living-quarters/2023-H2/AREA_LQ_2023:HK',
-            ],
-          }),
         createdAt: z
           .string()
           .optional()

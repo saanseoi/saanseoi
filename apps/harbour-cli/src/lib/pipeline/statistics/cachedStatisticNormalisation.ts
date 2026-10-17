@@ -20,7 +20,9 @@ export async function normaliseCachedStatistics(
   // The fixed district cohort normalises in about 1 ms; persistent preparation
   // adds first-run I/O without a measured warm-run benefit at this size.
   if (input.length <= 18) return normalise(input, options)
+  const contract = 'censtatd-packed-statistic-normalisation-v3'
   const identity = hashCanonicalStatisticPreparation({
+    contract: [contract],
     input,
     rules: [
       statisticNormalisationRule.declaration,
@@ -37,7 +39,7 @@ export async function normaliseCachedStatistics(
   })
   const entries = await prepareCachedArtefact<[string, unknown]>({
     directory: join(directory, identity),
-    inputs: { contract: 'censtatd-packed-statistic-normalisation-v2', identity },
+    inputs: { contract, identity },
     generate: async function* () {
       const canonical = normalise(input, options)
       for (const [section, rows] of Object.entries(canonical))

@@ -94,7 +94,7 @@ export function statisticRecordSpecification(path: string): Specification | null
         [
           'Version fields and measures with versionStatisticsDefinitions before packing.',
           'Sort series by sourceFeatureRef.localeCompare. recordIdentifier derives an ss-prefixed UUIDv5 from JSON.stringify({datasetCode,referencePeriodCode,geography:{kind,code,class:class??null,namespace:namespace??null}}) using canonicalStatisticId.',
-          'On the first series for a record identity, copy that series metadata and initialise values, a temporary per-field source map and fieldDefinitionHashes as empty objects. Later series preserve the first series sourceFeatureRef/sourceReleaseId.',
+          'On the first series for a record identity, copy that series metadata except sourceFeatureRef and initialise values, a temporary per-field source map and fieldDefinitionHashes as empty objects. Later series preserve the first series sourceReleaseId.',
           'Reject different divisionId or hashStatisticContent(geography) for an existing record identity, including differences outside the identity fields such as areaCompanion.',
           'For each series observation, reject duplicate fieldName within the record. Set values[fieldName] = numericValue ?? valueCode ?? sourceValue.',
           'Collect each field’s contributing sourceFeatureRef/sourceReleaseId, then compact fieldSources into property-scoped entries: an empty property supplies the default and /values/{field} overrides it. Require and retain the version hash at datasetCode + U+0000 + fieldName.',

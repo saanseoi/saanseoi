@@ -143,7 +143,6 @@ const record = (
   id,
   versionHash: hash,
   datasetCode,
-  sourceFeatureRef: `native/${id}`,
   divisionId: null,
   referencePeriodCode: period,
   referencePeriodStart: '2021-01-01',

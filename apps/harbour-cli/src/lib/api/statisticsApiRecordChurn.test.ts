@@ -11,7 +11,6 @@ const record = (overrides: Partial<RecordRow> = {}): RecordRow => ({
   operation: 'upsert',
   datasetCode: 'population',
 
-  sourceFeatureRef: 'publisher/2025/feature:23',
   divisionId: 'division-one',
   referencePeriodCode: '2025',
   referencePeriodStart: '2025-01-01',
@@ -41,7 +40,12 @@ test('period, provenance, JSON key order and geometry cohort alone do not change
   const previous = record({
     id: '2024-record',
     sourceReleaseId: 'source-2024',
-    sourceFeatureRef: 'publisher/2024/feature:5',
+    fieldSources: compactStatisticFieldSources({
+      population: {
+        sourceReleaseId: 'source-2024',
+        sourceFeatureRef: 'publisher/2024/feature:5',
+      },
+    }),
     referencePeriodCode: '2024',
     referencePeriodStart: '2024-01-01',
     referencePeriodEnd: '2024-12-31',
@@ -58,7 +62,6 @@ test('period, provenance, JSON key order and geometry cohort alone do not change
       },
     },
     fieldDefinitionHashes: { households: 'all', population: 'female-adult' },
-    fieldSources: [],
     values: { households: '4', population: '10' },
   })
   expect(buildStatisticsRecordChurn([record()], [previous])).toEqual({

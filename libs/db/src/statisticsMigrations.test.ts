@@ -47,6 +47,8 @@ test('Statistics migrations retain publisher payloads and canonical reference pe
       sqlite.query('PRAGMA table_info(statsRecords)').all() as Array<{ name: string }>
     ).map(column => column.name)
     for (const column of periodColumns) expect(canonicalColumns).toContain(column)
+    expect(canonicalColumns).not.toContain('sourceFeatureRef')
+    expect(canonicalColumns).toContain('fieldSources')
   } finally {
     sqlite.close()
   }

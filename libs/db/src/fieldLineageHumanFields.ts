@@ -68,8 +68,6 @@ export function humanField(
         'Keep the content identity of the exact definition used for each observation.',
       'relationships.division':
         'Link the observation to the Division selected by the SaanSeoi curated geography mapping.',
-      sourceFeatureRef:
-        'Identify the publisher feature using its dataset, release and native feature identity.',
       sourceReleaseId:
         'Identify the exact publisher release supplying this observation.',
       datasetCode: 'Identify the dataset owning this observation.',

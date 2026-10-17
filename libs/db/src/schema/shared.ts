@@ -273,8 +273,6 @@ export function canonicalStatsRecordColumns<Required extends boolean>(
     id: text('id').notNull(),
     datasetCode: requiredColumn(text('datasetCode'), required),
     sourceReleaseId: requiredColumn(text('sourceReleaseId'), required),
-    /** Stable constructed reference to the retained raw publisher feature. */
-    sourceFeatureRef: requiredColumn(text('sourceFeatureRef'), required),
     /** Present only after a reviewed bridge to a canonical division exists. */
     divisionId: text('divisionId'),
     ...statisticsReferencePeriodColumns(required),

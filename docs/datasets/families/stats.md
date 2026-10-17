@@ -249,7 +249,7 @@ discovery uses the [release-scoped identity lookup](../../identity-bridge.md).
 
 Canonical Stats records expose that curated SaanSeoi `districtCode` as `geography.code`;
 the publisher's numeric `DC` remains only in source provenance and the constructed
-`sourceFeatureRef`.
+`fieldSources[].sourceFeatureRef`.
 
 When a reviewed statistic has an area companion, its dataset fixture declares
 `areaCompanionByReferencePeriod`. Ingestion resolves that declaration for each
@@ -637,12 +637,16 @@ shared contract and dataset discriminators on combined geometry snapshots.
 ### Statistic field sources
 
 CURRENT and HISTORY `statsRecords.fieldSources`, retained canonical packs and the full
-Statistics API response use the same array of source references. Each entry contains
-`property`, `sourceReleaseId` and `sourceFeatureRef`. `property` is a JSON Pointer
-relative to the statistic attributes, following the source-attribution convention: `""`
-applies to all values, while `/values/{field}` overrides the default for that field.
-Escape `~` as `~0` and `/` as `~1` in field names. Duplicate paths and references to
-absent value fields are invalid. Every retained value must resolve to a source.
+Statistics API response use the same array of source references. Canonical records have
+no record-level `sourceFeatureRef`: a packed record can combine several publisher
+features and releases. Staging rows retain their individual feature references. Audits
+and retained-record repair resolve contributions through `fieldSources`, including both
+the default and every override. Each entry contains `property`, `sourceReleaseId` and
+`sourceFeatureRef`. `property` is a JSON Pointer relative to the statistic attributes,
+following the source-attribution convention: `""` applies to all values, while
+`/values/{field}` overrides the default for that field. Escape `~` as `~0` and `/` as
+`~1` in field names. Duplicate paths and references to absent value fields are invalid.
+Every retained value must resolve to a source.
 
 ```json
 [

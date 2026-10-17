@@ -14,10 +14,7 @@ export function statisticAuditPeriod(
   )
   const series = new Set(records.map(record => record.id))
   const references = new Set(
-    records.flatMap(record => [
-      record.sourceFeatureRef,
-      ...record.fieldSources.map(value => value.sourceFeatureRef),
-    ]),
+    records.flatMap(record => record.fieldSources.map(value => value.sourceFeatureRef)),
   )
   return {
     canonical: {

@@ -3038,7 +3038,6 @@
   "openapi_statistics_comparability_reason_description": "The reason that comparison is cautioned.",
   "openapi_statistics_comparability_status_description": "The status of the comparability caution.",
   "openapi_statistics_source_release_id_description": "The source release that supplied this observation.",
-  "openapi_statistics_source_feature_ref_description": "The publisher feature reference for this observation.",
   "openapi_statistics_created_at_description": "When SaanSeoi first created this canonical statistic.",
   "openapi_statistics_updated_at_description": "When SaanSeoi last updated this canonical statistic.",
   "openapi_statistics_relationships_description": "Links to related geographic resources.",

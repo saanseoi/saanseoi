@@ -3035,7 +3035,6 @@
   "openapi_statistics_comparability_reason_description": "需要提示比较的原因。",
   "openapi_statistics_comparability_status_description": "比较提示的状态。",
   "openapi_statistics_source_release_id_description": "提供此观测值的来源发布版本。",
-  "openapi_statistics_source_feature_ref_description": "此观测值的发布者要素参考。",
   "openapi_statistics_created_at_description": "山水首次创建此规范统计资料的时间。",
   "openapi_statistics_updated_at_description": "山水最后更新此规范统计资料的时间。",
   "openapi_statistics_relationships_description": "与相关地理资源的链接。",

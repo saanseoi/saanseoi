@@ -58,8 +58,8 @@ test('replays sparse revisions and unchanged snapshots independently of mutable 
   try {
     run(
       fixture.history,
-      `INSERT INTO statsRecords (snapshotId, id, datasetCode, sourceFeatureRef, divisionId, referencePeriodCode, referencePeriodGranularity, referencePeriodEndYear, geography, definitionSetId, "values", versionHash, isCurrent, createdAt)
-      SELECT 'correction', id, datasetCode, sourceFeatureRef, divisionId, referencePeriodCode, referencePeriodGranularity, referencePeriodEndYear, geography, definitionSetId, '{"totalPopulation":"250000","femalePopulation":"125000"}', 'correction-hash', 0, createdAt FROM statsRecords WHERE id = ? AND versionHash = 'record-version-hash'`,
+      `INSERT INTO statsRecords (snapshotId, id, datasetCode,  divisionId, referencePeriodCode, referencePeriodGranularity, referencePeriodEndYear, geography, definitionSetId, "values", versionHash, isCurrent, createdAt)
+      SELECT 'correction', id, datasetCode,  divisionId, referencePeriodCode, referencePeriodGranularity, referencePeriodEndYear, geography, definitionSetId, '{"totalPopulation":"250000","femalePopulation":"125000"}', 'correction-hash', 0, createdAt FROM statsRecords WHERE id = ? AND versionHash = 'record-version-hash'`,
       [STATISTIC_ID],
     )
     run(fixture.history, 'UPDATE statsRecords SET isCurrent = 0')

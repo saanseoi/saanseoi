@@ -3041,7 +3041,6 @@
   "openapi_statistics_comparability_reason_description": "需要提示比較的原因。",
   "openapi_statistics_comparability_status_description": "比較提示的狀態。",
   "openapi_statistics_source_release_id_description": "提供此觀測值的來源發布版本。",
-  "openapi_statistics_source_feature_ref_description": "此觀測值的發布者要素參考。",
   "openapi_statistics_created_at_description": "山水首次建立此標準統計資料的時間。",
   "openapi_statistics_updated_at_description": "山水最後更新此標準統計資料的時間。",
   "openapi_statistics_relationships_description": "與相關地理資源的連結。",

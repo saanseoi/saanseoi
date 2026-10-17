@@ -109,7 +109,6 @@ export function currentStatisticFieldRule(
       'id',
       'datasetCode',
       'sourceReleaseId',
-      'sourceFeatureRef',
       'geography',
       'fieldDefinitionHashes',
       'fieldSources',

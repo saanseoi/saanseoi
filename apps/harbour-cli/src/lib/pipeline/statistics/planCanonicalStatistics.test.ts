@@ -19,7 +19,6 @@ const record = (overrides: Partial<RecordInput> = {}): RecordInput => ({
   id: 'stats:stable',
   datasetCode: 'dataset',
   sourceReleaseId: 'release-1',
-  sourceFeatureRef: 'source/2025/A',
   divisionId: 'division-A',
   geography: { kind: 'district', code: 'A' },
   referencePeriodCode: '2021',
@@ -90,7 +89,6 @@ test('only changed geography packs create history and snapshot changes across re
       canonical: canonical([
         record({
           sourceReleaseId: 'archive-2026',
-          sourceFeatureRef: 'source/2026/A',
           fieldSources: compactStatisticFieldSources({
             population: {
               sourceReleaseId: 'archive-2026',
@@ -112,7 +110,6 @@ test('only changed geography packs create history and snapshot changes across re
     const unchanged = await stage('s2', 's1', [
       record({
         sourceReleaseId: 'new-publication',
-        sourceFeatureRef: 'source/2026/A',
         fieldSources: compactStatisticFieldSources({
           population: {
             sourceReleaseId: 'new-publication',

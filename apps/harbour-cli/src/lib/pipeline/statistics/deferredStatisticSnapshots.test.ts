@@ -98,7 +98,6 @@ function fixture() {
       id,
       datasetCode,
       sourceReleaseId: resourceReleaseId,
-      sourceFeatureRef: `${resourceReleaseId}/${id}`,
       divisionId: `division-${id}`,
       geography: { kind: 'district', code: id },
       referencePeriodCode: '2020',

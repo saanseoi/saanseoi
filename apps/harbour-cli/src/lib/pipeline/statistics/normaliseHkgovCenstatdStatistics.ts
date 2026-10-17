@@ -65,7 +65,7 @@ type CanonicalSeries = {
   sourceReleaseId: string
 }
 
-type CanonicalRecord = CanonicalSeries & {
+type CanonicalRecord = Omit<CanonicalSeries, 'sourceFeatureRef'> & {
   fieldDefinitionHashes: Record<string, string>
   fieldSources: Record<string, { sourceFeatureRef: string; sourceReleaseId: string }>
   values: Record<string, string>
@@ -343,8 +343,9 @@ function normaliseStatistics(
     left.sourceFeatureRef.localeCompare(right.sourceFeatureRef),
   )) {
     const id = recordIdentifier(seriesRow)
+    const { sourceFeatureRef: _sourceFeatureRef, ...recordRow } = seriesRow
     const record = records.get(id) ?? {
-      ...seriesRow,
+      ...recordRow,
       id,
       fieldDefinitionHashes: {},
       fieldSources: {},

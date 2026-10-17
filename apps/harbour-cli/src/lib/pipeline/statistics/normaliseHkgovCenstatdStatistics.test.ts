@@ -44,7 +44,6 @@ describe('normaliseHkgovCenstatdStatistics', () => {
     expect(rows.records).toEqual([
       expect.objectContaining({
         referencePeriodCode: '2016',
-        sourceFeatureRef: 'DC_GHS:11-2016',
         geography: {
           code: '11',
           kind: 'district',

@@ -544,7 +544,7 @@ each `DC` through the reviewed C&SD numeric bridge and the matching reviewed HAD
 district code bridge. It writes the resulting canonical `divisionId` and SaanSeoi
 `districtCode` to the Division Statistics history observation and to `geography.code` on
 canonical Stats records. The publisher's numeric `DC` remains in source provenance and
-the constructed `sourceFeatureRef`.
+the contributing `fieldSources[].sourceFeatureRef`.
 
 The dataset fixture selects `map_censtatd_district_code_to_canonical_division` from the
 versioned division merge ruleset. It is a versioned description of the deterministic
@@ -871,12 +871,16 @@ field-level evidence identify the contributing publisher records.
 ### Statistic field sources
 
 CURRENT and HISTORY `statsRecords.fieldSources`, retained canonical packs and the full
-Statistics API response use the same array of source references. Each entry contains
-`property`, `sourceReleaseId` and `sourceFeatureRef`. `property` is a JSON Pointer
-relative to the statistic attributes, following the source-attribution convention: `""`
-applies to all values, while `/values/{field}` overrides the default for that field.
-Escape `~` as `~0` and `/` as `~1` in field names. Duplicate paths and references to
-absent value fields are invalid. Every retained value must resolve to a source.
+Statistics API response use the same array of source references. Canonical records have
+no record-level `sourceFeatureRef`: a packed record can combine several publisher
+features and releases. Staging rows retain their individual feature references. Audits
+and retained-record repair resolve contributions through `fieldSources`, including both
+the default and every override. Each entry contains `property`, `sourceReleaseId` and
+`sourceFeatureRef`. `property` is a JSON Pointer relative to the statistic attributes,
+following the source-attribution convention: `""` applies to all values, while
+`/values/{field}` overrides the default for that field. Escape `~` as `~0` and `/` as
+`~1` in field names. Duplicate paths and references to absent value fields are invalid.
+Every retained value must resolve to a source.
 
 ```json
 [

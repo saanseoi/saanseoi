@@ -2516,7 +2516,6 @@ describe('atlas-api', () => {
       'values',
       'comparability',
       'sourceReleaseId',
-      'sourceFeatureRef',
       'createdAt',
     ]) {
       expect(
