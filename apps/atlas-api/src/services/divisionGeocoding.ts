@@ -145,6 +145,31 @@ export function createDivisionResolver(
     const missing = new Set<string>()
     const paths = new Map<string, string[]>()
 
+    /**
+     * Removes duplicate and coordinate-supported partial paths before judging alternatives.
+     * @param candidates Paths whose covered ancestors have already passed containment.
+     * @returns Distinct paths, retaining alternatives with unproven additional ancestors.
+     */
+    function pointPaths(candidates: string[][]): string[][] {
+      const unique = [
+        ...new Map(candidates.map(path => [JSON.stringify(path), path])).values(),
+      ]
+      if (!point) return unique
+      return unique.filter(
+        path =>
+          !unique.some(other => {
+            if (other.length <= path.length) return false
+            if (other.some(id => !path.includes(id) && !containingIds.has(id)))
+              return false
+            let position = -1
+            return path.every(id => {
+              position = other.indexOf(id, position + 1)
+              return position !== -1
+            })
+          }),
+      )
+    }
+
     // Each stored full branch stays intact. Recover suppressed ancestors only
     // through that branch's own records, never by zipping category projections.
     function expand(id: string, visiting = new Set<string>()): string[][] {
@@ -164,21 +189,28 @@ export function createDivisionResolver(
       const branches = hierarchy.full.length
         ? hierarchy.full.map(path => path.map(entry => entry.id))
         : [[]]
-      // A containing division may cross its stored administrative parent.
-      // Keep its coordinate-supported ancestors even when that parent is outside.
-      const viable =
-        point && containingIds.has(id)
-          ? branches.map(path => path.filter(parent => !excluded(parent)))
-          : branches.filter(path => path.every(parent => !excluded(parent)))
+      // Walk complete branches supported by this point before considering partial ancestry.
+      // A containing division may cross every stored parent; only then retain the
+      // coordinate-supported remainder rather than discarding the containing division.
+      const supportedBranches = branches.filter(path =>
+        path.every(parent => !excluded(parent)),
+      )
+      const viable = pointPaths(
+        supportedBranches.length || !point || !containingIds.has(id)
+          ? supportedBranches
+          : branches.map(path => path.filter(parent => !excluded(parent))),
+      )
       const result: string[][] = []
       for (const branch of viable) {
         let selected = [...branch, id]
         // A unique category projection is evidence; ambiguous projections must
         // be supported by IDs already present on this particular branch.
         for (const category of ['administrative', 'locality', 'landform'] as const) {
-          const alternatives = (hierarchy[category] ?? [])
-            .map(path => path.map(entry => entry.id))
-            .filter(path => path.every(parent => !excluded(parent)))
+          const alternatives = pointPaths(
+            (hierarchy[category] ?? [])
+              .map(path => path.map(entry => entry.id))
+              .filter(path => path.every(parent => !excluded(parent))),
+          )
           const evidenced = selected.filter(parent =>
             alternatives.some(path => path.includes(parent)),
           )
@@ -231,17 +263,19 @@ export function createDivisionResolver(
         }
         for (const parent of [...selected].slice(0, -1)) {
           const ancestorPaths = expand(parent, next)
-          const compatible = ancestorPaths.filter(path =>
-            path.every(
-              ancestor =>
-                !excluded(ancestor) &&
-                !selected.some(
-                  existing =>
-                    existing !== ancestor &&
-                    !path.includes(existing) &&
-                    byId.get(existing)?.division.class ===
-                      byId.get(ancestor)?.division.class,
-                ),
+          const compatible = pointPaths(
+            ancestorPaths.filter(path =>
+              path.every(
+                ancestor =>
+                  !excluded(ancestor) &&
+                  !selected.some(
+                    existing =>
+                      existing !== ancestor &&
+                      !path.includes(existing) &&
+                      byId.get(existing)?.division.class ===
+                        byId.get(ancestor)?.division.class,
+                  ),
+              ),
             ),
           )
           if (compatible.length !== 1) {
@@ -255,7 +289,7 @@ export function createDivisionResolver(
         selected = [...new Set(selected)]
         result.push(selected)
       }
-      return [...new Map(result.map(path => [JSON.stringify(path), path])).values()]
+      return pointPaths(result)
     }
     for (const id of [...matched].sort()) {
       const branches = expand(id)
