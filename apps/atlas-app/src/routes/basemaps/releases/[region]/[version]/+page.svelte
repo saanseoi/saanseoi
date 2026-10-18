@@ -3,6 +3,8 @@ import { goto } from '$app/navigation'
 import { page } from '$app/state'
 import * as ReleaseHeader from '#lib/bits/pages/docs/components/releaseHeader/index.js'
 import * as ReleaseNav from '#lib/bits/pages/docs/components/releaseNav/index.js'
+import Downloads from '#lib/bits/pages/basemaps/basemapReleaseDownloads.svelte'
+import Routing from '#lib/bits/pages/basemaps/basemapReleaseRouting.svelte'
 import ManifestInfo from '#lib/bits/pages/basemaps/basemapReleaseManifestInfo.svelte'
 import Content from '#lib/bits/pages/basemaps/basemapReleaseContent.svelte'
 import { Seo } from '#lib/bits/patterns/seo/index.js'
@@ -13,6 +15,7 @@ const tabs = [
   { id: 'changes', label: 'Changes' },
   { id: 'stats', label: 'Stats' },
   { id: 'map', label: 'Map' },
+  { id: 'routing', label: 'Routing' },
 ]
 let activeTab = $derived(
   tabs.find(tab => tab.id === page.url.searchParams.get('tab'))?.id ?? 'release',
@@ -57,16 +60,28 @@ function selectTab(tab: string) {
   >
     {#snippet tabAction()}
       {#if activeTab === 'release'}
+        <Downloads
+          region={data.region}
+          version={data.version}
+          pbfUrl={data.routing?.status === 'available' &&
+          data.versions.indexOf(data.version) < 2
+            ? data.routing.pbf.url
+            : null}
+        />
         <ManifestInfo />
       {/if}
     {/snippet}
-    <Content
-      statistics={data.statistics}
-      current={data.current}
-      previous={data.previous}
-      previousVersion={data.previousVersion}
-      catalogueAvailable={data.catalogueAvailable}
-      {activeTab}
-    />
+    {#if activeTab === 'routing'}
+      <Routing release={data.routing} />
+    {:else}
+      <Content
+        statistics={data.statistics}
+        current={data.current}
+        previous={data.previous}
+        previousVersion={data.previousVersion}
+        catalogueAvailable={data.catalogueAvailable}
+        {activeTab}
+      />
+    {/if}
   </ReleaseNav.Root>
 </Main>

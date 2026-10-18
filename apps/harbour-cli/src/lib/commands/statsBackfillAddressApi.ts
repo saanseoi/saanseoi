@@ -4,6 +4,7 @@ import { replaceApiReleaseSetStats } from '@repo/core/pipeline/db/stats'
 import { buildHistoricalAddressApiReleaseSetStats } from '../api/apiReleaseSetStats.ts'
 import {
   buildAddressApiReleaseSetChurn,
+  buildAddressApiVariantStats,
   listAddressStatsReleases,
 } from '../api/addressApiReleaseSetStats.ts'
 import type { ParsedArgs, UploadTarget } from '../cli/options.ts'
@@ -66,6 +67,13 @@ export async function runAddressApiStatsBackfillCommand(
         releaseSet.snapshotId,
         undefined,
         churn,
+      )
+      rows.push(
+        ...(await buildAddressApiVariantStats(
+          metaDb,
+          context.historyTargets,
+          releaseSet.id,
+        )),
       )
       prepared.push({ releaseSet, rows })
       console.log(

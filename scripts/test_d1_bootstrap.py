@@ -16,6 +16,61 @@ spec.loader.exec_module(bootstrap)
 
 
 class BootstrapTests(unittest.TestCase):
+    def test_self_references_import_with_immediate_constraints_and_preserve_rowids(self):
+        db = sqlite3.connect(':memory:')
+        self.addCleanup(db.close)
+        db.executescript('CREATE TABLE releases(id TEXT PRIMARY KEY, successor TEXT REFERENCES releases(id)); INSERT INTO releases(rowid,id,successor) VALUES(42,\'old\',\'new\'),(84,\'new\',NULL);')
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / 'self-reference.sql'
+            bootstrap.emit_dump(db, path)
+            restored = sqlite3.connect(':memory:', isolation_level=None)
+            self.addCleanup(restored.close)
+            restored.execute('PRAGMA foreign_keys=ON')
+            for sql in bootstrap.statements(path):
+                restored.execute(sql)
+            self.assertEqual(restored.execute('SELECT rowid,id,successor FROM releases ORDER BY rowid').fetchall(), [(42, 'old', 'new'), (84, 'new', None)])
+
+    def test_remote_verification_checks_separate_counts_and_integrity(self):
+        def result(rows):
+            return {'success': True, 'results': rows}
+        counts = [result([{'table_name': 'a', 'rows': 2}]), result([{'table_name': 'b', 'rows': 3}])]
+        valid = counts + [result([]), result([{'quick_check': 'ok'}])]
+        bootstrap.validate_import_results(valid, {'a': 2, 'b': 3})
+        for results in (valid[:-1], counts + [result([{'table': 'a'}]), valid[-1]], counts + [result([]), result([{'quick_check': 'broken'}])]):
+            with self.assertRaises(ValueError):
+                bootstrap.validate_import_results(results, {'a': 2, 'b': 3})
+        with self.assertRaises(ValueError):
+            bootstrap.validate_import_results(valid, {'a': 2, 'b': 4})
+
+    def test_parent_rows_precede_children_even_when_names_sort_after_them(self):
+        db = sqlite3.connect(':memory:')
+        self.addCleanup(db.close)
+        db.executescript('CREATE TABLE z_parent(id INTEGER PRIMARY KEY); CREATE TABLE a_child(id INTEGER REFERENCES z_parent(id)); INSERT INTO z_parent VALUES(1); INSERT INTO a_child VALUES(1);')
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / 'ordered.sql'
+            counts, _ = bootstrap.emit_dump(db, path)
+            sql = path.read_text()
+            self.assertLess(sql.index('INSERT INTO "z_parent"'), sql.index('INSERT INTO "a_child"'))
+            bootstrap.restore_check(path, counts)
+
+    def test_database_limit_excludes_free_pages_but_checks_restored_size(self):
+        db = sqlite3.connect(':memory:')
+        self.addCleanup(db.close)
+        db.executescript('CREATE TABLE payload(id INTEGER PRIMARY KEY, value BLOB);')
+        db.execute('INSERT INTO payload VALUES(1, zeroblob(100000))')
+        db.commit()
+        with patch.object(bootstrap, 'MAX_D1_DATABASE_BYTES', 20000):
+            with self.assertRaisesRegex(ValueError, 'live bytes'):
+                bootstrap.assert_database_size(db)
+            db.execute('DELETE FROM payload')
+            db.commit()
+            bootstrap.assert_database_size(db)
+            with tempfile.TemporaryDirectory() as directory:
+                path = Path(directory) / 'large.sql'
+                path.write_text('CREATE TABLE payload(value BLOB);\nINSERT INTO payload VALUES(zeroblob(100000));\n')
+                with self.assertRaisesRegex(ValueError, 'live bytes'):
+                    bootstrap.restore_check(path, {'payload': 1})
+
     def test_blockers_follow_version_associations_and_processing_runs(self):
         db = sqlite3.connect(':memory:')
         self.addCleanup(db.close)

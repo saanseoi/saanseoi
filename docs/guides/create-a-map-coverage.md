@@ -169,3 +169,10 @@ Inherited Place content uses the dependencies of the selected publication; relat
 lookups retain the recorded snapshot rather than substituting an independently newer
 Address or Division release. The public map profile and pagination contract are
 unchanged.
+
+## Release downloads and routing
+
+The guide's map tile/TileJSON examples still require the documented public API key.
+Public release-page PBF/PMTiles and routing-companion downloads are separate artefact
+endpoints; private shared routing compute requires a server-side service binding and app
+credential. Neither download access nor a browser Origin grants routing access.

@@ -1,11 +1,11 @@
 <script lang="ts">
 import {
   buildApiReleaseResourceActions,
-  getApiResourceKey as resourceKey,
+  selectApiReleaseResources,
 } from '#lib/registry/apiReleaseResourceActions.js'
 import { resourceLabel } from '#lib/registry/resourceLabels.js'
 import { getApiReleaseResources } from '#lib/registry/apiSnapshotChanges.remote.js'
-import ApiReleaseChanges from '#lib/bits/pages/docs/components/releaseStats/components/apiReleaseChanges.svelte'
+import ApiReleaseVariantChanges from '#lib/bits/pages/docs/components/releaseStats/components/apiReleaseVariantChanges.svelte'
 import {
   sourceRecordChangesCopy,
   type SourceChangeType,
@@ -90,7 +90,6 @@ let api = $derived.by(() => {
   if (!value) error(500, 'API release data unavailable.')
   return value
 })
-let isContentLoading = $derived(contentResource.loading)
 
 let releaseBase = $derived.by(() => {
   const selected = resolveReleaseSetRef(api.releases, params.releaseCode)
@@ -151,13 +150,10 @@ let previousChangesRelease = $derived(
     : previousRelease,
 )
 let resources = $derived(release.apiReleaseSetSnapshots ?? [])
-let selectedResource = $derived(
-  resources.find(
-    resource => resourceKey(resource) === currentUrl.searchParams.get('resource'),
-  ) ??
-    resources.find(resource => resource.role === 'primary') ??
-    resources[0],
+let resourceSelection = $derived(
+  selectApiReleaseResources(resources, currentUrl.searchParams.get('resource')),
 )
+let selectedResource = $derived(resourceSelection.resource)
 let previousResources = $derived(
   currentUrl.searchParams.get('tab') === 'changes' && previousChangesRelease
     ? getApiReleaseResources({
@@ -165,12 +161,6 @@ let previousResources = $derived(
         releaseCode: previousChangesRelease.code,
       })
     : null,
-)
-let previousResource = $derived(
-  previousResources?.current?.find(
-    resource =>
-      selectedResource && resourceKey(resource) === resourceKey(selectedResource),
-  ),
 )
 let changesOnly = $state(true)
 let changeCopy = $derived(sourceRecordChangesCopy[locale])
@@ -241,6 +231,9 @@ const getApiReleaseTabFromUrl = (url: ApiReleaseUrl): ApiReleaseTab => {
 let activeTab = $state<ApiReleaseTab>(
   getApiReleaseTabFromUrl(page.shallow?.url ?? page.url),
 )
+// Changes already has its snapshots and saved counts in the server-loaded shell.
+// Archive enrichment for other tabs must not delay its summary or record query.
+let isContentLoading = $derived(contentResource.loading && activeTab !== 'changes')
 let hasPreloadedSkeletons = $state(false)
 let statsRoot = $derived(
   activeTab === 'stats'
@@ -502,7 +495,7 @@ let allVersions = $derived(
       const searchParams = new URLSearchParams()
       if (activeTab !== 'release') searchParams.set('tab', activeTab)
       if (apiProfile !== 'default') searchParams.set('profile', apiProfile)
-      if (selectedResource) searchParams.set('resource', resourceKey(selectedResource))
+      if (resourceSelection.key) searchParams.set('resource', resourceSelection.key)
       if (
         (activeTab === 'release' || activeTab === 'guide') &&
         showNoteDiff &&
@@ -641,6 +634,7 @@ let actions = $derived<ReleaseNavAction[]>(
           resources,
           selectedResource,
           setChangeResource,
+          resourceSelection.allVariants,
         ),
         {
           id: 'changes-mode',
@@ -820,7 +814,7 @@ $effect(() => {
       >
         <ReleaseNav.ContentSkeleton tab={activeTab} diff={showNoteDiff} />
       </div>
-    {:else if contentResource.error}
+    {:else if contentResource.error && activeTab !== 'changes'}
       <section
         class="rounded-md border border-error/30 bg-error-container px-5 py-4 font-body text-body-md text-on-error-container"
         role="alert"
@@ -891,14 +885,14 @@ $effect(() => {
             {/if}
           </div>
         {:else if activeTab === 'changes'}
-          {#if previousResources && !previousResources.ready}
-            <ReleaseNav.ContentSkeleton tab="changes" />
-          {:else if selectedResource}
-            {#key `${release.id}:${selectedResource.snapshotId}:${changeType}`}
-              <ApiReleaseChanges
+          {#if selectedResource}
+            {#key `${release.id}:${resourceSelection.key}:${changeType}`}
+              <ApiReleaseVariantChanges
+                baselineLoading={Boolean(previousResources && !previousResources.ready)}
+                statistics={release.stats ?? []}
+                resources={resourceSelection.resources}
+                previousResources={previousResources?.current}
                 resourceLabel={resourceLabel(selectedResource.snapshot.resourceType)}
-                fromSnapshot={previousResource?.snapshotId}
-                toSnapshot={selectedResource.snapshotId}
                 type={changeType}
                 onTypeChange={selectRecordChanges}
                 diff={changesOnly}

@@ -6,6 +6,7 @@ import {
 } from '@repo/core/pipeline/db/snapshotReplay'
 import {
   buildChurnCounts,
+  buildChurnStatsRows,
   type ChurnCounts,
 } from '@repo/core/pipeline/services/metrics/releaseStats'
 import { and, eq, inArray, metaSchema } from '@repo/db'
@@ -42,7 +43,10 @@ export type AddressApiReleaseSetChurn = {
   totals: ChurnCounts
 }
 
-export async function listAddressStatsReleases(db: HarbourReadableDb) {
+export async function listAddressStatsReleases(
+  db: HarbourReadableDb,
+  allVariants = false,
+) {
   const rows = await db
     .select({
       apiVersionId: metaSchema.metaApiVersionReleaseSets.apiVersionId,
@@ -52,6 +56,7 @@ export async function listAddressStatsReleases(db: HarbourReadableDb) {
       regionCode: metaSchema.metaApiReleaseSets.regionCode,
       revision: metaSchema.metaApiReleaseSets.revision,
       snapshotId: metaSchema.metaSnapshots.id,
+      variant: metaSchema.metaApiReleaseSetSnapshots.variant,
     })
     .from(metaSchema.metaApiReleaseSets)
     .innerJoin(
@@ -90,7 +95,9 @@ export async function listAddressStatsReleases(db: HarbourReadableDb) {
       and(
         eq(metaSchema.metaApiVersions.familyType, 'addresses'),
         inArray(metaSchema.metaApiVersionReleaseSets.status, ['current', 'archived']),
-        eq(metaSchema.metaApiReleaseSetSnapshots.role, 'primary'),
+        allVariants
+          ? undefined
+          : eq(metaSchema.metaApiReleaseSetSnapshots.role, 'primary'),
         eq(metaSchema.metaSnapshotLineages.resourceType, 'address'),
         eq(metaSchema.metaSnapshots.status, 'published'),
       ),
@@ -101,6 +108,65 @@ export async function listAddressStatsReleases(db: HarbourReadableDb) {
     (left, right) =>
       left.code.localeCompare(right.code) || left.revision - right.revision,
   )
+}
+
+/** Saved counts for each Address variant against the preceding API publication. */
+export async function buildAddressApiVariantStats(
+  metaDb: HarbourReadableDb,
+  targets: AddressHistoryTarget[],
+  apiReleaseSetId: string,
+) {
+  const publications = await listAddressStatsReleases(metaDb)
+  const memberships = await listAddressStatsReleases(metaDb, true)
+  const states = new Map<string, Promise<AddressStatsSnapshot>>()
+  const read = (id: string) => {
+    let state = states.get(id)
+    if (!state) {
+      state = readAddressStatsSnapshot(metaDb, targets, id)
+      states.set(id, state)
+    }
+    return state
+  }
+  const rows = []
+  for (const { resource, baseline } of addressVariantBaselines(
+    publications,
+    memberships,
+    apiReleaseSetId,
+  )) {
+    const current = await read(resource.snapshotId)
+    const before = baseline ? await read(baseline.snapshotId) : undefined
+    rows.push(
+      ...buildAddressVariantStatsRows(
+        resource.variant,
+        buildAddressStatsChurn(current, before).totals,
+      ),
+    )
+  }
+  return rows
+}
+
+export function addressVariantBaselines(
+  publications: AddressStatsRelease[],
+  memberships: Array<AddressStatsRelease & { variant: string }>,
+  apiReleaseSetId: string,
+) {
+  const previous = previousAddressStatsRelease(publications, apiReleaseSetId)
+  return memberships
+    .filter(row => row.id === apiReleaseSetId)
+    .map(resource => ({
+      resource,
+      baseline: memberships.find(
+        row => row.id === previous?.id && row.variant === resource.variant,
+      ),
+    }))
+}
+
+export function buildAddressVariantStatsRows(variant: string, totals: ChurnCounts) {
+  return buildChurnStatsRows({ totals, byType: new Map() }).map(row => ({
+    ...row,
+    dimension: 'resource',
+    dimensionValue: `address:${variant}`,
+  }))
 }
 
 export function previousAddressStatsRelease(

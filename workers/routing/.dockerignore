@@ -1,0 +1,4 @@
+*
+!Dockerfile
+!image-data/
+!image-data/**

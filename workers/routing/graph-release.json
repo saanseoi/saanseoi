@@ -1,0 +1,8 @@
+{
+  "release": "gba-2026-10-01",
+  "graphSha256": "dff05fbd7b562e6bd672d2ed9e6b67f0ad0cf6107eeed5369d87e155bd443a4f",
+  "sourceBundleSha256": "948ea86714a008d5dff270b1ce6e97b55f9ec558a380425e197817c447abc5e6",
+  "limitations": [
+    "No elevation, traffic, admin/timezone databases or transit feeds imported."
+  ]
+}

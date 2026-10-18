@@ -596,6 +596,8 @@ ${basemapReferences.join('\n\n')}
 
 ${styleReferences.join('\n\n')}
 
+Release-page PBF, PMTiles and routing graph downloads are public. Hosted routing is a separate private server-side service. These download permissions do not change map tile authentication.
+
 Every basemap and style reference reads the public key from
 \`import.meta.env.VITE_SAANSEOI_API_KEY\`, URL-encodes it and sends it as
 \`access_token\`. Ask the user to create or retrieve that key at

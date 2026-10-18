@@ -1,8 +1,8 @@
 # SaanSeoi basemap tiles
 
 `ss-protomap` is the public Cloudflare Worker for the SaanSeoi basemap. It serves the
-PMTiles releases in the `ss-pmtiles` R2 bucket at `https://tiles.saanseoi.hk`; it does
-not expose PMTiles archives for download.
+PMTiles releases in the `ss-pmtiles` R2 bucket at `https://tiles.saanseoi.hk`; it also
+exposes public release archive and routing-companion downloads.
 
 The [basemap tiles guide](../../docs/tiles.md) is the source of truth for building,
 publishing, retracting, and storing releases. The
@@ -36,8 +36,9 @@ so a release that appears after a request can become available immediately. A fo
 mixed tiles from old and new archive contents.
 
 Release manifests are deliberately public and do not require a token. They are safe,
-immutable provenance records intended for diagnostic reports; all other tile-service
-resources continue to follow the normal browser-origin or bearer-token policy.
+immutable provenance records intended for diagnostic reports; tile and TileJSON
+resources follow the normal browser-origin or bearer-token policy. Public release
+archives, PBF sources, graph companions and boundaries do not require a key.
 
 ## Development and deployment
 
@@ -110,3 +111,10 @@ policy and streams a complete archive without caching. Range requests return 416
 Downloads count only when the response body completes, never on cancellation. The
 SaanSeoi API analytics rollup persists these events to META under `basemap_release` with
 an entity ID such as `hk/2026-10-01`.
+
+## Public release downloads
+
+Source PBFs, graph packages/recipes, full PMTiles archives and dated regional boundaries
+are public without an API key. Routing metadata uses short, explicit artefact paths;
+other R2 keys remain inaccessible. Tile/TileJSON authentication is unchanged. See the
+[routing family](../../docs/datasets/families/routing.md) for endpoints and retention.

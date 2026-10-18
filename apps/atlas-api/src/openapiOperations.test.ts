@@ -2,7 +2,10 @@ import { expect, test } from 'bun:test'
 import app from './index'
 import type { AppBindings } from './types'
 import { DivisionChangesQuerySchema } from './schema/divisionChanges'
-import { divisionChangesExamples } from './schema/divisionChanges.examples'
+import {
+  divisionChangesExamples,
+  divisionChangesExamplesForVersion,
+} from './schema/divisionChanges.examples'
 
 type Operation = {
   summary?: string
@@ -104,4 +107,25 @@ test('release selectors use consistent public query names', async () => {
   expect(parameters.some(parameter => /ApiReleaseSet$/.test(parameter.name))).toBe(
     false,
   )
+})
+
+test('Divisions v0.2 examples and request defaults select its own published cohorts', async () => {
+  const doc = await document('/openapi/divisions/v0.2')
+  const operation = doc.paths['/divisions/v0.2/changes']!.get!
+  for (const example of divisionChangesExamplesForVersion('v0.2')) {
+    expect(operation.description).toContain(example.query)
+    expect(new URL(example.query, 'https://example.test').pathname).toBe(
+      '/divisions/v0.2/changes',
+    )
+  }
+  const serialised = JSON.stringify(operation)
+  expect(serialised).not.toContain('2026-06-17.0')
+  expect(serialised).not.toContain('2026-07-22.0')
+  for (const [name, value] of [
+    ['fromReleaseSet', 'data-hk-divisions-2026-09-01.0'],
+    ['toReleaseSet', 'data-hk-divisions-2026-10-01.0'],
+  ] as const) {
+    const parameter = operation.parameters!.find(parameter => parameter.name === name)
+    expect(JSON.stringify(parameter)).toContain(value)
+  }
 })

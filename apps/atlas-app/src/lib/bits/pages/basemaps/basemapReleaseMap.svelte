@@ -119,7 +119,7 @@ onMount(() => {
 </script>
 <div
   bind:this={fullscreenContainer}
-  class="relative h-[70vh] min-h-120 overflow-hidden rounded-lg border border-outline-variant bg-surface-container-low [&.maplibregl-pseudo-fullscreen]:min-h-0 [&.maplibregl-pseudo-fullscreen]:rounded-none"
+  class="relative h-[65vh] min-h-80 overflow-hidden bg-data-surface-container-lowest [&.maplibregl-pseudo-fullscreen]:min-h-0 [&.maplibregl-pseudo-fullscreen]:rounded-none"
 >
   <section
     bind:this={container}
@@ -128,7 +128,7 @@ onMount(() => {
   ></section>
   {#if loading || loadError}
     <p
-      class="absolute left-4 top-4 max-w-72 rounded-md border border-outline-variant bg-surface-container px-4 py-3 font-body text-label-md text-primary"
+      class="absolute left-4 top-4 max-w-72 rounded-md bg-data-surface-container-lowest/95 px-4 py-3 font-body text-label-md text-primary"
       role="status"
     >
       {loadError

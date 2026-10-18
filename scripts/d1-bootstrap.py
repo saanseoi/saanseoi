@@ -4,6 +4,7 @@ import argparse
 import contextlib
 import hashlib
 import hmac
+import heapq
 import json
 import math
 import shutil
@@ -185,6 +186,50 @@ def remap_meta(db, destinations):
     db.commit()
 
 
+def ordered_rows(db, name, columns):
+    fields = ','.join(map(ident, columns))
+    cursor = db.execute(f'SELECT {fields} FROM {ident(name)}')
+    references = [row for row in db.execute(f'PRAGMA foreign_key_list({ident(name)})') if row[2] == name]
+    if not references:
+        yield from cursor
+        return
+    rows = list(cursor)
+    positions = {column: i for i, column in enumerate(columns)}
+    primary = [row[1] for row in sorted(db.execute(f'PRAGMA table_info({ident(name)})'), key=lambda row: row[5]) if row[5]]
+    dependencies = [set() for _ in rows]
+    for key in sorted({row[0] for row in references}):
+        parts = sorted((row for row in references if row[0] == key), key=lambda row: row[1])
+        child = [positions[row[3]] for row in parts]
+        parent = [positions[row[4] or primary[row[1]]] for row in parts]
+        lookup = {tuple(row[i] for i in parent): n for n, row in enumerate(rows)}
+        for n, row in enumerate(rows):
+            values = tuple(row[i] for i in child)
+            if any(value is None for value in values):
+                continue
+            target = lookup.get(values)
+            if target is not None and target != n:
+                dependencies[n].add(target)
+    children = [[] for _ in rows]
+    for n, parents in enumerate(dependencies):
+        for parent in parents:
+            children[parent].append(n)
+    ready = [n for n, parents in enumerate(dependencies) if not parents]
+    heapq.heapify(ready)
+    emitted = set()
+    while ready:
+        n = heapq.heappop(ready)
+        emitted.add(n)
+        yield rows[n]
+        for child in children[n]:
+            dependencies[child].remove(n)
+            if not dependencies[child]:
+                heapq.heappush(ready, child)
+    # Genuine cycles still require deferred constraints; preserve every row.
+    for n, row in enumerate(rows):
+        if n not in emitted:
+            yield row
+
+
 def emit_dump(db, path):
     schema = db.execute("SELECT type,name,tbl_name,sql FROM sqlite_schema WHERE sql IS NOT NULL ORDER BY name").fetchall()
     # FTS shadow storage is an implementation detail. Rebuild the index from its
@@ -193,6 +238,23 @@ def emit_dump(db, path):
     tables = [(name, sql) for kind, name, _, sql in schema
               if kind == 'table' and name not in shadows and not name.startswith(('sqlite_', '_cf_')) and not transient(name)]
     kept = {name for name, _ in tables}
+    # Parents must be populated before children: with deferred constraints, adding
+    # a parent after many children can scan the child table for every parent row.
+    # Cycles still rely on deferred validation, and retain deterministic ordering.
+    ordered = []
+    visited = set()
+    def visit(name):
+        if name in visited:
+            return
+        visited.add(name)
+        parents = {row[2] for row in db.execute(f'PRAGMA foreign_key_list({ident(name)})')}
+        for parent in sorted(parents & kept):
+            visit(parent)
+        ordered.append(name)
+    for name, _ in tables:
+        visit(name)
+    table_sql = dict(tables)
+    tables = [(name, table_sql[name]) for name in ordered]
     for name, sql in tables:
         if 'VIRTUAL TABLE' in sql.upper():
             if not re.search(r'\bUSING\s+fts5\s*\(', sql, re.I) or re.search(r'\bcontent\s*=', sql, re.I):
@@ -226,7 +288,7 @@ def emit_dump(db, path):
                 columns = [aliases[0]] + columns
             fields = ','.join(map(ident, columns))
             counts[name] = 0
-            for row in db.execute(f'SELECT {fields} FROM {ident(name)}'):
+            for row in ordered_rows(db, name, columns):
                 # Include a conservative allowance for SQLite record headers.
                 row_bytes = sum(len(v.encode()) if isinstance(v, str) else len(v) if isinstance(v, bytes) else 8 for v in row) + 16 * len(row)
                 if row_bytes > MAX_D1_ROW_BYTES:
@@ -290,10 +352,20 @@ def restore_check(path, expected):
             for sql in statements(path):
                 db.execute(sql)
             db.commit()
+            assert_database_size(db)
             assert_integrity(db)
             actual = {name: db.execute(f'SELECT count(*) FROM {ident(name)}').fetchone()[0] for name in expected}
             if actual != expected:
                 raise ValueError('Restore table counts differ from source')
+
+
+def assert_database_size(db):
+    # SQL imports do not reproduce freelist pages left by local processing.
+    pages = db.execute('PRAGMA page_count').fetchone()[0]
+    free = db.execute('PRAGMA freelist_count').fetchone()[0]
+    size = db.execute('PRAGMA page_size').fetchone()[0]
+    if (pages - free) * size > MAX_D1_DATABASE_BYTES:
+        raise ValueError(f'D1 database exceeds {MAX_D1_DATABASE_BYTES} live bytes')
 
 
 def verify(bundle, restore=True):
@@ -352,8 +424,7 @@ def prepare(output, config):
                 assert_integrity(db)
                 if binding == 'DB_CURRENT':
                     assert_current_publications(db)
-                if db.execute('PRAGMA page_count').fetchone()[0] * db.execute('PRAGMA page_size').fetchone()[0] > MAX_D1_DATABASE_BYTES:
-                    raise ValueError(f'D1 database exceeds {MAX_D1_DATABASE_BYTES} bytes: {binding}')
+                assert_database_size(db)
                 for table in table_names(db):
                     if transient(table) and db.execute(f'SELECT 1 FROM {ident(table)} LIMIT 1').fetchone():
                         if table not in TRANSIENT:
@@ -435,7 +506,7 @@ def commands(bundle):
     for item in manifest['databases']:
         args = ['bunx', 'wrangler', 'd1', 'execute', item['binding'], '--remote', '--config', str(bundle / 'wrangler.json'), '--file', str(bundle / item['file']), '--yes']
         print(' '.join(map(shlex.quote, args)) + '; or exit 1')
-        counts = ' UNION ALL '.join(f'SELECT {literal(name)} AS table_name, count(*) AS rows FROM {ident(name)}' for name in item['tables'])
+        counts = '; '.join(f'SELECT {literal(name)} AS table_name, count(*) AS rows FROM {ident(name)}' for name in item['tables'])
         args = ['bunx', 'wrangler', 'd1', 'execute', item['binding'], '--remote', '--config', str(bundle / 'wrangler.json'), '--command', counts + '; PRAGMA foreign_key_check; PRAGMA quick_check;', '--json']
         check = ['python3', script, 'check-import', '--output', str(bundle), '--binding', item['binding']]
         print(' '.join(map(shlex.quote, args)) + ' | ' + ' '.join(map(shlex.quote, check)) + '; or exit 1')
@@ -457,6 +528,17 @@ def plan(output, label):
     write_json(output / 'targets.json', {'name': 'ss-bootstrap', 'd1_databases': entries})
     (output / 'create.fish').write_text('\n'.join(commands) + '\n')
     print(f'Prepared {len(entries)} creation commands and target mappings in {output}')
+
+
+def validate_import_results(results, expected):
+    if not isinstance(results, list) or len(results) != len(expected) + 2 or not all(r.get('success') is True for r in results):
+        raise ValueError('Remote validation query failed')
+    counts = [row for result in results[:-2] for row in result['results']]
+    if (len(counts) != len(expected)
+            or {r['table_name']: r['rows'] for r in counts} != expected
+            or results[-2]['results']
+            or results[-1]['results'] != [{'quick_check': 'ok'}]):
+        raise ValueError('Remote row counts, foreign keys or integrity failed validation')
 
 
 def main():
@@ -491,10 +573,7 @@ def main():
         manifest = json.loads((bundle / 'manifest.json').read_text())
         expected = next(item['tables'] for item in manifest['databases'] if item['binding'] == args.binding)
         results = json.load(sys.stdin)
-        if not isinstance(results, list) or len(results) != 3 or not all(r.get('success') is True for r in results):
-            raise ValueError('Remote validation query failed')
-        if {r['table_name']: r['rows'] for r in results[0]['results']} != expected or results[1]['results'] or results[2]['results'] != [{'quick_check': 'ok'}]:
-            raise ValueError('Remote row counts, foreign keys or integrity failed validation')
+        validate_import_results(results, expected)
         print(f'{args.binding}: row counts, foreign keys and quick_check passed')
         checkpoint = bundle / 'verified-imports.json'
         verified = json.loads(checkpoint.read_text()) if checkpoint.exists() else {}

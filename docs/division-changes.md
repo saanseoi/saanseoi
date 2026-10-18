@@ -11,6 +11,21 @@ current catalogue. The response returns both resolved IDs and codes.
 
 ## Example queries
 
+### Divisions v0.2
+
+Use geographic release sets published for API v0.2. The September and October SaanSeoi
+inventories form a compatible comparison:
+
+```http
+GET /divisions/v0.2/changes?fromReleaseSet=data-hk-divisions-2026-09-01.0&toReleaseSet=data-hk-divisions-2026-10-01.0&page[limit]=25
+```
+
+Omit `toReleaseSet` to compare with the latest published v0.2 geographic inventory. The
+OpenAPI request examples use the same version-specific pair. Release sets from another
+API version return `409 incompatible_release_sets`.
+
+### Divisions v0.1
+
 These release codes must be published and retained in the selected environment.
 
 1. Compare June's definitions with the latest published release:
@@ -144,7 +159,8 @@ a mutable global comparison cache.
 | 503    | `release_set_unavailable`                                       | Unpublished/unknown release, missing snapshots, unavailable history/shards or publication transition |
 | 503    | `comparison_unavailable`, `definition_unavailable`              | The exact content fingerprint cannot be reproduced                                                   |
 
-Both releases must use the Hong Kong geographic `api-divisions-v0.1` dataset contract.
-Published archived release sets can be selected outside the current catalogue. Draft
-release sets are rejected. Equal source and target releases return no changes; reverse
-comparisons are supported, with additions and deletions relative to the supplied order.
+Both releases must use the same Hong Kong geographic API dataset contract version:
+`api-divisions-v0.1` or `api-divisions-v0.2`. Published archived release sets can be
+selected outside the current catalogue. Draft release sets are rejected. Equal source
+and target releases return no changes; reverse comparisons are supported, with additions
+and deletions relative to the supplied order.

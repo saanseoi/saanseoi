@@ -8,6 +8,7 @@ import {
   type AddressStatsRelease,
   type AddressStatsSnapshot,
   buildAddressStatsChurn,
+  addressVariantBaselines,
   previousAddressStatsRelease,
   readAddressStatsSnapshot,
 } from './addressApiReleaseSetStats'
@@ -260,4 +261,43 @@ INSERT INTO snapshots(id, snapshotLineageId, code, cohortKey, status, parentSnap
     earlier.close()
     later.close()
   }
+})
+
+test('variant churn matches the preceding publication by variant and never skips an absent variant', () => {
+  const release = (id: string, variant: string, snapshotId: string) => ({
+    apiVersionId: 'address-v1',
+    code: id,
+    domainCode: 'saanseoi',
+    id,
+    regionCode: 'hk',
+    revision: 0,
+    snapshotId,
+    variant,
+  })
+  const publications = [
+    release('one', 'gov', 'gov-one'),
+    release('two', 'gov', 'gov-two'),
+    release('three', 'gov', 'gov-three'),
+  ]
+  const memberships = [
+    ...publications,
+    release('one', 'overture', 'overture-one'),
+    release('two', 'overture', 'overture-two'),
+    release('three', 'overture', 'overture-two'),
+  ]
+  const comparisons = addressVariantBaselines(publications, memberships, 'three')
+  expect(
+    comparisons.map(row => [row.resource.variant, row.baseline?.snapshotId]),
+  ).toEqual([
+    ['gov', 'gov-two'],
+    ['overture', 'overture-two'],
+  ])
+  const missing = addressVariantBaselines(
+    publications,
+    memberships.filter(row => row.id !== 'two' || row.variant !== 'overture'),
+    'three',
+  )
+  expect(
+    missing.find(row => row.resource.variant === 'overture')?.baseline,
+  ).toBeUndefined()
 })

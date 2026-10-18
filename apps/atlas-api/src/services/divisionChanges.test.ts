@@ -47,10 +47,12 @@ function fixture(before: Definitions, after: Definitions) {
   async function run(
     query: Record<string, unknown> = {},
     overrides: Partial<DivisionChangesDependencies> = {},
+    apiVersion?: string,
   ) {
     return listDivisionChanges({
       ...({} as GeocodingDatabases),
       requestUrl: 'https://api.example/divisions/v1/changes?access_token=secret',
+      apiVersion,
       query: DivisionChangesQuerySchema.parse({
         fromReleaseSet: 'old',
         include: 'geometry',
@@ -265,6 +267,27 @@ test('label points, descriptive metadata and non-authoritative polygons do not i
     canAffectGeocodingMembership: false,
   })
   expect(body.meta.coverage.after.withMembershipGeometry).toBe(0)
+})
+
+test('v0.2 pagination keeps the selected API version and pinned comparison', async () => {
+  const f = fixture(
+    { records: [], areas: [] },
+    { records: [division('a'), division('b')], areas: [] },
+  )
+  const first = successful(await f.run({ 'page[limit]': 1 }, {}, 'api-divisions-v0.2'))
+  for (const link of Object.values(first.links)) {
+    expect(new URL(link!).pathname).toBe('/divisions/v0.2/changes')
+  }
+  const second = successful(
+    await f.run(
+      Object.fromEntries(new URL(first.links.next!).searchParams),
+      {},
+      'api-divisions-v0.2',
+    ),
+  )
+  expect(second.meta.comparisonId).toBe(first.meta.comparisonId)
+  expect(second.data[0]!.divisionId).toBe('b')
+  expect(second.links.next).toBeNull()
 })
 
 test('pagination pins latest once even after publication; replay and change identity are stable', async () => {

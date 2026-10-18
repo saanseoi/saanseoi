@@ -9,7 +9,12 @@ An [SQL import](https://developers.cloudflare.com/d1/best-practices/import-expor
 can use `PRAGMA defer_foreign_keys=ON` to defer validation until its transaction
 finishes. The bundle creates all tables and indexes before inserting data. It has no
 explicit `BEGIN` or `COMMIT`, and never switches foreign-key enforcement off. Each
-complete shard is one import file; do not split it into independent imports.
+complete shard is one import file; do not split it into independent imports. Rows are
+emitted in foreign-key dependency order so parent records precede their children,
+avoiding repeated child-table scans during deferred constraint checks. Self-referencing
+records, including release successor links, also place referenced rows first while
+preserving their original row IDs. Cycles retain deferred validation at the end of the
+import transaction.
 
 Final inserts and indexes incur D1 writes. Local preparation avoids remote ingestion
 churn. Very large cells require bounded assembly statements, which add some writes. It
@@ -122,7 +127,10 @@ file, its checksum and the acknowledged Address membership files. These SQLite f
 seed the subsequent production mirror; they are not uploaded directly to D1. Keep the
 complete bundle, including SQL, SQLite files, membership files and manifest, together.
 This is local SQLite validation, not evidence that a large import has succeeded on D1.
-D1's import-file, database-size and row-size limits still apply.
+D1's import-file, database-size and row-size limits still apply. The database-size check
+excludes reusable free pages in the local SQLite file and also checks the rebuilt
+database during restore validation. Local processing can leave a large free-page
+allocation that is not part of the SQL import.
 
 A failed preparation leaves an unsealed directory for diagnosis. Use a new output
 directory after resolving the failure; do not import its partial files.
@@ -174,6 +182,7 @@ imports source/history shards followed by current and metadata, and checks table
 foreign keys and SQLite integrity after each import. A successful `check-import` records
 the binding's sealed SQL checksum in `verified-imports.json`. These checks establish
 counts and structural integrity, not a full remote row-by-row content hash comparison.
+Each table count uses a separate statement to stay within D1's compound-SELECT limit.
 
 ```fish
 fish .local/d1-bootstrap/import.fish

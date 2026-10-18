@@ -7,7 +7,10 @@
   "assets": {
     "directory": "public"
   },
-  "r2_buckets": [{ "binding": "BUCKET", "bucket_name": "ss-pmtiles" }],
+  "r2_buckets": [
+    { "binding": "BUCKET", "bucket_name": "ss-pmtiles" },
+    { "binding": "SOURCES", "bucket_name": "ss-basemap-sources" }
+  ],
   // Shared with atlas-api production so both Workers resolve the same leases.
   "kv_namespaces": [
     {
