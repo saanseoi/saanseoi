@@ -461,7 +461,7 @@ def commands(bundle):
     for item in manifest['databases']:
         args = ['bunx', 'wrangler', 'd1', 'execute', item['binding'], '--remote', '--config', str(bundle / 'wrangler.json'), '--file', str(bundle / item['file']), '--yes']
         print(' '.join(map(shlex.quote, args)) + '; or exit 1')
-        counts = ' UNION ALL '.join(f'SELECT {literal(name)} AS table_name, count(*) AS rows FROM {ident(name)}' for name in item['tables'])
+        counts = '; '.join(f'SELECT {literal(name)} AS table_name, count(*) AS rows FROM {ident(name)}' for name in item['tables'])
         args = ['bunx', 'wrangler', 'd1', 'execute', item['binding'], '--remote', '--config', str(bundle / 'wrangler.json'), '--command', counts + '; PRAGMA foreign_key_check; PRAGMA quick_check;', '--json']
         check = ['python3', script, 'check-import', '--output', str(bundle), '--binding', item['binding']]
         print(' '.join(map(shlex.quote, args)) + ' | ' + ' '.join(map(shlex.quote, check)) + '; or exit 1')
@@ -483,6 +483,17 @@ def plan(output, label):
     write_json(output / 'targets.json', {'name': 'ss-bootstrap', 'd1_databases': entries})
     (output / 'create.fish').write_text('\n'.join(commands) + '\n')
     print(f'Prepared {len(entries)} creation commands and target mappings in {output}')
+
+
+def validate_import_results(results, expected):
+    if not isinstance(results, list) or len(results) != len(expected) + 2 or not all(r.get('success') is True for r in results):
+        raise ValueError('Remote validation query failed')
+    counts = [row for result in results[:-2] for row in result['results']]
+    if (len(counts) != len(expected)
+            or {r['table_name']: r['rows'] for r in counts} != expected
+            or results[-2]['results']
+            or results[-1]['results'] != [{'quick_check': 'ok'}]):
+        raise ValueError('Remote row counts, foreign keys or integrity failed validation')
 
 
 def main():
@@ -517,10 +528,7 @@ def main():
         manifest = json.loads((bundle / 'manifest.json').read_text())
         expected = next(item['tables'] for item in manifest['databases'] if item['binding'] == args.binding)
         results = json.load(sys.stdin)
-        if not isinstance(results, list) or len(results) != 3 or not all(r.get('success') is True for r in results):
-            raise ValueError('Remote validation query failed')
-        if {r['table_name']: r['rows'] for r in results[0]['results']} != expected or results[1]['results'] or results[2]['results'] != [{'quick_check': 'ok'}]:
-            raise ValueError('Remote row counts, foreign keys or integrity failed validation')
+        validate_import_results(results, expected)
         print(f'{args.binding}: row counts, foreign keys and quick_check passed')
         checkpoint = bundle / 'verified-imports.json'
         verified = json.loads(checkpoint.read_text()) if checkpoint.exists() else {}

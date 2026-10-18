@@ -16,6 +16,18 @@ spec.loader.exec_module(bootstrap)
 
 
 class BootstrapTests(unittest.TestCase):
+    def test_remote_verification_checks_separate_counts_and_integrity(self):
+        def result(rows):
+            return {'success': True, 'results': rows}
+        counts = [result([{'table_name': 'a', 'rows': 2}]), result([{'table_name': 'b', 'rows': 3}])]
+        valid = counts + [result([]), result([{'quick_check': 'ok'}])]
+        bootstrap.validate_import_results(valid, {'a': 2, 'b': 3})
+        for results in (valid[:-1], counts + [result([{'table': 'a'}]), valid[-1]], counts + [result([]), result([{'quick_check': 'broken'}])]):
+            with self.assertRaises(ValueError):
+                bootstrap.validate_import_results(results, {'a': 2, 'b': 3})
+        with self.assertRaises(ValueError):
+            bootstrap.validate_import_results(valid, {'a': 2, 'b': 4})
+
     def test_parent_rows_precede_children_even_when_names_sort_after_them(self):
         db = sqlite3.connect(':memory:')
         self.addCleanup(db.close)

@@ -180,6 +180,7 @@ imports source/history shards followed by current and metadata, and checks table
 foreign keys and SQLite integrity after each import. A successful `check-import` records
 the binding's sealed SQL checksum in `verified-imports.json`. These checks establish
 counts and structural integrity, not a full remote row-by-row content hash comparison.
+Each table count uses a separate statement to stay within D1's compound-SELECT limit.
 
 ```fish
 fish .local/d1-bootstrap/import.fish
