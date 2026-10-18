@@ -44,6 +44,7 @@ import {
 import { renderMarkdownFixtureBody, serialiseMarkdownFixture } from './docsRendering.ts'
 import type { DocsFixture } from './docsTypes.ts'
 import { RELEASE_DOCS_ROOT } from './docsConfig.ts'
+import { assertCompleteApiReleaseSetDocumentation } from './docsCoverage.ts'
 
 export async function runDocsNewCommand(args: ParsedArgs, target: UploadTarget) {
   if ((await resolveDocsNewScope(args)) === 'releases') {
@@ -196,10 +197,6 @@ async function runApiReleaseSetDocsPublishCommand(
       const notesFixture = await readFixtureIfExists(apiFamily, row.code)
       const guideFixture = await readGuideFixtureIfExists(apiFamily, row.code)
 
-      if (!notesFixture && !guideFixture) {
-        continue
-      }
-
       const frontmatter = frontmatterForApiReleaseSetRow(row)
       const notes = notesFixture
         ? await renderMarkdownFixtureBody(
@@ -230,6 +227,15 @@ async function runApiReleaseSetDocsPublishCommand(
       }
     }
   }
+
+  assertCompleteApiReleaseSetDocumentation(
+    rows.map(row => ({
+      ...row,
+      ...updates.find(
+        update => update.code === row.code && update.apiVersion === row.apiVersion,
+      ),
+    })),
+  )
 
   if (!dryRun) {
     for (const update of updates) {
