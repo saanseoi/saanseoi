@@ -51,6 +51,7 @@ export function scrollByPage(direction: -1 | 1) {
   {onreachend}
   ondragstatechange={(state: DragState) => (draggedCardId = state.cardId)}
   ><div
+    aria-busy={isLoading}
     class="flex min-w-max gap-4 px-[max(1.5rem,calc((100vw-var(--spacing-container-max))/2+1.5rem))] md:px-[max(2rem,calc((100vw-var(--spacing-container-max))/2+2rem))]"
   >
     {#each items as item, index (item.release.code)}
@@ -73,7 +74,7 @@ export function scrollByPage(direction: -1 | 1) {
         {/if}
       </div>
     {/each}
-    {#if isLoading}
+    {#if isLoading && items.length === 0}
       <ReleaseCarouselSkeleton />
     {/if}
   </div></CarouselRoot

@@ -18,6 +18,7 @@ import { Seo } from '#lib/bits/patterns/seo/index.js'
 import { Main } from '#lib/bits/primitives/main/index.js'
 import { getCurrentLocale, m } from '#lib/bits/internal/i18n.js'
 import { apiFamilyThemes } from '#lib/registry/apiFamilyTheme.js'
+import { mergeDataReleaseFeed } from '#lib/registry/dataReleaseFeed.js'
 import {
   getDataReleasesPageData,
   type DataPageRelease,
@@ -341,7 +342,7 @@ const releaseCarouselItems = $derived(
   releases.map(release => ({
     kind: 'api' as const,
     release,
-    displayDate: displayDate(release.publishedAt ?? release.createdAt),
+    displayDate: displayDate(release.updatedAt),
     displayCode:
       release.displayCode ?? releaseDisplayCode(release.code, release.apiFamily),
     href: release.href,
@@ -358,18 +359,13 @@ const basemapReleaseCarouselItems = $derived(
   })),
 )
 const allReleaseCarouselItems = $derived(
-  [...releaseCarouselItems, ...basemapReleaseCarouselItems].sort((left, right) => {
-    const leftDate =
-      left.kind === 'basemap'
-        ? left.release.version
-        : (left.release.publishedAt ?? left.release.createdAt)
-    const rightDate =
-      right.kind === 'basemap'
-        ? right.release.version
-        : (right.release.publishedAt ?? right.release.createdAt)
-    return rightDate.localeCompare(leftDate)
-  }),
+  mergeDataReleaseFeed(
+    releaseCarouselItems,
+    basemapReleaseCarouselItems,
+    hasMoreReleases,
+  ),
 )
+
 const isInitialReleaseLoading = false
 
 const loadMoreReleases = async () => {

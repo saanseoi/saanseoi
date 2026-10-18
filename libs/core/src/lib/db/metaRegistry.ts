@@ -5644,6 +5644,10 @@ export async function publishReleaseArtefacts(
 
       if (!deferApiReleaseSet) {
         statements.push(
+          tx
+            .update(metaApiReleaseSets)
+            .set({ updatedAt: publishedAt })
+            .where(eq(metaApiReleaseSets.id, args.releaseSetId)),
           ...(shouldActivateReleaseSet
             ? [
                 tx
