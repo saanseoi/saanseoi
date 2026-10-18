@@ -1,3 +1,4 @@
+import { publicationProducer } from './fieldLineagePublication'
 import { compileCuratedRecordField } from './fieldLineageCuratedField'
 import { nativeDivisionProducer } from './fieldLineageNativeDivisions'
 import { statisticProfileSpecification } from './fieldLineageStatisticProfile'
@@ -164,6 +165,7 @@ function compileInput(
       onFailure: 'error',
     })
   const producer: ProducerSpecification | null =
+    publicationProducer(context.resourceType, path) ??
     nativeDivisionProducer(datasetCode, context.resourceType, path) ??
     (context.resourceType === 'place'
       ? (companionProducer(path, 'place') ?? placeResolutionProducer(path))
@@ -181,7 +183,9 @@ function compileInput(
         input,
         compilePreparedFieldInput(
           input,
-          context.resourceType === 'address' && datasetCode === 'ds-hk-overture-place'
+          context.resourceType === 'address' &&
+            datasetCode === 'ds-hk-overture-place' &&
+            !publicationProducer(context.resourceType, path)
             ? context.forDataset(datasetCode, 'place')
             : context,
         ),

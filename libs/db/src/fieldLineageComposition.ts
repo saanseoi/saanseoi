@@ -438,12 +438,16 @@ export function compileResponseField(args: {
     const expressions: Record<string, string> = {
       geometry:
         'addressPointGeometry(address.geometry): require a finite Point with 2 or 3 coordinates, else null.',
-      sources:
-        'expandAddressSourceReferences(address.sources, {snapshotId, datasetCode, sourceReleaseId})',
+      sources: 'address.sources ?? []',
       datasetCode:
         'activeSnapshot.datasetBySnapshot.get(address.snapshotId); missing binding errors.',
       'relationships.divisions':
         '{data:address.divisionRelationships.map(({divisionId,role})=>({type:"divisions",id:divisionId,meta:{role}}))}',
+      address3dCoverage: 'record.address3dCoverage ?? {kind:"none"}',
+      'relationships.hierarchy':
+        '{data:addressHierarchyIds(address).map(id => ({type:"divisions",id}))}',
+      'relationships.units':
+        '{data:coverage.kind === "none" ? null : {type:"address3d",id:coverage.address3dId},meta:{address3dCoverage:coverage}}',
       i18n: 'Selected locale rows; compact keeps formattedAddress only; omit i18n when no locales are selected.',
     }
     return {

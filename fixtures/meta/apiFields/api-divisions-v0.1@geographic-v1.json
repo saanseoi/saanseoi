@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:3cbc939fd78403ad08baddef25c75d65fccc9014f9ca915a33c23921adb5d9c2",
+  "versionHash": "sha256:5e9e1771e788dff5c592135617a96be40f8b8a7f690d2df533c10463589ba97b",
   "apiVersion": "api-divisions-v0.1",
   "domainCode": "geographic",
   "mappingVersion": 1,
@@ -814,6 +814,34 @@
             {
               "origin": "registry",
               "fieldPath": "divisionCodes.divisionCode"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.createdAt",
+          "sourceDatasetCode": "ds-hk-overture-division",
+          "resolverCode": "lookup_registry",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "registry",
+              "fieldPath": "snapshotId"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.snapshotId",
+          "sourceDatasetCode": "ds-hk-overture-division",
+          "resolverCode": "lookup_registry",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "registry",
+              "fieldPath": "snapshotId"
             }
           ]
         }
@@ -1722,6 +1750,95 @@
               "fieldPath": "divisionGeometryCurations.islandAreas"
             }
           ]
+        },
+        {
+          "apiField": "attributes.snapshotId",
+          "sourceDatasetCode": "ds-hk-overture-division",
+          "resolverCode": "lookup_registry",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "registry",
+              "fieldPath": "snapshotId"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.snapshotId",
+          "sourceDatasetCode": "ds-hk-hkgov-had-division-area-district",
+          "resolverCode": "lookup_registry",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "registry",
+              "fieldPath": "snapshotId"
+            }
+          ],
+          "variant": "hkgov-had"
+        },
+        {
+          "apiField": "attributes.snapshotId",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-subdivided-units-district",
+          "resolverCode": "lookup_registry",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "registry",
+              "fieldPath": "snapshotId"
+            }
+          ],
+          "variant": "hkgov-censtatd-landclipped"
+        },
+        {
+          "apiField": "attributes.snapshotId",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-subdivided-units-district",
+          "resolverCode": "lookup_registry",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "registry",
+              "fieldPath": "snapshotId"
+            }
+          ],
+          "variant": "hkgov-censtatd-landclipped:simplified"
+        },
+        {
+          "apiField": "attributes.snapshotId",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-population-households-district",
+          "resolverCode": "lookup_registry",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "registry",
+              "fieldPath": "snapshotId"
+            }
+          ],
+          "variant": "hkgov-censtatd"
+        },
+        {
+          "apiField": "attributes.snapshotId",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-population-households-district",
+          "resolverCode": "lookup_registry",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "registry",
+              "fieldPath": "snapshotId"
+            }
+          ],
+          "variant": "hkgov-censtatd:simplified"
         }
       ]
     },
@@ -1859,6 +1976,34 @@
             {
               "origin": "source",
               "fieldPath": "properties.sources"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.snapshotId",
+          "sourceDatasetCode": "ds-hk-overture-division",
+          "resolverCode": "lookup_registry",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "registry",
+              "fieldPath": "snapshotId"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.variant",
+          "sourceDatasetCode": "ds-hk-overture-division",
+          "resolverCode": "lookup_registry",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "registry",
+              "fieldPath": "variant"
             }
           ]
         }

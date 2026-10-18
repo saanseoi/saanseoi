@@ -45,7 +45,10 @@ for (const fixture of listApiFieldFixtures()) {
             closure.some(
               node =>
                 node.operation.kind === 'resolver' &&
-                node.operation.definition.operationCode === 'statistic-packedRecord',
+                node.operation.definition.operationCode ===
+                  (field.apiField === 'attributes.createdAt'
+                    ? 'statistic-selectedContentVersion'
+                    : 'statistic-packedRecord'),
             ),
           ).toBe(true)
         }

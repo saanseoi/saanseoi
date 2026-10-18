@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:e4680d614367005d02684904130fa6831d8cb38b4c6b2e8e9838da9da8ce1c7e",
+  "versionHash": "sha256:a7594b7d4fc978c08a104eff6394f43e0106d1615fe5575e30d9e83e31baf918",
   "apiVersion": "api-addresses-v0.1",
   "domainCode": "saanseoi",
   "mappingVersion": 1,
@@ -2117,6 +2117,244 @@
       "resolverCode": "resolve-place-addresses",
       "contributionType": "resolver-input",
       "priority": 10
+    },
+    {
+      "apiField": "attributes.address3dCoverage",
+      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
+      "resolverCode": "lookup_registry",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "registry",
+          "fieldPath": "snapshotId"
+        }
+      ]
+    },
+    {
+      "apiField": "attributes.address3dCoverage",
+      "sourceDatasetCode": "ds-hk-overture-place",
+      "resolverCode": "lookup_registry",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "registry",
+          "fieldPath": "snapshotId"
+        }
+      ]
+    },
+    {
+      "apiField": "attributes.createdAt",
+      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
+      "resolverCode": "lookup_registry",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "registry",
+          "fieldPath": "snapshotId"
+        }
+      ]
+    },
+    {
+      "apiField": "attributes.createdAt",
+      "sourceDatasetCode": "ds-hk-overture-place",
+      "resolverCode": "lookup_registry",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "registry",
+          "fieldPath": "snapshotId"
+        }
+      ]
+    },
+    {
+      "apiField": "attributes.datasetCode",
+      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
+      "resolverCode": "lookup_registry",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "registry",
+          "fieldPath": "datasetCode"
+        }
+      ]
+    },
+    {
+      "apiField": "attributes.datasetCode",
+      "sourceDatasetCode": "ds-hk-overture-place",
+      "resolverCode": "lookup_registry",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "registry",
+          "fieldPath": "datasetCode"
+        }
+      ]
+    },
+    {
+      "apiField": "attributes.snapshotId",
+      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
+      "resolverCode": "lookup_registry",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "registry",
+          "fieldPath": "snapshotId"
+        }
+      ]
+    },
+    {
+      "apiField": "attributes.snapshotId",
+      "sourceDatasetCode": "ds-hk-overture-place",
+      "resolverCode": "lookup_registry",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "registry",
+          "fieldPath": "snapshotId"
+        }
+      ]
+    },
+    {
+      "apiField": "relationships.hierarchy",
+      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
+      "resolverCode": "lookup_registry",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "registry",
+          "fieldPath": "snapshotId"
+        }
+      ]
+    },
+    {
+      "apiField": "relationships.hierarchy",
+      "sourceDatasetCode": "ds-hk-overture-place",
+      "resolverCode": "lookup_registry",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "registry",
+          "fieldPath": "snapshotId"
+        }
+      ]
+    },
+    {
+      "apiField": "relationships.units",
+      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
+      "resolverCode": "lookup_registry",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "registry",
+          "fieldPath": "snapshotId"
+        }
+      ]
+    },
+    {
+      "apiField": "relationships.units",
+      "sourceDatasetCode": "ds-hk-overture-place",
+      "resolverCode": "lookup_registry",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "registry",
+          "fieldPath": "snapshotId"
+        }
+      ]
+    },
+    {
+      "apiField": "attributes.sources",
+      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
+      "resolverCode": "lookup_registry",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "registry",
+          "fieldPath": "snapshotId"
+        }
+      ]
+    },
+    {
+      "apiField": "attributes.geometry",
+      "sourceDatasetCode": "ds-hk-overture-place",
+      "resolverCode": "lookup_registry",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "registry",
+          "fieldPath": "snapshotId"
+        }
+      ]
+    },
+    {
+      "apiField": "attributes.parentAddressId",
+      "sourceDatasetCode": "ds-hk-overture-place",
+      "resolverCode": "lookup_registry",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "registry",
+          "fieldPath": "snapshotId"
+        }
+      ]
+    },
+    {
+      "apiField": "attributes.granularity",
+      "sourceDatasetCode": "ds-hk-overture-place",
+      "resolverCode": "lookup_registry",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "registry",
+          "fieldPath": "snapshotId"
+        }
+      ]
+    },
+    {
+      "apiField": "attributes.identifiers.hkgov-dpo.csuId",
+      "sourceDatasetCode": "ds-hk-overture-place",
+      "resolverCode": "lookup_registry",
+      "contributionType": "primary",
+      "priority": 0,
+      "confidence": 1,
+      "inputs": [
+        {
+          "origin": "registry",
+          "fieldPath": "snapshotId"
+        }
+      ]
     }
   ]
 }

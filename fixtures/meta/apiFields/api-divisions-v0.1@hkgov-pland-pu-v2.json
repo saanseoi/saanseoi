@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:461fcc3e27d876b7f91dcd3324fbe4229ff051dc675d92d0176dd6adeb0f2afb",
+  "versionHash": "sha256:e6e0db18d4b9c675925829b22f7925391fbf4160955ca7c84fde6b91936d31bd",
   "apiVersion": "api-divisions-v0.1",
   "domainCode": "hkgov-pland-pu",
   "mappingVersion": 2,
@@ -293,6 +293,90 @@
               "fieldPath": "properties.subunit"
             }
           ]
+        },
+        {
+          "apiField": "attributes.cartography",
+          "sourceDatasetCode": "ds-hk-hkgov-pland-division-pu",
+          "resolverCode": "lookup_registry",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "registry",
+              "fieldPath": "snapshotId"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.createdAt",
+          "sourceDatasetCode": "ds-hk-hkgov-pland-division-pu",
+          "resolverCode": "lookup_registry",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "registry",
+              "fieldPath": "snapshotId"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.divisionCode",
+          "sourceDatasetCode": "ds-hk-hkgov-pland-division-pu",
+          "resolverCode": "lookup_registry",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "registry",
+              "fieldPath": "snapshotId"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.snapshotId",
+          "sourceDatasetCode": "ds-hk-hkgov-pland-division-pu",
+          "resolverCode": "lookup_registry",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "registry",
+              "fieldPath": "snapshotId"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.sources",
+          "sourceDatasetCode": "ds-hk-hkgov-pland-division-pu",
+          "resolverCode": "lookup_registry",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "registry",
+              "fieldPath": "snapshotId"
+            }
+          ]
+        },
+        {
+          "apiField": "relationships.boundaries",
+          "sourceDatasetCode": "ds-hk-hkgov-pland-division-pu",
+          "resolverCode": "lookup_registry",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "registry",
+              "fieldPath": "snapshotId"
+            }
+          ]
         }
       ]
     },
@@ -428,6 +512,66 @@
               "fieldPath": "dataset.sourceVariant"
             }
           ]
+        },
+        {
+          "apiField": "attributes.isLand",
+          "sourceDatasetCode": "ds-hk-hkgov-pland-division-pu",
+          "resolverCode": "lookup_registry",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "registry",
+              "fieldPath": "snapshotId"
+            }
+          ],
+          "variant": "hkgov-pland-pu"
+        },
+        {
+          "apiField": "attributes.isTerritorial",
+          "sourceDatasetCode": "ds-hk-hkgov-pland-division-pu",
+          "resolverCode": "lookup_registry",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "registry",
+              "fieldPath": "snapshotId"
+            }
+          ],
+          "variant": "hkgov-pland-pu"
+        },
+        {
+          "apiField": "attributes.snapshotId",
+          "sourceDatasetCode": "ds-hk-hkgov-pland-division-pu",
+          "resolverCode": "lookup_registry",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "registry",
+              "fieldPath": "snapshotId"
+            }
+          ],
+          "variant": "hkgov-pland-pu"
+        },
+        {
+          "apiField": "attributes.sources",
+          "sourceDatasetCode": "ds-hk-hkgov-pland-division-pu",
+          "resolverCode": "lookup_registry",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "registry",
+              "fieldPath": "snapshotId"
+            }
+          ],
+          "variant": "hkgov-pland-pu"
         }
       ]
     }

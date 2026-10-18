@@ -282,7 +282,6 @@
       },
       "fullOnly": [
         "attributes.sourceReleaseId",
-        "attributes.sourceFeatureRef",
         "attributes.fieldSources",
         "attributes.createdAt",
         "attributes.updatedAt"

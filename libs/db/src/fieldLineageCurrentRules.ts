@@ -1,3 +1,4 @@
+import { publicationFieldRule } from './fieldLineagePublication'
 import { placeDivisionFieldNames } from './schema/shared'
 import type { OperationExplanation } from './fieldLineageExplanation'
 import { geometryReferenceRule } from './fieldLineageGeometryReferences'
@@ -199,6 +200,21 @@ export function currentAddressFieldRule(
         )
       : null
   }
+  if (field === 'sources')
+    return rule(
+      'libs/core/src/pipeline/services/addresses/sourceReferences.ts',
+      'addressSourceReferences',
+      'readAlsPublisherSource(alsSelectedRow) yields [{publisher:"hkgov-dpo",dataset:"ds-hk-hkgov-dpo-address",recordId:publisher.sourceRecordId}], or [] when no publisher occurrence is retained.',
+      ['alsSelectedRow'],
+      {
+        additionalImplementations: [
+          {
+            path: 'libs/core/src/pipeline/services/sources/alsSourcePayload.ts',
+            symbol: 'readAlsPublisherSource',
+          },
+        ],
+      },
+    )
   const locale = /^i18n\.(en|zh-hant)\.(.+)$/.exec(field)
   if (locale) {
     const prefix = locale[1] === 'en' ? 'en' : 'zhHant',
@@ -555,6 +571,19 @@ export function currentDivisionFieldRule(
   const field = apiField.replace(/^attributes\./, '')
   const native = nativeDivisionFieldRule(datasetCode, resource, field)
   if (native) return native
+  if (
+    resource === 'divisionArea' &&
+    datasetCode.startsWith('ds-hk-hkgov-pland-') &&
+    ['isLand', 'isTerritorial'].includes(field)
+  )
+    return rule(geometry, 'normaliseDivisionAreaGeometry', 'true', [], {
+      human: {
+        kind: 'assign',
+        title: field,
+        description:
+          'Planning area coverage is both land and territorial; the normaliser sets this flag to true.',
+      },
+    })
   if (resource === 'divisionArea' || resource === 'divisionBoundary') {
     const reference = geometryReferenceRule(field, datasetCode)
     if (reference) return reference
@@ -684,8 +713,8 @@ export function currentDivisionFieldRule(
       geometry: ['parseJsonGeometry(row.geometry, "geometry")', ['geometry']],
       identifiers: ['canonicalIdentifiers(row.identifiers)', ['identifiers']],
       sources: [
-        '{hkgovCenstatd: parseJsonValue(row.sources, "sources").map(reference => ({record_id: requireNonEmpty(reference.sourceRecordId)}))}',
-        ['sources'],
+        'parseJsonValue(row.sources, "sources").map(reference => ({publisher: "hkgov-censtatd", dataset: datasetCode, recordId: requireNonEmpty(reference.sourceRecordId)}))',
+        ['sources', 'datasetCode'],
       ],
       hierarchies: ['emptyDivisionHierarchies()', []],
       cartography: ['materialiseDivisionCartography(type)', ['canonical_type']],
@@ -835,11 +864,12 @@ export function currentFieldRule(
   datasetCode: string,
 ): CurrentFieldRule | null {
   const specification =
+    publicationFieldRule(resource, apiField) ??
     currentStatisticFieldRule(resource, apiField) ??
     (resource === 'address' ? currentAddressFieldRule(apiField, datasetCode) : null) ??
     (resource === 'place' ? currentPlaceFieldRule(apiField) : null) ??
     currentDivisionFieldRule(resource, apiField, datasetCode)
   if (!specification) return null
-  const human = humanField(resource, apiField, datasetCode)
+  const human = specification.human ?? humanField(resource, apiField, datasetCode)
   return { ...specification, ...(human ? { human } : {}) }
 }
