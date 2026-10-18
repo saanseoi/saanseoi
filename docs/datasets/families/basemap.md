@@ -113,8 +113,11 @@ to an immutable archive. Unknown ETags are not attributed to a guessed release.
 
 Public `GET /downloads/{region}/{version}.pmtiles` streams a full archive. Only a fully
 consumed successful response emits `downloads`; cancellations, HEAD, errors and range
-requests do not. Download responses are not cached. The existing SaanSeoi API daily
-rollup copies the events from the shared Product Usage dataset into META's
+requests do not. Archive chunks are cached internally at the edge, keyed by archive,
+ETag and byte range; both cache hits and misses pass through download tracking. Browser
+responses use `Cache-Control: no-store` so requests reach the service. Each request
+checks the current R2 ETag, and cache failures fall back to R2. The existing SaanSeoi
+API daily rollup copies the events from the shared Product Usage dataset into META's
 access-analytics tables. Header metrics remain unavailable until a rollup exists; source
 statistics do not imply historical usage counts.
 

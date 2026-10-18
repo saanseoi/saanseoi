@@ -1,3 +1,5 @@
+import { cachedArchiveDownload, type ArchiveCache } from './archive-download-cache'
+
 /** Public immutable routing artefacts, release manifests and archived OSM inputs. */
 type RoutingStorage = { BUCKET: R2Bucket; SOURCES: R2Bucket }
 
@@ -10,6 +12,9 @@ type RoutingStorage = { BUCKET: R2Bucket; SOURCES: R2Bucket }
 export async function routingArtifact(
   request: Request,
   env: RoutingStorage,
+  edgeCache: ArchiveCache | undefined = typeof caches === 'undefined'
+    ? undefined
+    : caches.default,
 ): Promise<Response | null> {
   const path = new URL(request.url).pathname
   const match = path.match(
@@ -50,6 +55,8 @@ export async function routingArtifact(
     if (!match) return null
     key = `routing/${match[1]}/${match[2]}/${match[3]}`
   }
+  if (pmtiles && edgeCache)
+    return cachedArchiveDownload(request, bucket, key, edgeCache)
   const prefix = match
     ? `routing/${match[1]}/${match[2]}`
     : pbf
@@ -92,7 +99,10 @@ export async function routingArtifact(
     'Content-Type': contentType,
     'Content-Length': String(object.size),
     ETag: object.httpEtag,
-    'Cache-Control': key.endsWith('.json') ? 'no-store' : 'public, max-age=60',
+    'Cache-Control':
+      key.endsWith('.json') || key.endsWith('.pmtiles')
+        ? 'no-store'
+        : 'public, max-age=60',
     'Access-Control-Allow-Origin': '*',
   })
   if (!key.endsWith('.json'))
