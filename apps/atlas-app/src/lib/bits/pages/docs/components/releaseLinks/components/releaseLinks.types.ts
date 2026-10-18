@@ -2,7 +2,7 @@ import type { ProductUsageSurface } from '@repo/core/productUsage'
 
 export type ReleaseAnalyticsSurface = Extract<
   ProductUsageSurface,
-  'api_release' | 'source_release'
+  'api_release' | 'source_release' | 'basemaps'
 >
 
 export type ReleaseLinkTitlePart = {

@@ -1,77 +1,66 @@
 <script lang="ts">
-import {
-  PageDescription,
-  PageHeader,
-  PageSection,
-  PageSectionTitle,
-  PageTitle,
-} from '#lib/bits/pages/shared/index.js'
+import { goto } from '$app/navigation'
+import { page } from '$app/state'
+import * as ReleaseHeader from '#lib/bits/pages/docs/components/releaseHeader/index.js'
+import * as ReleaseNav from '#lib/bits/pages/docs/components/releaseNav/index.js'
+import Content from '#lib/bits/pages/basemaps/basemapReleaseContent.svelte'
 import { Seo } from '#lib/bits/patterns/seo/index.js'
 import { Main } from '#lib/bits/primitives/main/index.js'
-
 let { data } = $props()
-const schemaVersion = 'protomaps-v4.0'
-const releaseVersion = $derived(`${data.version}.0`)
-const viewerUrl = $derived(
-  `https://viewer.saanseoi.hk/?region=${data.region}&version=${data.version}&theme=midnight&locale=en`,
+const tabs = [
+  { id: 'release', label: 'Release' },
+  { id: 'changes', label: 'Changes' },
+  { id: 'stats', label: 'Stats' },
+  { id: 'map', label: 'Map' },
+]
+let activeTab = $derived(
+  tabs.find(tab => tab.id === page.url.searchParams.get('tab'))?.id ?? 'release',
 )
+let versions = $derived(
+  data.versions.map(version => ({
+    code: version,
+    label: version,
+    href: `/basemaps/releases/${data.region}/${version}?tab=${activeTab}`,
+  })),
+)
+function selectTab(tab: string) {
+  const url = new URL(page.url.href)
+  url.searchParams.set('tab', tab)
+  void goto(url, { reset: false })
+}
 </script>
-
 <Seo
-  title={`${data.regionName} basemap ${releaseVersion}`}
-  description={`Release notes for SaanSeoi's ${data.regionName} basemap ${releaseVersion}.`}
+  title={`${data.current.region.description} basemap ${data.version}`}
+  description={`Release details for SaanSeoi's ${data.current.region.description} basemap ${data.version}.`}
   type="article"
 />
-
-<Main
-  class="mx-auto w-full max-w-(--spacing-container-max) px-6 py-14 md:px-8 md:py-20"
->
-  <PageHeader>
-    <p
-      class="font-body text-label-md font-semibold tracking-[0.12em] text-secondary uppercase"
-    >
-      Basemap release
-    </p>
-    <PageTitle>{data.regionName} · {releaseVersion}</PageTitle>
-    <PageDescription>
-      An enriched Protomaps Basemap Layers release built monthly from an OpenStreetMap
-      extract with added regional boundaries, coastlines and geometry fixes.
-    </PageDescription>
-  </PageHeader>
-
-  <PageSection id="schema" class="mt-16 max-w-4xl">
-    <PageSectionTitle>Schema</PageSectionTitle>
-    <p class="mt-5 font-body text-body-md leading-7 text-foreground-alt">
-      <code class="font-mono text-sm text-foreground">{schemaVersion}</code>
-      extends
-      <a
-        class="font-semibold text-primary underline decoration-secondary/45 underline-offset-4"
-        href="https://docs.protomaps.com/basemaps/layers"
-        target="_blank"
-        rel="noreferrer"
-        >Protomaps Basemap Layers</a
-      >. Its SaanSeoi increment covers regional boundary, coastline, earth and water
-      additions.
-    </p>
-  </PageSection>
-
-  <PageSection class="mt-12 max-w-4xl">
-    <PageSectionTitle>Release artefacts</PageSectionTitle>
-    <div class="mt-5 flex flex-wrap gap-3">
-      <a
-        class="inline-flex rounded-full border border-outline-variant px-4 py-2 font-body text-label-md font-bold text-primary no-underline transition-colors hover:bg-surface-container"
-        href={data.manifestUrl}
-        target="_blank"
-        rel="noreferrer"
-        >Release manifest</a
-      >
-      <a
-        class="inline-flex rounded-full bg-primary px-4 py-2 font-body text-label-md font-bold text-on-primary no-underline transition-colors hover:opacity-90"
-        href={viewerUrl}
-        target="_blank"
-        rel="noreferrer"
-        >Preview map</a
-      >
-    </div>
-  </PageSection>
+<Main class="mx-auto w-full max-w-(--spacing-container-max) px-6 py-8 md:px-8">
+  <ReleaseHeader.BasemapVariant
+    manifest={data.current}
+    manifestUrl={data.manifestUrl}
+    viewerUrl={data.viewerUrl}
+    previewImage={data.previewImage}
+    current={data.versions[0] === data.version}
+    accessMetrics={data.accessMetrics}
+  />
+  <ReleaseNav.Root
+    analyticsSurface="basemaps"
+    {versions}
+    currentVersionCode={data.version}
+    versionTitle="Versions"
+    {tabs}
+    {activeTab}
+    onTabChange={selectTab}
+    activeOutlineId={null}
+    hasContent={true}
+  >
+    <Content
+      statistics={data.statistics}
+      current={data.current}
+      previous={data.previous}
+      previousVersion={data.previousVersion}
+      catalogueAvailable={data.catalogueAvailable}
+      {activeTab}
+    />
+  </ReleaseNav.Root>
 </Main>
