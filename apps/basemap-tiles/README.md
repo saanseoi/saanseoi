@@ -101,3 +101,12 @@ logs or source control.
 `AUTH_MODE` is `required` in deployment. `bun run dev` overrides it to transparent local
 access. Use `bun run dev:auth` with local KV and Durable Object storage to exercise
 public-key verification locally.
+
+Release-level analytics use the shared `PRODUCT_USAGE` dataset. Successful TileJSON and
+tile GETs count as API requests; previews, manifests, errors and HEAD requests do not.
+The served PMTiles ETag resolves `latest` requests to a date-pinned archive.
+`GET /downloads/{region}/{date}.pmtiles` uses the existing public-key/origin access
+policy and streams a complete archive without caching. Range requests return 416.
+Downloads count only when the response body completes, never on cancellation. The
+SaanSeoi API analytics rollup persists these events to META under `basemap_release` with
+an entity ID such as `hk/2026-10-01`.

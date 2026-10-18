@@ -9,6 +9,7 @@ export type AccessAnalyticsScope =
   | 'dataset'
   | 'source_release'
   | 'api_release_set'
+  | 'basemap_release'
 export type AccessAnalyticsPeriod = string
 
 export const ACCESS_ANALYTICS_ALL_TIME_PERIOD = 'all_time'

@@ -12,7 +12,12 @@ export type RegistryAccessMetrics = {
 }
 
 export type RegistryAccessMetricsInput = {
-  scope: 'publisher' | 'dataset' | 'source_release' | 'api_release_set'
+  scope:
+    | 'publisher'
+    | 'dataset'
+    | 'source_release'
+    | 'api_release_set'
+    | 'basemap_release'
   entityId: string
 }
 
@@ -69,7 +74,12 @@ export async function getRegistryAccessMetricsBatch(
 
 export async function getRegistryAccessMetrics(
   db: MetaDatabase,
-  scope: 'publisher' | 'dataset' | 'source_release' | 'api_release_set',
+  scope:
+    | 'publisher'
+    | 'dataset'
+    | 'source_release'
+    | 'api_release_set'
+    | 'basemap_release',
   entityId: string,
 ): Promise<RegistryAccessMetrics | null> {
   return (await getRegistryAccessMetricsBatch(db, [{ scope, entityId }]))[0] ?? null

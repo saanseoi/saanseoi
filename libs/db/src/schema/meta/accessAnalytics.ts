@@ -7,6 +7,7 @@ export const accessAnalyticsRollupScopes = [
   'dataset',
   'source_release',
   'api_release_set',
+  'basemap_release',
 ] as const
 
 /** Daily metric values are JSON numbers keyed by the metric name. The day is UTC. */

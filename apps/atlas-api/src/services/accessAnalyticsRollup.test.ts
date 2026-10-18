@@ -303,3 +303,47 @@ test('keeps daily rows unchanged when a large atomic refresh fails', async () =>
     close()
   }
 })
+
+test('rolls up basemap requests and completed downloads under the pinned release', async () => {
+  globalThis.fetch = (async () =>
+    Response.json({
+      success: true,
+      data: [
+        {
+          day: '2026-08-20 00:00:00',
+          scope: 'basemap_release',
+          entityId: 'hk/2026-08-01',
+          metricKey: 'apiRequests',
+          metricValue: 15,
+        },
+        {
+          day: '2026-08-20 00:00:00',
+          scope: 'basemap_release',
+          entityId: 'hk/2026-08-01',
+          metricKey: 'downloads',
+          metricValue: 2,
+        },
+      ],
+    })) as typeof fetch
+  const { db, rows, close } = createAnalyticsD1()
+  try {
+    await rollUpAccessAnalyticsDaily(
+      {
+        DB_META: db,
+        ANALYTICS_ENGINE_ACCOUNT_ID: 'account',
+        ANALYTICS_ENGINE_READ_TOKEN: 'test-token',
+        PRODUCT_USAGE_DATASET: 'ss-product-usage-local',
+      },
+      Date.parse('2026-08-21T00:15:00Z'),
+    )
+    const result = rows<{ scope: string; entityId: string; metrics: string }>(
+      'SELECT scope, entityId, metrics FROM accessAnalyticsRollups',
+    )
+    expect(result).toHaveLength(1)
+    expect(result[0]?.scope).toBe('basemap_release')
+    expect(result[0]?.entityId).toBe('hk/2026-08-01')
+    expect(JSON.parse(result[0]!.metrics)).toEqual({ apiRequests: 15, downloads: 2 })
+  } finally {
+    close()
+  }
+})
