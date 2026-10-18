@@ -56,6 +56,25 @@ export async function runTilesRefreshCommand(args: ParsedArgs, printUsage: () =>
     })
     await renderStyleLibraryPreviews(region, input.version, input.dryRun)
   }
+  // Publish companions after basemap discovery is complete; retries reuse completed graph builds.
+  if (!input.dryRun) {
+    for (const region of regions) {
+      await run([
+        'python3',
+        'scripts/routing/publish.py',
+        '--region',
+        region.code,
+        '--version',
+        input.version,
+      ])
+    }
+    // A new GBA graph updates the shared engines only after all companion publications succeeded.
+    if (regions.some(region => region.code === 'gba')) {
+      for (const target of ['preview', 'production']) {
+        await run(['python3', 'scripts/routing/deploy-service.py', target])
+      }
+    }
+  }
 }
 
 export async function runTilesRenderCommand(args: ParsedArgs, printUsage: () => void) {

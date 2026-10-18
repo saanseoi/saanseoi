@@ -111,9 +111,18 @@ requests, emit `api.access` events under scope `basemap_release`. Date-pinned pa
 identify a release directly; `latest` responses use the served PMTiles ETag and match it
 to an immutable archive. Unknown ETags are not attributed to a guessed release.
 
-Authenticated `GET /downloads/{region}/{version}.pmtiles` streams a full archive. Only a
-fully consumed successful response emits `downloads`; cancellations, HEAD, errors and
-range requests do not. Download responses are not cached. The existing SaanSeoi API
-daily rollup copies the events from the shared Product Usage dataset into META's
+Public `GET /downloads/{region}/{version}.pmtiles` streams a full archive. Only a fully
+consumed successful response emits `downloads`; cancellations, HEAD, errors and range
+requests do not. Download responses are not cached. The existing SaanSeoi API daily
+rollup copies the events from the shared Product Usage dataset into META's
 access-analytics tables. Header metrics remain unavailable until a rollup exists; source
 statistics do not imply historical usage counts.
+
+## Routing companions
+
+Current and previous completed graph editions expose public regional PBF, Valhalla and
+GraphHopper downloads on the region-specific release page. Older graph payloads are
+retired without deleting the basemap release, boundary, recipe or Guangdong source. See
+[routing companions](routing.md) for publication, retention and shared service
+operations. Full PMTiles archive downloads and dated boundary downloads are public;
+ordinary tile/TileJSON requests retain their existing access policy.

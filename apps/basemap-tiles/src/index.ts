@@ -1,3 +1,4 @@
+import { routingArtifact } from './lib/routing-artifacts'
 import {
   pinnedRelease,
   recordBasemapAccess,
@@ -91,6 +92,8 @@ const accessResponse = (
 
 const handler = {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+    const artifact = await routingArtifact(request, env)
+    if (artifact) return artifact
     const allowedOrigin = getAllowedOrigin(request.headers.get('Origin'), env)
     if (request.method.toUpperCase() === 'OPTIONS') {
       const headers = new Headers({
@@ -140,7 +143,7 @@ const handler = {
     // Release manifests contain immutable, non-sensitive provenance and must be
     // linkable from the viewer's diagnostic report. Unlike tile data, they are
     // intentionally readable without a browser Origin or public key.
-    if (!access && !manifestRequest && !renderRequest) {
+    if (!access && !manifestRequest && !renderRequest && !boundaryName) {
       return accessResponse(
         'A valid SaanSeoi public API key is required.',
         401,

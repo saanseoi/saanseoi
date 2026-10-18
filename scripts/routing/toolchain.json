@@ -1,0 +1,17 @@
+{
+  "valhalla": {
+    "version": "3.8.3",
+    "image": "ghcr.io/valhalla/valhalla:3.8.3@sha256:70b45295d81035e3562e1bbf996a28d5fc55e1ccc5d7e3fff9f297d3b1a1359f",
+    "profiles": ["pedestrian", "bicycle", "auto", "motor_scooter"]
+  },
+  "graphhopper": {
+    "version": "11.1",
+    "image": "eclipse-temurin@sha256:227118764cccd3c3294617061aaa93a08309c63a395eefa83e6b35032992ea99",
+    "jar": {
+      "url": "https://github.com/graphhopper/graphhopper/releases/download/11.1/graphhopper-web-11.1.jar",
+      "sha256": "8462f758d9ea49edaded557cec5c687a0a24f004ec371cd4daaeb0534824ea33"
+    },
+    "profiles": ["car", "bike", "foot"],
+    "config": "graphhopper:\n  datareader.file: /work/region.osm.pbf\n  graph.location: /work/graphhopper/graph\n  graph.encoded_values: car_access,car_average_speed,road_access,bike_access,bike_average_speed,bike_priority,bike_road_access,foot_access,foot_average_speed,foot_priority,foot_road_access,road_class,road_environment,roundabout,surface,smoothness,hike_rating,mtb_rating,country\n  profiles:\n    - name: car\n      custom_model_files: [car.json]\n      turn_costs:\n        vehicle_types: [motorcar, motor_vehicle]\n    - name: bike\n      custom_model_files: [bike.json]\n    - name: foot\n      custom_model_files: [foot.json]\n  profiles_ch:\n    - profile: car\n    - profile: bike\n    - profile: foot\n  profiles_lm: []\n  import.osm.ignored_highways: construction\n  prepare.ch.threads: 1\nserver:\n  application_connectors:\n    - type: http\n      port: 8989\n      bind_host: 0.0.0.0\n  admin_connectors: []\nlogging:\n  level: INFO\n"
+  }
+}

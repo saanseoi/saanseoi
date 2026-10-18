@@ -1,0 +1,5 @@
+node_modules/
+.wrangler/
+.dev.vars*
+image-data/
+worker-configuration.d.ts

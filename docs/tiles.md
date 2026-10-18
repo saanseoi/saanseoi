@@ -305,3 +305,11 @@ account environment variable is required.
 
 The command invokes the repository's locally installed Wrangler binary at
 `node_modules/.bin/wrangler`. Run `bun install` if that binary is unavailable.
+
+## Companion routing releases
+
+`tiles:refresh` also publishes source-backed regional PBF, Valhalla and GraphHopper
+companions. Only the newest two completed graph editions retain downloadable payloads;
+older manifests and rebuild recipes remain alongside the retained Guangdong source and
+regional boundary. This does not retract PMTiles history. See
+[routing companions](datasets/families/routing.md).
