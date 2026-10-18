@@ -153,8 +153,8 @@
   "devDependencies": {
     "@biomejs/biome": "2.5.15",
     "@changesets/cli": "^3.0.3",
-    "@commitlint/cli": "^21.2.3",
-    "@commitlint/config-conventional": "^21.2.3",
+    "@commitlint/cli": "^21.2.4",
+    "@commitlint/config-conventional": "^21.2.4",
     "@iconify-json/simple-icons": "^1.2.100",
     "@iconify/svelte": "^5.2.2",
     "@tailwindcss/upgrade": "^4.3.3",
