@@ -1,3 +1,4 @@
+import { routingReleaseSchema } from '#lib/registry/routingRelease.js'
 import { eq, metaBasemapReleaseStats } from '@repo/db'
 import { getMetaDb } from '#lib/registry/server.js'
 import { getRegistryAccessMetrics } from '#lib/registry/accessMetrics.js'
@@ -45,6 +46,19 @@ export const load = (async ({ params, fetch }) => {
     : null
   let previous = null
   if (previousVersion) previous = await manifest(previousVersion).catch(() => null)
+  const routing = await fetch(`${origin}/routing/${region}/${version}.json`, {
+    signal: AbortSignal.timeout(10_000),
+  })
+    .then(async response => {
+      if (!response.ok) return null
+      const parsed = routingReleaseSchema.safeParse(await response.json())
+      return parsed.success &&
+        parsed.data.region === region &&
+        parsed.data.version === version
+        ? parsed.data
+        : null
+    })
+    .catch(() => null)
   const db = getMetaDb()
   const [storedStats, accessMetrics] = await Promise.all([
     db
@@ -62,6 +76,7 @@ export const load = (async ({ params, fetch }) => {
   if (!current.release.schema && statistics) current.release.schema = statistics.schema
   return {
     statistics,
+    routing,
     accessMetrics,
     region,
     version,
