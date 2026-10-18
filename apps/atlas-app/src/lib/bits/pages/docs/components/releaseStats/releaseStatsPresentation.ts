@@ -177,15 +177,6 @@ export function createReleaseStatsPresentation({
         })()
       : undefined
 
-  if (places) {
-    if (places.profile.metrics.length)
-      addHeading('stats-place-overview', 'Place coverage')
-    if (places.profile.availability.length)
-      addHeading('stats-place-availability', 'Field coverage')
-    if (places.profile.fields.length)
-      addHeading('stats-place-languages', 'Language coverage')
-  }
-
   const districtRows = matching(
     row =>
       row.measure === 'count' &&
@@ -313,6 +304,13 @@ export function createReleaseStatsPresentation({
         }
       })()
     : undefined
+
+  if (places) {
+    if (places.profile.metrics.length)
+      addHeading('stats-place-overview', 'Place coverage')
+    if (places.profile.availability.length)
+      addHeading('stats-place-availability', 'Field coverage')
+  }
 
   const localeRows = matching(
     row =>
@@ -632,6 +630,9 @@ export function createReleaseStatsPresentation({
   const remainingRecordDistributions = recordDistributions.filter(
     distribution => distribution !== sourceLayerDistribution,
   )
+
+  if (places?.profile.fields.length)
+    addHeading('stats-place-languages', 'Language coverage')
 
   const processingRows = matching(
     row => row.category === 'processing' && row.dimension === 'action',

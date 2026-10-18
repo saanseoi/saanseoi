@@ -919,7 +919,6 @@ $effect(() => {
                     ? 'place'
                     : undefined}
                 stats={release.primaryResourceStatistics?.stats ?? release.stats}
-                statisticsSource={release.primaryResourceStatistics}
                 {districtAreas}
                 {locale}
                 presentation={statsPresentation}
