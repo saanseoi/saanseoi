@@ -32,12 +32,20 @@ export const places = sqliteTable(
       sql`(${table.address3dId} IS NULL AND ${table.address3dUnitId} IS NULL AND ${table.address3dMembership} IS NULL) OR (${table.address3dId} IS NOT NULL AND ${table.address3dUnitId} IS NOT NULL AND ${table.address3dMembership} IS NOT NULL AND ${table.address2dId} IS NOT NULL)`,
     ),
     ...placeDivisionFieldNames.map(field =>
-      index(`places_${field}_id_idx`).on(table.scopeId, table[field], table.id),
+      index(`places_${field}_id_nonnull_idx`)
+        .on(table.scopeId, table[field], table.id)
+        .where(sql`${table[field]} IS NOT NULL`),
     ),
     index('places_resourceReleaseId_idx').on(table.resourceReleaseId),
-    index('places_category_id_idx').on(table.scopeId, table.basicCategory, table.id),
-    index('places_taxonomy_id_idx').on(table.scopeId, table.taxonomyPrimary, table.id),
-    index('places_status_id_idx').on(table.scopeId, table.operatingStatus, table.id),
+    index('places_category_id_nonnull_idx')
+      .on(table.scopeId, table.basicCategory, table.id)
+      .where(sql`${table.basicCategory} IS NOT NULL`),
+    index('places_taxonomy_id_nonnull_idx')
+      .on(table.scopeId, table.taxonomyPrimary, table.id)
+      .where(sql`${table.taxonomyPrimary} IS NOT NULL`),
+    index('places_status_id_nonnull_idx')
+      .on(table.scopeId, table.operatingStatus, table.id)
+      .where(sql`${table.operatingStatus} IS NOT NULL`),
   ],
 )
 
@@ -57,7 +65,6 @@ export const placesI18n = sqliteTable(
       foreignColumns: [places.scopeId, places.id],
       name: 'placesI18n_scopeId_placeId_places_fk',
     }).onDelete('cascade'),
-    index('placesI18n_name_idx').on(table.locale, table.name),
   ],
 )
 

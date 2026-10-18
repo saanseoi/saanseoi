@@ -163,9 +163,9 @@ test('CURRENT filter indexes also serve deterministic list ordering', () => {
     expect(divisionPlan).toContain('COVERING INDEX divisions_scope_order_idx')
     expect(divisionPlan).not.toContain('TEMP B-TREE')
     for (const [column, index] of [
-      ['basicCategory', 'places_category_id_idx'],
-      ['taxonomyPrimary', 'places_taxonomy_id_idx'],
-      ['operatingStatus', 'places_status_id_idx'],
+      ['basicCategory', 'places_category_id_nonnull_idx'],
+      ['taxonomyPrimary', 'places_taxonomy_id_nonnull_idx'],
+      ['operatingStatus', 'places_status_id_nonnull_idx'],
     ]) {
       const queryPlan = plan(
         sqlite,
@@ -224,7 +224,7 @@ test('Place division filtering uses the reverse index and preserves scope, count
     ).toBe(0)
     for (const queryPlan of plans) {
       for (const field of placeDivisionFieldNames)
-        expect(queryPlan).toContain(`COVERING INDEX places_${field}_id_idx`)
+        expect(queryPlan).toContain(`COVERING INDEX places_${field}_id_nonnull_idx`)
       expect(queryPlan).not.toContain('SCAN places')
     }
   } finally {
@@ -328,5 +328,44 @@ test('SOURCE partial indexes support active scans, reconciliation and multiple o
     })
   } finally {
     sqlite.close()
+  }
+})
+
+test('migrations retain sparse Place filters without redundant history or name indexes', () => {
+  const current = migratedDatabase('current')
+  const history = migratedDatabase('history')
+  try {
+    const filters = current.query('PRAGMA index_list(places)').all() as {
+      name: string
+      partial: number
+    }[]
+    const sparse = filters.filter(row => row.name.endsWith('_id_nonnull_idx'))
+    expect(sparse).toHaveLength(placeDivisionFieldNames.length + 3)
+    expect(sparse.every(row => row.partial === 1)).toBe(true)
+    expect(
+      current
+        .query("SELECT name FROM sqlite_schema WHERE name='placesI18n_name_idx'")
+        .all(),
+    ).toHaveLength(0)
+    const indexes = history
+      .query(
+        "SELECT name,tbl_name,sql FROM sqlite_schema WHERE type='index' AND sql IS NOT NULL",
+      )
+      .all() as { name: string; tbl_name: string; sql: string }[]
+    expect(indexes.some(row => row.name.endsWith('_current_lookup_idx'))).toBe(false)
+    for (const row of indexes.filter(row =>
+      row.name.endsWith('_history_event_snapshot_idx'),
+    )) {
+      const siblings = indexes.filter(other => other.tbl_name === row.tbl_name)
+      const sameKeys = siblings.filter(
+        other =>
+          JSON.stringify(history.query(`PRAGMA index_info("${other.name}")`).all()) ===
+          JSON.stringify(history.query(`PRAGMA index_info("${row.name}")`).all()),
+      )
+      expect(sameKeys).toHaveLength(1)
+    }
+  } finally {
+    current.close()
+    history.close()
   }
 })

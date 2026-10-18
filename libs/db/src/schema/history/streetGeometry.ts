@@ -1,4 +1,4 @@
-import { index, primaryKey, sqliteTable, text } from 'drizzle-orm/sqlite-core'
+import { primaryKey, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 import { jsonText } from '../shared'
 import { historyEventConstraints } from './constraints'
 import { historyVersioning } from './shared'
@@ -15,7 +15,5 @@ export const streetGeometry = sqliteTable(
   table => [
     ...historyEventConstraints(table, ['geometry', 'bbox']),
     primaryKey({ columns: [table.streetId, table.snapshotId] }),
-    index('streetGeometry_current_lookup_idx').on(table.streetId, table.isCurrent),
-    index('streetGeometry_snapshotId_idx').on(table.snapshotId),
   ],
 )

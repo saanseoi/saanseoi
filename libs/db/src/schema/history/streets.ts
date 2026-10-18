@@ -17,8 +17,6 @@ export const streets = sqliteTable(
     }),
     check('history_streets_version_positive', sql`${table.version} > 0`),
     index('streets_id_version_idx').on(table.id, table.version),
-    index('streets_current_lookup_idx').on(table.id, table.isCurrent),
-    index('streets_snapshotId_idx').on(table.snapshotId),
   ],
 )
 
@@ -33,10 +31,5 @@ export const streetsI18n = sqliteTable(
     primaryKey({
       columns: [table.streetId, table.snapshotId, table.locale],
     }),
-    index('streetsI18n_current_lookup_idx').on(
-      table.streetId,
-      table.locale,
-      table.isCurrent,
-    ),
   ],
 )

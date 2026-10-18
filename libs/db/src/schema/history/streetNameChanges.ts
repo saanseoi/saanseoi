@@ -26,9 +26,7 @@ export const streetNameChanges = sqliteTable(
   table => [
     ...historyEventConstraints(table, ['noticeRef', 'isPartialNameChange', 'status']),
     primaryKey({ columns: [table.id, table.snapshotId] }),
-    index('streetNameChanges_current_lookup_idx').on(table.id, table.isCurrent),
     index('streetNameChanges_noticeRef_idx').on(table.noticeRef),
-    index('streetNameChanges_snapshotId_idx').on(table.snapshotId),
   ],
 )
 
@@ -46,7 +44,6 @@ export const streetNameChangeStreets = sqliteTable(
       columns: [table.nameChangeId, table.snapshotId, table.streetId, table.role],
     }),
     index('streetNameChangeStreets_streetId_idx').on(table.streetId, table.isCurrent),
-    index('streetNameChangeStreets_snapshotId_idx').on(table.snapshotId),
   ],
 )
 
@@ -71,6 +68,5 @@ export const streetChangelog = sqliteTable(
     primaryKey({ columns: [table.streetId, table.recordKey, table.snapshotId] }),
     index('streetChangelog_street_current_idx').on(table.streetId, table.isCurrent),
     index('streetChangelog_recordKey_idx').on(table.recordKey),
-    index('streetChangelog_snapshot_idx').on(table.snapshotId),
   ],
 )

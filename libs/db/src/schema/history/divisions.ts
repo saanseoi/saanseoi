@@ -14,9 +14,7 @@ export const divisions = sqliteTable(
     primaryKey({
       columns: [table.id, table.snapshotId],
     }),
-    index('divisions_current_lookup_idx').on(table.id, table.isCurrent),
     index('divisions_divisionCode_idx').on(table.snapshotId, table.divisionCode),
-    index('divisions_snapshotId_idx').on(table.snapshotId),
   ],
 )
 
@@ -31,10 +29,5 @@ export const divisionsI18n = sqliteTable(
     primaryKey({
       columns: [table.divisionId, table.snapshotId, table.locale],
     }),
-    index('divisionsI18n_current_lookup_idx').on(
-      table.divisionId,
-      table.locale,
-      table.isCurrent,
-    ),
   ],
 )
