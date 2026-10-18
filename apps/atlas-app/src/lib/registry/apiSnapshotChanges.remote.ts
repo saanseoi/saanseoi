@@ -4,7 +4,6 @@ import {
   historyVersionSelection,
   type ReplayShard,
   type ResolvedSnapshotVersion,
-  resolveSnapshotVersionState,
 } from '@repo/core/pipeline/db/snapshotReplay.ts'
 import { eq, historySchema, metaSchema } from '@repo/db'
 import { error } from '@sveltejs/kit'
@@ -18,7 +17,14 @@ import {
   snapshotRecordType,
 } from './apiSnapshotChanges'
 import { getHistoryDb, getMetaDb } from './server'
+import { countSnapshotRecords } from './snapshotRecordCount'
+import { iterateSnapshotVersions } from './snapshotChangeVersions'
 import type { RegistryApi } from './types'
+
+// Keep identity scans and payload reads bounded while staying within the
+// per-request D1 query budget for release-wide changes.
+const CHANGE_BATCH_SIZE = 2000
+const PAYLOAD_VERSION_WINDOW = 4096
 
 const tables = {
   division: [historySchema.divisions, historySchema.divisionsI18n, 'divisionId'],
@@ -41,7 +47,7 @@ export const getApiSnapshotChanges = query(
   async input => {
     const db = getMetaDb()
     const snapshots = metaSchema.metaSnapshots
-    async function read(id: string) {
+    async function read(id: string, identical = false) {
       const snapshot = await db
         .select({
           status: snapshots.status,
@@ -71,6 +77,10 @@ export const getApiSnapshotChanges = query(
               db: getHistoryDb(assignment.bindingName) as unknown as HarbourReadableDb,
             })
         }
+      const identicalTotal =
+        identical && snapshot.resourceType !== 'divisionStatistic'
+          ? await countSnapshotRecords(plan, shards, definition[0])
+          : undefined
       const statistics =
         snapshot.resourceType === 'divisionStatistic'
           ? await readStatisticSnapshotRecords(
@@ -79,26 +89,24 @@ export const getApiSnapshotChanges = query(
               id,
             )
           : undefined
-      const versions = statistics
-        ? new Map<string, ResolvedSnapshotVersion>()
-        : await resolveSnapshotVersionState(plan, shards, [
-            recordType,
-            `${recordType}I18n`,
-          ])
-      const versionsById = new Map<string, ResolvedSnapshotVersion[]>()
-      for (const version of versions.values()) {
-        const entries = versionsById.get(version.recordId) ?? []
-        entries.push(version)
-        versionsById.set(version.recordId, entries)
-      }
       return {
-        versionsById,
+        identicalTotal,
+        plan,
         resourceType: snapshot.resourceType,
         recordType,
         definition,
         shards,
-        versions,
         statistics,
+      }
+    }
+    if (input.fromSnapshot === input.toSnapshot) {
+      const state = await read(input.toSnapshot, true)
+      const total = state.identicalTotal ?? state.statistics!.length
+      return {
+        counts: { added: 0, changed: 0, removed: 0, unchanged: total },
+        total,
+        records: [],
+        nextOffset: null,
       }
     }
     const [before, after] = await Promise.all([
@@ -107,18 +115,12 @@ export const getApiSnapshotChanges = query(
     ])
     if (before.resourceType !== after.resourceType)
       error(400, 'Compare the same resource type.')
-    // Equal immutable versions need no content read, including every locale.
-    const candidates = new Set<string>()
-    for (const key of new Set([...before.versions.keys(), ...after.versions.keys()])) {
-      const old = before.versions.get(key)
-      const next = after.versions.get(key)
-      if (old?.versionHash !== next?.versionHash)
-        candidates.add((old ?? next)!.recordId)
-    }
-    async function materialise(state: typeof before, ids: string[]) {
-      const { definition, shards, versionsById, recordType } = state
+    async function materialise(
+      state: typeof before,
+      versions: ResolvedSnapshotVersion[],
+    ) {
+      const { definition, shards, recordType } = state
       const records = new Map<string, Record<string, unknown>>()
-      const versions = ids.flatMap(id => versionsById.get(id) ?? [])
       // JSON tuples keep each batch to one parameter and pin ID, hash and locale together.
       for (const shard of shards.values()) {
         for (const translated of [false, true]) {
@@ -129,8 +131,8 @@ export const getApiSnapshotChanges = query(
               version.shard.bindingName === shard.bindingName &&
               version.recordType === `${recordType}${translated ? 'I18n' : ''}`,
           )
-          for (let start = 0; start < wanted.length; start += 1000) {
-            const batch = wanted.slice(start, start + 1000)
+          for (let start = 0; start < wanted.length; start += PAYLOAD_VERSION_WINDOW) {
+            const batch = wanted.slice(start, start + PAYLOAD_VERSION_WINDOW)
             const rows = await shard.db
               .select()
               .from(table)
@@ -173,23 +175,31 @@ export const getApiSnapshotChanges = query(
         nextOffset: end < records.length ? end : null,
       }
     }
-    // Compare bounded batches; retain only the requested page, not every payload
-    // and field diff in a large release-wide revision.
     const counts = { added: 0, changed: 0, removed: 0, unchanged: 0 }
     let total = 0
-    for (const version of after.versions.values()) {
-      if (version.recordType !== after.recordType) continue
-      total++
-      if (!candidates.has(version.recordId)) counts.unchanged++
-    }
     const records: ReturnType<typeof compareSnapshotRecords>['records'] = []
     let matching = 0
-    const ids = [...candidates].sort()
-    for (let start = 0; start < ids.length; start += 1000) {
-      const batch = ids.slice(start, start + 1000)
+    const oldStream = iterateSnapshotVersions(
+      before.plan,
+      before.shards,
+      before.recordType,
+      before.definition,
+    )
+    const newStream = iterateSnapshotVersions(
+      after.plan,
+      after.shards,
+      after.recordType,
+      after.definition,
+    )
+    let [old, next] = await Promise.all([oldStream.next(), newStream.next()])
+    let oldVersions: ResolvedSnapshotVersion[] = []
+    let newVersions: ResolvedSnapshotVersion[] = []
+    let candidates = 0
+    async function flush() {
+      if (!candidates) return
       const [oldRecords, newRecords] = await Promise.all([
-        materialise(before, batch),
-        materialise(after, batch),
+        materialise(before, oldVersions),
+        materialise(after, newVersions),
       ])
       const comparison = compareSnapshotRecords(oldRecords, newRecords)
       for (const key of ['added', 'changed', 'removed', 'unchanged'] as const)
@@ -199,7 +209,51 @@ export const getApiSnapshotChanges = query(
         if (matching >= input.offset && records.length < 25) records.push(record)
         matching++
       }
+      oldVersions = []
+      newVersions = []
+      candidates = 0
     }
+    while (!old.done || !next.done) {
+      const id = old.done
+        ? next.value!.id
+        : next.done
+          ? old.value.id
+          : old.value.id < next.value.id
+            ? old.value.id
+            : next.value.id
+      const oldRows = !old.done && old.value.id === id ? old.value.versions : []
+      const newRows = !next.done && next.value.id === id ? next.value.versions : []
+      if (newRows.some(version => version.recordType === after.recordType)) total++
+      const hashes = new Map(
+        oldRows.map(version => [
+          `${version.recordType}\u0000${version.locale}`,
+          version.versionHash,
+        ]),
+      )
+      const equal =
+        oldRows.length === newRows.length &&
+        newRows.every(
+          version =>
+            hashes.get(`${version.recordType}\u0000${version.locale}`) ===
+            version.versionHash,
+        )
+      if (equal) {
+        if (newRows.length) counts.unchanged++
+      } else {
+        oldVersions.push(...oldRows)
+        newVersions.push(...newRows)
+        candidates++
+        if (candidates === CHANGE_BATCH_SIZE) await flush()
+      }
+      const advanceOld = !old.done && old.value.id === id
+      const advanceNew = !next.done && next.value.id === id
+      const advanced = await Promise.all([
+        advanceOld ? oldStream.next() : old,
+        advanceNew ? newStream.next() : next,
+      ])
+      ;[old, next] = advanced
+    }
+    await flush()
     const end = input.offset + 25
     return { counts, total, records, nextOffset: end < matching ? end : null }
   },
