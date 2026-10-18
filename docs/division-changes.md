@@ -159,7 +159,8 @@ a mutable global comparison cache.
 | 503    | `release_set_unavailable`                                       | Unpublished/unknown release, missing snapshots, unavailable history/shards or publication transition |
 | 503    | `comparison_unavailable`, `definition_unavailable`              | The exact content fingerprint cannot be reproduced                                                   |
 
-Both releases must use the Hong Kong geographic `api-divisions-v0.1` dataset contract.
-Published archived release sets can be selected outside the current catalogue. Draft
-release sets are rejected. Equal source and target releases return no changes; reverse
-comparisons are supported, with additions and deletions relative to the supplied order.
+Both releases must use the same Hong Kong geographic API dataset contract version:
+`api-divisions-v0.1` or `api-divisions-v0.2`. Published archived release sets can be
+selected outside the current catalogue. Draft release sets are rejected. Equal source
+and target releases return no changes; reverse comparisons are supported, with additions
+and deletions relative to the supplied order.
