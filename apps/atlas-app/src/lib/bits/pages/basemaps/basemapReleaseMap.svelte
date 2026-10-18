@@ -11,6 +11,14 @@ onMount(() => {
   let disposed = false
   let map: MapLibreMap | undefined
   let observer: ResizeObserver | undefined
+  let restoreFullscreen: (() => void) | undefined
+  const exitOnEscape = (event: KeyboardEvent) => {
+    if (event.key === 'Escape') {
+      fullscreenContainer
+        .querySelector<HTMLButtonElement>('.maplibregl-ctrl-shrink')
+        ?.click()
+    }
+  }
   void (async () => {
     try {
       const [
@@ -67,10 +75,22 @@ onMount(() => {
         },
       })
       map.addControl(new maplibre.NavigationControl(), 'top-right')
-      map.addControl(
-        new maplibre.FullscreenControl({ container: fullscreenContainer }),
-        'top-right',
-      )
+      const fullscreen = new maplibre.FullscreenControl({
+        container: fullscreenContainer,
+        pseudo: true,
+      })
+      fullscreen.on('fullscreenstart', () => {
+        const overflow = document.body.style.overflow
+        document.body.style.overflow = 'hidden'
+        document.addEventListener('keydown', exitOnEscape)
+        restoreFullscreen = () => {
+          document.body.style.overflow = overflow
+          document.removeEventListener('keydown', exitOnEscape)
+          restoreFullscreen = undefined
+        }
+      })
+      fullscreen.on('fullscreenend', () => restoreFullscreen?.())
+      map.addControl(fullscreen, 'top-right')
       map.once('idle', () => {
         loading = false
       })
@@ -91,6 +111,7 @@ onMount(() => {
   })()
   return () => {
     disposed = true
+    restoreFullscreen?.()
     observer?.disconnect()
     map?.remove()
   }
@@ -98,7 +119,7 @@ onMount(() => {
 </script>
 <div
   bind:this={fullscreenContainer}
-  class="relative h-[70vh] min-h-120 overflow-hidden rounded-lg border border-outline-variant bg-surface-container-low [&:fullscreen]:h-screen [&:fullscreen]:w-screen [&:fullscreen]:rounded-none"
+  class="relative h-[70vh] min-h-120 overflow-hidden rounded-lg border border-outline-variant bg-surface-container-low [&.maplibregl-pseudo-fullscreen]:min-h-0 [&.maplibregl-pseudo-fullscreen]:rounded-none"
 >
   <section
     bind:this={container}
