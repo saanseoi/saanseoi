@@ -1,5 +1,6 @@
 <script lang="ts">
-import { onMount } from 'svelte'
+import { onMount, untrack } from 'svelte'
+import { createNavigationRequestScope } from '#lib/remote/createNavigationRequestScope.js'
 import { prefersReducedMotion } from 'svelte/motion'
 import { fade } from 'svelte/transition'
 import { PUBLIC_ATLAS_API_BASE_URL } from '$app/env/public'
@@ -30,7 +31,7 @@ const initialExamples = 1
 const examplesPerRequest = 4
 
 let { family, onAvailabilityChange, request, sourceReleaseCode }: Props = $props()
-let samples = $state<AddressSample[]>([])
+let samples = $state.raw<AddressSample[]>([])
 let activeSampleIds = $state<string[] | null>(null)
 let selectedSampleIds = $state<string[] | null>(null)
 let loading = $state(false)
@@ -39,6 +40,14 @@ let errorMessage = $state<string | null>(null)
 let mounted = $state(false)
 let handledRequest = $state<number | null>(null)
 let pendingExamples = $state(0)
+let activeExamples = 0
+let loadedScope: string | undefined
+const requests = createNavigationRequestScope(() => {
+  loading = false
+  pendingExamples += activeExamples
+  activeExamples = 0
+  void loadMore()
+})
 
 const groupedFields = $derived(groupAddressSamples(samples))
 function requestUrl(limit: number) {
@@ -69,8 +78,10 @@ function toSourceSample(value: unknown) {
   }
 }
 
-async function getRandomRecords(limit: number) {
-  const response = await fetch(requestUrl(limit))
+async function getRandomRecords(limit: number, signal: AbortSignal) {
+  signal.throwIfAborted()
+  const response = await fetch(requestUrl(limit), { signal })
+  signal.throwIfAborted()
   if (response.status === 404) {
     unavailable = true
     onAvailabilityChange?.(false)
@@ -78,9 +89,9 @@ async function getRandomRecords(limit: number) {
   }
   if (!response.ok) throw new Error(`Sample request failed with ${response.status}.`)
 
-  onAvailabilityChange?.(true)
-
   const payload = (await response.json()) as SourceRecordsResponse
+  signal.throwIfAborted()
+  onAvailabilityChange?.(true)
   return (payload.records ?? []).flatMap(value => {
     const sample = toSourceSample(value)
     return sample ? [sample] : []
@@ -93,30 +104,58 @@ function enqueueExamples(count: number) {
 }
 
 async function loadMore() {
-  if (loading || unavailable) return
+  if (loading || unavailable || requests.signal.aborted) return
 
   const count = pendingExamples
   if (!count) return
 
+  const signal = requests.signal
+  activeExamples = count
   loading = true
   pendingExamples = 0
   errorMessage = null
   try {
-    const selected = await loadReleaseSamples(samples, count, getRandomRecords)
+    const selected = await loadReleaseSamples(
+      samples,
+      count,
+      missing => getRandomRecords(missing, signal),
+      signal,
+    )
+    signal.throwIfAborted()
     if (unavailable) return
     samples = [...samples, ...selected]
   } catch {
-    errorMessage = m.source_record_samples_load_error()
+    if (!signal.aborted) errorMessage = m.source_record_samples_load_error()
   } finally {
-    loading = false
-    if (!errorMessage && pendingExamples > 0) void loadMore()
+    if (!signal.aborted) {
+      activeExamples = 0
+      loading = false
+      if (!errorMessage && pendingExamples > 0) void loadMore()
+    }
   }
 }
 
 onMount(() => {
   mounted = true
-  handledRequest = request
-  enqueueExamples(initialExamples)
+})
+
+$effect(() => {
+  const scope = JSON.stringify([family, sourceReleaseCode])
+  if (!mounted || scope === loadedScope) return
+  loadedScope = scope
+  untrack(() => {
+    requests.reset()
+    samples = []
+    activeSampleIds = null
+    selectedSampleIds = null
+    loading = false
+    unavailable = false
+    errorMessage = null
+    activeExamples = 0
+    pendingExamples = 0
+    handledRequest = request
+    enqueueExamples(initialExamples)
+  })
 })
 
 $effect(() => {

@@ -51,3 +51,34 @@ test('stops when the source is exhausted', async () => {
   ).toEqual([])
   expect(calls).toBe(1)
 })
+
+test('aborted sample batches stop before converting results or retrying duplicates', async () => {
+  const controller = new AbortController()
+  let calls = 0
+  await expect(
+    loadReleaseSamples(
+      [],
+      4,
+      async () => {
+        calls++
+        controller.abort()
+        return [{ id: 'ignored', name: 'Old release' }]
+      },
+      controller.signal,
+    ),
+  ).rejects.toThrow()
+  expect(calls).toBe(1)
+})
+
+test('aborted address seeks do not issue wraparound or namespace requests', async () => {
+  const controller = new AbortController()
+  let calls = 0
+  await expect(
+    loadAddressSample(async () => {
+      calls++
+      controller.abort()
+      return []
+    }, controller.signal),
+  ).rejects.toThrow()
+  expect(calls).toBe(1)
+})

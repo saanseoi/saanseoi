@@ -31,7 +31,7 @@ let {
   presentation: ReleaseStatsCopy
 } = $props()
 let offset = $state(0)
-let rows = $state<Awaited<ReturnType<typeof getApiSnapshotChanges>>['records']>([])
+let rows = $state.raw<Awaited<ReturnType<typeof getApiSnapshotChanges>>['records']>([])
 let failure = $state(false)
 let pending = $derived(
   fromSnapshot
@@ -41,23 +41,26 @@ let pending = $derived(
 let copy = $derived(sourceRecordChangesCopy[locale])
 let result = $derived(pending?.ready ? pending.current : undefined)
 $effect(() => {
-  if (result)
-    rows =
-      offset === 0
-        ? result.records
-        : [
-            ...untrack(() => rows).filter(
-              row => !result.records.some(next => row.id === next.id),
-            ),
-            ...result.records,
-          ]
+  if (!result) return
+  const incomingIds = new Set(result.records.map(record => record.id))
+  rows =
+    offset === 0
+      ? result.records
+      : [
+          ...untrack(() => rows).filter(row => !incomingIds.has(row.id)),
+          ...result.records,
+        ]
 })
 $effect(() => {
+  let cancelled = false
   failure = false
   if (pending)
     void pending.catch(() => {
-      failure = true
+      if (!cancelled) failure = true
     })
+  return () => {
+    cancelled = true
+  }
 })
 let overview = $derived(
   result
@@ -118,8 +121,9 @@ function observeEnd(node: HTMLElement) {
       class="rounded border border-outline-variant px-4 py-2 text-label-sm"
       onclick={() => {
         failure = false
-        void pending?.refresh().catch(() => {
-          failure = true
+        const query = pending
+        void query?.refresh().catch(() => {
+          if (pending === query) failure = true
         })
       }}
     >

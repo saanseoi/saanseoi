@@ -95,27 +95,44 @@ export function changeFields(
   comparison: boolean,
   absent: string,
 ): ReleaseSampleField[] {
+  type ChangedPath = { terminal: boolean; children: Map<string, ChangedPath> }
+  const changedPaths: ChangedPath = { terminal: false, children: new Map() }
+  // Index once rather than scanning every changed leaf for every visited field.
+  // A terminal node includes its descendants (e.g. a replaced geometry or array).
+  if (comparison && changesOnly) {
+    for (const change of changes) {
+      let node = changedPaths
+      for (const segment of change.path) {
+        let child = node.children.get(segment)
+        if (!child) {
+          child = { terminal: false, children: new Map() }
+          node.children.set(segment, child)
+        }
+        node = child
+      }
+      node.terminal = true
+    }
+  }
   function visit(
     left: unknown,
     right: unknown,
-    path: string[],
-    alignedParent = false,
+    alignedParent: boolean,
+    changedPath: ChangedPath | undefined,
+    changedAncestor = false,
   ): ReleaseSampleField[] {
     const aligned = comparison ? languageEntries(left, right) : null
     const previous = new Map(aligned?.previous ?? entries(left))
     const current = new Map(aligned?.current ?? entries(right))
     return [...new Set([...previous.keys(), ...current.keys()])].flatMap(key => {
-      const nextPath = [...path, key]
+      const nextChangedPath = changedPath?.children.get(key)
+      const includedByAncestor = changedAncestor || Boolean(changedPath?.terminal)
       if (
         comparison &&
         changesOnly &&
         !aligned &&
         !alignedParent &&
-        !changes.some(change =>
-          change.path
-            .slice(0, Math.min(nextPath.length, change.path.length))
-            .every((segment, index) => segment === nextPath[index]),
-        )
+        !includedByAncestor &&
+        !nextChangedPath
       )
         return []
       const oldValue = previous.get(key)
@@ -130,8 +147,9 @@ export function changeFields(
       const children = visit(
         oldValue,
         newValue,
-        nextPath,
         alignedParent || Boolean(aligned),
+        nextChangedPath,
+        includedByAncestor,
       )
       if (aligned && children.length) {
         const oldItem = new Map(entries(oldValue))
@@ -179,7 +197,7 @@ export function changeFields(
       ]
     })
   }
-  return visit(comparison ? before : after, after, [])
+  return visit(comparison ? before : after, after, false, changedPaths)
 }
 
 export function recordSummary(

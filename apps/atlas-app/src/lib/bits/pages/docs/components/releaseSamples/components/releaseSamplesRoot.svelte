@@ -1,5 +1,6 @@
 <script lang="ts">
-import { onMount } from 'svelte'
+import { onMount, untrack } from 'svelte'
+import { createNavigationRequestScope } from '#lib/remote/createNavigationRequestScope.js'
 import { prefersReducedMotion } from 'svelte/motion'
 import { fade } from 'svelte/transition'
 import { PUBLIC_ATLAS_API_BASE_URL } from '$app/env/public'
@@ -55,16 +56,24 @@ let {
   sampleCount = $bindable(0),
   view = $bindable<'distinct' | 'grouped'>('distinct'),
 }: Props = $props()
-let samples = $state<AddressSample[]>([])
+let samples = $state.raw<AddressSample[]>([])
 let activeSampleIds = $state<string[] | null>(null)
 let selectedSampleIds = $state<string[] | null>(null)
 let collapsedSamples = $state<Set<string>>(new Set())
 let loading = $state(false)
 let errorMessage = $state<string | null>(null)
 let total = $state<number | null>(null)
-let loadedReleaseSet = $state<string | null>(null)
 let mounted = $state(false)
 let handledRequest = $state<number | null>(null)
+let pendingExamples = 0
+let activeExamples = 0
+let loadedScope: string | undefined
+const requests = createNavigationRequestScope(() => {
+  loading = false
+  pendingExamples += activeExamples
+  activeExamples = 0
+  void loadMore()
+})
 
 const supported = $derived(supportsReleaseSamples(apiVersion))
 const groupedFields = $derived(groupAddressSamples(samples))
@@ -89,72 +98,113 @@ function requestUrl(offset: number, limit: number) {
   return url
 }
 
-async function getPage(offset: number, limit: number, after?: string) {
+async function getPage(
+  signal: AbortSignal,
+  offset: number,
+  limit: number,
+  after?: string,
+) {
+  signal.throwIfAborted()
   const url = requestUrl(offset, limit)
   if (after !== undefined) url.searchParams.set('page[after]', after)
-  const response = await fetch(url)
+  const response = await fetch(url, { signal })
+  signal.throwIfAborted()
   const body = (await response.json()) as unknown
+  signal.throwIfAborted()
   if (!response.ok)
     throw new Error(getReleaseSampleLoadErrorMessage(response.status, body))
   return body as AddressListResponse
 }
 
-async function loadMore(count: number) {
-  if (!supported || loading) return
+function enqueueExamples(count: number) {
+  pendingExamples += count
+  void loadMore()
+}
+
+async function loadMore() {
+  if (!supported || loading || requests.signal.aborted || !pendingExamples) return
+  const count = pendingExamples
+  const signal = requests.signal
+  pendingExamples = 0
+  activeExamples = count
 
   if (samples.length) view = 'grouped'
   loading = true
   errorMessage = null
   try {
-    const target = `${releaseSet}:${profile}`
-    if (loadedReleaseSet !== target) {
-      samples = []
-      activeSampleIds = null
-      selectedSampleIds = null
-      sampleCount = 0
-      view = 'distinct'
-      // A stored zero can precede populated serving data; confirm it with the API.
-      total = recordCount !== null && recordCount > 0 ? recordCount : null
-      loadedReleaseSet = target
-    }
-
-    const selected = await loadReleaseSamples(samples, count, async missing => {
-      if (total === 0) return []
-      if (apiVersion === 'api-addresses-v0.1') {
+    const selected = await loadReleaseSamples(
+      samples,
+      count,
+      async missing => {
+        if (total === 0) return []
+        if (apiVersion === 'api-addresses-v0.1') {
+          const pages = await Promise.all(
+            Array.from({ length: missing }, () =>
+              loadAddressSample(
+                async after => (await getPage(signal, 0, 1, after)).data ?? [],
+                signal,
+              ),
+            ),
+          )
+          return pages.flat()
+        }
+        if (total === null) {
+          const firstPage = await getPage(signal, samples.length, missing)
+          const value = firstPage.meta?.page?.total
+          total = typeof value === 'number' && value >= 0 ? value : null
+          return firstPage.data ?? []
+        }
+        const offsets = getSamplePageOffsets(Math.max(total - 1, 0), missing)
         const pages = await Promise.all(
-          Array.from({ length: missing }, () =>
-            loadAddressSample(async after => (await getPage(0, 1, after)).data ?? []),
-          ),
+          offsets.map(offset => getPage(signal, offset, 1)),
         )
-        return pages.flat()
-      }
-      if (total === null) {
-        const firstPage = await getPage(samples.length, missing)
-        const value = firstPage.meta?.page?.total
-        total = typeof value === 'number' && value >= 0 ? value : null
-        return firstPage.data ?? []
-      }
-      const offsets = getSamplePageOffsets(Math.max(total - 1, 0), missing)
-      const pages = await Promise.all(offsets.map(offset => getPage(offset, 1)))
-      return pages.flatMap(page => page.data ?? [])
-    })
+        return pages.flatMap(page => page.data ?? [])
+      },
+      signal,
+    )
+    signal.throwIfAborted()
     samples = [...samples, ...selected]
     sampleCount = samples.length
     if (samples.length > 1) view = 'grouped'
   } catch (error) {
-    errorMessage =
-      error instanceof Error
-        ? error.message
-        : 'Examples could not be loaded. Please try again.'
+    if (!signal.aborted)
+      errorMessage =
+        error instanceof Error
+          ? error.message
+          : 'Examples could not be loaded. Please try again.'
   } finally {
-    loading = false
+    if (!signal.aborted) {
+      activeExamples = 0
+      loading = false
+      if (!errorMessage && pendingExamples > 0) void loadMore()
+    }
   }
 }
 
 onMount(() => {
   mounted = true
-  handledRequest = request
-  void loadMore(initialExamples)
+})
+
+$effect(() => {
+  const scope = JSON.stringify([apiVersion, domainCode, profile, releaseSet])
+  if (!mounted || scope === loadedScope) return
+  loadedScope = scope
+  untrack(() => {
+    requests.reset()
+    loading = false
+    samples = []
+    activeSampleIds = null
+    selectedSampleIds = null
+    collapsedSamples = new Set()
+    sampleCount = 0
+    view = 'distinct'
+    total = recordCount !== null && recordCount > 0 ? recordCount : null
+    errorMessage = null
+    activeExamples = 0
+    pendingExamples = 0
+    handledRequest = request
+    enqueueExamples(initialExamples)
+  })
 })
 
 function toggleSample(id: string) {
@@ -166,8 +216,9 @@ function toggleSample(id: string) {
 
 $effect(() => {
   if (!mounted || request === handledRequest) return
+  const previousRequest = handledRequest ?? request
   handledRequest = request
-  void loadMore(examplesPerRequest)
+  enqueueExamples(Math.max(request - previousRequest, 1) * examplesPerRequest)
 })
 </script>
 

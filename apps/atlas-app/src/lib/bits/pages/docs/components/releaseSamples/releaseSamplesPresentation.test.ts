@@ -161,3 +161,31 @@ describe('address release samples', () => {
     expect(new Set(sampleValueTones.map(tone => tone.marker)).size).toBe(10)
   })
 })
+
+test('wide nested sample groups preserve field order, array markers, and matching values', () => {
+  const samples = ['first', 'second', 'third'].map((id, sampleIndex) => ({
+    id,
+    fields: [
+      {
+        key: 'coordinates',
+        isArray: true,
+        children: Array.from({ length: 2000 }, (_, index) => ({
+          key: `[${index}]`,
+          value: String(sampleIndex === 2 ? index + 1 : index),
+        })),
+      },
+    ],
+  }))
+  const grouped = groupAddressSamples(samples)
+  expect(grouped.map(field => field.key)).toEqual(['id', 'coordinates'])
+  expect(grouped[1]?.isArray).toBe(true)
+  expect(grouped[1]?.children).toHaveLength(2000)
+  expect(grouped[1]?.children[1999]).toEqual({
+    key: '[1999]',
+    children: [],
+    values: [
+      { value: '1999', sampleIds: ['first', 'second'] },
+      { value: '2000', sampleIds: ['third'] },
+    ],
+  })
+})
