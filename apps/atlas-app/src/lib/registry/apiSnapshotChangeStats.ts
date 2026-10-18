@@ -13,6 +13,9 @@ export function selectSnapshotChangeStats(
   resourceType: string,
   primary: boolean,
 ) {
+  // The address table breakdown belongs to the primary variant, not supplementary
+  // address snapshots (for example Overture Places).
+  if (resourceType === 'address' && !primary) return []
   const table = resourceType === 'address' ? 'address2d' : resourceType
   const changes = stats.filter(row => row.category === 'changes')
   const tableRows = changes.filter(

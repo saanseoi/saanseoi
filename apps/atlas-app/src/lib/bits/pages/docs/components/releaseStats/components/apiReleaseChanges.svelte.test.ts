@@ -1,6 +1,7 @@
 import { afterEach, expect, test, vi } from 'vitest'
 import { render } from 'vitest-browser-svelte'
 import Changes from './apiReleaseChanges.svelte'
+import VariantChanges from './apiReleaseVariantChanges.svelte'
 import { buildSourceReleaseStatsPresentation } from '../../../../../../../routes/sources/[datasetCode]/[releaseCode]/sourceReleasePage.utils'
 
 const remote = vi.hoisted(() => ({ getApiSnapshotChanges: vi.fn() }))
@@ -159,4 +160,51 @@ test('identical snapshots skip comparison even when stored statistics are incons
     .element(screen.getByRole('heading', { name: /3\s+records/i }))
     .toBeVisible()
   expect(remote.getApiSnapshotChanges).not.toHaveBeenCalled()
+})
+
+test('All compares each variant with its matching baseline without borrowing primary counts', async () => {
+  remote.getApiSnapshotChanges.mockClear()
+  remote.getApiSnapshotChanges.mockImplementation(({ toSnapshot }) =>
+    ready([record(toSnapshot, `Record from ${toSnapshot}`)]),
+  )
+  const resource = (variant: string, snapshotId: string, role: string) => ({
+    variant,
+    snapshotId,
+    role,
+    snapshot: { id: snapshotId, code: snapshotId, resourceType: 'address' },
+  })
+  const screen = await render(VariantChanges, {
+    ...props,
+    resourceLabel: 'Addresses',
+    resources: [
+      resource('hkgov-dpo', 'gov-new', 'primary'),
+      resource('overture-places', 'overture-new', 'supplementary'),
+    ],
+    previousResources: [
+      resource('overture-places', 'overture-old', 'supplementary'),
+      resource('hkgov-dpo', 'gov-old', 'primary'),
+    ],
+  })
+  await expect
+    .element(screen.getByRole('button', { name: /Record from gov-new/ }))
+    .toBeVisible()
+  await expect
+    .element(screen.getByRole('button', { name: /Record from overture-new/ }))
+    .toBeVisible()
+  expect(remote.getApiSnapshotChanges).toHaveBeenCalledWith(
+    expect.objectContaining({ fromSnapshot: 'gov-old', toSnapshot: 'gov-new' }),
+  )
+  expect(remote.getApiSnapshotChanges).toHaveBeenCalledWith(
+    expect.objectContaining({
+      fromSnapshot: 'overture-old',
+      toSnapshot: 'overture-new',
+    }),
+  )
+  await expect
+    .element(
+      screen
+        .getByRole('region', { name: 'Overture Places' })
+        .getByRole('heading', { name: /records/i }),
+    )
+    .not.toBeInTheDocument()
 })

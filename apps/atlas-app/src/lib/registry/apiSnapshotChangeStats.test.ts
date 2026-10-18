@@ -44,6 +44,7 @@ test('address components use their own table breakdown and lookups cannot inheri
     )?.value,
   ).toBe(4)
   expect(selectSnapshotChangeStats(stats, 'division', false)).toEqual([])
+  expect(selectSnapshotChangeStats(stats, 'address', false)).toEqual([])
 })
 test('missing published counts are not silently presented as zero', () => {
   expect(

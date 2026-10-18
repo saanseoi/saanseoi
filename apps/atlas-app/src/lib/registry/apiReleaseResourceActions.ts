@@ -11,10 +11,52 @@ const resourceTypeOrder: Record<string, number> = {
 export const getApiResourceKey = (resource: ApiReleaseSnapshot) =>
   `${resource.snapshot.resourceType}:${resource.variant ?? 'default'}`
 
+export const getApiResourceVariantLabel = (variant: string) =>
+  variant === 'saanseoi'
+    ? 'SaanSeoi'
+    : (variant || 'default')
+        .replaceAll(/[_-]/g, ' ')
+        .replace(/\b\w/g, letter => letter.toUpperCase())
+
+export function selectApiReleaseResources(
+  resources: ApiReleaseSnapshot[],
+  key: string | null,
+) {
+  const exact = resources.find(resource => getApiResourceKey(resource) === key)
+  const resource =
+    exact ??
+    resources.find(resource => `${resource.snapshot.resourceType}:all` === key) ??
+    resources.find(resource => resource.role === 'primary') ??
+    resources[0]
+  const allVariants = !exact
+  return {
+    resource,
+    allVariants,
+    key: resource
+      ? allVariants
+        ? `${resource.snapshot.resourceType}:all`
+        : getApiResourceKey(resource)
+      : undefined,
+    resources: resource
+      ? allVariants
+        ? resources
+            .filter(
+              item => item.snapshot.resourceType === resource.snapshot.resourceType,
+            )
+            .sort(
+              (left, right) =>
+                Number(right.role === 'primary') - Number(left.role === 'primary'),
+            )
+        : [resource]
+      : [],
+  }
+}
+
 export function buildApiReleaseResourceActions(
   resources: ApiReleaseSnapshot[],
   selected: ApiReleaseSnapshot | undefined,
   onSelect: (key: string) => void,
+  allVariants = false,
 ): ReleaseNavAction[] {
   if (!selected) return []
   const resourceType = selected.snapshot.resourceType
@@ -33,6 +75,10 @@ export function buildApiReleaseResourceActions(
         )
         .map(value => ({ value, label: resourceLabel(value) })),
       onValueChange: value => {
+        if (allVariants) {
+          onSelect(`${value}:all`)
+          return
+        }
         const matches = resources.filter(
           resource => resource.snapshot.resourceType === value,
         )
@@ -46,16 +92,14 @@ export function buildApiReleaseResourceActions(
     {
       id: 'variant',
       label: 'variant',
-      value: getApiResourceKey(selected),
-      options: variants.map(resource => ({
-        value: getApiResourceKey(resource),
-        label:
-          resource.variant === 'saanseoi'
-            ? 'SaanSeoi'
-            : (resource.variant ?? 'default')
-                .replaceAll(/[_-]/g, ' ')
-                .replace(/\b\w/g, letter => letter.toUpperCase()),
-      })),
+      value: allVariants ? `${resourceType}:all` : getApiResourceKey(selected),
+      options: [
+        { value: `${resourceType}:all`, label: 'All' },
+        ...variants.map(resource => ({
+          value: getApiResourceKey(resource),
+          label: getApiResourceVariantLabel(resource.variant),
+        })),
+      ],
       onValueChange: onSelect,
     },
   ]
