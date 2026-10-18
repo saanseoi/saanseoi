@@ -369,3 +369,41 @@ test('migrations retain sparse Place filters without redundant history or name i
     history.close()
   }
 })
+
+test('nullable Address references and Division codes use partial lookup indexes', () => {
+  const sqlite = migratedDatabase('current')
+  try {
+    for (const [table, column, index, scoped] of [
+      ['address2d', 'streetId', 'address2d_streetId_nonnull_idx', false],
+      ['address2d', 'parentAddressId', 'address2d_parentAddressId_nonnull_idx', true],
+      ['divisions', 'divisionCode', 'divisions_divisionCode_nonnull_idx', true],
+    ] as const) {
+      const indexes = sqlite.query(`PRAGMA index_list(${table})`).all() as Array<{
+        name: string
+        partial: number
+      }>
+      expect(indexes.find(item => item.name === index)?.partial).toBe(1)
+      expect(indexes.some(item => item.name === index.replace('_nonnull', ''))).toBe(
+        false,
+      )
+      expect(
+        plan(
+          sqlite,
+          `SELECT id FROM ${table} WHERE ${scoped ? 'scopeId = ? AND ' : ''}${column} = ?`,
+          scoped ? ['scope', 'value'] : ['value'],
+        ),
+      ).toContain(index)
+    }
+    sqlite.exec(`
+      INSERT INTO divisions(scopeId,id,class,hierarchies,divisionCode)
+      VALUES ('scope','without-code','district','{}',NULL),
+             ('scope','with-code','district','{}','code');
+    `)
+    expect(sqlite.query('SELECT count(*) AS n FROM divisions').get()).toEqual({ n: 2 })
+    expect(
+      sqlite.query('SELECT id FROM divisions WHERE divisionCode IS NULL').all(),
+    ).toEqual([{ id: 'without-code' }])
+  } finally {
+    sqlite.close()
+  }
+})
