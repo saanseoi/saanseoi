@@ -525,3 +525,32 @@ blocks ingestion. Hierarchy expectations validate classification without overwri
 Source selection distinguishes independent cases, ordered actions and conditions that
 must all match. Hierarchy lineage links to the assembled SaanSeoi DivisionArea geometry,
 including authored polygons, with representative points used only when no area exists.
+
+### Response coverage and local refresh
+
+Base resource coverage is checked against the API's response schemas for each authored
+mapping and each supported source composition. The check includes optional and
+profile-dependent attributes and relationships, rejects removed response fields, and
+requires complete compiled plans. A nested selector covers its containing response
+field; dynamic Statistics values retain their field-definition selector.
+
+Publication metadata follows the selected snapshot and persisted content version.
+Creation timestamps come from stored content, never an explanation-time clock. Address3D
+coverage selects collections from the same Address snapshot, preferring a direct
+collection before an explicitly unresolved section in its parent's collection. Place
+Address snapshot identity follows the retained Address role and the exact Place
+publication receipt's official or supplementary dependency.
+
+The local refresh tool reconstructs publication inputs from retained lineage bindings
+and exact snapshot recipes. It retains verified immutable R2 definitions before changing
+META pins, preserves existing definitions, backs up META, and checks that release,
+snapshot and source records are unchanged. It does not select newer source releases.
+
+```sh
+bun libs/db/scripts/refresh-field-lineage-local.ts META.sqlite OUTPUT_DIRECTORY
+bun libs/db/scripts/refresh-field-lineage-local.ts META.sqlite OUTPUT_DIRECTORY --apply
+```
+
+`META.sqlite` must be inside `.local/d1/dev/`. The default command prepares a reviewable
+plan without updating release pins. Apply writes new definitions and changes the
+selected pins in one transaction, rejecting concurrent changes to the captured state.
