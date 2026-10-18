@@ -960,3 +960,11 @@ and locale hashing; it is not inferred from matching.
 Division source attribution groups populated hierarchy IDs under the containing Division
 record that supplies them. Only IDs agreed by every canonical hierarchy path on that
 record are credited to it; independent associations retain their own sources.
+
+Address API cohorts retain the latest published `overture-places` Address assembly at or
+before their cohort, including cohorts triggered by ALS updates. Cohorts before the
+first supplementary assembly remain ALS-only. Address release-set reconciliation also
+checks published cohorts after Places assembly completes: missing or stale supplementary
+selections produce a new immutable release-set revision, preserving the exact ALS and
+Division snapshots. Reconciliation is repeatable and does not re-ingest source records
+or rewrite the original published release.
