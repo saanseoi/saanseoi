@@ -16,6 +16,20 @@ spec.loader.exec_module(bootstrap)
 
 
 class BootstrapTests(unittest.TestCase):
+    def test_self_references_import_with_immediate_constraints_and_preserve_rowids(self):
+        db = sqlite3.connect(':memory:')
+        self.addCleanup(db.close)
+        db.executescript('CREATE TABLE releases(id TEXT PRIMARY KEY, successor TEXT REFERENCES releases(id)); INSERT INTO releases(rowid,id,successor) VALUES(42,\'old\',\'new\'),(84,\'new\',NULL);')
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / 'self-reference.sql'
+            bootstrap.emit_dump(db, path)
+            restored = sqlite3.connect(':memory:', isolation_level=None)
+            self.addCleanup(restored.close)
+            restored.execute('PRAGMA foreign_keys=ON')
+            for sql in bootstrap.statements(path):
+                restored.execute(sql)
+            self.assertEqual(restored.execute('SELECT rowid,id,successor FROM releases ORDER BY rowid').fetchall(), [(42, 'old', 'new'), (84, 'new', None)])
+
     def test_remote_verification_checks_separate_counts_and_integrity(self):
         def result(rows):
             return {'success': True, 'results': rows}

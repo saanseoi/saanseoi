@@ -4,6 +4,7 @@ import argparse
 import contextlib
 import hashlib
 import hmac
+import heapq
 import json
 import math
 import shutil
@@ -185,6 +186,50 @@ def remap_meta(db, destinations):
     db.commit()
 
 
+def ordered_rows(db, name, columns):
+    fields = ','.join(map(ident, columns))
+    cursor = db.execute(f'SELECT {fields} FROM {ident(name)}')
+    references = [row for row in db.execute(f'PRAGMA foreign_key_list({ident(name)})') if row[2] == name]
+    if not references:
+        yield from cursor
+        return
+    rows = list(cursor)
+    positions = {column: i for i, column in enumerate(columns)}
+    primary = [row[1] for row in sorted(db.execute(f'PRAGMA table_info({ident(name)})'), key=lambda row: row[5]) if row[5]]
+    dependencies = [set() for _ in rows]
+    for key in sorted({row[0] for row in references}):
+        parts = sorted((row for row in references if row[0] == key), key=lambda row: row[1])
+        child = [positions[row[3]] for row in parts]
+        parent = [positions[row[4] or primary[row[1]]] for row in parts]
+        lookup = {tuple(row[i] for i in parent): n for n, row in enumerate(rows)}
+        for n, row in enumerate(rows):
+            values = tuple(row[i] for i in child)
+            if any(value is None for value in values):
+                continue
+            target = lookup.get(values)
+            if target is not None and target != n:
+                dependencies[n].add(target)
+    children = [[] for _ in rows]
+    for n, parents in enumerate(dependencies):
+        for parent in parents:
+            children[parent].append(n)
+    ready = [n for n, parents in enumerate(dependencies) if not parents]
+    heapq.heapify(ready)
+    emitted = set()
+    while ready:
+        n = heapq.heappop(ready)
+        emitted.add(n)
+        yield rows[n]
+        for child in children[n]:
+            dependencies[child].remove(n)
+            if not dependencies[child]:
+                heapq.heappush(ready, child)
+    # Genuine cycles still require deferred constraints; preserve every row.
+    for n, row in enumerate(rows):
+        if n not in emitted:
+            yield row
+
+
 def emit_dump(db, path):
     schema = db.execute("SELECT type,name,tbl_name,sql FROM sqlite_schema WHERE sql IS NOT NULL ORDER BY name").fetchall()
     # FTS shadow storage is an implementation detail. Rebuild the index from its
@@ -243,7 +288,7 @@ def emit_dump(db, path):
                 columns = [aliases[0]] + columns
             fields = ','.join(map(ident, columns))
             counts[name] = 0
-            for row in db.execute(f'SELECT {fields} FROM {ident(name)}'):
+            for row in ordered_rows(db, name, columns):
                 # Include a conservative allowance for SQLite record headers.
                 row_bytes = sum(len(v.encode()) if isinstance(v, str) else len(v) if isinstance(v, bytes) else 8 for v in row) + 16 * len(row)
                 if row_bytes > MAX_D1_ROW_BYTES:
