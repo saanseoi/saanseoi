@@ -1,4 +1,5 @@
 <script lang="ts">
+import { selectSnapshotChangeStats } from '#lib/registry/apiSnapshotChangeStats.js'
 import { getApiSnapshotChanges } from '#lib/registry/apiSnapshotChanges.remote.js'
 import RecordChange from '#lib/bits/pages/sources/components/sourceRecordChanges/sourceRecordChange.svelte'
 import EmptyState from '#lib/bits/pages/sources/components/sourceRecordChanges/sourceRecordChangesEmptyState.svelte'
@@ -8,13 +9,16 @@ import {
   type SourceChangeType,
 } from '#lib/bits/pages/sources/components/sourceRecordChanges/sourceRecordChanges.copy.js'
 import Overview from './releaseStatsOverviewSection.svelte'
-import OverviewSkeleton from './releaseStatsOverviewSkeleton.svelte'
 import { createReleaseStatsPresentation } from '../releaseStatsPresentation'
 import type { ReleaseStatsCopy } from '../releaseStats.types'
 import { untrack } from 'svelte'
 import { Tooltip } from 'bits-ui'
 let {
   resourceLabel,
+  baselineLoading = false,
+  statistics,
+  resourceType,
+  primary,
   fromSnapshot,
   toSnapshot,
   type,
@@ -24,6 +28,10 @@ let {
   presentation,
 }: {
   resourceLabel: string
+  baselineLoading?: boolean
+  statistics: Parameters<typeof selectSnapshotChangeStats>[0]
+  resourceType: string
+  primary: boolean
   fromSnapshot?: string
   toSnapshot: string
   type?: SourceChangeType
@@ -35,14 +43,31 @@ let {
 let offset = $state(0)
 let rows = $state.raw<Awaited<ReturnType<typeof getApiSnapshotChanges>>['records']>([])
 let failure = $state(false)
+let changeStatistics = $derived(
+  selectSnapshotChangeStats(statistics, resourceType, primary),
+)
+let hasChanges = $derived(
+  !changeStatistics.length ||
+    changeStatistics.some(
+      row =>
+        row.category === 'changes' &&
+        ['added_count', 'changed_count', 'removed_count'].includes(row.measure) &&
+        (!type || row.measure === `${type}_count`) &&
+        row.value > 0,
+    ),
+)
 let pending = $derived(
-  fromSnapshot
+  fromSnapshot && hasChanges
     ? getApiSnapshotChanges({ fromSnapshot, toSnapshot, offset, type })
     : null,
 )
 let copy = $derived(sourceRecordChangesCopy[locale])
 let result = $derived(pending?.ready ? pending.current : undefined)
 $effect(() => {
+  if (!hasChanges) {
+    rows = []
+    return
+  }
   if (!result) return
   const incomingIds = new Set(result.records.map(record => record.id))
   rows =
@@ -65,17 +90,9 @@ $effect(() => {
   }
 })
 let overview = $derived(
-  result
+  changeStatistics.length
     ? createReleaseStatsPresentation({
-        stats: [
-          { category: 'records', measure: 'count', unit: 'count', value: result.total },
-          ...Object.entries(result.counts).map(([key, value]) => ({
-            category: 'changes',
-            measure: `${key}_count`,
-            unit: 'count',
-            value,
-          })),
-        ],
+        stats: changeStatistics,
         locale,
         copy: {
           ...presentation,
@@ -99,7 +116,9 @@ function observeEnd(node: HTMLElement) {
 <section
   class="space-y-2"
   aria-label={copy.changes}
-  aria-busy={Boolean(pending && !pending.ready && !failure)}
+  aria-busy={Boolean(
+    (baselineLoading && hasChanges) || (pending && !pending.ready && !failure),
+  )}
 >
   {#if overview}
     <Tooltip.Provider delayDuration={200}>
@@ -110,13 +129,13 @@ function observeEnd(node: HTMLElement) {
         selectedType={type}
       />
     </Tooltip.Provider>
-  {:else if pending && !pending.ready && !failure}
-    <OverviewSkeleton />
   {/if}
   {#each rows as record (record.id)}
     <RecordChange {...record} {diff} {locale} />
   {/each}
-  {#if !fromSnapshot}
+  {#if baselineLoading && hasChanges}
+    <LoadingRows label={copy.loading} />
+  {:else if !fromSnapshot && !baselineLoading}
     <p class="text-body-md text-foreground-alt" role="status">{copy.noBaseline}</p>
   {:else if failure}
     <p class="text-body-md text-error" role="alert">{copy.error}</p>

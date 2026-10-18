@@ -891,11 +891,13 @@ $effect(() => {
             {/if}
           </div>
         {:else if activeTab === 'changes'}
-          {#if previousResources && !previousResources.ready}
-            <ReleaseNav.ContentSkeleton tab="changes" />
-          {:else if selectedResource}
+          {#if selectedResource}
             {#key `${release.id}:${selectedResource.snapshotId}:${changeType}`}
               <ApiReleaseChanges
+                baselineLoading={Boolean(previousResources && !previousResources.ready)}
+                statistics={release.stats ?? []}
+                resourceType={selectedResource.snapshot.resourceType}
+                primary={selectedResource.role === 'primary'}
                 resourceLabel={resourceLabel(selectedResource.snapshot.resourceType)}
                 fromSnapshot={previousResource?.snapshotId}
                 toSnapshot={selectedResource.snapshotId}

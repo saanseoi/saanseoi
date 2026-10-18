@@ -82,7 +82,6 @@ test('address snapshots include locale-only changes', async () => {
     toSnapshot: 'new',
     offset: 0,
   })
-  expect(result.counts).toEqual({ added: 0, changed: 1, removed: 0, unchanged: 0 })
   expect(result.records[0]?.fields).toContainEqual({
     path: ['translations', 'en', 'formattedAddress'],
     beforeExists: true,
@@ -92,7 +91,7 @@ test('address snapshots include locale-only changes', async () => {
   })
 })
 
-test('large revisions retain exact counts and filtered pagination across payload batches', async () => {
+test('large revisions retain filtered pagination across payload batches', async () => {
   for (let i = 0; i < 2026; i++) {
     const id = `address-${String(i).padStart(4, '0')}`
     address(id, 'old')
@@ -110,8 +109,6 @@ test('large revisions retain exact counts and filtered pagination across payload
     offset: 2000,
     type: 'changed',
   })
-  expect(result.counts).toEqual({ added: 1, changed: 2026, removed: 1, unchanged: 2 })
-  expect(result.total).toBe(2029)
   expect(result.records.map(record => record.id)).toEqual(
     Array.from({ length: 25 }, (_, i) => `address-${2000 + i}`),
   )
@@ -143,13 +140,11 @@ test('shared address snapshots count once without reading locales or payloads', 
       type,
     })
     expect(result).toEqual({
-      counts: { added: 0, changed: 0, removed: 0, unchanged: 1 },
-      total: 1,
       records: [],
       nextOffset: null,
     })
   }
-  expect(queries).toHaveLength(4)
+  expect(queries).toHaveLength(0)
   expect(
     queries.every(
       query => !query.includes('versionHash') && !query.includes('address2dI18n'),
@@ -179,13 +174,10 @@ test('Places shared snapshots use the same shortcut', async () => {
     offset: 0,
   })
   expect(result).toEqual({
-    counts: { added: 0, changed: 0, removed: 0, unchanged: 1 },
-    total: 1,
     records: [],
     nextOffset: null,
   })
-  expect(queries).toHaveLength(1)
-  expect(queries[0]).not.toContain('placesI18n')
+  expect(queries).toHaveLength(0)
 })
 
 test('distinct Places snapshots compare translations and ignore unrelated branches', async () => {
@@ -196,7 +188,6 @@ test('distinct Places snapshots compare translations and ignore unrelated branch
     toSnapshot: 'new',
     offset: 0,
   })
-  expect(result.counts).toEqual({ added: 0, changed: 1, removed: 0, unchanged: 0 })
   expect(result.records[0]?.fields).toContainEqual({
     path: ['translations', 'en', 'name'],
     beforeExists: true,
@@ -219,4 +210,23 @@ test('an identical snapshot must still be published', async () => {
   } finally {
     snapshotStatus = 'published'
   }
+})
+
+test('the first page stops after enough matching records instead of calculating a release-wide count', async () => {
+  for (let i = 0; i < 200; i++) {
+    const id = String(i).padStart(4, '0')
+    address(id, 'old')
+    address(id, 'new')
+  }
+  const result = await getApiSnapshotChanges({
+    fromSnapshot: 'old',
+    toSnapshot: 'new',
+    offset: 0,
+  })
+  expect(result.records).toHaveLength(25)
+  expect(result.nextOffset).toBe(25)
+  expect(
+    queries.filter(query => query.includes('from "address2d" where')),
+  ).toHaveLength(2)
+  expect(result).not.toHaveProperty('counts')
 })

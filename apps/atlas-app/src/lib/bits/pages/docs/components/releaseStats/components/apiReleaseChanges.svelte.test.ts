@@ -8,6 +8,22 @@ vi.mock('#lib/registry/apiSnapshotChanges.remote.js', () => remote)
 afterEach(() => vi.unstubAllGlobals())
 const props = {
   resourceLabel: 'Places',
+  resourceType: 'place',
+  primary: true,
+  statistics: [
+    ...[
+      'count',
+      'added_count',
+      'changed_count',
+      'removed_count',
+      'unchanged_count',
+    ].map(measure => ({
+      category: 'changes',
+      measure,
+      unit: 'count',
+      value: measure === 'count' || measure === 'added_count' ? 3 : 0,
+    })),
+  ],
   fromSnapshot: 'old',
   toSnapshot: 'new',
   onTypeChange: () => {},
@@ -98,4 +114,40 @@ test('late failures from an abandoned API comparison do not replace the current 
     .toBeVisible()
   fail(new Error('Old comparison failed'))
   await expect.element(screen.getByRole('alert')).not.toBeInTheDocument()
+})
+
+test('published counts render while record comparison is still pending', async () => {
+  remote.getApiSnapshotChanges.mockReturnValue(
+    Object.assign(new Promise(() => {}), { ready: false }),
+  )
+  const screen = await render(Changes, props)
+  await expect
+    .element(screen.getByRole('heading', { name: /3\s+records/i }))
+    .toBeVisible()
+})
+
+test('a published zero count does not run a record comparison', async () => {
+  remote.getApiSnapshotChanges.mockClear()
+  const screen = await render(Changes, {
+    ...props,
+    statistics: props.statistics.map(row => ({
+      ...row,
+      value: row.measure === 'count' || row.measure === 'unchanged_count' ? 3 : 0,
+    })),
+  })
+  await expect
+    .element(screen.getByRole('heading', { name: /3\s+records/i }))
+    .toBeVisible()
+  expect(remote.getApiSnapshotChanges).not.toHaveBeenCalled()
+})
+
+test('published counts render before the previous release baseline has loaded', async () => {
+  const screen = await render(Changes, {
+    ...props,
+    fromSnapshot: undefined,
+    baselineLoading: true,
+  })
+  await expect
+    .element(screen.getByRole('heading', { name: /3\s+records/i }))
+    .toBeVisible()
 })

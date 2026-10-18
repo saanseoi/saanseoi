@@ -17,13 +17,11 @@ import {
   snapshotRecordType,
 } from './apiSnapshotChanges'
 import { getHistoryDb, getMetaDb } from './server'
-import { countSnapshotRecords } from './snapshotRecordCount'
 import { iterateSnapshotVersions } from './snapshotChangeVersions'
 import type { RegistryApi } from './types'
 
-// Keep identity scans and payload reads bounded while staying within the
-// per-request D1 query budget for release-wide changes.
-const CHANGE_BATCH_SIZE = 2000
+// Read only enough candidate contents to fill a page and determine has-more.
+const CHANGE_BATCH_SIZE = 64
 const PAYLOAD_VERSION_WINDOW = 4096
 
 const tables = {
@@ -64,10 +62,9 @@ export const getApiSnapshotChanges = query(
       const recordType = snapshotRecordType(snapshot.resourceType)
       const definition = tables[recordType as keyof typeof tables]
       if (!definition) error(404, 'Changes unavailable for this resource type.')
-      const plan = await resolveSnapshotReplayPlan(
-        db as unknown as HarbourReadableDb,
-        id,
-      )
+      const plan = identical
+        ? []
+        : await resolveSnapshotReplayPlan(db as unknown as HarbourReadableDb, id)
       const shards = new Map<string, ReplayShard>()
       for (const step of plan)
         for (const assignment of step.shards) {
@@ -77,12 +74,8 @@ export const getApiSnapshotChanges = query(
               db: getHistoryDb(assignment.bindingName) as unknown as HarbourReadableDb,
             })
         }
-      const identicalTotal =
-        identical && snapshot.resourceType !== 'divisionStatistic'
-          ? await countSnapshotRecords(plan, shards, definition[0])
-          : undefined
       const statistics =
-        snapshot.resourceType === 'divisionStatistic'
+        !identical && snapshot.resourceType === 'divisionStatistic'
           ? await readStatisticSnapshotRecords(
               db as unknown as HarbourReadableDb,
               [...shards.values()].map(shard => shard.db),
@@ -90,7 +83,6 @@ export const getApiSnapshotChanges = query(
             )
           : undefined
       return {
-        identicalTotal,
         plan,
         resourceType: snapshot.resourceType,
         recordType,
@@ -100,14 +92,8 @@ export const getApiSnapshotChanges = query(
       }
     }
     if (input.fromSnapshot === input.toSnapshot) {
-      const state = await read(input.toSnapshot, true)
-      const total = state.identicalTotal ?? state.statistics!.length
-      return {
-        counts: { added: 0, changed: 0, removed: 0, unchanged: total },
-        total,
-        records: [],
-        nextOffset: null,
-      }
+      await read(input.toSnapshot, true)
+      return { records: [], nextOffset: null }
     }
     const [before, after] = await Promise.all([
       read(input.fromSnapshot),
@@ -169,14 +155,10 @@ export const getApiSnapshotChanges = query(
       )
       const end = input.offset + 25
       return {
-        counts: comparison.counts,
-        total: comparison.total,
         records: records.slice(input.offset, end),
         nextOffset: end < records.length ? end : null,
       }
     }
-    const counts = { added: 0, changed: 0, removed: 0, unchanged: 0 }
-    let total = 0
     const records: ReturnType<typeof compareSnapshotRecords>['records'] = []
     let matching = 0
     const oldStream = iterateSnapshotVersions(
@@ -202,12 +184,11 @@ export const getApiSnapshotChanges = query(
         materialise(after, newVersions),
       ])
       const comparison = compareSnapshotRecords(oldRecords, newRecords)
-      for (const key of ['added', 'changed', 'removed', 'unchanged'] as const)
-        counts[key] += comparison.counts[key]
       for (const record of comparison.records) {
         if (input.type && record.type !== input.type) continue
         if (matching >= input.offset && records.length < 25) records.push(record)
         matching++
+        if (matching > input.offset + 25) break
       }
       oldVersions = []
       newVersions = []
@@ -223,7 +204,6 @@ export const getApiSnapshotChanges = query(
             : next.value.id
       const oldRows = !old.done && old.value.id === id ? old.value.versions : []
       const newRows = !next.done && next.value.id === id ? next.value.versions : []
-      if (newRows.some(version => version.recordType === after.recordType)) total++
       const hashes = new Map(
         oldRows.map(version => [
           `${version.recordType}\u0000${version.locale}`,
@@ -237,13 +217,14 @@ export const getApiSnapshotChanges = query(
             hashes.get(`${version.recordType}\u0000${version.locale}`) ===
             version.versionHash,
         )
-      if (equal) {
-        if (newRows.length) counts.unchanged++
-      } else {
+      if (!equal) {
         oldVersions.push(...oldRows)
         newVersions.push(...newRows)
         candidates++
-        if (candidates === CHANGE_BATCH_SIZE) await flush()
+        if (candidates === CHANGE_BATCH_SIZE) {
+          await flush()
+          if (matching > input.offset + 25) break
+        }
       }
       const advanceOld = !old.done && old.value.id === id
       const advanceNew = !next.done && next.value.id === id
@@ -255,7 +236,7 @@ export const getApiSnapshotChanges = query(
     }
     await flush()
     const end = input.offset + 25
-    return { counts, total, records, nextOffset: end < matching ? end : null }
+    return { records, nextOffset: end < matching ? end : null }
   },
 )
 
