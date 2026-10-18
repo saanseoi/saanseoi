@@ -77,3 +77,43 @@ Imported PMTiles archives are retained instead: the generic import operation doe
 embed this generated geography, so an import needs a matching boundary and a
 source-aware build with its matching historic PBF before it can carry the same coastline
 contract.
+
+## Release statistics and usage
+
+META stores one `basemapReleaseStats` row per `{region}/{version}`, tied to the
+published PMTiles SHA-256. The release page only uses statistics whose archive digest
+matches its manifest. Rows include the source, boundary and extracted-PBF digests,
+counting method, vector-layer metadata, zoom range and addressed-tile count.
+
+Run `python scripts/basemaps/backfill-release-stats.py --output <directory>` to prepare
+statistics for every published Hong Kong, Macao and Greater Bay Area release. The
+command verifies retained archives against the public catalogue and manifests,
+re-extracts the archived Guangdong source with the published regional boundary and
+`osmium --strategy=complete_ways`, and counts each matching OSM object once per
+category. It does not count repeated tile representations. Categories overlap, building
+relations may contain building ways, and complete ways can extend outside the clip.
+These numbers describe source objects, not a deduplicated inventory of physical assets.
+
+After applying META migrations, add `--apply-only --apply-local-meta <sqlite-path>` to
+import the prepared `stats.json`. The importer backs up local META and upserts only the
+release-statistics rows. It does not write remote D1. Re-run the calculation after
+publishing another basemap release.
+
+`scripts/basemaps/retrofit-manifests.ts <directory>` prepares missing schema metadata
+from the verified archives. `--apply` retains the complete original R2 manifest, adds
+only missing schema metadata and its evidence, then reads the object back to verify the
+write. An exact vector-layer/field-type match permits the reference schema; otherwise
+the archive's declared Protomaps profile version is explicitly labelled as such. Tile
+archives and existing manifest values are retained.
+
+Successful tile and TileJSON GET responses, including edge-cache hits and first-party
+requests, emit `api.access` events under scope `basemap_release`. Date-pinned paths
+identify a release directly; `latest` responses use the served PMTiles ETag and match it
+to an immutable archive. Unknown ETags are not attributed to a guessed release.
+
+Authenticated `GET /downloads/{region}/{version}.pmtiles` streams a full archive. Only a
+fully consumed successful response emits `downloads`; cancellations, HEAD, errors and
+range requests do not. Download responses are not cached. The existing SaanSeoi API
+daily rollup copies the events from the shared Product Usage dataset into META's
+access-analytics tables. Header metrics remain unavailable until a rollup exists; source
+statistics do not imply historical usage counts.
