@@ -22,6 +22,7 @@ import ReleaseNavSideNav from './releaseNavSideNav.svelte'
 
 type Props = {
   actions?: ReleaseNavAction[]
+  tabAction?: Snippet
   analyticsSurface: ReleaseAnalyticsSurface
   activeOutlineId: string | null
   activeTab?: string
@@ -48,6 +49,7 @@ type Props = {
 
 let {
   actions = [],
+  tabAction,
   analyticsSurface,
   activeOutlineId,
   activeTab = $bindable('notes'),
@@ -171,6 +173,7 @@ $effect(() => {
 
 {#snippet navBar()}
   <ReleaseNavBar
+    {tabAction}
     {actions}
     {analyticsSurface}
     {activeTab}

@@ -1,4 +1,5 @@
 <script lang="ts">
+import type { Snippet } from 'svelte'
 import type {
   ReleaseNavAction,
   ReleaseNavTab,
@@ -12,6 +13,7 @@ import ReleaseNavVersionControls from './releaseNavVersionControls.svelte'
 
 type Props = {
   actions?: ReleaseNavAction[]
+  tabAction?: Snippet
   analyticsSurface: ReleaseAnalyticsSurface
   activeTab: string
   currentVersionCohortKey?: string | null
@@ -28,6 +30,7 @@ type Props = {
 }
 let {
   actions,
+  tabAction,
   analyticsSurface,
   activeTab,
   currentVersionCohortKey,
@@ -51,6 +54,9 @@ let {
   <div class="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-2 pb-2 sm:pb-0">
     <ReleaseNavTabs {activeTab} onSelect={onSelectTab} {tabs} />
     <ReleaseNavActions {actions} {analyticsSurface} />
+    {#if tabAction}
+      <div class="ml-auto flex items-center">{@render tabAction()}</div>
+    {/if}
   </div>
   <div class="hidden h-10 items-center justify-between xl:flex">
     <div class="flex items-center gap-2">

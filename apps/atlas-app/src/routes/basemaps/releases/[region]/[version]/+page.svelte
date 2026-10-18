@@ -3,6 +3,7 @@ import { goto } from '$app/navigation'
 import { page } from '$app/state'
 import * as ReleaseHeader from '#lib/bits/pages/docs/components/releaseHeader/index.js'
 import * as ReleaseNav from '#lib/bits/pages/docs/components/releaseNav/index.js'
+import ManifestInfo from '#lib/bits/pages/basemaps/basemapReleaseManifestInfo.svelte'
 import Content from '#lib/bits/pages/basemaps/basemapReleaseContent.svelte'
 import { Seo } from '#lib/bits/patterns/seo/index.js'
 import { Main } from '#lib/bits/primitives/main/index.js'
@@ -54,6 +55,11 @@ function selectTab(tab: string) {
     activeOutlineId={null}
     hasContent={true}
   >
+    {#snippet tabAction()}
+      {#if activeTab === 'release'}
+        <ManifestInfo />
+      {/if}
+    {/snippet}
     <Content
       statistics={data.statistics}
       current={data.current}

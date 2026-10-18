@@ -81,13 +81,6 @@ let changes = $derived(previous ? manifestChanges(previous, current) : [])
       {/if}
     {/key}
   {:else}
-    <h2 class="font-display text-headline-sm font-bold text-primary">
-      Release manifest
-    </h2>
-    <p class="mt-3 font-body text-body-md text-foreground-alt">
-      An OpenStreetMap basemap built with Protomaps, with regional boundaries and
-      coastline geometry. Build and source details below describe this specific release.
-    </p>
     <Fields rows={manifestFields(current)} />
   {/if}
 </section>

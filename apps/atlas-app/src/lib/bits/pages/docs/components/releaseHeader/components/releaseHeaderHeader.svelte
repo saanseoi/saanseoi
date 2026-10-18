@@ -41,9 +41,12 @@ let {
         <div class="shrink-0">{@render labelAction()}</div>
       {/if}
     </div>
-    <div class={`flex items-center gap-y-2 ${statusAction ? 'gap-x-2' : 'gap-x-5'}`}>
+    <div class={`flex items-center gap-y-2 ${statusAction ? 'gap-x-3' : 'gap-x-5'}`}>
       {#if metrics.length}
-        <ReleaseHeaderMetrics {metrics} class="hidden lg:flex" />
+        <ReleaseHeaderMetrics
+          {metrics}
+          class={statusAction ? 'hidden lg:mr-4 lg:flex' : 'hidden lg:flex'}
+        />
       {/if}
       <span
         class={`inline-flex items-center gap-2 border px-3 py-1 font-body text-label-sm font-semibold capitalize ${statusClass}`}
