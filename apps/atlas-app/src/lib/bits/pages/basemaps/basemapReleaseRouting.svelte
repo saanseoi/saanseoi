@@ -1,6 +1,7 @@
 <script lang="ts">
 import Section from '#lib/bits/pages/docs/components/releaseStats/components/releaseStatsSection.svelte'
 import Header from '#lib/bits/pages/docs/components/releaseStats/components/releaseStatsSectionHeader.svelte'
+import Commands from './basemapReleaseCommands.svelte'
 import type { RoutingRelease } from '#lib/registry/routingRelease.js'
 let { release }: { release: RoutingRelease | null } = $props()
 const engines = ['valhalla', 'graphhopper'] as const
@@ -111,9 +112,7 @@ const command = $derived(
         Python 3.11+, osmium-tool and Docker. Source, boundary, engine versions and
         configuration are pinned in the recipe.
       </p>
-      <pre
-        class="m-5 overflow-x-auto rounded-md bg-data-surface-container-lowest p-4 font-mono text-label-md leading-7 text-foreground-alt"
-      ><code>{command}</code></pre>
+      <Commands {command} />
       <details
         class="border-t border-data-outline-variant/40 px-5 py-4 font-body text-caption text-foreground-alt"
       >
