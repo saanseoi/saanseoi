@@ -324,7 +324,7 @@ test('rolls up basemap requests and completed downloads under the pinned release
           metricValue: 2,
         },
       ],
-    })) as typeof fetch
+    })) as unknown as typeof fetch
   const { db, rows, close } = createAnalyticsD1()
   try {
     await rollUpAccessAnalyticsDaily(
