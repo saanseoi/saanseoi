@@ -12,6 +12,7 @@ import type {
 import BackToTop from './sourceRecordChangesBackToTop.svelte'
 import LoadingRows from './sourceRecordChangesSkeleton.svelte'
 import RecordChange from './sourceRecordChange.svelte'
+import EmptyState from './sourceRecordChangesEmptyState.svelte'
 import {
   sourceRecordChangesCopy,
   type SourceChangeType,
@@ -248,7 +249,7 @@ $effect(() => {
   {#if !fromRelease}
     <p class="text-body-md text-foreground-alt" role="status">{copy.noBaseline}</p>
   {:else if knownEmpty}
-    <p class="text-body-md text-foreground-alt" role="status">{copy.empty}</p>
+    <EmptyState label={copy.empty} />
   {:else if unavailable}
     <p class="text-body-md text-foreground-alt" role="status">{copy.unavailable}</p>
   {:else if error}
@@ -256,7 +257,7 @@ $effect(() => {
   {:else if loading}
     <LoadingRows label={copy.loading} />
   {:else if !records.length}
-    <p class="text-body-md text-foreground-alt" role="status">{copy.empty}</p>
+    <EmptyState label={copy.empty} />
   {/if}
   {#if !knownEmpty && !loading && !unavailable && error}
     <button

@@ -1,6 +1,7 @@
 <script lang="ts">
 import { getApiSnapshotChanges } from '#lib/registry/apiSnapshotChanges.remote.js'
 import RecordChange from '#lib/bits/pages/sources/components/sourceRecordChanges/sourceRecordChange.svelte'
+import EmptyState from '#lib/bits/pages/sources/components/sourceRecordChanges/sourceRecordChangesEmptyState.svelte'
 import LoadingRows from '#lib/bits/pages/sources/components/sourceRecordChanges/sourceRecordChangesSkeleton.svelte'
 import {
   sourceRecordChangesCopy,
@@ -135,7 +136,7 @@ function observeEnd(node: HTMLElement) {
   {:else if pending && !pending.ready}
     <LoadingRows label={copy.loading} />
   {:else if !rows.length}
-    <p class="text-body-md text-foreground-alt" role="status">{copy.empty}</p>
+    <EmptyState label={copy.empty} />
   {/if}
   {#if result?.nextOffset != null && pending?.ready}
     {#key offset}
