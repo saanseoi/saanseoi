@@ -193,6 +193,23 @@ def emit_dump(db, path):
     tables = [(name, sql) for kind, name, _, sql in schema
               if kind == 'table' and name not in shadows and not name.startswith(('sqlite_', '_cf_')) and not transient(name)]
     kept = {name for name, _ in tables}
+    # Parents must be populated before children: with deferred constraints, adding
+    # a parent after many children can scan the child table for every parent row.
+    # Cycles still rely on deferred validation, and retain deterministic ordering.
+    ordered = []
+    visited = set()
+    def visit(name):
+        if name in visited:
+            return
+        visited.add(name)
+        parents = {row[2] for row in db.execute(f'PRAGMA foreign_key_list({ident(name)})')}
+        for parent in sorted(parents & kept):
+            visit(parent)
+        ordered.append(name)
+    for name, _ in tables:
+        visit(name)
+    table_sql = dict(tables)
+    tables = [(name, table_sql[name]) for name in ordered]
     for name, sql in tables:
         if 'VIRTUAL TABLE' in sql.upper():
             if not re.search(r'\bUSING\s+fts5\s*\(', sql, re.I) or re.search(r'\bcontent\s*=', sql, re.I):

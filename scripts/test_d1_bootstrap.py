@@ -16,6 +16,17 @@ spec.loader.exec_module(bootstrap)
 
 
 class BootstrapTests(unittest.TestCase):
+    def test_parent_rows_precede_children_even_when_names_sort_after_them(self):
+        db = sqlite3.connect(':memory:')
+        self.addCleanup(db.close)
+        db.executescript('CREATE TABLE z_parent(id INTEGER PRIMARY KEY); CREATE TABLE a_child(id INTEGER REFERENCES z_parent(id)); INSERT INTO z_parent VALUES(1); INSERT INTO a_child VALUES(1);')
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / 'ordered.sql'
+            counts, _ = bootstrap.emit_dump(db, path)
+            sql = path.read_text()
+            self.assertLess(sql.index('INSERT INTO "z_parent"'), sql.index('INSERT INTO "a_child"'))
+            bootstrap.restore_check(path, counts)
+
     def test_database_limit_excludes_free_pages_but_checks_restored_size(self):
         db = sqlite3.connect(':memory:')
         self.addCleanup(db.close)
