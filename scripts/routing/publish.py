@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Build/publish regional routing companions; retain only the newest two graph editions.
 
-Usage: python3 scripts/routing/publish.py --region hk|mo|gba|all [--version DATE] [--backfill]
+Usage: python3 scripts/routing/publish.py --region hk|mo|gba|all [--version DATE] [--backfill] [--recipes-only]
 Only this publisher removes routing payloads, after both replacement engines are published.
 Source PBFs, boundaries, recipes and provenance are never removed.
 """
@@ -130,6 +130,63 @@ def complete_publication(region, version, manifest, directory):
     write(index_path, index); upload(f'routing/{region}/versions.json', index_path)
 
 
+def make_recipe(region, version, metadata, toolchain):
+    """Pin the recorded historical inputs and current engine toolchain without inventing output hashes."""
+    source = metadata.get('provenance', {}).get('source', {}).get('sourceArchive')
+    if not source:
+        raise RuntimeError(f'{region}/{version} has no archived OSM provenance')
+    boundary = metadata['release']['boundary']
+    return {'schemaVersion': 1, 'region': region, 'version': version,
+              'source': {'url': f"{ORIGIN}/sources/guangdong/{source['key'].split('/')[-1]}",
+                         'sha256': source['sha256'], 'size': source['size']},
+              'boundary': {'url': f'{ORIGIN}/{NAMES[region]}-{version}.boundary.geojson',
+                           'sha256': boundary['sha256'], 'size': boundary['size']},
+              'extraction': 'osmium extract --strategy=complete_ways --polygon boundary.geojson',
+              'engines': toolchain,
+              'limitations': ['No elevation, traffic, admin/timezone databases or transit feeds imported.'],
+              'attribution': 'OpenStreetMap contributors, ODbL 1.0'}
+
+
+def publish_recipe(region, version, toolchain):
+    """Publish recipes only; never build payloads, change latest pointers or run retention."""
+    directory = WORK / region / version
+    directory.mkdir(parents=True, exist_ok=True)
+    if get(f'routing/{region}/{version}/manifest.json', directory / 'published.json', optional=True):
+        print('RECIPE EXISTS', region, version, flush=True)
+        return
+    base = f'basemap/{region}/{NAMES[region]}-{version}'
+    get(base + '.json', directory / 'basemap.json')
+    metadata = json.loads((directory / 'basemap.json').read_text())
+    recipe = make_recipe(region, version, metadata, toolchain)
+    # Verify source availability and the small boundary before publishing the recipe.
+    headers = subprocess.check_output(['curl', '--fail', '--silent', '--show-error', '--head',
+                                       recipe['source']['url']], text=True)
+    size = next((int(line.split(':', 1)[1]) for line in headers.splitlines()
+                 if line.lower().startswith('content-length:')), None)
+    if size != recipe['source']['size']:
+        raise RuntimeError('Historical source archive size mismatch')
+    get(base + '.boundary.geojson', directory / 'boundary.geojson')
+    import hashlib
+    with (directory / 'boundary.geojson').open('rb') as stream:
+        if hashlib.file_digest(stream, 'sha256').hexdigest() != recipe['boundary']['sha256']:
+            raise RuntimeError('Historical boundary checksum mismatch')
+    prefix = f'routing/{region}/{version}'
+    manifest = {'schemaVersion': 1, 'region': region, 'version': version,
+                'status': 'recipe-only', 'createdAt': datetime.now(timezone.utc).isoformat(),
+                'source': recipe['source'], 'boundary': recipe['boundary'],
+                'limitations': recipe['limitations'],
+                'recipeUrl': f'{ORIGIN}/{prefix}/recipe.json',
+                'rebuildUrl': f'{ORIGIN}/{prefix}/rebuild.py',
+                'engines': {name: {'version': spec['version'], 'profiles': spec['profiles']}
+                            for name, spec in toolchain.items()}}
+    write(directory / 'recipe.json', recipe)
+    upload(f'{prefix}/recipe.json', directory / 'recipe.json')
+    upload(f'{prefix}/rebuild.py', ROOT / 'scripts/routing/build.py')
+    write(directory / 'manifest.json', manifest)
+    upload(f'{prefix}/manifest.json', directory / 'manifest.json')
+    print('RECIPE PUBLISHED', region, version, flush=True)
+
+
 def publish(region, version, builder, toolchain):
     """Build a source-backed edition, publish atomically by manifest, then prune exact old payload keys."""
     directory = WORK / region / version
@@ -139,9 +196,10 @@ def publish(region, version, builder, toolchain):
         published = json.loads(published_path.read_text())
         if published['status'] == 'retired':
             raise RuntimeError('This graph edition is retired; use its public rebuild recipe locally.')
-        complete_publication(region, version, published, directory)
-        print('REUSED', region, version, flush=True)
-        return
+        if published['status'] == 'available':
+            complete_publication(region, version, published, directory)
+            print('REUSED', region, version, flush=True)
+            return
     base = f'basemap/{region}/{NAMES[region]}-{version}'
     get(base + '.json', directory / 'basemap.json')
     metadata = json.loads((directory / 'basemap.json').read_text())
@@ -155,15 +213,7 @@ def publish(region, version, builder, toolchain):
     else:
         shutil.copyfile(source_file, directory / 'guangdong.osm.pbf')
     get(base + '.boundary.geojson', directory / 'boundary.geojson')
-    recipe = {'schemaVersion': 1, 'region': region, 'version': version,
-              'source': {'url': f"{ORIGIN}/sources/guangdong/{source['key'].split('/')[-1]}",
-                         'sha256': source['sha256'], 'size': source['size']},
-              'boundary': {'url': f'{ORIGIN}/{NAMES[region]}-{version}.boundary.geojson',
-                           'sha256': boundary['sha256'], 'size': boundary['size']},
-              'extraction': 'osmium extract --strategy=complete_ways --polygon boundary.geojson',
-              'engines': toolchain,
-              'limitations': ['No elevation, traffic, admin/timezone databases or transit feeds imported.'],
-              'attribution': 'OpenStreetMap contributors, ODbL 1.0'}
+    recipe = make_recipe(region, version, metadata, toolchain)
     shutil.copyfile(ROOT / '.local/routing/cache/graphhopper-web-11.1.jar', directory / 'graphhopper.jar') if (ROOT / '.local/routing/cache/graphhopper-web-11.1.jar').exists() else None
     results = builder.build(recipe, directory)
     prefix = f'routing/{region}/{version}'
@@ -196,6 +246,7 @@ def main():
     parser.add_argument('--region', choices=[*NAMES, 'all'], default='all')
     parser.add_argument('--version')
     parser.add_argument('--backfill', action='store_true')
+    parser.add_argument('--recipes-only', action='store_true', help='Publish missing recipes without building or changing retention')
     args = parser.parse_args()
     WORK.mkdir(parents=True, exist_ok=True)
     with (WORK / 'publication.lock').open('w') as lock:
@@ -207,10 +258,11 @@ def main():
             catalogue = WORK / f'{region}.basemaps.json'
             get(f'basemap/{region}/versions.json', catalogue)
             versions = sorted((v['version'] for v in json.loads(catalogue.read_text())['versions']), reverse=True)
-            selected = [args.version] if args.version else versions[:2 if args.backfill else 1]
+            selected = [args.version] if args.version else (versions if args.recipes_only and args.backfill else versions[:2 if args.backfill else 1])
             for version in reversed(selected):
                 if version not in versions: raise RuntimeError('Basemap edition is not published')
-                publish(region, version, builder, toolchain)
+                if args.recipes_only: publish_recipe(region, version, toolchain)
+                else: publish(region, version, builder, toolchain)
 
 
 if __name__ == '__main__':

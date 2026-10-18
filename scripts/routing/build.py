@@ -139,7 +139,8 @@ def main():
     parser.add_argument('--out', required=True, type=Path)
     args = parser.parse_args()
     if args.recipe.startswith('https://'):
-        with urllib.request.urlopen(args.recipe, timeout=30) as stream:
+        request = urllib.request.Request(args.recipe, headers={'User-Agent': 'SaanSeoi-routing/1'})
+        with urllib.request.urlopen(request, timeout=30) as stream:
             recipe = json.load(stream)
     else:
         recipe = json.loads(Path(args.recipe).read_text())

@@ -29,17 +29,20 @@ Public downloads require no API key:
 - `/downloads/{region}/{date}.pmtiles`: full map archive.
 - Existing dated regional `.boundary.geojson` endpoints are public too.
 
-The release page shows OSM PBF and PMTiles buttons on the Release tab for the latest two
-editions, and engine downloads on Routing. Retired Routing tabs retain checksums,
-versions and regeneration commands instead of broken links. Tile and TileJSON access
-continues to use the normal SaanSeoi key/origin policy. Public archive access does not
-grant access to private routing compute.
+The release page shows a PMTiles button for every published edition and a regional OSM
+PBF button for the latest two editions. Engine downloads appear on Routing. Retired
+Routing tabs retain checksums, versions and regeneration commands instead of broken
+links. Tile and TileJSON access continues to use the normal SaanSeoi key/origin policy.
+Public archive access does not grant access to private routing compute.
 
 ## Build, publish and retain
 
 ```sh
 # All regions, current and previous published basemap editions:
 bun run routing:backfill
+
+# Missing recipes for every historical basemap edition, without building graphs:
+python3 scripts/routing/publish.py --region all --backfill --recipes-only
 
 # One newly published basemap edition:
 python3 scripts/routing/publish.py --region hk --version 2026-10-01
@@ -137,3 +140,19 @@ The initial shared production and preview deployments use `gba-2026-10-01`. Stre
 routing packages were built successfully; a GraphHopper package startup loaded all three
 profiles. Public metadata, download sizes and release-page rendering were checked. No
 route-quality, end-user latency or load certification was performed.
+
+## Historical build recipes
+
+Every published regional basemap edition has a routing recipe. Older editions that never
+had hosted graph packages use `recipe-only` metadata: pinned engines and exact
+source/boundary inputs, without invented graph hashes or sizes. These recipes apply the
+pinned toolchain to historical OSM, rather than claiming a historical graph build. The
+recipe-only publisher verifies source availability/size and boundary checksums, never
+builds graphs, never changes latest pointers and never invokes retention. Existing
+completed or retired package metadata is preserved.
+
+The public Routing tab explains Valhalla's shared street graph and dynamic per-request
+costing separately from GraphHopper's prepared profiles. It does not describe internal
+service policies as graph format restrictions. The Release information popover explains
+that only the latest two regional PBFs are downloadable; all published PMTiles remain
+available independently of graph retention.
