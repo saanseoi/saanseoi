@@ -14,10 +14,13 @@ import { Label } from '#lib/bits/primitives/label/index.js'
 type PopoverSide = 'top' | 'right' | 'bottom' | 'left'
 type PopoverAlign = 'start' | 'center' | 'end'
 
-let { side = 'bottom', align = 'center' } = $props<{
+let {
+  side = 'bottom',
+  align = 'center',
+}: {
   side?: PopoverSide
   align?: PopoverAlign
-}>()
+} = $props()
 
 const triggerId = $props.id()
 
