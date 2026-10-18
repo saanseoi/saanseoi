@@ -1,4 +1,6 @@
 <script lang="ts">
+import Section from '#lib/bits/pages/docs/components/releaseStats/components/releaseStatsSection.svelte'
+import Header from '#lib/bits/pages/docs/components/releaseStats/components/releaseStatsSectionHeader.svelte'
 import type { RoutingRelease } from '#lib/registry/routingRelease.js'
 let { release }: { release: RoutingRelease | null } = $props()
 const engines = ['valhalla', 'graphhopper'] as const
@@ -19,147 +21,127 @@ const command = $derived(
 )
 </script>
 
-<section class="min-w-0 space-y-8 pt-4 pb-6 lg:pt-0">
-  <div>
-    <h2 class="font-display text-headline-sm font-bold text-primary">Routing graphs</h2>
-    <p class="mt-3 font-body text-body-md text-foreground-alt">
-      Engine-specific street graphs from this region’s archived OpenStreetMap source and
-      published boundary. Each package includes its runtime configuration, build recipe
-      and OpenStreetMap attribution.
+<div class="min-w-0 space-y-6 pb-6">
+  <Section>
+    <Header eyebrow="Routing packages" title="Street graphs" />
+    <p
+      class="max-w-2xl px-5 pt-5 font-body text-label-md leading-6 text-foreground-alt"
+    >
+      Built from this region’s archived OpenStreetMap source and boundary, with runtime
+      configuration and attribution included.
     </p>
-    {#if release?.status === 'recipe-only'}
-      <p
-        class="mt-4 rounded-lg border border-outline-variant bg-surface-container-low p-4 font-body text-body-sm text-foreground-alt"
-      >
-        Build recipes are available for this historical release. Pre-built graph
-        downloads are offered for the latest two releases.
-      </p>
-    {:else if release?.status === 'retired'}
-      <p
-        class="mt-4 rounded-lg border border-outline-variant bg-surface-container-low p-4 font-body text-body-sm text-foreground-alt"
-      >
-        This release’s graph downloads have been retired. Use the recorded recipes below
-        to regenerate them from the retained source and boundary.
+    {#if release && release.status !== 'available'}
+      <p class="px-5 pt-3 font-body text-caption leading-6 text-foreground-alt">
+        {release.status === 'recipe-only'
+          ? 'Build recipes are available for this edition. Pre-built downloads are kept for the latest two releases.'
+          : 'Pre-built downloads have been retired. Regenerate the graphs with the recorded recipe below.'}
       </p>
     {/if}
-  </div>
-  {#if release}
-    <div class="grid gap-4 xl:grid-cols-2">
-      {#each packages as packageInfo}
-        <article class="flex min-w-0 flex-col rounded-lg border border-outline-variant">
-          <div
-            class="flex flex-wrap items-center justify-between gap-3 border-b border-outline-variant bg-surface-container-low px-5 py-4"
-          >
-            <h3 class="font-body text-title-md font-semibold text-primary">
-              {packageInfo.engine === 'valhalla' ? 'Valhalla' : 'GraphHopper'}
-            </h3>
-            <span
-              class="rounded-md border border-outline-variant px-2 py-1 font-mono text-label-sm text-secondary"
-              >v{packageInfo.version}</span
-            >
-          </div>
-          <div class="flex flex-1 flex-col gap-5 p-5">
-            <div>
-              <p class="font-body text-label-md font-semibold text-primary">
-                {packageInfo.engine === 'valhalla'
-                  ? 'One graph, dynamic costing'
-                  : 'Prepared routing profiles'}
-              </p>
-              <p class="mt-2 font-body text-body-sm leading-6 text-foreground-alt">
-                {#if packageInfo.engine === 'valhalla'}
-                  Walking, cycling and driving data share one graph. Choose a costing
-                  model and its preferences when requesting a route; these are not
-                  separately prepared profiles.
-                {:else}
-                  Includes car, bike and foot profiles with contraction hierarchy
-                  preparations. The recipe records the profile configuration; changing
-                  prepared profiles requires rebuilding the graph.
-                {/if}
-              </p>
-            </div>
-            <div
-              class="mt-auto flex flex-wrap items-center justify-between gap-3 border-t border-outline-variant pt-4"
-            >
+    {#if release}
+      <div class="mt-2 divide-y divide-data-outline-variant/40">
+        {#each packages as packageInfo}
+          <article class="px-5 py-6">
+            <div class="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-3">
+              <h3
+                class="flex items-baseline gap-3 font-body text-body-md font-semibold text-primary"
+              >
+                {packageInfo.engine === 'valhalla' ? 'Valhalla' : 'GraphHopper'}
+                <span class="font-mono text-label-md font-normal text-foreground-alt"
+                  >{packageInfo.version}</span
+                >
+              </h3>
               {#if release.status === 'available' && packageInfo.artifact}
-                <span class="font-mono text-title-md text-secondary"
-                  >{(packageInfo.artifact.size / 1_000_000).toFixed(1)}
-                  MB</span
-                >
                 <a
-                  class="rounded-default border border-primary px-4 py-2 font-body text-label-md text-primary transition hover:bg-primary/10"
+                  class="inline-flex items-baseline gap-3 font-body text-label-md text-data-primary underline underline-offset-4 decoration-data-primary/40 hover:decoration-data-primary focus-visible:outline-2 focus-visible:outline-data-primary"
                   href={packageInfo.artifact.url}
-                  >Download graph</a
                 >
-              {:else}
-                <span class="font-body text-label-md text-foreground-alt"
-                  >Generate locally with the recipe below</span
-                >
+                  Download graph
+                  <span class="font-mono text-label-md text-foreground-alt"
+                    >{(packageInfo.artifact.size / 1_000_000).toFixed(1)}
+                    MB</span
+                  >
+                </a>
               {/if}
             </div>
+            <p
+              class="mt-3 max-w-2xl font-body text-label-md leading-6 text-foreground-alt"
+            >
+              {#if packageInfo.engine === 'valhalla'}
+                One street graph for walking, cycling and driving. Choose the costing
+                model and preferences per request.
+              {:else}
+                Prepared car, bike and foot profiles, including contraction hierarchies.
+                Profile changes require a rebuild.
+              {/if}
+            </p>
             {#if packageInfo.artifact}
-              <details class="text-foreground-alt">
+              <details class="mt-3 text-foreground-alt">
                 <summary
-                  class="cursor-pointer font-body text-label-sm hover:text-primary"
+                  class="w-fit cursor-pointer font-body text-caption hover:text-primary focus-visible:outline-2 focus-visible:outline-data-primary"
                 >
                   SHA-256 checksum
                 </summary>
-                <p class="mt-2 break-all font-mono text-label-sm">
+                <p class="mt-2 max-w-2xl break-all font-mono text-caption leading-6">
                   {packageInfo.artifact.sha256}
                 </p>
               </details>
             {/if}
-          </div>
-        </article>
-      {/each}
-    </div>
-    <section>
-      <h2 class="font-display text-headline-sm font-bold text-primary">
-        Build this release’s graphs
-      </h2>
-      <p class="mt-3 font-body text-body-md text-foreground-alt">
-        The recipe pins the archived Guangdong source, this region’s boundary, engine
-        versions and build configuration. Requires Python 3.11+, osmium-tool and Docker.
-      </p>
-      <div
-        class="mt-5 overflow-hidden rounded-lg border border-outline-variant bg-surface-container-low"
-      >
-        <div
-          class="flex flex-wrap items-center justify-between gap-3 border-b border-outline-variant px-4 py-3 font-body text-label-md"
-        >
-          <span class="text-foreground-alt"
-            >{release.region.toUpperCase()}
-            · {release.version}</span
-          >
-          <a class="text-primary underline underline-offset-4" href={release.recipeUrl}
-            >Download build recipe</a
-          >
-        </div>
-        <pre
-          class="overflow-x-auto p-5 font-mono text-label-md leading-7 text-primary"
-        ><code>{command}</code></pre>
+          </article>
+        {/each}
       </div>
-      <p class="mt-3 font-body text-caption leading-6 text-foreground-alt">
-        Uses this release’s historical OpenStreetMap source with the engine versions
-        shown above. Compressed archive bytes may differ between builds.
+    {:else}
+      <p class="px-5 py-5 font-body text-label-md text-foreground-alt">
+        No routing recipe is available for this edition.
       </p>
-    </section>
-    <section class="border-t border-outline-variant pt-5">
-      <h3 class="font-body text-label-md font-semibold text-primary">Included data</h3>
-      <p class="mt-2 font-body text-body-sm leading-6 text-foreground-alt">
-        Street access and attributes from OpenStreetMap. Elevation, live traffic,
-        transit feeds and administrative/time-zone databases are not included. Public
-        transport timetables and fares are not part of these packages. Source data is
-        licensed under
+    {/if}
+  </Section>
+  {#if release}
+    <Section>
+      <Header
+        eyebrow={`${release.region.toUpperCase()} · ${release.version}`}
+        title="Build locally"
+      >
         <a
-          class="text-primary underline underline-offset-4"
-          href="https://www.openstreetmap.org/copyright"
-          >ODbL 1.0</a
-        >.
+          class="font-body text-label-md text-data-primary underline underline-offset-4 decoration-data-primary/40 hover:decoration-data-primary"
+          href={release.recipeUrl}
+          >Download build recipe</a
+        >
+      </Header>
+      <p class="px-5 pt-5 font-body text-label-md leading-6 text-foreground-alt">
+        Python 3.11+, osmium-tool and Docker. Source, boundary, engine versions and
+        configuration are pinned in the recipe.
       </p>
-    </section>
-  {:else}
-    <p class="font-body text-body-md text-foreground-alt">
-      No routing recipe is available for this edition.
-    </p>
+      <pre
+        class="m-5 overflow-x-auto rounded-md bg-data-surface-container-lowest p-4 font-mono text-label-md leading-7 text-foreground-alt"
+      ><code>{command}</code></pre>
+      <details
+        class="border-t border-data-outline-variant/40 px-5 py-4 font-body text-caption text-foreground-alt"
+      >
+        <summary
+          class="w-fit cursor-pointer font-medium hover:text-primary focus-visible:outline-2 focus-visible:outline-data-primary"
+        >
+          Source data &amp; build notes
+        </summary>
+        <div class="mt-3 max-w-2xl space-y-3 leading-6">
+          <p>
+            Uses this release’s historical OpenStreetMap source with the engine versions
+            shown above. Compressed archive bytes may differ between builds.
+          </p>
+          <p>
+            Elevation, live traffic, transit feeds and administrative/time-zone
+            databases are not included. Timetables and fares are not part of these
+            packages.
+          </p>
+          <p>
+            OpenStreetMap data is licensed under
+            <a
+              class="text-data-primary underline underline-offset-4"
+              href="https://www.openstreetmap.org/copyright"
+              >ODbL 1.0</a
+            >.
+          </p>
+        </div>
+      </details>
+    </Section>
   {/if}
-</section>
+</div>

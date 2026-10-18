@@ -1,4 +1,6 @@
 <script lang="ts">
+import Section from '#lib/bits/pages/docs/components/releaseStats/components/releaseStatsSection.svelte'
+import Header from '#lib/bits/pages/docs/components/releaseStats/components/releaseStatsSectionHeader.svelte'
 import type { metaBasemapReleaseStats } from '@repo/db'
 import { manifestStats, type BasemapManifest } from '#lib/registry/basemapRelease.js'
 let {
@@ -29,16 +31,13 @@ let counts = $derived(
 )
 let maxCount = $derived(Math.max(...counts.map(row => row.value), 1))
 </script>
-<div class="space-y-8">
+<div class="space-y-6">
   {#if statistics}
-    <section>
-      <h2 class="font-display text-headline-sm font-bold text-primary">
-        Inside this basemap
-      </h2>
-      <p class="mt-2 font-body text-body-md text-foreground-alt">
-        Features in the archived OpenStreetMap source for {current.region.description}.
-      </p>
-      <div class="mt-5 grid gap-3 sm:grid-cols-3">
+    <Section>
+      <Header eyebrow="OpenStreetMap source" title="Inside this basemap" />
+      <dl
+        class="grid grid-cols-1 divide-y divide-data-outline-variant/40 sm:grid-cols-3 sm:divide-x sm:divide-y-0"
+      >
         {#each [
           { label: 'Map layers', value: statistics.layers.length },
           {
@@ -50,95 +49,103 @@ let maxCount = $derived(Math.max(...counts.map(row => row.value), 1))
             value: statistics.addressedTiles.toLocaleString('en-GB'),
           },
         ] as metric}
-          <div
-            class="rounded-lg border border-outline-variant bg-surface-container-low p-5"
-          >
-            <p class="font-body text-label-md text-foreground-alt">{metric.label}</p>
-            <p class="mt-2 font-mono text-headline-md font-bold text-secondary">
+          <div class="px-5 py-5">
+            <dt class="font-body text-caption text-foreground-alt">{metric.label}</dt>
+            <dd
+              class="mt-2 font-mono text-headline-md font-semibold tabular-nums text-primary"
+            >
               {metric.value}
-            </p>
+            </dd>
           </div>
         {/each}
-      </div>
-      <div class="mt-5 space-y-4 rounded-lg border border-outline-variant p-5">
-        {#each counts as row}
-          <div>
-            <div class="mb-2 flex justify-between gap-4 font-body text-label-md">
-              <span class="text-primary">{row.label}</span
-              ><span class="font-mono text-secondary"
-                >{row.value.toLocaleString('en-GB')}</span
-              >
-            </div>
-            <div class="h-3 rounded-full bg-surface-container-high" aria-hidden="true">
+      </dl>
+      <div class="border-t border-data-outline-variant/40 px-5 py-5">
+        <div
+          class="grid grid-cols-[minmax(0,1fr)_minmax(2rem,1fr)_max-content] items-center gap-x-4 gap-y-4"
+        >
+          {#each counts as row}
+            <p class="font-body text-label-md text-foreground-alt">{row.label}</p>
+            <div
+              class="h-1.5 overflow-hidden rounded-full bg-data-surface-container-high"
+              aria-hidden="true"
+            >
               <div
-                class="h-full rounded-full bg-secondary"
+                class="h-full rounded-full bg-data-primary/55"
                 style:width={`${(row.value / maxCount) * 100}%`}
               ></div>
             </div>
-          </div>
-        {/each}
+            <p class="text-right font-mono text-label-md tabular-nums text-primary">
+              {row.value.toLocaleString('en-GB')}
+            </p>
+          {/each}
+        </div>
+        <p class="mt-5 max-w-2xl font-body text-caption leading-6 text-foreground-alt">
+          OSM objects before clipping and simplification. Categories can overlap;
+          complete ways can extend beyond the regional boundary.
+        </p>
       </div>
-      <p class="mt-3 font-body text-caption leading-6 text-foreground-alt">
-        Counts are OSM objects, before tile clipping and zoom simplification. Roads and
-        railways count ways; buildings count ways and relations. Points of interest
-        include amenity, shop, tourism and leisure tags. Categories can overlap, and
-        complete ways can extend beyond the regional boundary.
-      </p>
-    </section>
+    </Section>
   {/if}
-  <section>
-    <h2 class="font-display text-headline-sm font-bold text-primary">
-      Archive & source sizes
-    </h2>
-    <p class="mt-2 font-body text-body-md text-foreground-alt">
-      Compare the map archive and its input artefacts. The source archive covers
-      Guangdong.
+  <Section>
+    <Header eyebrow="Artefacts" title="Archive & source sizes" />
+    <p class="px-5 pt-5 font-body text-label-md leading-6 text-foreground-alt">
+      The source archive covers Guangdong; the other artefacts cover this region.
     </p>
-    <div class="mt-5 space-y-5 rounded-lg border border-outline-variant p-5">
+    <div class="space-y-5 px-5 py-5">
       {#each sizes as row}
         <div>
           <div class="mb-2 flex justify-between gap-4 font-body text-label-md">
-            <span class="text-primary">{row.label}</span
-            ><span class="shrink-0 font-mono text-primary"
+            <span class="text-foreground-alt">{row.label}</span>
+            <span class="shrink-0 font-mono tabular-nums text-primary"
               >{(row.value / 1_000_000).toFixed(2)}
               MB</span
             >
           </div>
-          <div class="h-4 rounded-full bg-surface-container-high" aria-hidden="true">
+          <div
+            class="h-1.5 overflow-hidden rounded-full bg-data-surface-container-high"
+            aria-hidden="true"
+          >
             <div
-              class="h-full min-w-px rounded-full bg-secondary/70"
+              class="h-full min-w-px rounded-full bg-data-primary/55"
               style:width={`${(row.value / maxSize) * 100}%`}
             ></div>
           </div>
         </div>
       {/each}
     </div>
-  </section>
-  {#if statistics}
-    <details
-      class="rounded-lg border border-outline-variant p-5 font-body text-label-md text-foreground-alt"
-    >
-      <summary class="cursor-pointer font-semibold text-primary">
-        How these counts were calculated
-      </summary>
-      <p class="mt-3 leading-6">
-        The archived source and release boundary were verified by SHA-256. OSM objects
-        were extracted with complete ways and counted once per category. These are
-        source-object counts, not counts of rendered symbols or unique real-world
-        buildings.
+    {#if statistics}
+      <details
+        class="border-t border-data-outline-variant/40 px-5 py-4 font-body text-caption text-foreground-alt"
+      >
+        <summary
+          class="w-fit cursor-pointer hover:text-primary focus-visible:outline-2 focus-visible:outline-data-primary"
+        >
+          How these counts were calculated
+        </summary>
+        <p class="mt-3 max-w-2xl leading-6">
+          Archived source and boundary verified by SHA-256. Objects were extracted with
+          complete ways and counted once per category. Counts describe OSM objects,
+          rather than rendered symbols or unique real-world buildings. Roads and
+          railways count ways; buildings count ways and relations. Points of interest
+          include amenity, shop, tourism and leisure tags.
+        </p>
+        <dl class="mt-4 space-y-3">
+          {#each [
+            { label: 'Source SHA-256', value: statistics.sourceSha256 },
+            { label: 'Boundary SHA-256', value: statistics.boundarySha256 },
+            { label: 'Method', value: statistics.method },
+          ] as row}
+            <div>
+              <dt>{row.label}</dt>
+              <dd class="mt-1 break-all font-mono leading-6">{row.value}</dd>
+            </div>
+          {/each}
+        </dl>
+      </details>
+    {:else}
+      <p class="px-5 pb-5 font-body text-caption text-foreground-alt">
+        Source-feature statistics have not been published for this release.
       </p>
-      <dl class="mt-4 space-y-3 break-all font-mono text-caption">
-        <dt>Source SHA-256</dt>
-        <dd>{statistics.sourceSha256}</dd>
-        <dt>Boundary SHA-256</dt>
-        <dd>{statistics.boundarySha256}</dd>
-        <dt>Method</dt>
-        <dd>{statistics.method}</dd>
-      </dl>
-    </details>
-  {:else}
-    <p class="font-body text-body-md text-foreground-alt">
-      Source-feature statistics have not been published for this release.
-    </p>
-  {/if}
+    {/if}
+  </Section>
 </div>
