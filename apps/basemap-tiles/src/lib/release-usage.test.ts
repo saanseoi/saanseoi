@@ -80,17 +80,21 @@ test('resolves latest by the served archive ETag, including an older version pin
   ).toBeNull()
 })
 
-test('worker counts a completed archive but excludes range, HEAD and denied requests', async () => {
+test('worker counts public archive downloads but excludes range, HEAD and rejected methods', async () => {
   const { default: worker } = await import('../index')
   const points: unknown[] = []
   const env = {
-    AUTH_MODE: 'disabled',
+    AUTH_MODE: 'required',
     PRODUCT_USAGE: { writeDataPoint: (point: unknown) => points.push(point) },
     BUCKET: {
       get: async (key: string) =>
         key.endsWith('regions.json')
           ? { json: async () => ({ regions: [{ code: 'hk', name: 'hongkong' }] }) }
-          : { body: new Response('archive').body, size: 7 },
+          : {
+              body: new Response('archive').body,
+              size: 7,
+              httpEtag: '"archive-etag"',
+            },
     },
   } as unknown as Parameters<typeof worker.fetch>[1]
   const ctx = { waitUntil: () => {} } as unknown as ExecutionContext
@@ -109,12 +113,12 @@ test('worker counts a completed archive but excludes range, HEAD and denied requ
       )
     ).status,
   ).toBe(416)
+  const head = await worker.fetch(new Request(url, { method: 'HEAD' }), env, ctx)
+  expect(head.status).toBe(200)
+  expect(head.headers.get('Content-Length')).toBe('7')
+  expect(await head.text()).toBe('')
   expect(
-    (await worker.fetch(new Request(url, { method: 'HEAD' }), env, ctx)).status,
+    (await worker.fetch(new Request(url, { method: 'POST' }), env, ctx)).status,
   ).toBe(405)
-  expect(
-    (await worker.fetch(new Request(url), { ...env, AUTH_MODE: 'required' }, ctx))
-      .status,
-  ).toBe(401)
   expect(points).toHaveLength(1)
 })
