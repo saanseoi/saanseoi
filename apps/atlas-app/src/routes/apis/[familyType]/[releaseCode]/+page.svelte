@@ -502,6 +502,7 @@ let allVersions = $derived(
       const searchParams = new URLSearchParams()
       if (activeTab !== 'release') searchParams.set('tab', activeTab)
       if (apiProfile !== 'default') searchParams.set('profile', apiProfile)
+      if (selectedResource) searchParams.set('resource', resourceKey(selectedResource))
       if (
         (activeTab === 'release' || activeTab === 'guide') &&
         showNoteDiff &&
