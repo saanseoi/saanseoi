@@ -21,7 +21,9 @@ let {
 {#if resources[0]}
   <Changes
     {...props}
-    {resourceLabel}
+    resourceLabel={resources.length > 1 && resources[0].role === 'primary'
+      ? 'Primary records'
+      : resourceLabel}
     resourceType={resources[0].snapshot.resourceType}
     primary={resources[0].role === 'primary'}
     toSnapshot={resources[0].snapshotId}

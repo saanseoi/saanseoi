@@ -162,7 +162,7 @@ test('identical snapshots skip comparison even when stored statistics are incons
   expect(remote.getApiSnapshotChanges).not.toHaveBeenCalled()
 })
 
-test('All compares each variant with its matching baseline without borrowing primary counts', async () => {
+test('All retains the labelled primary summary above one mixed list', async () => {
   remote.getApiSnapshotChanges.mockClear()
   remote.getApiSnapshotChanges.mockImplementation(({ toSnapshot }) =>
     ready([record(toSnapshot, `Record from ${toSnapshot}`)]),
@@ -200,7 +200,12 @@ test('All compares each variant with its matching baseline without borrowing pri
       toSnapshot: 'overture-new',
     }),
   )
-  await expect.element(screen.getByRole('heading')).not.toBeInTheDocument()
+  await expect
+    .element(screen.getByRole('heading', { name: /3\s+records/i }))
+    .toBeVisible()
+  await expect
+    .element(screen.getByText('Primary records', { exact: true }))
+    .toBeVisible()
   await expect.element(screen.getByText('No matching changes.')).not.toBeInTheDocument()
   expect(document.querySelectorAll('section[aria-label="Changes"]')).toHaveLength(1)
 })
@@ -268,4 +273,25 @@ test('an unchanged variant cannot add an empty state above another variant recor
     .element(screen.getByRole('button', { name: /Supplementary record/ }))
     .toBeVisible()
   await expect.element(screen.getByText('No matching changes.')).not.toBeInTheDocument()
+})
+
+test('mixed comparisons show saved primary counts while records and baseline are pending', async () => {
+  remote.getApiSnapshotChanges.mockReturnValue(
+    Object.assign(new Promise(() => {}), { ready: false }),
+  )
+  const screen = await render(Changes, {
+    ...props,
+    resourceLabel: 'Primary records',
+    baselineLoading: true,
+    comparisons: [
+      { fromSnapshot: 'gov-old', toSnapshot: 'gov-new' },
+      { fromSnapshot: 'overture-old', toSnapshot: 'overture-new' },
+    ],
+  })
+  await expect
+    .element(screen.getByRole('heading', { name: /3\s+records/i }))
+    .toBeVisible()
+  await expect
+    .element(screen.getByText('Primary records', { exact: true }))
+    .toBeVisible()
 })

@@ -79,10 +79,7 @@ let rows = $derived(
     ),
 )
 let changeStatistics = $derived(
-  // Saved primary counts cannot describe a combined list of supplementary variants.
-  inputs.length === 1
-    ? selectSnapshotChangeStats(statistics, resourceType, primary)
-    : [],
+  selectSnapshotChangeStats(statistics, resourceType, primary),
 )
 let loading = $derived(
   baselineLoading ||
