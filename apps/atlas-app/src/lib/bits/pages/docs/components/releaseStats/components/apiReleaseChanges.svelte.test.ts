@@ -200,11 +200,72 @@ test('All compares each variant with its matching baseline without borrowing pri
       toSnapshot: 'overture-new',
     }),
   )
+  await expect.element(screen.getByRole('heading')).not.toBeInTheDocument()
+  await expect.element(screen.getByText('No matching changes.')).not.toBeInTheDocument()
+  expect(document.querySelectorAll('section[aria-label="Changes"]')).toHaveLength(1)
+})
+
+test('mixed pagination retains records with the same ID in different variants', async () => {
+  let intersect!: IntersectionObserverCallback
+  vi.stubGlobal(
+    'IntersectionObserver',
+    class {
+      constructor(callback: IntersectionObserverCallback) {
+        intersect = callback
+      }
+      observe() {}
+      disconnect() {}
+    },
+  )
+  remote.getApiSnapshotChanges.mockImplementation(({ toSnapshot, offset }) =>
+    offset
+      ? ready([record(`${toSnapshot}-next`, `Next ${toSnapshot}`)])
+      : ready([record('shared-id', `First ${toSnapshot}`)], 1),
+  )
+  const screen = await render(Changes, {
+    ...props,
+    comparisons: [
+      { fromSnapshot: 'gov-old', toSnapshot: 'gov-new' },
+      { fromSnapshot: 'overture-old', toSnapshot: 'overture-new' },
+    ],
+  })
   await expect
-    .element(
-      screen
-        .getByRole('region', { name: 'Overture Places' })
-        .getByRole('heading', { name: /records/i }),
-    )
-    .not.toBeInTheDocument()
+    .element(screen.getByRole('button', { name: /First gov-new/ }))
+    .toBeVisible()
+  await expect
+    .element(screen.getByRole('button', { name: /First overture-new/ }))
+    .toBeVisible()
+  intersect(
+    [{ isIntersecting: true } as IntersectionObserverEntry],
+    {} as IntersectionObserver,
+  )
+  await expect
+    .element(screen.getByRole('button', { name: /Next gov-new/ }))
+    .toBeVisible()
+  await expect
+    .element(screen.getByRole('button', { name: /Next overture-new/ }))
+    .toBeVisible()
+  await expect
+    .element(screen.getByRole('button', { name: /First gov-new/ }))
+    .toBeVisible()
+  await expect
+    .element(screen.getByRole('button', { name: /First overture-new/ }))
+    .toBeVisible()
+})
+
+test('an unchanged variant cannot add an empty state above another variant records', async () => {
+  remote.getApiSnapshotChanges.mockReturnValue(
+    ready([record('one', 'Supplementary record')]),
+  )
+  const screen = await render(Changes, {
+    ...props,
+    comparisons: [
+      { fromSnapshot: 'same', toSnapshot: 'same' },
+      { fromSnapshot: 'old', toSnapshot: 'new' },
+    ],
+  })
+  await expect
+    .element(screen.getByRole('button', { name: /Supplementary record/ }))
+    .toBeVisible()
+  await expect.element(screen.getByText('No matching changes.')).not.toBeInTheDocument()
 })
