@@ -71,3 +71,38 @@ test('a selected supplementary variant reads its saved resource counts instead o
   ).toBe(3)
   expect(selectSnapshotChangeStats(stats, 'address', false, 'another')).toEqual([])
 })
+
+test('All sums each saved variant measure without counting the primary aggregate again', () => {
+  const stats = [
+    ...churn(12),
+    ...churn(3, 'table', 'address2d'),
+    ...churn(4, 'resource', 'address:hkgov-dpo'),
+    ...churn(7, 'resource', 'address:overture-places'),
+  ]
+  const all = selectSnapshotChangeStats(stats, 'address', true, [
+    'hkgov-dpo',
+    'overture-places',
+  ])
+  expect(
+    Object.fromEntries(
+      all
+        .filter(row => row.category === 'changes')
+        .map(row => [row.measure, row.value]),
+    ),
+  ).toEqual({
+    count: 200,
+    added_count: 2,
+    changed_count: 11,
+    removed_count: 4,
+    unchanged_count: 187,
+  })
+  expect(all.find(row => row.category === 'records')?.value).toBe(200)
+  expect(
+    selectSnapshotChangeStats(
+      stats.filter(row => row.dimensionValue !== 'address:overture-places'),
+      'address',
+      true,
+      ['hkgov-dpo', 'overture-places'],
+    ),
+  ).toEqual([])
+})

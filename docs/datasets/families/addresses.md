@@ -1884,5 +1884,6 @@ Address API change statistics include a `resource` dimension keyed by
 `address:{variant}`. Each variant compares its retained canonical Address2D and locale
 versions with the same variant in the preceding API publication. Reused snapshots have
 zero churn and their full record count remains unchanged. These saved counts supply the
-selected variant's Changes summary independently of record pagination. The All view uses
-the primary variant's saved counts and labels them as primary records.
+selected variant's Changes summary independently of record pagination. The All view sums
+the saved counts of every selected variant for each change measure. A complete set of
+variant counts is required before displaying that combined summary.

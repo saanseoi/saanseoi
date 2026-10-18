@@ -12,8 +12,21 @@ export function selectSnapshotChangeStats(
   stats: readonly Stat[],
   resourceType: string,
   primary: boolean,
-  variant?: string,
-) {
+  variant?: string | string[],
+): Array<{ category: string; measure: string; unit: string; value: number }> {
+  if (Array.isArray(variant)) {
+    if (!variant.length) return []
+    // Every selected variant must have its own saved counts; a partial sum is not a total.
+    const scoped = stats.filter(row => row.dimension === 'resource')
+    const selections = variant.map(value =>
+      selectSnapshotChangeStats(scoped, resourceType, false, value),
+    )
+    if (selections.some(rows => !rows.length)) return []
+    return selections[0]!.map((row, index) => ({
+      ...row,
+      value: selections.reduce((total, rows) => total + rows[index]!.value, 0),
+    }))
+  }
   // The address table breakdown belongs to the primary variant, not supplementary
   // address snapshots (for example Overture Places).
   const table = resourceType === 'address' ? 'address2d' : resourceType

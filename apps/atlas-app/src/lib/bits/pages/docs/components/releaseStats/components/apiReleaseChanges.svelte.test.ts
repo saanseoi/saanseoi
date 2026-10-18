@@ -32,6 +32,13 @@ const props = {
   locale: 'en' as const,
   presentation: buildSourceReleaseStatsPresentation('en'),
 }
+const variantStatistics = ['hkgov-dpo', 'overture-places'].flatMap(variant =>
+  props.statistics.map(row => ({
+    ...row,
+    dimension: 'resource',
+    dimensionValue: `address:${variant}`,
+  })),
+)
 const record = (id: string, name: string) => ({
   id,
   type: 'added',
@@ -162,7 +169,7 @@ test('identical snapshots skip comparison even when stored statistics are incons
   expect(remote.getApiSnapshotChanges).not.toHaveBeenCalled()
 })
 
-test('All retains the labelled primary summary above one mixed list', async () => {
+test('All sums saved variant statistics above one mixed list', async () => {
   remote.getApiSnapshotChanges.mockClear()
   remote.getApiSnapshotChanges.mockImplementation(({ toSnapshot }) =>
     ready([record(toSnapshot, `Record from ${toSnapshot}`)]),
@@ -176,6 +183,7 @@ test('All retains the labelled primary summary above one mixed list', async () =
   const screen = await render(VariantChanges, {
     ...props,
     resourceLabel: 'Addresses',
+    statistics: variantStatistics,
     resources: [
       resource('hkgov-dpo', 'gov-new', 'primary'),
       resource('overture-places', 'overture-new', 'supplementary'),
@@ -201,11 +209,9 @@ test('All retains the labelled primary summary above one mixed list', async () =
     }),
   )
   await expect
-    .element(screen.getByRole('heading', { name: /3\s+records/i }))
+    .element(screen.getByRole('heading', { name: /6\s+records/i }))
     .toBeVisible()
-  await expect
-    .element(screen.getByText('Primary records', { exact: true }))
-    .toBeVisible()
+  await expect.element(screen.getByText('Addresses', { exact: true })).toBeVisible()
   await expect.element(screen.getByText('No matching changes.')).not.toBeInTheDocument()
   expect(document.querySelectorAll('section[aria-label="Changes"]')).toHaveLength(1)
 })
@@ -275,13 +281,16 @@ test('an unchanged variant cannot add an empty state above another variant recor
   await expect.element(screen.getByText('No matching changes.')).not.toBeInTheDocument()
 })
 
-test('mixed comparisons show saved primary counts while records and baseline are pending', async () => {
+test('mixed comparisons show summed variant counts while records and baseline are pending', async () => {
   remote.getApiSnapshotChanges.mockReturnValue(
     Object.assign(new Promise(() => {}), { ready: false }),
   )
   const screen = await render(Changes, {
     ...props,
-    resourceLabel: 'Primary records',
+    resourceLabel: 'Addresses',
+    resourceType: 'address',
+    variant: ['hkgov-dpo', 'overture-places'],
+    statistics: variantStatistics,
     baselineLoading: true,
     comparisons: [
       { fromSnapshot: 'gov-old', toSnapshot: 'gov-new' },
@@ -289,11 +298,9 @@ test('mixed comparisons show saved primary counts while records and baseline are
     ],
   })
   await expect
-    .element(screen.getByRole('heading', { name: /3\s+records/i }))
+    .element(screen.getByRole('heading', { name: /6\s+records/i }))
     .toBeVisible()
-  await expect
-    .element(screen.getByText('Primary records', { exact: true }))
-    .toBeVisible()
+  await expect.element(screen.getByText('Addresses', { exact: true })).toBeVisible()
 })
 
 test('a supplementary variant summary renders saved scoped counts even with no record changes', async () => {

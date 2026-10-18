@@ -33,7 +33,7 @@ let {
   baselineLoading?: boolean
   statistics: Parameters<typeof selectSnapshotChangeStats>[0]
   resourceType: string
-  variant?: string
+  variant?: string | string[]
   primary: boolean
   fromSnapshot?: string
   toSnapshot: string
