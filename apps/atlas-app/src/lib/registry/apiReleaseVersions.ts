@@ -41,3 +41,28 @@ export function getVisibleApiReleaseVersions(
     return true
   })
 }
+
+/** Match the Statistics metrics baseline, including exact period granularity. */
+export function isStatisticsComparisonBaseline(
+  candidate: {
+    apiVersionId: string
+    regionCode?: string | null
+    domainCode?: string | null
+    cohortKey?: string | null
+  },
+  selected: {
+    apiVersionId: string
+    regionCode?: string | null
+    domainCode?: string | null
+    cohortKey?: string | null
+  },
+) {
+  return (
+    candidate.apiVersionId === selected.apiVersionId &&
+    candidate.regionCode === selected.regionCode &&
+    candidate.domainCode === selected.domainCode &&
+    candidate.cohortKey != null &&
+    selected.cohortKey != null &&
+    candidate.cohortKey.replace(/\d/g, '') === selected.cohortKey.replace(/\d/g, '')
+  )
+}

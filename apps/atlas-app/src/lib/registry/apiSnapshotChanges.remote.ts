@@ -3,13 +3,19 @@ import type { HarbourReadableDb } from '@repo/core/db/types'
 import {
   historyVersionSelection,
   type ReplayShard,
+  type ResolvedSnapshotVersion,
   resolveSnapshotVersionState,
 } from '@repo/core/pipeline/db/snapshotReplay.ts'
 import { eq, historySchema, metaSchema } from '@repo/db'
 import { error } from '@sveltejs/kit'
 import { z } from 'zod'
 import { query } from '$app/server'
-import { compareSnapshotRecords, snapshotContent } from './apiSnapshotChanges'
+import { readStatisticSnapshotRecords } from '@repo/core/pipeline/services/statistics/statisticSnapshotRecords.ts'
+import {
+  compareSnapshotRecords,
+  compareStatisticSnapshots,
+  snapshotContent,
+} from './apiSnapshotChanges'
 import { getHistoryDb, getMetaDb } from './server'
 import type { RegistryApi } from './types'
 
@@ -63,11 +69,27 @@ export const getApiSnapshotChanges = query(
               db: getHistoryDb(assignment.bindingName) as unknown as HarbourReadableDb,
             })
         }
-      const versions = await resolveSnapshotVersionState(plan, shards, [
-        snapshot.resourceType,
-        `${snapshot.resourceType}I18n`,
-      ])
-      return { resourceType: snapshot.resourceType, definition, shards, versions }
+      const statistics =
+        snapshot.resourceType === 'divisionStatistic'
+          ? await readStatisticSnapshotRecords(
+              db as unknown as HarbourReadableDb,
+              [...shards.values()].map(shard => shard.db),
+              id,
+            )
+          : undefined
+      const versions = statistics
+        ? new Map<string, ResolvedSnapshotVersion>()
+        : await resolveSnapshotVersionState(plan, shards, [
+            snapshot.resourceType,
+            `${snapshot.resourceType}I18n`,
+          ])
+      return {
+        resourceType: snapshot.resourceType,
+        definition,
+        shards,
+        versions,
+        statistics,
+      }
     }
     const [before, after] = await Promise.all([
       read(input.fromSnapshot),
@@ -136,7 +158,10 @@ export const getApiSnapshotChanges = query(
       materialise(before),
       materialise(after),
     ])
-    const comparison = compareSnapshotRecords(oldRecords, newRecords)
+    const comparison =
+      before.statistics && after.statistics
+        ? compareStatisticSnapshots(before.statistics, after.statistics)
+        : compareSnapshotRecords(oldRecords, newRecords)
     const records = comparison.records.filter(
       record => !input.type || record.type === input.type,
     )

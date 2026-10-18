@@ -1,3 +1,8 @@
+import {
+  pairStatisticRecords,
+  statisticComparisonContent,
+} from '@repo/core/pipeline/services/statistics/statisticRecordComparison.ts'
+import type { RetainedStatisticRecord } from '@repo/core/pipeline/services/statistics/statisticSnapshotRecords.ts'
 import { jsonFieldDiff } from '@repo/core/jsonFieldDiff'
 import { decompressJsonBrotli } from '@repo/core/pipeline/services/storage/brotliJson.ts'
 
@@ -45,4 +50,30 @@ export function compareSnapshotRecords(
         : [{ id, type, before: old, after: next, fields }]
     })
   return { counts, records, total: after.size }
+}
+
+/** Compare period-owned observations using the shared release-statistics convention. */
+export function compareStatisticSnapshots(
+  before: RetainedStatisticRecord[],
+  after: RetainedStatisticRecord[],
+) {
+  const counts = { added: 0, changed: 0, removed: 0, unchanged: 0 }
+  const records = pairStatisticRecords(after, before)
+    .flatMap(pair => {
+      counts[pair.type]++
+      if (pair.type === 'unchanged') return []
+      const old = pair.before ? statisticComparisonContent(pair.before) : null
+      const next = pair.after ? statisticComparisonContent(pair.after) : null
+      return [
+        {
+          id: (pair.after ?? pair.before)!.id,
+          type: pair.type,
+          before: pair.before ? snapshotContent(pair.before) : null,
+          after: pair.after ? snapshotContent(pair.after) : null,
+          fields: jsonFieldDiff(old, next),
+        },
+      ]
+    })
+    .sort((a, b) => a.id.localeCompare(b.id))
+  return { counts, records, total: after.length }
 }

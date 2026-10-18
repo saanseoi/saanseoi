@@ -31,6 +31,9 @@ export const sourceRecordChangesCopy = {
     unavailable: 'The retained comparison is unavailable.',
     noBaseline:
       'This is the first retained release. There is no earlier release to compare it with.',
+    statisticsComparisonInfo: 'About statistics comparisons',
+    statisticsComparison:
+      'This compares observations across reference periods by dataset and geography. Changed means the values, definitions or geographic linkage differ; it does not mean an earlier observation was revised. Added and removed describe coverage in these two releases. Earlier periods remain available.',
     noFields: 'No visible field changes.',
   },
   'zh-Hant': {
@@ -63,6 +66,9 @@ export const sourceRecordChangesCopy = {
     retry: '重試',
     unavailable: '無法取得保留的比較資料。',
     noBaseline: '這是首個保留的版本，沒有更早的版本可供比較。',
+    statisticsComparisonInfo: '關於統計比較',
+    statisticsComparison:
+      '此比較按資料集及地理範圍對照不同參考期的觀測。「修改」表示數值、定義或地理連結不同，並不表示較早的觀測已被修訂。「新增」及「移除」表示這兩個版本的涵蓋範圍。較早的參考期仍可查閱。',
     noFields: '沒有可顯示的欄位變更。',
   },
   'zh-Hans': {
@@ -95,6 +101,9 @@ export const sourceRecordChangesCopy = {
     retry: '重试',
     unavailable: '无法取得保留的比较数据。',
     noBaseline: '这是首个保留的版本，没有更早的版本可供比较。',
+    statisticsComparisonInfo: '关于统计比较',
+    statisticsComparison:
+      '此比较按数据集及地理范围对照不同参考期的观测。“修改”表示数值、定义或地理链接不同，并不表示较早的观测已被修订。“新增”及“移除”表示这两个版本的涵盖范围。较早的参考期仍可查阅。',
     noFields: '没有可显示的字段变更。',
   },
 } as const

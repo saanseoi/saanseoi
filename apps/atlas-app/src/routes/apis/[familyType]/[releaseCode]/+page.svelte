@@ -39,6 +39,7 @@ import { getReleaseVersionLabel } from '#lib/registry/releaseCode.js'
 import { resolveReleaseSetRef } from '#lib/registry/releaseSetRef.js'
 import {
   compareApiReleaseVersions,
+  isStatisticsComparisonBaseline,
   getVisibleApiReleaseVersions,
 } from '#lib/registry/apiReleaseVersions.js'
 import { getReleaseHeaderDomainOptions } from '#lib/bits/pages/docs/components/releaseHeader/releaseHeaderDomainOptions.js'
@@ -142,6 +143,13 @@ let previousRelease = $derived.by(() => {
   return currentIndex >= 0 ? releases[currentIndex + 1] : undefined
 })
 
+let previousChangesRelease = $derived(
+  api.familyType === 'stats'
+    ? domainReleases
+        .slice(domainReleases.findIndex(item => item.code === release.code) + 1)
+        .find(item => isStatisticsComparisonBaseline(item, release))
+    : previousRelease,
+)
 let resources = $derived(release.apiReleaseSetSnapshots ?? [])
 let selectedResource = $derived(
   resources.find(
@@ -151,10 +159,10 @@ let selectedResource = $derived(
     resources[0],
 )
 let previousResources = $derived(
-  currentUrl.searchParams.get('tab') === 'changes' && previousRelease
+  currentUrl.searchParams.get('tab') === 'changes' && previousChangesRelease
     ? getApiReleaseResources({
         familyType: api.familyType,
-        releaseCode: previousRelease.code,
+        releaseCode: previousChangesRelease.code,
       })
     : null,
 )
@@ -640,6 +648,16 @@ let actions = $derived<ReleaseNavAction[]>(
             changesOnly = !changesOnly
           },
         },
+        ...(selectedResource?.snapshot.resourceType === 'divisionStatistic'
+          ? [
+              {
+                id: 'statistics-changes-info',
+                icon: 'proicons:info',
+                label: changeCopy.statisticsComparisonInfo,
+                infoDescription: changeCopy.statisticsComparison,
+              },
+            ]
+          : []),
       ]
     : (activeTab === 'release' || activeTab === 'guide') && versions[1]
       ? [
