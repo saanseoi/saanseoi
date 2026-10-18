@@ -55,3 +55,19 @@ test('missing published counts are not silently presented as zero', () => {
     ),
   ).toEqual([])
 })
+
+test('a selected supplementary variant reads its saved resource counts instead of primary churn', () => {
+  const stats = [
+    ...churn(12),
+    ...churn(3, 'table', 'address2d'),
+    ...churn(7, 'resource', 'address:overture-places'),
+  ]
+  const selected = selectSnapshotChangeStats(stats, 'address', false, 'overture-places')
+  expect(selected.find(row => row.measure === 'changed_count')?.value).toBe(7)
+  expect(
+    selectSnapshotChangeStats(stats, 'address', true, 'hkgov-dpo').find(
+      row => row.measure === 'changed_count',
+    )?.value,
+  ).toBe(3)
+  expect(selectSnapshotChangeStats(stats, 'address', false, 'another')).toEqual([])
+})

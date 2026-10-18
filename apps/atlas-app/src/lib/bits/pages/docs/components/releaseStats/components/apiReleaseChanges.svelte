@@ -18,6 +18,7 @@ let {
   baselineLoading = false,
   statistics,
   resourceType,
+  variant,
   primary,
   fromSnapshot,
   toSnapshot,
@@ -32,6 +33,7 @@ let {
   baselineLoading?: boolean
   statistics: Parameters<typeof selectSnapshotChangeStats>[0]
   resourceType: string
+  variant?: string
   primary: boolean
   fromSnapshot?: string
   toSnapshot: string
@@ -79,7 +81,7 @@ let rows = $derived(
     ),
 )
 let changeStatistics = $derived(
-  selectSnapshotChangeStats(statistics, resourceType, primary),
+  selectSnapshotChangeStats(statistics, resourceType, primary, variant),
 )
 let loading = $derived(
   baselineLoading ||

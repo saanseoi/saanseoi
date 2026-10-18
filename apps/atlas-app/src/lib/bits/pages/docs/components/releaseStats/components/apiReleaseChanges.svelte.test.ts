@@ -295,3 +295,29 @@ test('mixed comparisons show saved primary counts while records and baseline are
     .element(screen.getByText('Primary records', { exact: true }))
     .toBeVisible()
 })
+
+test('a supplementary variant summary renders saved scoped counts even with no record changes', async () => {
+  remote.getApiSnapshotChanges.mockClear()
+  const screen = await render(Changes, {
+    ...props,
+    resourceLabel: 'Addresses',
+    resourceType: 'address',
+    variant: 'overture-places',
+    primary: false,
+    fromSnapshot: 'same',
+    toSnapshot: 'same',
+    statistics: props.statistics.map(row => ({
+      ...row,
+      dimension: 'resource',
+      dimensionValue: 'address:overture-places',
+      value: row.measure === 'count' || row.measure === 'unchanged_count' ? 3 : 0,
+    })),
+  })
+  await expect
+    .element(screen.getByRole('heading', { name: /3\s+records/i }))
+    .toBeVisible()
+  await expect
+    .element(screen.getByRole('button', { name: 'Changed: 0', exact: true }))
+    .toBeVisible()
+  expect(remote.getApiSnapshotChanges).not.toHaveBeenCalled()
+})

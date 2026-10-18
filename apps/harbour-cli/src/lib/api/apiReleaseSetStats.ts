@@ -20,7 +20,10 @@ import {
   buildDivisionApiStats,
   type DivisionHistoryTarget,
 } from './divisionApiReleaseSetStats'
-import { buildAddressApiReleaseSetChurn } from './addressApiReleaseSetStats'
+import {
+  buildAddressApiReleaseSetChurn,
+  buildAddressApiVariantStats,
+} from './addressApiReleaseSetStats'
 
 import {
   buildAddressApiReleaseSetStatsRows,
@@ -199,13 +202,21 @@ export async function calculateAndStoreApiReleaseSetStats(
                   options.historyTargets ?? [],
                   apiReleaseSetId,
                 )
-                return buildHistoricalAddressApiReleaseSetStats(
+                const primaryRows = await buildHistoricalAddressApiReleaseSetStats(
                   options.metaDb,
                   options.historyTargets ?? [],
                   snapshotId,
                   options.addressQuality,
                   churn,
                 )
+                return [
+                  ...primaryRows,
+                  ...(await buildAddressApiVariantStats(
+                    options.metaDb,
+                    options.historyTargets ?? [],
+                    apiReleaseSetId,
+                  )),
+                ]
               })()
             : options.family === 'division'
               ? await buildDivisionApiStats(

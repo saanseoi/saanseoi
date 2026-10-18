@@ -25,6 +25,7 @@ let {
       ? 'Primary records'
       : resourceLabel}
     resourceType={resources[0].snapshot.resourceType}
+    variant={resources[0].variant}
     primary={resources[0].role === 'primary'}
     toSnapshot={resources[0].snapshotId}
     comparisons={resources.map(resource => ({

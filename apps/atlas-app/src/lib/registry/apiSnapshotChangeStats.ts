@@ -12,20 +12,28 @@ export function selectSnapshotChangeStats(
   stats: readonly Stat[],
   resourceType: string,
   primary: boolean,
+  variant?: string,
 ) {
   // The address table breakdown belongs to the primary variant, not supplementary
   // address snapshots (for example Overture Places).
-  if (resourceType === 'address' && !primary) return []
   const table = resourceType === 'address' ? 'address2d' : resourceType
   const changes = stats.filter(row => row.category === 'changes')
   const tableRows = changes.filter(
     row => row.dimension === 'table' && row.dimensionValue === table,
   )
-  const selected = tableRows.length
-    ? tableRows
-    : primary
-      ? changes.filter(row => !row.dimension)
-      : []
+  const resourceRows = changes.filter(
+    row =>
+      row.dimension === 'resource' &&
+      row.dimensionValue === `${resourceType}:${variant}`,
+  )
+  if (resourceType === 'address' && !primary && !resourceRows.length) return []
+  const selected = resourceRows.length
+    ? resourceRows
+    : tableRows.length
+      ? tableRows
+      : primary
+        ? changes.filter(row => !row.dimension)
+        : []
   const measures = [
     'count',
     'added_count',

@@ -968,3 +968,9 @@ checks published cohorts after Places assembly completes: missing or stale suppl
 selections produce a new immutable release-set revision, preserving the exact ALS and
 Division snapshots. Reconciliation is repeatable and does not re-ingest source records
 or rewrite the original published release.
+
+Supplementary Address change counts are saved on each Address API release set under
+`dimension=resource`, `dimensionValue=address:overture-places`. Their baseline is the
+preceding Address API publication's matching variant, including zero churn when both
+publications retain the same supplementary snapshot. Source-release Place churn is
+independent of these Address variant statistics.
