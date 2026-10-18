@@ -45,8 +45,7 @@ export async function runTilesRefreshCommand(args: ParsedArgs, printUsage: () =>
   const input = resolveTilesInput(args, printUsage, 'refresh')
   const regions =
     input.region.code === 'gba' ? regionsInProcessingOrder() : [input.region]
-  if (input.region.code === 'gba') await runGbaRefresh(input)
-  else await runTilesCommand(input)
+  await runRegionalRefresh(input, regions)
   for (const region of regions) {
     await renderBasemapPreviews({
       region,
@@ -331,10 +330,13 @@ async function finishTilesCatalogue(intentPath: string) {
   })
 }
 
-async function runGbaRefresh(input: ReturnType<typeof resolveTilesInput>) {
-  const regions = regionsInProcessingOrder()
-
+async function runRegionalRefresh(
+  input: ReturnType<typeof resolveTilesInput>,
+  regions: Region[],
+) {
+  const label = `${input.region.code.toUpperCase()} TILES REFRESH`
   if (input.dryRun) {
+    if (regions.length === 1) return runTilesCommand(input)
     note(
       regions
         .map(
@@ -342,7 +344,7 @@ async function runGbaRefresh(input: ReturnType<typeof resolveTilesInput>) {
             `${region.code}: ${objectKey(region.code, `${region.name}-${input.version}.pmtiles`)}`,
         )
         .join('\n'),
-      'GBA TILES REFRESH DRY RUN',
+      `${label} DRY RUN`,
     )
     outro('Dry run complete')
     return
@@ -358,7 +360,7 @@ async function runGbaRefresh(input: ReturnType<typeof resolveTilesInput>) {
     ) {
       note(
         `${region.name}-${input.version} is already published; reusing the existing release.`,
-        'GBA TILES REFRESH',
+        label,
       )
       continue
     }
@@ -370,7 +372,9 @@ async function runGbaRefresh(input: ReturnType<typeof resolveTilesInput>) {
   }
 
   if (unpublished.length === 0) {
-    outro(`All GBA tilesets are already published for ${input.version}`)
+    outro(
+      `All ${input.region.code.toUpperCase()} tilesets are already published for ${input.version}`,
+    )
   }
 }
 
