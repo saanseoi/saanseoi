@@ -260,9 +260,9 @@ export function nativeDivisionFieldRule(
     identifiers: ['canonicalIdentifiers(identifiers)', ['identifiers']],
     sources: [
       hma
-        ? '{hkgovCenstatd: sources.map(reference => ({record_id: reference.sourceRecordId}))}; require non-empty record identities.'
+        ? 'sources.map(reference => ({publisher: "hkgov-censtatd", dataset: datasetCode, recordId: reference.sourceRecordId})); require non-empty record identities.'
         : '[{publisher: "hkgov-landsd", dataset: "ds-hk-hkgov-landsd-division", recordId: requirePublisherPlaceNameId(row)}]',
-      hma ? ['sources'] : ['id'],
+      hma ? ['sources', 'datasetCode'] : ['id'],
     ],
     hierarchies: [
       'emptyDivisionHierarchies(); native input supplies no ancestry',

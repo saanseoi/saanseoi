@@ -39,8 +39,9 @@ available in the default, map and full profiles.
 
 A canonical Division carries a representative GeoJSON `Point`, never a polygon.
 Publisher points are preserved when valid. If the publisher supplies only a Polygon or
-MultiPolygon, canonicalisation selects the centre of the largest inscribed circle in the
-largest connected polygon part. The point stays strictly inside the area, away from
+MultiPolygon, canonicalisation first tests the bounding-box centre of the largest
+connected polygon part. It uses that centre only when strictly inside the part;
+otherwise it derives the centre of the largest inscribed circle. Both paths exclude
 edges and holes. The `division-representative-point` audit guard rejects invalid areas,
 non-finite coordinates and supplied points outside the canonical area, inside a hole, or
 on its boundary. This handles concave shapes and disconnected polygon parts without
@@ -985,6 +986,17 @@ Initialisation skips a published Division or geometry release only when its snap
 a complete delivery receipt for the matching current scope, together with its source
 membership and shard assignments. Completed empty snapshots are valid. Superseded
 releases remain skippable after their current projection has been cleaned up.
+
+### Planning ingestion archives
+
+Planning Unit and New Town ingestion archives separate canonical identity geometry from
+area geometry: Division archives contain validated interior Points and Point bounds,
+while DivisionArea archives contain polygons and polygon bounds. Native cell evidence
+belongs to the Division source-ingestion hand-off; DivisionArea attribution references
+those cells by ID without embedding another copy of their publisher geometries. New Town
+administrative hierarchy inference reconstructs its repaired polygon from the retained
+publisher evidence, independently of the identity Point. Each Planning source release
+retains one native ZIP and manifest shared by its Division and DivisionArea resources.
 
 ## Source record response
 

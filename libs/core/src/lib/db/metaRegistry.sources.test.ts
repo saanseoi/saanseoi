@@ -9,6 +9,66 @@ import {
 } from './metaRegistry'
 
 describe('listRegistrySourcesPage', () => {
+  test('selects the newest source edition regardless of publication-date ordering', async () => {
+    const releases = [
+      {
+        id: 'older',
+        datasetId: 'annual',
+        sourceVersion: '2022',
+        publicationDate: '2023-12-27',
+      },
+      {
+        id: 'newer',
+        datasetId: 'annual',
+        sourceVersion: '2024',
+        publicationDate: null,
+      },
+      { id: 'patch-9', datasetId: 'daily', sourceVersion: '2026-09-23.9' },
+      { id: 'patch-10', datasetId: 'daily', sourceVersion: '2026-09-23.10' },
+    ]
+    const db = {
+      select() {
+        let table: unknown
+        const query = {
+          from(value: unknown) {
+            table = value
+            return query
+          },
+          innerJoin() {
+            return query
+          },
+          leftJoin() {
+            return query
+          },
+          where() {
+            return query
+          },
+          orderBy() {
+            return query
+          },
+          limit() {
+            return query
+          },
+          async all() {
+            if (table === metaSchema.metaDatasets)
+              return ['annual', 'daily'].map(id => ({
+                id,
+                i18n: {},
+                publisherI18n: {},
+              }))
+            if (table === metaSchema.metaSourceReleases) return releases
+            return []
+          },
+        }
+        return query
+      },
+    }
+    const result = await listRegistrySourcesPage(db as never)
+    expect(
+      result.map(source => source.sourceVersions.map(version => version.id)),
+    ).toEqual([['newer'], ['patch-10']])
+  })
+
   test('batches source-release lookups for the maximum directory page', async () => {
     const sources = Array.from({ length: 200 }, (_, index) => ({
       id: `dataset-${index}`,

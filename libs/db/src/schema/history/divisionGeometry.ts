@@ -17,9 +17,7 @@ export const divisionAreas = sqliteTable(
   table => [
     ...historyEventConstraints(table, ['divisionId', 'variant', 'type']),
     primaryKey({ columns: [table.id, table.snapshotId] }),
-    index('divisionAreas_current_lookup_idx').on(table.id, table.isCurrent),
     index('divisionAreas_divisionId_idx').on(table.divisionId, table.isCurrent),
-    index('divisionAreas_snapshotId_idx').on(table.snapshotId),
   ],
 )
 
@@ -41,7 +39,6 @@ export const divisionBoundaries = sqliteTable(
       'type',
     ]),
     primaryKey({ columns: [table.id, table.snapshotId] }),
-    index('divisionBoundaries_current_lookup_idx').on(table.id, table.isCurrent),
     index('divisionBoundaries_leftDivisionId_idx').on(
       table.leftDivisionId,
       table.isCurrent,
@@ -50,6 +47,5 @@ export const divisionBoundaries = sqliteTable(
       table.rightDivisionId,
       table.isCurrent,
     ),
-    index('divisionBoundaries_snapshotId_idx').on(table.snapshotId),
   ],
 )

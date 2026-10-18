@@ -1,5 +1,10 @@
 # Addresses dataset family
 
+ALS history comparison replays the selected predecessor only for the canonical IDs in
+each ingestion chunk. Prepared identities and reviewed aliases are authoritative; a
+shared street address cannot merge distinct ALS owners. Parent deletion events and
+locale changes remain part of that scoped replay.
+
 Canonical identifiers use publisher → camelCase identifier type → unchanged value,
 including `hkgov-dpo.csuId`, `hkgov-dpo.geoAddress` and `saanseoi.curationId`. The
 Address and Division APIs share the identifier schema.
@@ -1866,3 +1871,11 @@ For a clean local database, follow the
 [reset and rebuild workflow](../pipeline.md#local-pipeline-initialisation). Schema
 migrations create empty tables; initialisation publishes the dependency snapshots and
 rebuilds serving projections.
+
+Address API cohorts retain the latest published `overture-places` Address assembly at or
+before their cohort, including cohorts triggered by ALS updates. Cohorts before the
+first supplementary assembly remain ALS-only. Address release-set reconciliation also
+checks published cohorts after Places assembly completes: missing or stale supplementary
+selections produce a new immutable release-set revision, preserving the exact ALS and
+Division snapshots. Reconciliation is repeatable and does not re-ingest source records
+or rewrite the original published release.

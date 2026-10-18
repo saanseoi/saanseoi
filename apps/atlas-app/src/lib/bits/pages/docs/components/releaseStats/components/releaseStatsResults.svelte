@@ -4,7 +4,9 @@ import type {
   ReleaseStatsDistrictName,
   ReleaseStatsLabels,
 } from '../releaseStats.types'
-import PlacesProfile from '#lib/bits/pages/docs/components/releaseStats/components/releaseStatsPlacesProfile.svelte'
+import PlaceCoverage from './releaseStatsPlaceCoverage.svelte'
+import PlaceAvailability from './releaseStatsPlaceAvailability.svelte'
+import PlaceLanguages from './releaseStatsPlaceLanguages.svelte'
 import ComponentCoverage from './releaseStatsComponentCoverageSection.svelte'
 import DivisionLinkage from './releaseStatsDivisionLinkageSection.svelte'
 import District from './releaseStatsDistrictSection.svelte'
@@ -36,9 +38,6 @@ let {
   {#if presentation.overview}
     <Overview {onChangeSelect} overview={presentation.overview} {labels} />
   {/if}
-  {#if presentation.placeProfile}
-    <PlacesProfile profile={presentation.placeProfile} />
-  {/if}
   {#if presentation.statisticsProfile}
     <StatisticsProfile profile={presentation.statisticsProfile}>
       {#snippet structural()}
@@ -55,6 +54,14 @@ let {
   {/if}
   {#if presentation.geometry}
     <Geometry {districtNames} geometry={presentation.geometry} {labels} {locale} />
+  {/if}
+  {#if presentation.placeProfile}
+    {#if presentation.placeProfile.metrics.length}
+      <PlaceCoverage profile={presentation.placeProfile} />
+    {/if}
+    {#if presentation.placeProfile.availability.length}
+      <PlaceAvailability rows={presentation.placeProfile.availability} />
+    {/if}
   {/if}
   {#if presentation.localeCoverage}
     <LocaleCoverage rows={presentation.localeCoverage} {labels} />
@@ -79,6 +86,9 @@ let {
   ) as distribution}
     <TypeDistribution {distribution} {labels} />
   {/each}
+  {#if presentation.placeProfile}
+    <PlaceLanguages profile={presentation.placeProfile} />
+  {/if}
   {#if presentation.processing}
     <Processing processing={presentation.processing} {labels} />
   {/if}

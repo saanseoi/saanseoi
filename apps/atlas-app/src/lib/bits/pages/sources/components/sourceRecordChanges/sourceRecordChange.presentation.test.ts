@@ -2,6 +2,74 @@ import { expect, test } from 'bun:test'
 import { jsonFieldDiff } from '@repo/core/jsonFieldDiff'
 import { changeFields, recordSummary } from './sourceRecordChange.presentation'
 
+test('large source diffs index change paths once rather than rescanning for every field', () => {
+  const before = Object.fromEntries(
+    Array.from({ length: 1000 }, (_, i) => [`field-${i}`, 'old']),
+  )
+  const after = Object.fromEntries(
+    Array.from({ length: 1000 }, (_, i) => [`field-${i}`, 'new']),
+  )
+  let pathReads = 0
+  const changes = jsonFieldDiff(before, after).map(change => ({
+    ...change,
+    get path() {
+      pathReads += 1
+      return change.path
+    },
+  }))
+  const rows = changeFields(before, after, changes, true, true, 'absent')
+  expect(rows).toHaveLength(1000)
+  expect(rows[999]).toMatchObject({
+    key: 'field-999',
+    previousValue: 'old',
+    value: 'new',
+  })
+  expect(pathReads).toBeLessThanOrEqual(changes.length)
+})
+
+test('indexed paths include replaced ancestors and preserve literal path segments', () => {
+  const before = { 'a/b': { 'x.y': ['old', 'same'] }, untouched: { nested: 'hidden' } }
+  const after = { 'a/b': { 'x.y': ['new', 'same'] }, untouched: { nested: 'hidden' } }
+  const rows = changeFields(
+    before,
+    after,
+    [
+      {
+        path: ['a/b'],
+        beforeExists: true,
+        afterExists: true,
+        before: before['a/b'],
+        after: after['a/b'],
+      },
+    ],
+    true,
+    true,
+    'absent',
+  )
+  expect(rows.map(row => row.key)).toEqual(['a/b'])
+  expect(rows[0]?.children?.[0]?.children).toEqual([
+    { key: '[0]', previousValue: 'old', value: 'new' },
+  ])
+  expect(
+    changeFields(
+      before,
+      after,
+      [
+        {
+          path: [],
+          beforeExists: true,
+          afterExists: true,
+          before,
+          after,
+        },
+      ],
+      true,
+      true,
+      'absent',
+    ),
+  ).toEqual(rows)
+})
+
 test('comparison keeps literal path keys, missing fields, nulls and empty containers distinct', () => {
   const before = { 'a/b': { 'x.y': null }, removed: 'value', empty: [], same: 'hidden' }
   const after = { 'a/b': { 'x.y': 'updated' }, added: null, empty: {}, same: 'hidden' }

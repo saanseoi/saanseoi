@@ -1,3 +1,4 @@
+import { prepareAddressReleaseForwardFill } from './addressReleaseForwardFill'
 import type { ProvenanceStore } from '../../../../../libs/core/src/provenance/types'
 import { releaseSetVersionsForPublication } from './releaseSetVersions'
 import { resolveDivisionPublicationVersion } from './divisionPublicationVersion'
@@ -52,6 +53,9 @@ export async function handleReconcileDraftReleaseSets(
   lineageStore: ProvenanceStore,
 ): Promise<ReconcileDraftReleaseSetsResult> {
   return runWithTransientControlRetry(async () => {
+    if (!request.apiFamily || request.apiFamily === 'addresses') {
+      await prepareAddressReleaseForwardFill(db, request.regionCode)
+    }
     if (request.apiFamily === 'divisions') {
       await restoreMissingDivisionReleaseSets(db, lineageStore, request.regionCode)
     }

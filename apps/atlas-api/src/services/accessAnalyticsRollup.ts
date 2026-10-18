@@ -20,6 +20,7 @@ const ACCESS_SCOPES = new Set<AccessAnalyticsScope>([
   'dataset',
   'source_release',
   'api_release_set',
+  'basemap_release',
 ])
 
 type AccessAnalyticsRollupBindings = {

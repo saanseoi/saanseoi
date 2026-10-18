@@ -52,6 +52,7 @@ export type DataPageRelease = {
   primaryRecordCount: number | null
   schemaVersion: string
   status: string
+  updatedAt: string
 }
 
 type DataPageApi = Pick<
@@ -144,6 +145,7 @@ async function loadDataReleasesPage(offset = 0) {
         domainCode: metaApiReleaseSets.domainCode,
         cohortKey: metaApiReleaseSets.cohortKey,
         createdAt: metaApiReleaseSets.createdAt,
+        updatedAt: metaApiReleaseSets.updatedAt,
         id: metaApiReleaseSets.id,
         publishedAt: metaApiVersionReleaseSets.publishedAt,
         revision: metaApiReleaseSets.revision,
@@ -159,12 +161,7 @@ async function loadDataReleasesPage(offset = 0) {
         metaApiVersions,
         eq(metaApiVersionReleaseSets.apiVersionId, metaApiVersions.id),
       )
-      .orderBy(
-        desc(
-          sql`coalesce(${metaApiVersionReleaseSets.publishedAt}, ${metaApiReleaseSets.createdAt})`,
-        ),
-        desc(metaApiReleaseSets.id),
-      )
+      .orderBy(desc(metaApiReleaseSets.updatedAt), desc(metaApiReleaseSets.id))
       .limit(DATA_RELEASES_PAGE_SIZE + 1)
       .offset(offset)
       .all(),
@@ -225,6 +222,7 @@ async function loadDataReleasesPage(offset = 0) {
       code: release.code,
       cohortKey: release.cohortKey,
       createdAt: release.createdAt,
+      updatedAt: release.updatedAt,
       primaryRecordCount: primaryRecordCountByReleaseId.get(release.id) ?? null,
       displayStatus: resolveRegistryReleaseDisplayStatus(
         release,

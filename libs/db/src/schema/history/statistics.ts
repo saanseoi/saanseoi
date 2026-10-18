@@ -1,4 +1,4 @@
-import { index, primaryKey, sqliteTable, text } from 'drizzle-orm/sqlite-core'
+import { primaryKey, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 import {
   canonicalStatsFieldColumns,
   canonicalStatsFieldI18nColumns,
@@ -30,7 +30,6 @@ export const statsRecords = sqliteTable(
       'values',
     ]),
     primaryKey({ columns: [table.id, table.snapshotId] }),
-    index('statsRecords_current_lookup_idx').on(table.id, table.isCurrent),
   ],
 )
 
@@ -51,11 +50,6 @@ export const statsFields = sqliteTable(
     primaryKey({
       columns: [table.datasetCode, table.fieldName, table.snapshotId],
     }),
-    index('statsFields_current_lookup_idx').on(
-      table.datasetCode,
-      table.fieldName,
-      table.isCurrent,
-    ),
   ],
 )
 
@@ -67,11 +61,6 @@ export const statsMeasures = sqliteTable(
     primaryKey({
       columns: [table.datasetCode, table.measureCode, table.snapshotId],
     }),
-    index('statsMeasures_current_lookup_idx').on(
-      table.datasetCode,
-      table.measureCode,
-      table.isCurrent,
-    ),
   ],
 )
 

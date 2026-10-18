@@ -1,3 +1,4 @@
+import { newTownCanonicalArea } from '../../sources/hkgov/pland/hkgovPlandNewTown'
 import { normaliseDivisionCartography } from '@repo/core/pipeline/services/divisions/divisionCartography'
 import type { BranchCounts } from '@repo/core/provenance'
 import { resolveSnapshotReplayPlan } from '@repo/core/db/metaRegistry'
@@ -185,7 +186,7 @@ async function readPreparedDivisionsInternal(
       if (base.class === 'planning-newtown' && inferAdministrativeHierarchy) {
         const inferred = inferAdministrativeHierarchy(
           base.id,
-          parseWkbGeometry(record.raw.geometry),
+          preparedNewTownArea(record.raw),
         )
         base.hierarchies = inferred.hierarchies
         hierarchyActions.push(inferred.action)
@@ -417,4 +418,12 @@ export function validatePreparedDivisions(
   ]).check('planning-prepared-divisions', () =>
     validatePreparedDivisionsInternal(...args),
   )
+}
+
+/** Hierarchy overlap uses area evidence, independently of the identity Point. */
+export function preparedNewTownArea(value: Record<string, unknown>) {
+  const polygon = parseWkbGeometry(asRecord(value.source_properties).source_geometry)
+  if (!polygon || (polygon.type !== 'Polygon' && polygon.type !== 'MultiPolygon'))
+    throw new Error('New Town hierarchy requires polygonal publisher evidence.')
+  return newTownCanonicalArea(polygon)
 }

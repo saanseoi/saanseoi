@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:09b1d14b4d4891f65b08a05d484533ffae43035e7e0a658a0e25470a3e44e26a",
+  "versionHash": "sha256:9d72ebc882aae6f644aea5a06e61894cafa71d0c07c8bd2db19bf03d3153fc7f",
   "apiVersion": "api-divisions-v0.1",
   "domainCode": "hkgov-pland-new-town",
   "mappingVersion": 1,
@@ -248,6 +248,90 @@
               "fieldPath": "properties.newTownZhHans"
             }
           ]
+        },
+        {
+          "apiField": "attributes.cartography",
+          "sourceDatasetCode": "ds-hk-hkgov-pland-division-new-town",
+          "resolverCode": "lookup_registry",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "registry",
+              "fieldPath": "snapshotId"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.createdAt",
+          "sourceDatasetCode": "ds-hk-hkgov-pland-division-new-town",
+          "resolverCode": "lookup_registry",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "registry",
+              "fieldPath": "snapshotId"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.divisionCode",
+          "sourceDatasetCode": "ds-hk-hkgov-pland-division-new-town",
+          "resolverCode": "lookup_registry",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "registry",
+              "fieldPath": "snapshotId"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.snapshotId",
+          "sourceDatasetCode": "ds-hk-hkgov-pland-division-new-town",
+          "resolverCode": "lookup_registry",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "registry",
+              "fieldPath": "snapshotId"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.sources",
+          "sourceDatasetCode": "ds-hk-hkgov-pland-division-new-town",
+          "resolverCode": "lookup_registry",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "registry",
+              "fieldPath": "snapshotId"
+            }
+          ]
+        },
+        {
+          "apiField": "relationships.boundaries",
+          "sourceDatasetCode": "ds-hk-hkgov-pland-division-new-town",
+          "resolverCode": "lookup_registry",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "registry",
+              "fieldPath": "snapshotId"
+            }
+          ]
         }
       ]
     },
@@ -371,6 +455,66 @@
               "fieldPath": "dataset.sourceVariant"
             }
           ]
+        },
+        {
+          "apiField": "attributes.isLand",
+          "sourceDatasetCode": "ds-hk-hkgov-pland-division-new-town",
+          "resolverCode": "lookup_registry",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "registry",
+              "fieldPath": "snapshotId"
+            }
+          ],
+          "variant": "hkgov-pland-new-town"
+        },
+        {
+          "apiField": "attributes.isTerritorial",
+          "sourceDatasetCode": "ds-hk-hkgov-pland-division-new-town",
+          "resolverCode": "lookup_registry",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "registry",
+              "fieldPath": "snapshotId"
+            }
+          ],
+          "variant": "hkgov-pland-new-town"
+        },
+        {
+          "apiField": "attributes.snapshotId",
+          "sourceDatasetCode": "ds-hk-hkgov-pland-division-new-town",
+          "resolverCode": "lookup_registry",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "registry",
+              "fieldPath": "snapshotId"
+            }
+          ],
+          "variant": "hkgov-pland-new-town"
+        },
+        {
+          "apiField": "attributes.sources",
+          "sourceDatasetCode": "ds-hk-hkgov-pland-division-new-town",
+          "resolverCode": "lookup_registry",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "registry",
+              "fieldPath": "snapshotId"
+            }
+          ],
+          "variant": "hkgov-pland-new-town"
         }
       ]
     }

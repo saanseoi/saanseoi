@@ -16,6 +16,10 @@ The Place snapshot policy selects `resolve-place-identity` as an assembly operat
 Canonical Place ID provenance refers to that recipe rule, while source ingestion retains
 publisher identities independently.
 
+Publication restores a cleaned historical official Address selection into its own
+retained scope using exact history and acknowledged membership evidence. The latest
+Address serving scope remains selected while the Place release uses its pinned input.
+
 Retained source assertions use
 [distinct validity periods for recurring content](../../families/source-evidence.md#recurring-source-validity-periods).
 An unchanged open occurrence continues; returning content starts a new occurrence.
@@ -68,10 +72,12 @@ indexed queries. Local candidates retain the selected predecessor's membership a
 owning shards. Shared SQL replay checks compare rows through their primary keys, and
 provenance transfer checks destination objects before uploading missing content.
 Per-record Place evidence uses bounded checksum-verified destination checks, including
-across source cohorts. An independently selected R2 destination is confirmed separately.
-When publisher Place IDs change, supplementary Address entries follow the matched
-canonical predecessor only when its accepted Address identity and text evidence agree.
-Conflicting accepted definitions or changed evidence remain subject to review.
+across source cohorts. Local R2 uploads use at most 16 concurrent requests; remote R2
+retention uses at most four. Every upload still requires a matching digest and byte
+length acknowledgement. An independently selected R2 destination is confirmed
+separately. When publisher Place IDs change, supplementary Address entries follow the
+matched canonical predecessor only when its accepted Address identity and text evidence
+agree. Conflicting accepted definitions or changed evidence remain subject to review.
 
 Open source assertions with matching hashes require no release-membership update.
 Finalisation compares complete incoming IDs in bounded, disjoint indexed ranges.
@@ -954,3 +960,11 @@ and locale hashing; it is not inferred from matching.
 Division source attribution groups populated hierarchy IDs under the containing Division
 record that supplies them. Only IDs agreed by every canonical hierarchy path on that
 record are credited to it; independent associations retain their own sources.
+
+Address API cohorts retain the latest published `overture-places` Address assembly at or
+before their cohort, including cohorts triggered by ALS updates. Cohorts before the
+first supplementary assembly remain ALS-only. Address release-set reconciliation also
+checks published cohorts after Places assembly completes: missing or stale supplementary
+selections produce a new immutable release-set revision, preserving the exact ALS and
+Division snapshots. Reconciliation is repeatable and does not re-ingest source records
+or rewrite the original published release.

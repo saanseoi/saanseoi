@@ -5,21 +5,38 @@ type Props = {
   children?: Snippet
   class?: string
   backgroundImage?: string
+  softBackground?: boolean
 }
 
-let { children, class: className = '', backgroundImage }: Props = $props()
+let {
+  children,
+  class: className = '',
+  backgroundImage,
+  softBackground = false,
+}: Props = $props()
 </script>
 
 <section
   class={`relative isolate overflow-hidden rounded-xl border border-outline-variant/60 bg-surface-container-lowest dark:border-outline-variant ${className}`}
 >
   {#if backgroundImage}
-    <div class="absolute inset-x-0 top-0 h-64 md:h-72" aria-hidden="true">
+    <div
+      class={softBackground
+        ? 'absolute inset-0'
+        : 'absolute inset-x-0 top-0 h-64 md:h-72'}
+      aria-hidden="true"
+    >
       <div
         class="absolute inset-0 bg-cover bg-position-[center_42%] opacity-85"
         style={`background-image: url('${backgroundImage}')`}
       ></div>
-      <div class="header-image-gradient absolute inset-0"></div>
+      {#if softBackground}
+        <div
+          class="absolute inset-0 bg-linear-to-r from-surface-container-lowest/85 via-surface-container-lowest/65 to-surface-container-lowest/30"
+        ></div>
+      {:else}
+        <div class="header-image-gradient absolute inset-0"></div>
+      {/if}
     </div>
   {/if}
   <div class="relative z-10">{@render children?.()}</div>

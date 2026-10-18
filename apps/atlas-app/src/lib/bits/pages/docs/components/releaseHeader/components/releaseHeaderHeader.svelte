@@ -7,6 +7,7 @@ import type { ReleaseHeaderMetric } from './releaseHeaderMetric'
 type Props = {
   label: string
   labelAction?: Snippet
+  statusAction?: Snippet
   metrics?: ReleaseHeaderMetric[]
   statusLabel: string
   statusClass: string
@@ -17,6 +18,7 @@ type Props = {
 let {
   label,
   labelAction,
+  statusAction,
   metrics = [],
   statusLabel,
   statusClass,
@@ -39,9 +41,12 @@ let {
         <div class="shrink-0">{@render labelAction()}</div>
       {/if}
     </div>
-    <div class="flex items-center gap-x-5 gap-y-2">
+    <div class={`flex items-center gap-y-2 ${statusAction ? 'gap-x-3' : 'gap-x-5'}`}>
       {#if metrics.length}
-        <ReleaseHeaderMetrics {metrics} class="hidden lg:flex" />
+        <ReleaseHeaderMetrics
+          {metrics}
+          class={statusAction ? 'hidden lg:mr-4 lg:flex' : 'hidden lg:flex'}
+        />
       {/if}
       <span
         class={`inline-flex items-center gap-2 border px-3 py-1 font-body text-label-sm font-semibold capitalize ${statusClass}`}
@@ -49,6 +54,7 @@ let {
         <span class={`size-1.5 rounded-full ${statusDotClass}`}></span>
         {statusLabel}
       </span>
+      {@render statusAction?.()}
     </div>
   </div>
 </div>

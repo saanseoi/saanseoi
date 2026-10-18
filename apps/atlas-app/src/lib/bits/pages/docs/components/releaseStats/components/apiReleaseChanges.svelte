@@ -1,12 +1,14 @@
 <script lang="ts">
 import { getApiSnapshotChanges } from '#lib/registry/apiSnapshotChanges.remote.js'
 import RecordChange from '#lib/bits/pages/sources/components/sourceRecordChanges/sourceRecordChange.svelte'
+import EmptyState from '#lib/bits/pages/sources/components/sourceRecordChanges/sourceRecordChangesEmptyState.svelte'
 import LoadingRows from '#lib/bits/pages/sources/components/sourceRecordChanges/sourceRecordChangesSkeleton.svelte'
 import {
   sourceRecordChangesCopy,
   type SourceChangeType,
 } from '#lib/bits/pages/sources/components/sourceRecordChanges/sourceRecordChanges.copy.js'
 import Overview from './releaseStatsOverviewSection.svelte'
+import OverviewSkeleton from './releaseStatsOverviewSkeleton.svelte'
 import { createReleaseStatsPresentation } from '../releaseStatsPresentation'
 import type { ReleaseStatsCopy } from '../releaseStats.types'
 import { untrack } from 'svelte'
@@ -31,7 +33,7 @@ let {
   presentation: ReleaseStatsCopy
 } = $props()
 let offset = $state(0)
-let rows = $state<Awaited<ReturnType<typeof getApiSnapshotChanges>>['records']>([])
+let rows = $state.raw<Awaited<ReturnType<typeof getApiSnapshotChanges>>['records']>([])
 let failure = $state(false)
 let pending = $derived(
   fromSnapshot
@@ -41,23 +43,26 @@ let pending = $derived(
 let copy = $derived(sourceRecordChangesCopy[locale])
 let result = $derived(pending?.ready ? pending.current : undefined)
 $effect(() => {
-  if (result)
-    rows =
-      offset === 0
-        ? result.records
-        : [
-            ...untrack(() => rows).filter(
-              row => !result.records.some(next => row.id === next.id),
-            ),
-            ...result.records,
-          ]
+  if (!result) return
+  const incomingIds = new Set(result.records.map(record => record.id))
+  rows =
+    offset === 0
+      ? result.records
+      : [
+          ...untrack(() => rows).filter(row => !incomingIds.has(row.id)),
+          ...result.records,
+        ]
 })
 $effect(() => {
+  let cancelled = false
   failure = false
   if (pending)
     void pending.catch(() => {
-      failure = true
+      if (!cancelled) failure = true
     })
+  return () => {
+    cancelled = true
+  }
 })
 let overview = $derived(
   result
@@ -105,6 +110,8 @@ function observeEnd(node: HTMLElement) {
         selectedType={type}
       />
     </Tooltip.Provider>
+  {:else if pending && !pending.ready && !failure}
+    <OverviewSkeleton />
   {/if}
   {#each rows as record (record.id)}
     <RecordChange {...record} {diff} {locale} />
@@ -118,8 +125,9 @@ function observeEnd(node: HTMLElement) {
       class="rounded border border-outline-variant px-4 py-2 text-label-sm"
       onclick={() => {
         failure = false
-        void pending?.refresh().catch(() => {
-          failure = true
+        const query = pending
+        void query?.refresh().catch(() => {
+          if (pending === query) failure = true
         })
       }}
     >
@@ -128,7 +136,7 @@ function observeEnd(node: HTMLElement) {
   {:else if pending && !pending.ready}
     <LoadingRows label={copy.loading} />
   {:else if !rows.length}
-    <p class="text-body-md text-foreground-alt" role="status">{copy.empty}</p>
+    <EmptyState label={copy.empty} />
   {/if}
   {#if result?.nextOffset != null && pending?.ready}
     {#key offset}

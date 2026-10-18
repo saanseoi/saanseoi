@@ -283,6 +283,7 @@ export async function deliverRecordEvidence(
   const baseUrl = normaliseBaseUrl(resolveHarbourApiUrl(target))
   const headers = getAuthHeaders()
   const r2 = resolveR2Target(target)
+  const uploadConcurrency = !target.remote && r2 === 'local' ? 16 : 4
   for (let offset = 0; offset < documents.length; offset += 64) {
     const batch = await Promise.all(
       documents.slice(offset, offset + 64).map(async document => {
@@ -302,9 +303,9 @@ export async function deliverRecordEvidence(
         )
       ).map(ref => ref.hash),
     )
-    for (let start = 0; start < batch.length; start += 4) {
+    for (let start = 0; start < batch.length; start += uploadConcurrency) {
       await Promise.all(
-        batch.slice(start, start + 4).map(async ({ bytes, hash }) => {
+        batch.slice(start, start + uploadConcurrency).map(async ({ bytes, hash }) => {
           // An API acknowledgement does not prove retention in a separately selected R2.
           if (!target.remote && r2 !== 'local')
             await (options.retainRemoteObject ?? retainRemoteR2Object)(

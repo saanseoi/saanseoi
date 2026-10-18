@@ -47,7 +47,7 @@ export function largestPolygonGeometry(geometry: Polygon | MultiPolygon): Polygo
   return { type: 'Polygon', coordinates: structuredClone(coordinates) }
 }
 
-/** Returns an interior label anchor away from edges and holes. */
+/** Prefers a contained bounds centre, otherwise an interior point with edge clearance. */
 export function largestPolygonLabelPoint(geometry: Polygon | MultiPolygon): Position {
   return polygonLabelPoint(geometry)
 }

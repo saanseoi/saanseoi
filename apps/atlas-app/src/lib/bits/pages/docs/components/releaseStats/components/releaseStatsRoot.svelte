@@ -15,7 +15,6 @@ import Panel from './releaseStatsPanel.svelte'
 import Results from './releaseStatsResults.svelte'
 
 type Props = {
-  statisticsSource?: { sourceCode: string; releaseCode: string }
   onChangeSelect?: (type: 'added' | 'changed' | 'removed') => void
   resourceType?: string
   isFirstRelease?: boolean
@@ -29,7 +28,6 @@ type Props = {
   activeHeadingId?: string | null
 }
 let {
-  statisticsSource,
   resourceType,
   onChangeSelect,
   isFirstRelease = false,
@@ -61,18 +59,7 @@ $effect(() => {
 </script>
 <Tooltip.Provider delayDuration={200}
   ><Panel bind:element={panel}
-    >{#if statisticsSource}
-      <p class="mb-4 text-caption text-foreground-alt">
-        Statistics for the primary place resource ·
-        <a
-          class="font-semibold text-data-primary underline decoration-data-primary/30 underline-offset-4 hover:decoration-data-primary"
-          href={`/sources/${statisticsSource.sourceCode}/${statisticsSource.releaseCode}?tab=stats`}
-        >
-          {statisticsSource.releaseCode}
-        </a>
-      </p>
-    {/if}
-    {#if stats.length}
+    >{#if stats.length}
       <Results
         {onChangeSelect}
         {districtNames}

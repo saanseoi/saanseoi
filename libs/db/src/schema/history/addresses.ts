@@ -20,8 +20,6 @@ export const address2d = sqliteTable(
     primaryKey({
       columns: [table.id, table.snapshotId],
     }),
-    index('address2d_current_lookup_idx').on(table.id, table.isCurrent),
-    index('address2d_snapshotId_idx').on(table.snapshotId),
     index('address2d_parentAddressId_idx').on(table.parentAddressId),
   ],
 )
@@ -37,11 +35,6 @@ export const address2dI18n = sqliteTable(
     primaryKey({
       columns: [table.addressId, table.snapshotId, table.locale],
     }),
-    index('address2dI18n_current_lookup_idx').on(
-      table.addressId,
-      table.locale,
-      table.isCurrent,
-    ),
   ],
 )
 
@@ -76,8 +69,6 @@ export const address3d = sqliteTable(
     primaryKey({
       columns: [table.id, table.snapshotId],
     }),
-    index('address3d_current_lookup_idx').on(table.id, table.isCurrent),
-    index('address3d_snapshotId_idx').on(table.snapshotId),
     index('address3d_address2dId_idx').on(table.address2dId),
   ],
 )
@@ -93,10 +84,5 @@ export const address3dI18n = sqliteTable(
     primaryKey({
       columns: [table.address3dId, table.snapshotId, table.locale],
     }),
-    index('address3dI18n_current_lookup_idx').on(
-      table.address3dId,
-      table.locale,
-      table.isCurrent,
-    ),
   ],
 )

@@ -1274,11 +1274,17 @@ export async function listRegistrySourcesPage(db: MetaDatabase, limit?: number) 
     ),
   ])
 
-  const latestVersions = sourceVersions.filter(
-    (version, index, versions) =>
-      versions.findIndex(candidate => candidate.datasetId === version.datasetId) ===
-      index,
-  )
+  // A missing publication day must not hide a newer source edition. Compare
+  // source versions numerically so revisions such as .10 also follow .9.
+  const latestVersions = sourceVersions
+    .sort((left, right) =>
+      compareReleaseVersions(right.sourceVersion, left.sourceVersion),
+    )
+    .filter(
+      (version, index, versions) =>
+        versions.findIndex(candidate => candidate.datasetId === version.datasetId) ===
+        index,
+    )
   const sourceReleaseIds = latestVersions.map(version => version.id)
   const resourceReleases = sourceReleaseIds.length
     ? await queryInBatches(sourceReleaseIds, ids =>
@@ -5638,6 +5644,10 @@ export async function publishReleaseArtefacts(
 
       if (!deferApiReleaseSet) {
         statements.push(
+          tx
+            .update(metaApiReleaseSets)
+            .set({ updatedAt: publishedAt })
+            .where(eq(metaApiReleaseSets.id, args.releaseSetId)),
           ...(shouldActivateReleaseSet
             ? [
                 tx

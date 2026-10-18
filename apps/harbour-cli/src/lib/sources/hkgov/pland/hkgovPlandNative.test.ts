@@ -1,3 +1,4 @@
+import { preparedNewTownArea } from '../../../pipeline/divisions/processLocalHkgovPlandDivisionSqlUploadPreparation'
 import { describe, expect, test } from 'bun:test'
 import { mkdtemp, readFile, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
@@ -14,6 +15,8 @@ import {
 import { parquetMetadataAsync, parquetReadObjects } from 'hyparquet'
 import { compressors } from 'hyparquet-compressors'
 import { asyncBufferFromFile } from 'hyparquet/src/node.js'
+import { parseWkbGeometry } from '@repo/core/pipeline/services/divisions/division'
+import { canonicalDivisionPoint } from '@repo/core/pipeline/services/divisions/divisionPoint'
 
 const REPO_ROOT = resolve(import.meta.dir, '../../../../../../..')
 
@@ -99,8 +102,61 @@ describe('Planning Department native TPU SHP intake', () => {
       const rows = await parquetReadObjects({
         file,
         compressors,
-        columns: ['id', 'hierarchy', 'planning_level', 'source_properties'],
+        columns: [
+          'id',
+          'geometry',
+          'bbox',
+          'hierarchy',
+          'planning_level',
+          'source_properties',
+        ],
       })
+      for (const row of rows) {
+        const point = parseWkbGeometry(row.geometry)
+        expect(point?.type).toBe('Point')
+        if (point?.type !== 'Point') throw new Error('Expected archived Point.')
+        const [x, y] = point.coordinates
+        expect(typeof row.bbox === 'string' ? JSON.parse(row.bbox) : row.bbox).toEqual([
+          x,
+          y,
+          x,
+          y,
+        ])
+      }
+      await prepareHkgovPlandTpuNativeShpZip({
+        inputFile: resolve(
+          REPO_ROOT,
+          'data/hkgov/csdi/archive/pland_rcd_1634022783366_65050/2023-Q4/source.zip',
+        ),
+        outputFile: join(outputDir, 'area.parquet'),
+        sourceVersion: '2021',
+        resourceType: 'divisionArea',
+      })
+      const areas = await parquetReadObjects({
+        file: await asyncBufferFromFile(join(outputDir, 'area.parquet')),
+        compressors,
+      })
+      expect(areas).toHaveLength(rows.length)
+      const divisionsById = new Map(rows.map(row => [row.id, row]))
+      for (const area of areas) {
+        expect(area).not.toHaveProperty('source_properties')
+        const polygon = parseWkbGeometry(area.geometry)
+        if (!polygon) throw new Error('Expected archived polygon.')
+        expect(['Polygon', 'MultiPolygon']).toContain(polygon.type)
+        const division = divisionsById.get(area.division_id)
+        expect(division).toBeDefined()
+        // Check all four hierarchy levels without repeating large topology checks.
+        if (
+          division &&
+          rows.find(row => row.planning_level === division.planning_level) === division
+        ) {
+          const point = parseWkbGeometry(division.geometry)
+          if (point?.type !== 'Point') throw new Error('Expected archived Point.')
+          expect(
+            canonicalDivisionPoint(point, { id: String(division.id), area: polygon }),
+          ).toEqual(point)
+        }
+      }
       const byId = new Map(rows.map(row => [row.id, row.planning_level]))
       for (const row of rows.filter(row => row.planning_level === 'subunit')) {
         const path =
@@ -133,7 +189,7 @@ describe('Planning Department native TPU SHP intake', () => {
     } finally {
       await rm(outputDir, { force: true, recursive: true })
     }
-  }, 30_000)
+  }, 120_000)
 })
 
 const NEW_TOWN_ARCHIVES = {
@@ -192,6 +248,39 @@ describe('Planning Department native New Town SHP intake', () => {
         file,
         metadata: await parquetMetadataAsync(file),
       })
+      await prepareHkgovPlandNewTownNativeShpZip({
+        inputFile: resolve(
+          REPO_ROOT,
+          'data/hkgov/csdi/archive/pland_rcd_1634023103904_16865/2023-Q4/source.zip',
+        ),
+        outputFile: join(outputDir, 'area.parquet'),
+        sourceVersion: '2021',
+        resourceType: 'divisionArea',
+      })
+      const areas = await parquetReadObjects({
+        file: await asyncBufferFromFile(join(outputDir, 'area.parquet')),
+        compressors,
+      })
+      for (const row of preparedRows) {
+        const point = parseWkbGeometry(row.geometry)
+        if (point?.type !== 'Point') throw new Error('Expected New Town Point.')
+        const area = areas.find(area => area.division_id === row.id)
+        expect(area).toBeDefined()
+        expect(area).not.toHaveProperty('source_properties')
+        const polygon = parseWkbGeometry(area!.geometry)
+        if (!polygon) throw new Error('Expected New Town polygon.')
+        expect(preparedNewTownArea(row)).toEqual(polygon)
+        expect(
+          canonicalDivisionPoint(point, { id: String(row.id), area: polygon }),
+        ).toEqual(point)
+        const [x, y] = point.coordinates
+        expect(typeof row.bbox === 'string' ? JSON.parse(row.bbox) : row.bbox).toEqual([
+          x,
+          y,
+          x,
+          y,
+        ])
+      }
       const prepared = preparedRows.find(
         row =>
           jsonRecord(row.identifiers)['PLAND:NEWTOWN'] === 'tsuen-wan-tsing-yi-area',

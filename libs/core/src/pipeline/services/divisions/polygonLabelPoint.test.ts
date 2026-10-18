@@ -69,3 +69,18 @@ test('generated labels use the largest component rather than the space between p
   }
   expect(polygonLabelPoint(area)).toEqual(polygonLabelPoint(crescent))
 })
+
+test('uses the bounds centre when it is strictly inside the largest part', () => {
+  const triangle: Polygon = {
+    type: 'Polygon',
+    coordinates: [
+      [
+        [0, 0],
+        [8, 0],
+        [6, 6],
+        [0, 0],
+      ],
+    ],
+  }
+  expect(polygonLabelPoint(triangle)).toEqual([4, 3])
+})

@@ -204,6 +204,18 @@ division fields and retained in release processing actions.
 
 ## Geometry policy
 
+Planning Unit and New Town preparation derives and validates an interior Point for each
+Division before writing its Parquet archive. The Division archive's `geometry` and
+`bbox` describe that Point. DivisionArea archives retain the corresponding polygons and
+polygon bounds. Native cell properties and original publisher geometries are carried
+once in the Division hand-off for source-table ingestion. DivisionArea archives retain
+`source_cell_ids` for Planning Unit attribution and do not duplicate
+`source_properties`. New Town hierarchy inference reconstructs the repaired area from
+the Division hand-off's publisher geometry. Identity and area resources share one
+retained native ZIP and manifest for each source release. Point derivation first tests
+the bounding-box centre of the largest connected part, falling back to the largest
+inscribed circle when the centre lies outside the part, in a hole or on its boundary.
+
 Only Polygon and MultiPolygon source geometry is accepted. The input artefacts have no
 material same-TPU overlap. Six known source cells have ring self-intersections: two in
 2006, one in 2011, one in 2016, and two in 2021. The approved adapter policy stores the

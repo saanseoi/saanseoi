@@ -3,6 +3,12 @@ import { render } from 'vitest-browser-svelte'
 
 import SourceRecordSamples from './sourceRecordSamples.svelte'
 
+const navigation = vi.hoisted(() => ({
+  beforeNavigate: vi.fn(),
+  afterNavigate: vi.fn(),
+}))
+vi.mock('$app/navigation', () => navigation)
+
 vi.hoisted(() => {
   Object.assign(globalThis, {
     __sveltekit_dev: { env: { PUBLIC_ATLAS_API_BASE_URL: 'http://localhost:8787' } },
@@ -70,16 +76,19 @@ test('renders the first source record without fetching surplus candidates', asyn
     expect.objectContaining({
       search: expect.stringContaining('limit=1'),
     }),
+    { signal: expect.any(AbortSignal) },
   )
   expect(fetch).toHaveBeenCalledWith(
     expect.objectContaining({
       search: expect.stringContaining('include=geometry'),
     }),
+    { signal: expect.any(AbortSignal) },
   )
   expect(fetch).toHaveBeenCalledWith(
     expect.objectContaining({
       search: expect.stringContaining('sample=random'),
     }),
+    { signal: expect.any(AbortSignal) },
   )
 
   vi.unstubAllGlobals()
@@ -188,6 +197,7 @@ test('requests and presents native geometry when included', async () => {
     await expect.element(screen.getByText('native-record')).toBeVisible()
     expect(fetch).toHaveBeenCalledWith(
       expect.objectContaining({ search: expect.stringContaining('include=geometry') }),
+      { signal: expect.any(AbortSignal) },
     )
     await expect.element(screen.getByText('geometry', { exact: true })).toBeVisible()
   } finally {

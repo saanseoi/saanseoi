@@ -202,6 +202,18 @@ function assertMetaSchemaReady() {
 }
 
 function main() {
+  console.log('Rehashing metadata fixtures')
+  const rehash = Bun.spawnSync({
+    cmd: ['bun', new URL('../../../scripts/rehash-fixture.ts', scriptDir).pathname],
+    cwd: new URL('../../..', scriptDir).pathname,
+    stdout: 'inherit',
+    stderr: 'inherit',
+  })
+
+  if (rehash.exitCode !== 0) {
+    throw new Error('Metadata fixture rehash failed; registry sync aborted.')
+  }
+
   assertMetaSchemaReady()
   const resultRows = runWranglerSqlFile(buildMetaRegistrySyncSql(registryEnvironment))
   console.log(`Meta registry sync succeeded. result_rows=${resultRows.length}`)

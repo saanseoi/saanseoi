@@ -115,6 +115,11 @@ export async function buildResolvedAddressChunkArtefact(
     ] as HarbourReadableDb[],
     versionInsertContext.parentSnapshotId,
     { buildAddressBaseHashInput, buildMatchKey, normaliseAddressI18nSnapshotRow },
+    // ALS identities are resolved before ingestion and never match by street address.
+    // Reconstruct only this chunk rather than every address in the parent snapshot.
+    message.source === 'hkgov-dpo'
+      ? normalisedRows.map(row => row.canonicalId)
+      : undefined,
   )
   const currentAddressLookup = {
     byId: prior,

@@ -103,11 +103,9 @@ function rebuildHistoryVersionTableIfNeeded(db: Database, tableName: string) {
             updatedAt TEXT NOT NULL,
             PRIMARY KEY (id, versionHash)
           );
-          CREATE INDEX divisions_current_lookup_idx
-            ON divisions (id, isCurrent);
           CREATE INDEX divisions_sourceReleaseId_idx
             ON divisions (sourceReleaseId);
-          CREATE INDEX divisions_snapshotId_idx
+          CREATE INDEX divisions_history_event_snapshot_idx
             ON divisions (snapshotId);
         `,
         `
@@ -152,11 +150,9 @@ function rebuildHistoryVersionTableIfNeeded(db: Database, tableName: string) {
             updatedAt TEXT NOT NULL,
             PRIMARY KEY (id, versionHash)
           );
-          CREATE INDEX address2d_current_lookup_idx
-            ON address2d (id, isCurrent);
           CREATE INDEX address2d_sourceReleaseId_idx
             ON address2d (sourceReleaseId);
-          CREATE INDEX address2d_snapshotId_idx
+          CREATE INDEX address2d_history_event_snapshot_idx
             ON address2d (snapshotId);
         `,
         `
@@ -190,11 +186,9 @@ function rebuildHistoryVersionTableIfNeeded(db: Database, tableName: string) {
             updatedAt TEXT NOT NULL,
             PRIMARY KEY (id, versionHash)
           );
-          CREATE INDEX address3d_current_lookup_idx
-            ON address3d (id, isCurrent);
           CREATE INDEX address3d_sourceReleaseId_idx
             ON address3d (sourceReleaseId);
-          CREATE INDEX address3d_snapshotId_idx
+          CREATE INDEX address3d_history_event_snapshot_idx
             ON address3d (snapshotId);
           CREATE INDEX address3d_address2dId_idx
             ON address3d (address2dId);
@@ -226,11 +220,9 @@ function rebuildHistoryVersionTableIfNeeded(db: Database, tableName: string) {
             updatedAt TEXT NOT NULL,
             PRIMARY KEY (id, versionHash)
           );
-          CREATE INDEX streets_current_lookup_idx
-            ON streets (id, isCurrent);
           CREATE INDEX streets_sourceReleaseId_idx
             ON streets (sourceReleaseId);
-          CREATE INDEX streets_snapshotId_idx
+          CREATE INDEX streets_history_event_snapshot_idx
             ON streets (snapshotId);
         `,
         `
@@ -276,11 +268,9 @@ function rebuildHistoryVersionTableIfNeeded(db: Database, tableName: string) {
             updatedAt TEXT NOT NULL,
             PRIMARY KEY (id, versionHash)
           );
-          CREATE INDEX places_current_lookup_idx
-            ON places (id, isCurrent);
           CREATE INDEX places_sourceReleaseId_idx
             ON places (sourceReleaseId);
-          CREATE INDEX places_snapshotId_idx
+          CREATE INDEX places_history_event_snapshot_idx
             ON places (snapshotId);
         `,
         `

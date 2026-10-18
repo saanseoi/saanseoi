@@ -334,3 +334,101 @@ test('partial district and city/hood paths are complementary point memberships',
     ).resolve([2, 2]).status,
   ).toBe('ambiguous')
 })
+
+test('returns every published polygon for a division with detached areas', () => {
+  const first = area('detached', 0, 10)
+  const second = { ...area('detached', 20, 30), id: 'second-area' }
+  const resolver = createDivisionResolver([division('detached')], [first, second])
+  const result = resolver.resolve([25, 5], true)
+  expect(result.selectedAncestryIds).toContain('detached')
+  expect(result.memberships[0]?.geometry).toEqual({
+    type: 'MultiPolygon',
+    coordinates: [
+      [
+        [
+          [0, 0],
+          [10, 0],
+          [10, 10],
+          [0, 10],
+          [0, 0],
+        ],
+      ],
+      [
+        [
+          [20, 0],
+          [30, 0],
+          [30, 10],
+          [20, 10],
+          [20, 0],
+        ],
+      ],
+    ],
+  })
+  expect(resolver.resolve([25, 5]).memberships[0]).not.toHaveProperty('geometry')
+})
+
+test('walks point-supported branches before judging redundant cross-district hierarchies', () => {
+  const westPath = [entry('root', 'sar'), entry('west')]
+  const eastPath = [entry('root', 'sar'), entry('east')]
+  const west = division('west', 'administrative', { full: [[entry('root', 'sar')]] })
+  const east = division('east', 'administrative', { full: [[entry('root', 'sar')]] })
+  const city = division('city', 'locality', {
+    full: [westPath, eastPath],
+    administrative: [westPath, eastPath],
+  })
+  Object.assign(city.division, { class: 'city', level: 1 })
+  const macro = division('macro', 'hood', {
+    full: [westPath, eastPath],
+    administrative: [westPath, eastPath],
+    locality: [[entry('city', 'city')]],
+  })
+  Object.assign(macro.division, { class: 'macrohood', level: 4 })
+  const hood = division('hood', 'hood', {
+    full: [
+      westPath,
+      [...westPath, entry('macro', 'macrohood')],
+      eastPath,
+      [...eastPath, entry('macro', 'macrohood')],
+    ],
+    administrative: [westPath, eastPath],
+    locality: [
+      [entry('city', 'city')],
+      [entry('city', 'city'), entry('macro', 'macrohood')],
+    ],
+  })
+  Object.assign(hood.division, { class: 'neighbourhood', level: 5 })
+  const records = [division('root'), west, east, city, macro, hood]
+  const areas = [
+    area('root'),
+    area('west', 0, 5),
+    area('east', 5, 10),
+    area('city'),
+    area('macro'),
+    area('hood'),
+  ]
+  const resolver = createDivisionResolver(records, areas)
+  for (const [x, district] of [
+    [2, 'west'],
+    [8, 'east'],
+  ] as const) {
+    const result = resolver.resolve([x, 2])
+    expect(result).toMatchObject({
+      status: 'resolved',
+      path: ['root', district, 'city', 'macro', 'hood'],
+      ambiguity: { unresolvedDivisionIds: [], overlappingPaths: false },
+    })
+    expect(
+      createDivisionResolver(records.toReversed(), areas.toReversed()).resolve([x, 2]),
+    ).toEqual(result)
+  }
+  // A shared district boundary remains a real choice; array order cannot decide it.
+  expect(resolver.resolve([5, 2]).status).toBe('ambiguous')
+  // Missing polygon evidence cannot justify extending a shorter locality branch.
+  expect(
+    createDivisionResolver(
+      records,
+      areas.filter(row => row.divisionId !== 'macro'),
+    ).resolve([2, 2]).status,
+  ).toBe('ambiguous')
+  expect(resolver.resolveNamed('hood', null).status).toBe('ambiguous')
+})

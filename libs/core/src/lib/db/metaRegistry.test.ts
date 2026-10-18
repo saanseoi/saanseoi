@@ -3773,6 +3773,12 @@ INSERT INTO snapshotResourceReleases (
       resourceType: 'address',
     })
 
+    expect(
+      sqlite
+        .query('SELECT updatedAt FROM apiReleaseSets WHERE id = ?')
+        .get('release-set-addresses'),
+    ).toEqual({ updatedAt: '2026-09-13T00:00:00.000Z' })
+
     const lineageRow = (await getApiFieldLineageForReleaseSet(
       db,
       'release-set-addresses',

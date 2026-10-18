@@ -25,7 +25,8 @@
     ]
   },
   "analytics_engine_datasets": [
-    { "binding": "TILE_USAGE", "dataset": "ss-tile-usage-production" }
+    { "binding": "TILE_USAGE", "dataset": "ss-tile-usage-production" },
+    { "binding": "PRODUCT_USAGE", "dataset": "ss-product-usage-production" }
   ],
   "ratelimits": [
     {

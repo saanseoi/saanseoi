@@ -44,6 +44,7 @@ export type ProductUsageEventName = (typeof PRODUCT_USAGE_EVENTS)[number]
 
 export const PRODUCT_USAGE_PRODUCERS = [
   'atlas-api',
+  'basemap-tiles',
   'atlas-app',
   'atlas-client',
 ] as const
@@ -78,6 +79,7 @@ export const PRODUCT_USAGE_ENTITY_TYPES = [
   'api_release_set',
   'publisher',
   'data_release',
+  'basemap_release',
   'district',
   'sample',
   'region',

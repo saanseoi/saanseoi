@@ -25,8 +25,8 @@
     "bun-types": "^1.4.3",
     "drizzle-kit": "1.0.0-rc.5-5935859",
     "typescript": "^6.0.3",
-    "vitest": "^5.0.4",
-    "wrangler": "^4.151.0"
+    "vitest": "^5.0.5",
+    "wrangler": "^4.151.1"
   },
   "dependencies": {
     "@hono/zod-openapi": "^1.6.3",
@@ -34,8 +34,8 @@
     "@repo/core": "workspace:*",
     "@repo/db": "workspace:*",
     "@repo/i18n": "workspace:*",
-    "@scalar/hono-api-reference": "^0.12.12",
-    "@scalar/openapi-to-markdown": "^1.5.4",
+    "@scalar/hono-api-reference": "^0.12.13",
+    "@scalar/openapi-to-markdown": "^1.6.0",
     "drizzle-orm": "1.0.0-rc.5-5935859",
     "hono": "^4.13.13",
     "zod": "^4.6.7"

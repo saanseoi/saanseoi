@@ -455,6 +455,21 @@ test('ALS rollback requires acknowledged exact canonical membership, including e
     expect(
       (await restoreSnapshotProjection({ ...f.input, cacheDir })).counts.address2d,
     ).toBe(0)
+    insert(f.current, 'address2d', {
+      scopeId: 'scope',
+      id: 'latest',
+      divisionSnapshotId: 'division-scope',
+    })
+    const retained = {
+      ...f.input,
+      cacheDir,
+      scopeId: 'retained-old',
+      membershipScopeId: 'scope',
+    }
+    expect((await restoreSnapshotProjection(retained)).counts.address2d).toBe(0)
+    expect(f.current.query('SELECT scopeId,id FROM address2d').all()).toEqual([
+      { scopeId: 'scope', id: 'latest' },
+    ])
     writeFileSync(
       join(directory, 'b.json'),
       JSON.stringify({
@@ -465,6 +480,9 @@ test('ALS rollback requires acknowledged exact canonical membership, including e
       }),
     )
     await expect(restoreSnapshotProjection({ ...f.input, cacheDir })).rejects.toThrow(
+      'reviewed canonical membership',
+    )
+    await expect(restoreSnapshotProjection(retained)).rejects.toThrow(
       'reviewed canonical membership',
     )
   } finally {
@@ -547,6 +565,7 @@ for (const [resourceType, table, relation] of [
     try {
       historyRow(f.first, table, {
         id: 'geometry',
+        variant: 'default',
         type: 'land',
         geometry: { type: 'Point', coordinates: [114, 22] },
         versionHash: 'shape',

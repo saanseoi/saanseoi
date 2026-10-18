@@ -1,4 +1,5 @@
 <script lang="ts">
+import ChangesSkeleton from '../../releaseStats/components/apiReleaseChangesSkeleton.svelte'
 import ReleaseSchemaSkeleton from '../../releaseSchema/components/releaseSchemaSkeleton.svelte'
 import ReleaseSamplesSkeleton from '../../releaseSamples/components/releaseSamplesSkeleton.svelte'
 
@@ -15,19 +16,25 @@ let linksSkeleton = $derived(
     : undefined,
 )
 let skeleton = $derived(
-  tab === 'samples' || tab === 'sources' || tab === 'usage' || tab === 'assembly'
+  tab === 'changes' ||
+    tab === 'samples' ||
+    tab === 'sources' ||
+    tab === 'usage' ||
+    tab === 'assembly'
     ? undefined
     : tab === 'release' && diff
       ? import('../../releaseDiff/components/releaseDiffSkeleton.svelte')
       : tab === 'notes' || tab === 'release' || tab === 'guide'
         ? import('../../releaseNotes/components/releaseNotesSkeleton.svelte')
-        : tab === 'stats' || tab === 'changes'
+        : tab === 'stats'
           ? import('../../releaseStats/components/releaseStatsSkeleton.svelte')
           : import('../../releaseAudit/components/releaseAuditSkeleton.svelte'),
 )
 </script>
 
-{#if tab === 'schema'}
+{#if tab === 'changes'}
+  <ChangesSkeleton />
+{:else if tab === 'schema'}
   <ReleaseSchemaSkeleton />
 {:else if tab === 'samples'}
   <ReleaseSamplesSkeleton showDescription />

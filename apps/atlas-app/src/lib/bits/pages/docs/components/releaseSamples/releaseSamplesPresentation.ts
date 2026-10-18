@@ -200,24 +200,46 @@ export function groupAddressSamples(samples: AddressSample[]) {
     },
   ]
 
+  // Wide schemas and coordinate arrays need indexed sibling/value lookups.
+  const fieldsByTarget = new WeakMap<
+    GroupedSampleField[],
+    Map<string, GroupedSampleField>
+  >()
+  const valuesByField = new WeakMap<
+    GroupedSampleField,
+    Map<string, GroupedSampleField['values'][number]>
+  >()
   const merge = (
     source: ReleaseSampleField[],
     sampleId: string,
     target: GroupedSampleField[],
   ) => {
+    let byKey = fieldsByTarget.get(target)
+    if (!byKey) {
+      byKey = new Map(target.map(field => [field.key, field]))
+      fieldsByTarget.set(target, byKey)
+    }
     for (const field of source) {
-      let grouped = target.find(candidate => candidate.key === field.key)
+      let grouped = byKey.get(field.key)
       if (!grouped) {
         grouped = { key: field.key, values: [], children: [] }
         target.push(grouped)
+        byKey.set(field.key, grouped)
       }
       if (field.isArray) grouped.isArray = true
       if (field.value !== undefined) {
-        const existingValue = grouped.values.find(
-          candidate => candidate.value === field.value,
-        )
+        let byValue = valuesByField.get(grouped)
+        if (!byValue) {
+          byValue = new Map(grouped.values.map(value => [value.value, value]))
+          valuesByField.set(grouped, byValue)
+        }
+        const existingValue = byValue.get(field.value)
         if (existingValue) existingValue.sampleIds.push(sampleId)
-        else grouped.values.push({ sampleIds: [sampleId], value: field.value })
+        else {
+          const value = { sampleIds: [sampleId], value: field.value }
+          grouped.values.push(value)
+          byValue.set(field.value, value)
+        }
       }
       if (field.children) merge(field.children, sampleId, grouped.children)
     }

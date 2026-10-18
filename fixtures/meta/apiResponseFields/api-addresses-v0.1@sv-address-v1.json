@@ -1,10 +1,24 @@
 {
-  "versionHash": "sha256:cca5e0ac69e08314fa2eaca0c9c6006fe07c998af7446ac18b297da10ab54d6a",
+  "versionHash": "sha256:f4a2fb40a40c525d5e3e0e616ec49dc426020bc1f8e34ce27e16d7ab85c972ef",
   "apiVersion": "api-addresses-v0.1",
   "schemaVersion": "sv-address-v1",
   "resources": {
     "address": {
-      "relationships.divisions": "address.divisions"
+      "relationships.divisions": "address.divisions",
+      "relationships.hierarchy": [
+        "address.countryId",
+        "address.islandId",
+        "address.areaId",
+        "address.districtId",
+        "address.townId",
+        "address.ruralAreaId",
+        "address.macrohoodId",
+        "address.neighbourhoodId",
+        "address.villageId",
+        "address.microhoodId",
+        "address.hamletId"
+      ],
+      "relationships.units": "address.address3dCoverage"
     }
   }
 }

@@ -566,3 +566,39 @@ test('production R2 retains objects but registers IDs only in local metadata', a
     await rm(root, { recursive: true, force: true })
   }
 })
+
+test.each(['pu', 'new-town'])(
+  'Planning %s identity and area share their native ZIP and manifest',
+  async family => {
+    const root = await mkdtemp(join(tmpdir(), 'saanseoi-planning-source-'))
+    try {
+      const filePath = join(root, 'source.zip')
+      await writeFile(filePath, new Uint8Array([80, 75, 3, 4]))
+      const keys: string[] = []
+      for (const resource of ['division', 'division-area']) {
+        await uploadSourceReleaseAsset(
+          { environment: 'dev', remote: false },
+          {
+            datasetCode: `ds-hk-hkgov-pland-division-${family}`,
+            datasetId: 'dataset',
+            filePath,
+            publisherCode: `hkgov-pland-${family}`,
+            releaseCode: `dr-hk-hkgov-pland-${resource}-${family}-2021`,
+            resourceReleaseId: resource,
+            sourceVersion: '2021',
+          },
+          {
+            upload: async (_target, input) => {
+              keys.push(input.metadata.assetKey)
+              return { assetId: 'shared-asset', url: 'http://localhost/asset' }
+            },
+          },
+        )
+      }
+      expect(keys[0]).toBe(keys[2])
+      expect(keys[1]).toBe(keys[3])
+    } finally {
+      await rm(root, { recursive: true, force: true })
+    }
+  },
+)

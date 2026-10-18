@@ -1,3 +1,4 @@
+DROP TABLE IF EXISTS basemapReleaseStats;
 DROP VIEW IF EXISTS snapshotResourceReleaseDetails;
 DROP VIEW IF EXISTS resourceReleaseDetails;
 PRAGMA foreign_keys = OFF;

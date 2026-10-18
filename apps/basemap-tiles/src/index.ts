@@ -1,3 +1,9 @@
+import {
+  pinnedRelease,
+  recordBasemapAccess,
+  observeDownload,
+  resolveLatestRelease,
+} from './lib/release-usage'
 import { EtagMismatch, ResolvedValueCache, TileType } from 'pmtiles'
 import { PublicKeyLeaseUnavailableError } from '@repo/core/publicApiKey'
 import {
@@ -83,7 +89,7 @@ const accessResponse = (
     status,
   })
 
-export default {
+const handler = {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const allowedOrigin = getAllowedOrigin(request.headers.get('Origin'), env)
     if (request.method.toUpperCase() === 'OPTIONS') {
@@ -106,7 +112,17 @@ export default {
     const manifestRequest = release_manifest_request(url.pathname)
     const renderRequest = render_request(url.pathname)
     const boundaryName = boundary_name(url.pathname)
-    if (!ok && !metadataKey && !manifestRequest && !renderRequest && !boundaryName) {
+    const download = url.pathname.match(
+      /^\/downloads\/(hk|mo|gba)\/(\d{4}-\d{2}-\d{2})\.pmtiles$/,
+    )
+    if (
+      !ok &&
+      !metadataKey &&
+      !manifestRequest &&
+      !renderRequest &&
+      !boundaryName &&
+      !download
+    ) {
       return accessResponse('Invalid URL', 404, allowedOrigin)
     }
 
@@ -149,6 +165,29 @@ export default {
         indexes: [access.lease.keyId],
         blobs: [url.pathname, requestOrigin(request.headers.get('Origin'))],
         doubles: [1],
+      })
+    }
+
+    if (download) {
+      if (request.method !== 'GET') return accessResponse(null, 405, allowedOrigin)
+      if (request.headers.has('Range'))
+        return accessResponse('Full archive downloads only.', 416, allowedOrigin)
+      const regions = await getRegionsIndex(env)
+      const region = regions.regions.find(item => item.code === download[1])
+      if (!region) return accessResponse('Archive not found', 404, allowedOrigin)
+      const filename = `${region.name}-${download[2]}.pmtiles`
+      const object = await env.BUCKET.get(`basemap/${region.code}/${filename}`)
+      if (!object) return accessResponse('Archive not found', 404, allowedOrigin)
+      return new Response(object.body, {
+        headers: applyAccessHeaders(
+          new Headers({
+            'Content-Type': 'application/vnd.pmtiles',
+            'Content-Disposition': `attachment; filename="${filename}"`,
+            'Content-Length': String(object.size),
+            'Cache-Control': 'private, no-store',
+          }),
+          allowedOrigin,
+        ),
       })
     }
 
@@ -283,6 +322,7 @@ export default {
         latestRequest && !archiveVersion ? new ResolvedValueCache() : undefined,
       )
       const header = await pmtiles.getHeader()
+      if (header.etag) headers.set('X-Basemap-Archive-Version', header.etag)
 
       if (!tile) {
         headers.set('Content-Type', 'application/json')
@@ -364,4 +404,53 @@ export function publicReleaseManifest(value: unknown): Record<string, unknown> {
     release: manifest.release,
     provenance: manifest.provenance,
   }
+}
+
+export default {
+  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+    const response = await handler.fetch(request, env, ctx)
+    if (request.method !== 'GET' || !response.ok) return response
+    const pathname = new URL(request.url).pathname
+    const release = pinnedRelease(pathname)
+    if (!release) {
+      const etag =
+        response.headers.get('X-Basemap-Archive-Version') ??
+        new URL(request.url).searchParams.get('v')
+      if (etag)
+        ctx.waitUntil(
+          resolveLatestRelease(pathname, etag, env.BUCKET)
+            .then(resolved => {
+              if (resolved)
+                recordBasemapAccess(
+                  env.PRODUCT_USAGE,
+                  resolved,
+                  pathname,
+                  'apiRequests',
+                  response.status,
+                )
+            })
+            .catch(error => console.error('Basemap usage attribution failed', error)),
+        )
+      return response
+    }
+    if (pathname.startsWith('/downloads/')) {
+      return observeDownload(response, () =>
+        recordBasemapAccess(
+          env.PRODUCT_USAGE,
+          release,
+          pathname,
+          'downloads',
+          response.status,
+        ),
+      )
+    }
+    recordBasemapAccess(
+      env.PRODUCT_USAGE,
+      release,
+      pathname,
+      'apiRequests',
+      response.status,
+    )
+    return response
+  },
 }

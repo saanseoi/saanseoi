@@ -514,6 +514,13 @@ compared as literal strings, including suppression and unavailable markers. Exac
 reference periods and geometry companion cohorts are excluded from this cross-period
 comparison, as are source provenance and record-version metadata.
 
+The Changes tab uses this same dataset-and-geography comparison and resolves retained
+`statsRecord` events with their referenced field-definition hashes. Its differences
+exclude observation IDs, reference periods, geometry companion cohorts and provenance. A
+changed pack describes differences between the selected periods, rather than a revision
+of an earlier observation. Added and removed describe coverage within the two compared
+releases; earlier reference periods remain available.
+
 Within each continuing geography, identical payloads match first, remaining pairs count
 as changed, and unmatched packs count as added or removed. Added, changed and unchanged
 sum to the selected release's count; removed, changed and unchanged sum to the preceding

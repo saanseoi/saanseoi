@@ -3,6 +3,12 @@ import { render } from 'vitest-browser-svelte'
 import Changes from './sourceRecordChanges.svelte'
 import { buildSourceReleaseStatsPresentation } from '../../../../../../routes/sources/[datasetCode]/[releaseCode]/sourceReleasePage.utils'
 
+const navigation = vi.hoisted(() => ({
+  beforeNavigate: vi.fn(),
+  afterNavigate: vi.fn(),
+}))
+vi.mock('$app/navigation', () => navigation)
+
 const props = {
   family: 'divisions',
   fromRelease: 'old',
@@ -22,6 +28,79 @@ const stats = (removed: number) => [
   })),
 ]
 afterEach(() => vi.unstubAllGlobals())
+
+test('returning to the same mounted release restarts aborted requests and clears loading', async () => {
+  const requests: { signal: AbortSignal; finish: (response: Response) => void }[] = []
+  vi.stubGlobal(
+    'fetch',
+    vi.fn().mockImplementation(
+      (_url: string, { signal }: RequestInit) =>
+        new Promise<Response>(finish => {
+          requests.push({ signal: signal!, finish })
+        }),
+    ),
+  )
+  const screen = await render(Changes, { ...props, sourceTheme: 'stats' })
+  await expect.poll(() => requests.length).toBe(2)
+  navigation.beforeNavigate.mock.lastCall![0]({
+    from: { url: new URL('http://atlas.localhost/sources/dataset/current') },
+    to: { url: new URL('http://atlas.localhost/sources/dataset/older') },
+  })
+  expect(requests.every(request => request.signal.aborted)).toBe(true)
+  // Navigation returns to the current release without changing component props.
+  navigation.afterNavigate.mock.lastCall![0]()
+  await expect.poll(() => requests.length).toBe(4)
+  for (const request of requests.slice(2)) {
+    request.finish(
+      Response.json({ records: [], nextCursor: null, summary: { removed_count: 1 } }),
+    )
+  }
+  await expect.element(screen.getByText('No matching changes.')).toBeVisible()
+  await expect
+    .element(screen.getByRole('status', { name: 'Loading changes…' }))
+    .not.toBeInTheDocument()
+  // Late completions from the abandoned request cannot overwrite the new result.
+  for (const request of requests.slice(0, 2))
+    request.finish(new Response(null, { status: 500 }))
+  await expect.element(screen.getByRole('alert')).not.toBeInTheDocument()
+})
+
+test('leaving a release aborts records and summary before unmount and allows the next request', async () => {
+  const requests: { signal: AbortSignal; finish: (response: Response) => void }[] = []
+  vi.stubGlobal(
+    'fetch',
+    vi.fn().mockImplementation(
+      (_url: string, { signal }: RequestInit) =>
+        new Promise<Response>(finish => {
+          requests.push({ signal: signal!, finish })
+        }),
+    ),
+  )
+  const screen = await render(Changes, { ...props, sourceTheme: 'stats' })
+  await expect.poll(() => requests.length).toBe(2)
+  const navigate = navigation.beforeNavigate.mock.lastCall![0]
+  const from = { url: new URL('http://atlas.localhost/sources/dataset/old') }
+  // In-page anchors do not cancel the current release's requests.
+  navigate({ from, to: { url: new URL(`${from.url.href}#details`) } })
+  expect(requests.every(request => !request.signal.aborted)).toBe(true)
+  navigate({ from, to: { url: new URL('http://atlas.localhost/sources/dataset/new') } })
+  expect(requests.every(request => request.signal.aborted)).toBe(true)
+
+  // Keep the old promises unresolved while loading another release.
+  await screen.rerender({ ...props, sourceTheme: 'stats', toRelease: 'next' })
+  await expect.poll(() => requests.length).toBe(4)
+  expect(requests.slice(2).every(request => !request.signal.aborted)).toBe(true)
+  for (const request of requests.slice(2)) {
+    request.finish(
+      Response.json({ records: [], nextCursor: null, summary: { removed_count: 1 } }),
+    )
+  }
+  await expect.element(screen.getByText('No matching changes.')).toBeVisible()
+  for (const request of requests.slice(0, 2)) {
+    request.finish(new Response(null, { status: 500 }))
+  }
+  await expect.element(screen.getByRole('alert')).not.toBeInTheDocument()
+})
 
 test('persisted zero counts skip record requests and show no failures or retries', async () => {
   const fetch = vi.fn().mockRejectedValue(new Error('unexpected record request'))

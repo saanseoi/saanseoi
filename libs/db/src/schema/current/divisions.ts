@@ -1,3 +1,4 @@
+import { sql } from 'drizzle-orm'
 import {
   foreignKey,
   index,
@@ -25,7 +26,9 @@ export const divisions = sqliteTable(
     primaryKey({
       columns: [table.scopeId, table.id],
     }),
-    index('divisions_divisionCode_idx').on(table.scopeId, table.divisionCode),
+    index('divisions_divisionCode_nonnull_idx')
+      .on(table.scopeId, table.divisionCode)
+      .where(sql`${table.divisionCode} IS NOT NULL`),
     index('divisions_scope_order_idx').on(
       table.scopeId,
       table.level,

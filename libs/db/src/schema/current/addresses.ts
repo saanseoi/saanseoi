@@ -140,8 +140,12 @@ export const address2d = sqliteTable(
     index('address2d_hamletId_scope_id_idx')
       .on(table.hamletId, table.scopeId, table.id)
       .where(sql`${table.hamletId} IS NOT NULL`),
-    index('address2d_streetId_idx').on(table.streetId),
-    index('address2d_parentAddressId_idx').on(table.scopeId, table.parentAddressId),
+    index('address2d_streetId_nonnull_idx')
+      .on(table.streetId)
+      .where(sql`${table.streetId} IS NOT NULL`),
+    index('address2d_parentAddressId_nonnull_idx')
+      .on(table.scopeId, table.parentAddressId)
+      .where(sql`${table.parentAddressId} IS NOT NULL`),
     index('address2d_divisionSnapshotId_idx').on(table.divisionSnapshotId),
   ],
 )

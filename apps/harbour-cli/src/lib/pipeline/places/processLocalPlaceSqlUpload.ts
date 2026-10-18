@@ -1,4 +1,5 @@
 import { readPlaceSnapshotSource } from './placeAttribution'
+import { ensurePlaceAddressPublication } from './placeAddressPublication'
 import {
   deliverRecordEvidence,
   readRetainedProvenanceObject,
@@ -216,6 +217,17 @@ export async function processLocalPlaceSqlUpload(
         ),
     )
     failureAuditScope = { stage: 'assembly', ownerId: snapshots.snapshotId }
+    await runPlaceProgressPhase(
+      progress,
+      'Prepare',
+      'official Address publication',
+      () =>
+        ensurePlaceAddressPublication({
+          context,
+          resourceReleaseId,
+          snapshotId: snapshots.addressSnapshotId,
+        }),
+    )
     const publicationPrevious = await getPreparedPublication(
       context.currentDb as unknown as HarbourReadableDb,
       'placePublicationState',

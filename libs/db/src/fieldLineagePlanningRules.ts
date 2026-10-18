@@ -39,7 +39,9 @@ export function planningDivisionFieldRule(
     ],
     divisionCode: [
       'value.planning_level === "newtown" ? divisionCodesByCanonicalId.get(id) ?? null : null',
-      ['planning_level', 'id', 'divisionCodesByCanonicalId'],
+      dataset === 'ds-hk-hkgov-pland-division-new-town'
+        ? ['planning_level', 'id', 'divisionCodesByCanonicalId']
+        : ['planning_level'],
     ],
     hierarchies: [
       'For each hierarchy entry, join division_id to the complete prepared Division set; require the ancestor, use its class and resolved locale names, and materialiseDivisionHierarchies(id, [path]).',

@@ -1,5 +1,6 @@
 <script lang="ts">
 import { PUBLIC_ATLAS_API_BASE_URL } from '$app/env/public'
+import { afterNavigate, beforeNavigate } from '$app/navigation'
 import type { JsonFieldChange } from '@repo/core/jsonFieldDiff'
 import { Tooltip } from 'bits-ui'
 import Overview from '#lib/bits/pages/docs/components/releaseStats/components/releaseStatsOverviewSection.svelte'
@@ -11,6 +12,7 @@ import type {
 import BackToTop from './sourceRecordChangesBackToTop.svelte'
 import LoadingRows from './sourceRecordChangesSkeleton.svelte'
 import RecordChange from './sourceRecordChange.svelte'
+import EmptyState from './sourceRecordChangesEmptyState.svelte'
 import {
   sourceRecordChangesCopy,
   type SourceChangeType,
@@ -48,7 +50,9 @@ let {
   onTypeChange: (type?: SourceChangeType) => void
   locale: keyof typeof sourceRecordChangesCopy
 } = $props()
-let records = $state<Change[]>([])
+// Response records are immutable. Deep reactive proxies make large source diffs
+// expensive to traverse and retain dependencies for every payload field.
+let records = $state.raw<Change[]>([])
 let nextCursor = $state<string | null>(null)
 let loading = $state(false)
 let error = $state(false)
@@ -56,6 +60,22 @@ let unavailable = $state(false)
 let sourceSummary = $state<ReleaseStat[] | null>(null)
 let summaryError = $state(false)
 let controller: AbortController | undefined
+let summaryController: AbortController | undefined
+let requestGeneration = $state(0)
+// Cancel before the destination loads, rather than waiting for this component's
+// outro and destruction. Version navigation must not wait on source records.
+beforeNavigate(({ from, to }) => {
+  if (from?.url.pathname === to?.url.pathname) return
+  controller?.abort()
+  summaryController?.abort()
+})
+// A superseded navigation or a reversed outro can retain this component with
+// unchanged props. Its effects then need an explicit restart after cancellation.
+afterNavigate(() => {
+  if (controller?.signal.aborted || summaryController?.signal.aborted) {
+    requestGeneration += 1
+  }
+})
 const copy = $derived(sourceRecordChangesCopy[locale])
 const isStatisticalSource = $derived(sourceTheme === 'stats' || family === 'stats')
 const overview = $derived(
@@ -97,8 +117,10 @@ const summaryUrl = $derived.by(() => {
   return url.href
 })
 $effect(() => {
+  requestGeneration
   const url = summaryUrl
   const pending = new AbortController()
+  summaryController = pending
   sourceSummary = null
   summaryError = false
   if (url) {
@@ -176,6 +198,7 @@ function observeEnd(node: HTMLElement) {
 }
 
 $effect(() => {
+  requestGeneration
   const base = requestUrl
   const pending = new AbortController()
   controller = pending
@@ -226,7 +249,7 @@ $effect(() => {
   {#if !fromRelease}
     <p class="text-body-md text-foreground-alt" role="status">{copy.noBaseline}</p>
   {:else if knownEmpty}
-    <p class="text-body-md text-foreground-alt" role="status">{copy.empty}</p>
+    <EmptyState label={copy.empty} />
   {:else if unavailable}
     <p class="text-body-md text-foreground-alt" role="status">{copy.unavailable}</p>
   {:else if error}
@@ -234,7 +257,7 @@ $effect(() => {
   {:else if loading}
     <LoadingRows label={copy.loading} />
   {:else if !records.length}
-    <p class="text-body-md text-foreground-alt" role="status">{copy.empty}</p>
+    <EmptyState label={copy.empty} />
   {/if}
   {#if !knownEmpty && !loading && !unavailable && error}
     <button

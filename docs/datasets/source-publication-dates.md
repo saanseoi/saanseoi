@@ -1,11 +1,14 @@
 # Upstream source publication dates
 
-Release fixture `publicationDate` is the publisher's explicit publication day,
-independent of the reference period in `sourceVersion` and `cohortKey`.
-`publicationDateSource` identifies the upstream evidence. Upload registration retains
-the date on both the source and resource release; local staged metadata uses the same
-fixture. Missing dates remain unknown for year, quarter and half-year versions.
-Date-coded versions can supply their day.
+Release fixture `publicationDate` records the publisher's publication day or an
+explicitly documented estimate, independent of the reference period in `sourceVersion`
+and `cohortKey`. `publicationDateSource` identifies the upstream evidence. Upload
+registration retains the date on both the source and resource release; local staged
+metadata uses the same fixture. Estimates carry `publicationDateEstimated: true`, an
+evidence URL, date precision and localised notes explaining the inference. Date
+precision describes the evidence granularity, not certainty. Reference years and archive
+quarters alone do not establish a publication day. Date-coded versions can supply their
+day.
 
 ## CSDI evidence
 
@@ -37,14 +40,21 @@ corresponding offering's date.
 | C&SD major housing estates                        | 2021             | 2024-12-23       |
 | C&SD new towns                                    | 2021             | 2024-12-23       |
 
-## Unresolved release dates
+## Researched estimates
 
-- [Land area and population density, 2024](https://portal.csdi.gov.hk/geoportal/rest/metadata/item/censtatd_rcd_1635934215448_25451/xml):
-  the shared catalogue gives publication `2023-12-27` and revision `2025-03`. Neither
-  establishes a publication day for the 2024 compilation.
-- [Population and households, 2024 and 2026-Q2](https://portal.csdi.gov.hk/geoportal/rest/metadata/item/censtatd_rcd_1635934545173_69201/xml):
-  the shared catalogue gives publication `2023-12-27` and creation/revision
-  `2026-03-26`. These do not establish publication days for either retained compilation.
+Checked on 18 October 2026. All 83 registered local source releases now have a date. The
+93 release fixtures also contain no undated non-date-coded versions; 63 use the existing
+date-coded version fallback rather than an explicit date field. These estimates do not
+assert an independently verified geospatial publication day.
 
-The CSDI archive lists supply quarter slots and download links, without publication
-days. These three release fixtures therefore omit `publicationDate`.
+| Release                                        | Estimated date | Evidence and limits                                                                                                                                                                                                                  |
+| ---------------------------------------------- | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Land area and population density, 2024         | 2025-03-31     | [CSDI metadata](https://portal.csdi.gov.hk/geoportal/rest/metadata/item/censtatd_rcd_1635934215448_25451/xml) records revision `2025-03`; use month end with month precision.                                                        |
+| Population and households, 2024 geometry       | 2025-03-28     | [Official report announcement](https://www.info.gov.hk/gia/general/202503/28/P2025032800255.htm) establishes the statistical report day; use it as a proxy for its geometry companion.                                               |
+| Population and households, 2026-Q2 compilation | 2026-03-26     | [CSDI creation/revision day](https://portal.csdi.gov.hk/geoportal/rest/metadata/item/censtatd_rcd_1635934545173_69201/xml) matches the [2025 report announcement](https://www.info.gov.hk/gia/general/202603/26/P2026032600228.htm). |
+
+The native population packages contain observations through 2024 (2025-Q2 archive) and
+2025 (2026-Q2 archive), respectively. Their `DC_GHS.gml` ZIP entry timestamps are 5 June
+2025 and 22 April 2026. The live catalogue metadata timestamp is 12 May 2026. Packaging,
+archive slots and catalogue refreshes do not establish first publication. The
+catalogue's 27 December 2023 publication day belongs to the original offering.

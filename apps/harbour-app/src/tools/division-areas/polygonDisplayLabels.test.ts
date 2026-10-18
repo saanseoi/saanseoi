@@ -49,7 +49,7 @@ describe('polygon display labels', () => {
     })
   })
 
-  it('places the label in the broad interior away from the hole', () => {
+  it('prefers the bounds centre when it lies outside the hole', () => {
     const point = largestPolygonLabelPoint({
       type: 'Polygon',
       coordinates: [
@@ -69,8 +69,7 @@ describe('polygon display labels', () => {
         ],
       ],
     })
-    expect(point[0]).toBeCloseTo(2, 2)
-    expect(point[1]).toBeCloseTo(2, 2)
+    expect(point).toEqual([3, 2])
   })
 
   it('removes detached smaller parts without changing the largest polygon', () => {

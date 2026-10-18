@@ -90,6 +90,7 @@ export async function resolveStatisticEvents(
   historyDbs: HarbourReadableDb[],
   snapshotIds: readonly string[],
   recordTypes: readonly string[],
+  recordIds?: readonly string[],
 ) {
   const requestedTypes = new Set(recordTypes)
   const requiredTypes = new Set(recordTypes)
@@ -110,6 +111,9 @@ export async function resolveStatisticEvents(
         and(
           sql`${events.snapshotId} in (select value from json_each(${JSON.stringify(snapshotIds)}))`,
           sql`${events.recordType} in (select value from json_each(${JSON.stringify([...requiredTypes])}))`,
+          recordIds
+            ? sql`${events.recordId} in (select value from json_each(${JSON.stringify(recordIds)}))`
+            : undefined,
         ),
       )
       .all()) as StatisticEvent[]

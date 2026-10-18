@@ -66,6 +66,17 @@ export default defineConfig({
     // Tailnet-only remote development through `tailscale serve --https=8443`.
     // Vite otherwise rejects the MagicDNS Host header before proxying/HMR.
     allowedHosts: ['fi.tailb49776.ts.net', 'atlas.localhost'],
+    // Serve first-party basemap previews through the existing allowed local origin.
+    // This proxy exists only in Vite development; production uses tiles directly.
+    proxy: {
+      '^/__basemap/(hongkong|macau|gba)-[0-9]{4}-[0-9]{2}-[0-9]{2}(\\.json|/[0-9]+/[0-9]+/[0-9]+\\.(mvt|pbf))':
+        {
+          target: 'https://tiles.saanseoi.hk',
+          changeOrigin: true,
+          headers: { Origin: 'http://localhost:5173' },
+          rewrite: path => path.replace('/__basemap', ''),
+        },
+    },
     hmr: { clientPort: 80 },
     watch: {
       usePolling: true,

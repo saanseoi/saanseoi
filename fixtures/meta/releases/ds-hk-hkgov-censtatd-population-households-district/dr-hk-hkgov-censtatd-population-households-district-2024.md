@@ -1,11 +1,15 @@
 ---
 createdAt: "2026-08-27T00:00:00.000Z"
-updatedAt: "2026-08-27T00:00:00.000Z"
+updatedAt: "2026-10-18T00:00:00.000Z"
 dataset: "ds-hk-hkgov-censtatd-population-households-district"
 release: "dr-hk-hkgov-censtatd-population-households-district-2024"
 regionCode: "hk"
 source: "hkgov-censtatd"
 sourceVersion: "2024"
+publicationDate: "2025-03-28"
+publicationDateSource: "https://www.info.gov.hk/gia/general/202503/28/P2025032800255.htm"
+publicationDateEstimated: true
+publicationDatePrecision: "day"
 releaseVersion: "2024.0"
 sourceSchemaVersion: "1.0"
 type: "divisionArea"
@@ -14,6 +18,15 @@ releaseNotesUrl: "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censta
 ---
 
 # EN
+
+## Publication date
+
+The publication date, **28 March 2025**, is an estimate for this geospatial release,
+using the
+[official publication day of the 2024 statistical report](https://www.info.gov.hk/gia/general/202503/28/P2025032800255.htm).
+The retained CSDI 2025-Q2 package contains observations through 2024 and has a 5 June
+2025 file timestamp. That packaging timestamp does not establish its first publication
+day; the report announcement does not independently date the geometry package.
 
 ## Changelog
 
@@ -36,6 +49,12 @@ District Council District publication. Statistics whose source features belong t
 
 # ZH-HANT
 
+## 發布日期
+
+發布日期 **2025 年 3 月 28 日**
+是此地理資料版本的估計日期，依據[2024 年統計報告的官方發布日](https://www.info.gov.hk/gia/general/202503/28/P2025032800255.htm)。保留的 CSDI
+2025-Q2 套件包含截至 2024 年的觀測，檔案時間為 2025 年 6 月 5 日。套件時間不代表首次發布日；報告公告亦未獨立確認幾何套件的發布日期。
+
 ## 更新紀錄
 
 - <orange>上游</orange>
@@ -55,6 +74,12 @@ District Council District publication. Statistics whose source features belong t
 <black>include=areas</black> 中選取此 companion。
 
 # ZH-HANS
+
+## 发布日期
+
+发布日期 **2025 年 3 月 28 日**
+是此地理数据版本的估计日期，依据[2024 年统计报告的官方发布日](https://www.info.gov.hk/gia/general/202503/28/P2025032800255.htm)。保留的 CSDI
+2025-Q2 套件包含截至 2024 年的观测，文件时间为 2025 年 6 月 5 日。套件时间不代表首次发布日期；报告公告亦未独立确认几何套件的发布日期。
 
 ## 更新记录
 

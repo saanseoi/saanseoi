@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:2dab107c7f3af53355708af37c3c805e6f19cfa0a41188f9e4f4a36b355f6508",
+  "versionHash": "sha256:323b5d7a4f0ebda5ffcc01092b7e9ef5ba8f429347947729d41d25085c7411fc",
   "apiVersion": "api-divisions-v0.1",
   "domainCode": "geographic",
   "mappingVersion": 3,
@@ -437,6 +437,62 @@
             {
               "origin": "registry",
               "fieldPath": "divisionCodes.divisionCode"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.createdAt",
+          "sourceDatasetCode": "ds-hk-saanseoi-division",
+          "resolverCode": "lookup_registry",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "registry",
+              "fieldPath": "snapshotId"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.createdAt",
+          "sourceDatasetCode": "ds-hk-overture-division",
+          "resolverCode": "lookup_registry",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "registry",
+              "fieldPath": "snapshotId"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.snapshotId",
+          "sourceDatasetCode": "ds-hk-saanseoi-division",
+          "resolverCode": "lookup_registry",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "registry",
+              "fieldPath": "snapshotId"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.snapshotId",
+          "sourceDatasetCode": "ds-hk-overture-division",
+          "resolverCode": "lookup_registry",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "registry",
+              "fieldPath": "snapshotId"
             }
           ]
         }
@@ -1511,6 +1567,109 @@
               "fieldPath": "divisionGeometryCurations.islandAreas"
             }
           ]
+        },
+        {
+          "apiField": "attributes.snapshotId",
+          "sourceDatasetCode": "ds-hk-overture-division",
+          "resolverCode": "lookup_registry",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "registry",
+              "fieldPath": "snapshotId"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.snapshotId",
+          "sourceDatasetCode": "ds-hk-hkgov-had-division-area-district",
+          "resolverCode": "lookup_registry",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "registry",
+              "fieldPath": "snapshotId"
+            }
+          ],
+          "variant": "hkgov-had"
+        },
+        {
+          "apiField": "attributes.snapshotId",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-subdivided-units-district",
+          "resolverCode": "lookup_registry",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "registry",
+              "fieldPath": "snapshotId"
+            }
+          ],
+          "variant": "hkgov-censtatd-landclipped"
+        },
+        {
+          "apiField": "attributes.snapshotId",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-subdivided-units-district",
+          "resolverCode": "lookup_registry",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "registry",
+              "fieldPath": "snapshotId"
+            }
+          ],
+          "variant": "hkgov-censtatd-landclipped:simplified"
+        },
+        {
+          "apiField": "attributes.snapshotId",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-population-households-district",
+          "resolverCode": "lookup_registry",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "registry",
+              "fieldPath": "snapshotId"
+            }
+          ],
+          "variant": "hkgov-censtatd"
+        },
+        {
+          "apiField": "attributes.snapshotId",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-population-households-district",
+          "resolverCode": "lookup_registry",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "registry",
+              "fieldPath": "snapshotId"
+            }
+          ],
+          "variant": "hkgov-censtatd:simplified"
+        },
+        {
+          "apiField": "attributes.snapshotId",
+          "sourceDatasetCode": "ds-hk-saanseoi-division",
+          "resolverCode": "lookup_registry",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "registry",
+              "fieldPath": "snapshotId"
+            }
+          ]
         }
       ]
     },
@@ -1648,6 +1807,34 @@
             {
               "origin": "source",
               "fieldPath": "properties.sources"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.snapshotId",
+          "sourceDatasetCode": "ds-hk-overture-division",
+          "resolverCode": "lookup_registry",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "registry",
+              "fieldPath": "snapshotId"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.variant",
+          "sourceDatasetCode": "ds-hk-overture-division",
+          "resolverCode": "lookup_registry",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "registry",
+              "fieldPath": "variant"
             }
           ]
         }
