@@ -90,7 +90,6 @@ let api = $derived.by(() => {
   if (!value) error(500, 'API release data unavailable.')
   return value
 })
-let isContentLoading = $derived(contentResource.loading)
 
 let releaseBase = $derived.by(() => {
   const selected = resolveReleaseSetRef(api.releases, params.releaseCode)
@@ -241,6 +240,9 @@ const getApiReleaseTabFromUrl = (url: ApiReleaseUrl): ApiReleaseTab => {
 let activeTab = $state<ApiReleaseTab>(
   getApiReleaseTabFromUrl(page.shallow?.url ?? page.url),
 )
+// Changes already has its snapshots and saved counts in the server-loaded shell.
+// Archive enrichment for other tabs must not delay its summary or record query.
+let isContentLoading = $derived(contentResource.loading && activeTab !== 'changes')
 let hasPreloadedSkeletons = $state(false)
 let statsRoot = $derived(
   activeTab === 'stats'
@@ -820,7 +822,7 @@ $effect(() => {
       >
         <ReleaseNav.ContentSkeleton tab={activeTab} diff={showNoteDiff} />
       </div>
-    {:else if contentResource.error}
+    {:else if contentResource.error && activeTab !== 'changes'}
       <section
         class="rounded-md border border-error/30 bg-error-container px-5 py-4 font-body text-body-md text-on-error-container"
         role="alert"
