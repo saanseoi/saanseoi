@@ -42,6 +42,8 @@ export type RestoreSnapshotProjectionInput = {
   scopeId: string
   resourceType: ProjectionResourceType
   cacheDir?: string
+  /** Scope that owns the acknowledged membership sidecar, when restoring elsewhere. */
+  membershipScopeId?: string
   /** Exact prerequisites already reconstructed in this isolated composition. */
   preparedDependencies?: ReadonlyMap<
     string,
@@ -178,7 +180,10 @@ async function addressMembership(input: RestoreSnapshotProjectionInput) {
     return await readAlsMembership(
       join(
         input.cacheDir,
-        addressMembershipMirrorFile(input.scopeId, input.snapshotId),
+        addressMembershipMirrorFile(
+          input.membershipScopeId ?? input.scopeId,
+          input.snapshotId,
+        ),
       ),
     )
   } catch (cause) {

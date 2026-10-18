@@ -71,3 +71,38 @@ test('verified API evidence still reaches an independently selected R2 destinati
   )
   expect(destinations).toEqual(['preview'])
 })
+
+for (const target of [
+  { environment: 'dev', remote: false, r2: 'local' },
+  { environment: 'preview', remote: true, r2: 'preview' },
+  { environment: 'dev', remote: false, r2: 'preview' },
+] as const)
+  test(`bounds record evidence uploads for ${target.remote ? 'remote' : 'local'} D1 and ${target.r2} R2`, async () => {
+    process.env.HARBOUR_API_KEY = 'test'
+    let active = 0
+    let peak = 0
+    let completed = 0
+    globalThis.fetch = (async (input, init) => {
+      if (String(input).endsWith('/objects/check'))
+        return Response.json({ objects: [] })
+      active++
+      peak = Math.max(peak, active)
+      await new Promise(resolve => setTimeout(resolve, 2))
+      active--
+      completed++
+      return Response.json({
+        hash: String(input).split('/').at(-1),
+        byteLength: (init!.body as ArrayBuffer).byteLength,
+      })
+    }) as typeof fetch
+    await deliverRecordEvidence(
+      target,
+      Array.from({ length: 65 }, (_, id) => ({ id })),
+      {
+        retainRemoteObject: async () => {},
+      },
+    )
+    expect(peak).toBe(!target.remote && target.r2 === 'local' ? 16 : 4)
+    expect(completed).toBe(65)
+    expect(active).toBe(0)
+  })

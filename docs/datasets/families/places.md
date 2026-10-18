@@ -45,6 +45,11 @@ SQLite transaction. Missing content rolls back rows and readiness receipts toget
 a retry cannot reuse a partial dependency view. Serving and history databases remain
 read-only during this preparation.
 
+Before Place publication, a cleaned official Address dependency is reconstructed from
+its exact history and acknowledged canonical membership into a retained serving scope.
+Guarded SQL delivery verifies the reconstructed rows without replacing the latest
+Address scope. Missing history or membership evidence blocks publication.
+
 Place predecessor and historical Address/Division dependency hydration query exact
 record, version and locale keys through composite indexes. Query batches respect the
 shared parameter budget; identical hashes on different records do not widen selection.
@@ -724,7 +729,9 @@ record-evidence objects before SQL delivery, with collection and record identity
 object. Preparation artefacts and processing audits retain their context. Supplementary
 Address decisions belong to the Place audit and retained source archives; Address
 history retains canonical values and attribution without a separate evidence index.
-Public record attribution excludes these processing assertions.
+Public record attribution excludes these processing assertions. Local evidence uploads
+are bounded to 16 concurrent requests, with four for remote R2, and verify each returned
+digest and byte length before SQL delivery.
 
 Address preparation follows the matched canonical predecessor across publisher-ID
 changes. It carries the predecessor's generated supplementary entry to the new publisher
