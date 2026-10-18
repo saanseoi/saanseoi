@@ -70,7 +70,7 @@ let nextReleaseOffset = $state(0)
 
 const apiFamilyOrder = ['stats', 'divisions', 'addresses', 'places', 'streets'] as const
 const atlasDocsUrl = '/docs'
-const pendingApiFamilies = new Set(['stats', 'places', 'streets'])
+const pendingApiFamilies = new Set(['streets'])
 const latestBasemapVersion = (code: 'gba' | 'hk' | 'mo') =>
   basemapData?.basemapReleases.find(
     release => release.regionCode === code && release.displayStatus === 'current',

@@ -14,7 +14,7 @@ let { apiFamilies }: Props = $props()
 let locale = $derived(getCurrentLocale())
 
 const familyOrder = ['divisions', 'stats', 'places', 'addresses', 'streets'] as const
-const comingSoonFamilies = new Set(['places', 'streets'])
+const comingSoonFamilies = new Set(['streets'])
 let orderedApiFamilies = $derived(
   [
     ...apiFamilies.filter(family =>
