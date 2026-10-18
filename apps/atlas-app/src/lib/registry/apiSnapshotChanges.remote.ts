@@ -15,6 +15,7 @@ import {
   compareSnapshotRecords,
   compareStatisticSnapshots,
   snapshotContent,
+  snapshotRecordType,
 } from './apiSnapshotChanges'
 import { getHistoryDb, getMetaDb } from './server'
 import type { RegistryApi } from './types'
@@ -54,7 +55,8 @@ export const getApiSnapshotChanges = query(
         .where(eq(snapshots.id, id))
         .get()
       if (snapshot?.status !== 'published') error(404, 'Retained snapshot unavailable.')
-      const definition = tables[snapshot.resourceType as keyof typeof tables]
+      const recordType = snapshotRecordType(snapshot.resourceType)
+      const definition = tables[recordType as keyof typeof tables]
       if (!definition) error(404, 'Changes unavailable for this resource type.')
       const plan = await resolveSnapshotReplayPlan(
         db as unknown as HarbourReadableDb,
@@ -80,11 +82,19 @@ export const getApiSnapshotChanges = query(
       const versions = statistics
         ? new Map<string, ResolvedSnapshotVersion>()
         : await resolveSnapshotVersionState(plan, shards, [
-            snapshot.resourceType,
-            `${snapshot.resourceType}I18n`,
+            recordType,
+            `${recordType}I18n`,
           ])
+      const versionsById = new Map<string, ResolvedSnapshotVersion[]>()
+      for (const version of versions.values()) {
+        const entries = versionsById.get(version.recordId) ?? []
+        entries.push(version)
+        versionsById.set(version.recordId, entries)
+      }
       return {
+        versionsById,
         resourceType: snapshot.resourceType,
+        recordType,
         definition,
         shards,
         versions,
@@ -105,26 +115,22 @@ export const getApiSnapshotChanges = query(
       if (old?.versionHash !== next?.versionHash)
         candidates.add((old ?? next)!.recordId)
     }
-    async function materialise(state: typeof before) {
-      const { definition, shards, versions, resourceType } = state
+    async function materialise(state: typeof before, ids: string[]) {
+      const { definition, shards, versionsById, recordType } = state
       const records = new Map<string, Record<string, unknown>>()
-      for (const version of versions.values()) {
-        if (version.recordType === resourceType && !candidates.has(version.recordId))
-          records.set(version.recordId, {})
-      }
+      const versions = ids.flatMap(id => versionsById.get(id) ?? [])
       // JSON tuples keep each batch to one parameter and pin ID, hash and locale together.
       for (const shard of shards.values()) {
         for (const translated of [false, true]) {
           const table = translated ? definition[1] : definition[0]
           if (!table) continue
-          const wanted = [...versions.values()].filter(
+          const wanted = versions.filter(
             version =>
-              candidates.has(version.recordId) &&
               version.shard.bindingName === shard.bindingName &&
-              version.recordType === `${resourceType}${translated ? 'I18n' : ''}`,
+              version.recordType === `${recordType}${translated ? 'I18n' : ''}`,
           )
-          for (let start = 0; start < wanted.length; start += 50) {
-            const batch = wanted.slice(start, start + 50)
+          for (let start = 0; start < wanted.length; start += 1000) {
+            const batch = wanted.slice(start, start + 1000)
             const rows = await shard.db
               .select()
               .from(table)
@@ -154,24 +160,48 @@ export const getApiSnapshotChanges = query(
       }
       return records
     }
-    const [oldRecords, newRecords] = await Promise.all([
-      materialise(before),
-      materialise(after),
-    ])
-    const comparison =
-      before.statistics && after.statistics
-        ? compareStatisticSnapshots(before.statistics, after.statistics)
-        : compareSnapshotRecords(oldRecords, newRecords)
-    const records = comparison.records.filter(
-      record => !input.type || record.type === input.type,
-    )
-    const end = input.offset + 25
-    return {
-      counts: comparison.counts,
-      total: comparison.total,
-      records: records.slice(input.offset, end),
-      nextOffset: end < records.length ? end : null,
+    if (before.statistics && after.statistics) {
+      const comparison = compareStatisticSnapshots(before.statistics, after.statistics)
+      const records = comparison.records.filter(
+        record => !input.type || record.type === input.type,
+      )
+      const end = input.offset + 25
+      return {
+        counts: comparison.counts,
+        total: comparison.total,
+        records: records.slice(input.offset, end),
+        nextOffset: end < records.length ? end : null,
+      }
     }
+    // Compare bounded batches; retain only the requested page, not every payload
+    // and field diff in a large release-wide revision.
+    const counts = { added: 0, changed: 0, removed: 0, unchanged: 0 }
+    let total = 0
+    for (const version of after.versions.values()) {
+      if (version.recordType !== after.recordType) continue
+      total++
+      if (!candidates.has(version.recordId)) counts.unchanged++
+    }
+    const records: ReturnType<typeof compareSnapshotRecords>['records'] = []
+    let matching = 0
+    const ids = [...candidates].sort()
+    for (let start = 0; start < ids.length; start += 1000) {
+      const batch = ids.slice(start, start + 1000)
+      const [oldRecords, newRecords] = await Promise.all([
+        materialise(before, batch),
+        materialise(after, batch),
+      ])
+      const comparison = compareSnapshotRecords(oldRecords, newRecords)
+      for (const key of ['added', 'changed', 'removed', 'unchanged'] as const)
+        counts[key] += comparison.counts[key]
+      for (const record of comparison.records) {
+        if (input.type && record.type !== input.type) continue
+        if (matching >= input.offset && records.length < 25) records.push(record)
+        matching++
+      }
+    }
+    const end = input.offset + 25
+    return { counts, total, records, nextOffset: end < matching ? end : null }
   },
 )
 

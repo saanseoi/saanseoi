@@ -77,3 +77,8 @@ export function compareStatisticSnapshots(
     .sort((a, b) => a.id.localeCompare(b.id))
   return { counts, records, total: after.length }
 }
+
+/** Address snapshots expose Address2D records and their locale translations. */
+export function snapshotRecordType(resourceType: string) {
+  return resourceType === 'address' ? 'address2d' : resourceType
+}
