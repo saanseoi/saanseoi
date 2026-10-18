@@ -187,8 +187,10 @@ function setChangeResource(value: string) {
 }
 function selectRecordChanges(type?: SourceChangeType) {
   const url = new URL(currentUrl.href)
+  const fromStats = url.searchParams.get('tab') === 'stats'
   url.searchParams.set('tab', 'changes')
-  if (type && type !== changeType) url.searchParams.set('changes', type)
+  if (fromStats) url.searchParams.delete('resource')
+  if (type && (fromStats || type !== changeType)) url.searchParams.set('changes', type)
   else url.searchParams.delete('changes')
   void goto(`${url.pathname}${url.search}`, { shallow: true, state: {} })
 }
@@ -909,6 +911,7 @@ $effect(() => {
             {#await statsRoot then module}
               {@const ReleaseStatsRoot = module.default}
               <ReleaseStatsRoot
+                onChangeSelect={selectRecordChanges}
                 resourceType={api.familyType === 'stats'
                   ? 'divisionStatistic'
                   : api.familyType === 'places'

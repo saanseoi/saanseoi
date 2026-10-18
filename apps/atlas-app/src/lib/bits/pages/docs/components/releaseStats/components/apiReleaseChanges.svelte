@@ -7,6 +7,7 @@ import {
   type SourceChangeType,
 } from '#lib/bits/pages/sources/components/sourceRecordChanges/sourceRecordChanges.copy.js'
 import Overview from './releaseStatsOverviewSection.svelte'
+import OverviewSkeleton from './releaseStatsOverviewSkeleton.svelte'
 import { createReleaseStatsPresentation } from '../releaseStatsPresentation'
 import type { ReleaseStatsCopy } from '../releaseStats.types'
 import { untrack } from 'svelte'
@@ -108,6 +109,8 @@ function observeEnd(node: HTMLElement) {
         selectedType={type}
       />
     </Tooltip.Provider>
+  {:else if pending && !pending.ready && !failure}
+    <OverviewSkeleton />
   {/if}
   {#each rows as record (record.id)}
     <RecordChange {...record} {diff} {locale} />
