@@ -46,16 +46,9 @@ let failure = $state(false)
 let changeStatistics = $derived(
   selectSnapshotChangeStats(statistics, resourceType, primary),
 )
-let hasChanges = $derived(
-  !changeStatistics.length ||
-    changeStatistics.some(
-      row =>
-        row.category === 'changes' &&
-        ['added_count', 'changed_count', 'removed_count'].includes(row.measure) &&
-        (!type || row.measure === `${type}_count`) &&
-        row.value > 0,
-    ),
-)
+// Only identical immutable snapshots prove that there is no record diff.
+// Stored presentation statistics must not suppress a distinct comparison.
+let hasChanges = $derived(fromSnapshot !== toSnapshot)
 let pending = $derived(
   fromSnapshot && hasChanges
     ? getApiSnapshotChanges({ fromSnapshot, toSnapshot, offset, type })

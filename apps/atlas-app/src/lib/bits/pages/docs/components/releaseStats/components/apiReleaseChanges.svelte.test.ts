@@ -126,7 +126,7 @@ test('published counts render while record comparison is still pending', async (
     .toBeVisible()
 })
 
-test('a published zero count does not run a record comparison', async () => {
+test('a zero stored count cannot hide changes between distinct snapshots', async () => {
   remote.getApiSnapshotChanges.mockClear()
   const screen = await render(Changes, {
     ...props,
@@ -138,7 +138,7 @@ test('a published zero count does not run a record comparison', async () => {
   await expect
     .element(screen.getByRole('heading', { name: /3\s+records/i }))
     .toBeVisible()
-  expect(remote.getApiSnapshotChanges).not.toHaveBeenCalled()
+  expect(remote.getApiSnapshotChanges).toHaveBeenCalled()
 })
 
 test('published counts render before the previous release baseline has loaded', async () => {
@@ -150,4 +150,13 @@ test('published counts render before the previous release baseline has loaded', 
   await expect
     .element(screen.getByRole('heading', { name: /3\s+records/i }))
     .toBeVisible()
+})
+
+test('identical snapshots skip comparison even when stored statistics are inconsistent', async () => {
+  remote.getApiSnapshotChanges.mockClear()
+  const screen = await render(Changes, { ...props, fromSnapshot: 'new' })
+  await expect
+    .element(screen.getByRole('heading', { name: /3\s+records/i }))
+    .toBeVisible()
+  expect(remote.getApiSnapshotChanges).not.toHaveBeenCalled()
 })
