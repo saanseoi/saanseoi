@@ -16,6 +16,24 @@ spec.loader.exec_module(bootstrap)
 
 
 class BootstrapTests(unittest.TestCase):
+    def test_database_limit_excludes_free_pages_but_checks_restored_size(self):
+        db = sqlite3.connect(':memory:')
+        self.addCleanup(db.close)
+        db.executescript('CREATE TABLE payload(id INTEGER PRIMARY KEY, value BLOB);')
+        db.execute('INSERT INTO payload VALUES(1, zeroblob(100000))')
+        db.commit()
+        with patch.object(bootstrap, 'MAX_D1_DATABASE_BYTES', 20000):
+            with self.assertRaisesRegex(ValueError, 'live bytes'):
+                bootstrap.assert_database_size(db)
+            db.execute('DELETE FROM payload')
+            db.commit()
+            bootstrap.assert_database_size(db)
+            with tempfile.TemporaryDirectory() as directory:
+                path = Path(directory) / 'large.sql'
+                path.write_text('CREATE TABLE payload(value BLOB);\nINSERT INTO payload VALUES(zeroblob(100000));\n')
+                with self.assertRaisesRegex(ValueError, 'live bytes'):
+                    bootstrap.restore_check(path, {'payload': 1})
+
     def test_blockers_follow_version_associations_and_processing_runs(self):
         db = sqlite3.connect(':memory:')
         self.addCleanup(db.close)

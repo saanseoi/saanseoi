@@ -290,10 +290,20 @@ def restore_check(path, expected):
             for sql in statements(path):
                 db.execute(sql)
             db.commit()
+            assert_database_size(db)
             assert_integrity(db)
             actual = {name: db.execute(f'SELECT count(*) FROM {ident(name)}').fetchone()[0] for name in expected}
             if actual != expected:
                 raise ValueError('Restore table counts differ from source')
+
+
+def assert_database_size(db):
+    # SQL imports do not reproduce freelist pages left by local processing.
+    pages = db.execute('PRAGMA page_count').fetchone()[0]
+    free = db.execute('PRAGMA freelist_count').fetchone()[0]
+    size = db.execute('PRAGMA page_size').fetchone()[0]
+    if (pages - free) * size > MAX_D1_DATABASE_BYTES:
+        raise ValueError(f'D1 database exceeds {MAX_D1_DATABASE_BYTES} live bytes')
 
 
 def verify(bundle, restore=True):
@@ -352,8 +362,7 @@ def prepare(output, config):
                 assert_integrity(db)
                 if binding == 'DB_CURRENT':
                     assert_current_publications(db)
-                if db.execute('PRAGMA page_count').fetchone()[0] * db.execute('PRAGMA page_size').fetchone()[0] > MAX_D1_DATABASE_BYTES:
-                    raise ValueError(f'D1 database exceeds {MAX_D1_DATABASE_BYTES} bytes: {binding}')
+                assert_database_size(db)
                 for table in table_names(db):
                     if transient(table) and db.execute(f'SELECT 1 FROM {ident(table)} LIMIT 1').fetchone():
                         if table not in TRANSIENT:

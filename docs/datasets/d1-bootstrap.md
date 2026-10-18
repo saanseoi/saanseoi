@@ -122,7 +122,10 @@ file, its checksum and the acknowledged Address membership files. These SQLite f
 seed the subsequent production mirror; they are not uploaded directly to D1. Keep the
 complete bundle, including SQL, SQLite files, membership files and manifest, together.
 This is local SQLite validation, not evidence that a large import has succeeded on D1.
-D1's import-file, database-size and row-size limits still apply.
+D1's import-file, database-size and row-size limits still apply. The database-size check
+excludes reusable free pages in the local SQLite file and also checks the rebuilt
+database during restore validation. Local processing can leave a large free-page
+allocation that is not part of the SQL import.
 
 A failed preparation leaves an unsealed directory for diagnosis. Use a new output
 directory after resolving the failure; do not import its partial files.
