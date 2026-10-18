@@ -17,8 +17,14 @@ import Icon from '#lib/bits/primitives/icon/icon.svelte'
         sideOffset={8}
         class="z-70 max-w-80 rounded-md border border-outline-variant bg-surface-container px-4 py-3 font-body text-label-md text-primary shadow-lg"
       >
-        An OpenStreetMap basemap built with Protomaps, with regional boundaries and
-        coastline geometry. Build and source details describe this specific release.
+        <p>
+          An OpenStreetMap basemap built with Protomaps, with regional boundaries and
+          coastline geometry. Build and source details describe this specific release.
+        </p>
+        <p class="mt-3 border-t border-outline-variant pt-3 text-foreground-alt">
+          Regional OSM PBF downloads are only offered for the latest two releases.
+          PMTiles downloads remain available for every published release.
+        </p>
       </Popover.Content>
     </Popover.Portal>
   </Popover.Root>

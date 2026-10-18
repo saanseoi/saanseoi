@@ -3,6 +3,7 @@ import { goto } from '$app/navigation'
 import { page } from '$app/state'
 import * as ReleaseHeader from '#lib/bits/pages/docs/components/releaseHeader/index.js'
 import * as ReleaseNav from '#lib/bits/pages/docs/components/releaseNav/index.js'
+import Downloads from '#lib/bits/pages/basemaps/basemapReleaseDownloads.svelte'
 import Routing from '#lib/bits/pages/basemaps/basemapReleaseRouting.svelte'
 import ManifestInfo from '#lib/bits/pages/basemaps/basemapReleaseManifestInfo.svelte'
 import Content from '#lib/bits/pages/basemaps/basemapReleaseContent.svelte'
@@ -59,21 +60,14 @@ function selectTab(tab: string) {
   >
     {#snippet tabAction()}
       {#if activeTab === 'release'}
-        {#if data.routing?.status === 'available' &&
-          data.versions.indexOf(data.version) < 2}
-          <div class="mr-3 flex gap-2">
-            <a
-              class="rounded-default border border-outline-variant px-3 py-1.5 text-label-md hover:border-primary hover:text-primary"
-              href={data.routing.pbf.url}
-              >OSM PBF</a
-            >
-            <a
-              class="rounded-default border border-outline-variant px-3 py-1.5 text-label-md hover:border-primary hover:text-primary"
-              href={`https://tiles.saanseoi.hk/downloads/${data.region}/${data.version}.pmtiles`}
-              >PMTiles</a
-            >
-          </div>
-        {/if}
+        <Downloads
+          region={data.region}
+          version={data.version}
+          pbfUrl={data.routing?.status === 'available' &&
+          data.versions.indexOf(data.version) < 2
+            ? data.routing.pbf.url
+            : null}
+        />
         <ManifestInfo />
       {/if}
     {/snippet}

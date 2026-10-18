@@ -5,16 +5,26 @@ const artifact = z.object({
   size: z.number().nonnegative(),
   sha256: z.string().regex(/^[a-f0-9]{64}$/),
 })
-const engine = artifact.extend({ version: z.string(), profiles: z.array(z.string()) })
-export const routingReleaseSchema = z.object({
+const engineSpec = z.object({ version: z.string(), profiles: z.array(z.string()) })
+const engine = artifact.extend(engineSpec.shape)
+const common = z.object({
   schemaVersion: z.literal(1),
   region: z.enum(['hk', 'mo', 'gba']),
   version: z.string(),
-  status: z.enum(['available', 'retired']),
   recipeUrl: z.string().url(),
   rebuildUrl: z.string().url(),
-  pbf: artifact,
-  engines: z.object({ valhalla: engine, graphhopper: engine }),
   limitations: z.array(z.string()),
 })
+const published = common.extend({
+  pbf: artifact,
+  engines: z.object({ valhalla: engine, graphhopper: engine }),
+})
+export const routingReleaseSchema = z.discriminatedUnion('status', [
+  published.extend({ status: z.literal('available') }),
+  published.extend({ status: z.literal('retired') }),
+  common.extend({
+    status: z.literal('recipe-only'),
+    engines: z.object({ valhalla: engineSpec, graphhopper: engineSpec }),
+  }),
+])
 export type RoutingRelease = z.infer<typeof routingReleaseSchema>
