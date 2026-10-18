@@ -5,25 +5,24 @@ import { flip } from 'svelte/animate'
 import type { ReleaseNavTab } from '../releaseNav.types'
 
 type Props = {
-  compact?: boolean
   activeTab: string
   onSelect: (tab: string) => void
   tabs: ReleaseNavTab[]
 }
 
-let { activeTab, compact = false, onSelect, tabs }: Props = $props()
+let { activeTab, onSelect, tabs }: Props = $props()
 </script>
 
 <div class="flex h-10 min-w-0 grow justify-start">
   <div
-    class={`flex min-w-0 flex-1 overflow-x-auto ${compact ? 'gap-3' : 'gap-5'}`}
+    class="flex min-w-0 flex-1 gap-3 overflow-x-auto"
     role="tablist"
     aria-label={m.source_tab_information()}
   >
     {#each tabs as { id, compactLabel, label } (id)}
       <button
         animate:flip={{ duration: prefersReducedMotion.current ? 0 : 220 }}
-        class={`h-full cursor-pointer border-b-2 px-1 font-body text-label-md font-semibold transition hover:text-white ${activeTab === id ? 'border-secondary text-primary' : 'border-transparent text-foreground-alt'}`}
+        class={`h-full shrink-0 cursor-pointer whitespace-nowrap border-b-2 px-1 font-body text-label-md font-semibold transition hover:text-white ${activeTab === id ? 'border-secondary text-primary' : 'border-transparent text-foreground-alt'}`}
         type="button"
         role="tab"
         aria-selected={activeTab === id}
