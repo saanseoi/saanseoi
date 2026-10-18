@@ -448,7 +448,12 @@ export async function listDivisionChanges(
       })
     const nextCursor = remaining.length > limit ? makeCursor(selected.at(-1)!) : null
     const link = (value: string) => {
-      const url = new URL('/divisions/v1/changes', origin)
+      const url = new URL(
+        args.apiVersion === 'api-divisions-v0.2'
+          ? '/divisions/v0.2/changes'
+          : '/divisions/v1/changes',
+        origin,
+      )
       url.searchParams.set('fromReleaseSet', from.id)
       url.searchParams.set('toReleaseSet', to.id)
       url.searchParams.set('page[limit]', String(limit))

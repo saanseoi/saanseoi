@@ -11,6 +11,21 @@ current catalogue. The response returns both resolved IDs and codes.
 
 ## Example queries
 
+### Divisions v0.2
+
+Use geographic release sets published for API v0.2. The September and October SaanSeoi
+inventories form a compatible comparison:
+
+```http
+GET /divisions/v0.2/changes?fromReleaseSet=data-hk-divisions-2026-09-01.0&toReleaseSet=data-hk-divisions-2026-10-01.0&page[limit]=25
+```
+
+Omit `toReleaseSet` to compare with the latest published v0.2 geographic inventory. The
+OpenAPI request examples use the same version-specific pair. Release sets from another
+API version return `409 incompatible_release_sets`.
+
+### Divisions v0.1
+
 These release codes must be published and retained in the selected environment.
 
 1. Compare June's definitions with the latest published release:

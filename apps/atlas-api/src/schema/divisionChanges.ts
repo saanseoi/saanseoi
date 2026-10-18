@@ -1,3 +1,4 @@
+import { divisionChangesReleaseExamples } from './divisionChanges.examples'
 import { geographicCodeQueryShape } from './geographicCodeFilters'
 import { z } from '@hono/zod-openapi'
 
@@ -8,12 +9,12 @@ export const DivisionChangesQuerySchema = z
     inventory: z.string().min(1).optional(),
     fromReleaseSet: releaseSelector.openapi({
       description: 'Required published geographic division release-set code or ID.',
-      example: 'data-hk-divisions-2026-06-17.0',
+      example: divisionChangesReleaseExamples['v0.1'].from,
     }),
     toReleaseSet: releaseSelector.optional().openapi({
       description:
         'Published target code or ID. Omission resolves the latest published geographic release once; subsequent pages pin its ID.',
-      example: 'data-hk-divisions-2026-07-22.0',
+      example: divisionChangesReleaseExamples['v0.1'].to,
     }),
     'page[limit]': z.coerce.number().int().min(1).max(100).default(25),
     include: z.literal('geometry').optional().openapi({
@@ -23,6 +24,18 @@ export const DivisionChangesQuerySchema = z
     'page[cursor]': z.string().min(1).max(4096).optional(),
   })
   .strict()
+export const DivisionChangesV02QuerySchema = DivisionChangesQuerySchema.extend({
+  fromReleaseSet: releaseSelector.openapi({
+    description:
+      'Required geographic release-set code or ID published for Divisions v0.2.',
+    example: divisionChangesReleaseExamples['v0.2'].from,
+  }),
+  toReleaseSet: releaseSelector.optional().openapi({
+    description:
+      'Target code or ID published for Divisions v0.2. Omission selects the latest published geographic release.',
+    example: divisionChangesReleaseExamples['v0.2'].to,
+  }),
+})
 export type DivisionChangesQuery = z.infer<typeof DivisionChangesQuerySchema>
 
 export const DivisionChangedFieldSchema = z.enum([

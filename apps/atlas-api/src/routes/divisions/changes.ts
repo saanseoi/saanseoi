@@ -1,6 +1,7 @@
 import { createRoute, defineOpenAPIRoute } from '@hono/zod-openapi'
 import {
   DivisionChangesQuerySchema,
+  DivisionChangesV02QuerySchema,
   DivisionChangesResponseSchema,
   DivisionChangesErrorSchema,
   DivisionChangeDefinitionSchema,
@@ -13,7 +14,10 @@ import {
   listDivisionChanges,
 } from '../../services/divisionChanges'
 import type { AppEnv } from '../../types'
-import { divisionChangesExamplesDescription } from '../../schema/divisionChanges.examples'
+import {
+  divisionChangesExamplesDescription,
+  divisionChangesExamplesDescriptionForVersion,
+} from '../../schema/divisionChanges.examples'
 
 const error = (description: string) => ({
   description,
@@ -116,6 +120,11 @@ export const divisionChangesV02Route = defineOpenAPIRoute({
     ...route,
     path: '/divisions/v0.2/changes' as string,
     operationId: 'listDivisionChangesV02',
+    request: { query: DivisionChangesV02QuerySchema },
+    description: route.description.replace(
+      divisionChangesExamplesDescription,
+      divisionChangesExamplesDescriptionForVersion('v0.2'),
+    ),
   }),
   handler: divisionChangesRoute.handler,
 })
