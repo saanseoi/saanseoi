@@ -1,11 +1,15 @@
 ---
 createdAt: "2026-08-19T00:00:00.000Z"
-updatedAt: "2026-08-19T00:00:00.000Z"
+updatedAt: "2026-10-18T00:00:00.000Z"
 dataset: "ds-hk-hkgov-censtatd-population-households-district"
 release: "dr-hk-hkgov-censtatd-population-households-district-2026-Q2"
 regionCode: "hk"
 source: "hkgov-censtatd"
 sourceVersion: "2026-Q2"
+publicationDate: "2026-03-26"
+publicationDateSource: "https://portal.csdi.gov.hk/geoportal/rest/metadata/item/censtatd_rcd_1635934545173_69201/xml"
+publicationDateEstimated: true
+publicationDatePrecision: "day"
 releaseNotesUrl: "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635934545173_69201"
 releaseVersion: "2021.0"
 type: "divisionStatistic"
@@ -15,6 +19,18 @@ measureCuration: "fixtures/meta/curations/hkgov-censtatd-statistics-measures/pop
 ---
 
 # EN
+
+## Publication date
+
+The publication date, **26 March 2026**, is an estimated publication day for this
+compilation. The
+[official CSDI metadata](https://portal.csdi.gov.hk/geoportal/rest/metadata/item/censtatd_rcd_1635934545173_69201/xml)
+gives that exact creation/revision day, matching the
+[official publication of the 2025 statistical report](https://www.info.gov.hk/gia/general/202603/26/P2026032600228.htm).
+The native package contains annual observations through 2025. Its 22 April 2026 file
+timestamp, 12 May metadata refresh and 2026-Q2 archive slot describe
+packaging/cataloguing, not a confirmed first publication day. The catalogue publication
+date of 27 December 2023 belongs to the original offering.
 
 ## Changelog
 
@@ -57,6 +73,11 @@ The reviewed mapping below is generated from this release's C&SD
 
 # ZH-HANT
 
+## 發布日期
+
+此彙編的估計發布日期為
+**2026 年 3 月 26 日**。[官方 CSDI 中繼資料](https://portal.csdi.gov.hk/geoportal/rest/metadata/item/censtatd_rcd_1635934545173_69201/xml)的建立／修訂日與[2025 年統計報告的官方發布日](https://www.info.gov.hk/gia/general/202603/26/P2026032600228.htm)一致。原生套件包含截至 2025 年的年度觀測。2026 年 4 月 22 日的檔案時間、5 月 12 日的中繼資料更新及 2026-Q2 存檔時段均未確認首次發布日。目錄中的 2023 年 12 月 27 日屬於原始資料產品。
+
 ## 變更記錄
 
 - 山水初始版本。
@@ -95,6 +116,11 @@ The reviewed mapping below is generated from this release's C&SD
 {{hkgovCenstatdMeasureTable:zh-Hant}}
 
 # ZH-HANS
+
+## 发布日期
+
+此汇编的估计发布日期为
+**2026 年 3 月 26 日**。[官方 CSDI 元数据](https://portal.csdi.gov.hk/geoportal/rest/metadata/item/censtatd_rcd_1635934545173_69201/xml)的创建／修订日与[2025 年统计报告的官方发布日期](https://www.info.gov.hk/gia/general/202603/26/P2026032600228.htm)一致。原生套件包含截至 2025 年的年度观测。2026 年 4 月 22 日的文件时间、5 月 12 日的元数据更新及 2026-Q2 存档时段均未确认首次发布日期。目录中的 2023 年 12 月 27 日属于原始数据产品。
 
 ## 变更记录
 

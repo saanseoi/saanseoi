@@ -1,11 +1,15 @@
 ---
 createdAt: "2026-07-27T00:00:00.000Z"
-updatedAt: "2026-07-27T00:00:00.000Z"
+updatedAt: "2026-10-18T00:00:00.000Z"
 dataset: "ds-hk-hkgov-censtatd-land-area-population-density-district"
 release: "dr-hk-hkgov-censtatd-land-area-population-density-district-2024"
 regionCode: "hk"
 source: "hkgov-censtatd"
 sourceVersion: "2024"
+publicationDate: "2025-03-31"
+publicationDateSource: "https://portal.csdi.gov.hk/geoportal/rest/metadata/item/censtatd_rcd_1635934215448_25451/xml"
+publicationDateEstimated: true
+publicationDatePrecision: "month"
 sourceSchemaVersion: "1.0"
 releaseVersion: "2024.0"
 type: "divisionStatistic"
@@ -23,6 +27,13 @@ measureCuration: "fixtures/meta/curations/hkgov-censtatd-statistics-measures/lan
   District Council districts.
 
 ## Versioning
+
+The publication date, **31 March 2025**, is a month-end estimate. The
+[official CSDI metadata](https://portal.csdi.gov.hk/geoportal/rest/metadata/item/censtatd_rcd_1635934215448_25451/xml)
+identifies the dataset revision as **March 2025**, without an exact day. Its 27 December
+2023 publication date describes the original dataset. The metadata refresh and native
+`Density_2024.gml` package timestamp are 23 July 2025; neither establishes the first
+publication day of the 2024 edition.
 
 This release is derived from the native <black>Density_{{ sourceVersion }}.gml</black>
 layer in CSDI archive slot <black>2025-Q3</black>. The archive slot records _when_ the
@@ -80,6 +91,11 @@ release's C&SD
 
 ## 版本控制
 
+發布日期 **2025 年 3 月 31 日** 是月底估計值。
+[官方 CSDI 元數據](https://portal.csdi.gov.hk/geoportal/rest/metadata/item/censtatd_rcd_1635934215448_25451/xml)
+將修訂月份列為
+**2025 年 3 月**，並無確切日期。2023 年 12 月 27 日是原始資料集的發布日期；2025 年 7 月 23 日的元數據更新及原生檔案封裝時間，並不能證明 2024 年版本首次發布的日期。
+
 本發布衍生自 [CSDI](saanseoi:zh-hant:definition/hkgov-csdi/v1) 歸檔時段
 <black>2025-Q3</black> 中的原生 <black>Density_{{ sourceVersion }}.gml</black>
 圖層。歸檔時段記錄的是發布者套件的歸檔時間，而非來源的發布時間。因此，我們使用
@@ -131,6 +147,11 @@ release's C&SD
   {{ sourceVersion }} 年全港 18 个区议会分区的土地面积、人口及人口密度统计资料。
 
 ## 版本控制
+
+发布日期 **2025 年 3 月 31 日** 是月末估计值。
+[官方 CSDI 元数据](https://portal.csdi.gov.hk/geoportal/rest/metadata/item/censtatd_rcd_1635934215448_25451/xml)
+将修订月份列为
+**2025 年 3 月**，并无确切日期。2023 年 12 月 27 日是原始数据集的发布日期；2025 年 7 月 23 日的元数据更新及原生文件打包时间，并不能证明 2024 年版本首次发布的日期。
 
 本发布衍生自 [CSDI](saanseoi:zh-hans:definition/hkgov-csdi/v1) 归档时段
 <black>2025-Q3</black> 中的原生 <black>Density_{{ sourceVersion }}.gml</black>
