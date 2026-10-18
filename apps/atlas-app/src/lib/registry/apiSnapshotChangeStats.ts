@@ -16,12 +16,29 @@ export function selectSnapshotChangeStats(
 ): Array<{ category: string; measure: string; unit: string; value: number }> {
   if (Array.isArray(variant)) {
     if (!variant.length) return []
-    // Every selected variant must have its own saved counts; a partial sum is not a total.
+    // Only the first (primary) variant can inherit aggregate churn. Other variants
+    // contribute saved resource counts without repeating table/group totals.
     const scoped = stats.filter(row => row.dimension === 'resource')
-    const selections = variant.map(value =>
-      selectSnapshotChangeStats(scoped, resourceType, false, value),
+    if (
+      resourceType !== 'address' &&
+      !scoped.some(
+        row =>
+          row.category === 'changes' &&
+          variant.some(value => row.dimensionValue === `${resourceType}:${value}`),
+      )
     )
-    if (selections.some(rows => !rows.length)) return []
+      return selectSnapshotChangeStats(stats, resourceType, primary)
+    const selections = [...new Set(variant)]
+      .map((value, index) =>
+        selectSnapshotChangeStats(
+          primary && index === 0 ? stats : scoped,
+          resourceType,
+          primary && index === 0,
+          value,
+        ),
+      )
+      .filter(rows => rows.length)
+    if (!selections.length) return []
     return selections[0]!.map((row, index) => ({
       ...row,
       value: selections.reduce((total, rows) => total + rows[index]!.value, 0),

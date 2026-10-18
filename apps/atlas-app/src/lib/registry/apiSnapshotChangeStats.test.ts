@@ -104,5 +104,66 @@ test('All sums each saved variant measure without counting the primary aggregate
       true,
       ['hkgov-dpo', 'overture-places'],
     ),
+  ).toEqual(selectSnapshotChangeStats(stats, 'address', true, 'hkgov-dpo'))
+})
+
+test('non-address selections without resource rows use the full primary statistics', () => {
+  const variants = ['curated', 'upstream']
+  for (const stats of [churn(12), [...churn(12), ...churn(7, 'table', 'division')]]) {
+    expect(selectSnapshotChangeStats(stats, 'division', true, variants)).toEqual(
+      selectSnapshotChangeStats(stats, 'division', true),
+    )
+    expect(selectSnapshotChangeStats(stats, 'division', true, [])).toEqual([])
+  }
+  expect(selectSnapshotChangeStats(churn(12), 'division', false, variants)).toEqual([])
+  expect(
+    selectSnapshotChangeStats(
+      [...churn(12), ...churn(3, 'table', 'address2d')],
+      'address',
+      true,
+      variants,
+    ),
+  ).toEqual(selectSnapshotChangeStats(churn(3, 'table', 'address2d'), 'address', true))
+})
+
+test('All sums available variants while rejecting incomplete variant measures', () => {
+  const variants = ['curated', 'upstream']
+  expect(
+    selectSnapshotChangeStats(
+      [...churn(12), ...churn(7, 'resource', 'division:curated')],
+      'division',
+      true,
+      variants,
+    ),
+  ).toEqual(selectSnapshotChangeStats(churn(7), 'division', true))
+  expect(
+    selectSnapshotChangeStats(
+      [
+        ...churn(12),
+        ...churn(7, 'resource', 'division:curated').filter(
+          row => row.measure !== 'count',
+        ),
+      ],
+      'division',
+      true,
+      variants,
+    ),
   ).toEqual([])
+})
+
+test('All combines primary fallback and available supplementary counts once', () => {
+  const stats = [
+    ...churn(12),
+    ...churn(3, 'table', 'address2d'),
+    ...churn(50, 'district', 'one'),
+    ...churn(7, 'resource', 'address:overture-places'),
+  ]
+  const selected = selectSnapshotChangeStats(stats, 'address', true, [
+    'hkgov-dpo',
+    'overture-places',
+    'missing',
+    'overture-places',
+  ])
+  expect(selected.find(row => row.category === 'records')?.value).toBe(200)
+  expect(selected.find(row => row.measure === 'changed_count')?.value).toBe(10)
 })
