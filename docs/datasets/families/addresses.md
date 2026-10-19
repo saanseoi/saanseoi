@@ -1887,3 +1887,70 @@ zero churn and their full record count remains unchanged. These saved counts sup
 selected variant's Changes summary independently of record pagination. The All view sums
 the saved counts of every selected variant for each change measure. A complete set of
 variant counts is required before displaying that combined summary.
+
+## Premises name contract and storage maintenance
+
+`premisesName` is the localised name of the premises or development associated with an
+address. It is distinct from `buildingName` and is used consistently by address
+assembly, curation, lineage, search, serving projections and the public API. Component
+search uses `component=premises`.
+
+The generated CURRENT migration `20261019184429_tired_valeria_richards` and HISTORY
+migration `20261019184447_cultured_nightmare` rename the stored locale column in place.
+Apply the HISTORY migration to every retained shard. This maintenance must not insert
+snapshot events or issue release revisions.
+
+The preview and production deployment workflow runs `scripts/address-premises/remote.ts`
+around the generated schema migrations:
+
+1. `check` validates database identities against configured bindings and retained
+   HISTORY shards. Completed environments skip maintenance.
+2. `begin` refuses active ingestion, records D1 Time Travel bookmarks, pauses the
+   cleanup queue, and deploys temporary HTTP 503 entry points for both APIs. The public
+   API retains its Durable Object export and stored state. Database triggers block
+   inserts, updates and deletes on ordinary CURRENT and HISTORY tables. Frozen recovery
+   bookmarks and per-table counts are recorded after locking.
+3. The generated schema migrations rename the locale column in place.
+4. `apply` updates translated-field provenance and canonical HISTORY hashes in guarded
+   D1 transaction batches. It retains all address values, identities, timestamps and
+   tombstones. CURRENT has no persisted locale hashes. Its FTS5 replacement is populated
+   separately, compared in both directions including rowids, and swapped atomically.
+   Every shard must pass full locale readback, preserved-content digests, table counts
+   and foreign-key checks.
+5. Both API applications are deployed regardless of changed-path filters. `finish`
+   verifies the live Address OpenAPI contract and rechecks stored hashes before removing
+   write locks. It resumes only queues paused by this migration; queues already paused
+   remain paused. Completion receipts use named entries in `d1_migrations`, without
+   creating snapshot events or release revisions.
+
+This deployment uses a maintenance window. Address responses use `no-store`; the
+maintenance responses also use `no-store` and include `Retry-After`. Local ingestion and
+direct database tools must remain stopped throughout the window. The cleanup queue pause
+prevents delivery retries from consuming messages during maintenance.
+
+Recovery evidence is uploaded as the `address-premises-{environment}-{run}-{attempt}`
+workflow artefact, including recovery bookmarks, database identities, counts and
+verification reports. If any phase fails, do not remove locks or resume ingestion
+manually. Correct the failure and rerun the deployment: completed data batches are
+idempotent, and the APIs are forced through maintenance and restoration again. Do not
+roll back only the API code after the column rename. A database rollback requires the
+matching API version and a coordinated restore of every affected shard from the frozen
+bookmarks. D1 Time Travel retention still applies; retaining an artefact does not extend
+bookmark availability. Rollback is never automatic.
+
+For isolated SQLite rehearsals, the read-only planner remains available:
+
+```sh
+bun scripts/migrate-address-premises-name.ts /path/to/snapshot.sqlite /path/to/plan.sql
+```
+
+Apply the generated column migration followed by the plan with a fail-fast SQLite runner
+(`sqlite3 -bail database.sqlite < plan.sql`). Do not send that plan's explicit SQLite
+transaction to remote D1. The deployment runner uses D1 atomic batches and the same
+canonical hash transformation instead.
+
+Verification includes populated CURRENT and HISTORY fixtures, multiple batches,
+tombstone preservation, stale-page rejection, injected rollback failures, duplicate FTS
+rows, searchability and idempotent retries. A remote probe verifies D1 atomic rollback,
+trigger restoration, JSON-bound updates and the FTS swap using isolated preview tables
+that are removed after the probe.
