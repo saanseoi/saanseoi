@@ -43,8 +43,8 @@ export function applyReviewedStructuredComponents(
       canonicalZh = structuredClone(zh)
     const english = rule.components.en,
       chinese = rule.components['zh-hant']
-    if ('estateName' in english) row.enEstateName = english.estateName ?? null
-    if ('estateName' in chinese) row.zhHantEstateName = chinese.estateName ?? null
+    if ('premisesName' in english) row.enEstateName = english.premisesName ?? null
+    if ('premisesName' in chinese) row.zhHantEstateName = chinese.premisesName ?? null
     row.enBuildingName = canonicalEn.BuildingName = english.buildingName
     row.zhHantBuildingName = canonicalZh.BuildingName = chinese.buildingName
     row.enBlockDescriptor = english.blockDescriptor

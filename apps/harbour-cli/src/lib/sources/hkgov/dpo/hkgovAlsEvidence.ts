@@ -212,7 +212,7 @@ export function buildHkgovAlsProcessingActions(input: {
       ...matchedRows.map(row => {
         const droppedField = Object.entries(row.identityPreviousSummary ?? {}).find(
           ([field, value]) =>
-            ['buildingName', 'estateName', 'phaseName'].includes(field) &&
+            ['buildingName', 'premisesName', 'phaseName'].includes(field) &&
             value != null &&
             row.identitySummary[field] == null,
         )

@@ -362,6 +362,63 @@ test.each(['preview', 'production'] as const)(
         ],
         meta: { release: { apiReleaseSet: 'addresses-2026-08-19.0' } },
       })
+      const footprint = JSON.stringify({
+        type: 'Polygon',
+        coordinates: [
+          [
+            [113.999, 21.999],
+            [114.001, 21.999],
+            [114.001, 22.001],
+            [113.999, 22.001],
+            [113.999, 21.999],
+          ],
+        ],
+      })
+      const footprintQuery = new URLSearchParams({
+        lng: '114',
+        lat: '22',
+        profile: 'map',
+        footprint,
+      })
+      const constrained = await f.request(`/addresses/v1/geocode?${footprintQuery}`)
+      expect(constrained.status).toBe(200)
+      expect(await constrained.json()).toMatchObject({
+        data: [
+          {
+            attributes: {
+              match: {
+                type: 'within_footprint',
+                evidence: 'caller_footprint',
+                selection: 'containment',
+              },
+            },
+          },
+        ],
+      })
+      expect((await f.request(`/divisions/v1/geocode?${footprintQuery}`)).status).toBe(
+        422,
+      )
+      const emptyFootprint = JSON.stringify({
+        type: 'Polygon',
+        coordinates: [
+          [
+            [114.009, 22.009],
+            [114.011, 22.009],
+            [114.011, 22.011],
+            [114.009, 22.011],
+            [114.009, 22.009],
+          ],
+        ],
+      })
+      const emptyQuery = new URLSearchParams({
+        lng: '114.01',
+        lat: '22.01',
+        footprint: emptyFootprint,
+        maxDistance: '50000',
+      })
+      expect(
+        await (await f.request(`/addresses/v1/geocode?${emptyQuery}`)).json(),
+      ).toMatchObject({ data: [] })
       const divisions = await f.request(
         '/divisions/v1/geocode?placename=Old&releaseSet=divisions-2025-01-01.0',
       )

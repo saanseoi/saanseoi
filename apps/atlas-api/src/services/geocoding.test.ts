@@ -203,3 +203,143 @@ test('nearby reverse alternatives remain ambiguous even when limit hides them', 
     ],
   })
 })
+
+test('footprint excludes the closer neighbour and preserves containment evidence', async () => {
+  const footprint = JSON.stringify({
+    type: 'Polygon',
+    coordinates: [
+      [
+        [1, 1],
+        [1.002, 1],
+        [1.002, 1.002],
+        [1, 1.002],
+        [1, 1],
+      ],
+    ],
+  })
+  const result = await fixture({
+    loadGeocodingAddresses: async () => ({
+      records: [
+        address('20', '20 Possession Street', [0.99999, 1.001]),
+        address('22-24', '22-24 Possession Street', [1.001, 1.001]),
+      ],
+      total: 2,
+    }),
+  }).run('address', { lng: '1.00001', lat: '1.001', footprint, maxDistance: '1' })
+  expect(result.body.data).toHaveLength(1)
+  expect(result.body).toMatchObject({
+    data: [
+      {
+        id: '22-24',
+        match: {
+          type: 'within_footprint',
+          evidence: 'caller_footprint',
+          selection: 'containment',
+        },
+      },
+    ],
+  })
+})
+
+test('footprint rejects missing pin, outside pin and unbounded geometry', () => {
+  const footprint = JSON.stringify({
+    type: 'Polygon',
+    coordinates: [
+      [
+        [1, 1],
+        [1.001, 1],
+        [1.001, 1.001],
+        [1, 1.001],
+        [1, 1],
+      ],
+    ],
+  })
+  for (const input of [
+    { address: 'Harbour', footprint },
+    { lng: '2', lat: '2', footprint },
+    { lng: '1', lat: '1', footprint: '{' },
+    {
+      lng: '1',
+      lat: '1',
+      footprint: JSON.stringify({
+        type: 'Polygon',
+        coordinates: [
+          [
+            [0, 0],
+            [2, 0],
+            [2, 2],
+            [0, 0],
+          ],
+        ],
+      }),
+    },
+  ])
+    expect(GeocodingQuerySchema.safeParse(input).success).toBe(false)
+})
+
+test('footprint holes exclude courtyard addresses and multiple candidates remain ambiguous', async () => {
+  const footprint = JSON.stringify({
+    type: 'Polygon',
+    coordinates: [
+      [
+        [1, 1],
+        [1.004, 1],
+        [1.004, 1.004],
+        [1, 1.004],
+        [1, 1],
+      ],
+      [
+        [1.001, 1.001],
+        [1.003, 1.001],
+        [1.003, 1.003],
+        [1.001, 1.003],
+        [1.001, 1.001],
+      ],
+    ],
+  })
+  const result = await fixture({
+    loadGeocodingAddresses: async () => ({
+      records: [
+        address('courtyard', 'Courtyard', [1.002, 1.002]),
+        address('a', 'First entrance', [1.0001, 1.0001]),
+        address('b', 'Second entrance', [1.0039, 1.0039]),
+      ],
+      total: 3,
+    }),
+  }).run('address', { lng: '1.0001', lat: '1.0001', footprint, limit: '1' })
+  expect(result.body).toMatchObject({
+    data: [{ id: 'a' }],
+    meta: { resolution: 'ambiguous' },
+  })
+})
+
+test('malformed or degenerate footprint rings return validation errors without throwing', () => {
+  for (const coordinates of [
+    [],
+    [[]],
+    [
+      [
+        [1, 1],
+        [1, 1],
+        [1, 1],
+        [1, 1],
+      ],
+    ],
+    [
+      [
+        [1, 1],
+        [1.001, 1],
+        [1.001, 1.001],
+        [1, 1.001],
+      ],
+    ],
+  ]) {
+    expect(
+      GeocodingQuerySchema.safeParse({
+        lng: '1',
+        lat: '1',
+        footprint: JSON.stringify({ type: 'Polygon', coordinates }),
+      }).success,
+    ).toBe(false)
+  }
+})

@@ -308,7 +308,7 @@ export function applyReviewedAlsPremiseRetentions(
     row.identitySummary = {
       ...row.identitySummary,
       buildingName: row.enBuildingName,
-      estateName: row.enEstateName,
+      premisesName: row.enEstateName,
     }
     row.sources = JSON.stringify({
       ...JSON.parse(row.sources),

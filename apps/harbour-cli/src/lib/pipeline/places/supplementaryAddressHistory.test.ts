@@ -54,7 +54,7 @@ test.each(['scope-a', 'scope-b'] as const)(
         buildingNumberTo: null,
         blockExpression: null,
         phaseExpression: null,
-        estateName: null,
+        premisesName: null,
       }))
       const identity = supplementaryIdentity(values)
       const addresses = await buildSupplementaryAddressRows({

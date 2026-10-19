@@ -33,7 +33,7 @@ export type AddressLocaleValue = {
   phaseExpression?: string | null
   phaseName?: string | null
   phaseRef?: string | null
-  estateName?: string | null
+  premisesName?: string | null
   streetName?: string | null
 }
 
@@ -88,7 +88,7 @@ export type AddressSearchMode = 'component' | 'exact' | 'full-text' | 'prefix' |
 export type AddressSearchComponent =
   | 'block'
   | 'building'
-  | 'estate'
+  | 'premises'
   | 'formatted'
   | 'number'
   | 'phase'
@@ -176,7 +176,7 @@ function buildAddressI18nJsonSelection(localeSelection: RequestedApiLocaleSelect
         'phaseExpression', ${address2dI18n.phaseExpression},
         'phaseName', ${address2dI18n.phaseName},
         'phaseRef', ${address2dI18n.phaseRef},
-        'estateName', ${address2dI18n.estateName},
+        'premisesName', ${address2dI18n.premisesName},
         'streetName', ${address2dI18n.streetName},
         'meta', json(${address2dI18n.meta})
       )
@@ -213,7 +213,7 @@ function parseI18n(value: string): Record<string, AddressLocaleValue> {
             phaseExpression: asNullableString(record.phaseExpression),
             phaseName: asNullableString(record.phaseName),
             phaseRef: asNullableString(record.phaseRef),
-            estateName: asNullableString(record.estateName),
+            premisesName: asNullableString(record.premisesName),
             streetName: asNullableString(record.streetName),
           },
         ],
@@ -692,7 +692,7 @@ function addressFtsColumn(component: AddressSearchComponent) {
   return {
     block: 'blockExpression',
     building: 'buildingName',
-    estate: 'estateName',
+    premises: 'premisesName',
     formatted: 'formattedAddress',
     number: 'buildingNumber',
     phase: 'phaseExpression',

@@ -79,7 +79,7 @@ test('search joins stable document scopes to the promoted snapshot and rejects a
       CREATE TABLE address2d(scopeId TEXT, id TEXT, countryId TEXT, areaId TEXT, districtId TEXT, islandId TEXT, townId TEXT, ruralAreaId TEXT, macrohoodId TEXT, neighbourhoodId TEXT, microhoodId TEXT, villageId TEXT, hamletId TEXT);
       CREATE TABLE address2dI18n(scopeId TEXT,addressId TEXT,locale TEXT,formattedAddress TEXT,
         buildingName TEXT,buildingNumberExpression TEXT,buildingNumberFrom TEXT,buildingNumberTo TEXT,
-        blockExpression TEXT,phaseExpression TEXT,estateName TEXT,streetName TEXT);
+        blockExpression TEXT,phaseExpression TEXT,premisesName TEXT,streetName TEXT);
       INSERT INTO address2d (scopeId,id,countryId,areaId,districtId,islandId,townId,ruralAreaId, macrohoodId,neighbourhoodId,microhoodId,villageId,hamletId)
         VALUES('scope:old','a','hk',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL),('scope:new','a','hk',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
       INSERT INTO address2dI18n(scopeId,addressId,locale,formattedAddress) VALUES

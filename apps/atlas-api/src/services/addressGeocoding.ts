@@ -1,3 +1,4 @@
+import { containsReviewPoint } from '../schema/geocodingFootprint'
 import { normaliseAddressText, parseAddress } from './addressParsing'
 import type { AddressRecord } from '../db/addresses'
 import type { GeocodingQuery } from '../schema/geocoding'
@@ -18,7 +19,16 @@ export function rankAddress(record: AddressRecord, query: GeocodingQuery) {
         query.address !== undefined,
       )
 
-  return (reverse ? distance === null || distance > query.maxDistance : score === 0)
+  if (
+    query.footprint &&
+    (!coordinates || !containsReviewPoint(coordinates, query.footprint))
+  )
+    return null
+  return (
+    reverse
+      ? distance === null || (!query.footprint && distance > query.maxDistance)
+      : score === 0
+  )
     ? null
     : { record, coordinates, distance, score }
 }
@@ -95,7 +105,7 @@ export function scoreAddress(
       if (queryParity !== null && storedParity !== null && queryParity !== storedParity)
         continue
       const exactNumber = low === from && high === to
-      const named = [value.buildingName, value.estateName].some(
+      const named = [value.buildingName, value.premisesName].some(
         name => name && matchesBuildingName(parsed.text, name),
       )
       best = Math.max(
@@ -105,8 +115,8 @@ export function scoreAddress(
       continue
     }
     const names = addressQuery
-      ? [value.formattedAddress, value.buildingName, value.estateName]
-      : [value.buildingName, value.estateName, value.streetName]
+      ? [value.formattedAddress, value.buildingName, value.premisesName]
+      : [value.buildingName, value.premisesName, value.streetName]
     best = Math.max(
       best,
       nameScore(

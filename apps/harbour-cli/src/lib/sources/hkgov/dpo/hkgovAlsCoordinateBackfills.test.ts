@@ -152,9 +152,9 @@ test.skipIf(!Bun.file(estateAuditCache).size)(
   'reviewed coordinate backfill guards match their April 2026 source events',
   async () => {
     const audit = await Bun.file(estateAuditCache).json()
-    for (const estateName of ['AP LEI CHAU ESTATE', 'BUTTERFLY ESTATE']) {
+    for (const premisesName of ['AP LEI CHAU ESTATE', 'BUTTERFLY ESTATE']) {
       const estate = audit.estates.find(
-        (entry: { name: string }) => entry.name === estateName,
+        (entry: { name: string }) => entry.name === premisesName,
       )
       const event = estate?.timeline.find(
         (entry: { release: string }) => entry.release === '20260403-1056-ALS-GeoJSON',
@@ -184,7 +184,7 @@ test.skipIf(!Bun.file(estateAuditCache).size)(
       )
       const decisions = fixture.backfills.filter(
         decision =>
-          decision.estate === estateName && decision.automaticPolicy === undefined,
+          decision.estate === premisesName && decision.automaticPolicy === undefined,
       )
       expect(decisions).toHaveLength(6)
       for (const decision of decisions) {

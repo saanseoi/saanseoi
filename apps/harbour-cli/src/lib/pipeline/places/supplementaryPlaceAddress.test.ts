@@ -25,7 +25,7 @@ const citygate: PlaceAddressDefinition = {
   buildingNumberExpression: '20',
   buildingNumberFrom: '20',
   buildingNumberTo: null,
-  estateName: null,
+  premisesName: null,
   blockExpression: null,
   phaseExpression: null,
 }
@@ -388,7 +388,7 @@ describe('supplementary Place Address policy', () => {
     const citygateEstate: PlaceAddressDefinition = {
       ...citygate,
       buildingName: null,
-      estateName: 'Citygate',
+      premisesName: 'Citygate',
     }
     const { analyse, geometry } = setup([citygateEstate])
     geometry.clear()
@@ -398,7 +398,7 @@ describe('supplementary Place Address policy', () => {
     expect(result.reason).toBe('below_automatic_threshold')
     expect(result.candidates[0]).toMatchObject({
       addressId: citygate.addressId,
-      breakdown: { estateName: 45, street: 30 },
+      breakdown: { premisesName: 45, street: 30 },
       score: 75,
     })
   })

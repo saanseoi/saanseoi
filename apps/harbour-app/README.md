@@ -3,6 +3,12 @@
 Local data review tools. Run `bun run dev:harbour-app` from the repository root and open
 <http://localhost:5185/>. The index lists the available tools:
 
+- [ALS address points](http://review.localhost/addresses/): render all 2D premise points
+  from the latest extracted `data/hkgov/dpo/ALS/*-ALS-GeoJSON` archive. All 18 district
+  files are required. Select a point for bilingual source fields and CSU identity;
+  optionally load the separate public-rental-housing 3D source. Unit records are counted
+  at their shared source point. Invalid geometries are reported in the map status. This
+  tool reads source files without changing ingestion data.
 - [Division areas](http://localhost:5185/divisions/): draw boundaries, review source
   geometry and export curated fixtures. See the
   [geographic review guide](../../docs/datasets/internal/geographic-review.md) for

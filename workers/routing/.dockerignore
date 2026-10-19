@@ -2,3 +2,5 @@
 !Dockerfile
 !image-data/
 !image-data/**
+!valhalla-elevator.patch
+!graph-release.json

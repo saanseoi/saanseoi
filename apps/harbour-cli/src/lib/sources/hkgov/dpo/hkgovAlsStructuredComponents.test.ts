@@ -49,7 +49,7 @@ test('Royal Dragon Villa remains the estate with separate Block 9 fields and an 
   applyReviewedStructuredComponents(input, '2025-08-13.0')
   const normalised = normaliseAddressRowForPipeline({ ...row })
   const en = normalised.i18n.find(value => value.locale === 'en')!
-  expect(en.estateName).toBe('Royal Dragon Villa')
+  expect(en.premisesName).toBe('Royal Dragon Villa')
   expect(en.buildingName).toBeNull()
   expect(en.blockType).toBe('block')
   expect(en.blockRef).toBe('9')

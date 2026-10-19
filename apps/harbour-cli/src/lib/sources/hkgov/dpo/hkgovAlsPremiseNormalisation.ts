@@ -2,7 +2,7 @@ export type HkgovAlsPremiseStructure = {
   blockDescriptor: string | null
   blockNumber: string | null
   buildingName: string | null
-  estateName: string | null
+  premisesName: string | null
   normalisation:
     | 'none'
     | 'redundant-building-name'
@@ -20,7 +20,7 @@ export type HkgovAlsStructuredPremiseNumber = {
   blockDescriptor: string | null
   blockNumber: string | null
   buildingName: string | null
-  estateName: string | null
+  premisesName: string | null
 }
 
 export type HkgovAlsPhaseRomanNumeralNormalisation = {
@@ -130,11 +130,11 @@ export function normaliseHkgovAlsPremiseNumberRomanNumeral(input: {
 
 /** Returns an estate-scoped phase-series key, omitting a trailing phase number. */
 export function hkgovAlsPhaseFamily(
-  estateName: string | null,
+  premisesName: string | null,
   phaseName: string | null,
   phaseRef: string | null,
 ) {
-  const estate = clean(estateName)
+  const estate = clean(premisesName)
   const name = clean(phaseName)
   if (!estate || !name) return null
 
@@ -150,7 +150,7 @@ export function hkgovAlsPhaseFamily(
  * Canonicalise only an unambiguous trailing Roman numeral to that established style.
  */
 export function normaliseHkgovAlsPhaseRomanNumeral(input: {
-  estateName: string | null
+  premisesName: string | null
   numericPhaseFamilies: ReadonlyMap<string, string>
   phaseName: string | null
   phaseRef: string | null
@@ -159,7 +159,7 @@ export function normaliseHkgovAlsPhaseRomanNumeral(input: {
   const match = from?.match(ROMAN_NUMERAL_SUFFIX)
   const stem = clean(match?.groups?.stem ?? null)
   const numeral = match?.groups?.numeral
-  const family = hkgovAlsPhaseFamily(input.estateName, from ?? null, input.phaseRef)
+  const family = hkgovAlsPhaseFamily(input.premisesName, from ?? null, input.phaseRef)
   const reference = family ? input.numericPhaseFamilies.get(family) : null
   if (!from || !stem || !numeral || !reference || !isUnambiguousRomanNumeral(numeral)) {
     return null
@@ -194,35 +194,35 @@ export function normaliseHkgovAlsPremiseStructure(input: {
   blockDescriptor: string | null
   blockNumber: string | null
   buildingName: string | null
-  estateName: string | null
+  premisesName: string | null
 }): HkgovAlsPremiseStructure {
   const buildingName = clean(input.buildingName)
-  const estateName = clean(input.estateName)
+  const premisesName = clean(input.premisesName)
   const blockDescriptor = canonicalHkgovAlsBlockDescriptor(clean(input.blockDescriptor))
   const blockNumber = clean(input.blockNumber)
 
-  if (!buildingName || !estateName) {
+  if (!buildingName || !premisesName) {
     return {
       blockDescriptor,
       blockNumber,
       buildingName,
-      estateName,
+      premisesName,
       normalisation: 'none',
     }
   }
 
-  if (sameName(buildingName, estateName)) {
+  if (sameName(buildingName, premisesName)) {
     return {
       blockDescriptor,
       blockNumber,
       buildingName: null,
-      estateName,
+      premisesName,
       normalisation: 'redundant-building-name',
     }
   }
 
   const estatePrefix = new RegExp(
-    `^${escapeRegExp(estateName).replace(/\\ /g, '\\s+')}\\s+(?<house>.+?)$`,
+    `^${escapeRegExp(premisesName).replace(/\\ /g, '\\s+')}\\s+(?<house>.+?)$`,
     'i',
   ).exec(buildingName)
   const house = clean(estatePrefix?.groups?.house ?? null)
@@ -231,12 +231,12 @@ export function normaliseHkgovAlsPremiseStructure(input: {
       blockDescriptor,
       blockNumber,
       buildingName: house,
-      estateName,
+      premisesName,
       normalisation: 'redundant-estate-prefix',
     }
   }
 
-  const escapedEstate = escapeRegExp(estateName).replace(/\\ /g, '\\s+')
+  const escapedEstate = escapeRegExp(premisesName).replace(/\\ /g, '\\s+')
   const match = new RegExp(
     `^${escapedEstate}\\s+(BLOCK|BLK|HOUSE|TOWER)\\s+([A-Z0-9][A-Z0-9 ./-]*)$`,
     'i',
@@ -246,7 +246,7 @@ export function normaliseHkgovAlsPremiseStructure(input: {
       blockDescriptor,
       blockNumber,
       buildingName,
-      estateName,
+      premisesName,
       normalisation: 'none',
     }
   }
@@ -258,7 +258,7 @@ export function normaliseHkgovAlsPremiseStructure(input: {
       blockDescriptor,
       blockNumber,
       buildingName,
-      estateName,
+      premisesName,
       normalisation: 'none',
     }
   }
@@ -273,7 +273,7 @@ export function normaliseHkgovAlsPremiseStructure(input: {
       blockDescriptor,
       blockNumber,
       buildingName,
-      estateName,
+      premisesName,
       normalisation: 'none',
     }
   }
@@ -282,7 +282,7 @@ export function normaliseHkgovAlsPremiseStructure(input: {
     blockDescriptor: parsedDescriptor,
     blockNumber: parsedNumber,
     buildingName: null,
-    estateName,
+    premisesName,
     normalisation: 'embedded-block',
   }
 }
@@ -311,7 +311,7 @@ function structuredPremiseNumberFamily(input: HkgovAlsStructuredPremiseNumber) {
     return null
   }
 
-  const context = clean(input.estateName) ?? clean(input.buildingName)
+  const context = clean(input.premisesName) ?? clean(input.buildingName)
   return context ? `${descriptor}\u0000${normaliseBuildingNameFamily(context)}` : null
 }
 

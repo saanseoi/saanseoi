@@ -1,0 +1,1 @@
+ALTER TABLE `address2dI18n` RENAME COLUMN `estateName` TO `premisesName`;

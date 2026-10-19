@@ -1,0 +1,73 @@
+--- a/tiles/src/main/java/com/protomaps/basemap/layers/Buildings.java
++++ b/tiles/src/main/java/com/protomaps/basemap/layers/Buildings.java
+@@ -105,6 +105,16 @@
+         .setId(FeatureId.create(sf))
+         // Core Tilezen schema properties
+         .setAttr("kind", kind)
++        // Preserve source identity and address evidence on selectable footprints.
++        .setAttrWithMinzoom("source_id", "osm:" + Long.toString(FeatureId.create(sf)), 15)
++        .setAttrWithMinzoom("addr_housenumber", sf.getString("addr:housenumber"), 15)
++        .setAttrWithMinzoom("addr_street", sf.getString("addr:street"), 15)
++        .setAttrWithMinzoom("addr_street_en", sf.getString("addr:street:en"), 15)
++        .setAttrWithMinzoom("addr_street_zh", sf.getString("addr:street:zh"), 15)
++        .setAttrWithMinzoom("addr_full", sf.getString("addr:full"), 15)
++        .setAttrWithMinzoom("name", sf.getString("name"), 15)
++        .setAttrWithMinzoom("name_en", sf.getString("name:en"), 15)
++        .setAttrWithMinzoom("name_zh", sf.getString("name:zh"), 15)
+         // Core OSM tags for different kinds of places
+         .setAttrWithMinzoom("layer", Parse.parseIntOrNull(sf.getString("layer")), 13)
+         // NOTE: Height is quantized by zoom in a post-process step
+@@ -168,7 +178,7 @@
+       // deduplicate addresses
+       HashMap<Map<String, Object>, List<VectorTile.Feature>> groupedAddresses = new LinkedHashMap<>();
+       for (VectorTile.Feature item : items) {
+-        if (item.tags().containsKey("addr_housenumber")) {
++        if ("address".equals(item.tags().get("kind"))) {
+           groupedAddresses.computeIfAbsent(item.tags(), k -> new ArrayList<>()).add(item);
+         } else {
+           buildings.add(item);
+@@ -177,7 +187,6 @@
+ 
+       for (var address : groupedAddresses.values()) {
+         var feature = address.get(0);
+-        feature.tags().remove("addr_street");
+         buildings.add(feature);
+       }
+ 
+--- a/tiles/src/test/java/com/protomaps/basemap/layers/BuildingsTest.java
++++ b/tiles/src/test/java/com/protomaps/basemap/layers/BuildingsTest.java
+@@ -128,7 +128,7 @@
+   @Test
+   void addAddressPointCentroid() {
+     assertFeatures(15,
+-      List.of(Map.of("kind", "building"), Map.of("kind", "address")),
++      List.of(Map.of("kind", "building", "source_id", "osm:0", "addr_housenumber", "12", "addr_street", "Main Street"), Map.of("kind", "address", "addr_street", "Main Street")),
+       process(SimpleFeature.create(
+         newPolygon(0, 0, 1, 1, 0, 1, 0, 0),
+         new HashMap<>(Map.of(
+@@ -147,14 +147,23 @@
+     List<VectorTile.Feature> total = new ArrayList<>();
+     total.add(new VectorTile.Feature("layer", 1,
+       VectorTile.encodeGeometry(newPoint(0, 0)),
+-      new HashMap<>(Map.of("addr_housenumber", "1", "addr_street", "main"))
++      new HashMap<>(Map.of("kind", "address", "addr_housenumber", "1", "addr_street", "main"))
+     ));
+     total.add(new VectorTile.Feature("layer", 1,
+       VectorTile.encodeGeometry(newPoint(1, 0)),
+-      new HashMap<>(Map.of("addr_housenumber", "1", "addr_street", "main"))
++      new HashMap<>(Map.of("kind", "address", "addr_housenumber", "1", "addr_street", "main"))
+     ));
+     var b = new Buildings();
+     var deduplicated = b.postProcess(15, total);
+     assertEquals(1, deduplicated.size());
++    assertEquals("main", deduplicated.get(0).tags().get("addr_street"));
++    // Addressed polygons must not be deduplicated with each other or label points.
++    total.add(new VectorTile.Feature("layer", 2,
++      VectorTile.encodeGeometry(newPolygon(0, 0, 1, 1, 0, 1, 0, 0)),
++      new HashMap<>(Map.of("kind", "building", "addr_housenumber", "1", "addr_street", "main"))));
++    total.add(new VectorTile.Feature("layer", 3,
++      VectorTile.encodeGeometry(newPolygon(1, 0, 2, 1, 1, 1, 1, 0)),
++      new HashMap<>(Map.of("kind", "building", "addr_housenumber", "1", "addr_street", "main"))));
++    assertEquals(3, b.postProcess(15, total).size());
+   }
+ }

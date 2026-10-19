@@ -122,7 +122,7 @@ export type ApiRelease = {
 export type BasemapSchemaVersion = `protomaps-v4.${number}`
 
 export const CURRENT_BASEMAP_SCHEMA_VERSION =
-  'protomaps-v4.0' satisfies BasemapSchemaVersion
+  'protomaps-v4.1' satisfies BasemapSchemaVersion
 
 export type BasemapRelease = {
   apiFamily: 'basemaps'

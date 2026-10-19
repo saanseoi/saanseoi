@@ -18,8 +18,16 @@ export const geocodingRoutes = (
     summary: family === 'divisions' ? 'Geocode Division' : 'Geocode Address',
     tags: ['Geocoding'],
     description:
-      'Ranked forward or reverse geocoding in WGS84, returned as JSON:API 1.1. Profiles compact, default, map and full control response detail. Division match.type is reverse-geocoding for coordinate containment or forward-geocoding for name searches. Supply exactly one of lat/lng, address, or placename. Division containment uses published SaanSeoi area polygons (Overture fallback), including polygon boundaries. Unresolved branches remain ambiguous. Reverse addresses are exact locations or nearest points within maxDistance metres.',
-    request: { query: GeocodingQuerySchema },
+      'Ranked forward or reverse geocoding in WGS84, returned as JSON:API 1.1. Profiles compact, default, map and full control response detail. Division match.type is reverse-geocoding for coordinate containment or forward-geocoding for name searches. Supply exactly one of lat/lng, address, or placename. Division containment uses published SaanSeoi area polygons (Overture fallback), including polygon boundaries. Unresolved branches remain ambiguous. Reverse addresses are exact locations or nearest points within maxDistance metres. For addresses, footprint constrains candidates to caller-supplied building geometry instead of the radius, returning within_footprint matches; it never falls back outside the footprint.',
+    request: {
+      query:
+        family === 'addresses'
+          ? GeocodingQuerySchema
+          : GeocodingQuerySchema.refine(query => !query.footprint, {
+              message: 'footprint is only supported for address lookups.',
+              path: ['footprint'],
+            }),
+    },
     responses: {
       200: {
         description:

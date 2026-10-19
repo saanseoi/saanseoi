@@ -123,7 +123,7 @@ describe.each(locales)('source schema descriptions in %s', locale => {
       'blockNo',
       'buildingName',
       'district',
-      'estateName',
+      'premisesName',
       'phaseName',
       'phaseNo',
       'region',

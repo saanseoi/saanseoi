@@ -8,7 +8,7 @@ export type HkgovAlsPremiseIdentityInput = {
   buildingName: string | null
   csuId: string | null
   districtName: string | null
-  estateName: string | null
+  premisesName: string | null
   geoAddress: string | null
   latitude: number | null
   longitude: number | null
@@ -42,7 +42,7 @@ export function buildHkgovAlsPremiseIdentity(
     buildingName: value(input.buildingName),
     csuId: value(input.csuId),
     districtName: value(input.districtName),
-    estateName: value(input.estateName),
+    premisesName: value(input.premisesName),
     geoAddress: value(input.geoAddress),
     latitude: input.latitude == null ? null : input.latitude.toFixed(5),
     longitude: input.longitude == null ? null : input.longitude.toFixed(5),
@@ -76,7 +76,7 @@ export function buildHkgovAlsPremiseIdentity(
       summary.routeName,
       summary.numberFrom,
       summary.numberTo,
-      summary.estateName,
+      summary.premisesName,
       summary.phaseName,
       summary.phaseNumber,
       summary.blockDescriptor,

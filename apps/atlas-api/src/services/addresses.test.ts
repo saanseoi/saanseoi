@@ -380,7 +380,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
         phaseExpression: null,
         phaseName: null,
         phaseRef: null,
-        estateName: null,
+        premisesName: null,
         streetName: null,
       },
       'zh-hant': {
@@ -398,7 +398,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
         phaseExpression: null,
         phaseName: null,
         phaseRef: null,
-        estateName: null,
+        premisesName: null,
         streetName: null,
       },
     })

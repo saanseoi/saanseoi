@@ -195,13 +195,13 @@
       ],
       "components": {
         "en": {
-          "estateName": "Royal Dragon Villa",
+          "premisesName": "Royal Dragon Villa",
           "buildingName": null,
           "blockDescriptor": "Block",
           "blockNumber": "9"
         },
         "zh-hant": {
-          "estateName": "嘉御龍庭",
+          "premisesName": "嘉御龍庭",
           "buildingName": null,
           "blockDescriptor": "座",
           "blockNumber": "9"

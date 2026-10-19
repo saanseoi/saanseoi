@@ -30,7 +30,7 @@ const componentFields = [
   'phaseExpression',
   'phaseName',
   'phaseRef',
-  'estateName',
+  'premisesName',
   'streetName',
 ] as const
 
@@ -122,11 +122,11 @@ function classifyLocale(value: GranularityComponents): {
       rule: 'phase_component',
       evidence: evidence('phaseName', 'phaseRef', 'phaseExpression'),
     }
-  if (text(value.estateName))
+  if (text(value.premisesName))
     return {
       granularity: 'complex',
       rule: 'estate_component',
-      evidence: evidence('estateName'),
+      evidence: evidence('premisesName'),
     }
   return { granularity: 'unknown', rule: 'insufficient_components', evidence: [] }
 }

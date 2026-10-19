@@ -147,7 +147,7 @@ function normalisePreparedHkgovAddressRow(
       buildingNumberConnector: null,
       ...normaliseBlockFields(row.enBlockDescriptor, row.enBlockNumber, 'en'),
       ...normalisePhaseFields(enPhase.name, enPhase.ref),
-      estateName: asNonEmptyString(row.enEstateName),
+      premisesName: asNonEmptyString(row.enEstateName),
       streetName: asNonEmptyString(row.enStreetName),
     })
   }
@@ -172,7 +172,7 @@ function normalisePreparedHkgovAddressRow(
         'zh-hant',
       ),
       ...normalisePhaseFields(zhHantPhase.name, zhHantPhase.ref),
-      estateName: asNonEmptyString(row.zhHantEstateName),
+      premisesName: asNonEmptyString(row.zhHantEstateName),
       streetName: asNonEmptyString(row.zhHantStreetName),
     })
   }
@@ -182,7 +182,7 @@ function normalisePreparedHkgovAddressRow(
     if (localised.buildingNumberFrom || localised.buildingNumberTo)
       coverageComponents.add('building_number')
     if (localised.buildingName) coverageComponents.add('building_name')
-    if (localised.estateName) coverageComponents.add('estate_name')
+    if (localised.premisesName) coverageComponents.add('estate_name')
     if (localised.phaseName || localised.phaseRef) coverageComponents.add('phase')
     if (localised.blockType || localised.blockRef) coverageComponents.add('block')
   }
@@ -328,7 +328,7 @@ export function buildAddressI18nHashInput(
     phaseExpression: row.phaseExpression ?? null,
     phaseName: row.phaseName ?? null,
     phaseRef: row.phaseRef ?? null,
-    estateName: row.estateName ?? null,
+    premisesName: row.premisesName ?? null,
     streetName: row.streetName ?? null,
   } satisfies AddressI18nPayload
 }

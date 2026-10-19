@@ -18,13 +18,13 @@ describe('normaliseHkgovAlsPremiseStructure', () => {
         blockDescriptor: null,
         blockNumber: null,
         buildingName: 'LUNG MUN OASIS BLOCK 10',
-        estateName: 'LUNG MUN OASIS',
+        premisesName: 'LUNG MUN OASIS',
       }),
     ).toEqual({
       blockDescriptor: 'BLK',
       blockNumber: '10',
       buildingName: null,
-      estateName: 'LUNG MUN OASIS',
+      premisesName: 'LUNG MUN OASIS',
       normalisation: 'embedded-block',
     })
   })
@@ -35,7 +35,7 @@ describe('normaliseHkgovAlsPremiseStructure', () => {
         blockDescriptor: null,
         blockNumber: null,
         buildingName: 'LOK YUEN HOUSE',
-        estateName: 'LOK YUEN HOUSE',
+        premisesName: 'LOK YUEN HOUSE',
       }),
     ).toMatchObject({ buildingName: null, normalisation: 'redundant-building-name' })
   })
@@ -46,13 +46,13 @@ describe('normaliseHkgovAlsPremiseStructure', () => {
         blockDescriptor: null,
         blockNumber: null,
         buildingName: 'FU TIP ESTATE BAN TIP HOUSE',
-        estateName: 'FU TIP ESTATE',
+        premisesName: 'FU TIP ESTATE',
       }),
     ).toEqual({
       blockDescriptor: null,
       blockNumber: null,
       buildingName: 'BAN TIP HOUSE',
-      estateName: 'FU TIP ESTATE',
+      premisesName: 'FU TIP ESTATE',
       normalisation: 'redundant-estate-prefix',
     })
   })
@@ -63,7 +63,7 @@ describe('normaliseHkgovAlsPremiseStructure', () => {
         blockDescriptor: null,
         blockNumber: null,
         buildingName: 'WEST GATE TOWER',
-        estateName: null,
+        premisesName: null,
       }),
     ).toMatchObject({
       blockDescriptor: null,
@@ -79,7 +79,7 @@ describe('normaliseHkgovAlsPremiseStructure', () => {
         blockDescriptor: 'BLK',
         blockNumber: '9',
         buildingName: 'LUNG MUN OASIS BLOCK 10',
-        estateName: 'LUNG MUN OASIS',
+        premisesName: 'LUNG MUN OASIS',
       }).normalisation,
     ).toBe('none')
   })
@@ -156,36 +156,36 @@ describe('normaliseHkgovAlsPremiseNumberRomanNumeral', () => {
         blockDescriptor: 'BLOCK',
         blockNumber: 'IV',
         buildingName: null,
-        estateName: 'EXAMPLE BLOCK ESTATE',
+        premisesName: 'EXAMPLE BLOCK ESTATE',
       },
       {
         blockDescriptor: 'HOUSE',
         blockNumber: 'II',
         buildingName: null,
-        estateName: 'EXAMPLE HOUSE ESTATE',
+        premisesName: 'EXAMPLE HOUSE ESTATE',
       },
       {
         blockDescriptor: 'TOWER',
         blockNumber: 'III',
         buildingName: null,
-        estateName: 'EXAMPLE TOWER ESTATE',
+        premisesName: 'EXAMPLE TOWER ESTATE',
       },
     ])
 
     for (const premise of [
       {
         blockDescriptor: 'BLK',
-        estateName: 'EXAMPLE BLOCK ESTATE',
+        premisesName: 'EXAMPLE BLOCK ESTATE',
         reference: 'BLOCK IV',
       },
       {
         blockDescriptor: 'HOUSE',
-        estateName: 'EXAMPLE HOUSE ESTATE',
+        premisesName: 'EXAMPLE HOUSE ESTATE',
         reference: 'HOUSE II',
       },
       {
         blockDescriptor: 'TOWER',
-        estateName: 'EXAMPLE TOWER ESTATE',
+        premisesName: 'EXAMPLE TOWER ESTATE',
         reference: 'TOWER III',
       },
     ]) {
@@ -195,7 +195,7 @@ describe('normaliseHkgovAlsPremiseNumberRomanNumeral', () => {
             blockDescriptor: premise.blockDescriptor,
             blockNumber: '1',
             buildingName: null,
-            estateName: premise.estateName,
+            premisesName: premise.premisesName,
           },
           romanNumeralFamilies,
         }),
@@ -208,7 +208,7 @@ describe('normaliseHkgovAlsPremiseNumberRomanNumeral', () => {
           blockDescriptor: 'TOWER',
           blockNumber: '1',
           buildingName: null,
-          estateName: 'UNRELATED ESTATE',
+          premisesName: 'UNRELATED ESTATE',
         },
         romanNumeralFamilies,
       }),
@@ -221,13 +221,13 @@ describe('normaliseHkgovAlsPremiseNumberRomanNumeral', () => {
         blockDescriptor: 'BLK',
         blockNumber: 'C',
         buildingName: null,
-        estateName: 'MING WAH DAI HA',
+        premisesName: 'MING WAH DAI HA',
       },
       {
         blockDescriptor: 'BLK',
         blockNumber: 'D',
         buildingName: null,
-        estateName: 'MING WAH DAI HA',
+        premisesName: 'MING WAH DAI HA',
       },
     ])
 
@@ -237,7 +237,7 @@ describe('normaliseHkgovAlsPremiseNumberRomanNumeral', () => {
           blockDescriptor: 'BLK',
           blockNumber: '1',
           buildingName: null,
-          estateName: 'MING WAH DAI HA',
+          premisesName: 'MING WAH DAI HA',
         },
         romanNumeralFamilies,
       }),
@@ -250,7 +250,7 @@ describe('normaliseHkgovAlsPremiseNumberRomanNumeral', () => {
         blockDescriptor: 'BLK',
         blockNumber: 'II',
         buildingName: null,
-        estateName: 'EXAMPLE ESTATE',
+        premisesName: 'EXAMPLE ESTATE',
       },
     ])
 
@@ -260,7 +260,7 @@ describe('normaliseHkgovAlsPremiseNumberRomanNumeral', () => {
           blockDescriptor: 'BLK',
           blockNumber: 'TWO',
           buildingName: null,
-          estateName: 'EXAMPLE ESTATE',
+          premisesName: 'EXAMPLE ESTATE',
         },
         romanNumeralFamilies,
       }),
@@ -275,7 +275,7 @@ describe('normaliseHkgovAlsPhaseRomanNumeral', () => {
 
     expect(
       normaliseHkgovAlsPhaseRomanNumeral({
-        estateName: 'EXAMPLE ESTATE',
+        premisesName: 'EXAMPLE ESTATE',
         numericPhaseFamilies: new Map([[family, 'PHASE 1']]),
         phaseName: 'PHASE II',
         phaseRef: null,
@@ -286,7 +286,7 @@ describe('normaliseHkgovAlsPhaseRomanNumeral', () => {
   test('does not change a Roman phase outside a numeric estate series', () => {
     expect(
       normaliseHkgovAlsPhaseRomanNumeral({
-        estateName: 'UNRELATED ESTATE',
+        premisesName: 'UNRELATED ESTATE',
         numericPhaseFamilies: new Map(),
         phaseName: 'PHASE II',
         phaseRef: null,

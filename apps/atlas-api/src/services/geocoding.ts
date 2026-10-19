@@ -270,11 +270,15 @@ export async function resolveGeocode(
               },
               match: point
                 ? {
-                    type: distance === 0 ? 'exact_location' : 'nearest',
+                    type: query.footprint
+                      ? 'within_footprint'
+                      : distance === 0
+                        ? 'exact_location'
+                        : 'nearest',
                     distanceMetres: distance,
-                    evidence: 'address_point',
-                    selection: 'proximity',
-                    ambiguityDistanceMetres: 15,
+                    evidence: query.footprint ? 'caller_footprint' : 'address_point',
+                    selection: query.footprint ? 'containment' : 'proximity',
+                    ...(!query.footprint ? { ambiguityDistanceMetres: 15 } : {}),
                   }
                 : { type: score === 1 ? 'exact_text' : 'partial_text', score },
               ...(query.include === 'divisions' ? { divisions } : {}),
@@ -284,7 +288,9 @@ export async function resolveGeocode(
           ...meta,
           resolution:
             candidates.length > 1 &&
-            (!point || candidates[1]!.distance! - candidates[0]!.distance! <= 15)
+            (query.footprint ||
+              !point ||
+              candidates[1]!.distance! - candidates[0]!.distance! <= 15)
               ? 'ambiguous'
               : candidates.length
                 ? 'resolved'

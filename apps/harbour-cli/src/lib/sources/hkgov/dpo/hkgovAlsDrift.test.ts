@@ -47,7 +47,7 @@ const withdrawnEstateName: HkgovAlsIdentityRecord = {
   sourceVersion: '2025-02-25.0',
   summary: {
     buildingName: 'OLD BUILDING',
-    estateName: null,
+    premisesName: null,
     routeName: 'EXAMPLE ROAD',
   },
 }
@@ -71,7 +71,7 @@ const movedToEstateName: HkgovAlsIdentityRecord = {
   sourceVersion: '2025-02-25.0',
   summary: {
     buildingName: null,
-    estateName: 'OLD BUILDING',
+    premisesName: 'OLD BUILDING',
     routeName: 'EXAMPLE ROAD',
   },
 }
@@ -84,7 +84,7 @@ const qualifiedBlock: HkgovAlsIdentityRecord = {
     blockDescriptor: 'BLK',
     blockNumber: '7',
     buildingName: null,
-    estateName: 'KELLETT VIEW TOWN HOUSES',
+    premisesName: 'KELLETT VIEW TOWN HOUSES',
     routeName: 'EXAMPLE ROAD',
   },
 }
@@ -98,7 +98,7 @@ const unqualifiedPremise: HkgovAlsIdentityRecord = {
     blockDescriptor: null,
     blockNumber: null,
     buildingName: 'KELLETT VIEW TOWN HOUSE',
-    estateName: null,
+    premisesName: null,
     routeName: 'EXAMPLE ROAD',
   },
 }
@@ -230,7 +230,7 @@ describe('HKGov ALS identity drift', () => {
   test.each([
     [
       'estate name',
-      { ...previous.summary, estateName: 'OLD ESTATE' },
+      { ...previous.summary, premisesName: 'OLD ESTATE' },
       withdrawnEstateName,
     ],
     ['phase name', { ...previous.summary, phaseName: 'PHASE 1' }, withdrawnPhaseName],
@@ -279,7 +279,7 @@ describe('HKGov ALS identity drift', () => {
       sourceVersion: '2025-02-25.0',
       summary: {
         ...previous.summary,
-        estateName: 'NEW ESTATE',
+        premisesName: 'NEW ESTATE',
       },
     }
     const history = mergeHkgovAlsIdentityHistory(emptyHkgovAlsIdentityHistory(), [
@@ -301,7 +301,7 @@ describe('HKGov ALS identity drift', () => {
       summary: {
         ...previous.summary,
         buildingName: 'EMINENCE TOWER I',
-        estateName: 'EMINENCE TOWER 1',
+        premisesName: 'EMINENCE TOWER 1',
       },
     }
     const current = {
@@ -379,7 +379,7 @@ describe('HKGov ALS identity drift', () => {
         blockDescriptor: 'HOUSE',
         blockNumber: '26',
         buildingName: null,
-        estateName: 'VILLA LA PLAGE',
+        premisesName: 'VILLA LA PLAGE',
       },
     }
     const previousWithName = {

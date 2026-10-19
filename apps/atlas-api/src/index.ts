@@ -592,7 +592,7 @@ for (const path of apiRoutePaths) {
     if (
       isPublicMetadataPath(c.req.path) ||
       isAuthDisabled(c.env) ||
-      isSaanSeoiSiteOrigin(c.req.header('origin'))
+      isKeylessSiteOrigin(c.req.header('origin'))
     ) {
       return next()
     }
@@ -695,12 +695,19 @@ function isAuthDisabled(env: AppBindings) {
   return env.AUTH_MODE === 'disabled'
 }
 
-function isSaanSeoiSiteOrigin(origin: string | undefined) {
+/**
+ * Checks the exact browser origins allowed to call the public API without a key.
+ * @param origin Browser Origin header.
+ * @returns Whether the origin is an approved first-party site.
+ */
+function isKeylessSiteOrigin(origin: string | undefined): boolean {
   if (!origin) return false
   try {
     const url = new URL(origin)
     return (
-      url.origin === 'https://saanseoi.hk' &&
+      ['https://saanseoi.hk', 'https://hype.hk', 'http://hype.localhost'].includes(
+        url.origin,
+      ) &&
       !url.username &&
       !url.password &&
       url.pathname === '/' &&

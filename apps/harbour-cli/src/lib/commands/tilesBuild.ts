@@ -7,6 +7,7 @@ import { type buildRegionalCoastline, getRegionBoundaries } from './tilesGeometr
 import { applyBasemapRegionalCoastlinePatch, updateRepository } from './tiles.ts'
 import {
   BASEMAPS_REPOSITORY,
+  BUILDING_ADDRESS_PATCH,
   OUTPUT_ROOT,
   REGIONAL_COASTLINE_PATCH,
   REGIONS,
@@ -34,9 +35,30 @@ export async function buildTileset(
 ) {
   const basemaps = await updateRepository('basemaps', BASEMAPS_REPOSITORY)
   await applyBasemapRegionalCoastlinePatch(basemaps.path)
+  if (
+    !(await commandSucceeds([
+      'git',
+      '-C',
+      basemaps.path,
+      'apply',
+      '--reverse',
+      '--check',
+      BUILDING_ADDRESS_PATCH,
+    ]))
+  ) {
+    await run([
+      'git',
+      '-C',
+      basemaps.path,
+      'apply',
+      '--whitespace=nowarn',
+      BUILDING_ADDRESS_PATCH,
+    ])
+  }
   const saanSeoiCommit = await capture(['git', '-C', REPO_ROOT, 'rev-parse', 'HEAD'])
   const regionalPatchHash = createHash('sha256')
     .update(await readFile(REGIONAL_COASTLINE_PATCH))
+    .update(await readFile(BUILDING_ADDRESS_PATCH))
     .digest('hex')
     .slice(0, 12)
   const image = `protomaps/basemaps:${basemaps.commit.slice(0, 12)}-regional-coastline-${regionalPatchHash}`

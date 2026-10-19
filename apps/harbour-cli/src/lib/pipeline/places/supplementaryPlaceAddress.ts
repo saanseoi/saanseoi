@@ -17,7 +17,7 @@ export type SupplementaryPolicy = {
   distanceMarginMetres: number
   weights: Record<
     | 'buildingName'
-    | 'estateName'
+    | 'premisesName'
     | 'blockExpression'
     | 'phaseExpression'
     | 'street'
@@ -182,7 +182,7 @@ export function supplementaryIdentity(values: SupplementaryValues[]) {
         formattedAddress: normaliseAddressText(value.formattedAddress),
         components: [
           'buildingName',
-          'estateName',
+          'premisesName',
           'blockExpression',
           'phaseExpression',
           'streetName',
@@ -253,7 +253,7 @@ export function parseSupplementaryCuration(
       policy.distanceMarginMetres,
       ...[
         'buildingName',
-        'estateName',
+        'premisesName',
         'blockExpression',
         'phaseExpression',
         'street',
@@ -699,7 +699,7 @@ export function createSupplementaryAddressAnalyserInternal(
         for (const [kind, components] of componentsByKind) {
           const canonical = definition[kind]
           if (!canonical) {
-            if (kind !== 'estateName') contradictions.push(kind)
+            if (kind !== 'premisesName') contradictions.push(kind)
             continue
           }
           if (
@@ -749,7 +749,7 @@ export function createSupplementaryAddressAnalyserInternal(
     }
     const candidates = [...candidatesById.values()]
     const namedCandidates = candidates.filter(candidate =>
-      ['buildingName', 'estateName', 'alias'].some(key => candidate.breakdown[key]),
+      ['buildingName', 'premisesName', 'alias'].some(key => candidate.breakdown[key]),
     )
     const named = namedCandidates
       .filter(
@@ -820,7 +820,7 @@ export function createSupplementaryAddressAnalyserInternal(
         !candidate.contradictions.length &&
         !candidate.parsed.unclassified2dText &&
         candidate.breakdown.street &&
-        ['buildingName', 'estateName', 'blockExpression', 'phaseExpression'].some(
+        ['buildingName', 'premisesName', 'blockExpression', 'phaseExpression'].some(
           key => candidate.breakdown[key],
         ),
     )
@@ -868,9 +868,9 @@ export function createSupplementaryAddressAnalyserInternal(
         locale: /\p{Script=Han}/u.test(value.address2dText) ? 'zh-hant' : 'en',
         formattedAddress: value.address2dText,
         buildingName: supplementaryBuilding || null,
-        estateName:
-          value.recognised2dComponents.find(item => item.kind === 'estateName')?.name ??
-          null,
+        premisesName:
+          value.recognised2dComponents.find(item => item.kind === 'premisesName')
+            ?.name ?? null,
         blockExpression:
           value.recognised2dComponents.find(item => item.kind === 'blockExpression')
             ?.name ?? null,
@@ -923,7 +923,7 @@ function hasPremiseIdentityEvidence(candidate: Candidate) {
   if (candidate.breakdown.alias) return true
   return (
     Boolean(candidate.breakdown.street) &&
-    ['buildingName', 'estateName', 'blockExpression', 'phaseExpression'].some(
+    ['buildingName', 'premisesName', 'blockExpression', 'phaseExpression'].some(
       key => candidate.breakdown[key],
     )
   )

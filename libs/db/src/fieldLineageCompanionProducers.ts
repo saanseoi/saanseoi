@@ -57,7 +57,7 @@ export function companionProducer(
       role: 'address',
       collection: 'address2dI18n',
       fields:
-        'addressId,locale,formattedAddress,buildingName,estateName,blockExpression,phaseExpression,streetName,buildingNumberExpression,buildingNumberFrom,buildingNumberTo',
+        'addressId,locale,formattedAddress,buildingName,premisesName,blockExpression,phaseExpression,streetName,buildingNumberExpression,buildingNumberFrom,buildingNumberTo',
     },
     selectedDivisions: {
       role: 'division',

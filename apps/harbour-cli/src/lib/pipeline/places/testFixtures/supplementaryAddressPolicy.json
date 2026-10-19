@@ -11,7 +11,7 @@
       "distanceMarginMetres": 100,
       "weights": {
         "buildingName": 55,
-        "estateName": 45,
+        "premisesName": 45,
         "blockExpression": 20,
         "phaseExpression": 20,
         "street": 30,

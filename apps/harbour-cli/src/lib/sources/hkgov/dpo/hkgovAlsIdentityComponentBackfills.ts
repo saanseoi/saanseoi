@@ -85,7 +85,7 @@ export function applyReviewedIdentityComponentBackfills(
     row.identityMatchMethod = 'reviewed-identity-component-backfill'
     row.identitySummary = {
       ...row.identitySummary,
-      estateName: row.enEstateName,
+      premisesName: row.enEstateName,
       buildingName: row.enBuildingName,
     }
     row.sources = JSON.stringify({

@@ -909,7 +909,7 @@
             }
           },
           "clearVillageAddress": true,
-          "estateName": {
+          "premisesName": {
             "en": "ROYAL PALMS",
             "zh-Hant": "加州豪園"
           },
@@ -1424,7 +1424,7 @@
             }
           },
           "clearVillageAddress": true,
-          "estateName": {
+          "premisesName": {
             "en": "THE GREEN",
             "zh-Hant": "歌賦嶺"
           },
@@ -1703,7 +1703,7 @@
             }
           },
           "clearVillageAddress": true,
-          "estateName": {
+          "premisesName": {
             "en": "THE GREEN",
             "zh-Hant": "歌賦嶺"
           },
@@ -1989,7 +1989,7 @@
             }
           },
           "clearVillageAddress": false,
-          "estateName": {
+          "premisesName": {
             "en": null,
             "zh-Hant": null
           },
@@ -2448,7 +2448,7 @@
             }
           },
           "clearVillageAddress": false,
-          "estateName": {
+          "premisesName": {
             "en": null,
             "zh-Hant": null
           },

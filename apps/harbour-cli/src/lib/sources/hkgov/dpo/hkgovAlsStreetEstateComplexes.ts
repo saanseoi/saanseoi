@@ -149,7 +149,7 @@ export function applyReviewedStreetEstateComplexes(
       identityContinuityKey: `reviewed-street-estate:${rule.id}`,
       identityMatchMethod: 'reviewed-street-estate',
       identitySummary: {
-        estateName: rule.estate,
+        premisesName: rule.estate,
         buildingName: null,
         streetName: en.EngStreet.StreetName,
         streetNumberFrom: en.EngStreet.BuildingNoFrom,

@@ -65,6 +65,14 @@ ${renderReferences}
 - Request the key only when the application is ready for it, then verify the selected
   basemap loads after it has been configured.
 
+For building selection, use z15 or closer building polygons and preserve their source
+identity and address tags. Query source polygons for outline-only styles. A complete
+building address takes priority over nearest-point geocoding; retain number ranges.
+For missing addresses, constrain the address geocoder with the selected footprint.
+Treat overlapping buildings or multiple contained addresses as ambiguous and label
+unconstrained nearest-point results approximate. See https://saanseoi.hk/llms.txt for
+current API and basemap contracts.
+
 ### Renderer-specific basemap references
 
 Use only the reference matching the selected mapping library.

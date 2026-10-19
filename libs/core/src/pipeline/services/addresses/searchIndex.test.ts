@@ -9,7 +9,7 @@ function fixture() {
     CREATE TABLE address2dI18n(scopeId TEXT, addressId TEXT, locale TEXT,
       formattedAddress TEXT, buildingName TEXT, buildingNumberExpression TEXT,
       buildingNumberFrom TEXT, buildingNumberTo TEXT, blockExpression TEXT,
-      phaseExpression TEXT, estateName TEXT, streetName TEXT,
+      phaseExpression TEXT, premisesName TEXT, streetName TEXT,
       PRIMARY KEY(scopeId,addressId,locale));`)
   const add = (snapshot: string, id: string, text: string) => {
     db.query(

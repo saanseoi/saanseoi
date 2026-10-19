@@ -31,7 +31,7 @@ for (const file of (await readdir(als)).sort()) {
         locale,
         formattedAddress: null,
         buildingName: a.BuildingName ?? null,
-        estateName: a[`${prefix}Estate`]?.EstateName ?? null,
+        premisesName: a[`${prefix}Estate`]?.EstateName ?? null,
         streetName: street?.StreetName ?? null,
         buildingNumberFrom: street?.BuildingNoFrom ?? null,
         buildingNumberTo: street?.BuildingNoTo ?? null,

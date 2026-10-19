@@ -31,7 +31,7 @@ const definitions = Array.from({ length: count }, (_, index) => ({
   buildingNumberExpression: String(index + 1),
   buildingNumberFrom: String(index + 1),
   buildingNumberTo: null,
-  estateName: null,
+  premisesName: null,
   blockExpression: null,
   phaseExpression: null,
 }))

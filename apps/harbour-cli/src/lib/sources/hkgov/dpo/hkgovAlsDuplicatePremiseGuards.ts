@@ -45,7 +45,7 @@ export function suppressReviewedDuplicatePremises(
   let removed = 0
   for (const rule of fixture.rules) {
     if (!active(rule, version)) continue
-    const estateRows = rows.filter(row => row.enEstateName === rule.estateName)
+    const estateRows = rows.filter(row => row.enEstateName === rule.premisesName)
     if (!estateRows.length) continue
     const owners = estateRows.filter(row =>
       Object.entries(rule.ownerGuard).every(

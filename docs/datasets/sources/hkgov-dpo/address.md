@@ -462,10 +462,10 @@ and unrelated source records receive no correction. Review the retained source b
 updating expectations, accepted identifiers or the applicable range; increment the
 correction revision when changing a reviewed decision.
 
-The correction moves the existing bilingual building labels into `estateName` and clears
-`buildingName`. It preserves publisher spelling and formatted address text. Source
-`properties` and source-content hashes retain the publisher classification. Canonical
-`sources.hkgovAlsComponentCorrections` records the fixture version and applied
+The correction moves the existing bilingual building labels into `premisesName` and
+clears `buildingName`. It preserves publisher spelling and formatted address text.
+Source `properties` and source-content hashes retain the publisher classification.
+Canonical `sources.hkgovAlsComponentCorrections` records the fixture version and applied
 correction IDs/revisions; this provenance participates in canonical content versioning.
 Canonical IDs, street numbers and geometry are not overridden.
 
@@ -1967,3 +1967,16 @@ Cleanup requires every referencing Place and Address publication to advance or r
 It checks logical publication references even for empty snapshots, alongside physical
 Address foreign keys, inside the deletion transaction. Retained HISTORY is independent
 of CURRENT cleanup. Content hashes exclude physical storage scopes.
+
+### Canonical premises field
+
+The publisher's `EngEstate.EstateName` and `ChiEstate.EstateName` source values map to
+canonical `premisesName`. Raw publisher field names retain their source spelling.
+Assembly, curated component corrections and public address responses use the same
+canonical name. The address-family storage maintenance updates locale component hashes
+in place and preserves snapshot identities without creating release revisions.
+
+The
+[address storage maintenance workflow](../../families/addresses.md#premises-name-contract-and-storage-maintenance)
+coordinates database write locks, hash verification, search-index replacement and API
+deployment for every retained HISTORY shard and CURRENT.

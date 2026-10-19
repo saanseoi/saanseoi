@@ -209,12 +209,12 @@ const AddressI18nAttributesSchema = z
         description: openApiText('openapi_addresses_phase_ref_description'),
         examples: ['I', 'II', 'IIIB', '3', null],
       }),
-    estateName: z
+    premisesName: z
       .string()
       .nullable()
       .optional()
       .openapi({
-        description: openApiText('openapi_addresses_estate_name_description'),
+        description: openApiText('openapi_addresses_premises_name_description'),
         examples: [
           'FAIRVIEW PARK',
           'HONG LOK YUEN',
@@ -388,7 +388,7 @@ const AddressDocumentMetaSchema = z
             'number',
             'block',
             'phase',
-            'estate',
+            'premises',
             'street',
           ])
           .optional(),
@@ -485,7 +485,7 @@ export const AddressSearchQuerySchema = AddressSelectionQuerySchema.extend({
     description: openApiText('openapi_addresses_search_match_description'),
   }),
   component: z
-    .enum(['formatted', 'building', 'number', 'block', 'phase', 'estate', 'street'])
+    .enum(['formatted', 'building', 'number', 'block', 'phase', 'premises', 'street'])
     .optional()
     .openapi({
       description: openApiText('openapi_addresses_search_component_description'),
