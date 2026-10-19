@@ -1272,6 +1272,46 @@ describe('atlas-api', () => {
     expect(charges).toBe(0)
   })
 
+  test.each(['https://hype.hk', 'http://hype.localhost'])(
+    'geocoding permits keyless requests from %s',
+    async origin => {
+      const { env } = createAuthenticatedEnv()
+      // Invalid coordinates reach route validation only after passing authentication.
+      const response = await app.fetch(
+        new Request('http://localhost/addresses/v1/geocode?lat=invalid&lng=114.1', {
+          headers: { origin },
+        }),
+        env,
+      )
+      expect(response.status).toBe(422)
+      expect(response.headers.get('access-control-allow-origin')).toBe('*')
+    },
+  )
+
+  test.each([
+    'https://hype.hk.example.com',
+    'https://preview.hype.hk',
+    'http://hype.hk',
+    'https://hype.hk:8443',
+    'http://hype.localhost:5173',
+    'https://hype.hk/path',
+    'https://user@hype.hk',
+    'https://hype.hk?other',
+    'https://hype.hk#other',
+  ])('geocoding still requires a key for %s', async origin => {
+    const { env } = createAuthenticatedEnv()
+    const response = await app.fetch(
+      new Request('http://localhost/addresses/v1/geocode?lat=22.3&lng=114.1', {
+        headers: { origin },
+      }),
+      env,
+    )
+    expect(response.status).toBe(401)
+    expect(await response.json()).toMatchObject({
+      errors: [{ code: 'invalid_api_key' }],
+    })
+  })
+
   test('URL-shaped Origin values do not qualify for the first-party exemption', async () => {
     const { env } = createEnv({ AUTH_MODE: 'required' })
     for (const origin of [
