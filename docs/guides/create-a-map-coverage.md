@@ -176,3 +176,11 @@ The guide's map tile/TileJSON examples still require the documented public API k
 Public release-page PBF/PMTiles and routing-companion downloads are separate artefact
 endpoints; private shared routing compute requires a server-side service binding and app
 credential. Neither download access nor a browser Origin grants routing access.
+
+## Building selection
+
+The basemap instructions cover z15 building source identity and address fields,
+source-polygon queries for outline styles, complete-address precedence, footprint-
+constrained ALS fallback and explicit ambiguity/approximation. Schema `protomaps-v4.1`
+archives are required for polygon address tags; publishing these archives is a separate
+release operation.

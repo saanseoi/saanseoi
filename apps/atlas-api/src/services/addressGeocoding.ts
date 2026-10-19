@@ -1,3 +1,4 @@
+import { containsReviewPoint } from '../schema/geocodingFootprint'
 import { normaliseAddressText, parseAddress } from './addressParsing'
 import type { AddressRecord } from '../db/addresses'
 import type { GeocodingQuery } from '../schema/geocoding'
@@ -18,7 +19,16 @@ export function rankAddress(record: AddressRecord, query: GeocodingQuery) {
         query.address !== undefined,
       )
 
-  return (reverse ? distance === null || distance > query.maxDistance : score === 0)
+  if (
+    query.footprint &&
+    (!coordinates || !containsReviewPoint(coordinates, query.footprint))
+  )
+    return null
+  return (
+    reverse
+      ? distance === null || (!query.footprint && distance > query.maxDistance)
+      : score === 0
+  )
     ? null
     : { record, coordinates, distance, score }
 }

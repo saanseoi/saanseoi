@@ -1,3 +1,4 @@
+import { geocodingFootprint, containsReviewPoint } from './geocodingFootprint'
 import { I18nMetaSchema } from './i18nMeta'
 import { geographicCodeQueryShape } from './geographicCodeFilters'
 import { z } from '@hono/zod-openapi'
@@ -17,6 +18,11 @@ const coordinate = (min: number, max: number) =>
 export const GeocodingQuerySchema = z
   .object({
     ...geographicCodeQueryShape,
+    footprint: geocodingFootprint
+      .optional()
+      .describe(
+        'WGS84 Polygon or MultiPolygon JSON constraining reverse address candidates to the selected footprint. The pin must lie inside it. This is caller-supplied evidence.',
+      ),
     inventory: z.string().min(1).optional(),
     profile: z.enum(['compact', 'default', 'map', 'full']).default('default'),
     lat: coordinate(-90, 90).optional(),
@@ -45,6 +51,17 @@ export const GeocodingQuerySchema = z
   })
   .strict()
   .superRefine((query, ctx) => {
+    if (
+      query.footprint &&
+      (query.lat === undefined ||
+        query.lng === undefined ||
+        !containsReviewPoint([query.lng, query.lat], query.footprint))
+    )
+      ctx.addIssue({
+        code: 'custom',
+        message: 'A footprint requires a reverse lookup pin inside it.',
+        path: ['footprint'],
+      })
     const coordinateInput = query.lat !== undefined || query.lng !== undefined
     if (coordinateInput && (query.lat === undefined || query.lng === undefined))
       ctx.addIssue({
@@ -121,16 +138,17 @@ const resultResource = z.object({
             'forward-geocoding',
             'exact_location',
             'nearest',
+            'within_footprint',
             'exact_text',
             'partial_text',
           ])
           .describe(
-            'Division matches use reverse-geocoding for coordinate containment and forward-geocoding for name searches. Address matches use exact_location, nearest, exact_text or partial_text.',
+            'Division matches use reverse-geocoding for coordinate containment and forward-geocoding for name searches. Address matches use exact_location, nearest, within_footprint, exact_text or partial_text.',
           ),
         score: z.number().optional(),
         distanceMetres: z.number().nullable().optional(),
-        evidence: z.literal('address_point').optional(),
-        selection: z.literal('proximity').optional(),
+        evidence: z.enum(['address_point', 'caller_footprint']).optional(),
+        selection: z.enum(['proximity', 'containment']).optional(),
         ambiguityDistanceMetres: z.number().nonnegative().optional(),
       })
       .optional(),

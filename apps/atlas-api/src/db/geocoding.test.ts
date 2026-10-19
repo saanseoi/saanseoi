@@ -82,6 +82,29 @@ test('numeric index and spherical prefilter preserve scoped candidates', async (
       reverse,
     )
     expect(nearby.records.map(r => r.address.id)).toEqual(['exact', 'suffix'])
+    const constrained = GeocodingQuerySchema.parse({
+      lng: '179.998',
+      lat: '0',
+      maxDistance: '0',
+      footprint: JSON.stringify({
+        type: 'Polygon',
+        coordinates: [
+          [
+            [179.997, -0.001],
+            [180, -0.001],
+            [180, 0.001],
+            [179.997, 0.001],
+            [179.997, -0.001],
+          ],
+        ],
+      }),
+    })
+    const contained = await collectAddressCandidates(
+      addressGeocodingCandidates(db, ['release'], constrained),
+      constrained,
+    )
+    expect(contained.records.map(r => r.address.id)).toEqual(['exact'])
+    expect(contained.total).toBe(1)
   } finally {
     sqlite.close()
   }

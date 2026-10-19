@@ -130,9 +130,9 @@ A second candidate within 15 metres of the closest candidate's distance makes th
 response ambiguous, including when `limit=1`. The reported `ambiguityDistanceMetres: 15`
 is a conservative selection heuristic, not a measured GPS accuracy or a confidence
 interval. Larger gaps do not prove unique building identity. Candidate reads are paged,
-retaining the requested best candidates and an ambiguity witness. Basemap footprints are
-not currently used to promote candidates; see the
-[coverage investigation](benchmarks/geocoder-2026-10-19.md).
+retaining the requested best candidates and an ambiguity witness. For a selected
+building, supply the explicit footprint constraint described below. The
+[coverage investigation](benchmarks/geocoder-2026-10-19.md) explains source coverage.
 
 `meta.release.apiReleaseSet` identifies the endpoint's release. Separate companion
 release metadata appears only when a different release is actually used. `full` adds
@@ -154,3 +154,23 @@ http://localhost:8787/divisions/v1/geocode?lat=22.3359905&lng=114.1989697&profil
 ```
 
 OpenAPI documents: `/openapi/divisions/v1` and `/openapi/addresses/v1`.
+
+## Selected building footprints
+
+Reverse address requests may supply `footprint` as JSON-encoded WGS84 GeoJSON `Polygon`
+or `MultiPolygon` geometry. Use `URLSearchParams` to encode it. The selected pin must
+lie inside the supplied area. Rings must be closed; geometry is limited to 256 vertices,
+16 rings per polygon, 16 polygons, 16,000 JSON characters and 0.05 degrees per axis.
+Division lookups and forward lookups do not accept this parameter.
+
+With a footprint, its bounds replace the `maxDistance` candidate window. Exact polygon
+containment filters candidates before pagination and ranking; hole interiors are
+excluded. Matches report `type: within_footprint`, `evidence: caller_footprint` and
+`selection: containment`. These are caller-supplied spatial constraints, not verified
+building identities. Multiple contained addresses are ambiguous regardless of their
+relative distance. No contained point returns no match, without falling back outside the
+building. Keep the user's pin separate from returned address-point geometry.
+
+Use a complete address already attached to an explicitly selected building directly.
+Only call this constrained lookup when the building lacks a usable address.
+Unconstrained `nearest` results should be labelled approximate.
