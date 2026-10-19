@@ -129,3 +129,11 @@ retired without deleting the basemap release, boundary, recipe or Guangdong sour
 [routing companions](routing.md) for publication, retention and shared service
 operations. Full PMTiles archive downloads and dated boundary downloads are public;
 ordinary tile/TileJSON requests retain their existing access policy.
+
+## Geocoding evidence audit
+
+The [geocoder coverage investigation](../../benchmarks/geocoder-2026-10-19.md) compares
+retained OSM building polygons with canonical address points and a fixed reference-pin
+sample. The read-only audit uses source geometry, records publication identities and
+keeps overlapping footprints separate. Tile coverage and point containment do not by
+themselves establish an address identity.

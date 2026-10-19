@@ -21,3 +21,9 @@ counts. Complete ways retain connected geometry outside the regional footprint.
 
 The [basemap family](../../families/basemap.md#release-statistics-and-usage) documents
 backfill commands, META persistence and archive identity checks.
+
+The [geocoder coverage audit](../../../benchmarks/geocoder-2026-10-19.md) counts valid
+building polygons with Shapely after `osmium export`, and separately measures named and
+address-tagged polygons, canonical address-point containment and sample-pin containment.
+Its geometry counts differ from source-object counts because non-area objects and
+invalid geometries are excluded. Overlapping ways and relations remain separate.

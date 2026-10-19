@@ -1,0 +1,641 @@
+{
+  "method": "source-footprint-containment-v1",
+  "footprintSha256": "d55681366370521318f10295412315a60397f6aa89146fe9e57b87c8ddf216c3",
+  "addressDatabase": ".local/d1/dev/v3/d1/miniflare-D1DatabaseObject/3e0d18432325b24b1b2f1b47e0978e262ce2b69345d5bc34e1c43d01542a0c43.sqlite",
+  "addressPublications": [
+    {
+      "scopeId": "d50f14a4-bc9b-5955-9a99-eb68a0c18b13",
+      "snapshotId": "3420b404-aec0-54ce-b92a-1ac273196f9d"
+    },
+    {
+      "scopeId": "b9868a81-5eb0-5304-b585-417ed73f3caa",
+      "snapshotId": "17e3fec1-35b4-5e34-8856-d25604b6bc65"
+    }
+  ],
+  "counts": {
+    "footprints": 119229,
+    "named": 35311,
+    "streetAddress": 25510,
+    "invalid": 0
+  },
+  "addressPoints": 182756,
+  "addressPointsCovered": 113281,
+  "samplePins": 25,
+  "samplePinsCovered": 21,
+  "results": [
+    {
+      "id": "florist-01",
+      "reference": "70 Queen's Road Central",
+      "footprints": [
+        {
+          "properties": {
+            "sourceId": "a725035660",
+            "addr:city": "Central",
+            "addr:housenumber": "70",
+            "addr:street": "皇后大道中 Queen's Road Central",
+            "name": "卡佛大廈 Crawford House",
+            "name:en": "Crawford House",
+            "name:zh": "卡佛大廈"
+          },
+          "addresses": [
+            {
+              "id": "ss-8cd5acc6-d107-5be6-869c-3ef7a3393b7a",
+              "label": "CRAWFORD HOUSE, 70 QUEEN'S ROAD CENTRAL, CENTRAL & WESTERN DISTRICT, HK"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "florist-02",
+      "reference": "29 Hollywood Road",
+      "footprints": [
+        {
+          "properties": {
+            "sourceId": "a1636074350",
+            "addr:housenumber": "27-29",
+            "addr:street": "荷李活道 Hollywood Road",
+            "name": "活麟大廈 Hollywood House",
+            "name:en": "Hollywood House",
+            "name:zh": "活麟大廈"
+          },
+          "addresses": [
+            {
+              "id": "ss-a2f98898-14e5-5a7e-b469-684d586fb6cc",
+              "label": "HOLLYWOOD HSE, 29 HOLLYWOOD ROAD, CENTRAL & WESTERN DISTRICT, HK"
+            },
+            {
+              "id": "ss-a449c0ee-1c74-509f-b724-5918f020ee7d",
+              "label": "HOLLYWOOD HSE, 27 HOLLYWOOD ROAD, CENTRAL & WESTERN DISTRICT, HK"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "florist-03",
+      "reference": "1 Harbour View Street",
+      "footprints": [
+        {
+          "properties": {
+            "sourceId": "a297109890",
+            "addr:housenumber": "8",
+            "addr:street": "金融街 Finance Street",
+            "name": "國際金融中心一期 One International Finance Centre",
+            "name:en": "One International Finance Centre",
+            "name:yue": "國際金融中心一期",
+            "name:zh": "國際金融中心一期"
+          },
+          "addresses": [
+            {
+              "id": "ss-891ba039-f191-58ba-925e-2e8b31557ff0",
+              "label": "ONE INTERNATIONAL FINANCE CENTRE, INTERNATIONAL FINANCE CENTRE, 1 HARBOUR VIEW STREET, CENTRAL & WESTERN DISTRICT, HK"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "florist-04",
+      "reference": "200 Queen's Road East",
+      "footprints": [
+        {
+          "properties": {
+            "sourceId": "a1485550288"
+          },
+          "addresses": [
+            {
+              "id": "ss-cc610630-751f-5a8b-901f-07b4726aa183",
+              "label": "LEE TUNG AVENUE, THE AVENUE, 200 QUEEN'S ROAD EAST, WAN CHAI DISTRICT, HK"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "florist-05",
+      "reference": "173-174 Gloucester Road",
+      "footprints": []
+    },
+    {
+      "id": "florist-06",
+      "reference": "13 Swatow Street",
+      "footprints": [
+        {
+          "properties": {
+            "sourceId": "a1487093526"
+          },
+          "addresses": [
+            {
+              "id": "ss-17e5d418-d9b6-5988-b476-b72d8353d84d",
+              "label": "YEE KAN COURT, 12 SWATOW STREET, WAN CHAI DISTRICT, HK"
+            }
+          ]
+        },
+        {
+          "properties": {
+            "sourceId": "a1487093546",
+            "addr:housenumber": "12",
+            "addr:street": "汕頭街 Swatow Street",
+            "name": "怡勤閣 Yee Kan Court",
+            "name:en": "Yee Kan Court",
+            "name:zh": "怡勤閣",
+            "name:zh-Hans": "怡勤阁",
+            "name:zh-Hant": "怡勤閣"
+          },
+          "addresses": [
+            {
+              "id": "ss-17e5d418-d9b6-5988-b476-b72d8353d84d",
+              "label": "YEE KAN COURT, 12 SWATOW STREET, WAN CHAI DISTRICT, HK"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "florist-07",
+      "reference": "139A Sai Yee Street",
+      "footprints": [
+        {
+          "properties": {
+            "sourceId": "a2306610814"
+          },
+          "addresses": [
+            {
+              "id": "ss-ecb5636b-2516-5d2f-a90d-43df7d32c335",
+              "label": "CHENG WAH MANSION, 141 SAI YEE STREET, YAU TSIM MONG DISTRICT, KLN"
+            },
+            {
+              "id": "ss-dd760255-965a-550a-a86e-ee70330e2d0b",
+              "label": "CHENG WAH MANSION, 143 SAI YEE STREET, YAU TSIM MONG DISTRICT, KLN"
+            },
+            {
+              "id": "ss-6b7a8d3e-1613-586f-827e-a082e663d0e2",
+              "label": "CHENG WAH MANSION, 143A SAI YEE STREET, YAU TSIM MONG DISTRICT, KLN"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "florist-08",
+      "reference": "160 Prince Edward Road West",
+      "footprints": [
+        {
+          "properties": {
+            "sourceId": "a2597605668",
+            "name": "旺角城大廈 Mongkok City Building",
+            "name:en": "Mongkok City Building",
+            "name:zh": "旺角城大廈"
+          },
+          "addresses": []
+        },
+        {
+          "properties": {
+            "sourceId": "a2597605648"
+          },
+          "addresses": [
+            {
+              "id": "ss-317f3b34-2366-575e-bf5d-fd9e8eaa4d8a",
+              "label": "HENTIFF BUILDING, 160 PRINCE EDWARD ROAD WEST, YAU TSIM MONG DISTRICT, KLN"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "florist-09",
+      "reference": "164 Prince Edward Road West",
+      "footprints": []
+    },
+    {
+      "id": "florist-10",
+      "reference": "8 Tsun Yip Lane",
+      "footprints": [
+        {
+          "properties": {
+            "sourceId": "a474264398"
+          },
+          "addresses": [
+            {
+              "id": "ss-f1bcfa46-a682-5c2b-9eef-f16f62b4fd4e",
+              "label": "WORLD INTERESTS BUILDING, 8 TSUN YIP LANE, KWUN TONG DISTRICT, KLN"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "florist-11",
+      "reference": "50 Hoi Yuen Road",
+      "footprints": []
+    },
+    {
+      "id": "florist-12",
+      "reference": "44-46 Hung To Road",
+      "footprints": [
+        {
+          "properties": {
+            "sourceId": "a439228748"
+          },
+          "addresses": [
+            {
+              "id": "ss-f31f2d78-0f51-5ce5-8ed7-fc2745df2d59",
+              "label": "CENTURY CENTRE, 44-46 HUNG TO ROAD, KWUN TONG DISTRICT, KLN"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "florist-13",
+      "reference": "220-248 Texaco Road",
+      "footprints": [
+        {
+          "properties": {
+            "sourceId": "a601380430"
+          },
+          "addresses": [
+            {
+              "id": "ss-2a8110db-4d62-55bd-b710-d25d150e1ae5",
+              "label": "TSUEN WAN INDUSTRIAL CENTRE, 220-248 TEXACO ROAD, TSUEN WAN DISTRICT, NT"
+            }
+          ]
+        },
+        {
+          "properties": {
+            "sourceId": "a1470917582"
+          },
+          "addresses": [
+            {
+              "id": "ss-2a8110db-4d62-55bd-b710-d25d150e1ae5",
+              "label": "TSUEN WAN INDUSTRIAL CENTRE, 220-248 TEXACO ROAD, TSUEN WAN DISTRICT, NT"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "florist-14",
+      "reference": "32-36 Hau Tei Square",
+      "footprints": [
+        {
+          "properties": {
+            "sourceId": "a355308346",
+            "addr:housenumber": "32-36",
+            "addr:street": "鱟地坊 Hau Tei Square",
+            "addr:street:en": "Hau Tei Square",
+            "addr:street:wikidata": "Q11172822",
+            "addr:street:zh": "鱟地坊",
+            "name": "富華樓 Foo Wah House"
+          },
+          "addresses": [
+            {
+              "id": "ss-f5d82a38-2ab6-5df9-be05-d889d4281f42",
+              "label": "FU WAH HOUSE, 36 HAU TEI SQUARE, TSUEN WAN DISTRICT, NT"
+            },
+            {
+              "id": "ss-b9ad138e-15cb-5cec-83eb-e7d319aa893a",
+              "label": "FU WAH HOUSE, 32 HAU TEI SQUARE, TSUEN WAN DISTRICT, NT"
+            },
+            {
+              "id": "ss-44606b9d-df84-5175-931d-a94697de24a2",
+              "label": "FU WAH HOUSE, 34 HAU TEI SQUARE, TSUEN WAN DISTRICT, NT"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "florist-15",
+      "reference": "75 Yeung Uk Road",
+      "footprints": [
+        {
+          "properties": {
+            "sourceId": "a405535092",
+            "addr:housenumber": "71-73",
+            "addr:street": "楊屋道 Yeung Uk Road",
+            "addr:street:en": "Yeung Uk Road",
+            "addr:street:wikidata": "Q7224709",
+            "addr:street:zh": "楊屋道"
+          },
+          "addresses": [
+            {
+              "id": "ss-ab6a76b7-ecca-54c0-a4ad-71cccd300e65",
+              "label": "71 YEUNG UK ROAD, TSUEN WAN DISTRICT, NT"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "florist-16",
+      "reference": "3 On Kwan Street",
+      "footprints": []
+    },
+    {
+      "id": "florist-17",
+      "reference": "27-31 Au Pui Wan Street",
+      "footprints": [
+        {
+          "properties": {
+            "sourceId": "a398301204",
+            "addr:housenumber": "27-31",
+            "addr:street": "坳背灣街 Au Pui Wan Street",
+            "addr:street:en": "Au Pui Wan Street",
+            "addr:street:wikidata": "Q131557066",
+            "addr:street:zh": "坳背灣街",
+            "name": "協興工業中心 Unison Industrial Centre",
+            "name:en": "Unison Industrial Centre",
+            "name:zh": "協興工業中心"
+          },
+          "addresses": [
+            {
+              "id": "ss-804fdcdc-c6a2-542f-9e2e-29050b4607aa",
+              "label": "UNISON INDUSTRIAL CENTRE, 27-31 AU PUI WAN STREET, SHA TIN DISTRICT, NT"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "florist-18",
+      "reference": "Tai Wai Market",
+      "footprints": [
+        {
+          "properties": {
+            "sourceId": "a299816078",
+            "name": "第4座 Block 4",
+            "name:en": "Block 4",
+            "name:zh": "第4座"
+          },
+          "addresses": [
+            {
+              "id": "ss-0e71e363-6472-5731-8cd3-a1f6ccd51a2a",
+              "label": "BLK 4, GRANDEUR GARDEN, 2-12 CHIK FAI STREET, SHA TIN DISTRICT, NT"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "florist-19",
+      "reference": "8 Heung Sze Wui Street",
+      "footprints": [
+        {
+          "properties": {
+            "sourceId": "a223017578",
+            "addr:housenumber": "8",
+            "addr:street": "鄉事會街 Heung Sze Wui Street",
+            "name": "大埔綜合大樓 Tai Po Complex",
+            "name:en": "Tai Po Complex",
+            "name:yue": "大埔綜合大樓",
+            "name:zh": "大埔綜合大樓"
+          },
+          "addresses": [
+            {
+              "id": "ss-d9e6c200-be0c-5b40-840d-84f69ee131c5",
+              "label": "TAI PO COMPLEX TAI PO PUBLIC LIBRARY, 8 HEUNG SZE WUI STREET, TAI PO DISTRICT, NT"
+            },
+            {
+              "id": "ss-33ed95ac-44e6-5b33-a42d-1ab116836c24",
+              "label": "TAI PO COMPLEX, 8 HEUNG SZE WUI STREET, TAI PO DISTRICT, NT"
+            },
+            {
+              "id": "ss-412482fa-1fb9-585d-becd-7077aefb5240",
+              "label": "TAI PO HUI MARKET AND COOKED FOOD CENTRE, 8 HEUNG SZE WUI STREET, TAI PO DISTRICT, NT"
+            }
+          ]
+        },
+        {
+          "properties": {
+            "sourceId": "a382812536",
+            "name": "大埔墟街市及熟食中心 Tai Po Hui Market And Cooked Food Centre",
+            "name:en": "Tai Po Hui Market And Cooked Food Centre",
+            "name:zh": "大埔墟街市及熟食中心"
+          },
+          "addresses": [
+            {
+              "id": "ss-d9e6c200-be0c-5b40-840d-84f69ee131c5",
+              "label": "TAI PO COMPLEX TAI PO PUBLIC LIBRARY, 8 HEUNG SZE WUI STREET, TAI PO DISTRICT, NT"
+            },
+            {
+              "id": "ss-33ed95ac-44e6-5b33-a42d-1ab116836c24",
+              "label": "TAI PO COMPLEX, 8 HEUNG SZE WUI STREET, TAI PO DISTRICT, NT"
+            },
+            {
+              "id": "ss-412482fa-1fb9-585d-becd-7077aefb5240",
+              "label": "TAI PO HUI MARKET AND COOKED FOOD CENTRE, 8 HEUNG SZE WUI STREET, TAI PO DISTRICT, NT"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "florist-20",
+      "reference": "4 Tsing Yuen Street",
+      "footprints": [
+        {
+          "properties": {
+            "sourceId": "a409933056",
+            "addr:housenumber": "1",
+            "addr:street": "懷仁街 Wai Yan Street",
+            "addr:street:en": "Wai Yan Street",
+            "addr:street:wikidata": "Q125958358",
+            "addr:street:zh": "懷仁街"
+          },
+          "addresses": [
+            {
+              "id": "ss-39ecb111-8b4b-51b8-a5b9-1b2afc9a8c92",
+              "label": "1 WAI YAN STREET, TAI PO DISTRICT, NT"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "florist-21",
+      "reference": "63 On Ning Road",
+      "footprints": [
+        {
+          "properties": {
+            "sourceId": "a1172671154"
+          },
+          "addresses": [
+            {
+              "id": "ss-3c5837f9-feef-5b67-ad83-2652f8ed5668",
+              "label": "FOOK ON BUILDING, 79 YUEN LONG ON NING ROAD, YUEN LONG DISTRICT, NT"
+            },
+            {
+              "id": "ss-fac6cdb9-4fdb-50ae-a1ce-648e836bc2d0",
+              "label": "FOOK ON BUILDING, 77 YUEN LONG ON NING ROAD, YUEN LONG DISTRICT, NT"
+            },
+            {
+              "id": "ss-430975e6-967d-5460-8979-a840a6f88819",
+              "label": "FOOK ON BUILDING, 69 YUEN LONG ON NING ROAD, YUEN LONG DISTRICT, NT"
+            },
+            {
+              "id": "ss-ff935446-826e-5430-93df-ecfca0b9b0e3",
+              "label": "FOOK ON BUILDING, 73 YUEN LONG ON NING ROAD, YUEN LONG DISTRICT, NT"
+            },
+            {
+              "id": "ss-023a3548-204b-5eaf-8042-502d20a4cf6b",
+              "label": "FOOK ON BUILDING, 65 YUEN LONG ON NING ROAD, YUEN LONG DISTRICT, NT"
+            },
+            {
+              "id": "ss-f2bdc085-cf24-5a14-8ea5-822e56135670",
+              "label": "FOOK ON BUILDING, 71 YUEN LONG ON NING ROAD, YUEN LONG DISTRICT, NT"
+            },
+            {
+              "id": "ss-1b2cea47-6578-598f-b19a-1d9c51e9056a",
+              "label": "FOOK ON BUILDING, 67 YUEN LONG ON NING ROAD, YUEN LONG DISTRICT, NT"
+            },
+            {
+              "id": "ss-ab4940e5-6087-5f9c-b1b9-85a9475f98ef",
+              "label": "FOOK ON BUILDING, 75 YUEN LONG ON NING ROAD, YUEN LONG DISTRICT, NT"
+            },
+            {
+              "id": "ss-68fa455e-6058-55ac-9eb2-552f33f679e6",
+              "label": "FOOK ON BUILDING, 65-79 YUEN LONG ON NING ROAD, YUEN LONG DISTRICT, NT"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "florist-22",
+      "reference": "10-16 Kin Tak Street",
+      "footprints": [
+        {
+          "properties": {
+            "sourceId": "a1136068956",
+            "addr:city": "元朗 Yuen Long",
+            "addr:housenumber": "10-16",
+            "addr:street": "建德街 Kin Tak Street",
+            "name": "建德樓 Kin Tak House",
+            "name:en": "Kin Tak House",
+            "name:zh": "建德樓"
+          },
+          "addresses": [
+            {
+              "id": "ss-ad802a51-94eb-5895-b9d2-90f35ebdab6a",
+              "label": "KIN TAK HOUSE, 10-16 KIN TAK STREET, YUEN LONG DISTRICT, NT"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "florist-23",
+      "reference": "8 Yan Po Road",
+      "footprints": [
+        {
+          "properties": {
+            "sourceId": "a2302843022"
+          },
+          "addresses": [
+            {
+              "id": "ss-3339cf13-7c29-518f-b6fb-aae5f87543cb",
+              "label": "ARRESO, TOWER 3, NOVO LAND, 8 YAN PO ROAD, TUEN MUN DISTRICT, NT"
+            },
+            {
+              "id": "ss-330e105a-0056-5c4b-bdb5-dbcf7e981088",
+              "label": "ARRESO, TOWER 5, NOVO LAND, 8 YAN PO ROAD, TUEN MUN DISTRICT, NT"
+            },
+            {
+              "id": "ss-d7a7aaa9-734a-5a91-b1ad-dcdd38b3beae",
+              "label": "ARRESO, TOWER 2, NOVO LAND, 8 YAN PO ROAD, TUEN MUN DISTRICT, NT"
+            },
+            {
+              "id": "ss-a9bb1838-ab66-5a62-b9b2-b4ce4d6589fa",
+              "label": "ARRESO, TOWER 1A, NOVO LAND, 8 YAN PO ROAD, TUEN MUN DISTRICT, NT"
+            },
+            {
+              "id": "ss-f1389310-4df3-56b0-b224-200b515f835b",
+              "label": "ARRESO, TOWER 1B, NOVO LAND, 8 YAN PO ROAD, TUEN MUN DISTRICT, NT"
+            }
+          ]
+        },
+        {
+          "properties": {
+            "sourceId": "a2579124136",
+            "addr:housenumber": "8",
+            "addr:street": "欣寶路 Yan Po Road",
+            "addr:street:en": "Yan Po Road",
+            "addr:street:zh": "欣寶路",
+            "name": "Novo Walk",
+            "name:en": "Novo Walk"
+          },
+          "addresses": [
+            {
+              "id": "ss-3339cf13-7c29-518f-b6fb-aae5f87543cb",
+              "label": "ARRESO, TOWER 3, NOVO LAND, 8 YAN PO ROAD, TUEN MUN DISTRICT, NT"
+            },
+            {
+              "id": "ss-330e105a-0056-5c4b-bdb5-dbcf7e981088",
+              "label": "ARRESO, TOWER 5, NOVO LAND, 8 YAN PO ROAD, TUEN MUN DISTRICT, NT"
+            },
+            {
+              "id": "ss-d7a7aaa9-734a-5a91-b1ad-dcdd38b3beae",
+              "label": "ARRESO, TOWER 2, NOVO LAND, 8 YAN PO ROAD, TUEN MUN DISTRICT, NT"
+            },
+            {
+              "id": "ss-ce9edbf8-bbcd-5758-8194-a33eeb03687a",
+              "label": "NOVO WALK, NOVO LAND, 8 YAN PO ROAD, TUEN MUN DISTRICT, NT"
+            },
+            {
+              "id": "ss-a9bb1838-ab66-5a62-b9b2-b4ce4d6589fa",
+              "label": "ARRESO, TOWER 1A, NOVO LAND, 8 YAN PO ROAD, TUEN MUN DISTRICT, NT"
+            },
+            {
+              "id": "ss-f1389310-4df3-56b0-b224-200b515f835b",
+              "label": "ARRESO, TOWER 1B, NOVO LAND, 8 YAN PO ROAD, TUEN MUN DISTRICT, NT"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "florist-24",
+      "reference": "1 Castle Peak Road Castle Peak Bay",
+      "footprints": [
+        {
+          "properties": {
+            "sourceId": "a204323152",
+            "name": "黃金海岸商場 Gold Coast Piazza",
+            "name:en": "Gold Coast Piazza",
+            "name:zh": "黃金海岸商場"
+          },
+          "addresses": [
+            {
+              "id": "ss-6873f983-35ed-586e-b680-552a4f7f4255",
+              "label": "GOLD COAST PIAZZA, HONG KONG GOLD COAST, 1 CASTLE PEAK ROAD, TUEN MUN DISTRICT, NT"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "florist-25",
+      "reference": "Fu Tung Market",
+      "footprints": [
+        {
+          "properties": {
+            "sourceId": "a203382522",
+            "name": "富東廣場 Fu Tung Plaza",
+            "name:en": "Fu Tung Plaza",
+            "name:zh": "富東廣場",
+            "name:zh-Hans": "富东广场",
+            "name:zh-Hant": "富東廣場"
+          },
+          "addresses": [
+            {
+              "id": "ss-c972c0aa-0543-58ca-b027-34e204c34fc3",
+              "label": "FU TUNG PLAZA, FU TUNG ESTATE, 6 FU TUNG STREET, ISLANDS DISTRICT, NT"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

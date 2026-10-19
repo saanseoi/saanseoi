@@ -1,0 +1,729 @@
+{
+  "scope": "Isolated local Atlas, copied current serving tables; not production availability",
+  "release": "data-hk-addresses-2026-09-23.0",
+  "rubric": "Manual building/street comparison against full reference listings. Ignore casing, abbreviation, transliteration and floor/shop detail; require street/number or named premise agreement without a conflicting named facility. Strict address agreement preserves suffix distinctions for comparability with Hype. Numeric-stem agreement additionally ignores suffixes under the requested model policy; it does not verify suffix identity.",
+  "summary": {
+    "reverse": {
+      "cases": 25,
+      "http200": 25,
+      "withCandidates": 25,
+      "top1AddressAgreement": 16,
+      "top5AddressAgreement": 21,
+      "numericStemTop1Agreement": 17,
+      "numericStemTop5Agreement": 23,
+      "top1Within50m": 24,
+      "top1Within100m": 25,
+      "top5Within100m": 25,
+      "ambiguousResponses": 17,
+      "medianQueryDurationMs": 489,
+      "maxQueryDurationMs": 1413
+    },
+    "forward_raw": {
+      "cases": 25,
+      "http200": 25,
+      "withCandidates": 24,
+      "top1AddressAgreement": 22,
+      "top5AddressAgreement": 22,
+      "numericStemTop1Agreement": 24,
+      "numericStemTop5Agreement": 24,
+      "top1Within50m": 21,
+      "top1Within100m": 23,
+      "top5Within100m": 24,
+      "ambiguousResponses": 14,
+      "medianQueryDurationMs": 76,
+      "maxQueryDurationMs": 11358
+    },
+    "forward_core": {
+      "cases": 25,
+      "http200": 25,
+      "withCandidates": 24,
+      "top1AddressAgreement": 19,
+      "top5AddressAgreement": 21,
+      "numericStemTop1Agreement": 21,
+      "numericStemTop5Agreement": 23,
+      "top1Within50m": 18,
+      "top1Within100m": 21,
+      "top5Within100m": 23,
+      "ambiguousResponses": 14,
+      "medianQueryDurationMs": 70,
+      "maxQueryDurationMs": 10808
+    }
+  },
+  "reviews": [
+    {
+      "id": "florist-01",
+      "mode": "reverse",
+      "firstAgreeingRank": 1,
+      "top1Agreement": true,
+      "top5Agreement": true,
+      "numericStemAgreementRank": 1,
+      "notes": "Street number/range and building-level reference agree; floor/shop detail is not scored."
+    },
+    {
+      "id": "florist-01",
+      "mode": "forward_raw",
+      "firstAgreeingRank": 1,
+      "top1Agreement": true,
+      "top5Agreement": true,
+      "numericStemAgreementRank": 1,
+      "notes": "Street number/range and building-level reference agree; floor/shop detail is not scored."
+    },
+    {
+      "id": "florist-01",
+      "mode": "forward_core",
+      "firstAgreeingRank": 1,
+      "top1Agreement": true,
+      "top5Agreement": true,
+      "numericStemAgreementRank": 1,
+      "notes": "Street number/range and building-level reference agree; floor/shop detail is not scored."
+    },
+    {
+      "id": "florist-02",
+      "mode": "reverse",
+      "firstAgreeingRank": 1,
+      "top1Agreement": true,
+      "top5Agreement": true,
+      "numericStemAgreementRank": 1,
+      "notes": "Street number/range and building-level reference agree; floor/shop detail is not scored."
+    },
+    {
+      "id": "florist-02",
+      "mode": "forward_raw",
+      "firstAgreeingRank": 1,
+      "top1Agreement": true,
+      "top5Agreement": true,
+      "numericStemAgreementRank": 1,
+      "notes": "Street number/range and building-level reference agree; floor/shop detail is not scored."
+    },
+    {
+      "id": "florist-02",
+      "mode": "forward_core",
+      "firstAgreeingRank": 1,
+      "top1Agreement": true,
+      "top5Agreement": true,
+      "numericStemAgreementRank": 1,
+      "notes": "Street number/range and building-level reference agree; floor/shop detail is not scored."
+    },
+    {
+      "id": "florist-03",
+      "mode": "reverse",
+      "firstAgreeingRank": 1,
+      "top1Agreement": true,
+      "top5Agreement": true,
+      "numericStemAgreementRank": 1,
+      "notes": "The complete listing qualifies One IFC; the bare street retains MTR station and mall alternatives."
+    },
+    {
+      "id": "florist-03",
+      "mode": "forward_raw",
+      "firstAgreeingRank": 1,
+      "top1Agreement": true,
+      "top5Agreement": true,
+      "numericStemAgreementRank": 1,
+      "notes": "The complete listing qualifies One IFC; the bare street retains MTR station and mall alternatives."
+    },
+    {
+      "id": "florist-03",
+      "mode": "forward_core",
+      "firstAgreeingRank": 2,
+      "top1Agreement": false,
+      "top5Agreement": true,
+      "numericStemAgreementRank": 2,
+      "notes": "The complete listing qualifies One IFC; the bare street retains MTR station and mall alternatives."
+    },
+    {
+      "id": "florist-04",
+      "mode": "reverse",
+      "firstAgreeingRank": 1,
+      "top1Agreement": true,
+      "top5Agreement": true,
+      "numericStemAgreementRank": 1,
+      "notes": "The complete listing qualifies Lee Tung Avenue; the bare street also identifies residential towers."
+    },
+    {
+      "id": "florist-04",
+      "mode": "forward_raw",
+      "firstAgreeingRank": 1,
+      "top1Agreement": true,
+      "top5Agreement": true,
+      "numericStemAgreementRank": 1,
+      "notes": "The complete listing qualifies Lee Tung Avenue; the bare street also identifies residential towers."
+    },
+    {
+      "id": "florist-04",
+      "mode": "forward_core",
+      "firstAgreeingRank": 4,
+      "top1Agreement": false,
+      "top5Agreement": true,
+      "numericStemAgreementRank": 4,
+      "notes": "The complete listing qualifies Lee Tung Avenue; the bare street also identifies residential towers."
+    },
+    {
+      "id": "florist-05",
+      "mode": "reverse",
+      "firstAgreeingRank": 1,
+      "top1Agreement": true,
+      "top5Agreement": true,
+      "numericStemAgreementRank": 1,
+      "notes": "Street number/range and building-level reference agree; floor/shop detail is not scored."
+    },
+    {
+      "id": "florist-05",
+      "mode": "forward_raw",
+      "firstAgreeingRank": 1,
+      "top1Agreement": true,
+      "top5Agreement": true,
+      "numericStemAgreementRank": 1,
+      "notes": "Street number/range and building-level reference agree; floor/shop detail is not scored."
+    },
+    {
+      "id": "florist-05",
+      "mode": "forward_core",
+      "firstAgreeingRank": 1,
+      "top1Agreement": true,
+      "top5Agreement": true,
+      "numericStemAgreementRank": 1,
+      "notes": "Street number/range and building-level reference agree; floor/shop detail is not scored."
+    },
+    {
+      "id": "florist-06",
+      "mode": "reverse",
+      "firstAgreeingRank": 2,
+      "top1Agreement": false,
+      "top5Agreement": true,
+      "numericStemAgreementRank": 2,
+      "notes": "Street number/range and building-level reference agree; floor/shop detail is not scored."
+    },
+    {
+      "id": "florist-06",
+      "mode": "forward_raw",
+      "firstAgreeingRank": 1,
+      "top1Agreement": true,
+      "top5Agreement": true,
+      "numericStemAgreementRank": 1,
+      "notes": "Street number/range and building-level reference agree; floor/shop detail is not scored."
+    },
+    {
+      "id": "florist-06",
+      "mode": "forward_core",
+      "firstAgreeingRank": 1,
+      "top1Agreement": true,
+      "top5Agreement": true,
+      "numericStemAgreementRank": 1,
+      "notes": "Street number/range and building-level reference agree; floor/shop detail is not scored."
+    },
+    {
+      "id": "florist-07",
+      "mode": "reverse",
+      "firstAgreeingRank": null,
+      "top1Agreement": false,
+      "top5Agreement": false,
+      "numericStemAgreementRank": 5,
+      "notes": "139A retrieves numeric stem 139 as requested. Suffix-specific identity is unverified and fails the strict reference rubric."
+    },
+    {
+      "id": "florist-07",
+      "mode": "forward_raw",
+      "firstAgreeingRank": null,
+      "top1Agreement": false,
+      "top5Agreement": false,
+      "numericStemAgreementRank": 1,
+      "notes": "139A retrieves numeric stem 139 as requested. Suffix-specific identity is unverified and fails the strict reference rubric."
+    },
+    {
+      "id": "florist-07",
+      "mode": "forward_core",
+      "firstAgreeingRank": null,
+      "top1Agreement": false,
+      "top5Agreement": false,
+      "numericStemAgreementRank": 1,
+      "notes": "139A retrieves numeric stem 139 as requested. Suffix-specific identity is unverified and fails the strict reference rubric."
+    },
+    {
+      "id": "florist-08",
+      "mode": "reverse",
+      "firstAgreeingRank": 1,
+      "top1Agreement": true,
+      "top5Agreement": true,
+      "numericStemAgreementRank": 1,
+      "notes": "Street number/range and building-level reference agree; floor/shop detail is not scored."
+    },
+    {
+      "id": "florist-08",
+      "mode": "forward_raw",
+      "firstAgreeingRank": 1,
+      "top1Agreement": true,
+      "top5Agreement": true,
+      "numericStemAgreementRank": 1,
+      "notes": "Street number/range and building-level reference agree; floor/shop detail is not scored."
+    },
+    {
+      "id": "florist-08",
+      "mode": "forward_core",
+      "firstAgreeingRank": 1,
+      "top1Agreement": true,
+      "top5Agreement": true,
+      "numericStemAgreementRank": 1,
+      "notes": "Street number/range and building-level reference agree; floor/shop detail is not scored."
+    },
+    {
+      "id": "florist-09",
+      "mode": "reverse",
+      "firstAgreeingRank": null,
+      "top1Agreement": false,
+      "top5Agreement": false,
+      "numericStemAgreementRank": 1,
+      "notes": "164 retrieves 164A as requested. Suffix-specific identity is unverified and fails the strict reference rubric."
+    },
+    {
+      "id": "florist-09",
+      "mode": "forward_raw",
+      "firstAgreeingRank": null,
+      "top1Agreement": false,
+      "top5Agreement": false,
+      "numericStemAgreementRank": 1,
+      "notes": "164 retrieves 164A as requested. Suffix-specific identity is unverified and fails the strict reference rubric."
+    },
+    {
+      "id": "florist-09",
+      "mode": "forward_core",
+      "firstAgreeingRank": null,
+      "top1Agreement": false,
+      "top5Agreement": false,
+      "numericStemAgreementRank": 1,
+      "notes": "164 retrieves 164A as requested. Suffix-specific identity is unverified and fails the strict reference rubric."
+    },
+    {
+      "id": "florist-10",
+      "mode": "reverse",
+      "firstAgreeingRank": 1,
+      "top1Agreement": true,
+      "top5Agreement": true,
+      "numericStemAgreementRank": 1,
+      "notes": "Street number/range and building-level reference agree; floor/shop detail is not scored."
+    },
+    {
+      "id": "florist-10",
+      "mode": "forward_raw",
+      "firstAgreeingRank": 1,
+      "top1Agreement": true,
+      "top5Agreement": true,
+      "numericStemAgreementRank": 1,
+      "notes": "Street number/range and building-level reference agree; floor/shop detail is not scored."
+    },
+    {
+      "id": "florist-10",
+      "mode": "forward_core",
+      "firstAgreeingRank": 1,
+      "top1Agreement": true,
+      "top5Agreement": true,
+      "numericStemAgreementRank": 1,
+      "notes": "Street number/range and building-level reference agree; floor/shop detail is not scored."
+    },
+    {
+      "id": "florist-11",
+      "mode": "reverse",
+      "firstAgreeingRank": 1,
+      "top1Agreement": true,
+      "top5Agreement": true,
+      "numericStemAgreementRank": 1,
+      "notes": "Street number/range and building-level reference agree; floor/shop detail is not scored."
+    },
+    {
+      "id": "florist-11",
+      "mode": "forward_raw",
+      "firstAgreeingRank": 1,
+      "top1Agreement": true,
+      "top5Agreement": true,
+      "numericStemAgreementRank": 1,
+      "notes": "Street number/range and building-level reference agree; floor/shop detail is not scored."
+    },
+    {
+      "id": "florist-11",
+      "mode": "forward_core",
+      "firstAgreeingRank": 1,
+      "top1Agreement": true,
+      "top5Agreement": true,
+      "numericStemAgreementRank": 1,
+      "notes": "Street number/range and building-level reference agree; floor/shop detail is not scored."
+    },
+    {
+      "id": "florist-12",
+      "mode": "reverse",
+      "firstAgreeingRank": 1,
+      "top1Agreement": true,
+      "top5Agreement": true,
+      "numericStemAgreementRank": 1,
+      "notes": "Street number/range and building-level reference agree; floor/shop detail is not scored."
+    },
+    {
+      "id": "florist-12",
+      "mode": "forward_raw",
+      "firstAgreeingRank": 1,
+      "top1Agreement": true,
+      "top5Agreement": true,
+      "numericStemAgreementRank": 1,
+      "notes": "Street number/range and building-level reference agree; floor/shop detail is not scored."
+    },
+    {
+      "id": "florist-12",
+      "mode": "forward_core",
+      "firstAgreeingRank": 1,
+      "top1Agreement": true,
+      "top5Agreement": true,
+      "numericStemAgreementRank": 1,
+      "notes": "Street number/range and building-level reference agree; floor/shop detail is not scored."
+    },
+    {
+      "id": "florist-13",
+      "mode": "reverse",
+      "firstAgreeingRank": 1,
+      "top1Agreement": true,
+      "top5Agreement": true,
+      "numericStemAgreementRank": 1,
+      "notes": "Street number/range and building-level reference agree; floor/shop detail is not scored."
+    },
+    {
+      "id": "florist-13",
+      "mode": "forward_raw",
+      "firstAgreeingRank": 1,
+      "top1Agreement": true,
+      "top5Agreement": true,
+      "numericStemAgreementRank": 1,
+      "notes": "Street number/range and building-level reference agree; floor/shop detail is not scored."
+    },
+    {
+      "id": "florist-13",
+      "mode": "forward_core",
+      "firstAgreeingRank": 1,
+      "top1Agreement": true,
+      "top5Agreement": true,
+      "numericStemAgreementRank": 1,
+      "notes": "Street number/range and building-level reference agree; floor/shop detail is not scored."
+    },
+    {
+      "id": "florist-14",
+      "mode": "reverse",
+      "firstAgreeingRank": 1,
+      "top1Agreement": true,
+      "top5Agreement": true,
+      "numericStemAgreementRank": 1,
+      "notes": "Fu Wah House has individual 32, 34 and 36 frontages within the requested range."
+    },
+    {
+      "id": "florist-14",
+      "mode": "forward_raw",
+      "firstAgreeingRank": 1,
+      "top1Agreement": true,
+      "top5Agreement": true,
+      "numericStemAgreementRank": 1,
+      "notes": "Fu Wah House has individual 32, 34 and 36 frontages within the requested range."
+    },
+    {
+      "id": "florist-14",
+      "mode": "forward_core",
+      "firstAgreeingRank": 1,
+      "top1Agreement": true,
+      "top5Agreement": true,
+      "numericStemAgreementRank": 1,
+      "notes": "Fu Wah House has individual 32, 34 and 36 frontages within the requested range."
+    },
+    {
+      "id": "florist-15",
+      "mode": "reverse",
+      "firstAgreeingRank": 4,
+      "top1Agreement": false,
+      "top5Agreement": true,
+      "numericStemAgreementRank": 4,
+      "notes": "Reverse nearest is 71; expected 75 ranks fourth. The response flags nearby alternatives."
+    },
+    {
+      "id": "florist-15",
+      "mode": "forward_raw",
+      "firstAgreeingRank": 1,
+      "top1Agreement": true,
+      "top5Agreement": true,
+      "numericStemAgreementRank": 1,
+      "notes": "Reverse nearest is 71; expected 75 ranks fourth. The response flags nearby alternatives."
+    },
+    {
+      "id": "florist-15",
+      "mode": "forward_core",
+      "firstAgreeingRank": 1,
+      "top1Agreement": true,
+      "top5Agreement": true,
+      "numericStemAgreementRank": 1,
+      "notes": "Reverse nearest is 71; expected 75 ranks fourth. The response flags nearby alternatives."
+    },
+    {
+      "id": "florist-16",
+      "mode": "reverse",
+      "firstAgreeingRank": 2,
+      "top1Agreement": false,
+      "top5Agreement": true,
+      "numericStemAgreementRank": 2,
+      "notes": "Chinese phase normalisation qualifies Kings Wing Plaza 1. The bare address identifies 3 On Kwan Street without conflicting building name; reverse nearest remains Technology Park."
+    },
+    {
+      "id": "florist-16",
+      "mode": "forward_raw",
+      "firstAgreeingRank": 1,
+      "top1Agreement": true,
+      "top5Agreement": true,
+      "numericStemAgreementRank": 1,
+      "notes": "Chinese phase normalisation qualifies Kings Wing Plaza 1. The bare address identifies 3 On Kwan Street without conflicting building name; reverse nearest remains Technology Park."
+    },
+    {
+      "id": "florist-16",
+      "mode": "forward_core",
+      "firstAgreeingRank": 1,
+      "top1Agreement": true,
+      "top5Agreement": true,
+      "numericStemAgreementRank": 1,
+      "notes": "Chinese phase normalisation qualifies Kings Wing Plaza 1. The bare address identifies 3 On Kwan Street without conflicting building name; reverse nearest remains Technology Park."
+    },
+    {
+      "id": "florist-17",
+      "mode": "reverse",
+      "firstAgreeingRank": 1,
+      "top1Agreement": true,
+      "top5Agreement": true,
+      "numericStemAgreementRank": 1,
+      "notes": "Street number/range and building-level reference agree; floor/shop detail is not scored."
+    },
+    {
+      "id": "florist-17",
+      "mode": "forward_raw",
+      "firstAgreeingRank": 1,
+      "top1Agreement": true,
+      "top5Agreement": true,
+      "numericStemAgreementRank": 1,
+      "notes": "Street number/range and building-level reference agree; floor/shop detail is not scored."
+    },
+    {
+      "id": "florist-17",
+      "mode": "forward_core",
+      "firstAgreeingRank": 1,
+      "top1Agreement": true,
+      "top5Agreement": true,
+      "numericStemAgreementRank": 1,
+      "notes": "Street number/range and building-level reference agree; floor/shop detail is not scored."
+    },
+    {
+      "id": "florist-18",
+      "mode": "reverse",
+      "firstAgreeingRank": null,
+      "top1Agreement": false,
+      "top5Agreement": false,
+      "numericStemAgreementRank": null,
+      "notes": "Tai Wai Market is not found; Tai Wai locality or estate membership alone is insufficient."
+    },
+    {
+      "id": "florist-18",
+      "mode": "forward_raw",
+      "firstAgreeingRank": null,
+      "top1Agreement": false,
+      "top5Agreement": false,
+      "numericStemAgreementRank": null,
+      "notes": "Tai Wai Market is not found; Tai Wai locality or estate membership alone is insufficient."
+    },
+    {
+      "id": "florist-18",
+      "mode": "forward_core",
+      "firstAgreeingRank": null,
+      "top1Agreement": false,
+      "top5Agreement": false,
+      "numericStemAgreementRank": null,
+      "notes": "Tai Wai Market is not found; Tai Wai locality or estate membership alone is insufficient."
+    },
+    {
+      "id": "florist-19",
+      "mode": "reverse",
+      "firstAgreeingRank": 1,
+      "top1Agreement": true,
+      "top5Agreement": true,
+      "numericStemAgreementRank": 1,
+      "notes": "Tai Po Complex and its market at the same address count at building/street granularity."
+    },
+    {
+      "id": "florist-19",
+      "mode": "forward_raw",
+      "firstAgreeingRank": 1,
+      "top1Agreement": true,
+      "top5Agreement": true,
+      "numericStemAgreementRank": 1,
+      "notes": "Tai Po Complex and its market at the same address count at building/street granularity."
+    },
+    {
+      "id": "florist-19",
+      "mode": "forward_core",
+      "firstAgreeingRank": 1,
+      "top1Agreement": true,
+      "top5Agreement": true,
+      "numericStemAgreementRank": 1,
+      "notes": "Tai Po Complex and its market at the same address count at building/street granularity."
+    },
+    {
+      "id": "florist-20",
+      "mode": "reverse",
+      "firstAgreeingRank": 2,
+      "top1Agreement": false,
+      "top5Agreement": true,
+      "numericStemAgreementRank": 2,
+      "notes": "Reverse first is 1 Wai Yan Street; 4–6 Tsing Yuen Street ranks second. Alternate-frontage identity is unverified."
+    },
+    {
+      "id": "florist-20",
+      "mode": "forward_raw",
+      "firstAgreeingRank": 1,
+      "top1Agreement": true,
+      "top5Agreement": true,
+      "numericStemAgreementRank": 1,
+      "notes": "Reverse first is 1 Wai Yan Street; 4–6 Tsing Yuen Street ranks second. Alternate-frontage identity is unverified."
+    },
+    {
+      "id": "florist-20",
+      "mode": "forward_core",
+      "firstAgreeingRank": 1,
+      "top1Agreement": true,
+      "top5Agreement": true,
+      "numericStemAgreementRank": 1,
+      "notes": "Reverse first is 1 Wai Yan Street; 4–6 Tsing Yuen Street ranks second. Alternate-frontage identity is unverified."
+    },
+    {
+      "id": "florist-21",
+      "mode": "reverse",
+      "firstAgreeingRank": 1,
+      "top1Agreement": true,
+      "top5Agreement": true,
+      "numericStemAgreementRank": 1,
+      "notes": "On Ning Road matches the weaker locality-qualified Yuen Long On Ning Road interpretation."
+    },
+    {
+      "id": "florist-21",
+      "mode": "forward_raw",
+      "firstAgreeingRank": 1,
+      "top1Agreement": true,
+      "top5Agreement": true,
+      "numericStemAgreementRank": 1,
+      "notes": "On Ning Road matches the weaker locality-qualified Yuen Long On Ning Road interpretation."
+    },
+    {
+      "id": "florist-21",
+      "mode": "forward_core",
+      "firstAgreeingRank": 1,
+      "top1Agreement": true,
+      "top5Agreement": true,
+      "numericStemAgreementRank": 1,
+      "notes": "On Ning Road matches the weaker locality-qualified Yuen Long On Ning Road interpretation."
+    },
+    {
+      "id": "florist-22",
+      "mode": "reverse",
+      "firstAgreeingRank": null,
+      "top1Agreement": false,
+      "top5Agreement": false,
+      "numericStemAgreementRank": null,
+      "notes": "Forward identifies Kin Tak House; reverse top five remain Shun Hing Building frontages."
+    },
+    {
+      "id": "florist-22",
+      "mode": "forward_raw",
+      "firstAgreeingRank": 1,
+      "top1Agreement": true,
+      "top5Agreement": true,
+      "numericStemAgreementRank": 1,
+      "notes": "Forward identifies Kin Tak House; reverse top five remain Shun Hing Building frontages."
+    },
+    {
+      "id": "florist-22",
+      "mode": "forward_core",
+      "firstAgreeingRank": 1,
+      "top1Agreement": true,
+      "top5Agreement": true,
+      "numericStemAgreementRank": 1,
+      "notes": "Forward identifies Kin Tak House; reverse top five remain Shun Hing Building frontages."
+    },
+    {
+      "id": "florist-23",
+      "mode": "reverse",
+      "firstAgreeingRank": 1,
+      "top1Agreement": true,
+      "top5Agreement": true,
+      "numericStemAgreementRank": 1,
+      "notes": "Only 8 Yan Po Road is supplied. Street-number agreement counts, but tower/shop selection remains ambiguous and the first forward point is far from the reference pin."
+    },
+    {
+      "id": "florist-23",
+      "mode": "forward_raw",
+      "firstAgreeingRank": 1,
+      "top1Agreement": true,
+      "top5Agreement": true,
+      "numericStemAgreementRank": 1,
+      "notes": "Only 8 Yan Po Road is supplied. Street-number agreement counts, but tower/shop selection remains ambiguous and the first forward point is far from the reference pin."
+    },
+    {
+      "id": "florist-23",
+      "mode": "forward_core",
+      "firstAgreeingRank": 1,
+      "top1Agreement": true,
+      "top5Agreement": true,
+      "numericStemAgreementRank": 1,
+      "notes": "Only 8 Yan Po Road is supplied. Street-number agreement counts, but tower/shop selection remains ambiguous and the first forward point is far from the reference pin."
+    },
+    {
+      "id": "florist-24",
+      "mode": "reverse",
+      "firstAgreeingRank": 1,
+      "top1Agreement": true,
+      "top5Agreement": true,
+      "numericStemAgreementRank": 1,
+      "notes": "Gold Coast Piazza qualifies the complete listing; the bare road/section query retains multiple facilities and the intended piazza is outside the first five."
+    },
+    {
+      "id": "florist-24",
+      "mode": "forward_raw",
+      "firstAgreeingRank": 1,
+      "top1Agreement": true,
+      "top5Agreement": true,
+      "numericStemAgreementRank": 1,
+      "notes": "Gold Coast Piazza qualifies the complete listing; the bare road/section query retains multiple facilities and the intended piazza is outside the first five."
+    },
+    {
+      "id": "florist-24",
+      "mode": "forward_core",
+      "firstAgreeingRank": null,
+      "top1Agreement": false,
+      "top5Agreement": false,
+      "numericStemAgreementRank": null,
+      "notes": "Gold Coast Piazza qualifies the complete listing; the bare road/section query retains multiple facilities and the intended piazza is outside the first five."
+    },
+    {
+      "id": "florist-25",
+      "mode": "reverse",
+      "firstAgreeingRank": 4,
+      "top1Agreement": false,
+      "top5Agreement": true,
+      "numericStemAgreementRank": 4,
+      "notes": "Reverse nearest is Fu Tung Plaza; Fu Tung Market ranks fourth. The complete name succeeds forward."
+    },
+    {
+      "id": "florist-25",
+      "mode": "forward_raw",
+      "firstAgreeingRank": 1,
+      "top1Agreement": true,
+      "top5Agreement": true,
+      "numericStemAgreementRank": 1,
+      "notes": "Reverse nearest is Fu Tung Plaza; Fu Tung Market ranks fourth. The complete name succeeds forward."
+    },
+    {
+      "id": "florist-25",
+      "mode": "forward_core",
+      "firstAgreeingRank": 1,
+      "top1Agreement": true,
+      "top5Agreement": true,
+      "numericStemAgreementRank": 1,
+      "notes": "Reverse nearest is Fu Tung Plaza; Fu Tung Market ranks fourth. The complete name succeeds forward."
+    }
+  ]
+}
