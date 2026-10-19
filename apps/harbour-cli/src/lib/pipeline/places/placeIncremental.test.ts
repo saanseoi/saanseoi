@@ -39,7 +39,7 @@ const definition: PlaceAddressDefinition = {
   buildingNumberExpression: '20',
   buildingNumberFrom: '20',
   buildingNumberTo: null,
-  estateName: null,
+  premisesName: null,
   blockExpression: null,
   phaseExpression: null,
 }

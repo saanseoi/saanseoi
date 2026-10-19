@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:a7594b7d4fc978c08a104eff6394f43e0106d1615fe5575e30d9e83e31baf918",
+  "versionHash": "sha256:d0441859b48eef4a712e1c5d2d63e0bc7cb04be9a4be8be9a844a527eb669b93",
   "apiVersion": "api-addresses-v0.1",
   "domainCode": "saanseoi",
   "mappingVersion": 1,
@@ -52,8 +52,8 @@
       "properties.buildingNameZhHant": "properties.Address.PremisesAddress.ChiPremisesAddress.BuildingName",
       "properties.districtEn": "properties.Address.PremisesAddress.EngPremisesAddress.EngDistrict",
       "properties.districtZhHant": "properties.Address.PremisesAddress.ChiPremisesAddress.ChiDistrict",
-      "properties.estateNameEn": "properties.Address.PremisesAddress.EngPremisesAddress.EngEstate.EstateName",
-      "properties.estateNameZhHant": "properties.Address.PremisesAddress.ChiPremisesAddress.ChiEstate.EstateName",
+      "properties.premisesNameEn": "properties.Address.PremisesAddress.EngPremisesAddress.EngEstate.EstateName",
+      "properties.premisesNameZhHant": "properties.Address.PremisesAddress.ChiPremisesAddress.ChiEstate.EstateName",
       "properties.phaseNameEn": [
         "properties.Address.PremisesAddress.EngPremisesAddress.EngEstate.EngPhase.PhaseName",
         "properties.Address.PremisesAddress.EngPremisesAddress.EngPhase.PhaseName"
@@ -364,7 +364,7 @@
         },
         {
           "origin": "source",
-          "fieldPath": "properties.estateNameEn"
+          "fieldPath": "properties.premisesNameEn"
         },
         {
           "origin": "source",
@@ -444,7 +444,7 @@
         },
         {
           "origin": "source",
-          "fieldPath": "properties.estateNameZhHant"
+          "fieldPath": "properties.premisesNameZhHant"
         },
         {
           "origin": "source",
@@ -616,7 +616,7 @@
         },
         {
           "origin": "source",
-          "fieldPath": "properties.estateNameEn"
+          "fieldPath": "properties.premisesNameEn"
         },
         {
           "origin": "source",
@@ -711,7 +711,7 @@
       ]
     },
     {
-      "apiField": "attributes.i18n.en.estateName",
+      "apiField": "attributes.i18n.en.premisesName",
       "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
       "resolverCode": "normalise-als-addresses",
       "contributionType": "primary",
@@ -720,7 +720,7 @@
       "inputs": [
         {
           "origin": "source",
-          "fieldPath": "properties.estateNameEn"
+          "fieldPath": "properties.premisesNameEn"
         },
         {
           "origin": "curation",
@@ -1027,7 +1027,7 @@
         },
         {
           "origin": "source",
-          "fieldPath": "properties.estateNameZhHant"
+          "fieldPath": "properties.premisesNameZhHant"
         },
         {
           "origin": "source",
@@ -1122,7 +1122,7 @@
       ]
     },
     {
-      "apiField": "attributes.i18n.zh-hant.estateName",
+      "apiField": "attributes.i18n.zh-hant.premisesName",
       "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
       "resolverCode": "normalise-als-addresses",
       "contributionType": "primary",
@@ -1131,7 +1131,7 @@
       "inputs": [
         {
           "origin": "source",
-          "fieldPath": "properties.estateNameZhHant"
+          "fieldPath": "properties.premisesNameZhHant"
         },
         {
           "origin": "curation",
@@ -1748,7 +1748,7 @@
         },
         {
           "origin": "source",
-          "fieldPath": "properties.estateNameEn"
+          "fieldPath": "properties.premisesNameEn"
         },
         {
           "origin": "source",
@@ -1828,7 +1828,7 @@
         },
         {
           "origin": "source",
-          "fieldPath": "properties.estateNameZhHant"
+          "fieldPath": "properties.premisesNameZhHant"
         },
         {
           "origin": "source",
@@ -1930,7 +1930,7 @@
         },
         {
           "origin": "source",
-          "fieldPath": "properties.estateNameEn"
+          "fieldPath": "properties.premisesNameEn"
         },
         {
           "origin": "source",
@@ -2010,7 +2010,7 @@
         },
         {
           "origin": "source",
-          "fieldPath": "properties.estateNameZhHant"
+          "fieldPath": "properties.premisesNameZhHant"
         },
         {
           "origin": "source",

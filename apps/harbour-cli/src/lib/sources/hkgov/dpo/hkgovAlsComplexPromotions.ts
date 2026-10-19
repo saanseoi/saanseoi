@@ -132,7 +132,7 @@ export function applyReviewedComplexPromotions(
       identityContinuityKey: `reviewed-complex:${rule.id}`,
       identityMatchMethod: 'reviewed-complex-promotion',
       identitySummary: {
-        estateName: rule.estate,
+        premisesName: rule.estate,
         buildingName: null,
         streetName: en.EngStreet.StreetName,
         streetNumberFrom: en.EngStreet.BuildingNoFrom,

@@ -2181,7 +2181,7 @@ describe('atlas-api', () => {
       ],
       phaseName: ['PHASE', 'THE HIGHLAND', 'STAGE', null],
       phaseRef: ['I', 'II', 'IIIB', '3', null],
-      estateName: [
+      premisesName: [
         'FAIRVIEW PARK',
         'HONG LOK YUEN',
         'PALM SPRINGS',

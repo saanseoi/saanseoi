@@ -192,7 +192,7 @@ export function labelAlsHouseRetentions(
         row.id = row.canonicalId = row.identityBuildingId = id
         row.identityKey =
           row.identityContinuityKey = `reviewed-house-retention:${rule.id}`
-        row.identitySummary = { ...row.identitySummary, estateName: rule.estate }
+        row.identitySummary = { ...row.identitySummary, premisesName: rule.estate }
       }
     } else {
       // A returning publisher house keeps the same reviewed physical owner and units.

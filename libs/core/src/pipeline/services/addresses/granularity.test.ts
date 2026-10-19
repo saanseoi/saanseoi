@@ -49,12 +49,12 @@ test('number-only addresses and number ranges cannot establish scope', () => {
 
 test('classifies corrected structured components, retaining heuristic evidence', () => {
   for (const [components, expected] of [
-    [{ estateName: 'Example Estate' }, 'complex'],
-    [{ estateName: 'Example Estate', phaseExpression: 'Phase 2' }, 'phase'],
-    [{ estateName: 'Example Estate', buildingName: 'Example House' }, 'building'],
+    [{ premisesName: 'Example Estate' }, 'complex'],
+    [{ premisesName: 'Example Estate', phaseExpression: 'Phase 2' }, 'phase'],
+    [{ premisesName: 'Example Estate', buildingName: 'Example House' }, 'building'],
     [
       {
-        estateName: 'Example Estate',
+        premisesName: 'Example Estate',
         blockType: 'tower',
         blockRef: '1',
         blockExpression: 'TWR 1',
@@ -112,7 +112,7 @@ test('conflicting locales and ambiguous blocks remain unknown for review', () =>
       ...input,
       values: [
         { locale: 'en', buildingName: 'Example House' },
-        { locale: 'zh-hant', estateName: '示例苑' },
+        { locale: 'zh-hant', premisesName: '示例苑' },
       ],
     }).review.reviewReason,
   ).toBe('conflicting_locales')

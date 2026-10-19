@@ -409,7 +409,7 @@ export function compileResponseField(args: {
         [
           'formattedAddress',
           'buildingName',
-          'estateName',
+          'premisesName',
           'streetName',
           'buildingNumberExpression',
           'buildingNumberFrom',

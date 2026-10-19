@@ -222,7 +222,7 @@ export function currentAddressFieldRule(
     const simple: Record<string, string> = {
       formattedAddress: 'FormattedAddress',
       buildingName: 'BuildingName',
-      estateName: 'EstateName',
+      premisesName: 'EstateName',
       streetName: 'StreetName',
     }
     if (simple[name])

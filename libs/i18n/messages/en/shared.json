@@ -2961,7 +2961,7 @@
   "openapi_addresses_phase_expression_description": "The formatted phase component, combining the phase name and reference when supplied.",
   "openapi_addresses_phase_name_description": "The named phase component of the premise, when supplied.",
   "openapi_addresses_phase_ref_description": "The source phase reference or label, when supplied.",
-  "openapi_addresses_estate_name_description": "The named estate or development associated with the premise, when supplied.",
+  "openapi_addresses_premises_name_description": "The named premises or development associated with the address, when supplied.",
   "openapi_addresses_street_name_description": "The source street or village route name associated with the premise, when supplied.",
   "openapi_addresses_relationships_description": "The divisions relationship lists direct Division memberships with explicit roles; hierarchy separately preserves the canonical resolved hierarchy. The two may differ because not every Division membership belongs in the hierarchy. Request include=divisions or include=hierarchy for the corresponding Division resources.",
   "openapi_addresses_links_description": "Links for this address resource, including its canonical URL.",

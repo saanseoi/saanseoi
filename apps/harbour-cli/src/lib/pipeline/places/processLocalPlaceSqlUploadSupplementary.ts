@@ -329,7 +329,7 @@ async function prepareSupplementaryAddressesLocked(
       buildingNumberExpression: currentSchema.address2dI18n.buildingNumberExpression,
       buildingNumberFrom: currentSchema.address2dI18n.buildingNumberFrom,
       buildingNumberTo: currentSchema.address2dI18n.buildingNumberTo,
-      estateName: currentSchema.address2dI18n.estateName,
+      premisesName: currentSchema.address2dI18n.premisesName,
       formattedAddress: currentSchema.address2dI18n.formattedAddress,
       locale: currentSchema.address2dI18n.locale,
       phaseExpression: currentSchema.address2dI18n.phaseExpression,

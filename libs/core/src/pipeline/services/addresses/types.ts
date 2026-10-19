@@ -172,7 +172,7 @@ export function collectAddressCoverageCounts(rows: ResolvedAddressRecord[]) {
       if (localised.buildingNumberFrom || localised.buildingNumberTo)
         components.add('building_number')
       if (localised.buildingName) components.add('building_name')
-      if (localised.estateName) components.add('estate_name')
+      if (localised.premisesName) components.add('estate_name')
       if (localised.phaseName || localised.phaseRef) components.add('phase')
       if (localised.blockType || localised.blockRef) components.add('block')
     }

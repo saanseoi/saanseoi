@@ -46,7 +46,7 @@ export async function* addressGeocodingCandidates(
           ? sql`exists (select 1 from ${names} where ${names.scopeId} = ${address.scopeId} and ${names.addressId} = ${address.id} and (
             instr(lower(${names.formattedAddress}), ${text}) > 0
             or (length(${names.buildingName}) >= 4 and instr(${text}, lower(${names.buildingName})) > 0)
-            or (length(${names.estateName}) >= 4 and instr(${text}, lower(${names.estateName})) > 0)
+            or (length(${names.premisesName}) >= 4 and instr(${text}, lower(${names.premisesName})) > 0)
             or instr(lower(coalesce(${names.streetName}, '')), ${text}) > 0
           ))`
           : sql`json_extract(${address.geometry}, '$.type') = 'Point' and json_extract(${address.geometry}, '$.coordinates[1]') between ${query.lat! - latitudeDelta} and ${query.lat! + latitudeDelta} and (abs(${longitude} - ${query.lng!}) <= ${longitudeDelta} or abs(${longitude} - ${query.lng!}) >= ${360 - longitudeDelta})`

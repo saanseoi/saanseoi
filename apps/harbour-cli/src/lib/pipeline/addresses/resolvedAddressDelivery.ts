@@ -381,7 +381,7 @@ export function validateResolvedAddressProjection(
     .query(
       `SELECT a.id FROM address2d a WHERE a.scopeId = ? AND NOT EXISTS
      (SELECT 1 FROM address2dI18n i WHERE i.scopeId = a.scopeId AND i.addressId = a.id
-      AND TRIM(COALESCE(i.formattedAddress,'') || COALESCE(i.buildingName,'') || COALESCE(i.estateName,'') || COALESCE(i.streetName,'') || COALESCE(i.phaseName,'') || COALESCE(i.blockExpression,'')) <> '') LIMIT 1`,
+      AND TRIM(COALESCE(i.formattedAddress,'') || COALESCE(i.buildingName,'') || COALESCE(i.premisesName,'') || COALESCE(i.streetName,'') || COALESCE(i.phaseName,'') || COALESCE(i.blockExpression,'')) <> '') LIMIT 1`,
     )
     .get(scopeId)
   if (missingLocale)

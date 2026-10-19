@@ -27,14 +27,14 @@ export const addressSearchIndex: SearchIndexDefinition = {
     'buildingNumber',
     'blockExpression',
     'phaseExpression',
-    'estateName',
+    'premisesName',
     'streetName',
   ],
   unindexed: ['scopeId', 'addressId', 'locale'],
   selectSql: `SELECT s.scopeId, i.addressId, i.locale, i.formattedAddress, i.buildingName,
     TRIM(COALESCE(i.buildingNumberExpression, '') || ' ' ||
       COALESCE(i.buildingNumberFrom, '') || ' ' || COALESCE(i.buildingNumberTo, '')) AS buildingNumber,
-    i.blockExpression, i.phaseExpression, i.estateName, i.streetName
+    i.blockExpression, i.phaseExpression, i.premisesName, i.streetName
     FROM selected s JOIN addressPublicationState currentScope ON currentScope.snapshotId = s.snapshotId
       AND currentScope.status = 'current' AND currentScope.preparedAt IS NOT NULL
     JOIN address2dI18n i ON i.scopeId = currentScope.scopeId`,

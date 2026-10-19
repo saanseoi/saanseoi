@@ -9,7 +9,7 @@ test('distinct ALS premises at one GeoAddress receive distinct stable IDs', () =
     buildingName: 'TOWER ONE',
     csuId: 'CSU-1',
     districtName: 'CENTRAL AND WESTERN',
-    estateName: 'EXAMPLE ESTATE',
+    premisesName: 'EXAMPLE ESTATE',
     geoAddress: 'GA-1',
     latitude: 22.281,
     longitude: 114.158,

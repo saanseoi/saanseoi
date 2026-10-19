@@ -7,20 +7,20 @@ import {
 /** Review evidence only: never participates in automatic address assignment. */
 export function suggestBuildingInitialVariants(
   buildingName: string,
-  estateName: string,
+  premisesName: string,
   definitions: PlaceAddressDefinition[],
 ) {
   const normaliseBuilding = (value: string) =>
     normaliseAddressText(value).replace(/\bHSE\b/g, 'HOUSE')
   const source = normaliseBuilding(buildingName).split(' ')
-  const estate = normaliseAddressText(estateName)
+  const estate = normaliseAddressText(premisesName)
   if (!estate) return []
   return definitions.flatMap(definition => {
     if (
       definition.locale !== 'en' ||
       !definition.buildingName ||
-      !definition.estateName ||
-      normaliseAddressText(definition.estateName) !== estate
+      !definition.premisesName ||
+      normaliseAddressText(definition.premisesName) !== estate
     )
       return []
     const target = normaliseBuilding(definition.buildingName).split(' ')
@@ -43,7 +43,7 @@ export function suggestBuildingInitialVariants(
             addressId: definition.addressId,
             sourceBuildingName: buildingName,
             canonicalBuildingName: definition.buildingName,
-            estateName: definition.estateName,
+            premisesName: definition.premisesName,
             reason: 'same-estate-single-l-n-initial' as const,
             reviewRequired: true as const,
           },

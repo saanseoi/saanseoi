@@ -481,7 +481,7 @@ async function buildAddressComponentCounts(db: HarbourReadableDb, snapshotId: st
         currentSchema.address2dI18n.buildingNumberExpression,
       ),
       estate_name: countDistinctAddressComponent(
-        currentSchema.address2dI18n.estateName,
+        currentSchema.address2dI18n.premisesName,
       ),
       phase: countDistinctAddressComponent(currentSchema.address2dI18n.phaseExpression),
       street_name: countDistinctAddressComponent(

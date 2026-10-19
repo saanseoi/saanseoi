@@ -65,7 +65,7 @@ test('corrects bilingual Address2D components without changing identity, street 
   for (const locale of ['en', 'zh-hant']) {
     expect(result.i18n.find(row => row.locale === locale)).toMatchObject({
       buildingName: null,
-      estateName: locale === 'en' ? source.enBuildingName : source.zhHantBuildingName,
+      premisesName: locale === 'en' ? source.enBuildingName : source.zhHantBuildingName,
       streetName: locale === 'en' ? source.enStreetName : source.zhHantStreetName,
       buildingNumberExpression: '111',
       buildingNumberFrom: '111',
@@ -152,7 +152,7 @@ test('limits corrections to the applicable release range and honours the ingesti
     normaliseAddressRowForPipeline(
       { ...source, sourceVersion: undefined },
       '2025-09-03.0',
-    ).i18n[0]?.estateName,
+    ).i18n[0]?.premisesName,
   ).toBe(source.enBuildingName)
 })
 

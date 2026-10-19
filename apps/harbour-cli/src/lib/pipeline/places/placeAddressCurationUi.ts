@@ -27,7 +27,7 @@ import {
 
 const components = [
   ['buildingName', 'Building', 36],
-  ['estateName', 'Estate', 35],
+  ['premisesName', 'Estate', 35],
   ['blockExpression', 'Block', 33],
   ['phaseExpression', 'Phase', 33],
   ['buildingNumberExpression', 'Number', 32],

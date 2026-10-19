@@ -16,7 +16,7 @@ export const addressEditorFields = [
   ['buildingName', 'Building'],
   ['blockExpression', 'Block'],
   ['phaseExpression', 'Phase'],
-  ['estateName', 'Estate'],
+  ['premisesName', 'Premises'],
   ['streetName', 'Street'],
 ] as const
 
@@ -43,7 +43,7 @@ export function formatEditedAddress(value: Partial<PlaceAddressDefinition>) {
     value.buildingName,
     value.blockExpression,
     value.phaseExpression,
-    value.estateName,
+    value.premisesName,
     street,
   ]
   return (value.locale === 'zh-hant' ? parts.reverse() : parts)
@@ -59,7 +59,7 @@ export function parsedAddressSeed(parsed?: ParsedPlaceAddress): PlaceAddressDefi
     buildingName: null,
     blockExpression: null,
     phaseExpression: null,
-    estateName: null,
+    premisesName: null,
     ...Object.fromEntries(
       parsed?.recognised2dComponents.map(value => [value.kind, value.name]) ?? [],
     ),

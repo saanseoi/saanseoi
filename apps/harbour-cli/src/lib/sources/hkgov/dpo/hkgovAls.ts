@@ -258,7 +258,7 @@ async function prepareHkgovAlsAddressParquetInternal(
               blockDescriptor: asOptionalString(en?.EngBlock?.BlockDescriptor),
               blockNumber: asOptionalString(en?.EngBlock?.BlockNo),
               buildingName: buildingNameNormalisation?.to ?? buildingName,
-              estateName: asOptionalString(en?.EngEstate?.EstateName),
+              premisesName: asOptionalString(en?.EngEstate?.EstateName),
             })
           }),
         )

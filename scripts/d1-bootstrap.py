@@ -141,7 +141,7 @@ def assert_current_publications(db):
         raise ValueError('Address current rows do not belong to a completed publication')
     if db.execute('''SELECT 1 FROM address2d a WHERE NOT EXISTS
         (SELECT 1 FROM address2dI18n i WHERE i.scopeId=a.scopeId AND i.addressId=a.id
-         AND trim(coalesce(i.formattedAddress,'') || coalesce(i.buildingName,'') || coalesce(i.estateName,'') || coalesce(i.streetName,'')) <> '') LIMIT 1''').fetchone():
+         AND trim(coalesce(i.formattedAddress,'') || coalesce(i.buildingName,'') || coalesce(i.premisesName,'') || coalesce(i.streetName,'')) <> '') LIMIT 1''').fetchone():
         raise ValueError('Empty Address current row')
 
 

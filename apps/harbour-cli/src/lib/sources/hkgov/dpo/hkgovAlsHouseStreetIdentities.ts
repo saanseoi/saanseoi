@@ -78,7 +78,7 @@ export function applyReviewedHouseStreetIdentities(
     row.identityMatchMethod = 'reviewed-house-street'
     row.identitySummary = {
       ...row.identitySummary,
-      estateName: rule.estate,
+      premisesName: rule.estate,
       streetName: rule.enStreet,
       streetNumberFrom: rule.streetNumber,
     }

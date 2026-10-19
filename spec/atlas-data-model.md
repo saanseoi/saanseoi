@@ -508,7 +508,7 @@ Fields:
 - `blockTypeBeforeNumber`
 - `phaseName`
 - `phaseNumber`
-- `estateName`
+- `premisesName`
 - `streetNumber`
 - `streetName`
 

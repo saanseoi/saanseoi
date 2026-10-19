@@ -62,7 +62,8 @@ Fields reorganised for storage, lookup, or API response shaping:
 
 - `EngPremisesAddress` and `ChiPremisesAddress` - normalised by locale into
   [AddressI18n](/docs#models/AddressI18n), including <black>formattedAddress</black>,
-  <black>buildingName</black>, <black>estateName</black>, and <black>streetName</black>
+  <black>buildingName</black>, <black>premisesName</black>, and
+  <black>streetName</black>
 - `EngStreet.BuildingNoFrom`/`BuildingNoTo` and
   `ChiStreet.BuildingNoFrom`/`BuildingNoTo` - used as <black>buildingNumberFrom</black>
   and <black>buildingNumberTo</black> when a street is supplied
@@ -176,7 +177,7 @@ schema（`{{sourceSchemaVersion}}`），我們在以下方面有所偏離。獨�
 
 - `EngPremisesAddress` 及 `ChiPremisesAddress` - 按 locale 正規化為
   [AddressI18n](/docs#models/AddressI18n)，包括 <black>formattedAddress</black>、
-  <black>buildingName</black>、<black>estateName</black> 及 <black>streetName</black>
+  <black>buildingName</black>、<black>premisesName</black> 及 <black>streetName</black>
 - 有街道時，`EngStreet`/`ChiStreet` 的 `BuildingNoFrom`/`BuildingNoTo` 會作為
   <black>buildingNumberFrom</black> 及 <black>buildingNumberTo</black>
 - 沒有街道時，`EngVillage`/`ChiVillage` 的 `BuildingNoFrom`/`BuildingNoTo`
@@ -278,7 +279,7 @@ schema（`{{sourceSchemaVersion}}`），我们在以下方面有所偏离。独�
 
 - `EngPremisesAddress` 及 `ChiPremisesAddress` - 按 locale 规范化为
   [AddressI18n](/docs#models/AddressI18n)，包括 <black>formattedAddress</black>、
-  <black>buildingName</black>、<black>estateName</black> 及 <black>streetName</black>
+  <black>buildingName</black>、<black>premisesName</black> 及 <black>streetName</black>
 - 有街道时，`EngStreet`/`ChiStreet` 的 `BuildingNoFrom`/`BuildingNoTo` 会作为
   <black>buildingNumberFrom</black> 及 <black>buildingNumberTo</black>
 - 没有街道时，`EngVillage`/`ChiVillage` 的 `BuildingNoFrom`/`BuildingNoTo`

@@ -212,7 +212,7 @@ function isBuildingEstateReassignment(
     ![...fields].every(
       field =>
         field === 'buildingName' ||
-        field === 'estateName' ||
+        field === 'premisesName' ||
         (previous.summary[field] ?? null) === (current.summary[field] ?? null),
     )
   ) {
@@ -221,18 +221,18 @@ function isBuildingEstateReassignment(
 
   if (
     previous.summary.buildingName &&
-    current.summary.estateName &&
+    current.summary.premisesName &&
     normaliseTransferredName(previous.summary.buildingName) ===
-      normaliseTransferredName(current.summary.estateName)
+      normaliseTransferredName(current.summary.premisesName)
   ) {
     return true
   }
 
-  const previousNames = [previous.summary.buildingName, previous.summary.estateName]
+  const previousNames = [previous.summary.buildingName, previous.summary.premisesName]
     .filter((value): value is string => value != null)
     .map(normaliseName)
     .sort()
-  const currentNames = [current.summary.buildingName, current.summary.estateName]
+  const currentNames = [current.summary.buildingName, current.summary.premisesName]
     .filter((value): value is string => value != null)
     .map(normaliseName)
     .sort()
@@ -375,15 +375,15 @@ function isBuildingNameDetailRetention(
   if (
     hasOnlyChangedNameAndEstate(previous, current) &&
     ((previous.summary.buildingName === current.summary.buildingName &&
-      previous.summary.estateName == null &&
-      current.summary.estateName != null) ||
+      previous.summary.premisesName == null &&
+      current.summary.premisesName != null) ||
       isEstateLocationAddition(
-        previous.summary.estateName,
-        current.summary.estateName,
+        previous.summary.premisesName,
+        current.summary.premisesName,
       ) ||
-      (previous.summary.estateName == null &&
-        current.summary.estateName != null &&
-        isKnownLocationDetail(current.summary.estateName)))
+      (previous.summary.premisesName == null &&
+        current.summary.premisesName != null &&
+        isKnownLocationDetail(current.summary.premisesName)))
   ) {
     return true
   }
@@ -428,7 +428,7 @@ function hasOnlyChangedNameAndEstate(
   return [...fields].every(
     field =>
       field === 'buildingName' ||
-      field === 'estateName' ||
+      field === 'premisesName' ||
       (previous.summary[field] ?? null) === (current.summary[field] ?? null),
   )
 }
@@ -564,7 +564,7 @@ function droppedAddressComponent(
   previous: HkgovAlsIdentityRecord,
   current: HkgovAlsIdentityRecord,
 ) {
-  const droppableFields = ['buildingName', 'estateName', 'phaseName'] as const
+  const droppableFields = ['buildingName', 'premisesName', 'phaseName'] as const
   const droppedFields = droppableFields.filter(
     field => previous.summary[field] != null && current.summary[field] == null,
   )

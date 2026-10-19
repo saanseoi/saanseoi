@@ -27,7 +27,7 @@ export function applyAlsAddressHierarchies(
   for (const [id, owner] of applyKoYeeEstateOwnership(rows, sourceVersion))
     ownership.set(id, owner)
   const sourceByCsu = new Map<string, HierarchyRow[]>()
-  const estateNames = new Set(rows.map(row => row.enEstateName))
+  const premisesNames = new Set(rows.map(row => row.enEstateName))
   for (const row of rows) {
     if (row.hkgovCsuId)
       sourceByCsu.set(row.hkgovCsuId, [...(sourceByCsu.get(row.hkgovCsuId) ?? []), row])
@@ -40,7 +40,7 @@ export function applyAlsAddressHierarchies(
       sourceVersion > relationship.sourceVersionTo
     )
       continue
-    if (!estateNames.has(relationship.complex.enName)) continue
+    if (!premisesNames.has(relationship.complex.enName)) continue
     const resolveMatches = () =>
       relationship.buildings.map(building => {
         const variants =

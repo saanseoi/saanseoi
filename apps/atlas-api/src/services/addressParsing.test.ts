@@ -108,7 +108,7 @@ test('an estate name alone cannot satisfy a requested market', () => {
       en: {
         meta: null,
         formattedAddress: 'TAI WAI, 12H FOURTH STREET',
-        estateName: 'TAI WAI',
+        premisesName: 'TAI WAI',
       },
     },
   } as Pick<AddressRecord, 'i18n'>

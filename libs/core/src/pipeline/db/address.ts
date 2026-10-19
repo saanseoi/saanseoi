@@ -412,7 +412,7 @@ async function loadReplayedAddressI18nRows(
           phaseExpression: historySchema.address2dI18n.phaseExpression,
           phaseName: historySchema.address2dI18n.phaseName,
           phaseRef: historySchema.address2dI18n.phaseRef,
-          estateName: historySchema.address2dI18n.estateName,
+          premisesName: historySchema.address2dI18n.premisesName,
           streetName: historySchema.address2dI18n.streetName,
           versionHash: historySchema.address2dI18n.versionHash,
         })
@@ -638,7 +638,7 @@ export async function cloneAddressCurrentSnapshot(
             phaseExpression: currentSchema.address2dI18n.phaseExpression,
             phaseName: currentSchema.address2dI18n.phaseName,
             phaseRef: currentSchema.address2dI18n.phaseRef,
-            estateName: currentSchema.address2dI18n.estateName,
+            premisesName: currentSchema.address2dI18n.premisesName,
             streetName: currentSchema.address2dI18n.streetName,
             createdAt: sql<string>`${clonedAt}`,
           })
@@ -1069,7 +1069,7 @@ async function insertAddressI18nInChunks(
             phaseExpression: excluded('phaseExpression'),
             phaseName: excluded('phaseName'),
             phaseRef: excluded('phaseRef'),
-            estateName: excluded('estateName'),
+            premisesName: excluded('premisesName'),
             streetName: excluded('streetName'),
           },
         })

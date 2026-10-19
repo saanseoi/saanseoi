@@ -215,7 +215,7 @@ export const addressesFts = sqliteTable('addressSearchFts', {
   buildingNumber: text('buildingNumber'),
   blockExpression: text('blockExpression'),
   phaseExpression: text('phaseExpression'),
-  estateName: text('estateName'),
+  premisesName: text('premisesName'),
   streetName: text('streetName'),
 })
 

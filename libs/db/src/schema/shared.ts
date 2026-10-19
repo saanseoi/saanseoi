@@ -529,7 +529,7 @@ export function canonicalAddress2dI18nColumns<Required extends boolean>(
     phaseExpression: text('phaseExpression'),
     phaseName: text('phaseName'),
     phaseRef: text('phaseRef'),
-    estateName: text('estateName'),
+    premisesName: text('premisesName'),
     streetName: text('streetName'),
   }
 }

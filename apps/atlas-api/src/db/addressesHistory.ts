@@ -41,7 +41,7 @@ function mapLocaleValue(value: {
   phaseExpression: string | null
   phaseName: string | null
   phaseRef: string | null
-  estateName: string | null
+  premisesName: string | null
   streetName: string | null
 }): AddressLocaleValue {
   return {
@@ -59,7 +59,7 @@ function mapLocaleValue(value: {
     phaseExpression: value.phaseExpression,
     phaseName: value.phaseName,
     phaseRef: value.phaseRef,
-    estateName: value.estateName,
+    premisesName: value.premisesName,
     streetName: value.streetName,
   }
 }
@@ -283,7 +283,7 @@ const ADDRESS_SEARCH_FIELD_BY_COMPONENT: Record<
 > = {
   block: 'blockExpression',
   building: 'buildingName',
-  estate: 'estateName',
+  premises: 'premisesName',
   formatted: 'formattedAddress',
   number: ['buildingNumberExpression', 'buildingNumberFrom', 'buildingNumberTo'],
   phase: 'phaseExpression',
@@ -297,7 +297,7 @@ const ADDRESS_SEARCH_ALL_FIELDS: readonly (keyof AddressLocaleValue)[] = [
   'buildingNumberTo',
   'blockExpression',
   'phaseExpression',
-  'estateName',
+  'premisesName',
   'streetName',
 ]
 

@@ -23,7 +23,7 @@ function definition(
     buildingNumberTo: null,
     blockExpression: null,
     phaseExpression: null,
-    estateName: null,
+    premisesName: null,
     streetName: 'ON KWAN STREET',
     ...overrides,
   }
@@ -107,7 +107,7 @@ type ParseCase = {
   matchedAddressId?: string | null
   name: string
   recognised2dComponents?: Array<{
-    kind: 'buildingName' | 'estateName' | 'blockExpression' | 'phaseExpression'
+    kind: 'buildingName' | 'premisesName' | 'blockExpression' | 'phaseExpression'
     name: string
     normalisedName: string
   }>
@@ -638,7 +638,7 @@ describe('Overture Place address parsing', () => {
         buildingNumberTo: null,
         blockExpression: 'SOUTH',
         phaseExpression: null,
-        estateName: 'HONG KONG INTERNATIONAL AIRPORT',
+        premisesName: 'HONG KONG INTERNATIONAL AIRPORT',
         streetName: 'SOUTH PERIMETER ROAD',
       },
     ])
@@ -652,7 +652,7 @@ describe('Overture Place address parsing', () => {
       buildingNumberExpression: '80',
       recognised2dComponents: [
         {
-          kind: 'estateName',
+          kind: 'premisesName',
           name: 'HONG KONG INTERNATIONAL AIRPORT',
         },
       ],
@@ -673,7 +673,7 @@ describe('Overture Place address parsing', () => {
         buildingNumberTo: null,
         blockExpression: null,
         phaseExpression: null,
-        estateName: null,
+        premisesName: null,
         streetName: 'Cheung Yue Street',
       },
     ])
@@ -887,7 +887,7 @@ describe('Overture Place address matching', () => {
       definition('smithfield-court', {
         buildingNumberExpression: '43',
         buildingNumberFrom: '43',
-        estateName: 'SMITHFIELD COURT',
+        premisesName: 'SMITHFIELD COURT',
         streetName: 'SMITHFIELD',
       }),
       definition('technology-park', {
@@ -900,7 +900,7 @@ describe('Overture Place address matching', () => {
         buildingName: 'YAT TUNG SHOPPING CENTRE',
         buildingNumberExpression: '8',
         buildingNumberFrom: '8',
-        estateName: 'YAT TUNG ESTATE',
+        premisesName: 'YAT TUNG ESTATE',
         streetName: 'YAT TUNG STREET',
       }),
     ])
@@ -910,7 +910,7 @@ describe('Overture Place address matching', () => {
     ).toMatchObject({
       recognised2dComponents: [
         {
-          kind: 'estateName',
+          kind: 'premisesName',
           name: 'SMITHFIELD COURT',
         },
       ],
@@ -935,7 +935,7 @@ describe('Overture Place address matching', () => {
     ).toMatchObject({
       recognised2dComponents: [
         { kind: 'buildingName', name: 'YAT TUNG SHOPPING CENTRE' },
-        { kind: 'estateName', name: 'YAT TUNG ESTATE' },
+        { kind: 'premisesName', name: 'YAT TUNG ESTATE' },
       ],
       unclassified2dText: null,
     })

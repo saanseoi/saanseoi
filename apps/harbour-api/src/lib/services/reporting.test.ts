@@ -586,7 +586,7 @@ function seedHistoryRows(
       null,
       '2026-06-24T12:00:00.000Z');
 
-    INSERT INTO address2dI18n (addressId,versionHash,snapshotId,isCurrent,locale,formattedAddress,buildingName,buildingNumberExpression,buildingNumberFrom,buildingNumberTo,buildingNumberConnector,blockExpression,blockType,blockRef,blockTypeBeforeNumber,phaseExpression,phaseName,phaseRef,estateName,streetName,createdAt) VALUES ('${addressId}', 'address-2d-version-1', '${snapshotId}', 1, 'en', '1 Example Road', null, null, null, null, null, null, null, null, null, null, null, null, null, 'Example Road', '2026-06-24T12:00:00.000Z'),
+    INSERT INTO address2dI18n (addressId,versionHash,snapshotId,isCurrent,locale,formattedAddress,buildingName,buildingNumberExpression,buildingNumberFrom,buildingNumberTo,buildingNumberConnector,blockExpression,blockType,blockRef,blockTypeBeforeNumber,phaseExpression,phaseName,phaseRef,premisesName,streetName,createdAt) VALUES ('${addressId}', 'address-2d-version-1', '${snapshotId}', 1, 'en', '1 Example Road', null, null, null, null, null, null, null, null, null, null, null, null, null, 'Example Road', '2026-06-24T12:00:00.000Z'),
 ('${addressId}', 'address-2d-version-1', '${snapshotId}', 1, 'zhHant', '示例路1號', null, null, null, null, null, null, null, null, null, null, null, null, null, '示例路', '2026-06-24T12:00:00.000Z');
 
     INSERT INTO address3d (id,versionHash,snapshotId,isCurrent,address2dId,units,unitCount,contentHash,unresolvedSectionIds,sources,createdAt) VALUES (

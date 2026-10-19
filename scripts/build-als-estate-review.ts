@@ -173,7 +173,7 @@ function matchesCurrentHaBlock(
     officialBlocks.has(`${paired.groups.base} LOW BLOCK`)
   )
 }
-const estateNames = JSON.parse(
+const premisesNames = JSON.parse(
   await readFile('fixtures/meta/curations/hkgov-dpo-address-estate-names.json', 'utf8'),
 )
 const profiles = evidence.records.flatMap(
@@ -194,7 +194,7 @@ const estates = chronology.estates.map(history => {
     (x: any) =>
       normalise(x.profile.name.en) ===
       normalise(
-        estateNames.decisions.find((d: any) => d.sourceEnName === name)
+        premisesNames.decisions.find((d: any) => d.sourceEnName === name)
           ?.preferredEnName ?? name,
       ),
   )
@@ -248,7 +248,7 @@ const estates = chronology.estates.map(history => {
     reviewedNamedPremiseRetentions: namedPremiseRetentions.retentions.filter(
       d => d.enEstate === name,
     ),
-    reviewedEstateNames: estateNames.decisions.filter(
+    reviewedEstateNames: premisesNames.decisions.filter(
       (d: any) => d.sourceEnName === name,
     ),
     automatic3dParentBlockEnrichment:
@@ -337,7 +337,7 @@ const estates = chronology.estates.map(history => {
       url: x.url,
       retrievedAt: x.retrievedAt,
       profileId: x.profile.id,
-      estateName: x.profile.name,
+      premisesName: x.profile.name,
       blockNames: x.profile.blockName,
       furtherInformation: x.profile.furtherInfo,
     })),

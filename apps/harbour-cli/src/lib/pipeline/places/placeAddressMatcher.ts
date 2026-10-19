@@ -8,7 +8,7 @@ export type PlaceAddressDefinition = {
   buildingNumberTo: string | null
   blockExpression: string | null
   phaseExpression: string | null
-  estateName: string | null
+  premisesName: string | null
   streetName: string | null
 }
 
@@ -71,7 +71,7 @@ export type ParsedPlaceAddress = {
 }
 
 export type ParsedAddress2dComponent = {
-  kind: 'buildingName' | 'estateName' | 'blockExpression' | 'phaseExpression'
+  kind: 'buildingName' | 'premisesName' | 'blockExpression' | 'phaseExpression'
   name: string
   normalisedName: string
 }
@@ -147,7 +147,7 @@ export function createPlaceAddressMatcher(
       buildingNumbers,
       locale,
       normalisedBuildingName: normaliseOptional(definition.buildingName),
-      normalisedEstateName: normaliseOptional(definition.estateName),
+      normalisedEstateName: normaliseOptional(definition.premisesName),
       normalisedFormattedAddress: normaliseOptional(definition.formattedAddress),
       normalisedStreetName: streetName ? normaliseAddressText(streetName) : '',
     }
@@ -589,7 +589,7 @@ function preparedDefinitionComponents(
 ): ParsedAddress2dComponent[] {
   return [
     ['buildingName', definition.buildingName],
-    ['estateName', definition.estateName],
+    ['premisesName', definition.premisesName],
     ['blockExpression', definition.blockExpression],
     ['phaseExpression', definition.phaseExpression],
   ].flatMap(([kind, name]) => {

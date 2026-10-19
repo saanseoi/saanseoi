@@ -75,7 +75,7 @@ export function normaliseHkgovAlsFeature(
   const rawEn = premises.EngPremisesAddress ?? {}
   const enPhaseRomanNumeralNormalisation = postProcessPremiseStructure
     ? normaliseHkgovAlsPhaseRomanNumeral({
-        estateName: asOptionalString(rawEn.EngEstate?.EstateName),
+        premisesName: asOptionalString(rawEn.EngEstate?.EstateName),
         numericPhaseFamilies,
         phaseName: asOptionalString(rawEn.EngPhase?.PhaseName),
         phaseRef: asOptionalString(rawEn.EngPhase?.PhaseNo),
@@ -93,13 +93,13 @@ export function normaliseHkgovAlsFeature(
     buildingName:
       enBuildingNameRomanNumeralNormalisation?.to ??
       asOptionalString(rawEn.BuildingName),
-    estateName: asOptionalString(rawEn.EngEstate?.EstateName),
+    premisesName: asOptionalString(rawEn.EngEstate?.EstateName),
   }
   const rawZhStructure = {
     blockDescriptor: asOptionalString(rawZh.ChiBlock?.BlockDescriptor),
     blockNumber: asOptionalString(rawZh.ChiBlock?.BlockNo),
     buildingName: asOptionalString(rawZh.BuildingName),
-    estateName: asOptionalString(rawZh.ChiEstate?.EstateName),
+    premisesName: asOptionalString(rawZh.ChiEstate?.EstateName),
   }
   const normalisedEnStructure = postProcessPremiseStructure
     ? normaliseHkgovAlsPremiseStructure(rawEnStructure)
@@ -127,7 +127,7 @@ export function normaliseHkgovAlsFeature(
       BlockDescriptor: enStructure.blockDescriptor,
       BlockNo: enStructure.blockNumber,
     },
-    EngEstate: { ...rawEn.EngEstate, EstateName: enStructure.estateName },
+    EngEstate: { ...rawEn.EngEstate, EstateName: enStructure.premisesName },
     EngPhase: {
       ...rawEn.EngPhase,
       PhaseName: enPhaseRomanNumeralNormalisation?.to ?? rawEn.EngPhase?.PhaseName,
@@ -141,7 +141,7 @@ export function normaliseHkgovAlsFeature(
       BlockDescriptor: zhStructure.blockDescriptor,
       BlockNo: zhStructure.blockNumber,
     },
-    ChiEstate: { ...rawZh.ChiEstate, EstateName: zhStructure.estateName },
+    ChiEstate: { ...rawZh.ChiEstate, EstateName: zhStructure.premisesName },
   }
   const zhStreet = zh.ChiStreet ?? {}
   const enStreet = en.EngStreet ?? {}
@@ -247,7 +247,7 @@ export function normaliseHkgovAlsFeature(
     }),
     csuId,
     districtName: districtNameEn ?? districtNameZhHant,
-    estateName:
+    premisesName:
       asOptionalString(en.EngEstate?.EstateName) ??
       asOptionalString(zh.ChiEstate?.EstateName),
     geoAddress,

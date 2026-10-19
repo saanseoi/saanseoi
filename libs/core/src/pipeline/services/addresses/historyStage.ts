@@ -268,7 +268,7 @@ export async function buildResolvedAddressChunkArtefact(
         phaseExpression: localised.phaseExpression ?? null,
         phaseName: localised.phaseName ?? null,
         phaseRef: localised.phaseRef ?? null,
-        estateName: localised.estateName ?? null,
+        premisesName: localised.premisesName ?? null,
         streetName: localised.streetName ?? null,
         snapshotId: localised.snapshotId ?? row.base.snapshotId,
         isCurrent: true,

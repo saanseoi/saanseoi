@@ -102,7 +102,7 @@ const NORMALIZED_I18N_COLUMNS = [
   'phaseExpression',
   'phaseName',
   'phaseRef',
-  'estateName',
+  'premisesName',
   'streetName',
 ] as const
 
@@ -158,7 +158,7 @@ const RESOLVED_I18N_COLUMNS = [
   'phaseExpression',
   'phaseName',
   'phaseRef',
-  'estateName',
+  'premisesName',
   'streetName',
   'createdAt',
   'updatedAt',
@@ -268,7 +268,7 @@ export function buildAddressSourceSqlImportFiles(
           phaseExpression: localised.phaseExpression,
           phaseName: localised.phaseName,
           phaseRef: localised.phaseRef,
-          estateName: localised.estateName,
+          premisesName: localised.premisesName,
           streetName: localised.streetName,
         })),
       ),
@@ -441,7 +441,7 @@ export function buildAddressHistorySqlImportFile(
           phaseExpression: localised.phaseExpression,
           phaseName: localised.phaseName,
           phaseRef: localised.phaseRef,
-          estateName: localised.estateName,
+          premisesName: localised.premisesName,
           streetName: localised.streetName,
           createdAt: localised.createdAt,
           updatedAt: localised.createdAt,
@@ -538,7 +538,7 @@ export function buildAddressCurrentSqlImportFile(
           phaseExpression: localised.phaseExpression,
           phaseName: localised.phaseName,
           phaseRef: localised.phaseRef,
-          estateName: localised.estateName,
+          premisesName: localised.premisesName,
           streetName: localised.streetName,
           createdAt: localised.createdAt,
           updatedAt: localised.createdAt,
@@ -705,7 +705,7 @@ CREATE TABLE IF NOT EXISTS ${NORMALIZED_I18N_TABLE} (
   phaseExpression TEXT,
   phaseName TEXT,
   phaseRef TEXT,
-  estateName TEXT,
+  premisesName TEXT,
   streetName TEXT,
   PRIMARY KEY (runId, sourceRecordId, locale)
 );
@@ -773,7 +773,7 @@ CREATE TABLE IF NOT EXISTS ${RESOLVED_I18N_TABLE} (
   phaseExpression TEXT,
   phaseName TEXT,
   phaseRef TEXT,
-  estateName TEXT,
+  premisesName TEXT,
   streetName TEXT,
   createdAt TEXT NOT NULL,
   updatedAt TEXT NOT NULL,
@@ -899,7 +899,7 @@ INSERT INTO address2dI18n (
   isCurrent, locale, meta, formattedAddress, buildingName,
   buildingNumberExpression, buildingNumberFrom, buildingNumberTo, buildingNumberConnector,
   blockExpression, blockType, blockRef, blockTypeBeforeNumber,
-  phaseExpression, phaseName, phaseRef, estateName,
+  phaseExpression, phaseName, phaseRef, premisesName,
   streetName, createdAt
 )
 SELECT
@@ -907,7 +907,7 @@ SELECT
   i.locale, i.meta, i.formattedAddress, i.buildingName, i.buildingNumberExpression,
   i.buildingNumberFrom, i.buildingNumberTo, i.buildingNumberConnector,
   i.blockExpression, i.blockType, i.blockRef, i.blockTypeBeforeNumber,
-  i.phaseExpression, i.phaseName, i.phaseRef, i.estateName, i.streetName,
+  i.phaseExpression, i.phaseName, i.phaseRef, i.premisesName, i.streetName,
   i.updatedAt
 FROM ${RESOLVED_ROWS_TABLE} r
 INNER JOIN ${RESOLVED_I18N_TABLE} i
@@ -1012,7 +1012,7 @@ INSERT INTO address2dI18n (
   scopeId, addressId, locale, meta, formattedAddress, buildingName,
   buildingNumberExpression, buildingNumberFrom, buildingNumberTo, buildingNumberConnector,
   blockExpression, blockType, blockRef, blockTypeBeforeNumber,
-  phaseExpression, phaseName, phaseRef, estateName,
+  phaseExpression, phaseName, phaseRef, premisesName,
   streetName, createdAt
 )
 SELECT
@@ -1020,7 +1020,7 @@ SELECT
   i.buildingNumberExpression, i.buildingNumberFrom, i.buildingNumberTo,
   i.buildingNumberConnector, i.blockExpression, i.blockType, i.blockRef,
   i.blockTypeBeforeNumber, i.phaseExpression, i.phaseName, i.phaseRef,
-  i.estateName, i.streetName, i.createdAt
+  i.premisesName, i.streetName, i.createdAt
 FROM ${RESOLVED_I18N_TABLE} i
 WHERE i.runId = ${run}
   AND EXISTS (
@@ -1042,7 +1042,7 @@ ON CONFLICT(scopeId, addressId, locale) DO UPDATE SET
   phaseExpression = excluded.phaseExpression,
   phaseName = excluded.phaseName,
   phaseRef = excluded.phaseRef,
-  estateName = excluded.estateName,
+  premisesName = excluded.premisesName,
   streetName = excluded.streetName
 WHERE address2dI18n.meta IS NOT excluded.meta
   OR address2dI18n.formattedAddress IS NOT excluded.formattedAddress
@@ -1058,7 +1058,7 @@ WHERE address2dI18n.meta IS NOT excluded.meta
   OR address2dI18n.phaseExpression IS NOT excluded.phaseExpression
   OR address2dI18n.phaseName IS NOT excluded.phaseName
   OR address2dI18n.phaseRef IS NOT excluded.phaseRef
-  OR address2dI18n.estateName IS NOT excluded.estateName
+  OR address2dI18n.premisesName IS NOT excluded.premisesName
   OR address2dI18n.streetName IS NOT excluded.streetName;
 DELETE FROM address2dBuildingNumberLookup
 WHERE EXISTS (

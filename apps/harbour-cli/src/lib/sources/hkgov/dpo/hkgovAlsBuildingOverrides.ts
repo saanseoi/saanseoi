@@ -48,7 +48,7 @@ export function applyReviewedBuildingOverrides(
     row.identitySummary = {
       ...row.identitySummary,
       buildingName: rule.enName,
-      estateName: null,
+      premisesName: null,
     }
     row.sources = JSON.stringify({
       ...JSON.parse(row.sources),

@@ -2964,7 +2964,7 @@
   "openapi_addresses_phase_expression_description": "如有提供，結合期名稱及參考值的格式化期元件。",
   "openapi_addresses_phase_name_description": "地址前提的期名稱（如有提供）。",
   "openapi_addresses_phase_ref_description": "來源的期參考值或標籤（如有提供）。",
-  "openapi_addresses_estate_name_description": "地址前提所屬的屋苑或發展項目名稱（如有提供）。",
+  "openapi_addresses_premises_name_description": "地址前提所屬的屋苑或發展項目名稱（如有提供）。",
   "openapi_addresses_street_name_description": "地址前提所屬的來源街道或村路名稱（如有提供）。",
   "openapi_addresses_relationships_description": "divisions 關係會列出直接關聯的分區及其明確角色；hierarchy 則分開保留已解析的標準層級。兩者可能不同，因為並非每個分區關聯都屬於層級。使用 include=divisions 或 include=hierarchy 可傳回相應的分區資源。",
   "openapi_addresses_links_description": "此地址資源的連結，包括其標準網址。",
