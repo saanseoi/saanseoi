@@ -1,0 +1,28 @@
+@import "tailwindcss";
+@import "maplibre-gl/dist/maplibre-gl.css";
+:root {
+  font-family: Inter, system-ui, sans-serif;
+  color-scheme: dark;
+  color: #e7edf3;
+  background: #0b1017;
+}
+body {
+  margin: 0;
+}
+.maplibregl-popup-content {
+  background: #121b26;
+  color: #e7edf3;
+  border: 1px solid #334155;
+  border-radius: 12px;
+  padding: 18px;
+  max-height: 50vh;
+  overflow: auto;
+}
+.maplibregl-popup-content pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 12px;
+}
+.maplibregl-popup-tip {
+  border-top-color: #121b26 !important;
+}
