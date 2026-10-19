@@ -63,3 +63,8 @@ export const REGIONS = {
   hk: { name: 'hongkong', area: 'hong kong', description: 'Hong Kong' },
   mo: { name: 'macau', area: 'macau', description: 'Macao' },
 } as const
+
+export const BUILDING_ADDRESS_PATCH = resolve(
+  import.meta.dir,
+  'protomaps-building-address.patch',
+)

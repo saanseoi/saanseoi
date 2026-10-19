@@ -36,7 +36,7 @@ workspace; deployment operations require a single publishing workspace.
 
 The vector-layer schema is versioned as `protomaps-v2.N`: it starts from Protomaps
 Basemaps v2, while `N` is incremented whenever SaanSeoi changes its published layers or
-properties. The current contract is `protomaps-v4.0`. In addition to the inherited
+properties. The current contract is `protomaps-v4.1`. In addition to the inherited
 Protomaps layers, it defines SaanSeoi's exact regional boundary, coastline, earth and
 water additions described below. Each release manifest records the schema version it was
 built against.
@@ -137,3 +137,20 @@ retained OSM building polygons with canonical address points and a fixed referen
 sample. The read-only audit uses source geometry, records publication identities and
 keeps overlapping footprints separate. Tile coverage and point containment do not by
 themselves establish an address identity.
+
+## Building address selection
+
+At z15 and overzoomed views, OSM building and building-part polygons retain `source_id`
+(the type-encoded Protomaps OSM identity, prefixed `osm:`), `addr_housenumber`,
+`addr_street`, `addr_street_en`, `addr_street_zh`, `addr_full`, `name`, `name_en` and
+`name_zh` when supplied by the source. Address-label points retain `addr_street` as well
+as `addr_housenumber`. Addressed polygons remain independent of label-point
+deduplication. Lower zooms can merge geometry and are unsuitable for building selection.
+See [OSM building addresses](../sources/openstreetmap/building-addresses.md).
+
+Select full buildings using `kind=building`, rather than `building_part`. Combine loaded
+tile fragments with the same source identity before testing point containment. Source
+queries are necessary for styles that draw only building outlines. Preserve a complete
+source address, including number ranges, without replacing it with a nearby address
+point. Missing address tags require explicit fallback or manual input; a number label
+alone does not establish a street.

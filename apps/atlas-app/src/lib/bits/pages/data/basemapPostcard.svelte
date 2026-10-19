@@ -109,7 +109,7 @@ const publicFormats = [
   },
   { name: 'GeoJSON', href: 'https://datatracker.ietf.org/doc/html/rfc7946' },
 ] as const
-const schemaVersion = 'protomaps-v4.0'
+const schemaVersion = 'protomaps-v4.1'
 const flipOrigin = 'center center'
 
 let locale = $derived(getCurrentLocale())
