@@ -918,3 +918,26 @@ For a clean local database, follow the
 [reset and rebuild workflow](../pipeline.md#local-pipeline-initialisation). Schema
 migrations create empty tables; initialisation publishes the dependency snapshots and
 rebuilds serving projections.
+
+## Changes API for mirror consumers
+
+`GET /places/v0.1/sources/changes` compares retained publisher records between
+`fromRelease` and `toRelease` resource-release IDs or codes from the same dataset.
+Discover these through `/places/v0.1/source-releases`; do not pass API release-set IDs.
+`region` defaults to `hk`. Optional `resourceType` and `type` narrow the comparison;
+`limit` defaults to 25 and has a maximum of 100.
+
+The response contains a resolved `pin`, `records`, and `nextCursor`. Preserve
+`pin.fromRelease` and `pin.toRelease`, repeat other filters, and pass the returned
+`nextCursor` as `cursor` until null. Each record includes `sourceRecordId`, `type`
+(`added`, `changed`, `removed`), nullable `before`/`after`, and `fields` with JSON paths
+and explicit before/after existence flags. A short records page is exhausted.
+`view=summary` returns complete, unfiltered comparison counts without record payloads or
+a cursor. Incompatible releases produce 409; unavailable retained releases produce 404.
+
+This feed is source evidence, not a canonical Place change feed. Source removals do not
+prove closure, and canonical identity reconciliation can retain one Place across
+publisher ID changes. Address dependencies, translation and curation can also change
+canonical content independently. Mirror consumers should refresh linked canonical IDs
+against a pinned API publication even when no source change is reported. Never treat
+search or H3 latest-publication paging as an immutable export.
