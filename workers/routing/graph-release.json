@@ -1,8 +1,14 @@
 {
-  "release": "gba-2026-10-01",
-  "graphSha256": "dff05fbd7b562e6bd672d2ed9e6b67f0ad0cf6107eeed5369d87e155bd443a4f",
-  "sourceBundleSha256": "948ea86714a008d5dff270b1ce6e97b55f9ec558a380425e197817c447abc5e6",
+  "release": "gba-2026-10-01-valhalla-6291",
+  "graphSha256": "f775900729629bc448586a06a8dfc7b5a73b6d94bcd63ecc2e585b382a35e2b6",
+  "sourceBundleSha256": "0c5448b714caed50ca8a6ae8f854139de5817fd7f3adfd4693e9e766fb2fd677",
   "limitations": [
     "No elevation, traffic, admin/timezone databases or transit feeds imported."
-  ]
+  ],
+  "engine": {
+    "version": "3.8.3+6291",
+    "sourceCommit": "a60c7cbfc83e073f50887cd27e0109d02e6b64e5",
+    "upstreamFix": "19fa3d585ff58e002f701319e6fffdbd16834d66",
+    "patchSha256": "3200c465a7d00f421817d37da427dbeba34311b3ef42d7e19da2b4fea062cd92"
+  }
 }
