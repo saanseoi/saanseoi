@@ -261,6 +261,8 @@ export async function resolveGeocode(
               type: 'addresses',
               id: record.address.id,
               rank: index + 1,
+              coordinates,
+              coordinateRole: 'address',
               attributes: {
                 ...record.address,
                 geometry: coordinates ? { type: 'Point', coordinates } : null,
@@ -270,6 +272,9 @@ export async function resolveGeocode(
                 ? {
                     type: distance === 0 ? 'exact_location' : 'nearest',
                     distanceMetres: distance,
+                    evidence: 'address_point',
+                    selection: 'proximity',
+                    ambiguityDistanceMetres: 15,
                   }
                 : { type: score === 1 ? 'exact_text' : 'partial_text', score },
               ...(query.include === 'divisions' ? { divisions } : {}),
@@ -279,7 +284,7 @@ export async function resolveGeocode(
           ...meta,
           resolution:
             candidates.length > 1 &&
-            (!point || candidates[0]!.distance === candidates[1]!.distance)
+            (!point || candidates[1]!.distance! - candidates[0]!.distance! <= 15)
               ? 'ambiguous'
               : candidates.length
                 ? 'resolved'

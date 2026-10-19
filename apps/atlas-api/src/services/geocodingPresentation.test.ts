@@ -131,3 +131,14 @@ test('division match types describe reverse and forward geocoding', () => {
   })
   expect(GeocodingResponseSchema.safeParse(forward).success).toBe(true)
 })
+
+test('resolved divisions do not hide competing address candidates', () => {
+  const output = presentGeocoding(
+    {
+      data: [{ type: 'addresses', id: 'address', divisions: resolution }],
+      meta: { ...body.meta, resolution: 'ambiguous' },
+    },
+    GeocodingQuerySchema.parse({ lat: '2', lng: '2', include: 'divisions' }),
+  )
+  expect(output.data[0]!.attributes.status).toBe('ambiguous')
+})

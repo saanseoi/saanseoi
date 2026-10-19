@@ -129,6 +129,9 @@ const resultResource = z.object({
           ),
         score: z.number().optional(),
         distanceMetres: z.number().nullable().optional(),
+        evidence: z.literal('address_point').optional(),
+        selection: z.literal('proximity').optional(),
+        ambiguityDistanceMetres: z.number().nonnegative().optional(),
       })
       .optional(),
   }),

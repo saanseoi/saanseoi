@@ -1,3 +1,4 @@
+import { parseAddress } from './addressParsing'
 import { selectApiInventory } from '@repo/core/db/apiInventory'
 import {
   listApiReleaseSetSnapshots,
@@ -270,11 +271,24 @@ export async function loadGeocodingAddresses(
     ids,
     token,
     async () => {
-      if (token !== null)
-        return collectAddressCandidates(
+      if (token !== null) {
+        const primary = await collectAddressCandidates(
           addressGeocodingCandidates(db.currentDb, ids, query),
           query,
         )
+        // Only unparsed text needs a broader interpretation pass. Parsed numbers
+        // use the complete published numeric-stem index, never numeric substrings.
+        if (
+          primary.total ||
+          query.lat !== undefined ||
+          parseAddress(query.address ?? query.placename!).numbers
+        )
+          return primary
+        return collectAddressCandidates(
+          addressGeocodingCandidates(db.currentDb, ids, query, true),
+          query,
+        )
+      }
       const plans = new Map<string, Awaited<ReturnType<typeof replayPlan>>>()
       for (const id of ids) plans.set(id, await replayPlan(db, id))
       async function* pages() {

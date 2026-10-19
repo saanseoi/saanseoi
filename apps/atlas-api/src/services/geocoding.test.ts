@@ -177,3 +177,29 @@ test('paged ranking counts all candidates and can rank a late page first', async
   expect(result.total).toBe(600)
   expect(result.records.map(record => record.address.id)).toEqual(['599', '000'])
 })
+
+test('nearby reverse alternatives remain ambiguous even when limit hides them', async () => {
+  const result = await fixture({
+    loadGeocodingAddresses: async () => ({
+      records: [
+        address('71', '71 Yeung Uk Road', [114.1153569, 22.36835]),
+        address('75', '75 Yeung Uk Road', [114.1153569, 22.3684]),
+      ],
+      total: 2,
+    }),
+  }).run('address', { lng: '114.1153569', lat: '22.3683334', limit: '1' })
+  expect(result.body).toMatchObject({
+    meta: { resolution: 'ambiguous', truncated: true },
+    data: [
+      {
+        coordinates: [114.1153569, 22.36835],
+        coordinateRole: 'address',
+        match: {
+          evidence: 'address_point',
+          selection: 'proximity',
+          ambiguityDistanceMetres: 15,
+        },
+      },
+    ],
+  })
+})

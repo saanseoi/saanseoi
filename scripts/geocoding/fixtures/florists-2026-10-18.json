@@ -1,0 +1,335 @@
+{
+  "collectedAt": "2026-10-17T18:13:01.637930+00:00",
+  "source": "Google Maps public search results",
+  "selection": "25 unique florist listings across 10 search areas, fixed before any successful SaanSeoi responses. Include street shops, upstairs offices, malls and markets; skip the general Mong Kok Flower Market listing. Purposive sample, not a random Hong Kong-wide accuracy estimate.",
+  "referenceLimitations": "Google Maps listing addresses and POI pins are comparison references, not surveyed ground truth. Floor/unit detail may exceed canonical building-address granularity. addressCore is manually transcribed from the listing (Chinese street names translated where needed), for a separately scored simplified-query diagnostic.",
+  "sources": [
+    {
+      "area": "Central",
+      "query": "flower shops Central Hong Kong",
+      "sha256": "37573f925df3bd2e5b6b9cc944f4a32c9b5dbcd3fd30a230edd99c385e08dd49"
+    },
+    {
+      "area": "Wan Chai",
+      "query": "flower shops Wan Chai Hong Kong",
+      "sha256": "07cd749ad90e484001e02ef462940d5cf31dcf628c429abe8f79bc9f2418bbae"
+    },
+    {
+      "area": "Mong Kok",
+      "query": "flower shops Mong Kok Hong Kong",
+      "sha256": "784aeffaca30d467e95cb4483548e34a594d186174ba652c7e5e8a076989bbaf"
+    },
+    {
+      "area": "Kwun Tong",
+      "query": "flower shops Kwun Tong Hong Kong",
+      "sha256": "9adbe08d0f142e03fe5b4f0500f0f964dace0b7dbc7d69ba9174bb7c120721f3"
+    },
+    {
+      "area": "Tsuen Wan",
+      "query": "flower shops Tsuen Wan Hong Kong",
+      "sha256": "34f4029b5b26098f6f0cac8d962995a350ef214c6c334860fd3b1e35816628c8"
+    },
+    {
+      "area": "Sha Tin",
+      "query": "flower shops Sha Tin Hong Kong",
+      "sha256": "d88f780dc9d998f9d5f6ad5e4ef7a260afdac2f475e6c4c570899e0be1859ce5"
+    },
+    {
+      "area": "Tai Po",
+      "query": "flower shops Tai Po Hong Kong",
+      "sha256": "4d42507b3f093379d66a84683d6dc5b047dd0cfbc62d53efce5840deb8040aca"
+    },
+    {
+      "area": "Yuen Long",
+      "query": "flower shops Yuen Long Hong Kong",
+      "sha256": "01878fcc9bd7b735356e599e178d6848ac0cfc86d7068fa0c999f2c52b856f79"
+    },
+    {
+      "area": "Tuen Mun",
+      "query": "flower shops Tuen Mun Hong Kong",
+      "sha256": "0fe80f9c80b6430dbf933ec99d566853753ac0b85c40a09532d7a4b263e86a33"
+    },
+    {
+      "area": "Tung Chung",
+      "query": "flower shops Tung Chung Hong Kong",
+      "sha256": "f45b7008540365a12d5b6de2ca9001327e5803b2d64baf36142036e6ee5f2770"
+    }
+  ],
+  "places": [
+    {
+      "id": "florist-01",
+      "area": "Central",
+      "name": "M FLORIST Hong Kong",
+      "googleAddress": "Room 1104, 11/F, 70 Queen's Road Central, Central, Hong Kong Island, Hong Kong",
+      "coordinates": [114.15559359999999, 22.282631499999997],
+      "googleMapsUrl": "https://www.google.com/maps?cid=1103795811809215171",
+      "googleFeatureId": "0x3404007b527aaaab:0xf5178715373c2c3",
+      "searchRank": 2,
+      "addressCore": "70 Queen's Road Central"
+    },
+    {
+      "id": "florist-02",
+      "area": "Central",
+      "name": "Bed of Roses",
+      "googleAddress": "2F, Hollywood House, 29 Hollywood Rd, Central, Hong Kong Island, Hong Kong",
+      "coordinates": [114.153786, 22.282127],
+      "googleMapsUrl": "https://www.google.com/maps?cid=6993767569912589854",
+      "googleFeatureId": "0x340401148876b6b3:0x610eda8cde496e1e",
+      "searchRank": 3,
+      "addressCore": "29 Hollywood Road"
+    },
+    {
+      "id": "florist-03",
+      "area": "Central",
+      "name": "The Floristry",
+      "googleAddress": "Level 20, One ifc, Central, 1 Harbour View St, Sheung Wan, Hong Kong Island, Hong Kong",
+      "coordinates": [114.156846, 22.284913],
+      "googleMapsUrl": "https://www.google.com/maps?cid=16382456141542710916",
+      "googleFeatureId": "0x3404007e8dd2461b:0xe35a2d101111de84",
+      "searchRank": 5,
+      "addressCore": "1 Harbour View Street"
+    },
+    {
+      "id": "florist-04",
+      "area": "Wan Chai",
+      "name": "Grace & Favour HK",
+      "googleAddress": "G18 - G20, Lee Tung Avenue, 200 Queen's Rd E, Wan Chai, Hong Kong Island, Hong Kong",
+      "coordinates": [114.1723102, 22.275408199999998],
+      "googleMapsUrl": "https://www.google.com/maps?cid=1505289763491700548",
+      "googleFeatureId": "0x340401714d217601:0x14e3dd1084f45f44",
+      "searchRank": 1,
+      "addressCore": "200 Queen's Road East"
+    },
+    {
+      "id": "florist-05",
+      "area": "Wan Chai",
+      "name": "Just Bloom",
+      "googleAddress": "G/F, Tien Chu Commercial Building, 173-174 Gloucester Rd, Wan Chai, Hong Kong Island, Hong Kong",
+      "coordinates": [114.1783018, 22.279933],
+      "googleMapsUrl": "https://www.google.com/maps?cid=10342062638814016081",
+      "googleFeatureId": "0x3404015d049a3e63:0x8f86632ce7593251",
+      "searchRank": 3,
+      "addressCore": "173-174 Gloucester Road"
+    },
+    {
+      "id": "florist-06",
+      "area": "Wan Chai",
+      "name": "Jack's flowers",
+      "googleAddress": "13 Swatow St, Wan Chai, Hong Kong Island, Hong Kong",
+      "coordinates": [114.1716917, 22.275661799999998],
+      "googleMapsUrl": "https://www.google.com/maps?cid=16168165162752583109",
+      "googleFeatureId": "0x3404005ccee45c5f:0xe060dc8d8bb6a5c5",
+      "searchRank": 5,
+      "addressCore": "13 Swatow Street"
+    },
+    {
+      "id": "florist-07",
+      "area": "Mong Kok",
+      "name": "優之花鋪-U Flower Shop",
+      "googleAddress": "Hong Kong, Kowloon, Mong Kok, Sai Yee St, 139A地下",
+      "coordinates": [114.17109909999999, 22.321585799999998],
+      "googleMapsUrl": "https://www.google.com/maps?cid=9401813667354491556",
+      "googleFeatureId": "0x340401ded233a0af:0x8279f3b7af13baa4",
+      "searchRank": 2,
+      "addressCore": "139A Sai Yee Street"
+    },
+    {
+      "id": "florist-08",
+      "area": "Mong Kok",
+      "name": "Gift Flowers HK",
+      "googleAddress": "Hentiff Building, Shop C, G/F, 160 Prince Edward Rd W, Mong Kok, Kowloon, Hong Kong",
+      "coordinates": [114.1709071, 22.324731],
+      "googleMapsUrl": "https://www.google.com/maps?cid=16682793078192417322",
+      "googleFeatureId": "0x340401f087bbb0a3:0xe7852fea57012a2a",
+      "searchRank": 4,
+      "addressCore": "160 Prince Edward Road West"
+    },
+    {
+      "id": "florist-09",
+      "area": "Mong Kok",
+      "name": "Wayfoong Fleur Limited",
+      "googleAddress": "164 Prince Edward Rd W, Mong Kok, Kowloon, Hong Kong",
+      "coordinates": [114.1713288, 22.3246924],
+      "googleMapsUrl": "https://www.google.com/maps?cid=5852399589399309320",
+      "googleFeatureId": "0x340400c9704990c3:0x5137e66b51c9ac08",
+      "searchRank": 7,
+      "addressCore": "164 Prince Edward Road West"
+    },
+    {
+      "id": "florist-10",
+      "area": "Kwun Tong",
+      "name": "Stacey Florist",
+      "googleAddress": "203, 2/F, World Interests Building, 8 Tsun Yip Ln, Kwun Tong, Kowloon, Hong Kong",
+      "coordinates": [114.2241782, 22.3125625],
+      "googleMapsUrl": "https://www.google.com/maps?cid=15947790337114941830",
+      "googleFeatureId": "0x3404014fb6bf95af:0xdd51eed10c24a986",
+      "searchRank": 1,
+      "addressCore": "8 Tsun Yip Lane"
+    },
+    {
+      "id": "florist-11",
+      "area": "Kwun Tong",
+      "name": "Moon Florist",
+      "googleAddress": "Hong Kong, Kowloon, Kwun Tong, Hoi Yuen Rd, 50號, Lemmi Centre, 21樓03室",
+      "coordinates": [114.2236787, 22.309299199999998],
+      "googleMapsUrl": "https://www.google.com/maps?cid=18408421232418954385",
+      "googleFeatureId": "0x3404014c256c96af:0xff77d99432171c91",
+      "searchRank": 2,
+      "addressCore": "50 Hoi Yuen Road"
+    },
+    {
+      "id": "florist-12",
+      "area": "Kwun Tong",
+      "name": "FDHK - Flower Delivery Hong Kong",
+      "googleAddress": "Unit 312, 3/F, 44-46 Hung To Rd, Kwun Tong, Kowloon, Hong Kong",
+      "coordinates": [114.2213103, 22.311199],
+      "googleMapsUrl": "https://www.google.com/maps?cid=1342098815808104261",
+      "googleFeatureId": "0x340400c7a04d1c93:0x12a017c321b6e745",
+      "searchRank": 3,
+      "addressCore": "44-46 Hung To Road"
+    },
+    {
+      "id": "florist-13",
+      "area": "Tsuen Wan",
+      "name": "Gift Flowers HK",
+      "googleAddress": "Unit 2403, 24/F, Tsuen Wan Industrial Center, 220-248 Texaco Rd, Tsuen Wan, New Territories, Hong Kong",
+      "coordinates": [114.1157873, 22.3649925],
+      "googleMapsUrl": "https://www.google.com/maps?cid=1095700271974523058",
+      "googleFeatureId": "0x3403f8ebb55917d1:0xf34b597935720b2",
+      "searchRank": 2,
+      "addressCore": "220-248 Texaco Road"
+    },
+    {
+      "id": "florist-14",
+      "area": "Tsuen Wan",
+      "name": "花芳 Love of Flower",
+      "googleAddress": "地下A號舖, Foo Wah House, 32-36號 Hau Tei Square, Tsuen Wan, New Territories, Hong Kong",
+      "coordinates": [114.11561479999999, 22.3712823],
+      "googleMapsUrl": "https://www.google.com/maps?cid=5113456467326217735",
+      "googleFeatureId": "0x3403f9ff913b4d61:0x46f6a59095672e07",
+      "searchRank": 3,
+      "addressCore": "32-36 Hau Tei Square"
+    },
+    {
+      "id": "florist-15",
+      "area": "Tsuen Wan",
+      "name": "花語時間",
+      "googleAddress": "Hong Kong, New Territories, Tsuen Wan, Yeung Uk Rd, 75號地舖",
+      "coordinates": [114.1153569, 22.368333399999997],
+      "googleMapsUrl": "https://www.google.com/maps?cid=12575792731029041878",
+      "googleFeatureId": "0x3403f9951ca1311f:0xae8630dc05ecf2d6",
+      "searchRank": 4,
+      "addressCore": "75 Yeung Uk Road"
+    },
+    {
+      "id": "florist-16",
+      "area": "Sha Tin",
+      "name": "Blossom Dreams Flower",
+      "googleAddress": "Hong Kong, New Territories, Sha Tin, 石門安群街3號京瑞廣場一期2樓219號",
+      "coordinates": [114.20801739999999, 22.3884749],
+      "googleMapsUrl": "https://www.google.com/maps?cid=3375460889673846108",
+      "googleFeatureId": "0x340407332f21eee1:0x2ed80bcb923bcd5c",
+      "searchRank": 1,
+      "addressCore": "3 On Kwan Street"
+    },
+    {
+      "id": "florist-17",
+      "area": "Sha Tin",
+      "name": "LE PETIT FLORAL 香港沙田火炭永生花專門店",
+      "googleAddress": "Hong Kong, New Territories, Fo Tan, Au Pui Wan St, 27-31號, Unison Industrial Centre, 810單位8樓C室",
+      "coordinates": [114.195675, 22.396851599999998],
+      "googleMapsUrl": "https://www.google.com/maps?cid=16716059728093614186",
+      "googleFeatureId": "0x34040749319f6d23:0xe7fb5fc1d93b906a",
+      "searchRank": 2,
+      "addressCore": "27-31 Au Pui Wan Street"
+    },
+    {
+      "id": "florist-18",
+      "area": "Sha Tin",
+      "name": "沙田花店 Sha Tin flower shop",
+      "googleAddress": "Hong Kong, New Territories, Tai Wai, 街市W63",
+      "coordinates": [114.1771667, 22.3739565],
+      "googleMapsUrl": "https://www.google.com/maps?cid=5284450802343535035",
+      "googleFeatureId": "0x340407a78dd2ccaf:0x49562401aab6e1bb",
+      "searchRank": 3,
+      "addressCore": "Tai Wai Market"
+    },
+    {
+      "id": "florist-19",
+      "area": "Tai Po",
+      "name": "大埔潤記花店",
+      "googleAddress": "Hong Kong, New Territories, Heung Sze Wui St, 8號1樓W9 W10 Tai Po Complex",
+      "coordinates": [114.16648699999999, 22.446356299999998],
+      "googleMapsUrl": "https://www.google.com/maps?cid=4837557275181248068",
+      "googleFeatureId": "0x3404083f72d202c5:0x432274b617c8ee44",
+      "searchRank": 3,
+      "addressCore": "8 Heung Sze Wui Street"
+    },
+    {
+      "id": "florist-20",
+      "area": "Tai Po",
+      "name": "28花店",
+      "googleAddress": "4號 Tsing Yuen St, Tai Po, New Territories, Hong Kong",
+      "coordinates": [114.16523149999999, 22.4490272],
+      "googleMapsUrl": "https://www.google.com/maps?cid=13191013060876985075",
+      "googleFeatureId": "0x3404090079317507:0xb70fe47d691c62f3",
+      "searchRank": 6,
+      "addressCore": "4 Tsing Yuen Street"
+    },
+    {
+      "id": "florist-21",
+      "area": "Yuen Long",
+      "name": "Ho King Florist Shop",
+      "googleAddress": "Hong Kong, New Territories, Yuen Long, 安寧路 63號 D G/F TAI LEE BUILDING 63 ON NING ROAD YUEN LONG, NT Tai Lee Building, 地下D鋪 FLAT",
+      "coordinates": [114.0264775, 22.4459458],
+      "googleMapsUrl": "https://www.google.com/maps?cid=2064504647814609967",
+      "googleFeatureId": "0x3403f0a04aa7e285:0x1ca69809fa21fc2f",
+      "searchRank": 1,
+      "addressCore": "63 On Ning Road"
+    },
+    {
+      "id": "florist-22",
+      "area": "Yuen Long",
+      "name": "Lai's Flower",
+      "googleAddress": "Hong Kong, New Territories, Yuen Long, Kin Tak St, 10-16號地下A1舖",
+      "coordinates": [114.0302523, 22.4415712],
+      "googleMapsUrl": "https://www.google.com/maps?cid=10604597920032021246",
+      "googleFeatureId": "0x3403fa0a09cae26d:0x932b199f695adafe",
+      "searchRank": 2,
+      "addressCore": "10-16 Kin Tak Street"
+    },
+    {
+      "id": "florist-23",
+      "area": "Tuen Mun",
+      "name": "Language of Flowers",
+      "googleAddress": "8號 Yan Po Rd, Tuen Mun, New Territories, Hong Kong",
+      "coordinates": [113.96851679999999, 22.4109513],
+      "googleMapsUrl": "https://www.google.com/maps?cid=2009938899306919677",
+      "googleFeatureId": "0x3403fb005a2ce2a7:0x1be4bcc7a16db6fd",
+      "searchRank": 1,
+      "addressCore": "8 Yan Po Road"
+    },
+    {
+      "id": "florist-24",
+      "area": "Tuen Mun",
+      "name": "Lavish Florist 香港黃金海岸花店 (屯門花店)",
+      "googleAddress": "S27, G/F, Gold Coast Piazza, 1 Castle Peak Road-Castle Peak Bay, So Kwun Wat, New Territories, Hong Kong",
+      "coordinates": [113.99234899999999, 22.372362],
+      "googleMapsUrl": "https://www.google.com/maps?cid=11217206756938772563",
+      "googleFeatureId": "0x3403fb925c3cf149:0x9bab861d37727053",
+      "searchRank": 2,
+      "addressCore": "1 Castle Peak Road Castle Peak Bay"
+    },
+    {
+      "id": "florist-25",
+      "area": "Tung Chung",
+      "name": "興發鮮花市場 (東涌店) - Hing Fat Flower Market (Tung Chung Shop)",
+      "googleAddress": "M20, Lantau Island, FU TUNG MARKET, Fu Tung St, Tung Chung, New Territories, Hong Kong",
+      "coordinates": [113.94240149999999, 22.2888351],
+      "googleMapsUrl": "https://www.google.com/maps?cid=13792448441127871110",
+      "googleFeatureId": "0x3403e2b002bfff89:0xbf689ec81c512286",
+      "searchRank": 1,
+      "addressCore": "Fu Tung Market"
+    }
+  ]
+}

@@ -156,7 +156,10 @@ export function presentGeocoding(
         ? { type: 'forward-geocoding', score: candidate.score }
         : { type: 'reverse-geocoding' })
     const attributes: Record<string, unknown> = {
-      status: resolution?.status ?? body.meta.resolution ?? 'resolved',
+      status:
+        body.meta.resolution === 'ambiguous'
+          ? 'ambiguous'
+          : (resolution?.status ?? body.meta.resolution ?? 'resolved'),
     }
     if (profile !== 'compact') {
       attributes.match = match

@@ -94,17 +94,45 @@ chooses a winner between equally supported branches.
 
 ## Candidates and release identity
 
-Forward text ranking uses trimmed case-insensitive exact matches (1), prefixes (0.8) and
-substrings (0.6). Scores identify match classes, not probabilities. Division searches
-include alternative names. Multiple candidates remain ambiguous when a limit hides an
-alternative; `meta.total` and `meta.truncated` make this visible. Address-text division
-queries retain separate address-location candidates.
+Division name ranking uses trimmed case-insensitive exact matches (1), prefixes (0.8)
+and substrings (0.6), including alternative names. Scores identify match classes, not
+probabilities.
+
+Address queries first parse street names and building numbers. Parsing accepts common
+English road abbreviations and directions, number ranges, Chinese street/number order,
+and English street-first listings. Room, unit and floor labels do not become street
+numbers. Letter suffixes are ignored when comparing numeric stems; a match for `139A`
+therefore does not establish suffix-specific identity. Publisher strings remain intact.
+
+Current publications use the numeric-stem index to retrieve parsed number candidates.
+Exact street names and number intervals rank above locality-qualified names and
+intersecting ranges. Same-parity ranges retain their street side. Building and estate
+qualifiers improve rank; bare street addresses retain competing facilities. Locality
+prefix/road-section matches are weaker interpretations, not verified street aliases.
+Name normalisation handles punctuation and common building abbreviations; a leading
+building word plus an acronym can match its expanded name, such as One IFC.
+
+Unparsed queries try formatted and named components, then a broader normalised scan only
+if the first pass finds no match. This fallback and retained-history replay can require
+substantial reads. Missing or contradictory numbers never become numeric substring
+matches. Multiple candidates remain ambiguous even when a limit hides an alternative;
+`meta.total` and `meta.truncated` make this visible. Address-text division queries
+retain separate address-location candidates.
 
 Reverse addresses are canonical points within `maxDistance`, ordered by great-circle
-distance. `attributes.match.type` is `exact_location` at zero distance or `nearest`,
-with `distanceMetres`. Address points do not establish building-footprint containment.
-Candidate reads are paged, retaining the requested best candidates and an ambiguity
-witness. Historical searches can require substantial reads.
+distance after a latitude/longitude prefilter. `attributes.coordinates` locates the
+candidate address and has `coordinateRole: "address"`. `attributes.match.type` is
+`exact_location` at zero distance or `nearest`, with `distanceMetres`,
+`evidence: "address_point"` and `selection: "proximity"`. Zero distance does not prove
+building identity. Address points do not establish building-footprint containment.
+
+A second candidate within 15 metres of the closest candidate's distance makes the
+response ambiguous, including when `limit=1`. The reported `ambiguityDistanceMetres: 15`
+is a conservative selection heuristic, not a measured GPS accuracy or a confidence
+interval. Larger gaps do not prove unique building identity. Candidate reads are paged,
+retaining the requested best candidates and an ambiguity witness. Basemap footprints are
+not currently used to promote candidates; see the
+[coverage investigation](benchmarks/geocoder-2026-10-19.md).
 
 `meta.release.apiReleaseSet` identifies the endpoint's release. Separate companion
 release metadata appears only when a different release is actually used. `full` adds
