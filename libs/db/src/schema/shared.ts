@@ -487,6 +487,7 @@ export function canonicalAddress2dColumns<Required extends boolean>(
 
 export const canonicalAddress2d = canonicalAddress2dColumns(true)
 
+/** Source block descriptors; flat/unit/apartment may identify sub-building scope. */
 export const addressBlockTypes = [
   'block',
   'building',

@@ -8,8 +8,7 @@ export const addressGranularities = [
   'section',
   'floor',
   'unit',
-  'room',
-  'room_part',
+  'unit_portion',
 ] as const
 
 export type AddressGranularity = (typeof addressGranularities)[number]

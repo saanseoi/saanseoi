@@ -2095,8 +2095,7 @@ describe('atlas-api', () => {
       'section',
       'floor',
       'unit',
-      'room',
-      'room_part',
+      'unit_portion',
     ])
     expect(addressAttributes.properties).not.toHaveProperty('granularityProvenance')
     expect(addresses.components?.schemas).not.toHaveProperty('Division')

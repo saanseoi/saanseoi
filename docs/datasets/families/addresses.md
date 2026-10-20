@@ -631,18 +631,17 @@ does not establish membership of individual units in a combined building invento
 `attributes.granularity` describes address scope in every API profile, independently of
 validity, verification and Place category. It has no score or universal ordering.
 
-| Value       | Scope                                                                                                                               |
-| ----------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| `unknown`   | The scope is not established.                                                                                                       |
-| `site`      | Whole premises or grounds without an established internal complex structure, such as a standalone yard, work site or sports ground. |
-| `complex`   | An organised development or facility containing constituent premises: an estate, shopping complex, airport or station campus.       |
-| `phase`     | A named development phase.                                                                                                          |
-| `building`  | An individual building or block.                                                                                                    |
-| `section`   | A wing, zone or other named subdivision whose level depends on context.                                                             |
-| `floor`     | A floor or level.                                                                                                                   |
-| `unit`      | A shop, flat, suite, office, stall or other separately identified unit.                                                             |
-| `room`      | An individual room.                                                                                                                 |
-| `room_part` | An identified part of a room.                                                                                                       |
+| Value          | Scope                                                                                                                               |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `unknown`      | The scope is not established.                                                                                                       |
+| `site`         | Whole premises or grounds without an established internal complex structure, such as a standalone yard, work site or sports ground. |
+| `complex`      | An organised development or facility containing constituent premises: an estate, shopping complex, airport or station campus.       |
+| `phase`        | A named development phase.                                                                                                          |
+| `building`     | An individual building or block.                                                                                                    |
+| `section`      | A wing, zone or other named subdivision whose level depends on context.                                                             |
+| `floor`        | A floor or level.                                                                                                                   |
+| `unit`         | A shop, flat, suite, office, stall or other separately identified unit.                                                             |
+| `unit_portion` | An identified portion of a unit (including a room).                                                                                 |
 
 `site` requires positive evidence that the address identifies the whole premises; it is
 not a fallback for an unexplained number. A school with two established constituent
@@ -1954,3 +1953,23 @@ tombstone preservation, stale-page rejection, injected rollback failures, duplic
 rows, searchability and idempotent retries. A remote probe verifies D1 atomic rollback,
 trigger restoration, JSON-bound updates and the FTS swap using isolated preview tables
 that are removed after the probe.
+
+### Address granularity data repair
+
+`scripts/address-granularity/run.ts` upgrades deprecated `room` scope to `unit` and
+`room_part` scope to `unit_portion` in CURRENT and all HISTORY shards, including
+inactive scopes. Room remains a valid unit type (`R`). The repair preserves IDs,
+snapshots, display components and timestamps, and recomputes HISTORY version hashes
+using the ingestion hash builder. Each row is fenced against concurrent changes and
+repaired transactionally. Raw source evidence is retained unchanged.
+
+Run `bun scripts/address-granularity/run.ts --local PATH` to inspect an existing SQLite
+database; add `--apply` to back it up and repair it. The corresponding
+`--remote preview|production --apply` command enumerates CURRENT and every configured
+HISTORY binding. Run after schema migration and before application release; automatic
+deployment integration is pending approval. No physical schema changes are required.
+
+All block descriptors in the contract occur in the current source data. These are
+source-component classifications, not guarantees of building-level scope: `flat`, `unit`
+and `apartment` can appear in the block component. Preserve their expressions and review
+scope independently rather than discarding the values.
