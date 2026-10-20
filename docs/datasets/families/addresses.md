@@ -1954,22 +1954,16 @@ rows, searchability and idempotent retries. A remote probe verifies D1 atomic ro
 trigger restoration, JSON-bound updates and the FTS swap using isolated preview tables
 that are removed after the probe.
 
-### Address granularity data repair
-
-`scripts/address-granularity/run.ts` upgrades deprecated `room` scope to `unit` and
-`room_part` scope to `unit_portion` in CURRENT and all HISTORY shards, including
-inactive scopes. Room remains a valid unit type (`R`). The repair preserves IDs,
-snapshots, display components and timestamps, and recomputes HISTORY version hashes
-using the ingestion hash builder. Each row is fenced against concurrent changes and
-repaired transactionally. Raw source evidence is retained unchanged.
-
-Run `bun scripts/address-granularity/run.ts --local PATH` to inspect an existing SQLite
-database; add `--apply` to back it up and repair it. The corresponding
-`--remote preview|production --apply` command enumerates CURRENT and every configured
-HISTORY binding. Run after schema migration and before application release; automatic
-deployment integration is pending approval. No physical schema changes are required.
-
 All block descriptors in the contract occur in the current source data. These are
 source-component classifications, not guarantees of building-level scope: `flat`, `unit`
 and `apartment` can appear in the block component. Preserve their expressions and review
 scope independently rather than discarding the values.
+
+### Shared address content and parsing
+
+`@saanseoi/address` (`libs/address`) owns the content contract, granularity, unit and
+floor vocabularies, parser and unit formatting shared with HYPE. Harbour's Place matcher
+re-exports the shared implementation. Canonical database IDs, publication envelopes and
+API access remain outside the library. HYPE can retain local authored content while
+matching the canonical Place ID; upstream submission and reconciliation are separate
+future work. No granularity repair command is required.

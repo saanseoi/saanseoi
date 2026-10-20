@@ -203,6 +203,7 @@
         "@repo/basemap": "workspace:*",
         "@repo/core": "workspace:*",
         "@repo/db": "workspace:*",
+        "@saanseoi/address": "workspace:*",
         "comment-json": "^5.0.0",
         "fast-xml-parser": "5.11.2",
         "fflate": "0.8.3",
@@ -268,6 +269,17 @@
         "wrangler": "^4.151.1",
       },
     },
+    "libs/address": {
+      "name": "@saanseoi/address",
+      "version": "0.1.0",
+      "devDependencies": {
+        "typescript": "^6.0.3",
+        "zod": "^4.0.0",
+      },
+      "peerDependencies": {
+        "zod": "^4.0.0",
+      },
+    },
     "libs/auth": {
       "name": "@repo/auth",
       "version": "1.0.0",
@@ -315,6 +327,7 @@
       "version": "1.0.0",
       "dependencies": {
         "@clack/prompts": "^1.8.1",
+        "@saanseoi/address": "workspace:*",
         "@types/bun": "^1.4.3",
         "drizzle-orm": "1.0.0-rc.5-5935859",
       },
@@ -949,6 +962,8 @@
     "@rolldown/binding-win32-x64-msvc": ["@rolldown/binding-win32-x64-msvc@1.2.13", "", { "os": "win32", "cpu": "x64" }, "sha512-UKhFaZTeTcbKrb3iU82m17jVcPEAoqDkCN5MBqgPyZSwp/cQmib21crTS0DdH7T1B7wZRWEI89YQAOJMet5yhg=="],
 
     "@rolldown/pluginutils": ["@rolldown/pluginutils@1.0.1", "", {}, "sha512-2j9bGt5Jh8hj+vPtgzPtl72j0yRxHAyumoo6TNfAjsLB04UtpSvPbPcDcBMxz7n+9CYB0c1GxQFxYRg2jimqGw=="],
+
+    "@saanseoi/address": ["@saanseoi/address@workspace:libs/address"],
 
     "@scalar/agent-chat": ["@scalar/agent-chat@0.12.44", "", { "dependencies": { "@ai-sdk/vue": "3.0.214", "@scalar/api-client": "3.23.1", "@scalar/components": "0.32.0", "@scalar/helpers": "0.16.4", "@scalar/icons": "0.7.7", "@scalar/json-magic": "0.16.0", "@scalar/openapi-types": "0.9.8", "@scalar/schemas": "0.14.0", "@scalar/themes": "0.19.2", "@scalar/types": "0.24.0", "@scalar/use-toasts": "0.10.5", "@scalar/validation": "0.6.7", "@scalar/workspace-store": "0.68.4", "@vueuse/core": "13.9.0", "ai": "6.0.214", "js-base64": "^3.9.2", "neverpanic": "0.0.8", "truncate-json": "3.0.1", "vue": "^3.5.40" } }, "sha512-1if38a1qlfXUU5AOAraivtaxQosLDHRdnBRsbDVkeMUxsp8AV98gS9DrC2YRGOQT2F3F343Hyuh7SN0c3AYkAg=="],
 

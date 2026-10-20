@@ -1,3 +1,4 @@
+import { ADDRESS_BLOCK_TYPES as addressBlockTypes } from '@saanseoi/address/content'
 import type { StatisticFieldSources } from '../statisticFieldSources'
 import { compactLocaleJson, parseI18nMeta, type I18nMeta } from '../i18nMeta'
 import type { NotNull } from 'drizzle-orm'
@@ -487,26 +488,8 @@ export function canonicalAddress2dColumns<Required extends boolean>(
 
 export const canonicalAddress2d = canonicalAddress2dColumns(true)
 
-/** Source block descriptors; flat/unit/apartment may identify sub-building scope. */
-export const addressBlockTypes = [
-  'block',
-  'building',
-  'tower',
-  'house',
-  'villa',
-  'mansion',
-  'apartment',
-  'flat',
-  'unit',
-  'quarters',
-  'phase',
-  'stage',
-  'commercial',
-  'retail',
-  'parking',
-  'garage',
-  'other',
-] as const
+/** Source block descriptors may identify sub-building scope. */
+export { ADDRESS_BLOCK_TYPES as addressBlockTypes } from '@saanseoi/address/content'
 
 export type AddressBlockType = (typeof addressBlockTypes)[number]
 

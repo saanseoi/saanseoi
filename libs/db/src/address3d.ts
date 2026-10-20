@@ -1,27 +1,9 @@
-/** Compact storage codes. Unit and floor codes have independent vocabularies. */
-export const address3dUnitTypes = [
-  'F', // Flat or apartment.
-  'R', // Room.
-  'S', // Shop.
-  'SU', // Suite.
-  'U', // Unit.
-  'ST', // Stall.
-  'K', // Kiosk.
-  'O', // Office.
-  'X', // Other or unclassified unit type.
-] as const
-export const address3dFloorTypes = [
-  'F', // Floor.
-  'G', // Ground floor.
-  'UG', // Upper ground floor.
-  'LG', // Lower ground floor.
-  'B', // Basement.
-  'M', // Mezzanine.
-  'C', // Concourse.
-  'P', // Podium.
-  'R', // Roof.
-  'X', // Other or unclassified floor type.
-] as const
+/** Compact unit and floor codes share the published address content contract. */
+import {
+  ADDRESS_UNIT_TYPES as address3dUnitTypes,
+  ADDRESS_FLOOR_TYPES as address3dFloorTypes,
+} from '@saanseoi/address/content'
+export { address3dUnitTypes, address3dFloorTypes }
 
 export type Address3dUnit = {
   id: string
