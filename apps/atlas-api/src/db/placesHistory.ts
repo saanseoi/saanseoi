@@ -223,6 +223,7 @@ export async function listReplayedPlaceRecords(args: {
 /** Keyset batches bound journal and content memory, including deleted IDs. */
 export async function listReplayedPlacePage(
   args: Parameters<typeof listReplayedPlaceRecords>[0] & {
+    id?: string
     limit: number
     offset: number
     basicCategory?: string
@@ -251,6 +252,7 @@ export async function listReplayedPlacePage(
             and(
               eq(journal.snapshotId, step.snapshotId),
               eq(journal.recordType, 'place'),
+              args.id ? eq(journal.recordId, args.id) : undefined,
               after === undefined ? undefined : sql`${journal.recordId} > ${after}`,
             ),
           )

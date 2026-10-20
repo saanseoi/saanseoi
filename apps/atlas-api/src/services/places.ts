@@ -53,6 +53,7 @@ export type ResolvedPlaceApiVersion = 'api-places-v0.1'
 export type PlaceProfile = ApiProfileName
 
 type PlaceFilters = {
+  id?: string
   basicCategory?: string
   taxonomyPrimary?: string
   operatingStatus?: string
@@ -113,6 +114,7 @@ export type PlaceListQuery = {
   include?: 'divisions'
   'page[limit]'?: number
   'page[offset]'?: number
+  'filter[id]'?: string
   'filter[basicCategory]'?: string
   'filter[taxonomyPrimary]'?: string
   'filter[operatingStatus]'?: string
@@ -533,6 +535,7 @@ export async function listPlaces(args: {
   const limit = args.query['page[limit]'] ?? 25
   const offset = args.query['page[offset]'] ?? 0
   const filters = {
+    ...(args.query['filter[id]'] ? { id: args.query['filter[id]'] } : {}),
     ...(args.query['filter[basicCategory]']
       ? { basicCategory: args.query['filter[basicCategory]'] }
       : {}),
@@ -550,6 +553,7 @@ export async function listPlaces(args: {
     snapshotId: activeSnapshot.snapshotId,
     limit,
     offset,
+    id: filters.id,
     basicCategory: filters.basicCategory,
     taxonomyPrimary: filters.taxonomyPrimary,
     operatingStatus: filters.operatingStatus,
@@ -604,6 +608,7 @@ export async function listPlaces(args: {
             Promise.all([
               listPlaceRecordsCurrent(args.currentDb, lookup),
               countPlaceRecordsCurrent(args.currentDb, {
+                id: lookup.id,
                 snapshotId: activeSnapshot.snapshotId,
                 basicCategory: filters.basicCategory,
                 taxonomyPrimary: filters.taxonomyPrimary,

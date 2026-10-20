@@ -527,6 +527,52 @@ function createFixtureEnvironment(
 
 describe('Places collection through the Worker route', () => {
   for (const historyOnly of [false, true]) {
+    test(`selects an exact pinned canonical ID with historyOnly=${historyOnly}`, async () => {
+      const fixture = createFixtureEnvironment({
+        historyOnly,
+        rejectHistory: !historyOnly,
+      })
+      try {
+        for (const [id, extra, expected] of [
+          ['place-ramen', '', ['place-ramen']],
+          ['absent', '', []],
+          ['place-ramen', '&filter[basicCategory]=bakery', []],
+          ['place-ramen', '&page[offset]=1', []],
+        ] as const) {
+          const response = await app.fetch(
+            new Request(
+              `http://localhost/places/v0.1?releaseSet=${RELEASE_SET}&filter[id]=${id}&profile=full&page[limit]=100${extra}`,
+            ),
+            fixture.env,
+          )
+          expect(response.status).toBe(200)
+          const body = (await response.json()) as {
+            data: Array<{ id: string; attributes: { snapshotId: string } }>
+            meta: {
+              filters: { id: string }
+              page: { total?: number; hasMore?: boolean }
+            }
+            links: { permalink: string }
+          }
+          expect(body.data.map(row => row.id)).toEqual([...expected])
+          expect(body.meta.filters.id).toBe(id)
+          expect(new URL(body.links.permalink).searchParams.get('filter[id]')).toBe(id)
+          expect(new URL(body.links.permalink).searchParams.get('releaseSet')).toBe(
+            RELEASE_SET,
+          )
+          if (body.data.length)
+            expect(body.data[0]?.attributes.snapshotId).toBe(PLACE_SNAPSHOT)
+          if (historyOnly) expect(body.meta.page.hasMore).toBe(false)
+          else
+            expect(body.meta.page.total).toBe(
+              id === 'place-ramen' && !extra.includes('basicCategory') ? 1 : 0,
+            )
+        }
+      } finally {
+        fixture.close()
+      }
+    })
+
     test(`paginates with historyOnly=${historyOnly}, including empty filtered pages`, async () => {
       const fixture = createFixtureEnvironment({
         historyOnly,

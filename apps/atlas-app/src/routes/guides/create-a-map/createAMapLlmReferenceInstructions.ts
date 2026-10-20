@@ -670,6 +670,14 @@ independently of administrative areas. Geographic code
 filters resolve through supported descendants; filter[adminCode]=HKSAR selects the
 whole region. include=divisions uses exact retained definition revisions.
 
+## Canonical Place lookup
+
+Use filter[id] on the Places collection to retrieve one canonical Place ID with a
+pinned releaseSet, catalogRevision and knownAt. Request profile=full for all source
+facts. The response retains collection metadata and echoes meta.filters.id; an absent
+ID returns an empty data array. Other filters still combine with AND. This filter
+accepts the opaque canonical ID returned by search, not a publisher or GERS identifier.
+
 ## Places discovery
 
 Places text search uses the latest published regional release. Search results include
