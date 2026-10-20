@@ -23,6 +23,6 @@ body {
   overflow-wrap: anywhere;
   font-size: 12px;
 }
-.maplibregl-popup-tip {
-  border-top-color: #121b26 !important;
+.maplibregl-popup .maplibregl-popup-tip {
+  border-top-color: #121b26;
 }
