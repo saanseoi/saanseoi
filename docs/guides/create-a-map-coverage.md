@@ -33,6 +33,10 @@ Place IDs are opaque canonical identifiers, distinct from publisher/GERS IDs. Th
 hand-over instructions preserve this distinction and do not infer openings or closures
 from observed arrival/disappearance. Marker clients use `data[].id` without parsing it.
 
+The hand-over instructions cover exact canonical lookup using `filter[id]` with
+publication selectors and full profile, including empty results, the metadata echo and
+the distinction from publisher/GERS identities. Marker pagination is unchanged.
+
 Places pagination follows `links.next` until absent. Materialised snapshots provide
 `meta.page.total`; historical snapshots provide `meta.page.hasMore` without scanning the
 whole release for an exact count. Tutorial clients must not require `total`.

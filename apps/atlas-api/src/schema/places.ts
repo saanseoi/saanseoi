@@ -919,6 +919,7 @@ const PlacesListDocumentMetaSchema = z
     profile: ProfileName,
     locales: RequestedLocalesMetadataSchema,
     filters: z.object({
+      id: z.string().optional(),
       basicCategory: z.string().optional(),
       taxonomyPrimary: z.string().optional(),
       operatingStatus: z.string().optional(),
@@ -949,6 +950,10 @@ export const PlacesListQuerySchema = z
     include: z.enum(['divisions']).optional(),
     'page[limit]': z.coerce.number().int().min(1).max(MAX_PLACE_RESULTS).optional(),
     'page[offset]': z.coerce.number().int().min(0).optional(),
+    'filter[id]': IdSchema.max(200).optional().openapi({
+      description:
+        'Select one exact canonical Place ID within the selected publication. Combines with other filters using AND; an absent ID returns an empty collection. This is not a publisher or GERS ID.',
+    }),
     'filter[basicCategory]': z.string().min(1).optional().openapi({
       description: placeBasicCategoryFilterDescription,
     }),

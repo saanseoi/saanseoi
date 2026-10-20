@@ -115,6 +115,7 @@ export type PlaceRecord = {
 export { normalisePlaceBbox } from '@repo/core/pipeline/services/places/placeGeometry'
 
 type PlaceListLookup = {
+  id?: string
   snapshotId: string
   limit?: number
   offset?: number
@@ -434,6 +435,7 @@ function placeGeographicCondition() {
 function buildPlaceConditions(
   lookup: Pick<
     PlaceListLookup,
+    | 'id'
     | 'snapshotId'
     | 'basicCategory'
     | 'taxonomyPrimary'
@@ -444,6 +446,7 @@ function buildPlaceConditions(
   return [
     publicationScopeCondition('place', places.scopeId, [lookup.snapshotId]),
     placeGeographicCondition(),
+    lookup.id ? eq(places.id, lookup.id) : undefined,
     lookup.basicCategory ? eq(places.basicCategory, lookup.basicCategory) : undefined,
     lookup.taxonomyPrimary
       ? eq(places.taxonomyPrimary, lookup.taxonomyPrimary)
