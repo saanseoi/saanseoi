@@ -47,6 +47,7 @@ export function parseAddressContent(
   const content = createAddressContent(labels)
   const unresolved: Record<string, string> = {},
     diagnostics: string[] = []
+  let ambiguousUnits = false
   const units: {
     locale: string
     unit: NonNullable<AddressContent['unit']>
@@ -68,9 +69,10 @@ export function parseAddressContent(
     if (parsed.unclassified2dText) unresolved[locale] = parsed.unclassified2dText
     const floors = parsed.address3dParts.filter(p => p.kind === 'floor')
     const foundUnits = parsed.address3dParts.filter(p => p.kind === 'unit')
-    if (floors.length > 1 || foundUnits.length > 1)
+    if (floors.length > 1 || foundUnits.length > 1) {
+      ambiguousUnits = true
       diagnostics.push(`${locale}: multiple floors or units require review`)
-    else if (floors.length || foundUnits.length) {
+    } else if (floors.length || foundUnits.length) {
       const floor = floors[0],
         unit = foundUnits[0]
       units.push({
@@ -88,6 +90,7 @@ export function parseAddressContent(
     }
   }
   if (
+    !ambiguousUnits &&
     units.length &&
     units.every(item => JSON.stringify(item.unit) === JSON.stringify(units[0]!.unit))
   ) {

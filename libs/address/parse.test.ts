@@ -14,3 +14,13 @@ test('shared parser preserves original evidence and produces valid separate floo
   expect(result.content.i18n.en?.formattedAddress).not.toContain('Shop 18')
   expect(result.unresolved.en).toContain('SMITHFIELD')
 })
+
+test('ambiguous units in any locale block unit selection for every locale', () => {
+  const source = {
+    en: 'Shop 18, Shop 19, G/F, Example Road',
+    'zh-hant': '地下18舖例子道',
+  }
+  const parsed = parseAddressContent(source)
+  expect(parsed.content.unit).toBeNull()
+  expect(parsed.content.i18n.en.formattedAddress).toBe(source.en)
+})
