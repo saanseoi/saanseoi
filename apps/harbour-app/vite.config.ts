@@ -3,6 +3,7 @@ import { defineConfig } from 'vitest/config'
 import { svelte } from '@sveltejs/vite-plugin-svelte'
 import tailwindcss from '@tailwindcss/vite'
 import { paraglideVitePlugin } from '@inlang/paraglide-js'
+import { buildingInputsPlugin } from './buildingInputsPlugin.ts'
 import { addressInputsPlugin } from './addressInputsPlugin.ts'
 import { ingestionPlugin } from './ingestionPlugin.ts'
 import { reviewInputsPlugin } from './reviewInputsPlugin.ts'
@@ -20,6 +21,7 @@ export default defineConfig({
     tailwindcss(),
     ingestionPlugin(),
     addressInputsPlugin(),
+    buildingInputsPlugin(),
     reviewInputsPlugin(),
   ],
   resolve: {
@@ -49,6 +51,7 @@ export default defineConfig({
         'divisions/index.html',
         'ingestion/index.html',
         'addresses/index.html',
+        'buildings/index.html',
       ],
     },
   },
