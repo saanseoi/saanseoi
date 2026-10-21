@@ -75,7 +75,7 @@
     "@noble/hashes": "2.4.0",
     "@repo/db": "workspace:*",
     "drizzle-orm": "1.0.0-rc.5-5935859",
-    "hyparquet": "^1.31.4",
+    "hyparquet": "^1.31.5",
     "hyparquet-compressors": "^1.1.2",
     "jsts": "2.12.1"
   },

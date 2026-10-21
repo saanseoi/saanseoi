@@ -10,10 +10,10 @@
     "lint": "biome lint ."
   },
   "dependencies": {
-    "@iconify/svelte": "^5.2.2",
+    "@iconify/svelte": "^5.2.3",
     "@protomaps/basemaps": "^5.7.2",
     "@repo/basemap": "workspace:*",
-    "bits-ui": "^2.19.5",
+    "bits-ui": "^2.20.0",
     "maplibre-gl": "^6.15.0",
     "svelte": "^5.57.2",
     "@repo/core": "workspace:*",
@@ -21,14 +21,14 @@
     "drizzle-orm": "1.0.0-rc.5-5935859"
   },
   "devDependencies": {
-    "@inlang/paraglide-js": "2.29.0",
+    "@inlang/paraglide-js": "2.29.1",
     "@sveltejs/vite-plugin-svelte": "^7.3.1",
     "@tailwindcss/vite": "^4.3.3",
     "@types/node": "^26.6.5",
     "svelte-check": "^4.7.7",
     "typescript": "^6.0.3",
-    "vite": "^8.3.4",
+    "vite": "^8.3.5",
     "vitest": "^5.0.5",
-    "@cloudflare/workers-types": "5.20261018.1"
+    "@cloudflare/workers-types": "5.20261021.1"
   }
 }
