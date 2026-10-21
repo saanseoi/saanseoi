@@ -12,6 +12,8 @@ let {
   showLandsd,
   showOverture,
   opacity,
+  radius,
+  hideOutsideRadius,
   onSelect,
   onCenter,
   onError,
@@ -22,6 +24,8 @@ let {
   showLandsd: boolean
   showOverture: boolean
   opacity: number
+  radius: number
+  hideOutsideRadius: boolean
   onSelect: (selection: Selection) => void
   onCenter: (lng: number, lat: number) => void
   onError: (message: string) => void
@@ -30,6 +34,44 @@ let container: HTMLElement
 let map = $state<maplibregl.Map>()
 let ready = $state(false)
 let lastFocus = ''
+
+const metresPerDegree = (Math.PI * 6371008.8) / 180
+
+/** Clip every rendered map layer to the search radius, preserving map controls.
+ * @param target The mounted comparison map.
+ * @param radiusMetres The same radius used by nearby inventory queries.
+ * @param enabled Whether features outside the radius should be hidden.
+ * @returns Nothing; updates the map canvas container's clipping polygon.
+ * @remarks Project the geographic circle on every move so zoom, bearing and pitch agree.
+ */
+function updateRadiusClip(
+  target: maplibregl.Map,
+  radiusMetres: number,
+  enabled: boolean,
+): void {
+  const canvas = target.getCanvasContainer()
+  if (!enabled) {
+    canvas.style.clipPath = ''
+    return
+  }
+  const center = target.getCenter()
+  const latRadius = radiusMetres / metresPerDegree
+  const lngRadius = latRadius / Math.cos((center.lat * Math.PI) / 180)
+  // A projected ring clips basemap labels and geometry as well as review overlays.
+  const points = Array.from({ length: 96 }, (_, index) => {
+    const angle = (index * 2 * Math.PI) / 96
+    const point = target.project([
+      center.lng + lngRadius * Math.cos(angle),
+      center.lat + latRadius * Math.sin(angle),
+    ])
+    return `${point.x}px ${point.y}px`
+  })
+  canvas.style.clipPath = `polygon(${points.join(',')})`
+}
+
+$effect(() => {
+  if (ready && map) updateRadiusClip(map, radius, hideOutsideRadius)
+})
 $effect(() => {
   if (!ready || !map) return
   for (const [id, data, visible] of [
@@ -82,6 +124,8 @@ onMount(() => {
   map = target
   target.addControl(new maplibregl.NavigationControl(), 'bottom-right')
   target.on('error', event => onError(`Map resource: ${event.error.message}`))
+  target.on('move', () => updateRadiusClip(target, radius, hideOutsideRadius))
+  target.on('resize', () => updateRadiusClip(target, radius, hideOutsideRadius))
   target.on('moveend', () => {
     const c = target.getCenter()
     onCenter(c.lng, c.lat)
@@ -136,6 +180,16 @@ onMount(() => {
       })
     }
     target.on('click', event => {
+      // Hidden footprints must not remain selectable through the surrounding map container.
+      if (hideOutsideRadius) {
+        const center = target.getCenter()
+        const dx =
+          (event.lngLat.lng - center.lng) *
+          metresPerDegree *
+          Math.cos((center.lat * Math.PI) / 180)
+        const dy = (event.lngLat.lat - center.lat) * metresPerDegree
+        if (Math.hypot(dx, dy) > radius) return
+      }
       const hits = target.queryRenderedFeatures(event.point, {
         layers: ['landsd-fill', 'overture-fill'],
       })

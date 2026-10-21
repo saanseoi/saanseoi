@@ -20,6 +20,7 @@ let landsd = $state<FeatureCollection>(emptyCollection()),
   overture = $state<FeatureCollection>(emptyCollection())
 let showLandsd = $state(true),
   showOverture = $state(true),
+  hideOutsideRadius = $state(false),
   opacity = $state(0.2),
   radius = $state(250)
 let center = $state({ lng: 114.1704, lat: 22.3071 })
@@ -318,6 +319,8 @@ onMount(() => {
       {showLandsd}
       {showOverture}
       {opacity}
+      {radius}
+      {hideOutsideRadius}
       onSelect={value => void select(value)}
       onCenter={(lng, lat) => (center = { lng, lat })}
       onError={value => (mapError = value)}
@@ -347,6 +350,10 @@ onMount(() => {
           {/each}
         </select></label
       >
+      <label class="flex items-center gap-2 text-slate-300">
+        <input type="checkbox" bind:checked={hideOutsideRadius} class="accent-cyan-400">
+        Hide outside radius
+      </label>
       <label class="flex items-center gap-2 text-slate-400"
         >Fill<input
           aria-label="Footprint fill opacity"

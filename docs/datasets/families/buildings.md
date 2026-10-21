@@ -75,12 +75,15 @@ releases are pinned independently; this is not a temporal comparison of consecut
 releases.
 
 The map has separate cyan LandsD and orange Overture layers, independent visibility,
-hover highlighting, a configurable search radius and selected-footprint outlines. Filter
-by overlap category, search LandsD names/CSUIDs, select either inventory on the map, and
-inspect directional coverage, IoU, areas and repairs. When both layers overlap, clicking
-prefers LandsD; hiding LandsD allows selection of Overture. Decisions persist in browser
-storage for this release pair and export as JSON. They never write source IDs or mutate
-the inventory. Test decisions belong to an isolated browser context.
+hover highlighting, a configurable search radius and selected-footprint outlines. The
+**Hide outside radius** toggle clips all map content, including basemap labels and
+selected outlines, to the search circle. It follows panning, zoom, bearing and pitch;
+controls stay visible and hidden footprints cannot be selected. Filter by overlap
+category, search LandsD names/CSUIDs, select either inventory on the map, and inspect
+directional coverage, IoU, areas and repairs. When both layers overlap, clicking prefers
+LandsD; hiding LandsD allows selection of Overture. Decisions persist in browser storage
+for this release pair and export as JSON. They never write source IDs or mutate the
+inventory. Test decisions belong to an isolated browser context.
 
 Browser checks cover map rendering, category filters, name search, selected
 counterparts, visibility, radius, decision persistence and export. Synthetic geometry
