@@ -177,3 +177,99 @@ hashes. Reproduce the aggregate with:
 bun scripts/buildings/summarise.ts .local/buildings-review/2026-09/benchmark-results.json
 bun scripts/buildings/verify-local.ts .local/buildings-review/2026-09
 ```
+
+### Small-radius sampled-index and cache experiment: 21 October 2026
+
+The authenticated preview Worker supports `d1-cells` and `fgb-cache` alongside the
+original `d1` and `fgb` engines. These remain experimental serving paths, not public
+Buildings APIs. Worker version: `12937865-4f5a-4fa0-a827-7957027d62b5`.
+
+To conserve the write budget, the cell indexes cover **only six test areas**, each
+extending 0.0015 degrees around the points used above. Selected buildings retain all
+their bounding-box cells in a 0.001-degree grid. This is conservative candidate
+selection, followed by the same exact footprint-distance filter as the other engines. A
+query must fit entirely inside one sampled area; otherwise `d1-cells` returns 400 rather
+than silently returning incomplete results.
+
+| Inventory | Selected buildings | Cell entries |
+| --------- | -----------------: | -----------: |
+| LandsD    |                760 |        1,161 |
+| Overture  |                539 |          892 |
+
+Only `benchmarkLandsdBuildingCellSample` and `benchmarkOvertureBuildingCellSample` were
+added. D1 reported **2,057 row writes** for the four creation/population statements,
+including schema overhead; database size increased by **98,304 bytes**. No
+full-inventory cell index was written. Source rows and production remain unchanged. Cell
+lookups still retrieve geometry from the full 546,402-record preview inventories.
+
+The FlatGeobuf transport caches aligned **64 KiB chunks** containing headers, spatial
+index nodes and feature bytes in the Workers Cache API, with a one-hour TTL. Keys
+include the pinned object path and an experiment namespace; these objects must remain
+immutable within a namespace. There is no final-result cache and no D1 write for this
+cache. At most eight missing chunks are fetched concurrently. Cache writes are awaited
+inside the measured request. Cache contents are local to a Cloudflare data centre.
+
+For each location and inventory, a fresh cache namespace measures six phases: first 25 m
+query, identical repeat, pin shifted approximately 10.6 m northeast, expand the original
+pin to 50 m, identical repeat, and shifted 50 m query. All four engines run at each
+phase, rotating engine order. The expansion phase reuses the 25 m cache; it is **not** a
+fresh-cache 50 m measurement.
+
+All **288 requests** completed, with identical result ID sets across all four engines
+for **48 distinct searches**. All Workers ran in **NRT**; D1 remains in **HKG**. The
+following are full-response medians, with p95 in parentheses. Original D1, cell-index D1
+and uncached FlatGeobuf have 18 samples per row; cached repeat/shift results have 12 and
+include any new chunks needed after shifting.
+
+| Inventory | Radius |  Original D1 | Cell-index D1 |  Uncached R2 FGB | Cached FGB repeat/shift |
+| --------- | -----: | -----------: | ------------: | ---------------: | ----------------------: |
+| LandsD    |   25 m | 222 (427) ms |  188 (261) ms |   973 (1,220) ms |            163 (228) ms |
+| LandsD    |   50 m | 222 (304) ms |  188 (321) ms |   996 (1,230) ms |            152 (314) ms |
+| Overture  |   25 m | 188 (219) ms |  168 (214) ms | 1,018 (1,259) ms |            133 (349) ms |
+| Overture  |   50 m | 200 (270) ms |  188 (246) ms | 1,086 (1,297) ms |            143 (364) ms |
+
+Cell-index SQL medians are **0.83–0.99 ms**. Median rows read fall from approximately
+247,000 to **124 / 163** for LandsD (25 / 50 m), and from approximately 142,000 to **100
+/ 123** for Overture. Most end-to-end time is outside SQL execution; these full-response
+figures are not D1 execution times.
+
+First-access cached-FGB 25 m requests have median **1,067 ms LandsD / 1,026 ms
+Overture**. All 24 identical repeats and **22 of 24 shifted-pin searches** need no R2
+reads. Two shifted searches fetch additional chunks. Across cached requests there are
+284 Cache API chunk hits and 64 misses. Cache reuse therefore works across changed
+coordinates, but first access and occasional new chunks remain slower. The six
+per-inventory first-access samples are too few for a strong tail-latency claim, and
+fresh namespaces do not control underlying R2/infrastructure caches.
+
+**Decision supported by this experiment:** D1 with a spatial-cell candidate index is a
+credible nearby-building backend at 25–50 m; FlatGeobuf is not required for that
+capability. Cached FGB is somewhat faster in the median once data is reused, but adds
+cache/locality management and a first-access penalty. Keep FGB as an optional latest
+release/download/map-delivery format. This sampled, sequential run is not a full-Hong
+Kong index or concurrency/load test and does not establish a production SLA.
+
+Reproduction (the generated SQL deliberately fails if the sample tables already exist):
+
+```sh
+bun scripts/buildings/prepare-cells.ts \
+  .local/buildings-review/2026-09/review.sqlite /tmp/building-sample-cells.sql
+bun scripts/buildings/verify-cells.ts \
+  .local/buildings-review/2026-09/review.sqlite /tmp/building-sample-cells.sql
+# Review the printed counts before applying to preview, never production.
+node --env-file=.env --env-file=.env.local node_modules/wrangler/bin/wrangler.js \
+  d1 execute ss-current-db-preview --config apps/building-benchmark/wrangler.jsonc \
+  --remote --file /tmp/building-sample-cells.sql
+bun scripts/buildings/benchmark-small.ts \
+  https://ss-building-benchmark-preview.hypehk.workers.dev \
+  .local/buildings-review/benchmark-secret.json \
+  .local/buildings-review/2026-09/benchmark-small-results.json
+bun scripts/buildings/summarise-small.ts \
+  .local/buildings-review/2026-09/benchmark-small-results.json
+```
+
+Verification: all 48 local bbox searches agree between the sampled index and full
+inventory; the deployed Worker rejects out-of-sample queries (400) and unauthenticated
+requests (401). Five focused tests and the Worker type check pass, including cross-chunk
+byte correctness, cross-request shifted-range reuse and cache-namespace isolation. Raw
+measurements and preview write/count evidence are retained under ignored
+`.local/buildings-review/2026-09/benchmark-small-*` files.

@@ -1,4 +1,6 @@
 import { readFootprints } from './fgb'
+import { searchCells, withinCohort } from './cells'
+import { cachedRanges } from './range-cache'
 import { footprintDistance, parseSearch, searchBounds } from './spatial'
 import type { Footprint } from './spatial'
 import type { Feature } from 'geojson'
@@ -36,14 +38,40 @@ async function handle(request: Request, env: Env): Promise<Response> {
     return Response.json({ error: String(error) }, { status: 400 })
   }
   const { inventory, engine, lng, lat, radius } = query
+  const namespace = url.searchParams.get('cacheRun') ?? 'shared'
+  if (!/^[a-zA-Z0-9-]{1,80}$/.test(namespace))
+    return new Response('Invalid cache namespace', { status: 400 })
   const bounds = searchBounds(lng, lat, radius)
+  if (engine === 'd1-cells' && !withinCohort(bounds))
+    return new Response('Outside sampled spatial-index coverage', { status: 400 })
   const started = performance.now()
   let rangeRequests = 0,
     rangeBytes = 0,
     d1Ms = 0,
     rowsRead = 0
   let candidates: Feature<Footprint>[]
-  if (engine === 'fgb') {
+  const cacheMetrics = {
+    cacheHits: 0,
+    cacheMisses: 0,
+    cacheBytes: 0,
+    rangeRequests: 0,
+    rangeBytes: 0,
+  }
+  if (engine === 'fgb-cache') {
+    candidates = await readFootprints(
+      cachedRanges(
+        env.GEOMETRY,
+        `${env.OBJECT_PREFIX}/${inventory}.fgb`,
+        caches.default,
+        namespace,
+        url.origin,
+        cacheMetrics,
+      ),
+      bounds,
+    )
+    rangeRequests = cacheMetrics.rangeRequests
+    rangeBytes = cacheMetrics.rangeBytes
+  } else if (engine === 'fgb') {
     candidates = await readFootprints(
       {
         async getRange(offset, length) {
@@ -64,11 +92,22 @@ async function handle(request: Request, env: Env): Promise<Response> {
   } else {
     const table =
       inventory === 'landsd' ? 'benchmarkLandsdBuilding' : 'benchmarkOvertureBuilding'
-    const result = await env.DB.prepare(
-      `SELECT id,name,geometry FROM ${table} WHERE minX<=? AND maxX>=? AND minY<=? AND maxY>=? LIMIT 10001`,
-    )
-      .bind(bounds.maxX, bounds.minX, bounds.maxY, bounds.minY)
-      .all<Row>()
+    // Exact cell keys use one JSON binding, with full bbox and footprint filtering after lookup.
+    const statement =
+      engine === 'd1-cells'
+        ? env.DB.prepare(
+            `SELECT id,name,geometry FROM ${table} WHERE id IN (SELECT id FROM ${table}CellSample WHERE cell IN (SELECT value FROM json_each(?))) AND minX<=? AND maxX>=? AND minY<=? AND maxY>=? LIMIT 10001`,
+          ).bind(
+            JSON.stringify(searchCells(bounds)),
+            bounds.maxX,
+            bounds.minX,
+            bounds.maxY,
+            bounds.minY,
+          )
+        : env.DB.prepare(
+            `SELECT id,name,geometry FROM ${table} WHERE minX<=? AND maxX>=? AND minY<=? AND maxY>=? LIMIT 10001`,
+          ).bind(bounds.maxX, bounds.minX, bounds.maxY, bounds.minY)
+    const result = await statement.all<Row>()
     if (result.results.length > 10000)
       throw new Error('Too many candidates; reduce the radius.')
     d1Ms = result.meta.duration
@@ -108,6 +147,9 @@ async function handle(request: Request, env: Env): Promise<Response> {
         matches: features.length,
         rangeRequests,
         rangeBytes,
+        cacheHits: cacheMetrics.cacheHits,
+        cacheMisses: cacheMetrics.cacheMisses,
+        cacheBytes: cacheMetrics.cacheBytes,
         d1Ms,
         rowsRead,
         fetchMs: fetched - started,

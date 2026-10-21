@@ -83,7 +83,13 @@ export function parseSearch(url: URL) {
   const radius = Number(url.searchParams.get('radius') ?? 250)
   if (inventory !== 'landsd' && inventory !== 'overture')
     throw new Error('Choose one inventory: landsd or overture.')
-  if (engine !== 'd1' && engine !== 'fgb') throw new Error('Unknown query engine.')
+  if (
+    engine !== 'd1' &&
+    engine !== 'fgb' &&
+    engine !== 'd1-cells' &&
+    engine !== 'fgb-cache'
+  )
+    throw new Error('Unknown query engine.')
   if (
     !Number.isFinite(lng) ||
     !Number.isFinite(lat) ||
