@@ -105,6 +105,41 @@ test('numeric index and spherical prefilter preserve scoped candidates', async (
     )
     expect(contained.records.map(r => r.address.id)).toEqual(['exact'])
     expect(contained.total).toBe(1)
+
+    // The normalised fallback must retain late matches, skip unrelated locales,
+    // and never count an address twice when its translations cross a page boundary.
+    for (let index = 0; index < 2050; index++)
+      add(`filler-${String(index).padStart(4, '0')}`, '9', 0, 0)
+    sqlite.exec(
+      "UPDATE address2dI18n SET formattedAddress='Other Avenue', streetName='Other Avenue' WHERE addressId LIKE 'filler-%'",
+    )
+    add('zz-late', '29', 179.999, 0)
+    sqlite.exec(
+      "INSERT INTO address2dI18n (scopeId,addressId,locale,formattedAddress,streetName) VALUES ('scope','zz-late','zh-hant','29 Hollywood Road','Hollywood Road')",
+    )
+    const normalised = GeocodingQuerySchema.parse({
+      address: 'Hollywood Rd',
+      limit: '50',
+    })
+    const fallback = await collectAddressCandidates(
+      addressGeocodingCandidates(db, ['release'], normalised, true),
+      normalised,
+    )
+    expect(fallback.records.map(record => record.address.id).sort()).toEqual([
+      'exact',
+      'north',
+      'substring',
+      'suffix',
+      'zz-late',
+    ])
+    expect(fallback.total).toBe(5)
+    const absent = GeocodingQuerySchema.parse({ address: 'lego' })
+    expect(
+      await collectAddressCandidates(
+        addressGeocodingCandidates(db, ['release'], absent, true),
+        absent,
+      ),
+    ).toEqual({ records: [], total: 0 })
   } finally {
     sqlite.close()
   }
