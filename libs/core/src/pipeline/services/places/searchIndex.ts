@@ -4,6 +4,19 @@ import {
   type SearchIndexDefinition,
   type SearchScope,
 } from '../search/incrementalIndex'
+// Keep source text for display and append a punctuation-free key for FTS matching.
+const punctuationSearchSql = (expression: string) => {
+  const punctuation =
+    `!"#$%&'()*+,-./:;<=>?@[\\]^_` +
+    '`' +
+    `{|}~·…“”‘’「」『』（）［］｛｝！？、。，：；＇＂～＿－＋＝＠＃＆％＊／＼｜`
+  const normalized = [...punctuation].reduce(
+    (value, character) => `replace(${value}, '${character.replaceAll("'", "''")}', '')`,
+    `lower(${expression})`,
+  )
+  return `TRIM(COALESCE(${expression}, '')) || char(31) || TRIM(${normalized})`
+}
+
 export const placeSearchIndex: SearchIndexDefinition = {
   label: 'Place',
   resourceType: 'place',
@@ -27,8 +40,8 @@ export const placeSearchIndex: SearchIndexDefinition = {
   s."scopeId" AS "scopeId",
   p."id" AS "placeId",
   pi."locale" AS "locale",
-  TRIM(COALESCE(pi."name", '') || ' ' || COALESCE(pi."nameAlts", '')) AS "nameText",
-  TRIM(COALESCE(pi."brandName", '') || ' ' || COALESCE(pi."brandNameAlts", '')) AS "brandText",
+  ${punctuationSearchSql("COALESCE(pi.\"name\", '') || ' ' || COALESCE(pi.\"nameAlts\", '')")} AS "nameText",
+  ${punctuationSearchSql("COALESCE(pi.\"brandName\", '') || ' ' || COALESCE(pi.\"brandNameAlts\", '')")} AS "brandText",
   TRIM(
     COALESCE(p."basicCategory", '') || ' ' ||
     COALESCE(p."taxonomyPrimary", '') || ' ' ||

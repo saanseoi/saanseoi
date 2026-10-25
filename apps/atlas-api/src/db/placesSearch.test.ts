@@ -26,13 +26,15 @@ test('Place search follows scope promotion and refuses an unindexed snapshot', a
       INSERT INTO placePublicationState(scopeId,snapshotId,status,publicationToken,preparedAt,updatedAt) VALUES ('physical-places','latest','current','token','2026-01-01','2026-01-01');
       CREATE TABLE placeSearchScopes(scopeId TEXT PRIMARY KEY, snapshotId TEXT);
       CREATE TABLE places(scopeId TEXT,id TEXT,resourceReleaseId TEXT);
-      INSERT INTO places VALUES ('physical-places','shop','latest-release');
+      INSERT INTO places VALUES ('physical-places','shop','latest-release'), ('physical-places','punctuated-shop','latest-release');
       INSERT INTO placeSearchScopes VALUES ('hk:overture:places','old');
     `)
     sqlite.exec(createSearchFtsSql(placeSearchIndex))
-    sqlite.exec(
-      "INSERT INTO placeSearchFts(scopeId,placeId,locale,nameText) VALUES ('hk:overture:places','shop','en','Shop')",
-    )
+    sqlite.exec(`
+      INSERT INTO placeSearchFts(scopeId,placeId,locale,nameText) VALUES
+        ('hk:overture:places','shop','en','Shop'),
+        ('hk:overture:places','punctuated-shop','en','M.Art Cafe' || char(31) || 'mart cafe')
+    `)
     await expect(searchPlacesFts(db, lookup)).rejects.toThrow(
       'Place search is not ready',
     )
@@ -47,6 +49,15 @@ test('Place search follows scope promotion and refuses an unindexed snapshot', a
       },
     ])
     const physicalRows = sqlite.query('SELECT rowid,* FROM places').all()
+    expect(await searchPlacesFts(db, { ...lookup, query: 'M.Art' })).toEqual([
+      {
+        placeId: 'punctuated-shop',
+        resourceReleaseId: 'latest-release',
+        locale: 'en',
+        nameText: 'M.Art Cafe',
+        brandText: null,
+      },
+    ])
     const searchRows = sqlite.query('SELECT rowid,* FROM placeSearchFts').all()
     sqlite.exec(
       "UPDATE placePublicationState SET snapshotId='next',publicationToken='next-token'",

@@ -258,6 +258,16 @@ export async function listPlacesByH3Cell(db: CurrentDatabase, lookup: H3Lookup) 
   return { places: rows.slice(0, limit), hasMore: rows.length > limit }
 }
 
+/** Normalize punctuation in place search terms without changing source labels. */
+function normalizePlaceSearchQuery(query: string): string {
+  return query
+    .normalize('NFKC')
+    .toLocaleLowerCase('und')
+    .replace(/[\p{P}\p{S}]+/gu, '')
+    .replace(/\s+/gu, ' ')
+    .trim()
+}
+
 export async function searchPlacesFts(db: CurrentDatabase, lookup: FtsLookup) {
   try {
     if (!(await hasCurrentPlaceSnapshot(db, lookup.snapshotId)))
@@ -276,8 +286,12 @@ export async function searchPlacesFts(db: CurrentDatabase, lookup: FtsLookup) {
         placeId: places.id,
         resourceReleaseId: places.resourceReleaseId,
         locale: placesFts.locale,
-        nameText: placesFts.nameText,
-        brandText: placesFts.brandText,
+        nameText: sql<
+          string | null
+        >`CASE WHEN instr(${placesFts.nameText}, char(31)) > 0 THEN substr(${placesFts.nameText}, 1, instr(${placesFts.nameText}, char(31)) - 1) ELSE ${placesFts.nameText} END`,
+        brandText: sql<
+          string | null
+        >`CASE WHEN instr(${placesFts.brandText}, char(31)) > 0 THEN substr(${placesFts.brandText}, 1, instr(${placesFts.brandText}, char(31)) - 1) ELSE ${placesFts.brandText} END`,
       })
       .from(placesFts)
       .innerJoin(placeSearchScopes, eq(placesFts.scopeId, placeSearchScopes.scopeId))
@@ -295,7 +309,7 @@ export async function searchPlacesFts(db: CurrentDatabase, lookup: FtsLookup) {
         and(
           eq(placeSearchScopes.snapshotId, lookup.snapshotId),
           lookup.locale ? eq(placesFts.locale, lookup.locale) : undefined,
-          placesFtsMatch(lookup.query),
+          placesFtsMatch(normalizePlaceSearchQuery(lookup.query)),
           placeGeographicCondition(),
         ),
       )
