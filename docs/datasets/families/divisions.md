@@ -2359,3 +2359,8 @@ primary snapshot owner; failed audits continue to block publication.
 
 Native-source replay resolves the configured shard binding from the publisher year.
 Pre-annual inputs such as the 2015 RVD release use the historical `BEFORE` shard.
+
+Geometry metadata delivery includes each recipe's content-addressed processing policy
+before the recipe reference. Preparation verifies the retained definition against its
+hash and rejects missing or invalid evidence. Replays preserve existing immutable policy
+records.

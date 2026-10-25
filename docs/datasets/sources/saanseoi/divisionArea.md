@@ -754,3 +754,7 @@ metre-scale drawing errors. The preparation audit retains `hierarchy-spatial-dec
 with division and ancestor IDs, suppressed areas and fractions, or the numerical
 containment tolerance. These entries support review for every prepared edition rather
 than claiming an issue is new without comparing previous evidence.
+
+Remote metadata delivery retains the exact assembly processing policy alongside each
+geometry recipe. The policy content must match its recorded hash before delivery;
+missing or invalid evidence blocks publication.
