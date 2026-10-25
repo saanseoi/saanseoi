@@ -1,7 +1,7 @@
 import { createAddressContent, type AddressContent } from './content.js'
 import { parsePlaceAddress, type PlaceAddressMatcher } from './matcher.js'
 
-export const ADDRESS_PARSER_VERSION = '0.1.0'
+export const ADDRESS_PARSER_VERSION = '0.2.3'
 const floorTypes = {
   floor: 'F',
   ground_floor: 'G',
@@ -75,11 +75,17 @@ export function parseAddressContent(
     } else if (floors.length || foundUnits.length) {
       const floor = floors[0],
         unit = foundUnits[0]
+      // Matcher references retain source prefixes; canonical references exclude the floor type.
+      const floorType = floor ? floorTypes[floor.floorType] : 'X'
+      const rawFloorRef = floor?.floorRef ?? ''
+      const floorRef = !['F', 'X'].includes(floorType) && rawFloorRef.startsWith(floorType)
+        ? rawFloorRef.slice(floorType.length)
+        : rawFloorRef
       units.push({
         locale,
         unit: {
-          floorRef: floor?.floorRef ?? '',
-          floorType: floor ? floorTypes[floor.floorType] : 'X',
+          floorRef,
+          floorType,
           unitRef: unit?.unitRef ?? '',
           unitType: unit ? unitTypes[unit.unitType] : 'X',
           unitPortion: null,

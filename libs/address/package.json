@@ -1,6 +1,6 @@
 {
   "name": "@saanseoi/address",
-  "version": "0.1.0",
+  "version": "0.2.3",
   "description": "Shared SaanSeoi address content, conservative parsing and unit formatting",
   "type": "module",
   "license": "UNLICENSED",

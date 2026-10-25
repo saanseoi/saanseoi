@@ -393,7 +393,7 @@ export function stripAddress3d(value: string) {
     },
   )
   address2dText = address2dText.replace(
-    /\b([BGLUP]?\d*|\d+)\s*\/\s*(?:F|FLOOR)\b\.?(?=\s|,|&|$)/giu,
+    /\b(UG|LG|[BGMPCRLU]?\d*|\d+)\s*\/\s*(?:F|FLOOR)\b\.?(?=\s|,|&|$)/giu,
     (sourceText, floorRef: string) => {
       address3dParts.push({
         floorExpression: sourceText.trim(),
@@ -468,6 +468,9 @@ function englishFloorReferenceType(value: string) {
   if (reference === 'UG') return 'upper_ground_floor' as const
   if (reference === 'LG') return 'lower_ground_floor' as const
   if (reference.startsWith('B')) return 'basement' as const
+  if (reference === 'M') return 'mezzanine' as const
+  if (reference === 'C') return 'concourse' as const
+  if (reference === 'R') return 'roof' as const
   if (reference.startsWith('P')) return 'podium' as const
   return 'floor' as const
 }

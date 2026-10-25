@@ -24,3 +24,20 @@ test('ambiguous units in any locale block unit selection for every locale', () =
   expect(parsed.content.unit).toBeNull()
   expect(parsed.content.i18n.en.formattedAddress).toBe(source.en)
 })
+
+for (const [expression, floorType, floorRef] of [
+  ['G/F', 'G', ''], ['UG/F', 'UG', ''], ['LG/F', 'LG', ''],
+  ['B/F', 'B', ''], ['B2/F', 'B', '2'], ['P2/F', 'P', '2'],
+  ['M/F', 'M', ''], ['12/F', 'F', '12'], ['地下', 'G', ''],
+]) {
+  test(`canonical floor reference excludes type for ${expression}`, () => {
+    const parsed = parseAddressContent({ en: expression! })
+    expect(parsed.content.unit).toMatchObject({ floorType, floorRef })
+    expect(parsed.content.unitI18n.en?.floorExpression).toBe(expression)
+  })
+}
+
+test('ground floor evidence agrees across languages', () => {
+  expect(parseAddressContent({ en: 'G/F', 'zh-hant': '地下' }).content.unit)
+    .toMatchObject({ floorType: 'G', floorRef: '' })
+})
