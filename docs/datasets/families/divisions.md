@@ -2348,3 +2348,6 @@ still requires the validated audit.
 Remote geometry preparation refreshes the acknowledged metadata mirror after source
 registration and before opening its disposable preparation copy. Delivery checkpoints
 therefore reference a registered release in both the preparation and shared mirrors.
+
+Full and native-source remote mirrors retain Protomaps island features and RVD areas
+alongside canonical Division inputs, including historical and annual source shards.

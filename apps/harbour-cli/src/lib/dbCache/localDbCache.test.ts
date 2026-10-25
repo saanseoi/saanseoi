@@ -138,9 +138,9 @@ test('uses the bounded family profiles for remote mirrors', () => {
     localDatabaseId: 'acceptance-local-database',
   }))
 
-  expect(countRemoteCacheWorkUnits(targets)).toBe(160)
+  expect(countRemoteCacheWorkUnits(targets)).toBe(166)
   expect(countRemoteCacheWorkUnits(targets, 'division')).toBe(38)
-  expect(countRemoteCacheWorkUnits(targets, 'address')).toBe(115)
+  expect(countRemoteCacheWorkUnits(targets, 'address')).toBe(121)
   expect(countRemoteCacheWorkUnits(targets, 'places')).toBe(69)
   expect(countRemoteCacheWorkUnits(targets, 'statistics')).toBe(52)
   expect(resolveCacheTablesForBinding('DB_CURRENT', 'divisionGeometry')).toEqual([
@@ -449,4 +449,15 @@ INSERT INTO snapshots (id, snapshotLineageId, code, cohortKey, status, createdAt
     validTo: null,
   })
   verify.close()
+})
+
+// Source-only curated inputs need publisher rows in both supported planning profiles.
+test('mirrors native Division assembly inputs across historical and annual shards', () => {
+  for (const binding of ['DB_SOURCE_HK_BEFORE', 'DB_SOURCE_HK_2026']) {
+    for (const profile of [undefined, 'nativeSource'] as const) {
+      const tables = resolveCacheTablesForBinding(binding, profile)
+      expect(tables).toContain('protomapsIslandFeatures')
+      expect(tables).toContain('hkgovRvdAreas')
+    }
+  }
 })
