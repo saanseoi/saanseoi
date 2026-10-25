@@ -144,7 +144,9 @@
     "release": "turbo run build && changeset publish",
     "cf-typegen": "bun run --workspaces --if-present cf-typegen",
     "review:divisions": "bun run --cwd ./apps/harbour-app dev --open /divisions/",
-    "dev:harbour-app": "bun run --cwd ./apps/harbour-app dev"
+    "dev:harbour-app": "bun run --cwd ./apps/harbour-app dev",
+    "dev:exports": "bun run --cwd ./apps/release-exports dev",
+    "exports:seed:local": "bun scripts/exports/seed-local.ts"
   },
   "dependencies": {
     "@inlang/paraglide-js": "^2.29.1",

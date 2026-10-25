@@ -1,0 +1,22 @@
+{
+  "name": "release-exports",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "tsc --noEmit",
+    "build": "wrangler deploy --dry-run --env preview",
+    "test": "bun test *.test.ts",
+    "dev": "bun dev.ts",
+    "cf-typegen": "wrangler types --env preview --env-interface CloudflareBindings"
+  },
+  "dependencies": {
+    "@repo/core": "workspace:*",
+    "hono": "^4.13.13",
+    "@repo/db": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/bun": "1.4.3",
+    "typescript": "^6.0.3",
+    "wrangler": "^4.151.3"
+  }
+}

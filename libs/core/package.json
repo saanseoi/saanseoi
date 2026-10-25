@@ -69,7 +69,8 @@
     "./db/metaRegistry": "./src/lib/db/metaRegistry.ts",
     "./sourceAssets": "./src/lib/services/sourceAssets.ts",
     "./sourceAssetTransfer": "./src/lib/services/sourceAssetTransfer.ts",
-    "./db/apiInventory": "./src/lib/db/apiInventory.ts"
+    "./db/apiInventory": "./src/lib/db/apiInventory.ts",
+    "./exports/*": "./src/exports/*.ts"
   },
   "dependencies": {
     "@noble/hashes": "2.4.0",

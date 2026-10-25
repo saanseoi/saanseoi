@@ -272,6 +272,19 @@
         "wrangler": "^4.151.3",
       },
     },
+    "apps/release-exports": {
+      "name": "release-exports",
+      "dependencies": {
+        "@repo/core": "workspace:*",
+        "@repo/db": "workspace:*",
+        "hono": "^4.13.13",
+      },
+      "devDependencies": {
+        "@types/bun": "1.4.3",
+        "typescript": "^6.0.3",
+        "wrangler": "^4.151.3",
+      },
+    },
     "apps/telegram-discord-bridge": {
       "name": "telegram-discord-bridge",
       "devDependencies": {
@@ -2208,6 +2221,8 @@
     "rehype-sanitize": ["rehype-sanitize@6.0.0", "", { "dependencies": { "@types/hast": "^3.0.0", "hast-util-sanitize": "^5.0.0" } }, "sha512-CsnhKNsyI8Tub6L4sm5ZFsme4puGfc6pYylvXo1AeqaGbjOYyzNv3qZPwvs0oMJ39eryyeOdmxwUIo94IpEhqg=="],
 
     "rehype-stringify": ["rehype-stringify@10.0.1", "", { "dependencies": { "@types/hast": "^3.0.0", "hast-util-to-html": "^9.0.0", "unified": "^11.0.0" } }, "sha512-k9ecfXHmIPuFVI61B9DeLPN0qFHfawM6RsuX48hoqlaKSF61RskNjSm1lI8PhBEM0MRdLxVVm4WmTqJQccH9mA=="],
+
+    "release-exports": ["release-exports@workspace:apps/release-exports"],
 
     "remark-gfm": ["remark-gfm@4.0.1", "", { "dependencies": { "@types/mdast": "^4.0.0", "mdast-util-gfm": "^3.0.0", "micromark-extension-gfm": "^3.0.0", "remark-parse": "^11.0.0", "remark-stringify": "^11.0.0", "unified": "^11.0.0" } }, "sha512-1quofZ2RQ9EWdeN34S79+KExV1764+wCUGop5CPL1WGdD0ocPpu91lzPGbwWMECpEpd42kJGQwzRfyov9j4yNg=="],
 

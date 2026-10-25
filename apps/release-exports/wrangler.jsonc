@@ -1,0 +1,176 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "ss-release-exports",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-23",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": false,
+  "preview_urls": false,
+  "limits": {
+    "cpu_ms": 300000
+  },
+  "env": {
+    "production": {
+      "name": "ss-release-exports-prod",
+      "routes": [
+        {
+          "pattern": "api.saanseoi.hk/buildings/v0.1/exports/*",
+          "zone_name": "saanseoi.hk"
+        },
+        {
+          "pattern": "api.saanseoi.hk/streets/v0.1/exports/*",
+          "zone_name": "saanseoi.hk"
+        },
+        {
+          "pattern": "api.saanseoi.hk/divisions/v0.2/exports/*",
+          "zone_name": "saanseoi.hk"
+        },
+        {
+          "pattern": "api.saanseoi.hk/divisions/v1/exports/*",
+          "zone_name": "saanseoi.hk"
+        }
+      ],
+      "r2_buckets": [
+        {
+          "binding": "R2_ASSETS",
+          "bucket_name": "ss-assets-prod"
+        }
+      ],
+      "d1_databases": [
+        {
+          "binding": "DB_META",
+          "database_name": "ss-meta-db-prod",
+          "database_id": "cf03b2ff-b5ee-4265-899f-6916ed8b6c2c",
+          "migrations_dir": "../../libs/db/migrations/meta",
+          "migrations_pattern": "../../libs/db/migrations/meta/*/migration.sql"
+        },
+        {
+          "binding": "DB_HISTORY_HK_BEFORE",
+          "database_name": "ss-history-hk-before-db-prod",
+          "migrations_dir": "../../libs/db/migrations/history",
+          "migrations_pattern": "../../libs/db/migrations/history/*/migration.sql",
+          "database_id": "94f74b90-42c5-4c2d-98da-f0eae188d836"
+        },
+        {
+          "binding": "DB_HISTORY_HK_2025",
+          "database_name": "ss-history-hk-2025-db-prod",
+          "database_id": "09c217e2-0e04-4ce5-a197-b4210bcb1dea",
+          "migrations_dir": "../../libs/db/migrations/history",
+          "migrations_pattern": "../../libs/db/migrations/history/*/migration.sql"
+        },
+        {
+          "binding": "DB_HISTORY_HK_2026",
+          "database_name": "ss-history-hk-2026-db-prod",
+          "database_id": "f85a2708-a0aa-4549-8c61-e2289d3694cd",
+          "migrations_dir": "../../libs/db/migrations/history",
+          "migrations_pattern": "../../libs/db/migrations/history/*/migration.sql"
+        }
+      ],
+      "vars": {
+        "ALLOW_EXPORT_MIRRORS": "false"
+      }
+    },
+    "preview": {
+      "name": "ss-release-exports-preview",
+      "routes": [
+        {
+          "pattern": "preview.api.saanseoi.hk/buildings/v0.1/exports/*",
+          "zone_name": "saanseoi.hk"
+        },
+        {
+          "pattern": "preview.api.saanseoi.hk/streets/v0.1/exports/*",
+          "zone_name": "saanseoi.hk"
+        },
+        {
+          "pattern": "preview.api.saanseoi.hk/divisions/v0.2/exports/*",
+          "zone_name": "saanseoi.hk"
+        },
+        {
+          "pattern": "preview.api.saanseoi.hk/divisions/v1/exports/*",
+          "zone_name": "saanseoi.hk"
+        }
+      ],
+      "r2_buckets": [
+        {
+          "binding": "R2_ASSETS",
+          "bucket_name": "ss-assets-preview"
+        }
+      ],
+      "d1_databases": [
+        {
+          "binding": "DB_META",
+          "database_name": "ss-meta-db-preview",
+          "database_id": "d37ea879-848d-4548-a565-0d86b4bc3d43",
+          "migrations_dir": "../../libs/db/migrations/meta",
+          "migrations_pattern": "../../libs/db/migrations/meta/*/migration.sql"
+        },
+        {
+          "binding": "DB_HISTORY_HK_BEFORE",
+          "database_name": "ss-history-hk-before-db-preview",
+          "migrations_dir": "../../libs/db/migrations/history",
+          "migrations_pattern": "../../libs/db/migrations/history/*/migration.sql",
+          "database_id": "aa2d7228-c2dd-413b-8b23-d3e92f2b5b9a"
+        },
+        {
+          "binding": "DB_HISTORY_HK_2025",
+          "database_name": "ss-history-hk-2025-db-preview",
+          "database_id": "9566cfa9-2af6-473c-a74b-c7f7c6a757a9",
+          "migrations_dir": "../../libs/db/migrations/history",
+          "migrations_pattern": "../../libs/db/migrations/history/*/migration.sql"
+        },
+        {
+          "binding": "DB_HISTORY_HK_2026",
+          "database_name": "ss-history-hk-2026-db-preview",
+          "database_id": "b76baf00-7138-44b0-bd24-e99f3aea4249",
+          "migrations_dir": "../../libs/db/migrations/history",
+          "migrations_pattern": "../../libs/db/migrations/history/*/migration.sql"
+        }
+      ],
+      "vars": {
+        "ALLOW_EXPORT_MIRRORS": "true"
+      }
+    }
+  },
+  "r2_buckets": [
+    {
+      "binding": "R2_ASSETS",
+      "bucket_name": "ss-assets-preview"
+    }
+  ],
+  "d1_databases": [
+    {
+      "binding": "DB_META",
+      "database_name": "ss-meta-db-preview",
+      "database_id": "d37ea879-848d-4548-a565-0d86b4bc3d43",
+      "migrations_dir": "../../libs/db/migrations/meta",
+      "migrations_pattern": "../../libs/db/migrations/meta/*/migration.sql"
+    },
+    {
+      "binding": "DB_HISTORY_HK_BEFORE",
+      "database_name": "ss-history-hk-before-db-preview",
+      "migrations_dir": "../../libs/db/migrations/history",
+      "migrations_pattern": "../../libs/db/migrations/history/*/migration.sql",
+      "database_id": "aa2d7228-c2dd-413b-8b23-d3e92f2b5b9a"
+    },
+    {
+      "binding": "DB_HISTORY_HK_2025",
+      "database_name": "ss-history-hk-2025-db-preview",
+      "database_id": "9566cfa9-2af6-473c-a74b-c7f7c6a757a9",
+      "migrations_dir": "../../libs/db/migrations/history",
+      "migrations_pattern": "../../libs/db/migrations/history/*/migration.sql"
+    },
+    {
+      "binding": "DB_HISTORY_HK_2026",
+      "database_name": "ss-history-hk-2026-db-preview",
+      "database_id": "b76baf00-7138-44b0-bd24-e99f3aea4249",
+      "migrations_dir": "../../libs/db/migrations/history",
+      "migrations_pattern": "../../libs/db/migrations/history/*/migration.sql"
+    }
+  ],
+  "vars": {
+    "ALLOW_EXPORT_MIRRORS": "true"
+  },
+  "observability": {
+    "enabled": true
+  }
+}
