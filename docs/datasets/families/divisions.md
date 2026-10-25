@@ -2351,3 +2351,8 @@ therefore reference a registered release in both the preparation and shared mirr
 
 Full and native-source remote mirrors retain Protomaps island features and RVD areas
 alongside canonical Division inputs, including historical and annual source shards.
+
+Harbour publishes Protomaps island and RVD area intakes as source-only releases after
+verified ingestion. These inputs have no canonical snapshots or independent API
+composition membership. Enrichment membership in a curated snapshot does not make them a
+primary snapshot owner; failed audits continue to block publication.

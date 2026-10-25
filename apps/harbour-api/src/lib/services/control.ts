@@ -166,6 +166,55 @@ export async function handlePublishDataset(
       throw new ControlRequestError(
         'Release publication requires a verified retained processing result with a completed audit attempt.',
       )
+    // Source-only curated inputs publish their verified intake without API snapshots.
+    const sourceOnlyDivisionInput =
+      (dataset.datasetCode === 'ds-hk-protomaps-island' &&
+        dataset.source === 'protomaps' &&
+        datasetType === 'divisionArea') ||
+      (dataset.datasetCode === 'ds-hk-hkgov-rvd-division' &&
+        dataset.source === 'hkgov-rvd' &&
+        datasetType === 'division')
+    if (sourceOnlyDivisionInput) {
+      // Enrichment memberships belong to the curated output, not this source intake.
+      const ownedSnapshot = await db
+        .select({ snapshotId: metaSnapshotResourceReleases.snapshotId })
+        .from(metaSnapshotResourceReleases)
+        .where(
+          and(
+            eq(
+              metaSnapshotResourceReleases.resourceReleaseId,
+              dataset.resourceReleaseId,
+            ),
+            eq(metaSnapshotResourceReleases.role, 'primary'),
+          ),
+        )
+        .limit(1)
+        .get()
+      if (
+        ownedSnapshot ||
+        !relevantAudits.some(
+          audit =>
+            audit.stage === 'ingestion' &&
+            audit.ownerId === dataset.resourceReleaseId &&
+            audit.status === 'completed',
+        )
+      )
+        throw new ControlRequestError(
+          'Source-only Division inputs require completed ingestion evidence and no canonical snapshots.',
+        )
+      if (!request.deferSourcePublish)
+        await updateDatasetStatus(db, dataset.resourceReleaseId, 'current')
+      return {
+        datasetId: dataset.releaseCode,
+        releaseCode: dataset.releaseCode,
+        resourceReleaseId: dataset.resourceReleaseId,
+        status: request.deferSourcePublish ? 'processing' : 'current',
+        phase: null,
+        metadataDelta: publishMetadataDelta(
+          request.deferSourcePublish ? null : dataset.resourceReleaseId,
+        ),
+      }
+    }
     const datasetVariant =
       materialisedSnapshots.find(snapshot => !snapshot.variant.endsWith(':simplified'))
         ?.variant ??
