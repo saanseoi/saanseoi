@@ -2337,3 +2337,10 @@ allows numerical boundary differences within `1e-9` degrees without changing geo
 Preparation retains each suppression and numerical containment acceptance in the
 `hierarchy-spatial-decisions` audit. See the
 [spatial hierarchy tolerances](../sources/saanseoi/divisionArea.md#spatial-hierarchy-tolerances).
+
+Division assembly audits are retained during SQL preparation and registered only after
+their draft snapshot and source membership have reached the delivery target. The sealed
+Division plan retains the audit object reference alongside completion counts, so
+recovery registers the original evidence without regenerating it from a partially
+delivered state. Geometry assembly follows the same registration order; publication
+still requires the validated audit.

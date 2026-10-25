@@ -1,3 +1,4 @@
+import type { ObjectRef } from '@repo/core/provenance'
 import { retainedDivisionScopeId } from '@repo/core/pipeline/services/publication/scope'
 import { readDivisionBaseline } from './readDivisionBaseline'
 import { curatedDivisionPolicy } from '@repo/core/pipeline/services/divisions/curatedDivisionPolicy'
@@ -390,6 +391,7 @@ export async function processLocalDivisionSqlUpload(
         label: formatLocalSetupProgressLabel('current state', 8, setupStepCount),
       })
     }
+    let assemblyAuditRef: ObjectRef | undefined
     let sqlArtefactCount = 0
     let completionCounts: Record<string, number> = {}
     let importProgressClient: HarbourClient = harbourClient
@@ -452,7 +454,11 @@ export async function processLocalDivisionSqlUpload(
         publicationTables: ['divisionPublicationState'],
         nativeLocal: true,
         inputs: deliveryInputs,
-        captureOutputs: () => ({ sqlArtefactCount, ...completionCounts }),
+        captureOutputs: () => ({
+          sqlArtefactCount,
+          ...completionCounts,
+          assemblyAuditRef,
+        }),
         validateOutputs: readDivisionDeliveryOutputs,
         onProgress: (completed, total) =>
           progress.message(`Division SQL delivery: ${completed}/${total} batches`),
@@ -763,39 +769,8 @@ export async function processLocalDivisionSqlUpload(
             [formatDurationMs(Date.now() - provenanceRetainStartedAt)],
           ),
         )
-        const provenanceDeliverStartedAt = Date.now()
-        progress.beginPhase(
-          formatRunningPhaseLabel(
-            colorTeal('Deliver'),
-            colorRed('processing provenance'),
-          ),
-          {},
-        )
-        let deliveredObjects = 0
-        await deliverProcessingResult(
-          target,
-          bucket,
-          audit.ref,
-          (_message, retainedObjects) => {
-            deliveredObjects = retainedObjects
-            progress.update(retainedObjects, {
-              label: `${formatRunningPhaseLabel(
-                colorTeal('Deliver'),
-                colorRed('processing provenance'),
-              )} ${colorGrey(`(${formatCount(retainedObjects)} objects)`)}`,
-            })
-          },
-        )
-        progress.complete(
-          appendPhaseDetails(
-            formatCompletedPhaseLabel(
-              colorTeal('Deliver'),
-              colorRed('processing provenance'),
-              deliveredObjects,
-            ),
-            [formatDurationMs(Date.now() - provenanceDeliverStartedAt)],
-          ),
-        )
+        // Retain the reference in the sealed plan; its draft snapshot must arrive first.
+        assemblyAuditRef = audit.ref
 
         const metaFile = await runLocalStreamingPhase(
           progress,
@@ -1004,6 +979,38 @@ export async function processLocalDivisionSqlUpload(
 
     const retained = readDivisionDeliveryOutputs(deliveryOutputs)
     sqlArtefactCount = retained.sqlArtefactCount
+
+    // Register assembly evidence only after the draft and its membership are delivered.
+    const provenanceDeliverStartedAt = Date.now()
+    progress.beginPhase(
+      formatRunningPhaseLabel(colorTeal('Deliver'), colorRed('processing provenance')),
+      {},
+    )
+    let deliveredObjects = 0
+    await deliverProcessingResult(
+      target,
+      bucket,
+      retained.assemblyAuditRef,
+      (_message, retainedObjects) => {
+        deliveredObjects = retainedObjects
+        progress.update(retainedObjects, {
+          label: `${formatRunningPhaseLabel(
+            colorTeal('Deliver'),
+            colorRed('processing provenance'),
+          )} ${colorGrey(`(${formatCount(retainedObjects)} objects)`)}`,
+        })
+      },
+    )
+    progress.complete(
+      appendPhaseDetails(
+        formatCompletedPhaseLabel(
+          colorTeal('Deliver'),
+          colorRed('processing provenance'),
+          deliveredObjects,
+        ),
+        [formatDurationMs(Date.now() - provenanceDeliverStartedAt)],
+      ),
+    )
 
     await harbourClient.stageCompleted(
       resourceReleaseId,
