@@ -2356,3 +2356,6 @@ Harbour publishes Protomaps island and RVD area intakes as source-only releases 
 verified ingestion. These inputs have no canonical snapshots or independent API
 composition membership. Enrichment membership in a curated snapshot does not make them a
 primary snapshot owner; failed audits continue to block publication.
+
+Native-source replay resolves the configured shard binding from the publisher year.
+Pre-annual inputs such as the 2015 RVD release use the historical `BEFORE` shard.

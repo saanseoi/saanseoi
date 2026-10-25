@@ -45,6 +45,7 @@ import {
   invalidateRemoteDbCache,
   refreshRemoteMetaCache,
   resolveLocalAddressDbContext,
+  resolveShardBindingName,
   type LocalAddressDbContext,
 } from '../../dbCache/localDbCache.ts'
 import { createHarbourControlClient } from '../../api/harbourControl.ts'
@@ -796,12 +797,22 @@ export function assertNativeSourceArchiveMatchesRelease(
   }
 }
 
-function resolveNativeRemoteReplay(
+/**
+ * Resolve native SOURCE delivery through the configured historical/annual binding.
+ * @param target Explicit remote publication environment.
+ * @param context Acknowledged source-shard bindings.
+ * @param shardYear Publisher release year, including years stored in BEFORE.
+ * @returns Authenticated SQL target for the selected source shard.
+ */
+export function resolveNativeRemoteReplay(
   target: UploadTarget,
   context: Pick<LocalAddressDbContext, 'sourceTargets'>,
   shardYear: string,
 ) {
-  const sourceTarget = context.sourceTargets.find(item => item.year === shardYear)
+  const bindingName = resolveShardBindingName('source', 'HK', shardYear)
+  const sourceTarget = context.sourceTargets.find(
+    item => item.bindingName === bindingName,
+  )
   const remoteTarget: SqlImportTargetContext = {
     databaseId: sourceTarget?.databaseId ?? null,
     name: 'source',
