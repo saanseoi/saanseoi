@@ -2344,3 +2344,7 @@ Division plan retains the audit object reference alongside completion counts, so
 recovery registers the original evidence without regenerating it from a partially
 delivered state. Geometry assembly follows the same registration order; publication
 still requires the validated audit.
+
+Remote geometry preparation refreshes the acknowledged metadata mirror after source
+registration and before opening its disposable preparation copy. Delivery checkpoints
+therefore reference a registered release in both the preparation and shared mirrors.

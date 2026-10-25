@@ -175,6 +175,15 @@ export async function processLocalDivisionGeometrySqlUpload(
   const dbCacheStartedAt = Date.now()
   let reusedDbCache = false
   try {
+    // A registered release must exist in the shared baseline before replay checkpoints.
+    if (target.remote) {
+      const environment = target.environment === 'production' ? 'production' : 'preview'
+      await refreshRemoteMetaCache(
+        environment,
+        resolveRemoteCacheDir(environment),
+        resourceReleaseId,
+      )
+    }
     dbContext = await resolveGeometryPreparationContext(
       target,
       previewPlan.regionCode,
