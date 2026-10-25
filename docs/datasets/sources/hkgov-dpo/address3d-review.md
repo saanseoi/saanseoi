@@ -554,3 +554,12 @@ generated migration files; generation does not apply them. These schema artefact
 a fresh reset, not preservation of an existing per-unit dataset. Do not publish until
 remaining source ownership gates have been resolved and a full release
 preparation/import succeeds.
+
+## Ground-floor canonical references
+
+Canonical ground-floor units use `floorType: G` and an empty `floorRef`. Publisher floor
+tokens remain inputs to stable unit identity, and bilingual floor expressions remain
+source evidence. Correcting the canonical reference recomputes collection content and
+historical version hashes in place, without changing unit IDs, snapshot IDs or dataset
+revisions. The shared free-text parser applies the same separation between named floor
+types and their references.

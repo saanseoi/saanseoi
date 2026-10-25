@@ -50,7 +50,7 @@ test('pairs locales by floor/unit, preserves tokens and hashes independently of 
   expect(left).toEqual(right)
   expect(left.unitCount).toBe(4)
   expect(new Set(left.units.map(unit => unit.id)).size).toBe(4)
-  expect(left.units.find(unit => unit.floorRef === 'G')?.floorType).toBe('G')
+  expect(left.units.find(unit => unit.floorType === 'G')?.floorRef).toBe('')
   expect(left.units.find(unit => unit.floorRef === 'L1')?.floorRef).toBe('L1')
   expect(left.units.filter(unit => unit.unitRef === '01')).toHaveLength(2)
   expect(

@@ -73,7 +73,8 @@ export function membershipCollection(
     unresolvedSectionIds: [...record.unresolvedSectionIds].sort(),
     units: record.units.map(unit => [
       unit.id,
-      unit.floorRef,
+      // Membership compares publisher tokens, while canonical named-floor references are empty.
+      unit.floorType === 'G' ? 'G' : unit.floorRef,
       unit.unitRef,
       [
         record.locales.en?.[unit.id]?.floorExpression,

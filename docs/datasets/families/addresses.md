@@ -1967,3 +1967,12 @@ re-exports the shared implementation. Canonical database IDs, publication envelo
 API access remain outside the library. HYPE can retain local authored content while
 matching the canonical Place ID; upstream submission and reconciliation are separate
 future work. No granularity repair command is required.
+
+## Ground-floor canonical references
+
+Canonical ground-floor units use `floorType: G` and an empty `floorRef`. Publisher floor
+tokens remain inputs to stable unit identity, and bilingual floor expressions remain
+source evidence. Correcting the canonical reference recomputes collection content and
+historical version hashes in place, without changing unit IDs, snapshot IDs or dataset
+revisions. The shared free-text parser applies the same separation between named floor
+types and their references.
