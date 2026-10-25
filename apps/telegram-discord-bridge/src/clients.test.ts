@@ -195,7 +195,12 @@ async function withFetchMock<T>(
   const originalFetch = globalThis.fetch
   Object.defineProperty(globalThis, 'fetch', {
     configurable: true,
-    value: implementation,
+    // Model Workers runtime receiver validation, which Bun does not enforce.
+    value: async function (this: unknown, ...args: Parameters<typeof fetch>) {
+      if (this !== undefined && this !== globalThis)
+        throw new TypeError('Illegal invocation')
+      return implementation(args[0], args[1])
+    },
   })
   try {
     return await run()
