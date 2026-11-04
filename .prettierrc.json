@@ -1,4 +1,13 @@
 {
   "printWidth": 88,
-  "proseWrap": "always"
+  "proseWrap": "always",
+  "useTabs": false,
+  "tabWidth": 2,
+  "endOfLine": "lf",
+  "singleQuote": true,
+  "semi": false,
+  "arrowParens": "avoid",
+  "bracketSpacing": true,
+  "jsxSingleQuote": false,
+  "trailingComma": "all"
 }
