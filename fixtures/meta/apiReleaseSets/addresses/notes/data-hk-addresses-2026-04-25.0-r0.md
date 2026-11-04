@@ -1,14 +1,14 @@
 ---
-createdAt: "2026-09-09T00:26:38.567Z"
-updatedAt: "2026-09-09T00:26:38.567Z"
-apiFamily: "addresses"
-apiVersion: "api-addresses-v0.1"
-apiReleaseSet: "data-hk-addresses-2026-04-25.0"
-revision: "0"
-regionCode: "hk"
-cohortKey: "2026-04-25.0"
-publisherReleaseDate: "2026-04-25"
-domainCode: "saanseoi"
+createdAt: '2026-09-09T00:26:38.567Z'
+updatedAt: '2026-09-09T00:26:38.567Z'
+apiFamily: 'addresses'
+apiVersion: 'api-addresses-v0.1'
+apiReleaseSet: 'data-hk-addresses-2026-04-25.0'
+revision: '0'
+regionCode: 'hk'
+cohortKey: '2026-04-25.0'
+publisherReleaseDate: '2026-04-25'
+domainCode: 'saanseoi'
 ---
 
 # EN

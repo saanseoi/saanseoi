@@ -1,16 +1,16 @@
 ---
-createdAt: "2026-07-14T05:04:52.993Z"
-updatedAt: "2026-08-20T00:00:00.000Z"
-dataset: "ds-hk-overture-place"
-release: "dr-hk-overture-place-2026-02-18.0"
-regionCode: "hk"
-source: "overture"
-sourceVersion: "2026-02-18.0"
-releaseVersion: "2026-02-18.0"
-sourceSchemaVersion: "1.16.0"
-type: "place"
-cohortKey: "2026-02-18.0"
-releaseNotesUrl: "https://docs.overturemaps.org/blog/2026/02/18/release-notes/#places"
+createdAt: '2026-07-14T05:04:52.993Z'
+updatedAt: '2026-08-20T00:00:00.000Z'
+dataset: 'ds-hk-overture-place'
+release: 'dr-hk-overture-place-2026-02-18.0'
+regionCode: 'hk'
+source: 'overture'
+sourceVersion: '2026-02-18.0'
+releaseVersion: '2026-02-18.0'
+sourceSchemaVersion: '1.16.0'
+type: 'place'
+cohortKey: '2026-02-18.0'
+releaseNotesUrl: 'https://docs.overturemaps.org/blog/2026/02/18/release-notes/#places'
 ---
 
 # EN

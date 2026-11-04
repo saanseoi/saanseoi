@@ -1,13 +1,13 @@
 ---
-createdAt: "2026-08-20T00:00:00.000Z"
-updatedAt: "2026-08-25T00:00:00.000Z"
-apiFamily: "divisions"
-apiVersion: "api-divisions-v0.2"
-apiReleaseSet: "data-hk-divisions-2011--hkgov-pland-new-town"
-revision: "0"
-regionCode: "hk"
-cohortKey: "2011"
-domainCode: "hkgov-pland-new-town"
+createdAt: '2026-08-20T00:00:00.000Z'
+updatedAt: '2026-08-25T00:00:00.000Z'
+apiFamily: 'divisions'
+apiVersion: 'api-divisions-v0.2'
+apiReleaseSet: 'data-hk-divisions-2011--hkgov-pland-new-town'
+revision: '0'
+regionCode: 'hk'
+cohortKey: '2011'
+domainCode: 'hkgov-pland-new-town'
 ---
 
 # EN

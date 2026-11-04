@@ -1,12 +1,12 @@
 ---
-createdAt: "2026-08-20T00:00:00.000Z"
-updatedAt: "2026-08-20T00:00:00.000Z"
-apiFamily: "divisions"
-apiVersion: "api-divisions-v0.1"
-apiReleaseSet: "data-hk-divisions-2025-12-17.0"
-regionCode: "hk"
-cohortKey: "2025-12-17.0"
-domainCode: "geographic"
+createdAt: '2026-08-20T00:00:00.000Z'
+updatedAt: '2026-08-20T00:00:00.000Z'
+apiFamily: 'divisions'
+apiVersion: 'api-divisions-v0.1'
+apiReleaseSet: 'data-hk-divisions-2025-12-17.0'
+regionCode: 'hk'
+cohortKey: '2025-12-17.0'
+domainCode: 'geographic'
 ---
 
 # EN

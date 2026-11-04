@@ -1,21 +1,21 @@
 ---
-createdAt: "2026-07-27T00:00:00.000Z"
-updatedAt: "2026-10-18T00:00:00.000Z"
-dataset: "ds-hk-hkgov-censtatd-land-area-population-density-district"
-release: "dr-hk-hkgov-censtatd-land-area-population-density-district-2024"
-regionCode: "hk"
-source: "hkgov-censtatd"
-sourceVersion: "2024"
-publicationDate: "2025-03-31"
-publicationDateSource: "https://portal.csdi.gov.hk/geoportal/rest/metadata/item/censtatd_rcd_1635934215448_25451/xml"
+createdAt: '2026-07-27T00:00:00.000Z'
+updatedAt: '2026-10-18T00:00:00.000Z'
+dataset: 'ds-hk-hkgov-censtatd-land-area-population-density-district'
+release: 'dr-hk-hkgov-censtatd-land-area-population-density-district-2024'
+regionCode: 'hk'
+source: 'hkgov-censtatd'
+sourceVersion: '2024'
+publicationDate: '2025-03-31'
+publicationDateSource: 'https://portal.csdi.gov.hk/geoportal/rest/metadata/item/censtatd_rcd_1635934215448_25451/xml'
 publicationDateEstimated: true
-publicationDatePrecision: "month"
-sourceSchemaVersion: "1.0"
-releaseVersion: "2024.0"
-type: "divisionStatistic"
-cohortKey: "2024"
-releaseNotesUrl: "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635934215448_25451"
-measureCuration: "fixtures/meta/curations/hkgov-censtatd-statistics-measures/land-area-population-density-district.json"
+publicationDatePrecision: 'month'
+sourceSchemaVersion: '1.0'
+releaseVersion: '2024.0'
+type: 'divisionStatistic'
+cohortKey: '2024'
+releaseNotesUrl: 'https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635934215448_25451'
+measureCuration: 'fixtures/meta/curations/hkgov-censtatd-statistics-measures/land-area-population-density-district.json'
 ---
 
 # EN

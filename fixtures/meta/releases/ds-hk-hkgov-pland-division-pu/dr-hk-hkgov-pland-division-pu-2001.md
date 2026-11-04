@@ -1,18 +1,18 @@
 ---
-createdAt: "2026-07-21T00:00:00.000Z"
-updatedAt: "2026-07-21T00:00:00.000Z"
-dataset: "ds-hk-hkgov-pland-division-pu"
-release: "dr-hk-hkgov-pland-division-pu-2001"
-regionCode: "hk"
-source: "hkgov-pland-pu"
-publicationDate: "2022-03-16"
-publicationDateSource: "https://portal.csdi.gov.hk/geoportal/rest/metadata/item/pland_rcd_1636535158118_80594/xml"
-sourceVersion: "2001"
-releaseVersion: "2001.0"
-sourceSchemaVersion: "1.0"
-type: "division"
-cohortKey: "2001"
-releaseNotesUrl: "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=pland_rcd_1636535158118_80594"
+createdAt: '2026-07-21T00:00:00.000Z'
+updatedAt: '2026-07-21T00:00:00.000Z'
+dataset: 'ds-hk-hkgov-pland-division-pu'
+release: 'dr-hk-hkgov-pland-division-pu-2001'
+regionCode: 'hk'
+source: 'hkgov-pland-pu'
+publicationDate: '2022-03-16'
+publicationDateSource: 'https://portal.csdi.gov.hk/geoportal/rest/metadata/item/pland_rcd_1636535158118_80594/xml'
+sourceVersion: '2001'
+releaseVersion: '2001.0'
+sourceSchemaVersion: '1.0'
+type: 'division'
+cohortKey: '2001'
+releaseNotesUrl: 'https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=pland_rcd_1636535158118_80594'
 ---
 
 # EN

@@ -1,13 +1,13 @@
 ---
-createdAt: "2026-10-11T04:00:00.000Z"
-updatedAt: "2026-10-11T04:00:00.000Z"
-apiFamily: "divisions"
-apiVersion: "api-divisions-v0.1"
-apiReleaseSet: "data-hk-divisions-2026-09-23.0"
-revision: "0"
-regionCode: "hk"
-cohortKey: "2026-09-23.0"
-domainCode: "geographic"
+createdAt: '2026-10-11T04:00:00.000Z'
+updatedAt: '2026-10-11T04:00:00.000Z'
+apiFamily: 'divisions'
+apiVersion: 'api-divisions-v0.1'
+apiReleaseSet: 'data-hk-divisions-2026-09-23.0'
+revision: '0'
+regionCode: 'hk'
+cohortKey: '2026-09-23.0'
+domainCode: 'geographic'
 ---
 
 # EN

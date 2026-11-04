@@ -1,16 +1,16 @@
 ---
-createdAt: "2026-08-20T00:00:00.000Z"
-updatedAt: "2026-08-25T00:00:00.000Z"
-apiFamily: "divisions"
-apiVersion: "api-divisions-v0.1"
-apiReleaseSet: "data-hk-divisions-2016--hkgov-pland-pu"
-revision: "0"
-regionCode: "hk"
-cohortKey: "2016"
-domainCode: "hkgov-pland-pu"
-timeTravelEffectiveAt: "2025-10-01T00:00:00.000Z"
-timeTravelKnownAt: "2026-08-24T04:00:46.011Z"
-timeTravelCatalogRevision: "catalog-hk-divisions-v0.1-2026-08-24.11"
+createdAt: '2026-08-20T00:00:00.000Z'
+updatedAt: '2026-08-25T00:00:00.000Z'
+apiFamily: 'divisions'
+apiVersion: 'api-divisions-v0.1'
+apiReleaseSet: 'data-hk-divisions-2016--hkgov-pland-pu'
+revision: '0'
+regionCode: 'hk'
+cohortKey: '2016'
+domainCode: 'hkgov-pland-pu'
+timeTravelEffectiveAt: '2025-10-01T00:00:00.000Z'
+timeTravelKnownAt: '2026-08-24T04:00:46.011Z'
+timeTravelCatalogRevision: 'catalog-hk-divisions-v0.1-2026-08-24.11'
 ---
 
 # EN

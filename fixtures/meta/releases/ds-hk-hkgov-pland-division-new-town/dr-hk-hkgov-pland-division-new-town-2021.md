@@ -1,18 +1,18 @@
 ---
-createdAt: "2026-07-21T00:00:00.000Z"
-updatedAt: "2026-07-21T00:00:00.000Z"
-dataset: "ds-hk-hkgov-pland-division-new-town"
-release: "dr-hk-hkgov-pland-division-new-town-2021"
-regionCode: "hk"
-source: "hkgov-pland-new-town"
-publicationDate: "2022-06-24"
-publicationDateSource: "https://portal.csdi.gov.hk/geoportal/rest/metadata/item/pland_rcd_1634023103904_16865/xml"
-sourceVersion: "2021"
-releaseVersion: "2021.0"
-sourceSchemaVersion: "1.0"
-type: "division"
-cohortKey: "2021"
-releaseNotesUrl: "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=pland_rcd_1634023103904_16865"
+createdAt: '2026-07-21T00:00:00.000Z'
+updatedAt: '2026-07-21T00:00:00.000Z'
+dataset: 'ds-hk-hkgov-pland-division-new-town'
+release: 'dr-hk-hkgov-pland-division-new-town-2021'
+regionCode: 'hk'
+source: 'hkgov-pland-new-town'
+publicationDate: '2022-06-24'
+publicationDateSource: 'https://portal.csdi.gov.hk/geoportal/rest/metadata/item/pland_rcd_1634023103904_16865/xml'
+sourceVersion: '2021'
+releaseVersion: '2021.0'
+sourceSchemaVersion: '1.0'
+type: 'division'
+cohortKey: '2021'
+releaseNotesUrl: 'https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=pland_rcd_1634023103904_16865'
 ---
 
 # EN

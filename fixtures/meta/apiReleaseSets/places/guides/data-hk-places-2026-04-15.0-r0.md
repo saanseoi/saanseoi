@@ -1,13 +1,13 @@
 ---
-createdAt: "2026-09-09T00:00:00.000Z"
-updatedAt: "2026-10-15T00:00:00.000Z"
-apiFamily: "places"
-apiVersion: "api-places-v0.1"
-apiReleaseSet: "data-hk-places-2026-04-15.0"
-revision: "0"
-regionCode: "hk"
-cohortKey: "2026-04-15.0"
-domainCode: "overture"
+createdAt: '2026-09-09T00:00:00.000Z'
+updatedAt: '2026-10-15T00:00:00.000Z'
+apiFamily: 'places'
+apiVersion: 'api-places-v0.1'
+apiReleaseSet: 'data-hk-places-2026-04-15.0'
+revision: '0'
+regionCode: 'hk'
+cohortKey: '2026-04-15.0'
+domainCode: 'overture'
 ---
 
 # EN

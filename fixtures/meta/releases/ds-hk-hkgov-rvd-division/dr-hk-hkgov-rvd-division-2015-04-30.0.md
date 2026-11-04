@@ -1,13 +1,13 @@
 ---
-dataset: "ds-hk-hkgov-rvd-division"
-release: "dr-hk-hkgov-rvd-division-2015-04-30.0"
-regionCode: "hk"
-source: "hkgov-rvd"
-sourceVersion: "2015-04-30.0"
-releaseVersion: "2015-04-30.0"
-sourceSchemaVersion: "1.0"
-type: "division"
-cohortKey: "2015-04-30.0"
+dataset: 'ds-hk-hkgov-rvd-division'
+release: 'dr-hk-hkgov-rvd-division-2015-04-30.0'
+regionCode: 'hk'
+source: 'hkgov-rvd'
+sourceVersion: '2015-04-30.0'
+releaseVersion: '2015-04-30.0'
+sourceSchemaVersion: '1.0'
+type: 'division'
+cohortKey: '2015-04-30.0'
 ---
 
 # EN

@@ -1,16 +1,16 @@
 ---
-createdAt: "2026-08-20T00:00:00.000Z"
-updatedAt: "2026-08-20T00:00:00.000Z"
-dataset: "ds-hk-hkgov-landsd-division"
-release: "dr-hk-hkgov-landsd-division-2026-06-10.0"
-regionCode: "hk"
-source: "hkgov-landsd"
-sourceVersion: "2026-06-10.0"
-releaseNotesUrl: "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=landsd_rcd_1648571595120_89752"
-releaseVersion: "2026-06-10.0"
-sourceSchemaVersion: "1.0"
-type: "division"
-cohortKey: "2026-06-10.0"
+createdAt: '2026-08-20T00:00:00.000Z'
+updatedAt: '2026-08-20T00:00:00.000Z'
+dataset: 'ds-hk-hkgov-landsd-division'
+release: 'dr-hk-hkgov-landsd-division-2026-06-10.0'
+regionCode: 'hk'
+source: 'hkgov-landsd'
+sourceVersion: '2026-06-10.0'
+releaseNotesUrl: 'https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=landsd_rcd_1648571595120_89752'
+releaseVersion: '2026-06-10.0'
+sourceSchemaVersion: '1.0'
+type: 'division'
+cohortKey: '2026-06-10.0'
 ---
 
 # EN

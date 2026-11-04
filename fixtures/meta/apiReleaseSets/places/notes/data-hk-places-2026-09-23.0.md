@@ -1,12 +1,12 @@
 ---
-createdAt: "2026-09-25T05:47:23.826Z"
-updatedAt: "2026-09-25T05:47:23.826Z"
-apiFamily: "places"
-apiVersion: "api-places-v0.1"
-apiReleaseSet: "data-hk-places-2026-09-23.0"
-revision: "0"
-regionCode: "hk"
-cohortKey: "2026-09-23.0"
+createdAt: '2026-09-25T05:47:23.826Z'
+updatedAt: '2026-09-25T05:47:23.826Z'
+apiFamily: 'places'
+apiVersion: 'api-places-v0.1'
+apiReleaseSet: 'data-hk-places-2026-09-23.0'
+revision: '0'
+regionCode: 'hk'
+cohortKey: '2026-09-23.0'
 ---
 
 # EN

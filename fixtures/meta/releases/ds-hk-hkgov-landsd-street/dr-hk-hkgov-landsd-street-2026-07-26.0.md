@@ -1,11 +1,11 @@
 ---
-dataset: "ds-hk-hkgov-landsd-street"
-release: "dr-hk-hkgov-landsd-street-2026-07-26.0"
-regionCode: "hk"
-source: "hkgov-landsd"
-sourceVersion: "2026-07-26.0"
-type: "street"
-cohortKey: "2026-07-26.0"
+dataset: 'ds-hk-hkgov-landsd-street'
+release: 'dr-hk-hkgov-landsd-street-2026-07-26.0'
+regionCode: 'hk'
+source: 'hkgov-landsd'
+sourceVersion: '2026-07-26.0'
+type: 'street'
+cohortKey: '2026-07-26.0'
 ---
 
 # EN

@@ -1,19 +1,19 @@
 ---
-createdAt: "2026-08-19T00:00:00.000Z"
-updatedAt: "2026-08-19T00:00:00.000Z"
-dataset: "ds-hk-hkgov-censtatd-major-housing-estates"
-release: "dr-hk-hkgov-censtatd-major-housing-estates-2021"
-regionCode: "hk"
-source: "hkgov-censtatd"
-publicationDate: "2024-12-23"
-publicationDateSource: "https://portal.csdi.gov.hk/geoportal/rest/metadata/item/censtatd_rcd_1695182015782_79001/xml"
-sourceVersion: "2021"
-releaseNotesUrl: "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1695182015782_79001"
-releaseVersion: "2021.0"
-type: "divisionStatistic"
-cohortKey: "2021"
-hkgovCenstatdCuration: "fixtures/meta/curations/hkgov-censtatd-statistics/major-housing-estates-2021.json"
-measureCuration: "fixtures/meta/curations/hkgov-censtatd-statistics-measures/major-housing-estates.json"
+createdAt: '2026-08-19T00:00:00.000Z'
+updatedAt: '2026-08-19T00:00:00.000Z'
+dataset: 'ds-hk-hkgov-censtatd-major-housing-estates'
+release: 'dr-hk-hkgov-censtatd-major-housing-estates-2021'
+regionCode: 'hk'
+source: 'hkgov-censtatd'
+publicationDate: '2024-12-23'
+publicationDateSource: 'https://portal.csdi.gov.hk/geoportal/rest/metadata/item/censtatd_rcd_1695182015782_79001/xml'
+sourceVersion: '2021'
+releaseNotesUrl: 'https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1695182015782_79001'
+releaseVersion: '2021.0'
+type: 'divisionStatistic'
+cohortKey: '2021'
+hkgovCenstatdCuration: 'fixtures/meta/curations/hkgov-censtatd-statistics/major-housing-estates-2021.json'
+measureCuration: 'fixtures/meta/curations/hkgov-censtatd-statistics-measures/major-housing-estates.json'
 ---
 
 # EN

@@ -1,16 +1,16 @@
 ---
-createdAt: "2026-10-11T04:00:00.000Z"
-updatedAt: "2026-10-11T04:00:00.000Z"
-apiFamily: "divisions"
-apiVersion: "api-divisions-v0.2"
-apiReleaseSet: "data-hk-divisions-2026-09-01.0"
-revision: "0"
-regionCode: "hk"
-cohortKey: "2026-09-01.0"
-domainCode: "geographic"
-timeTravelEffectiveAt: "2026-09-01T00:00:00.000Z"
-timeTravelKnownAt: "2026-10-07T17:53:01.000Z"
-timeTravelCatalogRevision: "catalog-hk-divisions-v0.2-2026-10-07.1"
+createdAt: '2026-10-11T04:00:00.000Z'
+updatedAt: '2026-10-11T04:00:00.000Z'
+apiFamily: 'divisions'
+apiVersion: 'api-divisions-v0.2'
+apiReleaseSet: 'data-hk-divisions-2026-09-01.0'
+revision: '0'
+regionCode: 'hk'
+cohortKey: '2026-09-01.0'
+domainCode: 'geographic'
+timeTravelEffectiveAt: '2026-09-01T00:00:00.000Z'
+timeTravelKnownAt: '2026-10-07T17:53:01.000Z'
+timeTravelCatalogRevision: 'catalog-hk-divisions-v0.2-2026-10-07.1'
 ---
 
 # EN

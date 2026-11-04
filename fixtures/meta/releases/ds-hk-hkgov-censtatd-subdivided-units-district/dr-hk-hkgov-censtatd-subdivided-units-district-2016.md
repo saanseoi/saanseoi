@@ -1,19 +1,19 @@
 ---
-createdAt: "2026-08-19T00:00:00.000Z"
-updatedAt: "2026-08-19T00:00:00.000Z"
-dataset: "ds-hk-hkgov-censtatd-subdivided-units-district"
-release: "dr-hk-hkgov-censtatd-subdivided-units-district-2016"
-regionCode: "hk"
-source: "hkgov-censtatd"
-publicationDate: "2022-12-22"
-publicationDateSource: "https://portal.csdi.gov.hk/geoportal/rest/metadata/item/censtatd_rcd_1635932488538_10765/xml"
-sourceVersion: "2016"
-releaseNotesUrl: "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635932488538_10765"
-releaseVersion: "2016.0"
-type: "divisionStatistic"
-cohortKey: "2016"
-hkgovCenstatdCuration: "fixtures/meta/curations/hkgov-censtatd-statistics/subdivided-units-district.json"
-measureCuration: "fixtures/meta/curations/hkgov-censtatd-statistics-measures/subdivided-units-district.json"
+createdAt: '2026-08-19T00:00:00.000Z'
+updatedAt: '2026-08-19T00:00:00.000Z'
+dataset: 'ds-hk-hkgov-censtatd-subdivided-units-district'
+release: 'dr-hk-hkgov-censtatd-subdivided-units-district-2016'
+regionCode: 'hk'
+source: 'hkgov-censtatd'
+publicationDate: '2022-12-22'
+publicationDateSource: 'https://portal.csdi.gov.hk/geoportal/rest/metadata/item/censtatd_rcd_1635932488538_10765/xml'
+sourceVersion: '2016'
+releaseNotesUrl: 'https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635932488538_10765'
+releaseVersion: '2016.0'
+type: 'divisionStatistic'
+cohortKey: '2016'
+hkgovCenstatdCuration: 'fixtures/meta/curations/hkgov-censtatd-statistics/subdivided-units-district.json'
+measureCuration: 'fixtures/meta/curations/hkgov-censtatd-statistics-measures/subdivided-units-district.json'
 ---
 
 # EN

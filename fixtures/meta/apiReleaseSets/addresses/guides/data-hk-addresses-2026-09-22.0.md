@@ -1,16 +1,16 @@
 ---
-createdAt: "2026-10-18T00:00:00.000Z"
-updatedAt: "2026-10-18T00:00:00.000Z"
-apiFamily: "addresses"
-apiVersion: "api-addresses-v0.1"
-apiReleaseSet: "data-hk-addresses-2026-09-22.0"
-revision: "0"
-regionCode: "hk"
-cohortKey: "2026-09-22.0"
-domainCode: "saanseoi"
-timeTravelEffectiveAt: "2026-09-22T00:00:00.000Z"
-timeTravelKnownAt: "2026-10-18T02:07:54.057Z"
-timeTravelCatalogRevision: "catalog-hk-addresses-v0.1-2026-10-18.9"
+createdAt: '2026-10-18T00:00:00.000Z'
+updatedAt: '2026-10-18T00:00:00.000Z'
+apiFamily: 'addresses'
+apiVersion: 'api-addresses-v0.1'
+apiReleaseSet: 'data-hk-addresses-2026-09-22.0'
+revision: '0'
+regionCode: 'hk'
+cohortKey: '2026-09-22.0'
+domainCode: 'saanseoi'
+timeTravelEffectiveAt: '2026-09-22T00:00:00.000Z'
+timeTravelKnownAt: '2026-10-18T02:07:54.057Z'
+timeTravelCatalogRevision: 'catalog-hk-addresses-v0.1-2026-10-18.9'
 ---
 
 # EN

@@ -1,20 +1,20 @@
 ---
-createdAt: "2026-08-27T00:00:00.000Z"
-updatedAt: "2026-10-18T00:00:00.000Z"
-dataset: "ds-hk-hkgov-censtatd-population-households-district"
-release: "dr-hk-hkgov-censtatd-population-households-district-2024"
-regionCode: "hk"
-source: "hkgov-censtatd"
-sourceVersion: "2024"
-publicationDate: "2025-03-28"
-publicationDateSource: "https://www.info.gov.hk/gia/general/202503/28/P2025032800255.htm"
+createdAt: '2026-08-27T00:00:00.000Z'
+updatedAt: '2026-10-18T00:00:00.000Z'
+dataset: 'ds-hk-hkgov-censtatd-population-households-district'
+release: 'dr-hk-hkgov-censtatd-population-households-district-2024'
+regionCode: 'hk'
+source: 'hkgov-censtatd'
+sourceVersion: '2024'
+publicationDate: '2025-03-28'
+publicationDateSource: 'https://www.info.gov.hk/gia/general/202503/28/P2025032800255.htm'
 publicationDateEstimated: true
-publicationDatePrecision: "day"
-releaseVersion: "2024.0"
-sourceSchemaVersion: "1.0"
-type: "divisionArea"
-cohortKey: "2024"
-releaseNotesUrl: "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635934545173_69201"
+publicationDatePrecision: 'day'
+releaseVersion: '2024.0'
+sourceSchemaVersion: '1.0'
+type: 'divisionArea'
+cohortKey: '2024'
+releaseNotesUrl: 'https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635934545173_69201'
 ---
 
 # EN

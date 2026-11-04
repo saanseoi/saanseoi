@@ -1,11 +1,11 @@
 ---
-dataset: "ds-hk-protomaps-island"
-release: "dr-hk-protomaps-island-2026-09-01.0"
-regionCode: "hk"
-source: "protomaps"
-sourceVersion: "2026-09-01.0"
-releaseVersion: "2026-09-01.0"
-type: "divisionArea"
+dataset: 'ds-hk-protomaps-island'
+release: 'dr-hk-protomaps-island-2026-09-01.0'
+regionCode: 'hk'
+source: 'protomaps'
+sourceVersion: '2026-09-01.0'
+releaseVersion: '2026-09-01.0'
+type: 'divisionArea'
 ---
 
 # EN

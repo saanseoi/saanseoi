@@ -1,17 +1,17 @@
 ---
-createdAt: "2026-09-09T09:49:55.000Z"
-updatedAt: "2026-09-09T09:49:55.000Z"
-dataset: "ds-hk-hkgov-dpo-address"
-release: "dr-hk-hkgov-dpo-address-2024-10-18.0"
-regionCode: "hk"
-source: "hkgov-dpo"
-sourceVersion: "2024-10-18.0"
-publisherReleaseDate: "2024-10-18"
-releaseVersion: "2024-10-18.0"
-sourceSchemaVersion: "3.2"
-type: "address"
-cohortKey: "2024-10-18.0"
-releaseNotesUrl: "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=dpo_rcd_1629267205232_33603"
+createdAt: '2026-09-09T09:49:55.000Z'
+updatedAt: '2026-09-09T09:49:55.000Z'
+dataset: 'ds-hk-hkgov-dpo-address'
+release: 'dr-hk-hkgov-dpo-address-2024-10-18.0'
+regionCode: 'hk'
+source: 'hkgov-dpo'
+sourceVersion: '2024-10-18.0'
+publisherReleaseDate: '2024-10-18'
+releaseVersion: '2024-10-18.0'
+sourceSchemaVersion: '3.2'
+type: 'address'
+cohortKey: '2024-10-18.0'
+releaseNotesUrl: 'https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=dpo_rcd_1629267205232_33603'
 ---
 
 # EN

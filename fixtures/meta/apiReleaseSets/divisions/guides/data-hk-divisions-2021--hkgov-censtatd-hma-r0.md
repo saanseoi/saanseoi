@@ -1,13 +1,13 @@
 ---
-createdAt: "2026-08-20T00:00:00.000Z"
-updatedAt: "2026-08-25T00:00:00.000Z"
-apiFamily: "divisions"
-apiVersion: "api-divisions-v0.2"
-apiReleaseSet: "data-hk-divisions-2021--hkgov-censtatd-hma"
-revision: "0"
-regionCode: "hk"
-cohortKey: "2021"
-domainCode: "hkgov-censtatd-hma"
+createdAt: '2026-08-20T00:00:00.000Z'
+updatedAt: '2026-08-25T00:00:00.000Z'
+apiFamily: 'divisions'
+apiVersion: 'api-divisions-v0.2'
+apiReleaseSet: 'data-hk-divisions-2021--hkgov-censtatd-hma'
+revision: '0'
+regionCode: 'hk'
+cohortKey: '2021'
+domainCode: 'hkgov-censtatd-hma'
 ---
 
 # EN

@@ -1,21 +1,21 @@
 ---
-createdAt: "2026-08-19T00:00:00.000Z"
-updatedAt: "2026-10-18T00:00:00.000Z"
-dataset: "ds-hk-hkgov-censtatd-population-households-district"
-release: "dr-hk-hkgov-censtatd-population-households-district-2026-Q2"
-regionCode: "hk"
-source: "hkgov-censtatd"
-sourceVersion: "2026-Q2"
-publicationDate: "2026-03-26"
-publicationDateSource: "https://portal.csdi.gov.hk/geoportal/rest/metadata/item/censtatd_rcd_1635934545173_69201/xml"
+createdAt: '2026-08-19T00:00:00.000Z'
+updatedAt: '2026-10-18T00:00:00.000Z'
+dataset: 'ds-hk-hkgov-censtatd-population-households-district'
+release: 'dr-hk-hkgov-censtatd-population-households-district-2026-Q2'
+regionCode: 'hk'
+source: 'hkgov-censtatd'
+sourceVersion: '2026-Q2'
+publicationDate: '2026-03-26'
+publicationDateSource: 'https://portal.csdi.gov.hk/geoportal/rest/metadata/item/censtatd_rcd_1635934545173_69201/xml'
 publicationDateEstimated: true
-publicationDatePrecision: "day"
-releaseNotesUrl: "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635934545173_69201"
-releaseVersion: "2021.0"
-type: "divisionStatistic"
-cohortKey: "2026-Q2"
-hkgovCenstatdCuration: "fixtures/meta/curations/hkgov-censtatd-statistics/population-households-district.json"
-measureCuration: "fixtures/meta/curations/hkgov-censtatd-statistics-measures/population-households-district.json"
+publicationDatePrecision: 'day'
+releaseNotesUrl: 'https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635934545173_69201'
+releaseVersion: '2021.0'
+type: 'divisionStatistic'
+cohortKey: '2026-Q2'
+hkgovCenstatdCuration: 'fixtures/meta/curations/hkgov-censtatd-statistics/population-households-district.json'
+measureCuration: 'fixtures/meta/curations/hkgov-censtatd-statistics-measures/population-households-district.json'
 ---
 
 # EN

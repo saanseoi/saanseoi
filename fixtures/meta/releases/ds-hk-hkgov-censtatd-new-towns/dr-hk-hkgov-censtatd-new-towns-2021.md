@@ -1,19 +1,19 @@
 ---
-createdAt: "2026-08-19T00:00:00.000Z"
-updatedAt: "2026-08-19T00:00:00.000Z"
-dataset: "ds-hk-hkgov-censtatd-new-towns"
-release: "dr-hk-hkgov-censtatd-new-towns-2021"
-regionCode: "hk"
-source: "hkgov-censtatd"
-publicationDate: "2024-12-23"
-publicationDateSource: "https://portal.csdi.gov.hk/geoportal/rest/metadata/item/censtatd_rcd_1695181913136_27614/xml"
-sourceVersion: "2021"
-releaseNotesUrl: "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1695181913136_27614"
-releaseVersion: "2021.0"
-type: "divisionStatistic"
-cohortKey: "2021"
-hkgovCenstatdCuration: "fixtures/meta/curations/hkgov-censtatd-statistics/new-towns-2021.json"
-measureCuration: "fixtures/meta/curations/hkgov-censtatd-statistics-measures/new-towns.json"
+createdAt: '2026-08-19T00:00:00.000Z'
+updatedAt: '2026-08-19T00:00:00.000Z'
+dataset: 'ds-hk-hkgov-censtatd-new-towns'
+release: 'dr-hk-hkgov-censtatd-new-towns-2021'
+regionCode: 'hk'
+source: 'hkgov-censtatd'
+publicationDate: '2024-12-23'
+publicationDateSource: 'https://portal.csdi.gov.hk/geoportal/rest/metadata/item/censtatd_rcd_1695181913136_27614/xml'
+sourceVersion: '2021'
+releaseNotesUrl: 'https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1695181913136_27614'
+releaseVersion: '2021.0'
+type: 'divisionStatistic'
+cohortKey: '2021'
+hkgovCenstatdCuration: 'fixtures/meta/curations/hkgov-censtatd-statistics/new-towns-2021.json'
+measureCuration: 'fixtures/meta/curations/hkgov-censtatd-statistics-measures/new-towns.json'
 ---
 
 # EN

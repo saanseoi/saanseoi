@@ -1,19 +1,19 @@
 ---
-createdAt: "2026-08-19T00:00:00.000Z"
-updatedAt: "2026-08-19T00:00:00.000Z"
-dataset: "ds-hk-hkgov-censtatd-permanent-living-quarters"
-release: "dr-hk-hkgov-censtatd-permanent-living-quarters-2023-H2"
-regionCode: "hk"
-source: "hkgov-censtatd"
-publicationDate: "2023-12-27"
-publicationDateSource: "https://portal.csdi.gov.hk/geoportal/rest/metadata/item/censtatd_rcd_1635933883228_46491/xml"
-sourceVersion: "2023-H2"
-releaseNotesUrl: "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635933883228_46491"
-releaseVersion: "2023-H2.0"
-type: "divisionStatistic"
-cohortKey: "2023-H2"
-hkgovCenstatdCuration: "fixtures/meta/curations/hkgov-censtatd-statistics/permanent-living-quarters.json"
-measureCuration: "fixtures/meta/curations/hkgov-censtatd-statistics-measures/permanent-living-quarters.json"
+createdAt: '2026-08-19T00:00:00.000Z'
+updatedAt: '2026-08-19T00:00:00.000Z'
+dataset: 'ds-hk-hkgov-censtatd-permanent-living-quarters'
+release: 'dr-hk-hkgov-censtatd-permanent-living-quarters-2023-H2'
+regionCode: 'hk'
+source: 'hkgov-censtatd'
+publicationDate: '2023-12-27'
+publicationDateSource: 'https://portal.csdi.gov.hk/geoportal/rest/metadata/item/censtatd_rcd_1635933883228_46491/xml'
+sourceVersion: '2023-H2'
+releaseNotesUrl: 'https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635933883228_46491'
+releaseVersion: '2023-H2.0'
+type: 'divisionStatistic'
+cohortKey: '2023-H2'
+hkgovCenstatdCuration: 'fixtures/meta/curations/hkgov-censtatd-statistics/permanent-living-quarters.json'
+measureCuration: 'fixtures/meta/curations/hkgov-censtatd-statistics-measures/permanent-living-quarters.json'
 ---
 
 # EN

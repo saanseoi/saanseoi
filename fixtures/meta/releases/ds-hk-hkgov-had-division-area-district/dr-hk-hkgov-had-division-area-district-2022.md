@@ -1,18 +1,18 @@
 ---
-createdAt: "2026-07-15T00:00:00.000Z"
-updatedAt: "2026-07-18T00:00:00.000Z"
-dataset: "ds-hk-hkgov-had-division-area-district"
-release: "dr-hk-hkgov-had-division-area-district-2022"
-regionCode: "hk"
-source: "hkgov-had"
-publicationDate: "2022-03-14"
-publicationDateSource: "https://portal.csdi.gov.hk/geoportal/rest/metadata/item/had_rcd_1634523272907_75218/xml"
-sourceVersion: "2022"
-releaseVersion: "2022.0"
-sourceSchemaVersion: "1.2"
-type: "divisionArea"
-cohortKey: "2022"
-releaseNotesUrl: "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=had_rcd_1634523272907_75218"
+createdAt: '2026-07-15T00:00:00.000Z'
+updatedAt: '2026-07-18T00:00:00.000Z'
+dataset: 'ds-hk-hkgov-had-division-area-district'
+release: 'dr-hk-hkgov-had-division-area-district-2022'
+regionCode: 'hk'
+source: 'hkgov-had'
+publicationDate: '2022-03-14'
+publicationDateSource: 'https://portal.csdi.gov.hk/geoportal/rest/metadata/item/had_rcd_1634523272907_75218/xml'
+sourceVersion: '2022'
+releaseVersion: '2022.0'
+sourceSchemaVersion: '1.2'
+type: 'divisionArea'
+cohortKey: '2022'
+releaseNotesUrl: 'https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=had_rcd_1634523272907_75218'
 ---
 
 # EN

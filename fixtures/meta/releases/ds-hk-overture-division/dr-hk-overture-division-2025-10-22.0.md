@@ -1,19 +1,19 @@
 ---
-createdAt: "2026-07-06T20:03:10.577Z"
-updatedAt: "2026-07-22T00:00:00.000Z"
-dataset: "ds-hk-overture-division"
-release: "dr-hk-overture-division-2025-10-22.0"
-regionCode: "hk"
-source: "overture"
-sourceVersion: "2025-10-22.0"
-releaseVersion: "2025-10-22.0"
-sourceSchemaVersion: "1.13.0"
+createdAt: '2026-07-06T20:03:10.577Z'
+updatedAt: '2026-07-22T00:00:00.000Z'
+dataset: 'ds-hk-overture-division'
+release: 'dr-hk-overture-division-2025-10-22.0'
+regionCode: 'hk'
+source: 'overture'
+sourceVersion: '2025-10-22.0'
+releaseVersion: '2025-10-22.0'
+sourceSchemaVersion: '1.13.0'
 resourceTypes:
-  - "division"
-  - "divisionArea"
-  - "divisionBoundary"
-cohortKey: "2025-10-22.0"
-releaseNotesUrl: "https://docs.overturemaps.org/blog/2025/10/22/release-notes/#divisions"
+  - 'division'
+  - 'divisionArea'
+  - 'divisionBoundary'
+cohortKey: '2025-10-22.0'
+releaseNotesUrl: 'https://docs.overturemaps.org/blog/2025/10/22/release-notes/#divisions'
 ---
 
 # EN
