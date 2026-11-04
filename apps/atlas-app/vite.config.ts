@@ -7,14 +7,15 @@ import tailwindcss from '@tailwindcss/vite'
 import { paraglideVitePlugin } from '@inlang/paraglide-js'
 import { sveltekit } from '@sveltejs/kit/vite'
 
-export default defineConfig({
+export default defineConfig(({ command }) => ({
   plugins: [
     tailwindcss(),
     paraglideVitePlugin({
       project: resolve(import.meta.dirname, '../../libs/i18n/project.inlang'),
       outdir: resolve(import.meta.dirname, '../../libs/i18n/src/paraglide'),
       emitTsDeclarations: true,
-      outputStructure: 'locale-modules',
+      // Keep development modules grouped; production can load messages with each page.
+      outputStructure: command === 'build' ? 'message-modules' : 'locale-modules',
     }),
     sveltekit({
       compilerOptions: {
@@ -150,4 +151,4 @@ export default defineConfig({
       },
     ],
   },
-})
+}))
