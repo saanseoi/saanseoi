@@ -21,7 +21,7 @@
     "drizzle-orm": "1.0.0-rc.5-5935859"
   },
   "devDependencies": {
-    "@inlang/paraglide-js": "2.29.1",
+    "@inlang/paraglide-js": "3.0.0",
     "@sveltejs/vite-plugin-svelte": "^7.3.1",
     "@tailwindcss/vite": "^4.3.3",
     "@types/node": "^26.6.5",

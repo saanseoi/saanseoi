@@ -149,7 +149,7 @@
     "exports:seed:local": "bun scripts/exports/seed-local.ts"
   },
   "dependencies": {
-    "@inlang/paraglide-js": "^2.29.1",
+    "@inlang/paraglide-js": "^3.0.0",
     "bits-ui": "^2.20.0",
     "bun-types": "^1.4.3",
     "drizzle-orm": "1.0.0-rc.5-5935859",
