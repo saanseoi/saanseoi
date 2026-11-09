@@ -93,6 +93,14 @@
   },
   "overrides": [
     {
+      "includes": ["fixtures/meta/**/*.md"],
+      "markdown": {
+        "formatter": {
+          "formatEmbeds": false
+        }
+      }
+    },
+    {
       "includes": ["**/tsconfig*.json"],
       "json": {
         "parser": {
@@ -137,5 +145,14 @@
         }
       }
     }
-  ]
+  ],
+  "markdown": {
+    "formatter": {
+      "enabled": true,
+      "proseWrap": "always"
+    },
+    "parser": {
+      "frontmatter": true
+    }
+  }
 }

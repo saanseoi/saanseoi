@@ -64,3 +64,10 @@ For more detail on contributing, workflows, and project expectations, see
 #### Atlas (Public Site)
 
 - [Conventions](apps/atlas-app/docs/conventions.md)
+
+## Markdown formatting
+
+Run `bun run format:markdown:check` for a read-only check, or `bun run format:markdown`
+to apply Biome formatting. Biome is pinned to 2.6.5 and formats Markdown with 88-column
+prose wrapping and frontmatter support. The same commands treat `llms.txt` as Markdown.
+Review formatting changes separately from content edits.
