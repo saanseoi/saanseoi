@@ -14,8 +14,8 @@ domainCode: 'hkgov-landsd'
 ## Changelog
 
 - Initial SaanSeoi release for the <i>Lands Department</i>'s settlement domain.
-- <orange>Upstream</orange> adds the Place Name database dated
-  <black>{{ cohortKey }}</black>.
+- <orange>Upstream</orange> adds the Place Name database dated <black>{{ cohortKey
+  }}</black>.
 - Publishes <black>PLACE_CLASS=Settlement</black> records as point divisions; the other
   native gazetteer records remain in source history.
 
@@ -40,9 +40,9 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
   outside the Divisions projection.
 - Some general Divisions fields are blank (<black>null</black>) because the source does
   not provide them. This is expected.
-- Consult the [source-release notes]({{ primarySourceReleaseUrl }}) for
-  <black>{{ primarySourceRelease }}</black> for publisher-specific compatibility and
-  quality decisions.
+- Consult the [source-release notes]({{ primarySourceReleaseUrl }}) for <black>{{
+  primarySourceRelease }}</black> for publisher-specific compatibility and quality
+  decisions.
 
 # ZH-HANT
 
@@ -62,19 +62,19 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 此不可變的 [發布集](saanseoi:zh-hant:definition/release-set/v1) 發布
 {{regionName:zh-Hant}} 的 <black>{{ domainCode }}</black>
 [domain](saanseoi:zh-hant:definition/domain/v1)
-[cohort](saanseoi:zh-hant:definition/cohort/v1)
-<black>{{ cohortKey }}</black>。以下來源發布組成此發布集。
+[cohort](saanseoi:zh-hant:definition/cohort/v1) <black>{{ cohortKey
+}}</black>。以下來源發布組成此發布集。
 
 {{apiReleaseSetSources:zh-Hant}}
 
 ## 備註與限制
 
 - 此 domain 只包含<black>聚居地名稱</black>，不提供行政層級。
-- <black>Hydrographic</black> 及 <black>Topographic</black>
-  來源記錄仍在 Divisions 投影以外。
+- <black>Hydrographic</black> 及 <black>Topographic</black> 來源記錄仍在 Divisions
+  投影以外。
 - 部分一般 Divisions 欄位因來源未提供而為空值 (<black>null</black>)。這是預期行為。
-- 請參閱 <black>{{ primarySourceRelease }}</black>
-  的 [來源發布說明]({{ primarySourceReleaseUrl }})，以了解發布者特有的相容性及品質決定。
+- 請參閱 <black>{{ primarySourceRelease }}</black> 的 [來源發布說明]({{
+  primarySourceReleaseUrl }})，以了解發布者特有的相容性及品質決定。
 
 # ZH-HANS
 
@@ -94,16 +94,16 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 此不可变的 [发布集](saanseoi:zh-hans:definition/release-set/v1) 发布
 {{regionName:zh-Hans}} 的 <black>{{ domainCode }}</black>
 [domain](saanseoi:zh-hans:definition/domain/v1)
-[cohort](saanseoi:zh-hans:definition/cohort/v1)
-<black>{{ cohortKey }}</black>。以下源发布构成此发布集。
+[cohort](saanseoi:zh-hans:definition/cohort/v1) <black>{{ cohortKey
+}}</black>。以下源发布构成此发布集。
 
 {{apiReleaseSetSources:zh-Hans}}
 
 ## 备注与限制
 
 - 此 domain 只包含<black>聚居地名称</black>，不提供行政层级。
-- <black>Hydrographic</black> 及 <black>Topographic</black>
-  源记录仍在 Divisions 投影以外。
+- <black>Hydrographic</black> 及 <black>Topographic</black> 源记录仍在 Divisions
+  投影以外。
 - 部分一般 Divisions 字段因源未提供而为空值 (<black>null</black>)。这是预期行为。
-- 请参阅 <black>{{ primarySourceRelease }}</black>
-  的 [源发布说明]({{ primarySourceReleaseUrl }})，以了解发布者特有的兼容性及质量决定。
+- 请参阅 <black>{{ primarySourceRelease }}</black> 的 [源发布说明]({{
+  primarySourceReleaseUrl }})，以了解发布者特有的兼容性及质量决定。

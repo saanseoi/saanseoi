@@ -312,7 +312,8 @@ Statistics family, so there are no other domains to explore.
 1. **最新發布修訂版**是發布集最新發布的版本。永久連結或目錄修訂版也可選取較早的版本。
 2. **最新統計觀測**是某個統計序列可用的最近參考期。參考期是數值所描述的時間。
 
-與 Divisions 不同，Statistics 包含許多按不同時間表更新的序列。人口指標可能每年更新，其他指標則可能每季或每月更新。人口普查指標甚至可能完全沒有較新的觀測。
+與 Divisions 不同，Statistics
+包含許多按不同時間表更新的序列。人口指標可能每年更新，其他指標則可能每季或每月更新。人口普查指標甚至可能完全沒有較新的觀測。
 
 因此，官方 Statistics 檢視為：
 
@@ -320,7 +321,8 @@ Statistics family, so there are no other domains to explore.
 /stats/v0
 ```
 
-它會傳回每個獨立序列最新可用的觀測，採用該觀測所屬參考期之發布集的最新修訂版，而非完整歷史。例如，若某個月度序列有 2026-08 的觀測，latest 請求不會同時傳回 2026-01 至 2026-07 的觀測。
+它會傳回每個獨立序列最新可用的觀測，採用該觀測所屬參考期之發布集的最新修訂版，而非完整歷史。例如，若某個月度序列有
+2026-08 的觀測，latest 請求不會同時傳回 2026-01 至 2026-07 的觀測。
 
 如需特定期間，請使用精確的參考期篩選條件：
 
@@ -330,8 +332,8 @@ Statistics family, so there are no other domains to explore.
 ```
 
 這會傳回所選發布集中參考期代碼完全相符的記錄。清單端點只接受精確期間，不接受日期範圍。例如，<black>2026</black>
-和 <black>2026-Q1</black> 是不同的代碼：請求 <black>2026</black>
-不會同時傳回 2026 年第一季。
+和 <black>2026-Q1</black> 是不同的代碼：請求 <black>2026</black> 不會同時傳回 2026
+年第一季。
 
 如要取得某個欄位所有可用的歷史資料，請使用多期間序列端點。它會在
 <black>valuesByReferencePeriod</black> 中為每個參考期傳回一組地理代碼與數值的對應：
@@ -369,7 +371,8 @@ Statistics family, so there are no other domains to explore.
 | Statistics                             | 每個獨立序列的最新觀測      |
 | Statistics 使用 `referencePeriod=2016` | 該精確參考期的記錄          |
 
-未提供 selector 時，端點會使用目前[目錄](saanseoi:zh-hant:definition/catalogue/v1)中最新生效的發布。如要請求此確切版本，請同時指定
+未提供 selector
+時，端點會使用目前[目錄](saanseoi:zh-hant:definition/catalogue/v1)中最新生效的發布。如要請求此確切版本，請同時指定
 <black>cohort</black> 及 <black>domain</black>：
 
 ```url
@@ -390,7 +393,8 @@ Statistics family, so there are no other domains to explore.
 取得核心記錄：參考期、地理範圍、細分項目、數值及任何可比性備註。如同時需要來源發布識別、發布者的要素參考及時間戳記，請使用
 <black>full</black>。
 
-完整欄位清單請見[回應 schema](?tab=schema)，或在[回應範例](?tab=samples)選取 profile 並比較回應。例如，可如此請求完整溯源檢視：
+完整欄位清單請見[回應 schema](?tab=schema)，或在[回應範例](?tab=samples)選取 profile
+並比較回應。例如，可如此請求完整溯源檢視：
 
 ```url
 /stats/v0?
@@ -434,8 +438,8 @@ Statistics family, so there are no other domains to explore.
 ```
 
 <black>include=divisions</black> 會將標準區劃資源加入
-<black>included</black>。<black>include=areas</black>
-會加入該統計資料之地理 cohort 已審核的面 variant，例如
+<black>included</black>。<black>include=areas</black> 會加入該統計資料之地理 cohort
+已審核的面 variant，例如
 <black>hkgov-censtatd:2016</black>、<black>hkgov-censtatd:2021</black>、<black>hkgov-censtatd-area</black>
 或 <black>hkgov-censtatd-hma</black>。
 
@@ -443,8 +447,8 @@ Statistics family, so there are no other domains to explore.
 
 ## 尋找統計資料
 
-使用 Statistics
-Registry 尋找記錄端點接受的資料集及確切欄位名稱。它會搜尋可用的目錄範圍，而不只限於一般統計請求所解析的單一版本。首先，可搜尋指標或欄位名稱或描述中的字詞：
+使用 Statistics Registry
+尋找記錄端點接受的資料集及確切欄位名稱。它會搜尋可用的目錄範圍，而不只限於一般統計請求所解析的單一版本。首先，可搜尋指標或欄位名稱或描述中的字詞：
 
 ```url
 /stats/v0/registry/search?
@@ -527,17 +531,17 @@ Registry 尋找記錄端點接受的資料集及確切欄位名稱。它會搜�
 
 ## 時間旅行
 
-使用 <black>effectiveAt</black> 選取某個時間生效的發布。使用 <black>knownAt</black>
-選取 API [目錄](saanseoi:zh-hant:definition/catalogue/v1)在該時間已知的內容，或以
+使用 <black>effectiveAt</black> 選取某個時間生效的發布。使用 <black>knownAt</black> 選取
+API [目錄](saanseoi:zh-hant:definition/catalogue/v1)在該時間已知的內容，或以
 <black>catalogRevision</black> 選取某個確切的已發布檢查點。
 
 記錄來自該不可變發布集所選取的來源發布。因此，之後的來源編整不會改變已儲存永久連結所傳回的結果。
 
 ## Domains
 
-[domain](saanseoi:zh-hant:definition/domain/v1)
-是某個 API 系列內的獨立集合。<black>{{ domainCode }}</black>
-目前是 Statistics 系列唯一提供的 domain，因此沒有其他 domain 可供探索。
+[domain](saanseoi:zh-hant:definition/domain/v1) 是某個 API 系列內的獨立集合。<black>{{
+domainCode }}</black> 目前是 Statistics 系列唯一提供的 domain，因此沒有其他 domain
+可供探索。
 
 # ZH-HANS
 
@@ -560,7 +564,8 @@ Registry 尋找記錄端點接受的資料集及確切欄位名稱。它會搜�
 1. **最新发布修订版**是发布集最新发布的版本。永久链接或目录修订版也可选取较早的版本。
 2. **最新统计观测**是某个统计序列可用的最近参考期。参考期是数值所描述的时间。
 
-与 Divisions 不同，Statistics 包含许多按不同时间表更新的序列。人口指标可能每年更新，其他指标则可能每季或每月更新。人口普查指标甚至可能完全没有较新的观测。
+与 Divisions 不同，Statistics
+包含许多按不同时间表更新的序列。人口指标可能每年更新，其他指标则可能每季或每月更新。人口普查指标甚至可能完全没有较新的观测。
 
 因此，官方 Statistics 视图为：
 
@@ -568,7 +573,8 @@ Registry 尋找記錄端點接受的資料集及確切欄位名稱。它會搜�
 /stats/v0
 ```
 
-它会返回每个独立序列最新可用的观测，采用该观测所属参考期之发布集的最新修订版，而非完整历史。例如，若某个月度序列有 2026-08 的观测，latest 请求不会同时返回 2026-01 至 2026-07 的观测。
+它会返回每个独立序列最新可用的观测，采用该观测所属参考期之发布集的最新修订版，而非完整历史。例如，若某个月度序列有
+2026-08 的观测，latest 请求不会同时返回 2026-01 至 2026-07 的观测。
 
 如需特定期间，请使用精确的参考期筛选条件：
 
@@ -578,8 +584,8 @@ Registry 尋找記錄端點接受的資料集及確切欄位名稱。它會搜�
 ```
 
 这会返回所选发布集中参考期代码完全相符的记录。列表端点只接受精确期间，不接受日期范围。例如，<black>2026</black>
-和 <black>2026-Q1</black> 是不同的代码：请求 <black>2026</black>
-不会同时返回 2026 年第一季。
+和 <black>2026-Q1</black> 是不同的代码：请求 <black>2026</black> 不会同时返回 2026
+年第一季。
 
 如要获取某个字段所有可用的历史数据，请使用多期间序列端点。它会在
 <black>valuesByReferencePeriod</black> 中为每个参考期返回一组地理代码与数值的对应：
@@ -617,7 +623,8 @@ Registry 尋找記錄端點接受的資料集及確切欄位名稱。它會搜�
 | Statistics                             | 每个独立序列的最新观测      |
 | Statistics 使用 `referencePeriod=2016` | 该精确参考期的记录          |
 
-未提供 selector 时，端点会使用当前[目录](saanseoi:zh-hans:definition/catalogue/v1)中最新生效的发布。如要请求此确切版本，请同时指定
+未提供 selector
+时，端点会使用当前[目录](saanseoi:zh-hans:definition/catalogue/v1)中最新生效的发布。如要请求此确切版本，请同时指定
 <black>cohort</black> 及 <black>domain</black>：
 
 ```url
@@ -638,7 +645,8 @@ Registry 尋找記錄端點接受的資料集及確切欄位名稱。它會搜�
 获取核心记录：参考期、地理范围、细分项目、数值及任何可比性备注。如同时需要源发布标识、发布者的要素参考及时间戳，请使用
 <black>full</black>。
 
-完整字段列表请见[响应 schema](?tab=schema)，或在[响应示例](?tab=samples)选取 profile 并比较响应。例如，可如此请求完整溯源视图：
+完整字段列表请见[响应 schema](?tab=schema)，或在[响应示例](?tab=samples)选取 profile
+并比较响应。例如，可如此请求完整溯源视图：
 
 ```url
 /stats/v0?
@@ -682,8 +690,8 @@ Registry 尋找記錄端點接受的資料集及確切欄位名稱。它會搜�
 ```
 
 <black>include=divisions</black> 会将标准区划资源添加到
-<black>included</black>。<black>include=areas</black>
-会添加该统计数据之地理 cohort 已审核的面 variant，例如
+<black>included</black>。<black>include=areas</black> 会添加该统计数据之地理 cohort
+已审核的面 variant，例如
 <black>hkgov-censtatd:2016</black>、<black>hkgov-censtatd:2021</black>、<black>hkgov-censtatd-area</black>
 或 <black>hkgov-censtatd-hma</black>。
 
@@ -691,8 +699,8 @@ Registry 尋找記錄端點接受的資料集及確切欄位名稱。它會搜�
 
 ## 查找统计数据
 
-使用 Statistics
-Registry 查找记录端点接受的数据集及确切字段名称。它会搜索可用的目录范围，而不只限于一般统计请求所解析的单一版本。首先，可搜索指标或字段名称或描述中的字词：
+使用 Statistics Registry
+查找记录端点接受的数据集及确切字段名称。它会搜索可用的目录范围，而不只限于一般统计请求所解析的单一版本。首先，可搜索指标或字段名称或描述中的字词：
 
 ```url
 /stats/v0/registry/search?
@@ -775,14 +783,14 @@ Registry 查找记录端点接受的数据集及确切字段名称。它会搜�
 
 ## 时间旅行
 
-使用 <black>effectiveAt</black> 选取某个时间生效的发布。使用 <black>knownAt</black>
-选取 API [目录](saanseoi:zh-hans:definition/catalogue/v1)在该时间已知的内容，或以
+使用 <black>effectiveAt</black> 选取某个时间生效的发布。使用 <black>knownAt</black> 选取
+API [目录](saanseoi:zh-hans:definition/catalogue/v1)在该时间已知的内容，或以
 <black>catalogRevision</black> 选取某个确切的已发布检查点。
 
 记录来自该不可变发布集所选取的源发布。因此，之后的来源编整不会改变已保存永久链接所返回的结果。
 
 ## Domains
 
-[domain](saanseoi:zh-hans:definition/domain/v1)
-是某个 API 系列内的独立集合。<black>{{ domainCode }}</black>
-目前是 Statistics 系列唯一提供的 domain，因此没有其他 domain 可供探索。
+[domain](saanseoi:zh-hans:definition/domain/v1) 是某个 API 系列内的独立集合。<black>{{
+domainCode }}</black> 目前是 Statistics 系列唯一提供的 domain，因此没有其他 domain
+可供探索。

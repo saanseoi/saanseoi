@@ -102,8 +102,8 @@ auditability:
 
 ## 生命週期
 
-CSDI 識別引用記錄的發佈日期為 2022 年 3 月 14 日。本發佈保留 2022 年來源 cohort；來源服務回報
-`BEGIN_LIFESPAN = 20160101`，而 `END_LIFESPAN` 為開放值。
+CSDI 識別引用記錄的發佈日期為 2022 年 3 月 14 日。本發佈保留 2022 年來源
+cohort；來源服務回報 `BEGIN_LIFESPAN = 20160101`，而 `END_LIFESPAN` 為開放值。
 
 ## 兼容性
 
@@ -166,8 +166,8 @@ CSDI 識別引用記錄的發佈日期為 2022 年 3 月 14 日。本發佈保�
 
 ## 生命周期
 
-CSDI 识别引用记录的发布日期为 2022 年 3 月 14 日。本发布保留 2022 年来源 cohort；来源服务报告
-`BEGIN_LIFESPAN = 20160101`，而 `END_LIFESPAN` 为开放值。
+CSDI 识别引用记录的发布日期为 2022 年 3 月 14 日。本发布保留 2022 年来源
+cohort；来源服务报告 `BEGIN_LIFESPAN = 20160101`，而 `END_LIFESPAN` 为开放值。
 
 ## 兼容性
 

@@ -1,8 +1,15 @@
 <p align="center">
-<a href="https://saanseoi.hk/" target="_blank">
-<img align="center" width="600" height="400" alt="SS" src="https://github.com/user-attachments/assets/e526c3b9-dfb2-4989-9790-643a22802d6e" /></a>
-    <h1 align="center">山水 | SaanSeoi</h1>
-    <h2 align="center" style="border:none">A DITIGAL COMMONS FOR HONG KONG</h2>
+  <a href="https://saanseoi.hk/" target="_blank">
+    <img
+      align="center"
+      width="600"
+      height="400"
+      alt="SS"
+      src="https://github.com/user-attachments/assets/e526c3b9-dfb2-4989-9790-643a22802d6e"
+    ></a
+  >
+  <h1 align="center">山水 | SaanSeoi</h1>
+  <h2 align="center" style="border:none">A DITIGAL COMMONS FOR HONG KONG</h2>
 </p>
 
 ## Development

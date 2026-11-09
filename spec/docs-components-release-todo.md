@@ -10,10 +10,10 @@ aside while cutting the release.
 - [ ] Review and add the untracked release-notes components (15 files).
 - [ ] Review and add the untracked release-statistics components (30 files).
 - [ ] Review the outstanding route pages listed below, including the already staged
-      Create a Map page.
+  Create a Map page.
 - [ ] Run the relevant Atlas App tests and type checks after the review.
 - [ ] Decide whether this work belongs in a dedicated follow-up change before staging
-      it. At capture time, all items below were unstaged or untracked.
+  it. At capture time, all items below were unstaged or untracked.
 
 ## Dirty inventory
 

@@ -20,8 +20,8 @@ measureCuration: 'fixtures/meta/curations/hkgov-censtatd-statistics-measures/sub
 
 ## Changelog
 
-- <orange>Upstream</orange> Add [C&SD](saanseoi:en:definition/hkgov-censtatd/v1)'s
-  {{ sourceVersion }} Census subdivided-units statistics for District Council districts.
+- <orange>Upstream</orange> Add [C&SD](saanseoi:en:definition/hkgov-censtatd/v1)'s {{
+  sourceVersion }} Census subdivided-units statistics for District Council districts.
 
 ## Versioning
 
@@ -60,13 +60,14 @@ The reviewed mapping below is generated from this release's C&SD
 
 ## 變更記錄
 
-- <orange>上游</orange> 新增 [C&SD](saanseoi:zh-hant:definition/hkgov-censtatd/v1) 的
-  {{ sourceVersion }} 年人口普查中按區議會分區劃分的分間樓宇單位統計資料。
+- <orange>上游</orange> 新增 [C&SD](saanseoi:zh-hant:definition/hkgov-censtatd/v1) 的 {{
+  sourceVersion }} 年人口普查中按區議會分區劃分的分間樓宇單位統計資料。
 
 ## 版本控制
 
-此發布使用發布者 <black>{{ sourceVersion }}</black> 年人口普查批次，版本為
-<black>{{ releaseVersion }}</black>。它保留該批次的統計地理範圍；日後內容完全相同的 CSDI 歸檔不會建立新的來源發布。
+此發布使用發布者 <black>{{ sourceVersion }}</black> 年人口普查批次，版本為 <black>{{
+releaseVersion }}</black>。它保留該批次的統計地理範圍；日後內容完全相同的 CSDI
+歸檔不會建立新的來源發布。
 
 ## 相容性
 
@@ -78,7 +79,9 @@ The reviewed mapping below is generated from this release's C&SD
 ### 正規化欄位
 
 每個經審核的來源欄位均成為標準統計觀測，並附有穩定的
-<black>measureCode</black>、統計種類、匯總方式、單位、狀態、參考時段及在地化指標 offering。經審核的 2021 區議會分區橋接會附於發布專屬的 series；原始 C&SD 代碼仍是來源證據。
+<black>measureCode</black>、統計種類、匯總方式、單位、狀態、參考時段及在地化指標
+offering。經審核的 2021 區議會分區橋接會附於發布專屬的 series；原始 C&SD
+代碼仍是來源證據。
 
 ### 指標 offering
 
@@ -98,13 +101,14 @@ The reviewed mapping below is generated from this release's C&SD
 
 ## 变更记录
 
-- <orange>上游</orange> 新增 [C&SD](saanseoi:zh-hans:definition/hkgov-censtatd/v1) 的
-  {{ sourceVersion }} 年人口普查中按区议会分区划分的分间楼宇单位统计数据。
+- <orange>上游</orange> 新增 [C&SD](saanseoi:zh-hans:definition/hkgov-censtatd/v1) 的 {{
+  sourceVersion }} 年人口普查中按区议会分区划分的分间楼宇单位统计数据。
 
 ## 版本控制
 
-此发布使用发布者 <black>{{ sourceVersion }}</black> 年人口普查批次，版本为
-<black>{{ releaseVersion }}</black>。它保留该批次的统计地理范围；日后内容完全相同的 CSDI 归档不会建立新的来源发布。
+此发布使用发布者 <black>{{ sourceVersion }}</black> 年人口普查批次，版本为 <black>{{
+releaseVersion }}</black>。它保留该批次的统计地理范围；日后内容完全相同的 CSDI
+归档不会建立新的来源发布。
 
 ## 兼容性
 
@@ -116,7 +120,9 @@ The reviewed mapping below is generated from this release's C&SD
 ### 规范化字段
 
 每个经审核的来源字段均成为标准统计观测，并附有稳定的
-<black>measureCode</black>、统计种类、汇总方式、单位、状态、参考时段及本地化指标 offering。经审核的 2021 区议会分区桥接会附于发布专属的 series；原始 C&SD 代码仍是来源证据。
+<black>measureCode</black>、统计种类、汇总方式、单位、状态、参考时段及本地化指标
+offering。经审核的 2021 区议会分区桥接会附于发布专属的 series；原始 C&SD
+代码仍是来源证据。
 
 ### 指标 offering
 

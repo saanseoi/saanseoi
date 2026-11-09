@@ -598,16 +598,16 @@ granularity. They share an explicit physical-building identifier and inventory-o
 reference; Address3D emits one 138-unit collection containing references to both
 original assertions. Neither address is modelled as a subordinate section.
 
-Hin Fat House retains its 872-unit inventory across all reviewed releases from
-January 2025. Its reviewed estate membership aligns the early 2D and 3D assertions; the
-later evidence dates remain explicit. Yip Wong's Yip Wo, Yip Tsz, Yip Tak and Yip Sin
-Houses retain independent identities and inventories of 684, 680, 888 and 1,036 units
-from the July 2024 baseline until revoked. These rules reconstruct missing named 2D
-owners as well as 3D inventories, even where the estate is wholly absent from that
-release's district delivery. Present publisher houses bypass these retention rules,
-including reappearances with changed details; future retained omissions are marked
-unverified. Earlier evidence is backfilled only for these explicitly approved houses,
-without changing other retention rules' dated-evidence requirements.
+Hin Fat House retains its 872-unit inventory across all reviewed releases from January 2025.
+Its reviewed estate membership aligns the early 2D and 3D assertions; the later evidence
+dates remain explicit. Yip Wong's Yip Wo, Yip Tsz, Yip Tak and Yip Sin Houses retain
+independent identities and inventories of 684, 680, 888 and 1,036 units from the July
+2024 baseline until revoked. These rules reconstruct missing named 2D owners as well as
+3D inventories, even where the estate is wholly absent from that release's district
+delivery. Present publisher houses bypass these retention rules, including reappearances
+with changed details; future retained omissions are marked unverified. Earlier evidence
+is backfilled only for these explicitly approved houses, without changing other
+retention rules' dated-evidence requirements.
 
 Ban Tip House at Fu Tip Estate and Kai Wang House and Kai Chun House at Kai Chuen Court
 have omission-only retention rules from July 2024 until revoked. A present publisher
@@ -927,8 +927,8 @@ Withdrawn building qualifiers, names and frontages remain separate from broadene
 complex or phase assertions; qualified successors remain separate from retained parents.
 Village numbers and phase assertions participate in premise selection, so a shared
 publisher group cannot collapse independently recorded addresses. Complete
-publisher-group hashes bound every inference to the inspected deliveries through
-August 2026. Unsupported withdrawals remain behind the deletion-review gate.
+publisher-group hashes bound every inference to the inspected deliveries through August 2026.
+Unsupported withdrawals remain behind the deletion-review gate.
 
 Beaulieu Peninsula retains its broad parent above 40 separately identified houses, and
 Celestial Heights retains its parent above 34 constituent buildings. Cho Yiu Centre
@@ -1922,8 +1922,8 @@ September 2026 against the bilingual source components, coordinates and complete
 288-unit inventory hash.
 
 Shek Pik Sha Tsui Staff Mess retains its reviewed canonical identity in September 2026:
-its complete publisher record matches August, including the location guarded from
-April 2026. The September guard is explicit.
+its complete publisher record matches August, including the location guarded from April 2026.
+The September guard is explicit.
 
 East Terrace’s reviewed streetless-assertion coalescence covers September 2026. Both 2D
 assertions and both complete 3D source records match August, preserving the named owner

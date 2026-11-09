@@ -240,10 +240,9 @@ with the archive slot.
 
 Statistics API field fixtures use these materialised reference periods as lineage
 anchors: `2023` for Permanent Living Quarters and `2023-Q3` for its district dataset.
-The Population and Household compilation contributes annual anchors from 2016
-through 2025. Bootstrap requires an exact canonical source-schema signature for each
-cohort, including the census and housing datasets that contribute to the same annual
-period.
+The Population and Household compilation contributes annual anchors from 2016 through 2025.
+Bootstrap requires an exact canonical source-schema signature for each cohort, including
+the census and housing datasets that contribute to the same annual period.
 
 District Land Area, Population and Density is an exception: its `Density_2022.gml` and
 `Density_2024.gml` publisher packages differ, so they are retained as distinct `2022.0`

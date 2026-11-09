@@ -468,31 +468,31 @@ content while recording the new accepted snapshot's actual change.
 
 ## ZH-HANT
 
-Places 的本地化會獨立處理名稱、品牌名稱及自由格式地址，並保留來源值及腳本衝突證據。公開 Place 使用 PlaceI18n 的
-`freeformAddress`，不提供
+Places 的本地化會獨立處理名稱、品牌名稱及自由格式地址，並保留來源值及腳本衝突證據。公開
+Place 使用 PlaceI18n 的 `freeformAddress`，不提供
 `addresses`。地點名稱、品牌及自由格式地址均不使用機器翻譯；`referenceName`
 是不計入語言覆蓋率的衍生投影。
 
-Places collection endpoint 為
-`GET /places/v0.1`，使用共用 JSON:API 清單格式、release-set 選擇、`page[limit]`、`page[offset]`、permalink，以及
-`basicCategory`、 `taxonomyPrimary`、`operatingStatus`
-和 Division 篩選。`compact`、`default`、`map` 和 `full`
-profile 依序加入一般地點資料、點幾何和審核／來源欄位。H3 儲存格成員仍是 current 索引投影，不是 canonical
-Place 屬性；地圖查詢請使用 `by-cell`。
+Places collection endpoint 為 `GET /places/v0.1`，使用共用 JSON:API
+清單格式、release-set 選擇、`page[limit]`、`page[offset]`、permalink，以及
+`basicCategory`、 `taxonomyPrimary`、`operatingStatus` 和 Division
+篩選。`compact`、`default`、`map` 和 `full` profile
+依序加入一般地點資料、點幾何和審核／來源欄位。H3 儲存格成員仍是 current 索引投影，不是
+canonical Place 屬性；地圖查詢請使用 `by-cell`。
 
 ## ZH-HANS
 
-Places 的本地化会独立处理名称、品牌名称及自由格式地址，并保留源值及脚本冲突证据。公开 Place 使用 PlaceI18n 的
-`freeformAddress`，不提供
+Places 的本地化会独立处理名称、品牌名称及自由格式地址，并保留源值及脚本冲突证据。公开
+Place 使用 PlaceI18n 的 `freeformAddress`，不提供
 `addresses`。地点名称、品牌及自由格式地址均不使用机器翻译；`referenceName`
 是不计入语言覆盖率的派生投影。
 
-Places collection endpoint 为
-`GET /places/v0.1`，使用共用 JSON:API 列表格式、release-set 选择、`page[limit]`、`page[offset]`、permalink，以及
-`basicCategory`、 `taxonomyPrimary`、`operatingStatus`
-和 Division 筛选。`compact`、`default`、`map` 和 `full`
-profile 依次加入一般地点资料、点几何和审核／来源字段。H3 单元格成员仍是 current 索引投影，不是 canonical
-Place 属性；地图查询请使用 `by-cell`。
+Places collection endpoint 为 `GET /places/v0.1`，使用共用 JSON:API
+列表格式、release-set 选择、`page[limit]`、`page[offset]`、permalink，以及
+`basicCategory`、 `taxonomyPrimary`、`operatingStatus` 和 Division
+筛选。`compact`、`default`、`map` 和 `full` profile
+依次加入一般地点资料、点几何和审核／来源字段。H3 单元格成员仍是 current 索引投影，不是
+canonical Place 属性；地图查询请使用 `by-cell`。
 
 ## Publisher source boundary
 

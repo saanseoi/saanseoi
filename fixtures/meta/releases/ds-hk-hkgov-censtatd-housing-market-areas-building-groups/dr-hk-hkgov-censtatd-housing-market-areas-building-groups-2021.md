@@ -20,8 +20,8 @@ measureCuration: 'fixtures/meta/curations/hkgov-censtatd-statistics-measures/hou
 ## Changelog
 
 - Initial 山水 | SaanSeoi release.
-- <orange>Upstream</orange> Add [C&SD](saanseoi:en:definition/hkgov-censtatd/v1)'s
-  {{ sourceVersion }} Census statistics for Housing Market Areas and Building Groups.
+- <orange>Upstream</orange> Add [C&SD](saanseoi:en:definition/hkgov-censtatd/v1)'s {{
+  sourceVersion }} Census statistics for Housing Market Areas and Building Groups.
 
 ## Versioning
 
@@ -89,17 +89,19 @@ The reviewed mapping below is generated from this release's C&SD
 ## 變更記錄
 
 - 山水初始版本。
-- <orange>上游</orange> 新增 [C&SD](saanseoi:zh-hant:definition/hkgov-censtatd/v1) 的
-  {{ sourceVersion }} 年人口普查房屋市場區及樓宇組群統計資料。
+- <orange>上游</orange> 新增 [C&SD](saanseoi:zh-hant:definition/hkgov-censtatd/v1) 的 {{
+  sourceVersion }} 年人口普查房屋市場區及樓宇組群統計資料。
 
 ## 版本控制
 
-此來源發布的版本為 <black>{{ releaseVersion }}</black>，來自發布者
-<black>{{ sourceVersion }}</black> 年人口普查批次。
+此來源發布的版本為 <black>{{ releaseVersion }}</black>，來自發布者 <black>{{
+sourceVersion }}</black> 年人口普查批次。
 
 ## 相容性
 
-山水保留 C&SD 的發布者斷言，並把經審核的數值呈現為標準統計資料。它不會把發布者的屬性綱要公開為統計 API。
+山水保留 C&SD
+的發布者斷言，並把經審核的數值呈現為標準統計資料。它不會把發布者的屬性綱要公開為統計
+API。
 
 ### 直接保留欄位
 
@@ -115,19 +117,22 @@ The reviewed mapping below is generated from this release's C&SD
 ### 正規化欄位
 
 每個經審核的 C&SD 指標均會成為標準觀測，並附有穩定的
-<black>fieldName</black>、統計種類、匯總方式、單位、狀態、參考時段及在地化 offering。指標的中繼資料必須先在此發布的整理清單完成審核，才會發布。
+<black>fieldName</black>、統計種類、匯總方式、單位、狀態、參考時段及在地化
+offering。指標的中繼資料必須先在此發布的整理清單完成審核，才會發布。
 
 - 數字字面值會成為 <black>numericValue</black>；分類字面值會成為 value code。
 - <black>**</black> 會成為受抑制觀測；<black>-</black>、<black>N.A.</black> 及
   <black>NA</black> 會成為不可用觀測。原始字面值仍保留於 <black>sourceValue</black>。
-- 2021 年人口普查是參考時段及幾何批次；如有提供，房屋市場區、樓宇組群及樓宇組群類別會正規化為維度。
+- 2021
+  年人口普查是參考時段及幾何批次；如有提供，房屋市場區、樓宇組群及樓宇組群類別會正規化為維度。
 
 ### 地理範圍處理
 
 兩個發布者圖層均保留為統計斷言。經審核的 <black>HMA_21C</black>
-代碼會提供確定的房屋市場區識別，並另行發布為 <black>hkgov-censtatd-hma</black>
-Division 及 Division Area 幾何。<black>BG_21C</black>
-的樓宇組群點會保留為來源歷史及統計維度：不會提升為 Divisions 幾何，亦不會隨意指定標準 division。因為它們沒有多邊形幾何。
+代碼會提供確定的房屋市場區識別，並另行發布為 <black>hkgov-censtatd-hma</black> Division
+及 Division Area 幾何。<black>BG_21C</black>
+的樓宇組群點會保留為來源歷史及統計維度：不會提升為 Divisions 幾何，亦不會隨意指定標準
+division。因為它們沒有多邊形幾何。
 
 ### 指標 offering
 
@@ -148,17 +153,19 @@ Division 及 Division Area 幾何。<black>BG_21C</black>
 ## 变更记录
 
 - 山水初始版本。
-- <orange>上游</orange> 新增 [C&SD](saanseoi:zh-hans:definition/hkgov-censtatd/v1) 的
-  {{ sourceVersion }} 年人口普查房屋市场区及楼宇组群统计数据。
+- <orange>上游</orange> 新增 [C&SD](saanseoi:zh-hans:definition/hkgov-censtatd/v1) 的 {{
+  sourceVersion }} 年人口普查房屋市场区及楼宇组群统计数据。
 
 ## 版本控制
 
-此来源发布的版本为 <black>{{ releaseVersion }}</black>，来自发布者
-<black>{{ sourceVersion }}</black> 年人口普查批次。
+此来源发布的版本为 <black>{{ releaseVersion }}</black>，来自发布者 <black>{{
+sourceVersion }}</black> 年人口普查批次。
 
 ## 兼容性
 
-山水保留 C&SD 的发布者断言，并将经审核的数值呈现为规范统计数据。它不会把发布者的属性架构公开为统计 API。
+山水保留 C&SD
+的发布者断言，并将经审核的数值呈现为规范统计数据。它不会把发布者的属性架构公开为统计
+API。
 
 ### 直接保留字段
 
@@ -174,19 +181,22 @@ Division 及 Division Area 幾何。<black>BG_21C</black>
 ### 规范化字段
 
 每个经审核的 C&SD 指标均会成为规范观测，并附有稳定的
-<black>fieldName</black>、统计种类、汇总方式、单位、状态、参考时段及本地化 offering。指标的元数据必须先在此发布的整理清单完成审核，才会发布。
+<black>fieldName</black>、统计种类、汇总方式、单位、状态、参考时段及本地化
+offering。指标的元数据必须先在此发布的整理清单完成审核，才会发布。
 
 - 数字字面值会成为 <black>numericValue</black>；分类字面值会成为 value code。
 - <black>**</black> 会成为受抑制观测；<black>-</black>、<black>N.A.</black> 及
   <black>NA</black> 会成为不可用观测。原始字面值仍保留于 <black>sourceValue</black>。
-- 2021 年人口普查是参考时段及几何批次；如有提供，房屋市场区、楼宇组群及楼宇组群类别会规范化为维度。
+- 2021
+  年人口普查是参考时段及几何批次；如有提供，房屋市场区、楼宇组群及楼宇组群类别会规范化为维度。
 
 ### 地理范围处理
 
 两个发布者图层均保留为统计断言。经审核的 <black>HMA_21C</black>
-代码会提供确定的房屋市场区标识，并另行发布为 <black>hkgov-censtatd-hma</black>
-Division 及 Division Area 几何。<black>BG_21C</black>
-的楼宇组群点会保留为来源历史及统计维度：不会提升为 Divisions 几何，也不会随意指定规范 division。因为它们没有多边形几何。
+代码会提供确定的房屋市场区标识，并另行发布为 <black>hkgov-censtatd-hma</black> Division
+及 Division Area 几何。<black>BG_21C</black>
+的楼宇组群点会保留为来源历史及统计维度：不会提升为 Divisions 几何，也不会随意指定规范
+division。因为它们没有多边形几何。
 
 ### 指标 offering
 

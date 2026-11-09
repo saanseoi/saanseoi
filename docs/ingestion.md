@@ -315,7 +315,7 @@ schemas changed, `bun run format:markdown`, and `git diff --check`.
 
 - [ ] Provider, family and resource documentation records the input and its semantics.
 - [ ] Publisher, licence, dataset, release, ruleset and composition fixtures are added
-      or updated and rehashed.
+  or updated and rehashed.
 - [ ] Source schemas, source-version mapping, migrations and reset drops are wired.
 - [ ] Preflight parser and rejection tests cover the publisher-native artefact.
 - [ ] DataOps preparation is registered only when work precedes normal upload.
@@ -323,7 +323,7 @@ schemas changed, `bun run format:markdown`, and `git diff --check`.
 - [ ] `upload.ts` dispatches the source/resource pair to one tested processor.
 - [ ] Source, history, current, metadata, cache, rollback and remote shard paths agree.
 - [ ] Shared progress phases provide consistent action, subject, count, timing and
-      failure feedback.
+  failure feedback.
 - [ ] Snapshot and API composition membership are fixture-driven and tested.
 - [ ] Source-release and API release-set notes are created and published.
 - [ ] Reports and representative API requests prove the final target publication.

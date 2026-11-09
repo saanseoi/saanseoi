@@ -731,8 +731,8 @@ Withdrawn building qualifiers, names and frontages remain separate from broadene
 complex or phase assertions; qualified successors remain separate from retained parents.
 Village numbers and phase assertions participate in premise selection, so a shared
 publisher group cannot collapse independently recorded addresses. Complete
-publisher-group hashes bound every inference to the inspected deliveries through
-August 2026. Unsupported withdrawals remain behind the deletion-review gate.
+publisher-group hashes bound every inference to the inspected deliveries through August 2026.
+Unsupported withdrawals remain behind the deletion-review gate.
 
 Beaulieu Peninsula retains its broad parent above 40 separately identified houses, and
 Celestial Heights retains its parent above 34 constituent buildings. Cho Yiu Centre
@@ -862,10 +862,9 @@ user-reviewed 101 Sau Mau Ping Road address and the publisher address as evidenc
 
 Yung Shing retains two valid building-level street addresses with a shared physical
 identity and one 138-unit inventory; alternate addresses do not imply subordinate
-sections. Hin Fat's full 872-unit inventory covers the reviewed releases from
-January 2025. Yip Wong's four houses retain their separate 3,288-unit total from the
-dataset baseline until revoked, with original assertions and actual evidence dates
-preserved.
+sections. Hin Fat's full 872-unit inventory covers the reviewed releases from January 2025.
+Yip Wong's four houses retain their separate 3,288-unit total from the dataset baseline
+until revoked, with original assertions and actual evidence dates preserved.
 
 Yau Lai, Yau Oi and Yue Wan retain their reviewed street-bearing estate complexes. Yau
 Lai's estate membership supplies parent links without resolving or merging Fung Lai and
@@ -1820,8 +1819,8 @@ September 2026 against the bilingual source components, coordinates and complete
 288-unit inventory hash.
 
 Shek Pik Sha Tsui Staff Mess retains its reviewed canonical identity in September 2026:
-its complete publisher record matches August, including the location guarded from
-April 2026. The September guard is explicit.
+its complete publisher record matches August, including the location guarded from April 2026.
+The September guard is explicit.
 
 East Terrace’s reviewed streetless-assertion coalescence covers September 2026. Both 2D
 assertions and both complete 3D source records match August, preserving the named owner

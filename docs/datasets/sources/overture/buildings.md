@@ -6,10 +6,10 @@ strictly separate inventories, including geometry and release history. Cross-sou
 comparison never replaces or merges their source IDs.
 
 The review pins **2026-09-23.1**, the latest published Buildings release found in the
-[Overture STAC catalogue](https://stac.overturemaps.org/catalog.json) on 21
-October 2026. A scheduled October release must not be treated as an available extract.
-The retained Hong Kong clipSmart scope has **204,207** building records; strict
-district-union intersection would omit 27 of these boundary records.
+[Overture STAC catalogue](https://stac.overturemaps.org/catalog.json) on 21 October 2026.
+A scheduled October release must not be treated as an available extract. The retained
+Hong Kong clipSmart scope has **204,207** building records; strict district-union
+intersection would omit 27 of these boundary records.
 
 ## Schema and provenance
 

@@ -52,49 +52,49 @@ District Council District publication. Statistics whose source features belong t
 ## 發布日期
 
 發布日期 **2025 年 3 月 28 日**
-是此地理資料版本的估計日期，依據[2024 年統計報告的官方發布日](https://www.info.gov.hk/gia/general/202503/28/P2025032800255.htm)。保留的 CSDI
-2025-Q2 套件包含截至 2024 年的觀測，檔案時間為 2025 年 6 月 5 日。套件時間不代表首次發布日；報告公告亦未獨立確認幾何套件的發布日期。
+是此地理資料版本的估計日期，依據[2024 年統計報告的官方發布日](https://www.info.gov.hk/gia/general/202503/28/P2025032800255.htm)。保留的
+CSDI 2025-Q2 套件包含截至 2024 年的觀測，檔案時間為 2025 年 6 月 5
+日。套件時間不代表首次發布日；報告公告亦未獨立確認幾何套件的發布日期。
 
 ## 更新紀錄
 
-- <orange>上游</orange>
-  加入政府統計處按區議會分區劃分的人口及住戶統計發布的 2024 年區議會分區統計地理資料。
+- <orange>上游</orange> 加入政府統計處按區議會分區劃分的人口及住戶統計發布的 2024
+  年區議會分區統計地理資料。
 
 ## 幾何
 
 來源版本選取 18 個 `year` 為 <black>2024</black> 的 `DC_GHS` 要素。原生
-<black>EPSG:2326</black> 幾何會保留，並投影為標準
-<black>EPSG:4326</black>。精確 companion 為 cohort <black>2024</black> 的
-<black>areas:hkgov-censtatd</black>；同一 cohort 的保留拓撲 10 米顯示轉換為
-<black>areas:hkgov-censtatd:simplified</black>。
+<black>EPSG:2326</black> 幾何會保留，並投影為標準 <black>EPSG:4326</black>。精確
+companion 為 cohort <black>2024</black> 的 <black>areas:hkgov-censtatd</black>；同一
+cohort 的保留拓撲 10 米顯示轉換為 <black>areas:hkgov-censtatd:simplified</black>。
 
 ## 相容性
 
-此來源版本屬於政府統計處按區議會分區劃分的人口及住戶統計發布。來源要素屬於 2024 年 cohort 的統計資料，會在未指定變體的
-<black>include=areas</black> 中選取此 companion。
+此來源版本屬於政府統計處按區議會分區劃分的人口及住戶統計發布。來源要素屬於 2024 年
+cohort 的統計資料，會在未指定變體的 <black>include=areas</black> 中選取此 companion。
 
 # ZH-HANS
 
 ## 发布日期
 
 发布日期 **2025 年 3 月 28 日**
-是此地理数据版本的估计日期，依据[2024 年统计报告的官方发布日](https://www.info.gov.hk/gia/general/202503/28/P2025032800255.htm)。保留的 CSDI
-2025-Q2 套件包含截至 2024 年的观测，文件时间为 2025 年 6 月 5 日。套件时间不代表首次发布日期；报告公告亦未独立确认几何套件的发布日期。
+是此地理数据版本的估计日期，依据[2024 年统计报告的官方发布日](https://www.info.gov.hk/gia/general/202503/28/P2025032800255.htm)。保留的
+CSDI 2025-Q2 套件包含截至 2024 年的观测，文件时间为 2025 年 6 月 5
+日。套件时间不代表首次发布日期；报告公告亦未独立确认几何套件的发布日期。
 
 ## 更新记录
 
-- <orange>上游</orange>
-  加入政府统计处按区议会分区划分的人口及住户统计发布的 2024 年区议会分区统计地理资料。
+- <orange>上游</orange> 加入政府统计处按区议会分区划分的人口及住户统计发布的 2024
+  年区议会分区统计地理资料。
 
 ## 几何
 
 源版本选取 18 个 `year` 为 <black>2024</black> 的 `DC_GHS` 要素。原生
-<black>EPSG:2326</black> 几何会保留，并投影为标准
-<black>EPSG:4326</black>。精确 companion 为 cohort <black>2024</black> 的
-<black>areas:hkgov-censtatd</black>；同一 cohort 的保留拓扑 10 米显示转换为
-<black>areas:hkgov-censtatd:simplified</black>。
+<black>EPSG:2326</black> 几何会保留，并投影为标准 <black>EPSG:4326</black>。精确
+companion 为 cohort <black>2024</black> 的 <black>areas:hkgov-censtatd</black>；同一
+cohort 的保留拓扑 10 米显示转换为 <black>areas:hkgov-censtatd:simplified</black>。
 
 ## 兼容性
 
-此源版本属于政府统计处按区议会分区划分的人口及住户统计发布。源要素属于 2024 年 cohort 的统计数据，会在未指定变体的
-<black>include=areas</black> 中选取此 companion。
+此源版本属于政府统计处按区议会分区划分的人口及住户统计发布。源要素属于 2024 年 cohort
+的统计数据，会在未指定变体的 <black>include=areas</black> 中选取此 companion。

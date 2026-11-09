@@ -60,14 +60,14 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 
 ## 修訂紀錄
 
-- `r{{ revision }}` 包含 Place 來源發布，以及由 Places API
-  composition 選取的 Address 及 Division 支援發布。
+- `r{{ revision }}` 包含 Place 來源發布，以及由 Places API composition 選取的 Address 及
+  Division 支援發布。
 
 ## 發布範圍
 
 此不可變的 [release set](saanseoi:zh-hant:definition/release-set/v1) 在
-{{regionName:zh-Hant}}發布 [cohort](saanseoi:zh-hant:definition/cohort/v1)
-<black>{{ cohortKey }}</black> 的 <black>{{ domainCode }}</black>
+{{regionName:zh-Hant}}發布 [cohort](saanseoi:zh-hant:definition/cohort/v1) <black>{{
+cohortKey }}</black> 的 <black>{{ domainCode }}</black>
 [domain](saanseoi:zh-hant:definition/domain/v1)。以下來源發布組成此 release set。
 
 {{apiReleaseSetSources:zh-Hant}}
@@ -76,8 +76,8 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 
 - Operating status 是發布者資料，並非山水對 Place 開放狀態的獨立核實。
 
-- Matching 變更可在 cohort 之間新增、合併或移除發布者記錄，並不令 Overture
-  ID 成為穩定的標準 Address ID。
+- Matching 變更可在 cohort 之間新增、合併或移除發布者記錄，並不令 Overture ID
+  成為穩定的標準 Address ID。
 
 # ZH-HANS
 
@@ -88,14 +88,14 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 
 ## 修订记录
 
-- `r{{ revision }}` 包含 Place 源发布，以及由 Places API
-  composition 选择的 Address 及 Division 支持发布。
+- `r{{ revision }}` 包含 Place 源发布，以及由 Places API composition 选择的 Address 及
+  Division 支持发布。
 
 ## 发布范围
 
 此不可变的 [release set](saanseoi:zh-hans:definition/release-set/v1) 在
-{{regionName:zh-Hans}}发布 [cohort](saanseoi:zh-hans:definition/cohort/v1)
-<black>{{ cohortKey }}</black> 的 <black>{{ domainCode }}</black>
+{{regionName:zh-Hans}}发布 [cohort](saanseoi:zh-hans:definition/cohort/v1) <black>{{
+cohortKey }}</black> 的 <black>{{ domainCode }}</black>
 [domain](saanseoi:zh-hans:definition/domain/v1)。以下源发布组成此 release set。
 
 {{apiReleaseSetSources:zh-Hans}}
@@ -104,5 +104,5 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 
 - Operating status 是发布者数据，并非山水对 Place 开放状态的独立核实。
 
-- Matching 变更可在 cohort 之间新增、合并或移除发布者记录，并不令 Overture
-  ID 成为稳定的标准 Address ID。
+- Matching 变更可在 cohort 之间新增、合并或移除发布者记录，并不令 Overture ID
+  成为稳定的标准 Address ID。

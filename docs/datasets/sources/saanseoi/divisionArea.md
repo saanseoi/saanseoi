@@ -602,13 +602,13 @@ included.
 - **Hong Kong** (`7f99b544-4e68-4574-98d8-ca4de48a0607`): start from the Hong Kong
   Island administrative area's land geometry
   (`ss-25cec859-44f3-5e1d-a72b-952f804e56ab`). Subtract the union of all authored
-  `rural_area` polygons and 淺水灣 Repulse Bay, 舂坎角 Chung Hom Kok, 馬坑 Ma
-  Hang, 赤柱 Stanley, 東頭灣 Tung Tau Wan, 黃麻角 Bluff Head, 大潭頭 Tai Tam
-  Tau, 大浪灣 Tai Long Wan, 歌連臣角 Cape Collinson and 大潭峽 Tai Tam Gap. Keep the
-  single connected component containing the city's reviewed core point and the component
-  containing the retained 鴨脷洲 Ap Lei Chau island point. Remove all other islands and
-  detached remnants. The result has exactly two polygon components, with no artificial
-  bridge across the channel.
+  `rural_area` polygons and 淺水灣 Repulse Bay, 舂坎角 Chung Hom Kok, 馬坑 Ma Hang, 赤柱
+  Stanley, 東頭灣 Tung Tau Wan, 黃麻角 Bluff Head, 大潭頭 Tai Tam Tau, 大浪灣 Tai Long
+  Wan, 歌連臣角 Cape Collinson and 大潭峽 Tai Tam Gap. Keep the single connected
+  component containing the city's reviewed core point and the component containing the
+  retained 鴨脷洲 Ap Lei Chau island point. Remove all other islands and detached
+  remnants. The result has exactly two polygon components, with no artificial bridge
+  across the channel.
 
 Boolean operations use the full WGS84 geometry without simplification or buffering. The
 authored fixture retains the preceding drawings as editing evidence. Input changes

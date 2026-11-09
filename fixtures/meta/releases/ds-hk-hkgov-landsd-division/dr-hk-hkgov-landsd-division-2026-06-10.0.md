@@ -65,17 +65,18 @@ The original point geometry is stored separately as `sourceGeometry` in
 ## 更新紀錄
 
 - 山水初始版本。
-- 收錄地政總署地名資料庫的全部 2,706 筆記錄，涵蓋居住地、水文及地形名稱，並提供位置、官方名稱及別名。
+- 收錄地政總署地名資料庫的全部 2,706
+  筆記錄，涵蓋居住地、水文及地形名稱，並提供位置、官方名稱及別名。
 
 ## 版本控制
 
-此來源版本按發布者的歸檔日期編號。其不可變更的山水版本為
-<black>{{ releaseVersion }}</black>。
+此來源版本按發布者的歸檔日期編號。其不可變更的山水版本為 <black>{{ releaseVersion
+}}</black>。
 
 ## 幾何
 
-每筆來源記錄均有一個使用發布者 <black>EPSG:2326</black>
-座標系統的 Point 幾何。這些點表示位置，並不代表區域邊界。
+每筆來源記錄均有一個使用發布者 <black>EPSG:2326</black> 座標系統的 Point
+幾何。這些點表示位置，並不代表區域邊界。
 
 ## 涵蓋範圍
 
@@ -101,25 +102,26 @@ The original point geometry is stored separately as `sourceGeometry` in
 | `properties.placeNames[].nameStatus` | `PLACE_NAME.NAME_STATUS`                  | `Official` 表示官方名稱，`Alias` 表示別名。                                        |
 
 原始點幾何以 <black>EPSG:2326</black> 座標另存於 `sourceGeometry`。來源記錄端點以
-`geometry` 傳回該幾何，並同時提供
-`properties`。來源記錄涵蓋全部三個類別，共 2,706 筆資料。
+`geometry` 傳回該幾何，並同時提供 `properties`。來源記錄涵蓋全部三個類別，共 2,706
+筆資料。
 
 # ZH-HANS
 
 ## 更新记录
 
 - 山水初始版本。
-- 收录地政总署地名数据库的全部 2,706 条记录，涵盖居住地、水文及地形名称，并提供位置、官方名称及别名。
+- 收录地政总署地名数据库的全部 2,706
+  条记录，涵盖居住地、水文及地形名称，并提供位置、官方名称及别名。
 
 ## 版本控制
 
-此来源版本按发布者的归档日期编号。其不可变更的山水版本为
-<black>{{ releaseVersion }}</black>。
+此来源版本按发布者的归档日期编号。其不可变更的山水版本为 <black>{{ releaseVersion
+}}</black>。
 
 ## 几何
 
-每条来源记录均有一个使用发布者 <black>EPSG:2326</black>
-坐标系统的 Point 几何。这些点表示位置，并不代表区域边界。
+每条来源记录均有一个使用发布者 <black>EPSG:2326</black> 坐标系统的 Point
+几何。这些点表示位置，并不代表区域边界。
 
 ## 涵盖范围
 
@@ -145,5 +147,5 @@ The original point geometry is stored separately as `sourceGeometry` in
 | `properties.placeNames[].nameStatus` | `PLACE_NAME.NAME_STATUS`                  | `Official` 表示官方名称，`Alias` 表示别名。                                        |
 
 原始点几何以 <black>EPSG:2326</black> 坐标另存于 `sourceGeometry`。来源记录端点以
-`geometry` 返回该几何，并同时提供
-`properties`。来源记录涵盖全部三个类别，共 2,706 条数据。
+`geometry` 返回该几何，并同时提供 `properties`。来源记录涵盖全部三个类别，共 2,706
+条数据。

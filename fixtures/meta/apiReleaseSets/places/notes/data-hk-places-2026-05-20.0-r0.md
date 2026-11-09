@@ -64,14 +64,14 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 
 ## 修訂紀錄
 
-- `r{{ revision }}` 包含 Place 來源發布，以及由 Places API
-  composition 選取的 Address 及 Division 支援發布。
+- `r{{ revision }}` 包含 Place 來源發布，以及由 Places API composition 選取的 Address 及
+  Division 支援發布。
 
 ## 發布範圍
 
 此不可變的 [release set](saanseoi:zh-hant:definition/release-set/v1) 在
-{{regionName:zh-Hant}}發布 [cohort](saanseoi:zh-hant:definition/cohort/v1)
-<black>{{ cohortKey }}</black> 的 <black>{{ domainCode }}</black>
+{{regionName:zh-Hant}}發布 [cohort](saanseoi:zh-hant:definition/cohort/v1) <black>{{
+cohortKey }}</black> 的 <black>{{ domainCode }}</black>
 [domain](saanseoi:zh-hant:definition/domain/v1)。以下來源發布組成此 release set。
 
 {{apiReleaseSetSources:zh-Hant}}
@@ -80,8 +80,8 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 
 - Operating status 是發布者資料，並非山水對 Place 開放狀態的獨立核實。
 
-- Null operating
-  status 是發布者資料，不代表 Place 已關閉或尚未核實。Confidence 變更同樣是上游來源變更。
+- Null operating status 是發布者資料，不代表 Place 已關閉或尚未核實。Confidence
+  變更同樣是上游來源變更。
 
 # ZH-HANS
 
@@ -94,14 +94,14 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 
 ## 修订记录
 
-- `r{{ revision }}` 包含 Place 源发布，以及由 Places API
-  composition 选择的 Address 及 Division 支持发布。
+- `r{{ revision }}` 包含 Place 源发布，以及由 Places API composition 选择的 Address 及
+  Division 支持发布。
 
 ## 发布范围
 
 此不可变的 [release set](saanseoi:zh-hans:definition/release-set/v1) 在
-{{regionName:zh-Hans}}发布 [cohort](saanseoi:zh-hans:definition/cohort/v1)
-<black>{{ cohortKey }}</black> 的 <black>{{ domainCode }}</black>
+{{regionName:zh-Hans}}发布 [cohort](saanseoi:zh-hans:definition/cohort/v1) <black>{{
+cohortKey }}</black> 的 <black>{{ domainCode }}</black>
 [domain](saanseoi:zh-hans:definition/domain/v1)。以下源发布组成此 release set。
 
 {{apiReleaseSetSources:zh-Hans}}
@@ -110,5 +110,5 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 
 - Operating status 是发布者数据，并非山水对 Place 开放状态的独立核实。
 
-- Null operating
-  status 是发布者数据，不代表 Place 已关闭或尚未核实。Confidence 变更同样是上游源变更。
+- Null operating status 是发布者数据，不代表 Place 已关闭或尚未核实。Confidence
+  变更同样是上游源变更。

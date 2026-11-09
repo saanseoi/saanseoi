@@ -22,37 +22,37 @@ one publisher ID remain current when all are present in the incoming release.
 ## TODO: Source payload consolidation
 
 - [ ] Verify retained Street snapshots after reingestion with flat
-      publisher/dataset/record attribution. Canonical lifecycle identity lookup uses
-      these references; publisher payloads and notice decisions retain their own source
-      and audit storage. Verify historical replay and unchanged-record write economy.
+  publisher/dataset/record attribution. Canonical lifecycle identity lookup uses these
+  references; publisher payloads and notice decisions retain their own source and audit
+  storage. Verify historical replay and unchanged-record write economy.
 
 - [ ] When Streets work resumes, review moving parsed publisher attributes from
-      `hkgovLandsdStreetBaselineRecords` and `hkgovLandsdStreetNotices` into
-      `properties`. The baseline stores names and district codes directly; notices store
-      names, descriptions, dates, classifications, notice references and district codes
-      directly. These are structured PDF extractions, so define the retained raw payload
-      before removing columns. Preserve source identity, provenance, document evidence,
-      parser diagnostics and notice-application decisions. Update ingestion and readers,
-      generate the migration, and verify retained evidence and lifecycle behaviour. This
-      review is deferred until Streets work starts.
+  `hkgovLandsdStreetBaselineRecords` and `hkgovLandsdStreetNotices` into `properties`.
+  The baseline stores names and district codes directly; notices store names,
+  descriptions, dates, classifications, notice references and district codes directly.
+  These are structured PDF extractions, so define the retained raw payload before
+  removing columns. Preserve source identity, provenance, document evidence, parser
+  diagnostics and notice-application decisions. Update ingestion and readers, generate
+  the migration, and verify retained evidence and lifecycle behaviour. This review is
+  deferred until Streets work starts.
 
 ## TODO: API-family contract unification
 
 - Tracked in [GitHub issue #64](https://github.com/saanseoi/saanseoi/issues/64).
 - [ ] Implement Streets as a first-class API family with the same explicit version and
-      major-alias policy as Addresses, Divisions, Places and Statistics. The current
-      source route registers only `v0.1` for Streets, selects a separate
-      `StreetSourceRecordsResponseSchema`, and the canonical Street routes and schemas
-      remain in a dedicated stack. Review and align route registration, aliases, OpenAPI
-      documents, operation IDs, middleware, history/changelog responses and snapshot
-      errors while preserving intentional Street-specific semantics.
+  major-alias policy as Addresses, Divisions, Places and Statistics. The current source
+  route registers only `v0.1` for Streets, selects a separate
+  `StreetSourceRecordsResponseSchema`, and the canonical Street routes and schemas
+  remain in a dedicated stack. Review and align route registration, aliases, OpenAPI
+  documents, operation IDs, middleware, history/changelog responses and snapshot errors
+  while preserving intentional Street-specific semantics.
 - [ ] Audit the remaining source-contract drift: Street source records have a distinct
-      envelope and reader path, PDF baseline and notice sources are projected into
-      `properties`, Street source descriptions are not localised through the shared
-      OpenAPI message keys, and the app schema/sample flows contain Streets-specific
-      branches. Define the common source-record, source-schema, JSON/NDJSON, pagination,
-      error and localisation contract, retain only deliberate Street extensions, and
-      update the relevant API and source-record documentation with contract tests.
+  envelope and reader path, PDF baseline and notice sources are projected into
+  `properties`, Street source descriptions are not localised through the shared OpenAPI
+  message keys, and the app schema/sample flows contain Streets-specific branches.
+  Define the common source-record, source-schema, JSON/NDJSON, pagination, error and
+  localisation contract, retain only deliberate Street extensions, and update the
+  relevant API and source-record documentation with contract tests.
 
 ## Source storage and publication
 

@@ -56,19 +56,19 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 ## 更新紀錄
 
 - 發布 <black>{{ cohortKey }}</black> 的 Overture Places snapshot。
-- <orange>Upstream</orange>
-  更新 Foursquare 資料。這可改變 Place 記錄及其來源溯源資料；並非山水對 Place 的獨立核實。
+- <orange>Upstream</orange> 更新 Foursquare 資料。這可改變 Place
+  記錄及其來源溯源資料；並非山水對 Place 的獨立核實。
 
 ## 修訂紀錄
 
-- `r{{ revision }}` 包含 Place 來源發布，以及由 Places API
-  composition 選取的 Address 及 Division 支援發布。
+- `r{{ revision }}` 包含 Place 來源發布，以及由 Places API composition 選取的 Address 及
+  Division 支援發布。
 
 ## 發布範圍
 
 此不可變的 [release set](saanseoi:zh-hant:definition/release-set/v1) 在
-{{regionName:zh-Hant}}發布 [cohort](saanseoi:zh-hant:definition/cohort/v1)
-<black>{{ cohortKey }}</black> 的 <black>{{ domainCode }}</black>
+{{regionName:zh-Hant}}發布 [cohort](saanseoi:zh-hant:definition/cohort/v1) <black>{{
+cohortKey }}</black> 的 <black>{{ domainCode }}</black>
 [domain](saanseoi:zh-hant:definition/domain/v1)。以下來源發布組成此 release set。
 
 {{apiReleaseSetSources:zh-Hant}}
@@ -84,19 +84,19 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 ## 更新记录
 
 - 发布 <black>{{ cohortKey }}</black> 的 Overture Places snapshot。
-- <orange>Upstream</orange>
-  更新 Foursquare 数据。这可改变 Place 记录及其源溯源数据；并非山水对 Place 的独立核实。
+- <orange>Upstream</orange> 更新 Foursquare 数据。这可改变 Place
+  记录及其源溯源数据；并非山水对 Place 的独立核实。
 
 ## 修订记录
 
-- `r{{ revision }}` 包含 Place 源发布，以及由 Places API
-  composition 选择的 Address 及 Division 支持发布。
+- `r{{ revision }}` 包含 Place 源发布，以及由 Places API composition 选择的 Address 及
+  Division 支持发布。
 
 ## 发布范围
 
 此不可变的 [release set](saanseoi:zh-hans:definition/release-set/v1) 在
-{{regionName:zh-Hans}}发布 [cohort](saanseoi:zh-hans:definition/cohort/v1)
-<black>{{ cohortKey }}</black> 的 <black>{{ domainCode }}</black>
+{{regionName:zh-Hans}}发布 [cohort](saanseoi:zh-hans:definition/cohort/v1) <black>{{
+cohortKey }}</black> 的 <black>{{ domainCode }}</black>
 [domain](saanseoi:zh-hans:definition/domain/v1)。以下源发布组成此 release set。
 
 {{apiReleaseSetSources:zh-Hans}}

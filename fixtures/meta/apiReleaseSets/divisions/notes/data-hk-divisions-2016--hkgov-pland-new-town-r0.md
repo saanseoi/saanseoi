@@ -41,9 +41,9 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
   divisions, as they do not refer to the same areas even if they have the same names.
 - Some general Divisions fields are blank (<black>null</black>) because the source does
   not provide them. This is expected.
-- Consult the [source-release notes]({{ primarySourceReleaseUrl }}) for
-  <black>{{ primarySourceRelease }}</black> for publisher-specific compatibility and
-  quality decisions.
+- Consult the [source-release notes]({{ primarySourceReleaseUrl }}) for <black>{{
+  primarySourceRelease }}</black> for publisher-specific compatibility and quality
+  decisions.
 
 # ZH-HANT
 
@@ -54,25 +54,26 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 ## 修訂紀錄
 
 - `r{{ revision }}` 從來源發布加入 <black>division</black> 及
-  <black>division-area</black>，並包含推算的香港特別行政區 → 地域 → 區議會分區階層；每個佔已覆蓋來源面積至少百分之五的分區均有獨立路徑。欄位溯源記錄推算規則及固定版本參考幾何。空間對照表獨立於階層門檻，提供與已發布山水地理版本的多邊形重疊資料。
+  <black>division-area</black>，並包含推算的香港特別行政區 → 地域 →
+  區議會分區階層；每個佔已覆蓋來源面積至少百分之五的分區均有獨立路徑。欄位溯源記錄推算規則及固定版本參考幾何。空間對照表獨立於階層門檻，提供與已發布山水地理版本的多邊形重疊資料。
 
 ## 發布範圍
 
 此不可變的 [發布集](saanseoi:zh-hant:definition/release-set/v1) 發布
 {{regionName:zh-Hant}} 的 <black>{{ domainCode }}</black>
 [domain](saanseoi:zh-hant:definition/domain/v1)
-[cohort](saanseoi:zh-hant:definition/cohort/v1)
-<black>{{ cohortKey }}</black>。以下來源發布組成此發布集。
+[cohort](saanseoi:zh-hant:definition/cohort/v1) <black>{{ cohortKey
+}}</black>。以下來源發布組成此發布集。
 
 {{apiReleaseSetSources:zh-Hant}}
 
 ## 備註與限制
 
-- <black>新市鎮</black>屬規劃地理單元。其名稱按 cohort 劃分，因此 API 不會跨 cohort 或根據
-  <black>Overture</black> divisions 推斷身分；即使名稱相同，其所指範圍亦不相同。
+- <black>新市鎮</black>屬規劃地理單元。其名稱按 cohort 劃分，因此 API 不會跨 cohort
+  或根據 <black>Overture</black> divisions 推斷身分；即使名稱相同，其所指範圍亦不相同。
 - 部分一般 Divisions 欄位因來源未提供而為空值 (<black>null</black>)。這是預期行為。
-- 請參閱 <black>{{ primarySourceRelease }}</black>
-  的 [來源發布說明]({{ primarySourceReleaseUrl }})，以了解發布者特有的相容性及品質決定。
+- 請參閱 <black>{{ primarySourceRelease }}</black> 的 [來源發布說明]({{
+  primarySourceReleaseUrl }})，以了解發布者特有的相容性及品質決定。
 
 # ZH-HANS
 
@@ -83,22 +84,23 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 ## 修订记录
 
 - `r{{ revision }}` 从源发布加入 <black>division</black> 及
-  <black>division-area</black>，并包含推算的香港特别行政区 → 地域 → 区议会分区层级；每个占已覆盖来源面积至少百分之五的分区均有独立路径。字段溯源记录推算规则及固定版本参考几何。空间对照表独立于层级门槛，提供与已发布山水地理版本的多边形重叠数据。
+  <black>division-area</black>，并包含推算的香港特别行政区 → 地域 →
+  区议会分区层级；每个占已覆盖来源面积至少百分之五的分区均有独立路径。字段溯源记录推算规则及固定版本参考几何。空间对照表独立于层级门槛，提供与已发布山水地理版本的多边形重叠数据。
 
 ## 发布范围
 
 此不可变的 [发布集](saanseoi:zh-hans:definition/release-set/v1) 发布
 {{regionName:zh-Hans}} 的 <black>{{ domainCode }}</black>
 [domain](saanseoi:zh-hans:definition/domain/v1)
-[cohort](saanseoi:zh-hans:definition/cohort/v1)
-<black>{{ cohortKey }}</black>。以下源发布构成此发布集。
+[cohort](saanseoi:zh-hans:definition/cohort/v1) <black>{{ cohortKey
+}}</black>。以下源发布构成此发布集。
 
 {{apiReleaseSetSources:zh-Hans}}
 
 ## 备注与限制
 
-- <black>新市镇</black>属规划地理单元。其名称按 cohort 划分，因此 API 不会跨 cohort 或根据
-  <black>Overture</black> divisions 推断身份；即使名称相同，其所指范围也不相同。
+- <black>新市镇</black>属规划地理单元。其名称按 cohort 划分，因此 API 不会跨 cohort
+  或根据 <black>Overture</black> divisions 推断身份；即使名称相同，其所指范围也不相同。
 - 部分一般 Divisions 字段因源未提供而为空值 (<black>null</black>)。这是预期行为。
-- 请参阅 <black>{{ primarySourceRelease }}</black>
-  的 [源发布说明]({{ primarySourceReleaseUrl }})，以了解发布者特有的兼容性及质量决定。
+- 请参阅 <black>{{ primarySourceRelease }}</black> 的 [源发布说明]({{
+  primarySourceReleaseUrl }})，以了解发布者特有的兼容性及质量决定。

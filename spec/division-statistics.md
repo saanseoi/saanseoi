@@ -98,15 +98,15 @@ manufacturing one derived geometry.
 ## TODO
 
 - [ ] Inspect each C&SD resource's downloadable files/API, schema, licence, update
-      cadence, identifiers, publication date and statistical reference period.
+  cadence, identifiers, publication date and statistical reference period.
 - [x] Add planned `hkgov-censtatd` dataset fixtures and source documentation.
 - [ ] Ingest and validate 2016 and 2021 C&SD district-boundary variants before choosing
-      an API map default; compare area, identifiers and coastal treatment with HAD.
+  an API map default; compare area, identifiers and coastal treatment with HAD.
 - [x] Add the initial C&SD land-area, population and density source/history schema and
-      reviewed district-resolution processor.
+  reviewed district-resolution processor.
 - [ ] Design the `statisticSeries` and statistical-geography registry, generated through
-      the normal Drizzle migration workflow.
+  the normal Drizzle migration workflow.
 - [ ] Define the initial compact `include=stats` series allowlist and the filter schema
-      for the dedicated family.
+  for the dedicated family.
 - [ ] Add further Census, housing, labour, education and health datasets only after
-      their measures and geographic cohorts have explicit series definitions.
+  their measures and geographic cohorts have explicit series definitions.

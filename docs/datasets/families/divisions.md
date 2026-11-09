@@ -1795,8 +1795,8 @@ inputs derive 22 Ninepin and 14 Soko member records; these are identity counts, 
 independent physical-island counts.
 
 Ung Kong retains Basalt Island, Bluff Island and Wang Chau as its seed envelope.
-Explicit members Kong Tau Pai
-(`LANDSD:PLACE_NAME:732`), 四排尾 (`BASEMAP:ISLAND:20237d751b5fe16d`) and Kam Chung Ngam
+Explicit members Kong Tau Pai (`LANDSD:PLACE_NAME:732`), 四排尾
+(`BASEMAP:ISLAND:20237d751b5fe16d`) and Kam Chung Ngam
 (`BASEMAP:ISLAND:ad777e9a7bc9fd4c`) are supported by the retained Protomaps
 `OSM:a31915135` archipelago MultiPolygon from `2026-09-01.1`. Their selected polygons
 have more than 80% area overlap with that source geometry. Explicit membership keeps

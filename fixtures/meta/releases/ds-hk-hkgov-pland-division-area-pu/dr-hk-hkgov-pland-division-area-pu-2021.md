@@ -76,8 +76,8 @@ identifiers and hierarchy edges.
 
 ## 兼容性
 
-此版本是規劃署規劃領域的主張，獨立於 Overture 行政區劃。發布者代碼形成持久的規劃署識別碼及 hierarchy
-edges。
+此版本是規劃署規劃領域的主張，獨立於 Overture
+行政區劃。發布者代碼形成持久的規劃署識別碼及 hierarchy edges。
 
 ### 直接保留欄位
 
@@ -117,8 +117,8 @@ edges。
 
 ## 兼容性
 
-此版本是规划署规划领域的主张，独立于 Overture 行政区划。发布者代码形成持久的规划署标识符及 hierarchy
-edges。
+此版本是规划署规划领域的主张，独立于 Overture
+行政区划。发布者代码形成持久的规划署标识符及 hierarchy edges。
 
 ### 直接保留字段
 
