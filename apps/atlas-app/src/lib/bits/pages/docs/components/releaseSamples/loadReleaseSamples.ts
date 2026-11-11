@@ -3,7 +3,12 @@ import {
   type AddressSample,
 } from './releaseSamplesPresentation'
 
-/** Seek hash-prefixed IDs within their namespace as well as bare UUIDs. */
+/**
+ * Seeks a sample within the returned identifier namespace and format.
+ * @param fetchAfter Fetches the first record after an exclusive identifier pivot.
+ * @param signal Optional cancellation signal for navigation.
+ * @returns Sample candidates, wrapping once when the pivot exceeds the namespace.
+ */
 export async function loadAddressSample(
   fetchAfter: (after: string) => Promise<unknown[]>,
   signal?: AbortSignal,
@@ -14,12 +19,18 @@ export async function loadAddressSample(
   if (!candidates.length) candidates = await fetchAfter('')
   signal?.throwIfAborted()
   const first = candidates[0] as { id?: unknown } | undefined
-  const prefix =
+  const namespace =
     typeof first?.id === 'string'
-      ? /^(.*-)[0-9a-f]{32,}$/.exec(first.id)?.[1]
+      ? /^(.+-)([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}|[0-9a-f]{32,})$/i.exec(
+          first.id,
+        )
       : undefined
-  if (!prefix) return candidates
-  const pivot = prefix + crypto.randomUUID().replaceAll('-', '')
+  const prefix = namespace?.[1]
+  const suffix = namespace?.[2]
+  if (!prefix || !suffix) return candidates
+  // Match the stored suffix format so UUID namespaces do not repeat their first row.
+  const random = crypto.randomUUID()
+  const pivot = prefix + (suffix.includes('-') ? random : random.replaceAll('-', ''))
   const selected = await fetchAfter(pivot)
   signal?.throwIfAborted()
   return selected.length ? selected : fetchAfter(prefix)
