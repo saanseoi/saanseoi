@@ -232,6 +232,33 @@ test('Place division filtering uses the reverse index and preserves scope, count
   }
 })
 
+test('Place deep pages hydrate only the selected records', async () => {
+  const sqlite = migratedDatabase('current')
+  try {
+    sqlite.exec(`
+      INSERT INTO placePublicationState(scopeId,snapshotId,status,publicationToken,preparedAt)
+      VALUES ('scope','publication','current','token','2026-09-23');
+      WITH RECURSIVE ids(n) AS (SELECT 0 UNION ALL SELECT n+1 FROM ids WHERE n<199)
+      INSERT INTO places(scopeId,id,resourceReleaseId,geometry,firstSeenMonth)
+      SELECT 'scope',printf('%03d',n),'release','{"type":"Point","coordinates":[114,22]}','2026-01' FROM ids;
+      UPDATE places SET geometry='unreadable skipped projection' WHERE id<'175';
+    `)
+    // A projection evaluated before OFFSET would fail on the skipped geometry.
+    const db = drizzle({ client: sqlite })
+    const rows = await listPlaceRecordsCurrent(db as never, {
+      snapshotId: 'publication',
+      localeSelection: { mode: 'none', locales: [] },
+      limit: 1,
+      offset: 175,
+    })
+    expect(rows.map(row => [row.place.id, row.place.lng, row.place.lat])).toEqual([
+      ['175', 114, 22],
+    ])
+  } finally {
+    sqlite.close()
+  }
+})
+
 test('Division replay seeks exact identity/version/locale tuples across batches', async () => {
   const sqlite = migratedDatabase('history')
   try {
