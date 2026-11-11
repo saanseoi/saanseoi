@@ -685,6 +685,21 @@ names and linked address, street and division text. If search returns HTTP 503 w
 \`fts_not_ready\`, retry after publication finalisation completes. Historical release
 selection belongs to the collection API.
 
+For a search result list, request /places/v0.1/search?q=sheung%20wan&locale=en&limit=20&paginate=true&include=preview.
+Use filter[taxonomyCategory] for a primary category and its descendants, or
+filter[taxonomyPrimary] for an exact primary category. filter[basicCategory] is exact.
+Filters combine with AND and apply before the page limit. filter[operatingStatus]=open
+requires an explicit open status; open_or_unknown also includes missing or unknown
+status. Omit the status filter or use any to include every status.
+
+Append pages using meta.nextCursor as cursor with the same query and filters; stop
+when it is null. HTTP 410 search_expired requires restarting without a cursor.
+Each result identifies one establishment. Supplying locale selects its matching
+localisation. include=preview supplies preview.place.geometry, taxonomy, status and
+phones plus preview.i18n localised names, brands and freeformAddress, so list and map
+rendering need no separate detail request per result. Search previews describe the
+latest publication; use the pinned collection API for durable canonical references.
+
 ## Existing-data renderer references
 
 ${geoJsonReferences.join('\n\n')}

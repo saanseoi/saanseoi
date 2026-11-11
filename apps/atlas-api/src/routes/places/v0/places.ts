@@ -1,3 +1,5 @@
+import { PlaceSearchExpiredError } from '../../../db/placeSearchCursor'
+import type { z } from '@hono/zod-openapi'
 import { parseI18nMeta } from '@repo/db'
 import { withPlacePublication } from '../../../services/places'
 import {
@@ -21,7 +23,7 @@ import {
   listPlaceDivisions,
   listPlaceI18n,
   listPlacesByH3Cell,
-  searchPlacesFts,
+  searchPlacesFtsPage,
 } from '../../../db/places'
 import { sanitiseResponseUrl } from '../../../lib/api'
 import { runWithD1ReadRetry } from '../../../lib/d1'
@@ -306,6 +308,11 @@ const searchRouteConfigs = ROUTE_VARIANTS.map(routeVariant =>
         },
         description: openApiText('openapi_places_search_unavailable_description'),
       },
+      410: {
+        content: { 'application/json': { schema: ErrorResponseSchema } },
+        description:
+          'The search query or publication changed; restart without the cursor.',
+      },
       422: ValidationErrorOpenAPIResponse,
     },
   }),
@@ -517,10 +524,19 @@ async function handlePlacesByCell(
 
 async function handlePlaceSearch(
   c: Context<AppEnv>,
-  args: { region: 'hk' | 'mo'; q: string; locale?: string; limit?: number },
+  args: z.infer<typeof SearchQuerySchema> & { region: 'hk' | 'mo' },
 ) {
   const activeSnapshot = await activePlaceSnapshot(c, args.region)
-  if (!activeSnapshot && args.region === 'mo') return c.json({ results: [] }, 200)
+  if (!activeSnapshot && args.region === 'mo')
+    return c.json(
+      {
+        results: [],
+        ...(args.paginate === 'true' || args.cursor
+          ? { meta: { nextCursor: null } }
+          : {}),
+      },
+      200,
+    )
   if (!activeSnapshot) {
     return c.json(
       {
@@ -554,16 +570,35 @@ async function handlePlaceSearch(
         await setActiveSnapshotAttribution(c, activeSnapshot.snapshotId)
 
         try {
-          const results = await runWithD1ReadRetry(() =>
-            searchPlacesFts(c.var.currentDb, {
+          const page = await runWithD1ReadRetry(() =>
+            searchPlacesFtsPage(c.var.currentDb, {
               snapshotId: activeSnapshot.snapshotId,
               locale: args.locale,
               query: args.q,
               limit: args.limit,
+              cursor: args.cursor,
+              basicCategory: args['filter[basicCategory]'],
+              taxonomyPrimary: args['filter[taxonomyPrimary]'],
+              taxonomyCategory: args['filter[taxonomyCategory]'],
+              operatingStatus: args['filter[operatingStatus]'],
+              includePreview: args.include === 'preview',
             }),
           )
-          return c.json({ results }, 200)
+          return c.json(
+            {
+              results: page.results,
+              ...(args.paginate === 'true' || args.cursor
+                ? { meta: { nextCursor: page.nextCursor } }
+                : {}),
+            },
+            200,
+          )
         } catch (error) {
+          if (error instanceof PlaceSearchExpiredError)
+            return c.json(
+              { httpStatus: 410, error: 'search_expired', message: error.message },
+              410,
+            )
           if (
             error instanceof Error &&
             error.message.includes('Place search is not ready')
