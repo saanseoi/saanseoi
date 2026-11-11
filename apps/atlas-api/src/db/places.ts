@@ -6,7 +6,10 @@ import {
 } from '@repo/core/pipeline/services/places/publicationDependencies'
 import { normalisePlaceBbox } from '@repo/core/pipeline/services/places/placeGeometry'
 import { parseI18nMeta } from '@repo/db'
-import { geographicMembershipSql } from '../lib/geographicFilterContext'
+import {
+  geographicMembershipSql,
+  geographicFilterContext,
+} from '../lib/geographicFilterContext'
 import {
   getPublicationReadiness,
   publicationScopeCondition,
@@ -18,6 +21,11 @@ import { and, asc, eq, sql } from '@repo/db'
 import { getTableColumns } from '@repo/db'
 import { currentSchema } from '@repo/db'
 import type { RequestedApiLocaleSelection } from '@repo/core/apiLocales'
+import {
+  placeSearchKey,
+  readPlaceSearchCursor,
+  writePlaceSearchCursor,
+} from './placeSearchCursor'
 import { MAX_PLACE_RESULTS } from '../lib/api-limits'
 
 const {
@@ -53,6 +61,12 @@ type FtsLookup = {
   locale?: string
   query: string
   limit?: number
+  cursor?: string
+  basicCategory?: string
+  taxonomyPrimary?: string
+  taxonomyCategory?: string
+  operatingStatus?: string
+  includePreview?: boolean
 }
 
 export type PlaceLocaleValue = {
@@ -258,21 +272,88 @@ export async function listPlacesByH3Cell(db: CurrentDatabase, lookup: H3Lookup) 
   return { places: rows.slice(0, limit), hasMore: rows.length > limit }
 }
 
-export async function searchPlacesFts(db: CurrentDatabase, lookup: FtsLookup) {
+/** Return a bounded, fully filtered discovery page from the current published index.
+ * @param db Current publication database.
+ * @param lookup Text, classification filters, preview projection and continuation.
+ * @returns Matching establishments and a publication-bound continuation.
+ * @remarks Classification is applied before the limit; previews share the search query.
+ */
+export async function searchPlacesFtsPage(db: CurrentDatabase, lookup: FtsLookup) {
   try {
     if (!(await hasCurrentPlaceSnapshot(db, lookup.snapshotId)))
       throw new Error('Place search is not ready for the latest published release.')
     const readSearchScope = () =>
       db
-        .select({ scopeId: placeSearchScopes.scopeId })
+        .select({
+          scopeId: placeSearchScopes.scopeId,
+          physicalScopeId:
+            sql<string>`${currentSchema.placePublicationState.scopeId}`.as(
+              'physicalScopeId',
+            ),
+          publicationToken: currentSchema.placePublicationState.publicationToken,
+        })
         .from(placeSearchScopes)
+        .innerJoin(
+          currentSchema.placePublicationState,
+          and(
+            eq(
+              currentSchema.placePublicationState.snapshotId,
+              placeSearchScopes.snapshotId,
+            ),
+            eq(currentSchema.placePublicationState.status, 'current'),
+            sql`${currentSchema.placePublicationState.preparedAt} IS NOT NULL`,
+            sql`${currentSchema.placePublicationState.publicationToken} <> ''`,
+          ),
+        )
         .where(eq(placeSearchScopes.snapshotId, lookup.snapshotId))
         .get()
     const ready = await readSearchScope()
     if (!ready)
       throw new Error('Place search is not ready for the latest published release.')
+    const geography = geographicFilterContext()
+    const key = await placeSearchKey({
+      query: lookup.query,
+      locale: lookup.locale ?? null,
+      snapshotId: lookup.snapshotId,
+      publication: ready,
+      basicCategory: lookup.basicCategory ?? null,
+      taxonomyPrimary: lookup.taxonomyPrimary ?? null,
+      taxonomyCategory: lookup.taxonomyCategory ?? null,
+      operatingStatus: lookup.operatingStatus ?? null,
+      geography: geography
+        ? {
+            ...geography,
+            groups: geography.groups.map(group => [...group].sort()),
+            divisionClasses: geography.divisionClasses
+              ? [...geography.divisionClasses].sort()
+              : null,
+          }
+        : null,
+    })
+    const cursor = readPlaceSearchCursor(lookup.cursor, key)
+    const limit = Math.min(lookup.limit ?? 20, MAX_PLACE_RESULTS)
+    // Select one matching localisation per establishment before applying the page limit.
     const rows = await db
       .select({
+        rowid: lookup.locale
+          ? sql<number>`${placesFts}.rowid`
+          : sql<number>`min(${placesFts}.rowid)`,
+        ...(lookup.includePreview
+          ? {
+              geometry: places.geometry,
+              phones: places.phones,
+              basicCategory: places.basicCategory,
+              taxonomyPrimary: places.taxonomyPrimary,
+              taxonomyHierarchy: places.taxonomyHierarchy,
+              taxonomyAlternates: places.taxonomyAlternates,
+              operatingStatus: places.operatingStatus,
+              i18nJson: sql<string>`coalesce((select json_group_object(${placesI18n.locale}, json_object(
+            'name', ${placesI18n.name}, 'brandName', ${placesI18n.brandName},
+            'freeformAddress', ${placesI18n.freeformAddress}
+          )) from ${placesI18n} where ${placesI18n.scopeId} = ${places.scopeId}
+            and ${placesI18n.placeId} = ${places.id}), '{}')`,
+            }
+          : {}),
         placeId: places.id,
         resourceReleaseId: places.resourceReleaseId,
         locale: placesFts.locale,
@@ -284,10 +365,7 @@ export async function searchPlacesFts(db: CurrentDatabase, lookup: FtsLookup) {
       .innerJoin(
         places,
         and(
-          eq(
-            publicationLogicalSnapshot('place', places.scopeId),
-            placeSearchScopes.snapshotId,
-          ),
+          eq(places.scopeId, ready.physicalScopeId),
           eq(places.id, placesFts.placeId),
         ),
       )
@@ -296,15 +374,77 @@ export async function searchPlacesFts(db: CurrentDatabase, lookup: FtsLookup) {
           eq(placeSearchScopes.snapshotId, lookup.snapshotId),
           lookup.locale ? eq(placesFts.locale, lookup.locale) : undefined,
           placesFtsMatch(lookup.query),
+          lookup.locale ? sql`${placesFts}.rowid > ${cursor.rowid}` : undefined,
+          lookup.basicCategory
+            ? eq(places.basicCategory, lookup.basicCategory)
+            : undefined,
+          lookup.taxonomyPrimary
+            ? eq(places.taxonomyPrimary, lookup.taxonomyPrimary)
+            : undefined,
+          lookup.taxonomyCategory
+            ? sql`(${places.taxonomyPrimary} = ${lookup.taxonomyCategory}
+            OR EXISTS (SELECT 1 FROM json_each(${places.taxonomyHierarchy}) category
+              WHERE category.value = ${lookup.taxonomyCategory}))`
+            : undefined,
+          lookup.operatingStatus === 'open_or_unknown'
+            ? sql`(${places.operatingStatus} IS NULL OR ${places.operatingStatus} IN ('open', 'unknown', ''))`
+            : lookup.operatingStatus && lookup.operatingStatus !== 'any'
+              ? eq(places.operatingStatus, lookup.operatingStatus)
+              : undefined,
           placeGeographicCondition(),
         ),
       )
-      .limit(Math.min(lookup.limit ?? 20, MAX_PLACE_RESULTS))
+      .groupBy(...(lookup.locale ? [] : [places.id]))
+      .having(
+        lookup.locale ? undefined : sql`min(${placesFts}.rowid) > ${cursor.rowid}`,
+      )
+      .orderBy(lookup.locale ? sql`${placesFts}.rowid` : sql`min(${placesFts}.rowid)`)
+      .limit(limit + 1)
       .all()
     const after = await readSearchScope()
-    if (after?.scopeId !== ready.scopeId)
+    if (JSON.stringify(after) !== JSON.stringify(ready))
       throw new Error('Place search is not ready for the latest published release.')
-    return rows
+    const page = rows.slice(0, limit)
+    return {
+      results: page.map(row => ({
+        placeId: row.placeId,
+        resourceReleaseId: row.resourceReleaseId,
+        locale: row.locale,
+        nameText: row.nameText,
+        brandText: row.brandText,
+        ...(lookup.includePreview
+          ? {
+              preview: {
+                place: {
+                  id: row.placeId,
+                  resourceReleaseId: row.resourceReleaseId,
+                  geometry: row.geometry!,
+                  phones: row.phones ?? null,
+                  basicCategory: row.basicCategory ?? null,
+                  operatingStatus: row.operatingStatus ?? null,
+                  taxonomy: {
+                    primary: row.taxonomyPrimary ?? null,
+                    hierarchy: row.taxonomyHierarchy ?? null,
+                    alternates: row.taxonomyAlternates ?? null,
+                  },
+                },
+                i18n: JSON.parse(row.i18nJson ?? '{}') as Record<
+                  string,
+                  {
+                    name: string | null
+                    brandName: string | null
+                    freeformAddress: string | null
+                  }
+                >,
+              },
+            }
+          : {}),
+      })),
+      nextCursor:
+        rows.length > limit
+          ? writePlaceSearchCursor({ key, rowid: page[page.length - 1]!.rowid })
+          : null,
+    }
   } catch (error) {
     if (
       error instanceof Error &&
@@ -319,6 +459,15 @@ export async function searchPlacesFts(db: CurrentDatabase, lookup: FtsLookup) {
 
     throw error
   }
+}
+
+/** Read a bounded search result array for callers that do not request pagination.
+ * @param db Current publication database.
+ * @param lookup Search inputs.
+ * @returns Fully filtered discovery results.
+ */
+export async function searchPlacesFts(db: CurrentDatabase, lookup: FtsLookup) {
+  return (await searchPlacesFtsPage(db, lookup)).results
 }
 
 function buildPlaceI18nCondition(localeSelection: RequestedApiLocaleSelection) {

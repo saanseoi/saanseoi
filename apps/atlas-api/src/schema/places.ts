@@ -518,6 +518,42 @@ export const SearchQuerySchema = z
     q: z.string().min(1).max(MAX_PLACE_SEARCH_LENGTH),
     locale: z.string().optional(),
     limit: z.coerce.number().int().min(1).max(MAX_PLACE_RESULTS).optional(),
+    paginate: z.enum(['true', 'false']).optional(),
+    cursor: z.string().min(1).max(8192).optional(),
+    include: z.literal('preview').optional(),
+    'filter[basicCategory]': z
+      .string()
+      .regex(/^[a-z0-9_]+$/)
+      .max(200)
+      .optional(),
+    'filter[taxonomyPrimary]': z
+      .string()
+      .regex(/^[a-z0-9_]+$/)
+      .max(200)
+      .optional(),
+    'filter[taxonomyCategory]': z
+      .string()
+      .regex(/^[a-z0-9_]+$/)
+      .max(200)
+      .optional()
+      .openapi({
+        description:
+          'Match the primary category or an ancestor in its taxonomy hierarchy before pagination.',
+      }),
+    'filter[operatingStatus]': z
+      .enum([
+        'open',
+        'open_or_unknown',
+        'temporarily_closed',
+        'permanently_closed',
+        'unknown',
+        'any',
+      ])
+      .optional()
+      .openapi({
+        description:
+          'Exact status, any status, or open_or_unknown to include open and unclassified establishments.',
+      }),
   })
   .openapi('SearchQuery')
 
@@ -526,6 +562,31 @@ export const SearchResponseSchema = z
     results: z.array(
       z
         .object({
+          preview: z
+            .object({
+              place: z.object({
+                id: IdSchema,
+                resourceReleaseId: z.string(),
+                geometry: PlaceGeometrySchema,
+                phones: z.array(z.string()).nullable(),
+                basicCategory: z.string().nullable(),
+                operatingStatus: z.string().nullable(),
+                taxonomy: PlaceTaxonomySchema,
+              }),
+              i18n: z.record(
+                z.string(),
+                z.object({
+                  name: z.string().nullable(),
+                  brandName: z.string().nullable(),
+                  freeformAddress: z.string().nullable(),
+                }),
+              ),
+            })
+            .optional()
+            .openapi({
+              description:
+                'Display facts included by include=preview; no per-result detail request is needed.',
+            }),
           placeId: IdSchema,
           resourceReleaseId: z.string(),
           locale: z.string(),
@@ -544,6 +605,7 @@ export const SearchResponseSchema = z
         })
         .openapi('PlaceSearchResult'),
     ),
+    meta: z.object({ nextCursor: z.string().nullable() }).optional(),
   })
   .openapi('SearchResponse')
 

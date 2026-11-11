@@ -1,3 +1,6 @@
+import { createSearchFtsSql } from '@repo/core/pipeline/services/search/incrementalIndex'
+import { placeSearchIndex } from '@repo/core/pipeline/services/places/searchIndex'
+import { SearchResponseSchema } from '../../../schema/places'
 import { seedSnapshotProducerFixtures } from '../../../../../../libs/core/src/testing/snapshotFixtures'
 import { insertFixtureSnapshot } from '../../../../../../libs/core/src/testing/snapshotFixtures'
 import { describe, expect, test } from 'bun:test'
@@ -1014,6 +1017,66 @@ test('Place API returns a scalar Wikidata brand identifier', async () => {
     expect(PlaceIdentifiersSchema.parse(identifiers)).toEqual({
       wikidata: { brandId: 'Q123' },
     })
+  } finally {
+    fixture.close()
+  }
+})
+
+test('Places search exposes filtered preview pages and rejects changed continuations', async () => {
+  const fixture = createFixtureEnvironment({ rejectHistory: true })
+  try {
+    fixture.currentSqlite.exec(createSearchFtsSql(placeSearchIndex))
+    run(
+      fixture.currentSqlite,
+      'INSERT INTO placeSearchScopes(scopeId,snapshotId) VALUES (?,?)',
+      ['search', PLACE_SNAPSHOT],
+    )
+    fixture.currentSqlite.exec(
+      "INSERT INTO placeSearchFts(scopeId,placeId,locale,nameText,addressText) SELECT 'search',placeId,locale,name,'Sheung Wan' FROM placesI18n",
+    )
+    const query = new URLSearchParams({
+      q: 'sheung wan',
+      locale: 'en',
+      limit: '1',
+      paginate: 'true',
+      include: 'preview',
+      'filter[taxonomyCategory]': 'food_and_drink',
+      'filter[operatingStatus]': 'open_or_unknown',
+    })
+    for (const version of ['v0', 'v0.1']) {
+      const request = () =>
+        app.fetch(
+          new Request(`http://localhost/places/${version}/search?${query}`),
+          fixture.env,
+        )
+      const response = await request()
+      expect(response.status).toBe(200)
+      const first = SearchResponseSchema.parse(await response.json())
+      expect(first.results).toHaveLength(1)
+      expect(first.results[0]?.preview?.place.geometry.type).toBe('Point')
+      expect(first.results[0]?.preview?.i18n.en?.name).toBeTruthy()
+      expect(first.meta?.nextCursor).toBeTruthy()
+      query.set('cursor', first.meta!.nextCursor!)
+      const secondResponse = await request()
+      expect(secondResponse.status).toBe(200)
+      const second = SearchResponseSchema.parse(await secondResponse.json())
+      expect(second.results).toHaveLength(1)
+      expect(second.results[0]?.placeId).not.toBe(first.results[0]?.placeId)
+      expect(second.meta?.nextCursor).toBeNull()
+      query.set('filter[taxonomyCategory]', 'shopping')
+      const expired = await request()
+      expect(expired.status).toBe(410)
+      expect(await expired.json()).toMatchObject({ error: 'search_expired' })
+      query.delete('cursor')
+      query.set('filter[taxonomyCategory]', 'food_and_drink')
+    }
+    const invalid = await app.fetch(
+      new Request(
+        'http://localhost/places/v0.1/search?q=shop&filter[operatingStatus]=invalid',
+      ),
+      fixture.env,
+    )
+    expect(invalid.status).toBe(422)
   } finally {
     fixture.close()
   }

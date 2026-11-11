@@ -188,3 +188,12 @@ source-polygon queries for outline styles, complete-address precedence, footprin
 constrained ALS fallback and explicit ambiguity/approximation. Schema `protomaps-v4.1`
 archives are required for polygon address tags; publishing these archives is a separate
 release operation.
+
+## Filtered Places discovery
+
+The hand-over reference covers text search with classification filters applied before
+the result limit, ancestor taxonomy matching, exact and open-or-unknown status choices,
+publication-bound cursor pagination and optional display previews. Search previews
+include geometry and localised names and addresses without per-result detail requests.
+Collection pagination and pinned canonical lookup remain separate contracts. Copy review
+is still needed.
