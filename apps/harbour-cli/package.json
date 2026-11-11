@@ -18,7 +18,7 @@
     "@repo/core": "workspace:*",
     "@repo/db": "workspace:*",
     "comment-json": "^5.0.0",
-    "fast-xml-parser": "5.11.2",
+    "fast-xml-parser": "5.12.0",
     "fflate": "0.8.3",
     "fgdb": "1.0.0",
     "h3-js": "^4.5.0",
