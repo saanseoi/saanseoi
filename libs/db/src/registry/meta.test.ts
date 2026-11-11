@@ -409,6 +409,7 @@ describe('fixture version hashes', () => {
     const statements = buildMetaRegistrySyncStatements('preview').join('\n')
     expect(statements).toContain('DELETE FROM apiCompositionMembers')
     expect(apiDomainCodeRenames).toEqual([
+      { apiVersion: 'api-addresses-v0.1', from: 'physical', to: 'saanseoi' },
       { apiVersion: 'api-addresses-v0.1', from: 'default', to: 'saanseoi' },
       { apiVersion: 'api-addresses-v0.1', from: 'official', to: 'saanseoi' },
       { apiVersion: 'api-stats-v0.1', from: 'official', to: 'government' },
@@ -420,6 +421,57 @@ describe('fixture version hashes', () => {
     expect(statements).toContain('UPDATE apiReleaseSets\nSET domainCode =')
     expect(statements).toContain('FROM apiVersionReleaseSets\n    WHERE apiVersionId =')
     expect(statements).toContain('AND apiVersionReleaseSetId IN (')
+  })
+
+  test('aligns published physical Address domains without changing other families or release identity', () => {
+    const db = new Database(':memory:')
+    try {
+      db.exec(`
+        CREATE TABLE apiVersions(id TEXT PRIMARY KEY, code TEXT);
+        CREATE TABLE apiReleaseSets(id TEXT PRIMARY KEY, domainCode TEXT, updatedAt TEXT);
+        CREATE TABLE apiVersionReleaseSets(id TEXT PRIMARY KEY, apiVersionId TEXT, apiReleaseSetId TEXT);
+        CREATE TABLE apiCatalogRevisions(id TEXT PRIMARY KEY, apiVersionId TEXT, defaultDomainCode TEXT);
+        CREATE TABLE apiCatalogRevisionReleaseSets(apiCatalogRevisionId TEXT, apiVersionReleaseSetId TEXT, domainCode TEXT, cohortKey TEXT, PRIMARY KEY(apiCatalogRevisionId,domainCode,cohortKey));
+        INSERT INTO apiVersions VALUES ('address','api-addresses-v0.1'),('other','api-other-v0.1');
+        INSERT INTO apiReleaseSets VALUES ('address-release','physical','before'),('other-release','physical','before');
+        INSERT INTO apiVersionReleaseSets VALUES ('address-link','address','address-release'),('other-link','other','other-release');
+        INSERT INTO apiCatalogRevisions VALUES ('address-catalog','address','physical'),('other-catalog','other','physical');
+        INSERT INTO apiCatalogRevisionReleaseSets VALUES ('address-catalog','address-link','physical','2026'),('other-catalog','other-link','physical','2026');
+      `)
+      const statements = buildMetaRegistrySyncStatements('production').filter(
+        statement =>
+          statement.includes("= 'physical'") && statement.includes("= 'saanseoi'"),
+      )
+      expect(statements).toHaveLength(3)
+      for (let attempt = 0; attempt < 2; attempt++) {
+        db.transaction(() => {
+          for (const statement of statements) db.exec(statement)
+        })()
+        expect(
+          db.query('SELECT id,domainCode FROM apiReleaseSets ORDER BY id').all(),
+        ).toEqual([
+          { id: 'address-release', domainCode: 'saanseoi' },
+          { id: 'other-release', domainCode: 'physical' },
+        ])
+        expect(
+          db
+            .query('SELECT defaultDomainCode FROM apiCatalogRevisions ORDER BY id')
+            .all(),
+        ).toEqual([
+          { defaultDomainCode: 'saanseoi' },
+          { defaultDomainCode: 'physical' },
+        ])
+        expect(
+          db
+            .query(
+              'SELECT domainCode FROM apiCatalogRevisionReleaseSets ORDER BY apiCatalogRevisionId',
+            )
+            .all(),
+        ).toEqual([{ domainCode: 'saanseoi' }, { domainCode: 'physical' }])
+      }
+    } finally {
+      db.close()
+    }
   })
 
   test('datasets select ingestion rules while snapshot policies own canonical normalisation', () => {
