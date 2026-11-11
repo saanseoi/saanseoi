@@ -637,12 +637,28 @@ function mapPlaceRow(row: PlaceListRow): PlaceRecord {
   }
 }
 
+/**
+ * Loads a page of published Places after selecting its bounded identity set.
+ * @param db Current publication database.
+ * @param lookup Publication, filters, pagination and locale selection.
+ * @returns Complete records for the requested page.
+ * @remarks Resolve translations and Division display data only for selected rows.
+ */
 export async function listPlaceRecordsCurrent(
   db: CurrentDatabase,
   lookup: PlaceListLookup,
 ): Promise<PlaceRecord[]> {
   const i18n = buildPlaceI18nJsonSelection(lookup.localeSelection)
   const divisionIds = scalarDivisionIdsSql()
+  // Keep expensive correlated projections outside the offset/sort operation.
+  const page = db
+    .select({ scopeId: places.scopeId, id: places.id })
+    .from(places)
+    .where(and(...buildPlaceConditions(lookup)))
+    .orderBy(asc(places.id))
+    .limit(lookup.limit ?? 25)
+    .offset(lookup.offset ?? 0)
+    .as('placePage')
   const rows = await db
     .select({
       snapshotId: publicationLogicalSnapshot('place', places.scopeId),
@@ -680,10 +696,8 @@ export async function listPlaceRecordsCurrent(
       definition: sql<string | null>`${sql.raw(placeDivisionDisplaySql())}`,
     })
     .from(places)
-    .where(and(...buildPlaceConditions(lookup)))
+    .innerJoin(page, and(eq(page.scopeId, places.scopeId), eq(page.id, places.id)))
     .orderBy(asc(places.id))
-    .limit(lookup.limit ?? 25)
-    .offset(lookup.offset ?? 0)
     .all()
 
   return rows.map(row => mapPlaceRow(row as PlaceListRow))
