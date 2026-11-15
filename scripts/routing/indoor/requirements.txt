@@ -1,0 +1,3 @@
+pyogrio==0.13.0
+pyproj==3.8.0
+shapely==2.2.0
