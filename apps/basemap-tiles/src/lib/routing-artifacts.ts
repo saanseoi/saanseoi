@@ -17,6 +17,9 @@ export async function routingArtifact(
     : caches.default,
 ): Promise<Response | null> {
   const path = new URL(request.url).pathname
+  const indoor = path.match(
+    /^\/routing\/hk\/indoor\/(\d{4}-\d{2}-\d{2})\/(manifest\.json|build\.json|native-validation\.json|valhalla-(?:all|unpaid)\.tar\.gz|stations\/[A-Z]{3}\.json)$/,
+  )
   const match = path.match(
     /^\/routing\/(hk|mo|gba)\/(\d{4}-\d{2}-\d{2})\/(manifest\.json|recipe\.json|rebuild\.py|region\.osm\.pbf|valhalla\.tar\.gz|graphhopper\.tar\.gz)$/,
   )
@@ -27,7 +30,8 @@ export async function routingArtifact(
   const pbf = path.match(/^\/downloads\/(hk|mo|gba)\/(\d{4}-\d{2}-\d{2})\.osm\.pbf$/)
   const pmtiles = path.match(/^\/downloads\/(hk|mo|gba)\/(\d{4}-\d{2}-\d{2})\.pmtiles$/)
   const release = path.match(/^\/routing\/(hk|mo|gba)\/(\d{4}-\d{2}-\d{2})\.json$/)
-  if (!match && !latest && !source && !pbf && !release && !pmtiles) return null
+  if (!indoor && !match && !latest && !source && !pbf && !release && !pmtiles)
+    return null
   if (request.method === 'OPTIONS')
     return new Response(null, {
       status: 204,
@@ -42,7 +46,8 @@ export async function routingArtifact(
     return new Response('Full artefact downloads only.', { status: 416 })
   let key: string
   let bucket = env.BUCKET
-  if (pmtiles)
+  if (indoor) key = `routing/hk/indoor/${indoor[1]}/${indoor[2]}`
+  else if (pmtiles)
     key = `basemap/${pmtiles[1]}/${({ hk: 'hongkong', mo: 'macau', gba: 'gba' } as const)[pmtiles[1] as 'hk' | 'mo' | 'gba']}-${pmtiles[2]}.pmtiles`
   else if (source) {
     key = `osm/geofabrik/guangdong/${source[1]}.osm.pbf`
@@ -57,12 +62,15 @@ export async function routingArtifact(
   }
   if (pmtiles && edgeCache)
     return cachedArchiveDownload(request, bucket, key, edgeCache)
-  const prefix = match
-    ? `routing/${match[1]}/${match[2]}`
-    : pbf
-      ? `routing/${pbf[1]}/${pbf[2]}`
-      : null
+  const prefix = indoor
+    ? `routing/hk/indoor/${indoor[1]}`
+    : match
+      ? `routing/${match[1]}/${match[2]}`
+      : pbf
+        ? `routing/${pbf[1]}/${pbf[2]}`
+        : null
   const payload =
+    (indoor && indoor[2] !== 'manifest.json') ||
     (match &&
       !['manifest.json', 'recipe.json', 'rebuild.py'].includes(match[3] ?? '')) ||
     Boolean(pbf)
