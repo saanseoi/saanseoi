@@ -1024,7 +1024,8 @@
         "enName": null,
         "zhName": null,
         "blockNumber": null,
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       },
       "retain": true,
       "application": {
@@ -1258,7 +1259,7 @@
         "enName": "WANG KING HOUSE",
         "zhName": "宏景閣",
         "blockNumber": "A",
-        "granularity": "building",
+        "scope": "building",
         "coordinates": [
           114.187272,
           22.344419
@@ -1529,7 +1530,7 @@
         "enName": "WANG YUEN HOUSE",
         "zhName": "宏遠閣",
         "blockNumber": "B",
-        "granularity": "building",
+        "scope": "building",
         "coordinates": [
           114.186855,
           22.344509
@@ -1799,7 +1800,7 @@
         "enName": "WANG MEI HOUSE",
         "zhName": "宏美閣",
         "blockNumber": "C",
-        "granularity": "building",
+        "scope": "building",
         "coordinates": [
           114.186602,
           22.344148

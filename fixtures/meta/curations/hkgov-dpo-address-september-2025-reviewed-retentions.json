@@ -215,7 +215,7 @@
         "reason": "all are valid addresses"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -442,7 +442,7 @@
         "reason": "Both addresses are valid"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -689,7 +689,7 @@
         "reason": "All should exist. the 10 and 12 addresses are shops"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -934,7 +934,7 @@
         "reason": "still exists"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -1157,7 +1157,7 @@
         "reason": "Retain and reconcile as approved in the September review."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -1384,7 +1384,7 @@
         "reason": "Renamed"
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "enName": "DE HUA TOWER",
         "zhName": null
       }
@@ -1615,7 +1615,8 @@
         "reason": "Retain and reconcile as approved in the September review."
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -1842,7 +1843,7 @@
         "reason": "keep building name"
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "enName": "MEGA GATEWAY",
         "zhName": null
       }
@@ -2060,7 +2061,7 @@
         "reason": "Student residences, still there"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -2283,7 +2284,7 @@
         "reason": "Shopping Mall at this address"
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "enName": "SOHO WEST",
         "zhName": null
       }
@@ -2514,7 +2515,7 @@
         "reason": "keep the name"
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "enName": "THE CLOUD",
         "zhName": null
       }
@@ -2756,7 +2757,7 @@
         "reason": "Keep the name"
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "enName": "SIX PACIFIC PLACE",
         "zhName": "太古廣場六座"
       },
@@ -3165,7 +3166,7 @@
         "reason": "Correct this to be a building"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -3404,7 +3405,8 @@
         "reason": "Kew Green Hotel Mongkok, a hotel keep the building name"
       },
       "patch": {
-        "granularity": "complex",
+        "scope": "premises",
+        "premisesType": "complex",
         "enName": "KEW GREEN HOTEL MONGKOK",
         "zhName": "旺角睿景酒店"
       }

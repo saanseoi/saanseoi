@@ -1076,7 +1076,7 @@
         "reason": "It is still in operation - retain until manually deleted"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -1363,7 +1363,7 @@
         "reason": "building vs address"
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "enName": "CENTURY INDUSTRIAL CENTRE",
         "zhName": "世紀工業中心"
       }
@@ -1592,7 +1592,7 @@
         "reason": "It is still in operation - retain until manually deleted"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -1858,7 +1858,7 @@
         "reason": "it should just be a building, not a complex"
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "enName": "LOK YUEN HOUSE",
         "zhName": "樂園大廈",
         "enEstate": null,
@@ -2144,7 +2144,7 @@
         "reason": "Renamed"
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "enName": "EC HEALTHCARE TOWER",
         "zhName": "醫思健康大樓"
       }
@@ -2413,7 +2413,7 @@
         "interpretation": "Use the sole same-source candidate to implement the explicit building-level correction."
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "enName": "LOK YUEN HOUSE",
         "zhName": "樂園大廈",
         "enEstate": null,
@@ -2683,7 +2683,7 @@
         "reason": "it should just be a building, not a complex"
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "enName": "LOK YUEN HOUSE",
         "zhName": "樂園大廈",
         "enEstate": null,
@@ -2953,7 +2953,7 @@
         "reason": "it should just be a building, not a complex"
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "enName": "LOK YUEN HOUSE",
         "zhName": "樂園大廈",
         "enEstate": null,
@@ -3184,7 +3184,7 @@
         "reason": "It is still in operation - retain until manually deleted"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -3451,7 +3451,7 @@
         "interpretation": "Use the sole same-source candidate to implement the explicit building-level correction."
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "enName": "LOK YUEN HOUSE",
         "zhName": "樂園大廈",
         "enEstate": null,
@@ -3731,7 +3731,7 @@
         "reason": ""
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -3977,7 +3977,7 @@
         "reason": "its address is 11-15 Matheson Street"
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "streetNumberFrom": "11",
         "streetNumberTo": "15"
       }
@@ -4206,7 +4206,7 @@
         "reason": "It is still in operation - retain until manually deleted"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -4433,7 +4433,7 @@
         "reason": "It is still in operation - retain until manually deleted"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -4703,7 +4703,7 @@
         "reason": ""
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -4985,7 +4985,7 @@
         "reason": "Renamed"
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "enName": "HOLLYWOOD HILL",
         "zhName": "HOLLYWOOD HILL"
       }
@@ -5253,7 +5253,7 @@
         "reason": "it should just be a building, not a complex"
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "enName": "LOK YUEN HOUSE",
         "zhName": "樂園大廈",
         "enEstate": null,
@@ -5544,7 +5544,8 @@
         "reason": ""
       },
       "patch": {
-        "granularity": "complex",
+        "scope": "premises",
+        "premisesType": "complex",
         "enName": null,
         "zhName": null,
         "enEstate": "TSEUNG KWAN O SPORTS GROUND",

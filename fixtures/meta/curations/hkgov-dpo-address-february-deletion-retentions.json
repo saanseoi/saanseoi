@@ -2636,7 +2636,7 @@
       "previousLabel": "ST. MARK'S SCHOOL, 18 OI YIN STREET, EASTERN DISTRICT, HK",
       "handling": "retain-reconcile",
       "confidence": "human-reviewed",
-      "reason": "User decision, 2026-10-05: Retain/reconcile. Same bilingual school, street number and point. Its name moves from estate to building fields and Oi Tung Estate is added as context. Preserve the existing school identity and campus granularity.",
+      "reason": "User decision, 2026-10-05: Retain/reconcile. Same bilingual school, street number and point. Its name moves from estate to building fields and Oi Tung Estate is added as context. Preserve the existing school identity and campus scope.",
       "automaticConfidence": "high"
     },
     {
@@ -3726,7 +3726,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -3972,7 +3972,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -4260,7 +4260,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -4519,7 +4519,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -4765,7 +4765,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -5001,7 +5001,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -5266,7 +5266,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -5502,7 +5502,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -5748,7 +5748,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -6020,7 +6020,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -6302,7 +6302,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -6575,7 +6575,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -6820,7 +6820,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -7068,7 +7068,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -7330,7 +7330,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -7572,7 +7572,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -7845,7 +7845,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -8124,7 +8124,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -8370,7 +8370,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -8616,7 +8616,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -8862,7 +8862,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -9137,7 +9137,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -9383,7 +9383,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -9619,7 +9619,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -9894,7 +9894,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -10166,7 +10166,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -10448,7 +10448,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -10723,7 +10723,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -11000,7 +11000,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -11273,7 +11273,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -11519,7 +11519,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -11765,7 +11765,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -12007,7 +12007,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -12253,7 +12253,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -12489,7 +12489,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -12764,7 +12764,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -13037,7 +13037,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -13283,7 +13283,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -13546,7 +13546,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -13788,7 +13788,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -14030,7 +14030,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -14302,7 +14302,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -14575,7 +14575,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -14821,7 +14821,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -15096,7 +15096,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -15342,7 +15342,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -15619,7 +15619,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -15857,7 +15857,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -16139,7 +16139,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -16385,7 +16385,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -16620,7 +16620,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -16862,7 +16862,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -17083,7 +17083,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -17368,7 +17368,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -17641,7 +17641,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -17916,7 +17916,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -18191,7 +18191,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -18433,7 +18433,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -18696,7 +18696,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -18942,7 +18942,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -19188,7 +19188,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -19460,7 +19460,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -19735,7 +19735,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -20008,7 +20008,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -20281,7 +20281,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -20565,7 +20565,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -20837,7 +20837,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -21100,7 +21100,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -21342,7 +21342,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -21588,7 +21588,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -21869,7 +21869,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -22115,7 +22115,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -22361,7 +22361,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -22605,7 +22605,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -22851,7 +22851,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -23097,7 +23097,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -23372,7 +23372,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -23635,7 +23635,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -23900,7 +23900,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -24173,7 +24173,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -24457,7 +24457,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -24699,7 +24699,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -24945,7 +24945,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -25208,7 +25208,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -25483,7 +25483,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -25755,7 +25755,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -25997,7 +25997,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -26249,7 +26249,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -26547,7 +26547,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -26789,7 +26789,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -27033,7 +27033,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -27296,7 +27296,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -27579,7 +27579,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -27854,7 +27854,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -28100,7 +28100,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -28346,7 +28346,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -28621,7 +28621,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -28884,7 +28884,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -29162,7 +29162,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -29404,7 +29404,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -29646,7 +29646,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -29932,7 +29932,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -30178,7 +30178,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -30424,7 +30424,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -30666,7 +30666,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -30912,7 +30912,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -31158,7 +31158,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -31394,7 +31394,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -31669,7 +31669,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -31915,7 +31915,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -32178,7 +32178,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -32441,7 +32441,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -32687,7 +32687,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -32929,7 +32929,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -33204,7 +33204,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -33442,7 +33442,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -33684,7 +33684,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -33930,7 +33930,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -34169,7 +34169,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -34448,7 +34448,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -34707,7 +34707,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -34972,7 +34972,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -35235,7 +35235,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -35517,7 +35517,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -35763,7 +35763,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -36011,7 +36011,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -36259,7 +36259,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -36505,7 +36505,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -36768,7 +36768,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -37012,7 +37012,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -37284,7 +37284,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -37556,7 +37556,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -37828,7 +37828,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -38114,7 +38114,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -38387,7 +38387,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -38668,7 +38668,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -38914,7 +38914,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -39160,7 +39160,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -39406,7 +39406,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -39665,7 +39665,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -39911,7 +39911,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -40157,7 +40157,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -40445,7 +40445,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -40691,7 +40691,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -40954,7 +40954,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -41226,7 +41226,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -41501,7 +41501,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -41758,7 +41758,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -42046,7 +42046,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -42332,7 +42332,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -42574,7 +42574,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -42827,7 +42827,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -43090,7 +43090,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -43369,7 +43369,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -43644,7 +43644,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -43886,7 +43886,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -44149,7 +44149,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -44428,7 +44428,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -44701,7 +44701,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -44989,7 +44989,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -45277,7 +45277,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -45536,7 +45536,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -45811,7 +45811,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -46074,7 +46074,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -46318,7 +46318,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -46581,7 +46581,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -46862,7 +46862,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -47104,7 +47104,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -47352,7 +47352,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -47627,7 +47627,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -47865,7 +47865,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -48126,7 +48126,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -48399,7 +48399,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -48645,7 +48645,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -48891,7 +48891,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -49133,7 +49133,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -49406,7 +49406,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -49679,7 +49679,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -49927,7 +49927,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -50192,7 +50192,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -50428,7 +50428,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -50689,7 +50689,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "enEstate": "HIN FAT ESTATE",
         "zhEstate": "顯發邨"
       }
@@ -50935,7 +50935,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -51177,7 +51177,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -51452,7 +51452,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -51725,7 +51725,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -51996,7 +51996,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -52231,7 +52231,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -52467,7 +52467,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -52709,7 +52709,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -52951,7 +52951,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -53212,7 +53212,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -53448,7 +53448,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -53721,7 +53721,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -54000,7 +54000,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -54272,7 +54272,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -54508,7 +54508,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -54754,7 +54754,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -55017,7 +55017,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -55280,7 +55280,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -55526,7 +55526,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -55805,7 +55805,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -56093,7 +56093,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -56366,7 +56366,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -56629,7 +56629,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -56892,7 +56892,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -57138,7 +57138,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -57380,7 +57380,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -57652,7 +57652,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -57925,7 +57925,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -58188,7 +58188,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -58470,7 +58470,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -58710,7 +58711,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -58983,7 +58985,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -59260,7 +59263,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -59538,7 +59542,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -59815,7 +59820,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -60090,7 +60096,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -60335,7 +60342,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -60611,7 +60619,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -60913,7 +60922,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -61159,7 +61169,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -61385,7 +61396,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -61663,7 +61675,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -61943,7 +61956,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -62221,7 +62235,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -62503,7 +62518,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -62805,7 +62821,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -63070,7 +63087,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -63350,7 +63368,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -63628,7 +63647,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -63906,7 +63926,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -64184,7 +64205,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -64486,7 +64508,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -64762,7 +64785,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -65002,7 +65026,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -65279,7 +65304,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -65558,7 +65584,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -65837,7 +65864,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -66115,7 +66143,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -66393,7 +66422,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -66672,7 +66702,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -66948,7 +66979,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -67193,7 +67225,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -67471,7 +67504,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -67753,7 +67787,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -67993,7 +68028,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -68273,7 +68309,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -68551,7 +68588,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -68828,7 +68866,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -69088,7 +69127,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -69366,7 +69406,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -69644,7 +69685,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -69884,7 +69926,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -70166,7 +70209,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -70451,7 +70495,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -70753,7 +70798,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -71031,7 +71077,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -71311,7 +71358,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -71589,7 +71637,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -71863,7 +71912,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -72140,7 +72190,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -72385,7 +72436,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -72661,7 +72713,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -72943,7 +72996,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -73225,7 +73279,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -73507,7 +73562,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -73811,7 +73867,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -74089,7 +74146,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -74365,7 +74423,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -74645,7 +74704,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -74932,7 +74992,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -75209,7 +75270,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -75485,7 +75547,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -75763,7 +75826,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -76052,7 +76116,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -76334,7 +76399,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -76610,7 +76676,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -76875,7 +76942,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -77093,7 +77161,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -77341,7 +77410,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -77621,7 +77691,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -77898,7 +77969,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -78202,7 +78274,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -78480,7 +78553,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -78758,7 +78832,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -79035,7 +79110,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -79317,7 +79393,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -79579,7 +79656,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -79861,7 +79939,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -80137,7 +80216,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -80439,7 +80519,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -80743,7 +80824,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -81021,7 +81103,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -81299,7 +81382,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -81577,7 +81661,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -81855,7 +81940,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -82137,7 +82223,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -82382,7 +82469,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -82660,7 +82748,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -82940,7 +83029,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -83213,7 +83303,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -83478,7 +83569,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -83754,7 +83846,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -84033,7 +84126,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -84313,7 +84407,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -84589,7 +84684,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -84834,7 +84930,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -85112,7 +85209,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -85390,7 +85488,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -85666,7 +85765,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -85944,7 +86044,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -86248,7 +86349,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -86525,7 +86627,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -86801,7 +86904,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -87077,7 +87181,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -87354,7 +87459,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -87632,7 +87738,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -87908,7 +88015,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -88153,7 +88261,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -88431,7 +88540,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -88711,7 +88821,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -88987,7 +89098,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -89263,7 +89375,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -89545,7 +89658,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -89821,7 +89935,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -90127,7 +90242,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -90403,7 +90519,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -90676,7 +90793,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -90954,7 +91072,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -91230,7 +91349,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -91507,7 +91627,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -91809,7 +91930,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -92082,7 +92204,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -92360,7 +92483,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -92605,7 +92729,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -92850,7 +92975,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -93132,7 +93258,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -93405,7 +93532,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -93680,7 +93808,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -93914,7 +94043,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "phase"
+        "scope": "phase"
       }
     },
     {
@@ -94202,7 +94331,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "phase"
+        "scope": "phase"
       }
     },
     {
@@ -94436,7 +94565,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "phase"
+        "scope": "phase"
       }
     },
     {
@@ -94717,7 +94846,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "phase"
+        "scope": "phase"
       }
     },
     {
@@ -95001,7 +95130,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "phase"
+        "scope": "phase"
       }
     },
     {
@@ -95248,7 +95377,8 @@
         "reason": "Retain the broad parent independently of its qualified buildings."
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -95495,7 +95625,8 @@
         "reason": "Retain the broad parent independently of its qualified buildings."
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -95742,7 +95873,8 @@
         "reason": "Retain the broad parent independently of its qualified buildings."
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -95989,7 +96121,8 @@
         "reason": "Retain the broad parent independently of its qualified buildings."
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -96236,7 +96369,8 @@
         "reason": "Retain the broad parent independently of its qualified buildings."
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -96483,7 +96617,8 @@
         "reason": "Retain the broad parent independently of its qualified buildings."
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -96730,7 +96865,8 @@
         "reason": "Retain the broad parent independently of its qualified buildings."
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -97000,7 +97136,8 @@
         "reason": "Retain the broad parent independently of its qualified buildings."
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -97247,7 +97384,8 @@
         "reason": "Retain the broad parent independently of its qualified buildings."
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -97523,7 +97661,8 @@
         "reason": "Retain the broad parent independently of its qualified buildings."
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -97763,7 +97902,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -98003,12 +98143,13 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
       "id": "february-2025-inference-293",
-      "authority": "User decision, 2026-10-05: Retain/reconcile. Same bilingual school, street number and point. Its name moves from estate to building fields and Oi Tung Estate is added as context. Preserve the existing school identity and campus granularity.",
+      "authority": "User decision, 2026-10-05: Retain/reconcile. Same bilingual school, street number and point. Its name moves from estate to building fields and Oi Tung Estate is added as context. Preserve the existing school identity and campus scope.",
       "sourceVersionFrom": "2025-02-25.0",
       "sourceFile": "als_addresses_(eastern_district).geojson",
       "curationFile": "hkgov-dpo-address-february-deletion-retentions.json",
@@ -98299,7 +98440,7 @@
       "externalEvidence": {
         "reviewReportDigest": "2c623d56c3b995dd3911a52363eb700d591277959763f46446ed3dcb06ee2b2d",
         "entry": 293,
-        "reason": "User decision, 2026-10-05: Retain/reconcile. Same bilingual school, street number and point. Its name moves from estate to building fields and Oi Tung Estate is added as context. Preserve the existing school identity and campus granularity.",
+        "reason": "User decision, 2026-10-05: Retain/reconcile. Same bilingual school, street number and point. Its name moves from estate to building fields and Oi Tung Estate is added as context. Preserve the existing school identity and campus scope.",
         "previousId": "ss-6125d2bd-8dea-5ba8-a7d8-f9b50e07702f",
         "previousLabel": "ST. MARK'S SCHOOL, 18 OI YIN STREET, EASTERN DISTRICT, HK",
         "handling": "retain-reconcile",
@@ -98307,7 +98448,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -98551,7 +98693,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -98795,7 +98937,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -99065,7 +99207,8 @@
         "reason": "Preserve the shared centre parent at Lim Cho Street independently of blocks A and B and the King Cho Road frontage."
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -99314,7 +99457,7 @@
         "automaticConfidence": "unresolved"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -99556,7 +99699,7 @@
         "automaticConfidence": "unresolved"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -99798,7 +99941,7 @@
         "automaticConfidence": "unresolved"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -100040,7 +100183,7 @@
         "automaticConfidence": "unresolved"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -100344,7 +100487,7 @@
         "automaticConfidence": "unresolved"
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "coordinates": [
           114.28476,
           22.32117
@@ -100590,7 +100733,7 @@
         "automaticConfidence": "unresolved"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -100832,7 +100975,7 @@
         "automaticConfidence": "unresolved"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -101105,7 +101248,8 @@
         "automaticConfidence": "unresolved"
       },
       "patch": {
-        "granularity": "complex",
+        "scope": "premises",
+        "premisesType": "complex",
         "coordinates": [
           114.17422,
           22.32342
@@ -101418,7 +101562,8 @@
         "automaticConfidence": "unresolved"
       },
       "patch": {
-        "granularity": "complex",
+        "scope": "premises",
+        "premisesType": "complex",
         "coordinates": [
           114.19026,
           22.27799
@@ -101695,7 +101840,8 @@
         "automaticConfidence": "unresolved"
       },
       "patch": {
-        "granularity": "complex",
+        "scope": "premises",
+        "premisesType": "complex",
         "coordinates": [
           114.03511,
           22.20253
@@ -101943,7 +102089,8 @@
         "automaticConfidence": "unresolved"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -102216,7 +102363,8 @@
         "automaticConfidence": "unresolved"
       },
       "patch": {
-        "granularity": "complex",
+        "scope": "premises",
+        "premisesType": "complex",
         "coordinates": [
           114.13484,
           22.28905
@@ -102460,7 +102608,8 @@
         "automaticConfidence": "unresolved"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -102733,7 +102882,8 @@
         "automaticConfidence": "unresolved"
       },
       "patch": {
-        "granularity": "complex",
+        "scope": "premises",
+        "premisesType": "complex",
         "coordinates": [
           114.13611,
           22.34194
@@ -102977,7 +103127,8 @@
         "automaticConfidence": "unresolved"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -103217,7 +103368,8 @@
         "automaticConfidence": "unresolved"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -103550,7 +103702,8 @@
         "automaticConfidence": "unresolved"
       },
       "patch": {
-        "granularity": "complex",
+        "scope": "premises",
+        "premisesType": "complex",
         "coordinates": [
           114.17042,
           22.45293
@@ -103875,7 +104028,8 @@
         "automaticConfidence": "unresolved"
       },
       "patch": {
-        "granularity": "complex",
+        "scope": "premises",
+        "premisesType": "complex",
         "coordinates": [
           114.20943,
           22.21988
@@ -104119,7 +104273,8 @@
         "automaticConfidence": "unresolved"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -104366,7 +104521,8 @@
         "automaticConfidence": "unresolved"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -104687,7 +104843,8 @@
         "automaticConfidence": "unresolved"
       },
       "patch": {
-        "granularity": "complex",
+        "scope": "premises",
+        "premisesType": "complex",
         "coordinates": [
           114.03422,
           22.41222
@@ -105012,7 +105169,8 @@
         "automaticConfidence": "unresolved"
       },
       "patch": {
-        "granularity": "complex",
+        "scope": "premises",
+        "premisesType": "complex",
         "coordinates": [
           114.14795,
           22.34467
@@ -105337,7 +105495,8 @@
         "automaticConfidence": "unresolved"
       },
       "patch": {
-        "granularity": "complex",
+        "scope": "premises",
+        "premisesType": "complex",
         "coordinates": [
           114.14914,
           22.27993
@@ -105596,7 +105755,7 @@
         "reason": "PT is Part: preserve whole House C and a distinct section beneath it."
       },
       "patch": {
-        "granularity": "section"
+        "scope": "section"
       }
     },
     {
@@ -105870,7 +106029,7 @@
         "reason": "Preserve Oi Yung House; ZONE S H.A.N.D.S is a shopping mall section beneath it."
       },
       "patch": {
-        "granularity": "section"
+        "scope": "section"
       }
     },
     {
@@ -106150,7 +106309,7 @@
         "reason": "Serene Court is the high-rise building within La Serene."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -106418,7 +106577,7 @@
         "reason": "Preserve the complex and its distinct building."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -106682,7 +106841,7 @@
         "reason": "Preserve the complex and its distinct building."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -106963,7 +107122,7 @@
         "reason": "Preserve Tai Po Plaza and its qualified buildings; deduplicate broad assertions."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -107229,7 +107388,7 @@
         "reason": "User decision, 2026-10-05: Retain this enduring premise independently."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -107501,7 +107660,7 @@
         "reason": "Preserve the independently named building beneath the reviewed campus complex."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -107772,7 +107931,7 @@
         "reason": "Preserve the independently named building beneath the reviewed campus complex."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -108038,7 +108197,7 @@
         "reason": "Preserve the independently named building beneath the reviewed campus complex."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     }
   ],
@@ -108727,7 +108886,7 @@
       "childIds": [
         "ss-b73a3e27-5ed8-5bcf-804e-9f517de6122f"
       ],
-      "childGranularity": "section"
+      "childScope": "section"
     },
     {
       "id": "february-2025-reviewed-members-229",
@@ -108735,7 +108894,7 @@
       "childIds": [
         "ss-1c7a44dd-4c2d-506e-ab46-446e02309d0f"
       ],
-      "childGranularity": "section"
+      "childScope": "section"
     },
     {
       "id": "february-2025-reviewed-members-273",
@@ -108743,7 +108902,7 @@
       "childIds": [
         "ss-86c697dc-4fbe-5b69-8528-b132483fa25a"
       ],
-      "childGranularity": "building"
+      "childScope": "building"
     },
     {
       "id": "february-2025-reviewed-members-294",
@@ -108751,7 +108910,7 @@
       "childIds": [
         "ss-0d048828-df98-57ba-ab6f-e6623bf0f524"
       ],
-      "childGranularity": "building"
+      "childScope": "building"
     },
     {
       "id": "february-2025-reviewed-members-305",
@@ -108759,7 +108918,7 @@
       "childIds": [
         "ss-1c069847-4621-55e7-b4d5-92e0858b11f8"
       ],
-      "childGranularity": "building"
+      "childScope": "building"
     },
     {
       "id": "february-2025-reviewed-members-321",
@@ -108767,7 +108926,7 @@
       "childIds": [
         "ss-e3654625-60fa-50c9-ac39-1bb96f5ccb69"
       ],
-      "childGranularity": "building"
+      "childScope": "building"
     },
     {
       "id": "february-2025-reviewed-members-338",
@@ -108775,7 +108934,7 @@
       "childIds": [
         "ss-cd4be1b8-0dac-5a14-bb78-f40b9f8b9392"
       ],
-      "childGranularity": "building"
+      "childScope": "building"
     },
     {
       "id": "february-2025-reviewed-members-280",
@@ -108783,7 +108942,7 @@
       "childIds": [
         "ss-d1c97a23-da2d-566e-9614-ca4eb4b664de"
       ],
-      "childGranularity": "building"
+      "childScope": "building"
     },
     {
       "id": "february-2025-reviewed-campus-238",
@@ -108793,7 +108952,7 @@
         "ss-a17c991c-5fea-55ef-b709-c6691a315835",
         "ss-ac29aeb6-6386-5a18-aa51-693ea3da6557"
       ],
-      "childGranularity": "building"
+      "childScope": "building"
     },
     {
       "id": "february-2025-reviewed-campus-253",
@@ -108801,7 +108960,7 @@
       "childIds": [
         "ss-c608879b-8118-58ea-b359-cac3710d6e55"
       ],
-      "childGranularity": "building"
+      "childScope": "building"
     }
   ],
   "inventories": [

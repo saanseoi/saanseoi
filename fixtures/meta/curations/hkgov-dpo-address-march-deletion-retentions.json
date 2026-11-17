@@ -161,7 +161,7 @@
       "previousLabel": "LOK WAH CATHOLIC PRIMARY SCHOOL, 81 CHUN WAH ROAD, KWUN TONG DISTRICT, KLN",
       "handling": "retain-reconcile",
       "confidence": "human-reviewed",
-      "reason": "Exact bilingual premise and recorded frontage survive with the same publisher GeoAddress. Preserve canonical identity and reviewed campus/complex granularity.",
+      "reason": "Exact bilingual premise and recorded frontage survive with the same publisher GeoAddress. Preserve canonical identity and reviewed campus/complex scope.",
       "automaticConfidence": "high"
     },
     {
@@ -170,7 +170,7 @@
       "previousLabel": "LOK MAN SUN CHUEN, 89-111 KO SHAN ROAD, KOWLOON CITY DISTRICT, KLN",
       "handling": "retain-reconcile",
       "confidence": "human-reviewed",
-      "reason": "Exact bilingual premise and recorded frontage survive with the same publisher GeoAddress. Preserve canonical identity and reviewed campus/complex granularity.",
+      "reason": "Exact bilingual premise and recorded frontage survive with the same publisher GeoAddress. Preserve canonical identity and reviewed campus/complex scope.",
       "automaticConfidence": "high"
     }
   ],
@@ -340,7 +340,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -510,7 +510,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -723,7 +723,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "enName": "KA YUE BUILDING",
         "zhName": "嘉裕大廈"
       }
@@ -891,7 +891,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -1057,7 +1057,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -1229,7 +1229,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -1425,7 +1425,8 @@
         "reason": "Retain the broader Taikoo Shing assertion independently of 12 Taikoo Wan Road."
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -1611,7 +1612,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -1840,7 +1841,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "enName": "AP LEI CHAU MUNICIPAL SERVICES BUILDING",
         "zhName": "鴨脷洲市政大廈"
       }
@@ -2058,7 +2059,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "enName": "KA YUE BUILDING",
         "zhName": "嘉裕大廈"
       }
@@ -2226,7 +2227,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -2441,7 +2442,8 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex",
+        "scope": "premises",
+        "premisesType": "complex",
         "enName": null,
         "zhName": null,
         "enEstate": "CAPITAL TOWER",
@@ -2650,7 +2652,7 @@
         "reason": "Retain this qualified tower independently beneath the Capital Tower site."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -2855,7 +2857,7 @@
         "reason": "Retain this qualified tower independently beneath the Capital Tower site."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -3041,7 +3043,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -3207,7 +3209,7 @@
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -3420,11 +3422,12 @@
         "previousLabel": "LOK WAH CATHOLIC PRIMARY SCHOOL, 81 CHUN WAH ROAD, KWUN TONG DISTRICT, KLN",
         "handling": "retain-reconcile",
         "confidence": "human-reviewed",
-        "reason": "Exact bilingual premise and recorded frontage survive with the same publisher GeoAddress. Preserve canonical identity and reviewed campus/complex granularity.",
+        "reason": "Exact bilingual premise and recorded frontage survive with the same publisher GeoAddress. Preserve canonical identity and reviewed campus/complex scope.",
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -3601,11 +3604,12 @@
         "previousLabel": "LOK MAN SUN CHUEN, 89-111 KO SHAN ROAD, KOWLOON CITY DISTRICT, KLN",
         "handling": "retain-reconcile",
         "confidence": "human-reviewed",
-        "reason": "Exact bilingual premise and recorded frontage survive with the same publisher GeoAddress. Preserve canonical identity and reviewed campus/complex granularity.",
+        "reason": "Exact bilingual premise and recorded frontage survive with the same publisher GeoAddress. Preserve canonical identity and reviewed campus/complex scope.",
         "automaticConfidence": "high"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -3771,7 +3775,7 @@
         "automaticConfidence": "unresolved"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -3985,7 +3989,7 @@
         "automaticConfidence": "unresolved"
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "enName": "EPOCH HOTEL",
         "zhName": "盛世酒店"
       }

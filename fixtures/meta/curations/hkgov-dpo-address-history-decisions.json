@@ -184,7 +184,7 @@
       "expectedFingerprint": "220ea64ec326be968747f1f4b22661b505e0746afaf33b86c560d069b5e641c3",
       "action": "reviewed_hierarchy_and_inventory_backfill",
       "fixture": "hkgov-dpo-address-3d-backfills.json",
-      "decision": "Restore Shin Leung's 313-flat inventory for the three missing April deliveries. Retain 11–12 Yau Shin Street at estate granularity and the named 11 and 12 building addresses as the three inventory owners. Coalesce historical building-range aliases without discarding source assertions.",
+      "decision": "Restore Shin Leung's 313-flat inventory for the three missing April deliveries. Retain 11–12 Yau Shin Street at estate scope and the named 11 and 12 building addresses as the three inventory owners. Coalesce historical building-range aliases without discarding source assertions.",
       "authority": "User decision, 2026-09-07: backfill missing Shin Leung inventories; keep 11–12 as the estate address and 11 and 12 with their respective named houses and inventories."
     },
     {

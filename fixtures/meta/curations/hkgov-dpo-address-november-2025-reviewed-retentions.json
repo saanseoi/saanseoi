@@ -251,7 +251,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -504,7 +504,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -757,7 +757,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -1010,7 +1010,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -1263,7 +1263,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -1516,7 +1516,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -1730,7 +1730,7 @@
         "reason": "building, not complex"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -1983,7 +1983,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -2236,7 +2236,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -2489,7 +2489,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -2742,7 +2742,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -2995,7 +2995,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -3254,7 +3254,7 @@
         "reason": "All addresses for building are correct : 42A Bulkeley Street, 16–20 Lo Lung Hang Street and 11–15 Walker Road."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -3507,7 +3507,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -3760,7 +3760,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -4013,7 +4013,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -4266,7 +4266,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -4519,7 +4519,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -4772,7 +4772,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -5025,7 +5025,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -5278,7 +5278,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -5509,7 +5509,7 @@
         "reason": "Simply dropped the Hse prefix"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -5762,7 +5762,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -6015,7 +6015,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -6268,7 +6268,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -6521,7 +6521,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -6752,7 +6752,7 @@
         "reason": "Simply dropped the Hse prefix"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -7005,7 +7005,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -7258,7 +7258,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -7511,7 +7511,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -7764,7 +7764,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -8017,7 +8017,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -8270,7 +8270,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -8523,7 +8523,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -8794,7 +8794,7 @@
         "reason": "Renamed"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -9047,7 +9047,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -9300,7 +9300,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -9553,7 +9553,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -9806,7 +9806,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -10059,7 +10059,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -10312,7 +10312,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -10565,7 +10565,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -10818,7 +10818,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -11071,7 +11071,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -11324,7 +11324,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -11551,7 +11551,7 @@
         "reason": "Retain and reconcile as approved in the November review."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -11804,7 +11804,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -12057,7 +12057,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -12310,7 +12310,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -12563,7 +12563,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -12816,7 +12816,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -13069,7 +13069,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -13322,7 +13322,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -13575,7 +13575,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -13828,7 +13828,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -14081,7 +14081,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -14334,7 +14334,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -14587,7 +14587,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -14840,7 +14840,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -15093,7 +15093,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -15346,7 +15346,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -15599,7 +15599,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -15852,7 +15852,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -16105,7 +16105,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -16358,7 +16358,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -16611,7 +16611,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -16864,7 +16864,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -17117,7 +17117,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -17370,7 +17370,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -17623,7 +17623,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -17876,7 +17876,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -18129,7 +18129,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -18382,7 +18382,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -18635,7 +18635,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -18888,7 +18888,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -19141,7 +19141,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -19394,7 +19394,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -19647,7 +19647,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -19900,7 +19900,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -20153,7 +20153,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -20406,7 +20406,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -20659,7 +20659,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -20912,7 +20912,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -21165,7 +21165,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -21418,7 +21418,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -21671,7 +21671,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -21924,7 +21924,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -22177,7 +22177,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -22430,7 +22430,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -22683,7 +22683,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -22936,7 +22936,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -23189,7 +23189,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -23442,7 +23442,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -23695,7 +23695,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -23948,7 +23948,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -24201,7 +24201,7 @@
         "reason": "Retain and reconcile as approved in the November review."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -24454,7 +24454,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -24707,7 +24707,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -24960,7 +24960,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -25213,7 +25213,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -25466,7 +25466,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -25687,7 +25687,7 @@
         "reason": "It exists at this address, keep the building name"
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "enName": "DORSETT KAI TAK HONG KONG",
         "zhName": "香港啟德帝盛酒店"
       }
@@ -25942,7 +25942,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -26195,7 +26195,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -26448,7 +26448,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -26671,7 +26671,7 @@
         "reason": "CLP should be retained -- it exists still at this address."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -26893,7 +26893,7 @@
         "reason": "Retain and reconcile as approved in the November review."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -27146,7 +27146,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -27399,7 +27399,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -27652,7 +27652,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -27905,7 +27905,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -28158,7 +28158,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -28411,7 +28411,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -28664,7 +28664,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -28917,7 +28917,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -29170,7 +29170,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -29423,7 +29423,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -29676,7 +29676,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -29929,7 +29929,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -30182,7 +30182,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -30435,7 +30435,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -30688,7 +30688,7 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -30912,7 +30912,7 @@
         "reason": "Lists Lok Yuen House at 15–23 Thistle Street and 2L–2M Nelson Street."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -31163,7 +31163,8 @@
         "reason": "All Shek Kong Barracks premises are still there. Retain, as confirmed by the user."
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -31387,7 +31388,7 @@
         "reason": "Both addresses for the building are correct : 15–23 Thistle Street and 2L–2M Nelson Street. The other addresses are shops."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -31629,7 +31630,8 @@
         "reason": "Retain and reconcile as approved in the November review."
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       },
       "subsequentReviews": [
         {

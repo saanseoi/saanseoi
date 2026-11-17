@@ -232,7 +232,7 @@
         "priorCuration": null
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "enName": "THE VIM",
         "zhName": "佳悅"
       }
@@ -464,7 +464,7 @@
         "priorCuration": null
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "enName": "KEI WAH COURT",
         "zhName": "驥華苑"
       }
@@ -726,7 +726,7 @@
         "priorCuration": null
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -940,7 +940,7 @@
         "priorCuration": null
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "enName": "WEST KOWLOON GOVERNMENT OFFICES SOUTH TOWER",
         "zhName": "西九龍政府合署南座",
         "enEstate": "WEST KOWLOON GOVERNMENT OFFICES",
@@ -1167,7 +1167,7 @@
         "priorCuration": null
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       },
       "parentRule": "june-2025-final-220"
     },
@@ -1404,7 +1404,7 @@
         "priorCuration": null
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -1644,7 +1644,7 @@
         "priorCuration": null
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "enName": null,
         "zhName": null
       }
@@ -1882,7 +1882,8 @@
         "priorCuration": null
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       },
       "role": "complex"
     }

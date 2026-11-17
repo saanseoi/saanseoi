@@ -510,7 +510,8 @@
         "enEstate": "UNION SQUARE",
         "zhEstate": "UNION SQUARE",
         "clearPhase": true,
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       },
       "retain": true,
       "role": "unblocked",

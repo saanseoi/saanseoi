@@ -234,7 +234,7 @@
         "priorCuration": null
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -464,7 +464,7 @@
         "priorCuration": null
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -704,7 +704,7 @@
         "priorCuration": null
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -932,7 +932,8 @@
         "priorCuration": "hkgov-dpo-address-estate-component-gaps.json#estate-gap-200b58ad8c268f8e-2025-08-13.0"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     }
   ]

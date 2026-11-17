@@ -5,7 +5,7 @@
     {
       "id": "shun-ting-terraced-home",
       "csu": "3303221884T20230524",
-      "granularity": "building",
+      "scope": "building",
       "enName": "Transitional Housing - Shun Ting Terraced Home",
       "zhName": "過渡性房屋 - 順庭居",
       "enEstate": null,
@@ -138,7 +138,7 @@
     {
       "id": "tai-hang-fire-dragon-heritage-centre",
       "csu": "3778515545T20050430",
-      "granularity": "building",
+      "scope": "building",
       "enName": "TAI HANG FIRE DRAGON HERITAGE CENTRE",
       "zhName": "大坑火龍文化館",
       "enEstate": null,
@@ -271,7 +271,8 @@
     {
       "id": "union-square-complex",
       "csu": "3458318302T20090317",
-      "granularity": "complex",
+      "scope": "premises",
+      "premisesType": "complex",
       "enName": null,
       "zhName": null,
       "enEstate": "UNION SQUARE",
@@ -312,7 +313,7 @@
     {
       "id": "bougainvilea-gardens-block-1",
       "csu": "4582321076T20050430",
-      "granularity": "building",
+      "scope": "building",
       "enEstate": "BOUGAINVILEA GARDENS",
       "zhEstate": "BOUGAINVILEA GARDENS",
       "blockNumber": "1",
@@ -444,7 +445,7 @@
     {
       "id": "bougainvilea-gardens-block-2",
       "csu": "4580821079T20050430",
-      "granularity": "building",
+      "scope": "building",
       "enEstate": "BOUGAINVILEA GARDENS",
       "zhEstate": "BOUGAINVILEA GARDENS",
       "blockNumber": "2",
@@ -576,7 +577,7 @@
     {
       "id": "bougainvilea-gardens-block-3",
       "csu": "4579421082T20050430",
-      "granularity": "building",
+      "scope": "building",
       "enEstate": "BOUGAINVILEA GARDENS",
       "zhEstate": "BOUGAINVILEA GARDENS",
       "blockNumber": "3",
@@ -708,7 +709,7 @@
     {
       "id": "bougainvilea-gardens-block-4",
       "csu": "4578121087T20050430",
-      "granularity": "building",
+      "scope": "building",
       "enEstate": "BOUGAINVILEA GARDENS",
       "zhEstate": "BOUGAINVILEA GARDENS",
       "blockNumber": "4",

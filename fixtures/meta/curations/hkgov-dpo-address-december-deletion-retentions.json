@@ -409,7 +409,7 @@
         "reason": "Retain the recorded 250–254 frontage separately from the already coexisting 252 frontage of Tower 1."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -685,7 +685,7 @@
         "reason": "Same Block B and publisher identity; its street number is corrected from 11 to 3. Do not merge with Block A."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -959,7 +959,7 @@
         "reason": "Same bilingual residential building across replacement CSU; retain it beneath the separately restored university complex."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -1228,7 +1228,7 @@
         "reason": "Keep the already coexisting 252 frontage identity when its publisher CSU is replaced; preserve the separate 250–254 frontage."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -1504,7 +1504,7 @@
         "reason": "Same Block A and publisher identity; its street number is corrected from 3 to 11. Do not merge with Block B."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -1733,7 +1733,7 @@
         "reason": "Retain the recorded 5–17 frontage independently of the already coexisting 5–19 frontage."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -1974,7 +1974,7 @@
         "reason": "Retain the building assertion separately beneath the already existing recreation-ground complex."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -2266,7 +2266,7 @@
         "reason": "Same publisher identity, point and number range; restore the withdrawn Linda Vista name."
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "enName": "LINDA VISTA",
         "zhName": "LINDA VISTA"
       }
@@ -2533,7 +2533,7 @@
         "reason": "The same house name moves from BuildingName to EstateName. Restore the building structure and identity."
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "enName": "LOK YUEN HOUSE",
         "zhName": "樂園大廈",
         "enEstate": null,
@@ -2828,7 +2828,7 @@
         "reason": "House 71 and publisher identity survive; restore estate, house and street components withdrawn into village fields."
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "enEstate": "SEASONS MONARCH",
         "zhEstate": "四季名園",
         "blockNumber": "71",
@@ -3128,7 +3128,7 @@
         "reason": "House 72 and publisher identity survive; restore estate, house and street components withdrawn into village fields."
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "enEstate": "SEASONS MONARCH",
         "zhEstate": "四季名園",
         "blockNumber": "72",
@@ -3413,7 +3413,7 @@
         "reason": "Exact bilingual market survives under a replacement CSU. Keep it distinct from the already coexisting plaza and estate."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -3698,7 +3698,7 @@
         "reason": "Same publisher identity and exact frontage; Focus Commercial Building is renamed Hotel Ease Access Lai Chi Kok."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -3945,7 +3945,8 @@
         "reason": "Restore the withdrawn Kai Fat House name for its 74–76 range; separate 74 and 76 frontages remain distinct."
       },
       "patch": {
-        "granularity": "complex",
+        "scope": "premises",
+        "premisesType": "complex",
         "enName": null,
         "zhName": null,
         "enEstate": "KAI FAT HOUSE",
@@ -4215,7 +4216,8 @@
         "reason": "Same publisher identity, point and complete address. Retain the unnamed site assertion."
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -4482,7 +4484,8 @@
         "reason": "Restore the university complex at number 8 independently of its constituent residential building."
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -4737,7 +4740,8 @@
         "reason": "Restore the university 8–12 range independently of the number 8 assertion."
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -5012,7 +5016,8 @@
         "reason": "Preserve the already existing recreation-ground complex independently of the retained building assertion."
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -5239,7 +5244,7 @@
         "reason": "User decision, 2026-10-05: retain the named Institute of Immunology separately from the coexisting unnamed address."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     }
   ],

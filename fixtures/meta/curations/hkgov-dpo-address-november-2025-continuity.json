@@ -225,7 +225,7 @@
         "reviewReportDigest": "c9b07f949a48bf66ecaecb4311a46a7bda5e99127cc3463c0598bb55b38db7b1"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -438,7 +438,7 @@
         "reviewReportDigest": "c9b07f949a48bf66ecaecb4311a46a7bda5e99127cc3463c0598bb55b38db7b1"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -671,7 +671,7 @@
         "reviewReportDigest": "c9b07f949a48bf66ecaecb4311a46a7bda5e99127cc3463c0598bb55b38db7b1"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -884,7 +884,7 @@
         "reviewReportDigest": "c9b07f949a48bf66ecaecb4311a46a7bda5e99127cc3463c0598bb55b38db7b1"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -1117,7 +1117,7 @@
         "reviewReportDigest": "c9b07f949a48bf66ecaecb4311a46a7bda5e99127cc3463c0598bb55b38db7b1"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -1350,7 +1350,8 @@
         "reviewReportDigest": "c9b07f949a48bf66ecaecb4311a46a7bda5e99127cc3463c0598bb55b38db7b1"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     }
   ]

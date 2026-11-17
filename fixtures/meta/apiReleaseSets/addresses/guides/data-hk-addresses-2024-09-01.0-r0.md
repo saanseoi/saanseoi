@@ -336,7 +336,7 @@ Division 篩選條件，因此可重現已封存的發布視圖。
 <black>attributes.geometry</black> 是 GeoJSON 地址位置，使用 <black>profile=map</black>
 或 <black>profile=full</black> 時提供。如需不可變的snapshot
 ID、發布者識別碼及來源證據，請使用 <black>profile=full</black>。
-<black>attributes.granularity</black> 說明記錄識別的範圍，並非品質評分。
+<black>attributes.scope</black> 說明記錄識別的範圍，並非品質評分。
 
 ## 島嶼關係
 
@@ -540,7 +540,7 @@ Division 筛选条件，因此可重现已归档的发布视图。
 <black>attributes.geometry</black> 是 GeoJSON 地址位置，使用 <black>profile=map</black>
 或 <black>profile=full</black> 时提供。如需不可变的snapshot
 ID、发布者标识符及源证据，请使用 <black>profile=full</black>。
-<black>attributes.granularity</black> 说明记录识别的范围，并非质量评分。
+<black>attributes.scope</black> 说明记录识别的范围，并非质量评分。
 
 ## 岛屿关系
 
