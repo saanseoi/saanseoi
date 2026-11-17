@@ -110,6 +110,8 @@
     "workers:provision-renamed": "bun ./scripts/provision-renamed-workers.ts",
     "test:hooks": "bun test scripts/check-tailwind.test.ts scripts/checks/staged-lint.test.ts scripts/checks/markdown.test.ts",
     "test:evidence": "bun test scripts/evidence-archive.test.ts apps/harbour-cli/src/lib/storage/evidenceArchive.test.ts",
+    "local:retention": "python3 scripts/local-artefact-retention.py",
+    "local:retention:apply": "python3 scripts/local-artefact-retention.py --apply",
     "evidence:refresh": "bun --env-file=.env --env-file=.env.local ./scripts/evidence-archive.ts refresh",
     "evidence:check": "bun --env-file=.env --env-file=.env.local ./scripts/evidence-archive.ts check",
     "evidence:sync": "bun --env-file=.env --env-file=.env.local ./scripts/evidence-archive.ts sync",
