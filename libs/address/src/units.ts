@@ -22,7 +22,7 @@ export const UnitIdentitySchema = z.strictObject({
   unitPortion: z.string().max(4000).nullable().optional(),
 })
 
-// Local details have no inventory ID or granularity. Room is a unit type;
+// Local details have no inventory ID or scope. Room is a unit type;
 // portions belong to unitPortion, with unit_portion describing address scope rather than another hierarchy level.
 export const UnitDetailsSchema = z.strictObject({
   ...FloorDetailsSchema.shape,

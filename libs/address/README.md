@@ -9,9 +9,17 @@ Build with `bun run build`; create a versioned artifact with `bun pm pack`. Cons
 pin a version. Updating the parser never rewrites accepted records by itself. The
 package is not yet published to a public registry.
 
+## Address scope
+
+`AddressContentSchema` requires `scope`: `unknown`, `premises`, `phase`, `building`,
+`section`, `floor`, `unit` or `unit_portion`. Localised names, expressions and component
+designators belong in `i18n`. `premisesName` is address text; premises organisation,
+purpose and physical containment belong to the building/place model. Address content
+rejects `parentAddressId`, `premisesType` and `premisesKind`.
+
 ## HYPE integration
 
-HYPE pins the packaged artifact in `vendor/saanseoi-address-0.1.0.tgz`; registry
+HYPE pins the packaged artifact in `vendor/saanseoi-address-0.2.2.tgz`; registry
 publication is deferred. Build and pack from this directory, copy the artifact, and
 update HYPE's dependency and lockfile together. Verify the tarball SHA-512 against the
 lockfile before committing. Increment the version for future changes.

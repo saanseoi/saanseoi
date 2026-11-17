@@ -3,10 +3,9 @@ import { z } from 'zod'
 
 // SaanSeoi content contract: libs/db/src/schema/shared.ts and libs/db/src/address3d.ts.
 // Publication IDs, source attribution and HYPE ownership are deliberately outside authored content.
-export const ADDRESS_GRANULARITIES = [
+export const ADDRESS_SCOPES = [
   'unknown',
-  'site',
-  'complex',
+  'premises',
   'phase',
   'building',
   'section',
@@ -95,7 +94,7 @@ export const LocalAddressUnitI18nSchema = z.strictObject({
 /** Locally authored canonical content, distinct from retained publication evidence. */
 export const AddressContentSchema = z
   .strictObject({
-    granularity: z.enum(ADDRESS_GRANULARITIES),
+    scope: z.enum(ADDRESS_SCOPES),
     geometry: z
       .strictObject({
         type: z.literal('Point'),
@@ -110,7 +109,6 @@ export const AddressContentSchema = z
       })
       .nullable()
       .optional(),
-    parentAddressId: optionalText,
     streetId: optionalText,
     hamletId: optionalText,
     microhoodId: optionalText,
@@ -156,7 +154,7 @@ export function createAddressContent(
   labels: Record<string, string> = {},
 ): AddressContent {
   return {
-    granularity: 'unknown',
+    scope: 'unknown',
     i18n: Object.fromEntries(
       Object.entries(labels).map(([locale, formattedAddress]) => [
         locale,
