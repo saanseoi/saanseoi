@@ -25,7 +25,8 @@ export const ALS_DELETION_POLICY = {
   minimumSpikeCount: 100,
   spikePercentage: 5,
   absoluteSpikeCount: 1000,
-  reviewedLevels: ['building', 'complex', 'phase', 'site', 'section'],
+  // Retained membership evidence can still name site/complex; all premises require the same review.
+  reviewedLevels: ['building', 'premises', 'complex', 'phase', 'site', 'section'],
 } as const
 type AddressSummary = Pick<AlsMembershipAddress, 'id' | 'level' | 'en' | 'zhHant'>
 type Retirement = AddressSummary & {

@@ -69,7 +69,7 @@ export function applyReviewedStructuredComponents(
     if (row.zhHantEstateName === chinese.buildingName) delete canonicalZh.ChiEstate
     row.enFormattedAddress = formatEnPremisesAddress(canonicalEn)
     row.zhHantFormattedAddress = formatZhPremisesAddress(canonicalZh)
-    row.curatedGranularity = 'building'
+    row.curatedScope = 'building'
     row.sources = JSON.stringify({
       ...JSON.parse(row.sources),
       hkgovAlsStructuredComponents: {

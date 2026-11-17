@@ -9,18 +9,13 @@ export function assertAddressProjectionMembership(
 ) {
   const addresses = new Map(membership.addresses.map(row => [row.id, row]))
   let addressCount = 0
-  const addressRows = db.prepare<
-    { id: string; parentAddressId: string | null; granularity: string },
-    [string]
-  >('SELECT id,parentAddressId,granularity FROM address2d WHERE scopeId=?')
+  const addressRows = db.prepare<{ id: string; scope: string }, [string]>(
+    'SELECT id,scope FROM address2d WHERE scopeId=?',
+  )
   try {
     for (const row of addressRows.iterate(scopeId)) {
       const expected = addresses.get(row.id)
-      if (
-        !expected ||
-        row.parentAddressId !== expected.parentId ||
-        row.granularity !== expected.level
-      )
+      if (!expected || row.scope !== expected.level)
         throw new Error(
           'Address projection does not match the reviewed canonical membership.',
         )

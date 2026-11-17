@@ -59,8 +59,8 @@ test('corrects bilingual Address2D components without changing identity, street 
   const result = normaliseAddressRowForPipeline(source)
   expect(result.canonicalId).toBe(source.canonicalId)
   expect(result.sourceId).toBe(source.id)
-  expect(result.base.granularity).toBe('complex')
-  expect(result.base).not.toHaveProperty('granularityProvenance')
+  expect(result.base.scope).toBe('premises')
+  expect(result.base).not.toHaveProperty('scopeProvenance')
   expect(result.base.geometry).toEqual(JSON.parse(source.geometry))
   for (const locale of ['en', 'zh-hant']) {
     expect(result.i18n.find(row => row.locale === locale)).toMatchObject({
@@ -173,7 +173,7 @@ test.each(['sql', 'direct'] as const)(
       sourcePayloadHash: 'source-hash',
     }
     const artefact = {
-      kind: 'address.normalised.v1',
+      kind: 'address.normalised.v2',
       processingRunStartedAt: '2026-09-06T00:00:00Z',
       resourceReleaseId: 'release-als',
       rowStart: 0,

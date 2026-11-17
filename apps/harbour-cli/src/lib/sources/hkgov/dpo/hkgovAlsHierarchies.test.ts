@@ -156,18 +156,13 @@ test('identical designs retain distinct building inventories and unresolved High
     }
     for (const id of owner.unresolvedSectionIds) {
       const section = requireDefined(rows.find(row => row.id === id))
-      expect(section.curatedGranularity).toBe('section')
+      expect(section.curatedScope).toBe('section')
       expect(section.id).toMatch(/^ss-[0-9a-f-]{36}$/)
       expect(section.canonicalId).toBe(section.id)
       expect(section.hkgovCsuId).toBeNull()
       expect(section.engPremisesAddressJson).toBeNull()
-      expect(
-        resolveAddress3dCoverage(
-          { id: section.id, parentAddressId: section.parentAddressId ?? null },
-          [collection],
-        ),
-      ).toMatchObject({
-        kind: 'ancestor',
+      expect(resolveAddress3dCoverage({ id: section.id }, [collection])).toMatchObject({
+        kind: 'shared',
         membership: 'unresolved',
         ownerAddress2dId: source.id,
       })
@@ -195,7 +190,7 @@ test('unnamed Lei Moon duplicate is not reused as a Low Block section', () => {
   const ownership = applyAlsAddressHierarchies(rows, '2025-02-25.0')
   expect(rows).toHaveLength(8)
   expect(low.parentAddressId).not.toBe(moon.id)
-  expect(low.curatedGranularity).toBeUndefined()
+  expect(low.curatedScope).toBeUndefined()
   expect(low.enBuildingName).toBeNull()
   const derivedLow = rows.find(
     row => row.hkgovCsuId === null && row.enBuildingName === 'LEI MOON HSE LOW BLK',

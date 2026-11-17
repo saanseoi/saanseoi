@@ -62,7 +62,7 @@ test('December names, streets, estates and explicit classification survive pipel
     expect(row.enStreetNumberFrom).toBe(
       number === 3 ? '12' : number === 5 ? '25' : '23',
     )
-    expect(normaliseAddressRowForPipeline(row).base.granularity).toBe('unknown')
+    expect(normaliseAddressRowForPipeline(row).base.scope).toBe('unknown')
   }
   for (const [number, name] of [
     [1, 'ORIA'],
@@ -78,7 +78,7 @@ test('December names, streets, estates and explicit classification survive pipel
         fixture.rules.find(r => r.externalEvidence.entry === number)!.canonicalId,
     )!
     expect(row.enBuildingName).toBe(name)
-    expect(normaliseAddressRowForPipeline(row).base.granularity).toBe('building')
+    expect(normaliseAddressRowForPipeline(row).base.scope).toBe('building')
   }
   const kailey = rows.find(row => row.enBuildingName === 'KAILEY TOWER')!
   expect([kailey.enStreetNumberFrom, kailey.enStreetNumberTo]).toEqual(['14', '16'])

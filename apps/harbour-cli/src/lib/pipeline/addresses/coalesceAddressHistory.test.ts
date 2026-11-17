@@ -31,17 +31,17 @@ async function fixture(
       )
       if (binding === 'DB_CURRENT')
         db.exec(`
-        INSERT INTO address2d(scopeId,id,divisionSnapshotId,granularity) VALUES('scope','a','division','building'),('other-scope','other','division','building');
+        INSERT INTO address2d(scopeId,id,divisionSnapshotId,scope) VALUES('scope','a','division','building'),('other-scope','other','division','building');
         INSERT INTO address2dBuildingNumberLookup(scopeId,addressId,buildingNumber,numericStem,evidence,derivation) VALUES('scope','a','1',1,'source_endpoint','single');`)
       if (binding === oldBinding)
         db.exec(`
-        INSERT INTO address2d(id,versionHash,snapshotId,granularity,isCurrent) VALUES('a','v1','one','building',1);
+        INSERT INTO address2d(id,versionHash,snapshotId,scope,isCurrent) VALUES('a','v1','one','building',1);
         INSERT INTO address2dI18n(addressId,versionHash,locale,formattedAddress,snapshotId,isCurrent) VALUES('a','v1','en','First','one',1),('a','v1','zh-hant','中文','one',1);
         INSERT INTO address2dBuildingNumberLookup(addressId,versionHash,snapshotId,buildingNumber,numericStem,evidence,derivation,isCurrent) VALUES('a','v1','one','1',1,'source_endpoint','single',1);
 `)
       if (binding === nextBinding)
         db.exec(`
-        INSERT INTO address2d(id,versionHash,snapshotId,granularity,isCurrent) VALUES('other','other-version','other-snapshot','building',1);
+        INSERT INTO address2d(id,versionHash,snapshotId,scope,isCurrent) VALUES('other','other-version','other-snapshot','building',1);
         INSERT INTO address2dI18n (addressId,versionHash,locale,formattedAddress,snapshotId,isCurrent,createdAt) VALUES ('a','returning','en','Second','retained-snapshot',0,'retained-created');`)
       if (multipleLookups && binding === 'DB_CURRENT')
         db.exec(
@@ -91,13 +91,13 @@ async function fixture(
 
 function stage(
   input: Parameters<typeof coalesceAddressHistory>[0],
-  granularity = 'building',
+  scope = 'building',
   number = '1',
 ) {
   const db = input.candidates[nextBinding]!.db
   db.query(
-    `INSERT INTO address2d(id,versionHash,snapshotId,granularity,isCurrent) VALUES('a','v2','two',?,1)`,
-  ).run(granularity)
+    `INSERT INTO address2d(id,versionHash,snapshotId,scope,isCurrent) VALUES('a','v2','two',?,1)`,
+  ).run(scope)
   db.exec(`INSERT INTO address2dI18n(addressId,versionHash,locale,formattedAddress,snapshotId,isCurrent) VALUES('a','v2','en','Second','two',1),('a','v2','zh-hant','中文','two',1);
     `)
   db.query(

@@ -54,7 +54,7 @@ const result = {
   rows: normalised.map(row => ({
     id: row.canonicalId,
     parentId: row.base.parentAddressId,
-    granularity: row.base.granularity,
+    scope: row.base.scope,
     name: row.i18n.find(x => x.locale === 'en')?.formattedAddress,
   })),
   collections: collections.map(row => ({

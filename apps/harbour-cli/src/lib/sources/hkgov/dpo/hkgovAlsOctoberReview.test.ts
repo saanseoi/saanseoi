@@ -124,16 +124,16 @@ test('October reviewed decisions preserve identity, frontage and parent specific
       [30, 52],
     ]) {
       expect(row(child!).parentAddressId).toBe(row(parent!).id)
-      expect(row(child!).curatedGranularity).toBe('building')
+      expect(row(child!).curatedScope).toBe('building')
       expect(row(child!).id).not.toBe(row(parent!).id)
     }
     expect(rows.filter(r => r.parentAddressId === row(54).id)).toHaveLength(14)
     const wings = rows.filter(r => r.parentAddressId === row(52).id)
     expect(wings).toHaveLength(2)
     expect(new Set(wings.map(r => r.id)).size).toBe(2)
-    expect(row(49).curatedGranularity).toBe('complex')
-    expect(row(55).curatedGranularity).toBe('phase')
-    expect(normaliseAddressRowForPipeline(row(55)).base.granularity).toBe('phase')
+    expect(row(49).curatedScope).toBe('premises')
+    expect(row(55).curatedScope).toBe('phase')
+    expect(normaliseAddressRowForPipeline(row(55)).base.scope).toBe('phase')
     expect(row(37).enBuildingName).toBe('CTF LIFE TOWER')
     expect(row(39).enBuildingName).toBe('UPPER LIVING')
     expect(row(29).enBlockDescriptor).toBe('HSE')

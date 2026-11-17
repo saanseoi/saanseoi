@@ -413,15 +413,16 @@ describes their canonical role.
 Uncurated `parentAddressId` is initialised to null. ALS component names and number
 ranges alone do not establish a containing Address or justify creating missing numbers.
 
-The shared normalisation stage classifies `granularity` after guarded component
-corrections, for both SQL and Worker ingestion. The corrected Ngong Ping tourist-complex
-estate component yields `complex`. Supporting decisions and evidence are retained in the
-codebase component and granularity curation fixtures. Only the resulting granularity is
-materialised; classification does not alter publisher source records. Number-only
-addresses, conflicting locale components and ambiguous facility labels remain `unknown`;
-a building-number range never turns its individual numbers into units. See
-[granularity curation](../../families/addresses.md#granularity-curation) for guarded
-manual overrides and how changed evidence reopens review.
+The shared normalisation stage classifies `scope` after guarded component corrections,
+for both SQL and Worker ingestion. The corrected Ngong Ping tourist-complex estate
+component yields `scope=premises`; a reviewed hierarchy decision can establish
+`premisesType=complex`. Supporting decisions and evidence are retained in the codebase
+component and scope curation fixtures. Only the resulting scope and optional premises
+type are materialised; classification does not alter publisher source records.
+Number-only addresses, conflicting locale components and ambiguous facility labels
+remain `unknown`; a building-number range never turns its individual numbers into units.
+See [scope curation](../../families/addresses.md#scope-curation) for guarded manual
+overrides and how changed evidence reopens review.
 
 ## SQL delivery
 
@@ -593,10 +594,10 @@ guard the accepted removal events.
 
 Yung Shing's `8 Fai Ming Road` and `22 Wah Ming Road` entries are two valid addresses of
 one physical building, guarded by `hkgov-dpo-address-yung-shing-shared-building.json`.
-Both address records and bilingual source labels remain available with `building`
-granularity. They share an explicit physical-building identifier and inventory-owner
-reference; Address3D emits one 138-unit collection containing references to both
-original assertions. Neither address is modelled as a subordinate section.
+Both address records and bilingual source labels remain available with `building` scope.
+They share an explicit physical-building identifier and inventory-owner reference;
+Address3D emits one 138-unit collection containing references to both original
+assertions. Neither address is modelled as a subordinate section.
 
 Hin Fat House retains its 872-unit inventory across all reviewed releases from January 2025.
 Its reviewed estate membership aligns the early 2D and 3D assertions; the later evidence
@@ -664,13 +665,13 @@ Sun Fong House's approved current coordinates are backfilled across retained his
 its inventory remains intact. Sun Yee House retains its reviewed earlier point,
 `[114.18144, 22.36961]`, throughout retained history with its 720 flats.
 
-`hkgov-dpo-address-street-estate-complexes.json` derives separate `complex` identities
-for Tai Yuen Estate at 10 Ting Kok Road and Tin Wan Estate at 26 Tin Wan Street. Tai
-Yuen uses the user-supplied marker `[114.1667207, 22.4555134]` across the 30 reviewed
-releases; Tin Wan is backfilled and retained until revoked. Deterministic SaanSeoi
-`ss-UUID` identifiers do not claim publisher GeoAddress or CSU values: those fields
-remain null, and exact publisher assertions remain provenance. House inventories are not
-assigned to these estate identities.
+`hkgov-dpo-address-street-estate-complexes.json` derives separate premises identities
+with `premisesType=complex` for Tai Yuen Estate at 10 Ting Kok Road and Tin Wan Estate
+at 26 Tin Wan Street. Tai Yuen uses the user-supplied marker `[114.1667207, 22.4555134]`
+across the 30 reviewed releases; Tin Wan is backfilled and retained until revoked.
+Deterministic SaanSeoi `ss-UUID` identifiers do not claim publisher GeoAddress or CSU
+values: those fields remain null, and exact publisher assertions remain provenance.
+House inventories are not assigned to these estate identities.
 
 `hkgov-dpo-address-complex-promotions.json` promotes only the blockless Pik Lam House
 assertion to the Tsui Lam Estate complex at 11 Tsui Lam Road. Its latest reviewed point,
@@ -1683,7 +1684,7 @@ closed.
 | `derive-parent`              | Creates a reviewed parent from a retained assertion and links its source group without claiming an independent publisher assertion.                                                                       |
 | `record-coalescence`         | Validates the canonical owner's publisher identity and name before recording reviewed coalescence evidence.                                                                                               |
 | `guard-inventory`            | Requires the reviewed count and every canonical unit ID. Missing coalesced inventories may produce an investigation only within the authorised policy scope.                                              |
-| `preserve-section-ownership` | Preserves a reviewed section's native inventory and unit namespace after checking its parent and granularity.                                                                                             |
+| `preserve-section-ownership` | Preserves a reviewed section's native inventory and unit namespace after checking its parent and scope.                                                                                                   |
 | `reconcile-block-frontages`  | Requires the declared block set, selects the reviewed frontage owners, records aliases and applies the reviewed common street range.                                                                      |
 | `reconstruct-frontages`      | Derives the declared building frontages and shop subpremise from the selected source record, preserving canonical IDs, address formatting and predecessor evidence.                                       |
 
@@ -1980,3 +1981,14 @@ The
 [address storage maintenance workflow](../../families/addresses.md#premises-name-contract-and-storage-maintenance)
 coordinates database write locks, hash verification, search-index replacement and API
 deployment for every retained HISTORY shard and CURRENT.
+
+### Premises components and relationship evidence
+
+`premisesName` remains localised address content. Reviewed `parentAddressId`,
+`curatedPremisesType` and purpose assertions remain in source preparation and curation
+fixtures, with their existing evidence and release bounds. They are not copied into
+canonical Address columns, public JSON or address content hashes. Explicit collection
+`unresolvedSectionIds` continue to identify shared unit-inventory evidence without
+asserting physical parentage or established membership for a particular section.
+
+Building/place containment and address coverage belong to their future associations.

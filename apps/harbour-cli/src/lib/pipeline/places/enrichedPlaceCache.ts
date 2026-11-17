@@ -55,7 +55,7 @@ export async function reuseEnrichedPlaces(input: {
         result: StagedEnrichedPlaces
       }
       if (
-        cache.contract !== 1 ||
+        cache.contract !== 2 ||
         !Array.isArray(cache.dependencies) ||
         !Number.isSafeInteger(cache.result?.processedRows) ||
         cache.result.processedRows < 0
@@ -87,7 +87,7 @@ export async function reuseEnrichedPlaces(input: {
     const rows = [...dependencies.values()]
     if (!validated) await validateBeforeCommit()
     const payload = serialize({
-      contract: 1,
+      contract: 2,
       identity: input.identity,
       fileSha256: await deliveryFileSha256(input.path),
       dependencies: rows,

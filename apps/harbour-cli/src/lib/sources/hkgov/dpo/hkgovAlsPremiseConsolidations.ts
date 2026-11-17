@@ -57,7 +57,7 @@ export function applyAlsPremiseConsolidations(
     owner.id = owner.canonicalId = owner.identityBuildingId = id
     owner.identityKey = owner.identityContinuityKey = `reviewed-premise:${decision.id}`
     owner.identityMatchMethod = 'reviewed-premise-consolidation'
-    owner.curatedGranularity = 'building'
+    owner.curatedScope = 'building'
     const { releases, ...provenance } = decision
     owner.sources = JSON.stringify({
       ...JSON.parse(owner.sources),

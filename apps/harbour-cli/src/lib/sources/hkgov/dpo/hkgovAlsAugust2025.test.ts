@@ -94,6 +94,6 @@ test('August continuity preserves four established identities', async () => {
   const estate = rows.find(
     r => r.id === rules.find(r => r.id === 'august-2025-continuity-19')!.canonicalId,
   )!
-  expect(estate.curatedGranularity).toBe('complex')
+  expect(estate.curatedScope).toBe('premises')
   expect(estate.enEstateName).toBe('SOUTH HORIZONS')
 })

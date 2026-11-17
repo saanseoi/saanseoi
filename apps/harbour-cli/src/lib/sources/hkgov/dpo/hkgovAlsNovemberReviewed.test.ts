@@ -117,7 +117,7 @@ test('November reviewed retentions preserve all approved identities and classifi
       r =>
         r.id === rules.find(r => r.id === `november-2025-reviewed-${n}`)!.canonicalId,
     )!
-  expect(get(9).curatedGranularity).toBe('building')
+  expect(get(9).curatedScope).toBe('building')
   expect(get(40).enBuildingName).toBe('SILKA FAR EAST HOTEL HONG KONG')
   expect(get(53).id).toBe('ss-3b312a6c-e54e-5f69-ac84-a150afb33311')
   const hsbcEvidence = JSON.parse(get(53).sources)
@@ -128,9 +128,9 @@ test('November reviewed retentions preserve all approved identities and classifi
   expect(aliases.size).toBe(3)
   expect(get(109).enBuildingName).toBe('DORSETT KAI TAK HONG KONG')
   expect(get(113).enBuildingName).toBe('CLP HEADQUARTERS')
-  expect(get(131).curatedGranularity).toBe('building')
-  expect(get(134).curatedGranularity).toBe('building')
-  expect(get(135).curatedGranularity).toBe('complex')
+  expect(get(131).curatedScope).toBe('building')
+  expect(get(134).curatedScope).toBe('building')
+  expect(get(135).curatedScope).toBe('premises')
   expect(
     rows.filter(r => r.enFormattedAddress?.includes('SHEK KONG BARRACKS')),
   ).toHaveLength(113)
@@ -161,7 +161,7 @@ test('Lok Yuen preserves both building frontages and seven shops with explicit p
   applyNovember2025ReviewedShops(rows, '2025-11-04.0')
   expect(rows).toHaveLength(9)
   for (const row of rows.slice(2)) {
-    expect(row.curatedGranularity).toBe('unit')
+    expect(row.curatedScope).toBe('unit')
     expect(row.parentAddressId).toBe(
       row.enStreetName === 'NELSON STREET' ? nelson : thistle,
     )

@@ -94,9 +94,7 @@ test('promotes only blockless Pik Lam and backfills the latest complex point', a
     )
     applyReviewedComplexPromotions(rows, version)
     expect(rows).toHaveLength(2)
-    const complex = requireDefined(
-      rows.find(row => row.curatedGranularity === 'complex'),
-    )
+    const complex = requireDefined(rows.find(row => row.curatedScope === 'premises'))
     const blockOne = requireDefined(rows.find(row => row.enBlockNumber === '1'))
     expect(JSON.parse(requireDefined(complex.geometry)).coordinates).toEqual(
       rule.coordinates,

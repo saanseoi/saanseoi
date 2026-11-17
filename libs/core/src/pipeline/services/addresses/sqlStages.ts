@@ -193,6 +193,10 @@ export async function writeAddressCurrentSqlChunkStage(
     bucket,
     pipelineMessage.resolvedArtefactKey,
   )
+  if (artefact.kind !== 'address.resolved.v2')
+    throw new Error(
+      'Stale Address artefact: regenerate under the current content contract',
+    )
   const currentDivisionSnapshotId = artefact.rows[0]?.base.divisionSnapshotId
   const currentSnapshotId =
     pipelineMessage.addressCurrentScopeId ?? artefact.rows[0]?.base.snapshotId

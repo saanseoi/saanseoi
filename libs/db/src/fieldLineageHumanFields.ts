@@ -112,7 +112,9 @@ export function humanField(
         'Use the prepared address coordinates after any applicable SaanSeoi curated coordinate correction.',
       parentAddressId:
         'Use the accepted parent-address identity; return null when there is no parent.',
-      granularity:
+      premisesType:
+        'Use a reviewed site or complex classification only for whole-premises addresses; return null when the subtype is unknown or inapplicable.',
+      scope:
         'Use an explicit SaanSeoi curated hierarchy classification when supplied; otherwise derive the address level from its identity and address components.',
       'relationships.divisions':
         'Link the address to the Divisions selected by its location and accepted address geography, using the release’s exact Division collection.',

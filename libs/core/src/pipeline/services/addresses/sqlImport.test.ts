@@ -44,7 +44,7 @@ const resolvedArtefact = {
   addedRows: 0,
   changedRows: 0,
   insertedVersions: 0,
-  kind: 'address.resolved.v1',
+  kind: 'address.resolved.v2',
   localisedRows: 0,
   processingRunStartedAt: '2026-07-03T00:00:00.000Z',
   resourceReleaseId: 'release-address',
@@ -334,14 +334,14 @@ describe('HKGov ALS source SQL', () => {
       const evidence = [{ dataset: 'hkgov-dpo', sourceFile: 'addresses.geojson' }]
       const inputs = [null, [], {}, { hkgovAls: [] }, evidence, { hkgovAls: evidence }]
       const files = buildAddressSourceSqlImportFiles(message, {
-        kind: 'address.normalised.v1',
+        kind: 'address.normalised.v2',
         processingRunStartedAt: '2026-09-08T00:00:00.000Z',
         resourceReleaseId: 'release-address',
         rowStart: 0,
         rowEnd: inputs.length,
         totalRows: inputs.length,
         rows: inputs.map((sources, index) => ({
-          base: { sources, granularity: 'building' },
+          base: { sources, scope: 'building' },
           canonicalId: `address-${index}`,
           sourceId: `source-${index}`,
           sourcePayloadHash: `hash-${index}`,
@@ -374,7 +374,7 @@ describe('HKGov ALS source SQL', () => {
 
   test('stores source payload and provenance without derived address projections', () => {
     const sourceFile = buildAddressSourceSqlImportFiles(message, {
-      kind: 'address.normalised.v1',
+      kind: 'address.normalised.v2',
       processingRunStartedAt: '2026-07-18T00:00:00.000Z',
       resourceReleaseId: 'release-address',
       rowEnd: 0,
@@ -393,7 +393,7 @@ describe('HKGov ALS source SQL', () => {
     const sourceFile = buildAddressSourceSqlImportFiles(
       message,
       {
-        kind: 'address.normalised.v1',
+        kind: 'address.normalised.v2',
         processingRunStartedAt: '2026-07-18T00:00:00.000Z',
         resourceReleaseId: 'release-address',
         rowEnd: 2,
@@ -443,7 +443,7 @@ describe('HKGov ALS identity alias SQL', () => {
       sourceVersion: '2025-09-03.0',
     } satisfies DatasetProcessingMessage
     const artefact = {
-      kind: 'address.normalised.v1',
+      kind: 'address.normalised.v2',
       processingRunStartedAt: '2026-07-18T00:00:00.000Z',
       resourceReleaseId: 'release-address',
       rowEnd: 1,
@@ -545,7 +545,7 @@ describe('address SQL string literals', () => {
   test('rejects a single oversized row before producing an import file', () => {
     expect(() =>
       buildAddressSourceSqlImportFiles(message, {
-        kind: 'address.normalised.v1',
+        kind: 'address.normalised.v2',
         processingRunStartedAt: '2026-09-07',
         resourceReleaseId: message.resourceReleaseId,
         rowStart: 0,
@@ -566,7 +566,7 @@ describe('address SQL string literals', () => {
 
   test('represents NUL separators as SQLite expressions', () => {
     const artefact = {
-      kind: 'address.normalised.v1',
+      kind: 'address.normalised.v2',
       processingRunStartedAt: '2026-07-18T00:00:00.000Z',
       resourceReleaseId: 'release-address',
       rowEnd: 1,
@@ -668,3 +668,16 @@ function publisherEvidence(
     },
   }
 }
+
+test('obsolete resolved artefacts cannot restore old hashes or parent columns', () => {
+  const stale = {
+    ...resolvedArtefact,
+    kind: 'address.resolved.v1',
+  } as unknown as ResolvedAddressChunkArtefact
+  expect(() => buildAddressCurrentSqlImportFile(message, stale)).toThrow(
+    'Stale Address artefact',
+  )
+  expect(() => buildAddressHistorySqlImportFile(message, stale)).toThrow(
+    'Stale Address artefact',
+  )
+})

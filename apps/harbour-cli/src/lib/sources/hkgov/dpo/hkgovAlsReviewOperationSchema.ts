@@ -7,7 +7,7 @@ export type Classification = {
   id: string
   parentId: string
   targetGuard: ReviewGuard
-  granularity?: 'building' | 'section' | 'unit'
+  scope?: 'building' | 'section' | 'unit'
   provenance: Record<string, unknown>
 }
 export type DuplicateSuppression = {
@@ -25,7 +25,7 @@ export type DerivedParent = {
   parentId: string
   derivedParent?: boolean
   parentRule?: string
-  childGranularity: 'building' | 'section' | 'unit'
+  childScope: 'building' | 'section' | 'unit'
 }
 export type Coalescence = {
   id: string
@@ -46,7 +46,7 @@ export type SectionOwnership = {
   id: string
   parentId: string
   childIds: string[]
-  childGranularity?: string
+  childScope?: string
 }
 export type BlockFrontages = {
   id: string
@@ -235,10 +235,10 @@ export function parseAdditionalReviewOperation(
         guard(d.targetGuard)
         provenance(d.provenance)
         assert(d.id !== d.parentId, 'Premise cannot parent itself')
-        if (d.granularity !== undefined)
+        if (d.scope !== undefined)
           assert(
-            ['building', 'section', 'unit'].includes(String(d.granularity)),
-            'Invalid premise granularity',
+            ['building', 'section', 'unit'].includes(String(d.scope)),
+            'Invalid premise scope',
           )
         break
       case 'suppress-duplicate-premise':
@@ -254,8 +254,8 @@ export function parseAdditionalReviewOperation(
       case 'derive-parent':
         fields(d, ['id', 'sourceFile', 'csu', 'parentId'])
         assert(
-          ['building', 'section', 'unit'].includes(String(d.childGranularity)),
-          'Invalid derived child granularity',
+          ['building', 'section', 'unit'].includes(String(d.childScope)),
+          'Invalid derived child scope',
         )
         if (d.derivedParent !== undefined)
           assert(typeof d.derivedParent === 'boolean', 'Invalid derived-parent flag')
@@ -280,7 +280,7 @@ export function parseAdditionalReviewOperation(
       case 'preserve-section-ownership':
         fields(d, ['id', 'parentId'])
         strings(d.childIds)
-        if (d.childGranularity !== undefined) string(d.childGranularity)
+        if (d.childScope !== undefined) string(d.childScope)
         break
       case 'reconcile-block-frontages': {
         fields(d, ['id', 'fromNumber', 'toNumber', 'curationFile', 'provenanceKey'])

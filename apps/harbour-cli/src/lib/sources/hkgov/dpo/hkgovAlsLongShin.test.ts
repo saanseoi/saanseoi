@@ -108,9 +108,7 @@ test('Long Shin estate range does not duplicate house collections; every raw sou
       expect(result.unitCount).toBe(939)
       expect(result.sourceCount).toBe(source.length)
       expect(parents).toHaveLength(4)
-      const complex = requireDefined(
-        parents.find(r => r.curatedGranularity === 'complex'),
-      )
+      const complex = requireDefined(parents.find(r => r.curatedScope === 'premises'))
       expect(complex.id).toMatch(/^ss-[0-9a-f-]{36}$/)
       expect(complex.canonicalId).toBe(complex.id)
       expect([

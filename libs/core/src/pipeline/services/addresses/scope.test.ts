@@ -1,10 +1,10 @@
 import { expect, test } from 'bun:test'
-import { addressGranularities } from '@repo/db'
+import { addressScopes } from '@repo/db'
 import {
-  addressGranularityFingerprint,
-  establishAddressGranularity,
-  type AddressGranularityCuration,
-} from './granularity'
+  addressScopeFingerprint,
+  establishAddressScope,
+  type AddressScopeCuration,
+} from './scope'
 import {
   buildAddressBaseHashInput,
   normaliseAddressRowForPipeline,
@@ -24,8 +24,8 @@ const override = {
   id: 'review-134',
   revision: 1,
   addressId: input.addressId,
-  inputFingerprint: addressGranularityFingerprint(values),
-  granularity: 'unit' as const,
+  inputFingerprint: addressScopeFingerprint(values),
+  scope: 'unit' as const,
   reason: 'Reviewed ground-floor shop entrance.',
   evidence: ['Reviewed entrance plan identifies this as Shop 134.'],
 }
@@ -33,23 +33,46 @@ const override = {
 test('number-only addresses and number ranges cannot establish scope', () => {
   for (const buildingNumberFrom of ['134', '136', '138', '60', '62']) {
     expect(
-      establishAddressGranularity({
+      establishAddressScope({
         ...input,
         values: [{ ...value, buildingNumberFrom }],
-      }).granularity,
+      }).scope,
     ).toBe('unknown')
   }
   expect(
-    establishAddressGranularity({
+    establishAddressScope({
       ...input,
       values: [{ ...value, buildingNumberTo: '138' }],
-    }).granularity,
+    }).scope,
   ).toBe('unknown')
+})
+
+test('premises type describes named premises independently of address scope', () => {
+  expect(
+    establishAddressScope({
+      ...input,
+      values: [{ ...value, premisesName: 'Example Grounds' }],
+    }),
+  ).toMatchObject({ scope: 'premises', premisesType: null })
+  for (const premisesType of ['site', 'complex'] as const) {
+    expect(
+      establishAddressScope(input, {
+        version: 1,
+        overrides: [{ ...override, scope: 'premises', premisesType }],
+      }),
+    ).toMatchObject({ scope: 'premises', premisesType })
+    expect(
+      establishAddressScope(input, {
+        version: 1,
+        overrides: [{ ...override, scope: 'building', premisesType }],
+      }),
+    ).toMatchObject({ scope: 'building', premisesType })
+  }
 })
 
 test('classifies corrected structured components, retaining heuristic evidence', () => {
   for (const [components, expected] of [
-    [{ premisesName: 'Example Estate' }, 'complex'],
+    [{ premisesName: 'Example Estate' }, 'premises'],
     [{ premisesName: 'Example Estate', phaseExpression: 'Phase 2' }, 'phase'],
     [{ premisesName: 'Example Estate', buildingName: 'Example House' }, 'building'],
     [
@@ -64,18 +87,18 @@ test('classifies corrected structured components, retaining heuristic evidence',
     [{ blockExpression: 'BLK A' }, 'building'],
     [{ blockExpression: 'A座' }, 'building'],
   ] as const) {
-    const result = establishAddressGranularity({
+    const result = establishAddressScope({
       ...input,
       values: [{ ...value, ...components }],
     })
-    expect(result.granularity).toBe(expected)
+    expect(result.scope).toBe(expected)
     expect(result.review.method).toBe('heuristic')
     expect(result.review.evidence.length).toBeGreaterThan(0)
   }
 })
 
 test('a school range can contain separate buildings, without labelling its numbers as units', () => {
-  const campus = establishAddressGranularity({
+  const campus = establishAddressScope({
     ...input,
     values: [
       {
@@ -86,10 +109,10 @@ test('a school range can contain separate buildings, without labelling its numbe
       },
     ],
   })
-  expect(campus.granularity).toBe('unknown')
+  expect(campus.scope).toBe('unknown')
   expect(campus.review.reviewReason).toBe('ambiguous_facility_name')
   for (const number of ['60', '62']) {
-    const building = establishAddressGranularity({
+    const building = establishAddressScope({
       ...input,
       values: [
         {
@@ -102,13 +125,13 @@ test('a school range can contain separate buildings, without labelling its numbe
         },
       ],
     })
-    expect(building.granularity).toBe('building')
+    expect(building.scope).toBe('building')
   }
 })
 
 test('conflicting locales and ambiguous blocks remain unknown for review', () => {
   expect(
-    establishAddressGranularity({
+    establishAddressScope({
       ...input,
       values: [
         { locale: 'en', buildingName: 'Example House' },
@@ -117,7 +140,7 @@ test('conflicting locales and ambiguous blocks remain unknown for review', () =>
     }).review.reviewReason,
   ).toBe('conflicting_locales')
   expect(
-    establishAddressGranularity({
+    establishAddressScope({
       ...input,
       values: [
         {
@@ -132,13 +155,13 @@ test('conflicting locales and ambiguous blocks remain unknown for review', () =>
   ).toBe('ambiguous_block')
 })
 
-test('guarded curation can explicitly select every enum, including site and unknown', () => {
-  for (const granularity of addressGranularities) {
-    const result = establishAddressGranularity(input, {
+test('guarded curation can explicitly select every enum, including premises and unknown', () => {
+  for (const scope of addressScopes) {
+    const result = establishAddressScope(input, {
       version: 1,
-      overrides: [{ ...override, granularity }],
+      overrides: [{ ...override, scope }],
     })
-    expect(result.granularity).toBe(granularity)
+    expect(result.scope).toBe(scope)
     expect(result.review).toMatchObject({
       method: 'curated',
       curation: { id: override.id, revision: 1 },
@@ -148,37 +171,34 @@ test('guarded curation can explicitly select every enum, including site and unkn
 })
 
 test('curation reopens for changed address text or components and rejects invalid decisions', () => {
-  const fixture: AddressGranularityCuration = { version: 1, overrides: [override] }
+  const fixture: AddressScopeCuration = { version: 1, overrides: [override] }
   for (const changes of [
     { buildingNumberFrom: '136' },
     { formattedAddress: '136 Example Road' },
     { buildingName: 'A different building' },
   ])
     expect(() =>
-      establishAddressGranularity(
-        { ...input, values: [{ ...value, ...changes }] },
-        fixture,
-      ),
+      establishAddressScope({ ...input, values: [{ ...value, ...changes }] }, fixture),
     ).toThrow('requires review: address components changed')
   for (const changes of [
-    { granularity: 'invalid' },
+    { scope: 'invalid' },
     { reason: '' },
     { evidence: [] },
     { revision: 0 },
   ])
     expect(() =>
-      establishAddressGranularity(input, {
+      establishAddressScope(input, {
         version: 1,
         overrides: [{ ...override, ...changes }],
-      } as AddressGranularityCuration),
+      } as AddressScopeCuration),
     ).toThrow('requires review')
   expect(() =>
-    establishAddressGranularity(input, { version: 1, overrides: [override, override] }),
+    establishAddressScope(input, { version: 1, overrides: [override, override] }),
   ).toThrow('duplicate overrides')
 })
 
 test('curation version bounds preserve earlier classifications and include numeric revisions', () => {
-  const fixture: AddressGranularityCuration = {
+  const fixture: AddressScopeCuration = {
     version: 1,
     overrides: [
       {
@@ -188,17 +208,15 @@ test('curation version bounds preserve earlier classifications and include numer
       },
     ],
   }
-  expect(establishAddressGranularity(input, fixture).granularity).toBe('unknown')
+  expect(establishAddressScope(input, fixture).scope).toBe('unknown')
   expect(
-    establishAddressGranularity({ ...input, sourceVersion: '2026-09-06.10' }, fixture)
-      .granularity,
+    establishAddressScope({ ...input, sourceVersion: '2026-09-06.10' }, fixture).scope,
   ).toBe('unit')
   expect(
-    establishAddressGranularity({ ...input, sourceVersion: '2026-09-06.11' }, fixture)
-      .granularity,
+    establishAddressScope({ ...input, sourceVersion: '2026-09-06.11' }, fixture).scope,
   ).toBe('unknown')
   expect(() =>
-    establishAddressGranularity({ ...input, sourceVersion: undefined }, fixture),
+    establishAddressScope({ ...input, sourceVersion: undefined }, fixture),
   ).toThrow('missing source version')
 })
 
@@ -211,12 +229,10 @@ test('fingerprints ignore locale row order but retain changed evidence', () => {
       formattedAddress: '示例道134號',
     },
   ]
-  expect(addressGranularityFingerprint(bilingual)).toBe(
-    addressGranularityFingerprint([...bilingual].reverse()),
+  expect(addressScopeFingerprint(bilingual)).toBe(
+    addressScopeFingerprint([...bilingual].reverse()),
   )
-  expect(addressGranularityFingerprint(bilingual)).not.toBe(
-    addressGranularityFingerprint(values),
-  )
+  expect(addressScopeFingerprint(bilingual)).not.toBe(addressScopeFingerprint(values))
 })
 
 test('only classification changes participate in canonical versioning', async () => {
@@ -228,11 +244,13 @@ test('only classification changes participate in canonical versioning', async ()
     enEstateName: 'Example Estate',
   })
   const base = { ...normalised.base, id: 'canonical' }
-  expect(base.granularity).toBe('complex')
+  expect(base.scope).toBe('premises')
   const hash = await createHash(buildAddressBaseHashInput(base))
   expect(
-    await createHash(buildAddressBaseHashInput({ ...base, granularity: 'site' })),
-  ).not.toBe(hash)
+    await createHash(
+      buildAddressBaseHashInput(Object.assign({}, base, { premisesType: 'site' })),
+    ),
+  ).toBe(hash)
   expect(
     await createHash(
       buildAddressBaseHashInput(
@@ -241,5 +259,39 @@ test('only classification changes participate in canonical versioning', async ()
     ),
   ).toBe(hash)
   expect(base).not.toHaveProperty('review')
-  expect(base).not.toHaveProperty('granularityProvenance')
+  expect(base).not.toHaveProperty('scopeProvenance')
+})
+
+test('premises purpose curation is retained as evidence outside the canonical hash', async () => {
+  expect(
+    establishAddressScope({
+      ...input,
+      values: [{ ...value, premisesName: 'Example School' }],
+    }).premisesKind,
+  ).toBeNull()
+  expect(
+    establishAddressScope(input, {
+      version: 1,
+      overrides: [{ ...override, premisesKind: 'school' }],
+    }).premisesKind,
+  ).toBe('school')
+  expect(() =>
+    establishAddressScope(input, {
+      version: 1,
+      overrides: [{ ...override, premisesKind: 'invalid' as never }],
+    }),
+  ).toThrow('invalid premises kind')
+  const base = {
+    ...normaliseAddressRowForPipeline({
+      id: 'example',
+      canonicalId: 'example',
+      divisionSnapshotId: 'division',
+    }).base,
+    id: 'example',
+  }
+  expect(await createHash(buildAddressBaseHashInput(base))).toBe(
+    await createHash(
+      buildAddressBaseHashInput(Object.assign({}, base, { premisesKind: 'school' })),
+    ),
+  )
 })

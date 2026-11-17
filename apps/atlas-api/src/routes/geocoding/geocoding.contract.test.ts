@@ -175,7 +175,7 @@ async function fixture(
             scopeId: id,
             divisionSnapshotId: `divisions-${cohort}`,
             id: 'address',
-            granularity: 'building',
+            scope: 'building',
             geometry: { type: 'Point', coordinates: [114, 22] },
           })
           .run()
@@ -274,7 +274,7 @@ async function fixture(
       meta.exec(
         `INSERT INTO snapshotShardAssignments (snapshotId,dataShardId) VALUES ('addresses-2025-01-01.0-snapshot','history');`,
       )
-      history.exec(`INSERT INTO address2d (id,granularity,geometry,versionHash,snapshotId,isCurrent)
+      history.exec(`INSERT INTO address2d (id,scope,geometry,versionHash,snapshotId,isCurrent)
         VALUES ('historic-address','building','{"type":"Point","coordinates":[114,22]}','base-hash','addresses-2025-01-01.0-snapshot',0);
         INSERT INTO address2dI18n (addressId,locale,formattedAddress,versionHash,snapshotId,isCurrent)
         VALUES ('historic-address','en','Historic Harbour','name-hash','addresses-2025-01-01.0-snapshot',0);`)

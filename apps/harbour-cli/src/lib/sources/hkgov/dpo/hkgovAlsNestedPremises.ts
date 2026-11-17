@@ -44,7 +44,7 @@ export function applyAlsNestedPremises(rows: PreparedHkgovAlsRow[], version: str
       d.childCoordinates,
     )
     const complexes = rows.filter(
-      r => r.curatedGranularity === 'complex' && r.enEstateName === d.estate.enName,
+      r => r.curatedScope === 'premises' && r.enEstateName === d.estate.enName,
     )
     assert(complexes.length <= 1)
     const estate = complexes[0] ?? sourceEstate

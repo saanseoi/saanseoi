@@ -36,7 +36,7 @@ test('numeric index and spherical prefilter preserve scoped candidates', async (
     ) => {
       sqlite
         .query(
-          'INSERT INTO address2d (scopeId,id,geometry,granularity,createdAt) VALUES (?,?,?,?,?)',
+          'INSERT INTO address2d (scopeId,id,geometry,scope,createdAt) VALUES (?,?,?,?,?)',
         )
         .run(
           scope,

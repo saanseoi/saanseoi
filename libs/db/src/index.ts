@@ -14,7 +14,7 @@ export {
   type SQL,
   sql,
 } from 'drizzle-orm'
-export * from './addressGranularity'
+export * from './addressScope'
 export * from './addressIdentity'
 export { resolveApiResponseFields } from './apiResponseFields'
 export * from './bindings'

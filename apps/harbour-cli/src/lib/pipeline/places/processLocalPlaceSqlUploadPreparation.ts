@@ -366,7 +366,6 @@ export async function stageEnrichedPlaces(
       islandId: currentSchema.address2d.islandId,
       hamletId: currentSchema.address2d.hamletId,
       id: currentSchema.address2d.id,
-      parentAddressId: currentSchema.address2d.parentAddressId,
       ruralAreaId: currentSchema.address2d.ruralAreaId,
       macrohoodId: currentSchema.address2d.macrohoodId,
       microhoodId: currentSchema.address2d.microhoodId,

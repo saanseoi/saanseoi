@@ -25,7 +25,7 @@ function fixture(snapshotId: string, changed = true): ResolvedAddressChunkArtefa
   const now =
     snapshotId === 'one' ? '2026-09-01T00:00:00.000Z' : message.processingRunStartedAt!
   return {
-    kind: 'address.resolved.v1',
+    kind: 'address.resolved.v2',
     addedRows: 0,
     changedRows: +changed,
     insertedVersions: +changed,
@@ -48,7 +48,7 @@ function fixture(snapshotId: string, changed = true): ResolvedAddressChunkArtefa
           id: 'a',
           snapshotId,
           divisionSnapshotId: 'division',
-          granularity: 'building',
+          scope: 'building',
           createdAt: now,
         } as ResolvedAddressChunkArtefact['rows'][number]['base'],
         i18n: [
@@ -100,7 +100,7 @@ test('current writes retain a stable key and leave unchanged content and compone
       { scopeId: 'lineage', createdAt: '2026-09-01T00:00:00.000Z' },
     ])
     const changed = fixture('four')
-    changed.rows[0]!.base.granularity = 'complex'
+    changed.rows[0]!.base.scope = 'premises'
     apply(changed)
     expect(db.query('SELECT * FROM writeAudit').all()).toEqual([{ name: 'base' }])
   } finally {

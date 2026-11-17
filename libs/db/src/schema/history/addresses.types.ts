@@ -17,8 +17,7 @@ export type NewAddressVersionI18nRow = typeof address2dI18n.$inferInsert
 export type CurrentAddressVersionRow = Pick<
   AddressVersionRow,
   | 'id'
-  | 'parentAddressId'
-  | 'granularity'
+  | 'scope'
   | 'streetId'
   | 'hamletId'
   | 'microhoodId'

@@ -269,7 +269,7 @@ function renderAddressCurationPolicy(markdown: string) {
   const policies = {
     en: `- SaanSeoi normalises bilingual formatting and premise components, then applies only
   reviewed, source- and release-bounded curation to identity continuity, canonical
-  naming, hierarchy and granularity, duplicate assertions, inventories, retentions and
+  naming, hierarchy and address scope, duplicate assertions, inventories, retentions and
   coordinate corrections.
 - Every curation has exact evidence guards for the affected source assertions and
   releases. The raw ALS feature and replaced components, identifiers, inventories and

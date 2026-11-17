@@ -176,9 +176,7 @@ test.skipIf(!existsSync(root))(
           ['MAN KING HSE', 25, 3],
         ] as const) {
           const house = rows.filter(
-            r =>
-              r.enBuildingName?.startsWith(prefix) &&
-              r.curatedGranularity === 'building',
+            r => r.enBuildingName?.startsWith(prefix) && r.curatedScope === 'building',
           )
           expect(house).toHaveLength(1)
           expect(
@@ -190,7 +188,7 @@ test.skipIf(!existsSync(root))(
             r => r.parentAddressId === requireDefined(house[0]).id,
           )
           expect(children).toHaveLength(sections)
-          expect(children.every(c => c.curatedGranularity === 'section')).toBe(true)
+          expect(children.every(c => c.curatedScope === 'section')).toBe(true)
           expect(
             collections.some(c => children.some(s => s.id === c.address2dId)),
           ).toBe(false)
@@ -356,8 +354,7 @@ test('September Model Housing keeps shared inventories on building owners and di
       ['MAN KING HSE', 25, 3],
     ] as const) {
       const owner = rows.filter(
-        (r: any) =>
-          r.enBuildingName?.startsWith(name) && r.curatedGranularity === 'building',
+        (r: any) => r.enBuildingName?.startsWith(name) && r.curatedScope === 'building',
       )
       expect(owner).toHaveLength(1)
       const building = requireDefined(owner[0])

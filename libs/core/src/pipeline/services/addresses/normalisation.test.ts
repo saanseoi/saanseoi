@@ -19,7 +19,7 @@ const buildBase = (sources: unknown) =>
     hamletId: null,
     id: 'address-1',
     islandId: null,
-    parentAddressId: null,
+    scope: 'unknown',
     identifiers: null,
     ruralAreaId: null,
     macrohoodId: null,
@@ -70,11 +70,13 @@ test('ALS capture and normalisation preserve the source fingerprint through the 
   )
 })
 
-test('versions explicit parent changes independently of localisation', async () => {
+test('parent evidence does not change address content hashes', async () => {
   const base = buildBase(null)
-  expect(await createHash(buildAddressBaseHashInput(base))).not.toBe(
+  expect(await createHash(buildAddressBaseHashInput(base))).toBe(
     await createHash(
-      buildAddressBaseHashInput({ ...base, parentAddressId: 'complex-1' }),
+      buildAddressBaseHashInput(
+        Object.assign({}, base, { parentAddressId: 'complex-1' }),
+      ),
     ),
   )
 })
@@ -367,11 +369,11 @@ test('reviewed shop addresses remain units beneath their building owner', () => 
     enBuildingName: "WONG'S BUILDING",
     enStreetNumberFrom: '88',
     parentAddressId: 'building-1',
-    curatedGranularity: 'unit',
+    curatedScope: 'unit',
     hierarchyCuration: 'reviewed-shop-address',
   })
-  expect(result.base.granularity).toBe('unit')
-  expect(result.base.parentAddressId).toBe('building-1')
+  expect(result.base.scope).toBe('unit')
+  expect(result.base).not.toHaveProperty('parentAddressId')
 })
 
 test('retains prepared town membership and versions town reassignment', () => {

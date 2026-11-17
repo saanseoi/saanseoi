@@ -110,12 +110,7 @@ export function applyConfidentAlsContinuity(
     const exact = (byText.get(textKey(old)) ?? []).filter(
       r =>
         !priorIds.has(r.id) &&
-        equal(old, r, [
-          ...components,
-          ...names,
-          'parentAddressId',
-          'curatedGranularity',
-        ]),
+        equal(old, r, [...components, ...names, 'parentAddressId', 'curatedScope']),
     )
     if (exact.length === 1) {
       proposals.push({ row: exact[0]!, old, kind: 'exact-bilingual-address' })
@@ -132,7 +127,7 @@ export function applyConfidentAlsContinuity(
       next = route(row)
     const priorRoute = route(old)
     if (
-      old.curatedGranularity === 'unknown' &&
+      old.curatedScope === 'unknown' &&
       old.enEstateName &&
       !old.enBuildingName &&
       !old.enBlockNumber &&
@@ -166,7 +161,7 @@ export function applyConfidentAlsContinuity(
       equal(old, row, [
         ...components.filter(k => !['enBlockNumber', 'zhHantBlockNumber'].includes(k)),
         ...names,
-        'curatedGranularity',
+        'curatedScope',
       ]) &&
       blockValue(old.enBlockNumber) === blockValue(row.enBlockNumber) &&
       blockValue(old.zhHantBlockNumber) === blockValue(row.zhHantBlockNumber)
@@ -176,7 +171,7 @@ export function applyConfidentAlsContinuity(
     }
     if (
       equal(old, row, components) &&
-      equal(old, row, ['enEstateName', 'zhHantEstateName', 'curatedGranularity']) &&
+      equal(old, row, ['enEstateName', 'zhHantEstateName', 'curatedScope']) &&
       roman(old.enBuildingName) === roman(row.enBuildingName) &&
       old.zhHantBuildingName === row.zhHantBuildingName
     ) {
@@ -223,8 +218,10 @@ export function applyConfidentAlsContinuity(
         en.EngEstate = { ...en.EngEstate, EstateName: row.enEstateName }
       if (row.zhHantEstateName)
         zh.ChiEstate = { ...zh.ChiEstate, EstateName: row.zhHantEstateName }
-      row.curatedGranularity =
-        old.curatedGranularity ?? (old.enBuildingName ? 'building' : 'complex')
+      row.curatedScope =
+        old.curatedScope ?? (old.enBuildingName ? 'building' : 'premises')
+      row.curatedPremisesType =
+        row.curatedScope === 'premises' ? old.curatedPremisesType : undefined
     }
     if (kind === 'house-prefix-to-street-number') {
       const street = route(row)
@@ -256,7 +253,7 @@ export function applyConfidentAlsContinuity(
       zh.ChiStreet = { StreetName: street.zh, BuildingNoFrom: street.number }
       delete en.EngVillage
       delete zh.ChiVillage
-      row.curatedGranularity = 'unknown'
+      row.curatedScope = 'unknown'
     }
     if (
       kind === 'preserve-omitted-premise-name' ||
@@ -315,7 +312,7 @@ export async function applyConfidentAlsContinuityFromHistory(
       'enFormattedAddress',
       'zhHantFormattedAddress',
       'parentAddressId',
-      'curatedGranularity',
+      'curatedScope',
       'sources',
       'enBlockDescriptor',
       ...components.filter(key => !key.includes('VillageNumber')),

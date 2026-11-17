@@ -24,7 +24,7 @@ test('current address reads project every dedicated division ID as a relationshi
       );
       CREATE TABLE address2d (
         scopeId TEXT, divisionSnapshotId TEXT, id TEXT, geometry TEXT,
-        identifiers TEXT, sources TEXT, parentAddressId TEXT, granularity TEXT,
+        identifiers TEXT, sources TEXT, parentAddressId TEXT, scope TEXT, premisesType TEXT, premisesKind TEXT,
         countryId TEXT, islandId TEXT, areaId TEXT,
         districtId TEXT, townId TEXT, ruralAreaId TEXT, macrohoodId TEXT, neighbourhoodId TEXT,
         microhoodId TEXT, villageId TEXT, hamletId TEXT, createdAt TEXT, updatedAt TEXT
@@ -34,7 +34,7 @@ test('current address reads project every dedicated division ID as a relationshi
       INSERT INTO divisionPublicationState
         VALUES ('division-scope', 'division-snapshot', 'current', 'token', 'ready', 'now');
       INSERT INTO address2d (
-        scopeId, divisionSnapshotId, id, granularity, countryId, islandId,
+        scopeId, divisionSnapshotId, id, scope, countryId, islandId,
         areaId, districtId, townId, ruralAreaId, macrohoodId, neighbourhoodId, microhoodId,
         villageId, hamletId, createdAt) VALUES (
         'address-scope', 'division-scope', 'address-1', 'building', 'country-1',

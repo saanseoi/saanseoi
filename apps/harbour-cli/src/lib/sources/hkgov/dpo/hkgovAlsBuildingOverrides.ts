@@ -39,7 +39,7 @@ export function applyReviewedBuildingOverrides(
     row.enEstateName = row.zhHantEstateName = null
     row.enFormattedAddress = formatEnPremisesAddress(e)
     row.zhHantFormattedAddress = formatZhPremisesAddress(z)
-    row.curatedGranularity = 'building'
+    row.curatedScope = 'building'
     row.identityAlias = row.id
     row.id = row.canonicalId = row.identityBuildingId = rule.canonicalId
     row.identityKey =

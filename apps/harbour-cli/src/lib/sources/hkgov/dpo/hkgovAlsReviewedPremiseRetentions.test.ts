@@ -92,7 +92,7 @@ test('all 30 releases preserve identities, restore omissions and separate Tin Wa
     for (const rule of allRules)
       expect(rows.some(r => r.id === rule.canonicalId)).toBeTrue()
     const complex = rows.find(
-      r => r.curatedGranularity === 'complex' && r.enEstateName === 'TIN WANG COURT',
+      r => r.curatedScope === 'premises' && r.enEstateName === 'TIN WANG COURT',
     )!
     expect(complex.enEstateName).toBe('TIN WANG COURT')
     expect(complex.enBuildingName).toBeNull()
@@ -121,9 +121,8 @@ test('all 30 releases preserve identities, restore omissions and separate Tin Wa
         ?.enBuildingName,
     ).toBe('WOFOO JOSEPH LEE STUDENT ACTIVITY CENTRE')
     expect(
-      rows.find(r => r.id === 'ss-5339b729-833f-5598-a7c1-244d04f9535f')
-        ?.curatedGranularity,
-    ).toBe('complex')
+      rows.find(r => r.id === 'ss-5339b729-833f-5598-a7c1-244d04f9535f')?.curatedScope,
+    ).toBe('premises')
     expect(
       rows.find(r => r.id === 'ss-2f1e0c99-1cb1-57f4-91fa-cbd61e251e39')?.enBlockNumber,
     ).toBe('1')

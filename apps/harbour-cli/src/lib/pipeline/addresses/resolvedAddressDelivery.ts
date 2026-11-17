@@ -369,14 +369,6 @@ export function validateResolvedAddressProjection(
     throw new Error(
       `Address projection is incomplete: expected ${expectedCount}, found ${count}.`,
     )
-  const orphan = db
-    .query(
-      `SELECT child.id FROM address2d child
-     LEFT JOIN address2d parent ON parent.scopeId = child.scopeId AND parent.id = child.parentAddressId
-     WHERE child.scopeId = ? AND child.parentAddressId IS NOT NULL AND parent.id IS NULL LIMIT 1`,
-    )
-    .get(scopeId)
-  if (orphan) throw new Error('Address projection has a missing parent.')
   const missingLocale = db
     .query(
       `SELECT a.id FROM address2d a WHERE a.scopeId = ? AND NOT EXISTS
@@ -391,7 +383,7 @@ export function validateResolvedAddressProjection(
     .query(`SELECT a.id FROM address3d a WHERE a.scopeId = ? AND
     (NOT EXISTS (SELECT 1 FROM address2d owner WHERE owner.scopeId = a.scopeId AND owner.id = a.address2dId)
     OR EXISTS (SELECT 1 FROM json_each(a.unresolvedSectionIds) section WHERE NOT EXISTS
-      (SELECT 1 FROM address2d child WHERE child.scopeId = a.scopeId AND child.id = section.value AND child.parentAddressId = a.address2dId))
+      (SELECT 1 FROM address2d child WHERE child.scopeId = a.scopeId AND child.id = section.value))
     OR NOT EXISTS (SELECT 1 FROM address3dI18n i WHERE i.scopeId = a.scopeId AND i.address3dId = a.id)
     OR a.unitCount <= 0 OR json_array_length(a.units) <> a.unitCount
     OR EXISTS (SELECT 1 FROM address3dI18n i WHERE i.scopeId=a.scopeId AND i.address3dId=a.id AND
@@ -429,14 +421,13 @@ export function buildDeliveredAddressValidationSql(db: Database, scopeId: string
   return [
     ...counts,
     `NOT EXISTS (SELECT 1 FROM address2d a WHERE a.scopeId = ${scope} AND (
-      (a.parentAddressId IS NOT NULL AND NOT EXISTS (SELECT 1 FROM address2d parent WHERE parent.scopeId = a.scopeId AND parent.id = a.parentAddressId))
-      OR NOT EXISTS (SELECT 1 FROM address2dI18n i WHERE i.scopeId = a.scopeId AND i.addressId = a.id)))`,
+      NOT EXISTS (SELECT 1 FROM address2dI18n i WHERE i.scopeId = a.scopeId AND i.addressId = a.id)))`,
     `NOT EXISTS (SELECT 1 FROM address3d a WHERE a.scopeId = ${scope} AND (
       NOT EXISTS (SELECT 1 FROM address2d owner WHERE owner.scopeId = a.scopeId AND owner.id = a.address2dId)
       OR NOT EXISTS (SELECT 1 FROM address3dI18n i WHERE i.scopeId = a.scopeId AND i.address3dId = a.id)
       OR json_array_length(a.units) <> a.unitCount
       OR EXISTS (SELECT 1 FROM json_each(a.unresolvedSectionIds) section WHERE NOT EXISTS
-        (SELECT 1 FROM address2d child WHERE child.scopeId = a.scopeId AND child.id = section.value AND child.parentAddressId = a.address2dId))))`,
+        (SELECT 1 FROM address2d child WHERE child.scopeId = a.scopeId AND child.id = section.value))))`,
   ].join(' AND ')
 }
 

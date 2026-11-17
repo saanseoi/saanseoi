@@ -300,7 +300,7 @@ test('per-record enrichment validates missing, added, edited and removed 3D coll
       computed++
       const reference = await createPlaceAddress3dMatcher(db)(
         'als',
-        { id: 'building', parentAddressId: null },
+        { id: 'building' },
         ['Flat A, 1/F, Citygate'],
         observer,
       )

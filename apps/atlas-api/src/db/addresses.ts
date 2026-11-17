@@ -46,8 +46,7 @@ export type AddressRecord = {
     geometry: unknown
     identifiers: unknown
     sources: unknown
-    parentAddressId: string | null
-    granularity: typeof address2d.$inferSelect.granularity
+    scope: typeof address2d.$inferSelect.scope
     divisionRelationships: AddressDivisionRelationship[]
     countryId: string | null
     islandId: string | null
@@ -126,8 +125,7 @@ type AddressRow = {
   geometry: typeof address2d.$inferSelect.geometry
   identifiers: typeof address2d.$inferSelect.identifiers
   sources: typeof address2d.$inferSelect.sources
-  parentAddressId: string | null
-  granularity: typeof address2d.$inferSelect.granularity
+  scope: typeof address2d.$inferSelect.scope
   countryId: string | null
   islandId: string | null
   areaId: string | null
@@ -231,8 +229,7 @@ function mapAddressRow(row: AddressRow): AddressRecord {
       geometry: row.geometry,
       identifiers: row.identifiers,
       sources: row.sources,
-      parentAddressId: row.parentAddressId,
-      granularity: row.granularity,
+      scope: row.scope,
       divisionRelationships: addressDivisionRelationshipsFromDedicatedIds(row),
       countryId: row.countryId,
       islandId: row.islandId,
@@ -372,8 +369,7 @@ export async function getAddressRecordCurrent(
       geometry: address2d.geometry,
       identifiers: address2d.identifiers,
       sources: address2d.sources,
-      parentAddressId: address2d.parentAddressId,
-      granularity: address2d.granularity,
+      scope: address2d.scope,
       countryId: address2d.countryId,
       islandId: address2d.islandId,
       areaId: address2d.areaId,
@@ -427,8 +423,7 @@ export async function listAddressRecordsCurrent(
       geometry: address2d.geometry,
       identifiers: address2d.identifiers,
       sources: address2d.sources,
-      parentAddressId: address2d.parentAddressId,
-      granularity: address2d.granularity,
+      scope: address2d.scope,
       countryId: address2d.countryId,
       islandId: address2d.islandId,
       areaId: address2d.areaId,
@@ -486,8 +481,7 @@ export async function listAddressRecordsCurrentByIds(
       geometry: address2d.geometry,
       identifiers: address2d.identifiers,
       sources: address2d.sources,
-      parentAddressId: address2d.parentAddressId,
-      granularity: address2d.granularity,
+      scope: address2d.scope,
       countryId: address2d.countryId,
       islandId: address2d.islandId,
       areaId: address2d.areaId,

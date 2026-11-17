@@ -98,7 +98,7 @@ test('September reuses six existing identity decisions and preserves Cape Collin
     )!
   expect(get(22).enBuildingName).toBe('GR8 INNO TECH CENTRE')
   expect(get(27).enEstateName).toBe('CAPE COLLINSON CREMATORIUM')
-  expect(get(27).curatedGranularity).toBe('complex')
+  expect(get(27).curatedScope).toBe('premises')
   for (const [n, tower] of [
     [8, 2],
     [14, 3],

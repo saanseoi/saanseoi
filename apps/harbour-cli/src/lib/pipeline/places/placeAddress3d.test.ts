@@ -23,7 +23,7 @@ test('one enrichment invocation deduplicates concurrent Address3D reads and a ne
       ],
     }
   })
-  const address = { id: 'building', parentAddressId: null }
+  const address = { id: 'building' }
   const match = createPlaceAddress3dMatcher(db)
   const results = await Promise.all(
     Array.from({ length: 50 }, () => match('snapshot', address, text)),
@@ -51,13 +51,12 @@ test('missing collections are cached with bounded owner retention and failed rea
     return undefined
   })
   const match = createPlaceAddress3dMatcher(db)
-  const address = { id: 'first', parentAddressId: null }
+  const address = { id: 'first' }
   await expect(match('snapshot', address, text)).rejects.toThrow('read interrupted')
   expect(await match('snapshot', address, text)).toBeNull()
   expect(await match('snapshot', address, text)).toBeNull()
   expect(reads).toBe(2)
-  for (let id = 0; id < 128; id++)
-    await match('snapshot', { id: String(id), parentAddressId: null }, text)
+  for (let id = 0; id < 128; id++) await match('snapshot', { id: String(id) }, text)
   await match('snapshot', address, text)
   expect(reads).toBe(131)
 })

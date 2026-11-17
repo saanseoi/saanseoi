@@ -98,13 +98,13 @@ test('review retains all 20 identities across deliveries without touching the tw
     for (const rule of rules) {
       const retained = rows.filter(r => r.id === rule.canonicalId)
       expect(retained.length, `${version}: ${rule.id}`).toBe(1)
-      expect(retained[0]?.curatedGranularity).toBe(
-        rule.patch.granularity === 'unknown' ? undefined : rule.patch.granularity,
+      expect(retained[0]?.curatedScope).toBe(
+        rule.patch.scope === 'unknown' ? undefined : rule.patch.scope,
       )
     }
     const campus = rows.find(r => r.id === rules[17]!.canonicalId)!
     const amenities = rows.find(r => r.id === rules[6]!.canonicalId)!
-    expect(campus.curatedGranularity).toBe('complex')
+    expect(campus.curatedScope).toBe('premises')
     expect(amenities.parentAddressId).toBe(campus.id)
     expect(amenities.id).not.toBe(campus.id)
     const terra = rows.find(r => r.id === rules[13]!.canonicalId)!

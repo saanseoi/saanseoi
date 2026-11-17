@@ -93,7 +93,8 @@ export function applyReviewedEstateRanges(
       zhHantStreetNumberTo: rule.toNumber,
       enFormattedAddress: rule.enFormattedAddress,
       zhHantFormattedAddress: rule.zhHantFormattedAddress,
-      curatedGranularity: 'complex',
+      curatedScope: 'premises',
+      curatedPremisesType: 'complex',
       hierarchyCuration: rule.id,
       identifiers: JSON.stringify({ curationId: rule.id }),
       sources: JSON.stringify({
@@ -119,7 +120,7 @@ export function applyReviewedEstateRanges(
     rows.push(complex)
     for (const owner of owners) {
       owner.parentAddressId = id
-      owner.curatedGranularity = 'building'
+      owner.curatedScope = 'building'
       owner.hierarchyCuration = rule.id
     }
   }

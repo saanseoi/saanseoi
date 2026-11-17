@@ -137,7 +137,7 @@ test('November reviewed decisions retain 59 identities and preserve fronts, hous
         october.rules.find(r => r.id === 'october-2024-inference-50')!.canonicalId,
     )!
     expect(row(22).parentAddressId).toBe(parent.id)
-    expect(row(22).curatedGranularity).toBe('building')
+    expect(row(22).curatedScope).toBe('building')
     expect(rows.filter(r => r.id === parent.id)).toHaveLength(1)
     expect(row(1).enStreetNumberFrom).toBe('12')
     expect(row(9).enStreetNumberFrom).toBe('12')

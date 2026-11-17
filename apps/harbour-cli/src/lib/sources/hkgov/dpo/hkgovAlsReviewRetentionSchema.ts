@@ -25,7 +25,8 @@ export type ReviewedPremiseRetention = {
     blockNumber?: string | null
     blockDescriptor?: string
     zhBlockDescriptor?: string
-    granularity?: 'complex' | 'phase' | 'building' | 'section' | 'unit' | 'unknown'
+    premisesType?: 'site' | 'complex'
+    scope?: 'premises' | 'phase' | 'building' | 'section' | 'unit' | 'unknown'
     streetNumberFrom?: string
     streetNumberTo?: string
     enEstate?: string | null

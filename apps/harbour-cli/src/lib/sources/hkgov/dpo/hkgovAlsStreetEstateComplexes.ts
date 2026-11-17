@@ -189,7 +189,8 @@ export function applyReviewedStreetEstateComplexes(
       zhHantVillageNumberTo: null,
       enFormattedAddress: formatEnPremisesAddress(en),
       zhHantFormattedAddress: formatZhPremisesAddress(zh),
-      curatedGranularity: 'complex',
+      curatedScope: 'premises',
+      curatedPremisesType: 'complex',
       hierarchyCuration: rule.id,
       sources: JSON.stringify({
         hkgovAlsStreetEstateComplex: {

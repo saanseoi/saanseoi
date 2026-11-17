@@ -99,7 +99,7 @@ test('November preserves six corroborated renames and tower identities', async (
   expect(get(18).enBuildingName).toBe('CHAMPION TOWER')
   expect(get(129).enBuildingName).toBe('ICBC TOWER')
   expect(get(132).enEstateName).toBe('THREE GARDEN ROAD')
-  expect(get(132).curatedGranularity).toBe('complex')
+  expect(get(132).curatedScope).toBe('premises')
   expect(get(5).enBuildingName).toBe('THE TANNER HILL TOWER 2')
   expect(get(41).enBuildingName).toBe('THE TANNER HILL TOWER 1')
 })

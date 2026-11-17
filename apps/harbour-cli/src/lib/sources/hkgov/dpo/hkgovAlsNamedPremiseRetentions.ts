@@ -68,7 +68,7 @@ export function retainNamedPremises(rows: PreparedHkgovAlsRow[], version: string
     owner.id = owner.canonicalId = owner.identityBuildingId = id
     owner.identityKey = owner.identityContinuityKey = `reviewed-named-premise:${d.id}`
     owner.identityMatchMethod = 'reviewed-named-premise-retention'
-    owner.curatedGranularity = 'building'
+    owner.curatedScope = 'building'
     owner.sources = JSON.stringify({
       ...JSON.parse(owner.sources ?? '{}'),
       hkgovAlsNamedPremiseRetention: {

@@ -35,7 +35,7 @@ test('restores omitted bilingual names with an unchanged publisher, number and p
   )
   expect(current.enBuildingName).toBe('NAMED BUILDING')
   expect(current.zhHantBuildingName).toBe('大廈')
-  expect(current.curatedGranularity).toBe('building')
+  expect(current.curatedScope).toBe('building')
   expect(current.engPremisesAddressJson).toBe(old.engPremisesAddressJson)
 })
 test('numbered house becomes a street address while bilingual estate survives', () => {
@@ -66,7 +66,7 @@ test('numbered house becomes a street address while bilingual estate survives', 
   expect(current.enStreetName).toBe('MAPLE DRIVE')
   expect(current.enEstateName).toBe('THE GREEN')
   expect(current.zhHantEstateName).toBe('歌賦嶺')
-  expect(current.curatedGranularity).toBe('unknown')
+  expect(current.curatedScope).toBe('unknown')
   expect(current.enVillageName).toBeNull()
 })
 test('ambiguous predecessors, different house numbers, site parts and changed names stay unresolved', () => {
@@ -98,7 +98,7 @@ test('ambiguous predecessors, different house numbers, site parts and changed na
 
 test('estate context survives later releases that repeat the publisher street-only record', () => {
   const previous = row('retained', {
-    curatedGranularity: 'unknown',
+    curatedScope: 'unknown',
     enBuildingName: null,
     zhHantBuildingName: null,
     enEstateName: 'THE GREEN',
@@ -126,5 +126,5 @@ test('estate context survives later releases that repeat the publisher street-on
     applyConfidentAlsContinuity([current], [previous], '2026-04-03.0').get('publisher'),
   ).toBe('retained')
   expect(current.enEstateName).toBe('THE GREEN')
-  expect(current.curatedGranularity).toBe('unknown')
+  expect(current.curatedScope).toBe('unknown')
 })

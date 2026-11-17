@@ -56,7 +56,7 @@ test('release bounds, lifecycle and explicit zero matches determine visible deci
 test('counts decisions across mixed arrays and hides empty and unrelated fixtures', () => {
   const decisions = alsAuditDecisions(
     {
-      'address-granularity': { version: 1, overrides: [] },
+      'address-scope': { version: 1, overrides: [] },
       'hkgov-dpo-address-approved-estate-batch': {
         sourceVersionFrom: '2025-01-01.0',
         sourceVersionTo: '2025-02-01.0',

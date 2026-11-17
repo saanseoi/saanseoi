@@ -6,7 +6,7 @@ import { sql } from 'drizzle-orm'
 import type { SQLiteColumnBuilder } from 'drizzle-orm/sqlite-core'
 import { customType, integer, real, text } from 'drizzle-orm/sqlite-core'
 import type { Address3dUnit, Address3dUnitI18n } from '../address3d'
-import { addressGranularities } from '../addressGranularity'
+import { addressScopes } from '../addressScope'
 import type { DivisionHierarchies } from '../divisionTaxonomy'
 import { stringifyGeoJson } from '../geoJsonSerialisation'
 
@@ -462,9 +462,8 @@ export function canonicalAddress2dColumns<Required extends boolean>(
 ) {
   return {
     id: text('id').notNull(),
-    parentAddressId: text('parentAddressId'),
-    granularity: requiredColumn(
-      text('granularity', { enum: addressGranularities }).default('unknown'),
+    scope: requiredColumn(
+      text('scope', { enum: addressScopes }).default('unknown'),
       required,
     ),
     streetId: text('streetId'),

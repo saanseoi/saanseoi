@@ -97,7 +97,7 @@ test('historical unit reads replay the selected owner coverage and ignore newer 
     })) as unknown as AddressRecord[]
     await attachAddress3dCoverage({ ...context, records })
     expect(records[0]?.address3dCoverage).toEqual({
-      kind: 'ancestor',
+      kind: 'shared',
       ownerAddress2dId: 'building',
       address3dId: 'collection',
       membership: 'unresolved',

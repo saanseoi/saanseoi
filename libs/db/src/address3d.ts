@@ -24,7 +24,7 @@ export type Address3dUnitI18n = {
 export type Address3dCoverage =
   | { kind: 'none' }
   | {
-      kind: 'direct' | 'ancestor'
+      kind: 'direct' | 'shared'
       ownerAddress2dId: string
       address3dId: string
       membership: 'established' | 'unresolved'
@@ -47,7 +47,7 @@ export type Address3dCollectionMetadata = {
 
 /** The caller supplies metadata from the same selected snapshot. */
 export function resolveAddress3dCoverage(
-  address: { id: string; parentAddressId: string | null },
+  address: { id: string },
   collections: Address3dCollectionMetadata[],
 ): Address3dCoverage {
   const direct = collections.find(collection => collection.address2dId === address.id)
@@ -58,14 +58,13 @@ export function resolveAddress3dCoverage(
       address3dId: direct.id,
       membership: 'established',
     }
-  const ancestor = collections.find(
-    collection =>
-      collection.address2dId === address.parentAddressId &&
-      collection.unresolvedSectionIds.includes(address.id),
+  const shared = collections.filter(collection =>
+    collection.unresolvedSectionIds.includes(address.id),
   )
+  const ancestor = shared.length === 1 ? shared[0] : undefined
   return ancestor
     ? {
-        kind: 'ancestor',
+        kind: 'shared',
         ownerAddress2dId: ancestor.address2dId,
         address3dId: ancestor.id,
         membership: 'unresolved',
@@ -74,7 +73,7 @@ export function resolveAddress3dCoverage(
 }
 
 export function validatePlaceAddress3dReference(args: {
-  address: { id: string; parentAddressId: string | null }
+  address: { id: string }
   collection: Address3dCollectionMetadata & { units: Address3dUnit[] }
   unitId: string
   membership: 'established' | 'unresolved'

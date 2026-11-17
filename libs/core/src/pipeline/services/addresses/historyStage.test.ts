@@ -124,7 +124,7 @@ test('ALS history preserves distinct source owners at one street address and exa
     }
     const payload = new TextEncoder().encode(
       JSON.stringify({
-        kind: 'address.normalised.v1',
+        kind: 'address.normalised.v2',
         resourceReleaseId: release.resourceReleaseId,
         processingRunStartedAt: timestamp,
         rowStart: 0,

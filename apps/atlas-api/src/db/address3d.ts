@@ -31,10 +31,7 @@ export async function attachAddress3dCoverage(args: {
       ...new Set(
         args.records
           .filter(record => record.address.snapshotId === snapshotId)
-          .flatMap(record => [
-            record.address.id,
-            ...(record.address.parentAddressId ? [record.address.parentAddressId] : []),
-          ]),
+          .map(record => record.address.id),
       ),
     ]
     const collections: Address3dCollectionMetadata[] = []
@@ -56,7 +53,7 @@ export async function attachAddress3dCoverage(args: {
           .selectDistinct({ id: historySchema.address3d.id })
           .from(historySchema.address3d)
           .where(
-            sql`${historySchema.address3d.address2dId} in (select value from json_each(${JSON.stringify(ownerIds)}))`,
+            sql`(${historySchema.address3d.address2dId} in (select value from json_each(${JSON.stringify(ownerIds)})) OR EXISTS (select 1 from json_each(${historySchema.address3d.unresolvedSectionIds}) section where section.value in (select value from json_each(${JSON.stringify(ownerIds)}))))`,
           )
           .all()
         for (const row of rows) collectionIds.add(row.id)
@@ -111,7 +108,7 @@ export async function attachAddress3dCoverage(args: {
           .where(
             and(
               sql`${currentSchema.address3d.scopeId} = (select ${currentSchema.addressPublicationState.scopeId} from ${currentSchema.addressPublicationState} where ${currentSchema.addressPublicationState.status} = 'current' and ${currentSchema.addressPublicationState.snapshotId} = ${snapshotId})`,
-              sql`${currentSchema.address3d.address2dId} in (select value from json_each(${JSON.stringify(ownerIds)}))`,
+              sql`(${currentSchema.address3d.address2dId} in (select value from json_each(${JSON.stringify(ownerIds)})) OR EXISTS (select 1 from json_each(${currentSchema.address3d.unresolvedSectionIds}) section where section.value in (select value from json_each(${JSON.stringify(ownerIds)}))))`,
             ),
           )
           .all()),

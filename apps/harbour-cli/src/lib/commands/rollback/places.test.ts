@@ -190,7 +190,7 @@ async function fixture() {
     hierarchies: [],
   })
   history(old, 'address2d', 'a0', 'building', 'building-old', {
-    granularity: 'building',
+    scope: 'building',
     districtId: 'division',
   })
   history(

@@ -467,7 +467,7 @@
     {
       "id": "address-structure",
       "status": "reviewed-implementation-plan",
-      "behaviour": "Parent/granularity/hierarchy/3D coverage are derived, not ordinary SOURCE copies. Coverage is a discriminated union with owner/membership and missing states.",
+      "behaviour": "Parent/scope/hierarchy/3D coverage are derived, not ordinary SOURCE copies. Coverage is a discriminated union with owner/membership and missing states.",
       "composition": {
         "operation": "createAddressResource",
         "inputs": [
@@ -477,13 +477,13 @@
         ]
       },
       "upstream": [
-        "assembly: granularity, parent reconstruction, hierarchy association and identity continuity",
+        "assembly: scope, parent reconstruction, hierarchy association and identity continuity",
         "preparation: ALS building/3D ownership and memberships"
       ],
       "evidence": [
         {
-          "file": "libs/core/src/pipeline/services/addresses/granularity.ts",
-          "symbol": "establishAddressGranularity"
+          "file": "libs/core/src/pipeline/services/addresses/scope.ts",
+          "symbol": "establishAddressScope"
         },
         {
           "file": "libs/core/src/pipeline/services/addresses/normalisation.ts",

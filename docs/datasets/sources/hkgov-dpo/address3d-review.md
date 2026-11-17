@@ -355,10 +355,10 @@ reviewed named address throughout retained history. The superseded named identit
 the reviewed unnamed or street-only alternatives do not create additional canonical
 addresses. Their publisher identifiers, components and inventories remain provenance.
 
-Long Shin Estate retains `11–12 Yau Shin Street` at estate granularity. Shin Leung and
-Shin Oi houses retain their individual `11 Yau Shin Street` addresses, and Shin Yung
-House retains `12 Yau Shin Street`, including the house names and their own inventories.
-The estate address does not own or duplicate those building inventories. Shin Leung's
+Long Shin Estate retains `11–12 Yau Shin Street` at estate scope. Shin Leung and Shin Oi
+houses retain their individual `11 Yau Shin Street` addresses, and Shin Yung House
+retains `12 Yau Shin Street`, including the house names and their own inventories. The
+estate address does not own or duplicate those building inventories. Shin Leung's
 unchanged 313-flat inventory is restored only for its three missing April 2026
 deliveries.
 

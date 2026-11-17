@@ -125,8 +125,7 @@ export function presentGeocoding(
         Object.entries(source).filter(
           ([key, value]) =>
             value != null &&
-            (full ||
-              ['i18n', 'granularity', ...(map ? ['geometry'] : [])].includes(key)),
+            (full || ['i18n', 'scope', ...(map ? ['geometry'] : [])].includes(key)),
         ),
       )
       if (!full && attributes.i18n)

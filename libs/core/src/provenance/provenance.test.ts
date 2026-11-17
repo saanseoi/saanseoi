@@ -69,7 +69,7 @@ async function fixture() {
   const output = {
     name: 'Reviewed name',
     parentAddressId: null,
-    granularity: 'building',
+    scope: 'building',
   }
   const a: Application = {
     schemaVersion: 1,

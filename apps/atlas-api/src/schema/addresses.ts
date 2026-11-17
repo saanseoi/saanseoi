@@ -5,13 +5,13 @@ import { geographicCodeQueryShape } from './geographicCodeFilters'
 import { RegionFilterSchema } from './region'
 import { z } from '@hono/zod-openapi'
 import { getRequestedApiLocalesValidationError } from '@repo/core'
-import { addressBlockTypes, addressGranularities } from '@repo/db'
+import { addressBlockTypes, addressScopes } from '@repo/db'
 import { address3dFloorTypes, address3dUnitTypes } from '@repo/db/address3d'
 
 export const Address3dCoverageSchema = z.union([
   z.object({ kind: z.literal('none') }),
   z.object({
-    kind: z.enum(['direct', 'ancestor']),
+    kind: z.enum(['direct', 'shared']),
     ownerAddress2dId: z.string(),
     address3dId: z.string(),
     membership: z.enum(['established', 'unresolved']),
@@ -263,11 +263,8 @@ const AddressPointGeometrySchema = z
 const AddressAttributesSchema = z
   .object({
     address3dCoverage: Address3dCoverageSchema,
-    granularity: z.enum(addressGranularities).openapi({
-      description: openApiText('openapi_addresses_granularity_description'),
-    }),
-    parentAddressId: IdSchema.nullable().openapi({
-      description: openApiText('openapi_addresses_parent_address_id_description'),
+    scope: z.enum(addressScopes).openapi({
+      description: openApiText('openapi_addresses_scope_description'),
     }),
     datasetCode: z.string().openapi({
       description: openApiText('openapi_addresses_dataset_code_description'),

@@ -114,8 +114,7 @@ type AddressResourcePayload = {
   id: string
   attributes: {
     datasetCode: string
-    parentAddressId: string | null
-    granularity: AddressRecord['address']['granularity']
+    scope: AddressRecord['address']['scope']
     address3dCoverage: Address3dCoverage
     snapshotId?: string
     geometry?: AddressPointGeometry | null
@@ -509,11 +508,14 @@ function isMapAddressProfile(profile: AddressProfile) {
   return profile === 'map' || profile === 'full'
 }
 
+/** Repeat premises semantics alongside each locale's names for self-contained consumer rows.
+ * @param i18n Selected source translations. @param profile Public response profile.
+ */
 function projectAddressI18n(i18n: AddressRecord['i18n'], profile: AddressProfile) {
   const entries = Object.entries(i18n).map(([locale, value]) => [
     locale,
     profile !== 'compact'
-      ? value
+      ? { ...value }
       : {
           meta: value.meta,
           formattedAddress: value.formattedAddress,
@@ -574,8 +576,7 @@ function createAddressResource(args: {
     throw new Error(`Missing dataset for address snapshot ${address.snapshotId}.`)
   const attributes: AddressResourcePayload['attributes'] = {
     datasetCode,
-    parentAddressId: address.parentAddressId,
-    granularity: address.granularity,
+    scope: address.scope,
     address3dCoverage: args.record.address3dCoverage ?? { kind: 'none' },
   }
 

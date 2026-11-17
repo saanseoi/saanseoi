@@ -180,7 +180,7 @@ test('April reconciliation keeps 6 On Wah as a shop sub-premises under the build
     'ss-9f77c50f-9932-532a-89c3-47efffeba555',
     'ss-f5947d7b-082e-50cb-91da-dd6269799604',
   ])
-  const shop = rows.find(r => r.curatedGranularity === 'unit')!
+  const shop = rows.find(r => r.curatedScope === 'unit')!
   expect(
     JSON.parse(shop.sources).hkgovAlsReviewedIdentityCoalescence?.aliasIds ?? [],
   ).not.toContain(shop.id)
@@ -196,7 +196,7 @@ test('April reconciliation keeps 6 On Wah as a shop sub-premises under the build
   ).toMatchObject({
     enStreetNumberFrom: '2',
     enStreetNumberTo: '8',
-    curatedGranularity: 'building',
+    curatedScope: 'building',
   })
 })
 

@@ -123,7 +123,7 @@ test('review preserves the 43 reconciled identities and independent premises acr
       ),
     ).toBe(false)
     const station = byRule('september-2024-fire-station-complex')
-    expect(station.curatedGranularity).toBe('complex')
+    expect(station.curatedScope).toBe('premises')
     expect(byRule('september-2024-review-30').parentAddressId).toBe(station.id)
     const wong = byRule('september-2024-review-31')
     expect([wong.enStreetNumberFrom, wong.enStreetNumberTo]).toEqual(['84', '90'])
@@ -132,9 +132,7 @@ test('review preserves the 43 reconciled identities and independent premises acr
       expect(parent).toBeDefined()
       const children = rows.filter(r => r.parentAddressId === parent.id)
       expect(children.length).toBeGreaterThan(0)
-      expect(children.every(r => r.curatedGranularity === group.childGranularity)).toBe(
-        true,
-      )
+      expect(children.every(r => r.curatedScope === group.childScope)).toBe(true)
     }
   }
 }, 240_000)

@@ -110,22 +110,22 @@ export async function normaliseAddressChunkStage(
   }
 
   const rowEnd = Math.min(requestedRowEnd, totalRows)
-  const granularityCounts: Record<string, number> = {}
+  const scopeCounts: Record<string, number> = {}
   for (const row of rows) {
-    const { granularity } = row.base
-    granularityCounts[granularity] = (granularityCounts[granularity] ?? 0) + 1
+    const { scope } = row.base
+    scopeCounts[scope] = (scopeCounts[scope] ?? 0) + 1
   }
   logStructuredInfo({
-    phase: 'addressGranularity',
+    phase: 'addressScope',
     resourceReleaseId: message.resourceReleaseId ?? message.datasetId,
     rowStart,
     rowEnd,
-    granularityCounts,
+    scopeCounts,
   })
   const artefactKey = buildPipelineArtefactKey(message, 'normalised', rowStart, rowEnd)
 
   await writeJsonArtefact<NormalisedAddressChunkArtefact>(bucket, artefactKey, {
-    kind: 'address.normalised.v1',
+    kind: 'address.normalised.v2',
     processingRunStartedAt,
     resourceReleaseId: message.resourceReleaseId ?? message.datasetId,
     rowStart,

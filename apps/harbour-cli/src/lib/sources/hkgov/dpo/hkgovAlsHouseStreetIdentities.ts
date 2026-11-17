@@ -82,7 +82,7 @@ export function applyReviewedHouseStreetIdentities(
       streetName: rule.enStreet,
       streetNumberFrom: rule.streetNumber,
     }
-    row.curatedGranularity = 'building'
+    row.curatedScope = 'building'
     row.sources = JSON.stringify({
       ...JSON.parse(row.sources),
       hkgovAlsHouseStreetIdentity: {

@@ -61,7 +61,7 @@ test('all30 estate addresses, Yau Lai parents and Yue Wan exact removal preserve
       applyReviewedStreetEstateComplexes(rows, v)
       suppressReviewedYueWanPremise(rows, v)
       const estate = requireDefined(rows.find(r => r.hierarchyCuration === rule.id))
-      expect(estate.curatedGranularity).toBe('complex')
+      expect(estate.curatedScope).toBe('premises')
       expect(estate.geoAddress).toBeNull()
       expect(estate.hkgovCsuId).toBeNull()
       expect(estate.enStreetNumberFrom).toBe(

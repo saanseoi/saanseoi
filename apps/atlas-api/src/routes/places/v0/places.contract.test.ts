@@ -386,7 +386,7 @@ function seedHistory(sqlite: Database) {
     const i18nHash = `${id}-en-v1`
     run(
       sqlite,
-      `INSERT INTO address2d (id,granularity,districtId,geometry,identifiers,sources,versionHash,snapshotId,isCurrent,createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO address2d (id,scope,districtId,geometry,identifiers,sources,versionHash,snapshotId,isCurrent,createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         addressId,
         'building',

@@ -35,7 +35,7 @@ import blockDetailBackfills from '../../../../../../../fixtures/meta/curations/h
 import identityComponentBackfills from '../../../../../../../fixtures/meta/curations/hkgov-dpo-address-identity-component-backfills.json'
 import houseStreetIdentities from '../../../../../../../fixtures/meta/curations/hkgov-dpo-address-house-street-identities.json'
 import premiseRenames from '../../../../../../../fixtures/meta/curations/hkgov-dpo-address-premise-renames.json'
-import fixture0 from '../../../../../../../fixtures/meta/curations/address-granularity.json'
+import fixture0 from '../../../../../../../fixtures/meta/curations/address-scope.json'
 import fixture1 from '../../../../../../../fixtures/meta/curations/hkgov-dpo-address-2d-backfills.json'
 import fixture2 from '../../../../../../../fixtures/meta/curations/hkgov-dpo-address-3d-backfills.json'
 import fixture3 from '../../../../../../../fixtures/meta/curations/hkgov-dpo-address-3d-corrections.json'
@@ -142,7 +142,7 @@ export const alsAuditFixtures = [
   { type: 'hkgov-dpo-address-university-hill-retentions', document: universityHill },
   { type: 'hkgov-dpo-address-premise-renames', document: premiseRenames },
   { type: 'hkgov-dpo-address-structured-components', document: structuredComponents },
-  { type: 'address-granularity', document: fixture0 },
+  { type: 'address-scope', document: fixture0 },
   { type: 'hkgov-dpo-address-2d-backfills', document: fixture1 },
   { type: 'hkgov-dpo-address-3d-backfills', document: fixture2 },
   { type: 'hkgov-dpo-address-3d-corrections', document: fixture3 },

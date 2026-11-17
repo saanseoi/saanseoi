@@ -430,7 +430,7 @@ export class ReviewDatabase {
   subsetExpression(db: Database, table: string, kind: string, column: string) {
     if (
       kind === 'HISTORY' &&
-      (['operation', 'granularity'].includes(column) ||
+      (['operation', 'scope'].includes(column) ||
         (table.endsWith('I18n') && column === 'locale'))
     )
       throw new Error('Unsupported subset')
@@ -450,7 +450,7 @@ export class ReviewDatabase {
       'transform',
       'referencePeriodCode',
       'basicCategory',
-      'granularity',
+      'scope',
     ]
     if (
       !allowed.includes(column) ||
@@ -493,7 +493,7 @@ export class ReviewDatabase {
       'transform',
       'referencePeriodCode',
       'basicCategory',
-      'granularity',
+      'scope',
     ]
     for (const { db } of this.selected(kind)) {
       const names = this.names(db)

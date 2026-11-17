@@ -12,6 +12,7 @@ import type { PreparedAls3dRecord } from './hkgovAls3dPreparation'
 export type AlsMembershipAddress = {
   id: string
   level: string
+  premisesType?: 'site' | 'complex' | null
   parentId: string | null
   en: string | null
   zhHant: string | null
@@ -217,8 +218,9 @@ export function buildAlsMembership(input: {
       const coordinates = geometry?.coordinates
       const address: AlsMembershipAddress = {
         id: normalised.canonicalId,
-        level: normalised.base.granularity,
-        parentId: normalised.base.parentAddressId,
+        level: normalised.base.scope,
+        premisesType: row.curatedPremisesType ?? null,
+        parentId: row.parentAddressId ?? null,
         en:
           normalised.i18n.find(value => value.locale === 'en')?.formattedAddress ??
           null,

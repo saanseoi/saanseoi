@@ -116,9 +116,9 @@ test('Yung Shing retains both valid addresses and one inventory owner without in
       r.engPremisesAddressJson,
     ]),
   ).toEqual(originals)
-  expect(
-    rows.every(r => r.curatedGranularity === 'building' && !r.parentAddressId),
-  ).toBe(true)
+  expect(rows.every(r => r.curatedScope === 'building' && !r.parentAddressId)).toBe(
+    true,
+  )
   rows[0] = {
     ...requireDefined(rows[0]),
     geometry: '{"type":"Point","coordinates":[0,0]}',

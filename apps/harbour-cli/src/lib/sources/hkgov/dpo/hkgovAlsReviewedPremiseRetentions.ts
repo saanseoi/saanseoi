@@ -285,9 +285,12 @@ export function applyReviewedAlsPremiseRetentions(
     }
     row.enFormattedAddress = formatEnPremisesAddress(en)
     row.zhHantFormattedAddress = formatZhPremisesAddress(zh)
-    if (!patch.preserveStructure)
-      row.curatedGranularity = patch.granularity ?? 'building'
-    if (patch.granularity)
+    if (!patch.preserveStructure) {
+      row.curatedScope = patch.scope ?? 'building'
+      row.curatedPremisesType =
+        patch.scope === 'premises' ? patch.premisesType : undefined
+    }
+    if (patch.scope)
       row.hierarchyCuration = JSON.stringify({
         id: rule.id,
         curationFile: rule.curationFile ?? curationFile,
