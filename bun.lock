@@ -360,6 +360,20 @@
         "typescript": "^6.0.3",
       },
     },
+    "libs/hkgcode": {
+      "name": "@saanseoi/hkgcode",
+      "version": "0.1.0",
+      "devDependencies": {
+        "proj4": "^2.22.0",
+        "typescript": "^6.0.3",
+      },
+      "peerDependencies": {
+        "proj4": "^2.22.0",
+      },
+      "optionalPeers": [
+        "proj4",
+      ],
+    },
     "libs/i18n": {
       "name": "@repo/i18n",
       "version": "1.0.0",
@@ -996,6 +1010,8 @@
     "@rolldown/pluginutils": ["@rolldown/pluginutils@1.0.1", "", {}, "sha512-2j9bGt5Jh8hj+vPtgzPtl72j0yRxHAyumoo6TNfAjsLB04UtpSvPbPcDcBMxz7n+9CYB0c1GxQFxYRg2jimqGw=="],
 
     "@saanseoi/address": ["@saanseoi/address@workspace:libs/address"],
+
+    "@saanseoi/hkgcode": ["@saanseoi/hkgcode@workspace:libs/hkgcode"],
 
     "@scalar/agent-chat": ["@scalar/agent-chat@0.12.45", "", { "dependencies": { "@ai-sdk/vue": "3.0.214", "@scalar/api-client": "3.23.2", "@scalar/components": "0.32.1", "@scalar/helpers": "0.16.4", "@scalar/icons": "0.7.7", "@scalar/json-magic": "0.16.1", "@scalar/openapi-types": "0.9.8", "@scalar/schemas": "0.14.0", "@scalar/themes": "0.19.2", "@scalar/types": "0.24.0", "@scalar/use-toasts": "0.10.5", "@scalar/validation": "0.6.7", "@scalar/workspace-store": "0.68.5", "@vueuse/core": "13.9.0", "ai": "6.0.214", "js-base64": "^3.9.2", "neverpanic": "0.0.8", "truncate-json": "3.0.1", "vue": "^3.5.40" } }, "sha512-ccjzL8aCQEI5ruv1uObwCmwBeruE6KZXBIdGc8dhcNu66ToLwZoLG9iGL4k/RX/SCZmD9T7COkCliCZo5VO0Vw=="],
 
