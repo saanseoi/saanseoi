@@ -48,5 +48,14 @@
   "devDependencies": {
     "typescript": "^6.0.3",
     "proj4": "^2.22.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/saanseoi/saanseoi.git",
+    "directory": "libs/hkgcode"
+  },
+  "homepage": "https://github.com/saanseoi/saanseoi/tree/preview/libs/hkgcode#readme",
+  "bugs": {
+    "url": "https://github.com/saanseoi/saanseoi/issues"
   }
 }
