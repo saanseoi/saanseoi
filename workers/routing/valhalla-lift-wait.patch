@@ -1,0 +1,357 @@
+diff --git a/proto/descriptors/options.proto b/proto/descriptors/options.proto
+index 7d80e3b..144dce0 100644
+--- a/proto/descriptors/options.proto
++++ b/proto/descriptors/options.proto
+@@ -359,6 +359,11 @@ message Costing {
+       uint32 multimodal_start_end_max_distance = 96;
+     }
+ 
++    // SaanSeoi extension: estimated boarding wait, separate from route preference penalty.
++    oneof has_elevator_wait {
++      float elevator_wait = 98;
++    }
++
+     oneof has_low_class_factor {
+       float low_class_factor = 97;
+     }
+diff --git a/src/sif/pedestriancost.cc b/src/sif/pedestriancost.cc
+index 9976214..2e1d8ba 100644
+--- a/src/sif/pedestriancost.cc
++++ b/src/sif/pedestriancost.cc
+@@ -128,6 +128,7 @@ constexpr ranged_default_t<float> kUseHillsRange{0.0f, kDefaultUseHills, 1.0f};
+ 
+ constexpr ranged_default_t<float> kBSSCostRange{0, kDefaultBssCost, kMaxPenalty};
+ constexpr ranged_default_t<float> kBSSPenaltyRange{0, kDefaultBssPenalty, kMaxPenalty};
++constexpr ranged_default_t<float> kElevatorWaitRange{0, 0, 600};
+ constexpr ranged_default_t<float> kElevatorPenaltyRange{0, kDefaultElevatorPenalty, kMaxPenalty};
+ 
+ constexpr float kSacScaleSpeedFactor[] = {
+@@ -484,11 +485,19 @@ public:
+   bool Allowed(const baldr::DirectedEdge* edge,
+                const graph_tile_ptr& tile,
+                uint16_t disallow_mask = kDisallowNone) const override {
+-    return DynamicCost::Allowed(edge, tile, disallow_mask) && edge->use() < Use::kRailFerry &&
++    // With a boarding wait, correlate to landing corridors rather than starting inside
++    // a lift and bypassing its entry transition. Lift traversal remains allowed.
++    return (elevator_wait_ == 0.f || edge->use() != Use::kElevator) &&
++           DynamicCost::Allowed(edge, tile, disallow_mask) && edge->use() < Use::kRailFerry &&
+            edge->sac_scale() <= max_hiking_difficulty_ &&
+            (!edge->bss_connection() || project_on_bss_connection_);
+   }
+ 
++  // Landing corridor seeds must reach the lift without an artificial corridor U-turn.
++  bool KeepNodeEndpointEdges() const override {
++    return elevator_wait_ > 0.f;
++  }
++
+   virtual Cost BSSCost() const override {
+     return {kDefaultBssCost, kDefaultBssPenalty};
+   };
+@@ -528,6 +537,7 @@ public:
+   float alley_factor_;             // Avoid alleys factor.
+   float driveway_factor_;          // Avoid driveways factor.
+   float step_penalty_;             // Penalty applied to steps/stairs (seconds).
++  float elevator_wait_;            // Estimated seconds waiting once per boarding.
+   float elevator_penalty_;         // Penalty applied to elevator (seconds).
+ 
+   // Lookup table indexed by Use enum value. 0.0f = no Use-specific factor
+@@ -626,6 +636,7 @@ PedestrianCost::PedestrianCost(const Costing& costing)
+   speed_ = costing_options.walking_speed();
+   step_penalty_ = costing_options.step_penalty();
+   elevator_penalty_ = costing_options.elevator_penalty();
++  elevator_wait_ = costing_options.elevator_wait();
+   max_grade_ = costing_options.max_grade();
+ 
+   if (type_ == PedestrianType::kFoot) {
+@@ -781,9 +792,11 @@ Cost PedestrianCost::TransitionCost(const baldr::DirectedEdge* edge,
+   if (edge->use() == Use::kSteps) {
+     return {step_penalty_, 0.0f};
+   }
+-  // fixed penalty for elevator edge
++  // Charge waiting once on entry, not again on consecutive elevator segments.
++  // Keep the existing preference penalty separate from real elapsed seconds.
+   if (edge->use() == Use::kElevator) {
+-    return {elevator_penalty_, 0.0f};
++    const float wait = pred.use() == Use::kElevator ? 0.f : elevator_wait_;
++    return {elevator_penalty_ + (shortest_ ? 0.f : wait), wait};
+   }
+ 
+   // fixed per level penalty for elevator
+@@ -798,7 +811,11 @@ Cost PedestrianCost::TransitionCost(const baldr::DirectedEdge* edge,
+                                             prev_levels.first[0].first == prev_levels.first[0].second
+                                         ? std::abs(prev_levels.first[0].first - levels.first[0].first)
+                                         : 1;
+-    return {elevator_penalty_ * traversed_levels, 0.0f};
++    // Passing the elevator on the same floor does not board it.
++    const bool same_level = traversed_levels == 0 &&
++                            levels.first[0].first == prev_levels.first[0].first;
++    const float wait = same_level ? 0.f : elevator_wait_;
++    return {elevator_penalty_ * traversed_levels + (shortest_ ? 0.f : wait), wait};
+   }
+ 
+   // Get the transition cost for country crossing, ferry, gate, toll booth,
+@@ -837,9 +854,11 @@ Cost PedestrianCost::TransitionCostReverse(const uint32_t idx,
+   if (edge->use() == Use::kSteps) {
+     return {step_penalty_, 0.0f};
+   }
+-  // fixed penalty for elevator
++  // In reverse search pred is the incoming edge in forward travel order.
++  // Charge the same boarding transition as the forward search.
+   if (edge->use() == Use::kElevator) {
+-    return {elevator_penalty_, 0.0f};
++    const float wait = pred->use() == Use::kElevator ? 0.f : elevator_wait_;
++    return {elevator_penalty_ + (shortest_ ? 0.f : wait), wait};
+   }
+ 
+   // per level penalty for elevator node
+@@ -854,7 +873,11 @@ Cost PedestrianCost::TransitionCostReverse(const uint32_t idx,
+                                             prev_levels.first[0].first == prev_levels.first[0].second
+                                         ? std::abs(prev_levels.first[0].first - levels.first[0].first)
+                                         : 1;
+-    return {elevator_penalty_ * traversed_levels, 0.0f};
++    // Passing the elevator on the same floor does not board it.
++    const bool same_level = traversed_levels == 0 &&
++                            levels.first[0].first == prev_levels.first[0].first;
++    const float wait = same_level ? 0.f : elevator_wait_;
++    return {elevator_penalty_ * traversed_levels + (shortest_ ? 0.f : wait), wait};
+   }
+ 
+   // Get the transition cost for country crossing, ferry, gate, toll booth,
+@@ -922,6 +945,8 @@ void ParsePedestrianCostOptions(const rapidjson::Document& doc,
+   JSON_PBF_RANGED_DEFAULT(co, kBSSPenaltyRange, json, "/bss_rent_penalty", bike_share_penalty,
+                           warnings);
+   JSON_PBF_RANGED_DEFAULT(co, kUseHillsRange, json, "/use_hills", use_hills, warnings);
++  JSON_PBF_RANGED_DEFAULT(co, kElevatorWaitRange, json, "/elevator_wait", elevator_wait,
++                          warnings);
+   JSON_PBF_RANGED_DEFAULT(co, kElevatorPenaltyRange, json, "/elevator_penalty", elevator_penalty,
+                           warnings);
+   JSON_PBF_RANGED_DEFAULT(co, kMultimodalStartEndMaxDistanceRange, json,
+diff --git a/src/thor/bidirectional_astar.cc b/src/thor/bidirectional_astar.cc
+index 73e8cd8..e548be4 100644
+--- a/src/thor/bidirectional_astar.cc
++++ b/src/thor/bidirectional_astar.cc
+@@ -1013,7 +1013,7 @@ void BidirectionalAStar::SetOrigin(GraphReader& graphreader,
+   const NodeInfo* closest_ni = nullptr;
+   for (const auto& edge : origin.correlation().edges()) {
+     // If origin is at a node - skip any inbound edge (dist = 1)
+-    if (has_other_edges && edge.end_node()) {
++    if (has_other_edges && edge.end_node() && !costing_->KeepNodeEndpointEdges()) {
+       continue;
+     }
+ 
+@@ -1120,7 +1120,7 @@ void BidirectionalAStar::SetDestination(GraphReader& graphreader,
+   for (const auto& edge : dest.correlation().edges()) {
+     // If the destination is at a node, skip any outbound edges (so any
+     // opposing inbound edges are not considered)
+-    if (has_other_edges && edge.begin_node()) {
++    if (has_other_edges && edge.begin_node() && !costing_->KeepNodeEndpointEdges()) {
+       continue;
+     }
+ 
+diff --git a/src/thor/unidirectional_astar.cc b/src/thor/unidirectional_astar.cc
+index 7d02cc1..ffe4130 100644
+--- a/src/thor/unidirectional_astar.cc
++++ b/src/thor/unidirectional_astar.cc
+@@ -750,7 +750,8 @@ void UnidirectionalAStar<expansion_direction, FORWARD>::SetOrigin(
+   for (const auto& edge : origin.correlation().edges()) {
+     // If this is a node snap and we have other candidates that we can skip this unless its the one
+     // we need for super trivial route
+-    if ((FORWARD ? edge.end_node() : edge.begin_node()) && has_other_edges && !super_trivial(edge)) {
++    if ((FORWARD ? edge.end_node() : edge.begin_node()) && has_other_edges &&
++        !costing_->KeepNodeEndpointEdges() && !super_trivial(edge)) {
+       continue;
+     }
+ 
+@@ -898,7 +899,8 @@ UnidirectionalAStar<expansion_direction, FORWARD>::SetDestination(GraphReader& g
+   uint32_t density = 0;
+   for (const auto& edge : dest.correlation().edges()) {
+     // If destination is at a node skip any outbound edges
+-    if (has_other_edges && (FORWARD ? edge.begin_node() : edge.end_node())) {
++    if (has_other_edges && !costing_->KeepNodeEndpointEdges() &&
++        (FORWARD ? edge.begin_node() : edge.end_node())) {
+       continue;
+     }
+ 
+diff --git a/src/tyr/serializers.cc b/src/tyr/serializers.cc
+index 44dcbee..02f65e9 100644
+--- a/src/tyr/serializers.cc
++++ b/src/tyr/serializers.cc
+@@ -91,6 +91,8 @@ std::string serializeStatus(Api& request) {
+ 
+   status_doc.AddMember("version", rapidjson::Value().SetString(request.status().version(), alloc),
+                        alloc);
++  // Let indoor clients reject older engines that silently ignore elevator_wait.
++  status_doc.AddMember("saanseoi_elevator_wait", true, alloc);
+   status_doc.AddMember("tileset_last_modified",
+                        rapidjson::Value().SetInt(request.status().tileset_last_modified()), alloc);
+ 
+diff --git a/test/gurka/test_indoor.cc b/test/gurka/test_indoor.cc
+index 1770a6a..d25cfa8 100644
+--- a/test/gurka/test_indoor.cc
++++ b/test/gurka/test_indoor.cc
+@@ -746,3 +746,145 @@ TEST(StandAlone, ElevatorNodeReverseSearchAcrossTiles) {
+                                   {"/costing_options/pedestrian/elevator_penalty", "400"}});
+   gurka::assert::raw::expect_path(result, {"EB", "DE", "CD"});
+ }
++
++TEST_F(Indoor, ElevatorWaitAddsElapsedTime) {
++  // Edge and node elevators both add one boarding wait, independent of levels travelled.
++  for (const auto& endpoints : std::vector<std::vector<std::string>>{{"F", "I"}, {"I", "F"},
++                                                                   {"H", "J"}, {"J", "H"},
++                                                                   {"H", "Q"}, {"Q", "H"}}) {
++    for (const auto& date_type : {"", "0", "2"}) {
++      std::unordered_map<std::string, std::string> options{
++          {"/date_time/type", date_type}, {"/date_time/value", "2024-01-01T10:00"},
++          {"/locations/0/node_snap_tolerance", "0"},
++          {"/locations/1/node_snap_tolerance", "0"}};
++      if (std::string(date_type).empty()) {
++        options.erase("/date_time/type");
++        options.erase("/date_time/value");
++      }
++      const std::unordered_map<std::string, std::string> levels{{"F", "1"}, {"I", "2"}, {"H", "2"}, {"J", "3"}, {"Q", "17"}};
++      options["/locations/0/search_filter/level"] = levels.at(endpoints.front());
++      options["/locations/1/search_filter/level"] = levels.at(endpoints.back());
++      auto baseline = gurka::do_action(valhalla::Options::route, map, endpoints, "pedestrian", options);
++      options["/costing_options/pedestrian/elevator_wait"] = "30";
++      auto waited = gurka::do_action(valhalla::Options::route, map, endpoints, "pedestrian", options);
++      const auto& before = baseline.trip().routes(0).legs(0).node();
++      const auto& after = waited.trip().routes(0).legs(0).node();
++      ASSERT_EQ(before.size(), after.size());
++      EXPECT_NEAR(after.rbegin()->cost().elapsed_cost().seconds() -
++                      before.rbegin()->cost().elapsed_cost().seconds(), 30.f, 0.01f);
++      EXPECT_NEAR(after.rbegin()->cost().elapsed_cost().cost() -
++                      before.rbegin()->cost().elapsed_cost().cost(), 30.f, 0.01f);
++    }
++  }
++}
++
++TEST(StandAlone, ElevatorWaitOnceAcrossSegments) {
++  // Two consecutive lift ways represent one ride; a corridor separates the next ride.
++  const std::string ascii_map = "A---B---C---D---E---F---G";
++  const gurka::ways ways = {
++      {"AB", {{"highway", "corridor"}, {"level", "0"}}},
++      {"BC", {{"highway", "elevator"}, {"level", "0;1"}}},
++      {"CD", {{"highway", "elevator"}, {"level", "1;2"}}},
++      {"DE", {{"highway", "corridor"}, {"level", "2"}}},
++      {"EF", {{"highway", "elevator"}, {"level", "2;3"}}},
++      {"FG", {{"highway", "corridor"}, {"level", "3"}}},
++  };
++  const auto layout = gurka::detail::map_to_coordinates(ascii_map, 10);
++  auto map = gurka::buildtiles(layout, ways, {}, {}, "test/data/gurka_elevator_wait_segments", build_config);
++  for (const auto& endpoints : std::vector<std::vector<std::string>>{{"A", "E"}, {"E", "A"},
++                                                                   {"A", "G"}, {"G", "A"}}) {
++    for (const auto& date_type : {"", "0", "2"}) {
++      std::unordered_map<std::string, std::string> options{
++          {"/date_time/type", date_type}, {"/date_time/value", "2024-01-01T10:00"},
++          {"/locations/0/search_cutoff", "1"}, {"/locations/1/search_cutoff", "1"},
++          {"/locations/0/node_snap_tolerance", "0"}, {"/locations/1/node_snap_tolerance", "0"}};
++      if (std::string(date_type).empty()) {
++        options.erase("/date_time/type");
++        options.erase("/date_time/value");
++      }
++      auto baseline = gurka::do_action(valhalla::Options::route, map, endpoints, "pedestrian", options);
++      options["/costing_options/pedestrian/elevator_wait"] = "30";
++      auto waited = gurka::do_action(valhalla::Options::route, map, endpoints, "pedestrian", options);
++      const float expected = endpoints.front() == "G" || endpoints.back() == "G" ? 60.f : 30.f;
++      const auto& before = baseline.trip().routes(0).legs(0).node();
++      const auto& after = waited.trip().routes(0).legs(0).node();
++      EXPECT_NEAR(after.rbegin()->cost().elapsed_cost().seconds() -
++                      before.rbegin()->cost().elapsed_cost().seconds(), expected, 0.1f);
++    }
++  }
++}
++
++TEST(StandAlone, ElevatorWaitChangesRouteChoice) {
++  // Waiting changes the selected path, not just the displayed ETA.
++  const std::string ascii_map = R"(
++    A---B---C---D
++        |   |
++        E---F
++  )";
++  const gurka::ways ways = {
++      {"AB", {{"highway", "corridor"}, {"level", "0"}}},
++      {"BC", {{"highway", "elevator"}, {"level", "0;1"}}},
++      {"CD", {{"highway", "corridor"}, {"level", "1"}}},
++      {"BE", {{"highway", "steps"}, {"level", "0;1"}}},
++      {"EF", {{"highway", "corridor"}, {"level", "1"}}},
++      {"FC", {{"highway", "corridor"}, {"level", "1"}}},
++  };
++  const auto layout = gurka::detail::map_to_coordinates(ascii_map, 10);
++  auto map = gurka::buildtiles(layout, ways, {}, {}, "test/data/gurka_elevator_wait_choice", build_config);
++  std::unordered_map<std::string, std::string> options{
++      {"/locations/0/search_cutoff", "1"}, {"/locations/1/search_cutoff", "1"},
++      {"/costing_options/pedestrian/step_penalty", "0"}};
++  auto direct = gurka::do_action(valhalla::Options::route, map, {"A", "D"}, "pedestrian", options);
++  gurka::assert::raw::expect_path(direct, {"AB", "BC", "CD"});
++  options["/costing_options/pedestrian/elevator_wait"] = "120";
++  auto detour = gurka::do_action(valhalla::Options::route, map, {"A", "D"}, "pedestrian", options);
++  gurka::assert::raw::expect_path(detour, {"AB", "BE", "EF", "FC", "CD"});
++}
++
++TEST(StandAlone, ElevatorWaitSameAndFractionalFloors) {
++  const auto layout = gurka::detail::map_to_coordinates("A---B---C", 10);
++  for (const auto& target_level : {"0", "0.5"}) {
++    const gurka::ways ways = {
++        {"AB", {{"highway", "corridor"}, {"level", "0"}}},
++        {"BC", {{"highway", "corridor"}, {"level", target_level}}},
++    };
++    const gurka::nodes nodes = {{"B", {{"highway", "elevator"}, {"level", "0;0.5"}}}};
++    auto map = gurka::buildtiles(layout, ways, nodes, {},
++                                std::string("test/data/gurka_elevator_wait_floor_") + target_level, build_config);
++    auto baseline = gurka::do_action(valhalla::Options::route, map, {"A", "C"}, "pedestrian");
++    auto waited = gurka::do_action(valhalla::Options::route, map, {"A", "C"}, "pedestrian",
++                                  {{"/costing_options/pedestrian/elevator_wait", "30"}});
++    const float expected = std::string(target_level) == "0" ? 0.f : 30.f;
++    EXPECT_NEAR(waited.trip().routes(0).legs(0).node().rbegin()->cost().elapsed_cost().seconds() -
++                    baseline.trip().routes(0).legs(0).node().rbegin()->cost().elapsed_cost().seconds(),
++                expected, 0.01f);
++  }
++}
++
++TEST(StandAlone, ElevatorWaitAtCoincidentLandings) {
++  // Distinct source landing nodes can have identical XY. Correlation must retain their floors.
++  auto layout = gurka::detail::map_to_coordinates("A---B---C---D", 10);
++  layout["C"] = layout["B"];
++  const gurka::ways ways = {
++      {"AB", {{"highway", "corridor"}, {"level", "0"}}},
++      {"BC", {{"highway", "elevator"}, {"level", "0;1"}}},
++      {"CD", {{"highway", "corridor"}, {"level", "1"}}},
++  };
++  auto map = gurka::buildtiles(layout, ways, {}, {}, "test/data/gurka_elevator_wait_landings", build_config);
++  for (const auto& endpoints : std::vector<std::vector<std::string>>{{"B", "C"}, {"C", "B"}}) {
++    for (const auto& tolerance : {"0", "5"}) {
++      auto waited = gurka::do_action(valhalla::Options::route, map, endpoints, "pedestrian",
++          {{"/costing_options/pedestrian/elevator_wait", "30"},
++           {"/locations/0/search_filter/level", endpoints.front() == "B" ? "0" : "1"},
++           {"/locations/1/search_filter/level", endpoints.back() == "C" ? "1" : "0"},
++           {"/locations/0/node_snap_tolerance", tolerance},
++           {"/locations/1/node_snap_tolerance", tolerance},
++           {"/locations/0/search_cutoff", "1"}, {"/locations/1/search_cutoff", "1"},
++           {"/locations/0/minimum_reachability", "0"}, {"/locations/1/minimum_reachability", "0"}});
++      gurka::assert::raw::expect_path(waited, endpoints.front() == "B" ?
++          std::vector<std::string>{"AB", "BC", "CD"} : std::vector<std::string>{"CD", "BC", "AB"});
++      EXPECT_GE(waited.trip().routes(0).legs(0).node().rbegin()->cost().elapsed_cost().seconds(), 30.f);
++      EXPECT_LT(waited.trip().routes(0).legs(0).node().rbegin()->cost().elapsed_cost().seconds(), 32.f);
++    }
++  }
++}
+diff --git a/valhalla/sif/dynamiccost.h b/valhalla/sif/dynamiccost.h
+index 36f55f9..0bf3ffe 100644
+--- a/valhalla/sif/dynamiccost.h
++++ b/valhalla/sif/dynamiccost.h
+@@ -265,6 +265,15 @@ public:
+ 
+   virtual ~DynamicCost();
+ 
++  /**
++   * Retain zero-length endpoint seeds when correlation excludes otherwise traversable edges.
++   * @return Whether an inbound origin or outbound destination edge must remain a seed.
++   */
++  virtual bool KeepNodeEndpointEdges() const {
++    return false;
++  }
++
++
+   DynamicCost(const DynamicCost&) = delete;
+   DynamicCost& operator=(const DynamicCost&) = delete;
+ 

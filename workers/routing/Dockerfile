@@ -12,11 +12,16 @@ RUN git init && git remote add origin https://github.com/valhalla/valhalla.git &
 COPY valhalla-elevator.patch /tmp/valhalla-elevator.patch
 RUN echo '3200c465a7d00f421817d37da427dbeba34311b3ef42d7e19da2b4fea062cd92  /tmp/valhalla-elevator.patch' | sha256sum -c - && \
     git apply --check /tmp/valhalla-elevator.patch && git apply /tmp/valhalla-elevator.patch
+# Opt-in indoor runtime; the default engine and its release metadata stay unchanged.
+ARG ENABLE_LIFT_WAIT=0
+COPY valhalla-lift-wait.patch /tmp/valhalla-lift-wait.patch
+RUN echo '37d92b60b9ee793e456a8c7f65000242ba382251b140635d66222744c1564536  /tmp/valhalla-lift-wait.patch' | sha256sum -c - && \
+    case "$ENABLE_LIFT_WAIT" in 0) ;; 1) git apply --check /tmp/valhalla-lift-wait.patch && git apply /tmp/valhalla-lift-wait.patch ;; *) exit 1 ;; esac
 ARG BUILD_JOBS=2
 RUN cmake -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo -DENABLE_PYTHON_BINDINGS=OFF \
     -DPython_FOUND=TRUE -DPython_EXECUTABLE=/usr/bin/python3 \
     -DENABLE_SINGLE_FILES_WERROR=OFF -DENABLE_TESTS=ON && \
-    cmake --build build --target valhalla_service valhalla_build_tiles valhalla_test -j${BUILD_JOBS}
+    cmake --build build --target valhalla_service valhalla_build_tiles valhalla_build_extract valhalla_test -j${BUILD_JOBS}
 # Indoor synthetic fixtures do not need the unrelated global timezone download.
 RUN cd build && make -f test/gurka/CMakeFiles/gurka_indoor.dir/build.make \
     test/gurka/CMakeFiles/gurka_indoor.dir/build -j${BUILD_JOBS} && \
