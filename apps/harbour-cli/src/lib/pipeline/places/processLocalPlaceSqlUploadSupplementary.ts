@@ -699,12 +699,12 @@ async function prepareSupplementaryAddressesLocked(
   const revokedAddressIds = [
     ...new Set([
       ...[...activeAddressIds].filter(id => !materialisedAddressIds.has(id)),
-      ...(snapshot.status === 'published'
-        ? await collectPublishedSupplementaryRevocations(
-            input.context.historyTargets,
-            snapshot.id,
-          )
-        : []),
+      // Delivery can finish before audit retention/publication. Its immutable
+      // deletions must also survive a retry of a still-draft snapshot.
+      ...(await collectPublishedSupplementaryRevocations(
+        input.context.historyTargets,
+        snapshot.id,
+      )),
       ...fixture.entries
         .filter(
           entry =>

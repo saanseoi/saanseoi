@@ -985,3 +985,8 @@ IDs, licences, update times and property pointers remain retained.
 Retained audit fixtures measure array entries individually before partitioning. The size
 check does not serialise the complete unbounded fixture; retained objects keep the same
 canonical bytes, size limit, root metadata and partition ordinals.
+
+Supplementary Address retries recover deletion identities from the exact snapshot’s
+immutable history even while its metadata remains draft. Delivery can complete before
+provenance retention and publication; retaining those deletions reproduces the sealed
+SQL plan’s materialisation hash after the deleted rows leave CURRENT.

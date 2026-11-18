@@ -775,7 +775,7 @@ INSERT INTO snapshots(id, code, cohortKey, status, snapshotLineageId) VALUES
       regionCode: 'hk',
       sourceReleaseId: withdrawnPlaceReleaseId,
     })
-    const withdrawn = await prepareSupplementaryAddresses({
+    const withdrawalInput = {
       ...input,
       places: [],
       resourceReleaseId: withdrawnPlaceReleaseId,
@@ -791,7 +791,28 @@ INSERT INTO snapshots(id, code, cohortKey, status, snapshotLineageId) VALUES
         ...input.targets,
         history: nextHistoryTarget,
       },
-    })
+    }
+    let interruptedHash: string | undefined
+    await expect(
+      prepareSupplementaryAddresses({
+        ...withdrawalInput,
+        retainAudit: async (_releaseId, _datasetCode, audit) => {
+          interruptedHash = audit.materialisationHash
+          throw new Error('Interrupted after Address delivery')
+        },
+      }),
+    ).rejects.toThrow('Interrupted after Address delivery')
+    // Deletions need not remain represented in today's entry ledger. The sealed
+    // delivery's history is authoritative even before the snapshot is published.
+    const withdrawnLedgerText = await readFile(entryLedgerPath, 'utf8')
+    const withdrawnLedger = JSON.parse(withdrawnLedgerText)
+    await writeFile(
+      entryLedgerPath,
+      JSON.stringify({ ...withdrawnLedger, entries: [] }),
+    )
+    const withdrawn = await prepareSupplementaryAddresses(withdrawalInput)
+    expect(auditHashes.at(-1)).toBe(interruptedHash)
+    await writeFile(entryLedgerPath, withdrawnLedgerText)
     expect(withdrawn.addresses).toEqual([])
     expect(JSON.parse(await readFile(entryLedgerPath, 'utf8')).entries).toEqual(
       expect.arrayContaining([
