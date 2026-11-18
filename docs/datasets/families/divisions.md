@@ -2374,3 +2374,8 @@ to production preparation. The updater fails if the requested version is absent 
 discovery and excludes other release versions. Retained native local SQL plans remain
 target-specific; reuse resolved preparation only after validating the destination
 dependencies and generate delivery against its baseline.
+
+Net planning verifies unowned contentless FTS5 indexes through their shadow storage
+tables because their root tables cannot be scanned. The root schema must remain
+identical and the required shadow tables must exist; any shadow row change still blocks
+delivery.
