@@ -11,6 +11,7 @@ import {
   type DatasetFixture,
   type CompositionIngestDependency,
   type UpdateStateEntry,
+  datasetName,
   getDueUpdatePhases,
   loadCurrentCompositionIngestDependencies,
   loadDatasetFixtures,
@@ -335,6 +336,7 @@ export async function runUpdateCommand(
   await writeScheduledUpdateSummary({
     added: [...added.values()].map(({ dataset, version }) => ({
       datasetCode: dataset.code,
+      datasetName: datasetName(dataset),
       version,
     })),
     errors,

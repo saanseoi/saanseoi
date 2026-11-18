@@ -1,5 +1,5 @@
 import { existsSync } from 'node:fs'
-import { mkdir } from 'node:fs/promises'
+import { mkdir, writeFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import { note, outro } from '@clack/prompts'
 import { BASEMAP_SCHEMA_VERSION } from '@repo/basemap'
@@ -73,6 +73,26 @@ export async function runTilesRefreshCommand(args: ParsedArgs, printUsage: () =>
         await run(['python3', 'scripts/routing/deploy-service.py', target])
       }
     }
+  }
+  if (!input.dryRun && process.env.SAANSEOI_RUN_SUMMARY_PATH) {
+    await writeFile(
+      process.env.SAANSEOI_RUN_SUMMARY_PATH,
+      `${JSON.stringify({
+        added: [],
+        errors: [],
+        results: regions.map(region => ({
+          label: `${region.name} tiles`,
+          value: 'Refreshed',
+          ingredients: [
+            { label: 'Release', value: input.version },
+            { label: 'Basemap previews', value: '4 modes' },
+            { label: 'Style previews', value: 'Complete' },
+            { label: 'Routing companion', value: input.version },
+          ],
+        })),
+      })}\n`,
+      'utf8',
+    )
   }
 }
 

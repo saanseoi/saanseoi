@@ -6,7 +6,7 @@ import { join, resolve } from 'node:path'
 import { note, outro } from '@clack/prompts'
 
 import type { ParsedArgs } from '../cli/options.ts'
-import type { ScheduledUpdateSummary } from './update.ts'
+import type { ScheduledUpdateSummary, ScheduledResultRow } from './updateTypes.ts'
 import { today } from './tilesExecution.ts'
 
 const REPO_ROOT = resolve(import.meta.dir, '../../../../..')
@@ -69,30 +69,34 @@ export async function runScheduledCommand(args: ParsedArgs, printUsage: () => vo
 
   const startedAt = performance.now()
   const summaryPath = await createRunSummaryPath(job)
-  const child = Bun.spawn([await resolveCommandPath(), ...scheduledJobArguments(job)], {
-    cwd: REPO_ROOT,
-    env: {
-      ...process.env,
-      SAANSEOI_RUN_SUMMARY_PATH: summaryPath,
-    },
-    stdin: 'ignore',
-    stdout: 'inherit',
-    stderr: 'inherit',
-  })
-  const exitCode = await child.exited
+  await sendNotification(job, 'Running', 'Scheduled job is running.', '0s')
+  let exitCode = 1
+  let launchError = ''
+  try {
+    const child = Bun.spawn(
+      [await resolveCommandPath(), ...scheduledJobArguments(job)],
+      {
+        cwd: REPO_ROOT,
+        env: {
+          ...process.env,
+          SAANSEOI_RUN_SUMMARY_PATH: summaryPath,
+        },
+        stdin: 'ignore',
+        stdout: 'inherit',
+        stderr: 'inherit',
+      },
+    )
+    exitCode = await child.exited
+  } catch (error) {
+    launchError = error instanceof Error ? error.message : String(error)
+  }
   const duration = formatDuration(performance.now() - startedAt)
-  const succeeded = exitCode === 0
-  const summary = await jobSummary(job, duration, summaryPath)
+  const result = await jobSummary(job, duration, summaryPath, exitCode)
+  const body = launchError ? `${result.body}\n${launchError}` : result.body
+  await sendNotification(job, result.state, launchError || '', duration, result.results)
+  await postDiscordJobMessage(result.state === 'Complete', body)
 
-  await postDiscordJobMessage(succeeded, summary)
-
-  await sendNotification(
-    succeeded ? 'SaanSeoi schedule complete' : 'SaanSeoi schedule failed',
-    succeeded ? summary : `${summary}\nExit code: ${exitCode}. See the user journal.`,
-    succeeded ? 'normal' : 'critical',
-  )
-
-  if (!succeeded) process.exitCode = exitCode || 1
+  if (exitCode !== 0 || result.state === 'Failed') process.exitCode = exitCode || 1
 }
 
 export function scheduledJobArguments(job: ScheduledJob, date = today()) {
@@ -182,31 +186,118 @@ async function runSystemctl(args: string[]) {
   if (exitCode !== 0) throw new Error(`systemctl --user ${args.join(' ')} failed.`)
 }
 
-async function jobSummary(job: ScheduledJob, duration: string, summaryPath: string) {
-  if (job === 'tiles') {
-    return `✅ tiles refresh ran · ${duration}`
-  }
-
+async function jobSummary(
+  job: ScheduledJob,
+  duration: string,
+  summaryPath: string,
+  exitCode: number,
+) {
   let summary: ScheduledUpdateSummary | undefined
   try {
-    summary = JSON.parse(await readFile(summaryPath, 'utf8')) as ScheduledUpdateSummary
+    const value = JSON.parse(await readFile(summaryPath, 'utf8'))
+    if (
+      Array.isArray(value?.added) &&
+      Array.isArray(value?.errors) &&
+      value.errors.every((error: unknown) => typeof error === 'string') &&
+      value.added.every(
+        (item: ScheduledUpdateSummary['added'][number]) =>
+          item &&
+          typeof item.datasetCode === 'string' &&
+          (item.version === undefined || typeof item.version === 'string') &&
+          (item.datasetName === undefined || typeof item.datasetName === 'string'),
+      ) &&
+      (value.results === undefined ||
+        (Array.isArray(value.results) &&
+          value.results.every(
+            (row: ScheduledResultRow) =>
+              row &&
+              typeof row.label === 'string' &&
+              typeof row.value === 'string' &&
+              (row.tone === undefined || typeof row.tone === 'string') &&
+              Array.isArray(row.ingredients) &&
+              row.ingredients.every(
+                item =>
+                  item &&
+                  typeof item.label === 'string' &&
+                  typeof item.value === 'string',
+              ),
+          )))
+    )
+      summary = value
   } catch {
-    // The existing local notification below remains useful if the child failed
-    // before it could write its optional machine-readable summary.
+    // A missing or malformed result is unverified, never a successful update.
   } finally {
     await unlink(summaryPath).catch(() => undefined)
   }
+  return scheduledJobResult(job, duration, exitCode, summary)
+}
 
-  if (!summary) return `⚠️ update ran · summary unavailable · ${duration}`
-  if (summary.errors.length > 0) {
-    return `⚠️ update ran · ${summary.errors.length} issue${summary.errors.length === 1 ? '' : 's'} · ${duration}`
-  }
-  if (summary.added.length === 0) return '✅ update ran · no changes'
-
-  const additions = summary.added.map(({ datasetCode, version }) =>
-    version ? `• ${datasetCode} · ${version}` : `• ${datasetCode}`,
-  )
-  return `✅ update ran · ${summary.added.length} dataset${summary.added.length === 1 ? '' : 's'} added · ${duration}\n${additions.join('\n')}`
+export function scheduledJobResult(
+  job: ScheduledJob,
+  duration: string,
+  exitCode: number,
+  summary?: ScheduledUpdateSummary,
+) {
+  const failed = exitCode !== 0 || Boolean(summary?.errors.length)
+  const state = failed
+    ? 'Failed'
+    : !summary || (job === 'tiles' && !summary.results?.length)
+      ? 'Unverified'
+      : 'Complete'
+  const details = summary
+    ? [
+        summary.added.length
+          ? `${summary.added.length} source release(s) published`
+          : 'No source releases published',
+        ...summary.added.map(
+          item => `${item.datasetCode}${item.version ? ` · ${item.version}` : ''}`,
+        ),
+        ...summary.errors,
+      ]
+    : [
+        job === 'tiles'
+          ? 'Tiles refresh command finished'
+          : 'Update summary missing or invalid; inspect the run log before treating this as complete.',
+      ]
+  if (exitCode !== 0)
+    details.push(`Exit code: ${exitCode}. Open the run log or journal for follow-up.`)
+  const results: ScheduledResultRow[] = summary?.results?.length
+    ? [...summary.results]
+    : job === 'update' && summary
+      ? [
+          {
+            label: 'Source releases',
+            value: summary.added.length
+              ? `${summary.added.length} published`
+              : 'None published',
+            ingredients: summary.added.map(item => ({
+              label: item.datasetName || item.datasetCode,
+              value: item.version || 'Published',
+            })),
+          },
+        ]
+      : [
+          {
+            label: job === 'tiles' ? 'Tiles refresh' : 'Dataset update',
+            value: 'Unverified',
+            ingredients: [{ label: 'Result summary', value: 'Missing or invalid' }],
+          },
+        ]
+  if (summary?.errors.length)
+    results.push({
+      label: 'Issues',
+      value: String(summary.errors.length),
+      tone: 'critical',
+      ingredients: summary.errors.map(error => ({ label: error, value: 'Failed' })),
+    })
+  if (exitCode !== 0)
+    results.push({
+      label: 'Command',
+      value: `Exit ${exitCode}`,
+      tone: 'critical',
+      ingredients: [],
+    })
+  return { state, results, body: `${details.join('\n')}\nDuration: ${duration}` }
 }
 
 async function createRunSummaryPath(job: ScheduledJob) {
@@ -239,27 +330,92 @@ async function postDiscordJobMessage(succeeded: boolean, summary: string) {
   }
 }
 
-async function sendNotification(
-  title: string,
+export function scheduledNotificationArguments(
+  job: ScheduledJob,
+  state: string,
   body: string,
-  urgency: 'normal' | 'critical',
+  duration: string,
+  logPath?: string,
+  results: ScheduledResultRow[] = [],
+) {
+  const unit =
+    job === 'tiles' ? 'saanseoi-monthly-tiles.service' : 'saanseoi-daily-update.service'
+  const actions = [
+    ...(logPath
+      ? [{ label: 'Open run log', command: ['kitty', '--hold', 'less', '--', logPath] }]
+      : []),
+    {
+      label: 'Open journal',
+      command: ['kitty', '--hold', 'journalctl', '--user', '-u', unit, '-n', '200'],
+    },
+  ]
+  return [
+    'send',
+    `SaanSeoi ${job === 'tiles' ? 'tiles refresh' : 'daily update'}`,
+    body,
+    '--app',
+    'SaanSeoi',
+    '--id',
+    `schedule-${job}`,
+    '--type',
+    'results-table',
+    '--data',
+    JSON.stringify({
+      state,
+      duration,
+      results,
+      tone:
+        state === 'Failed' ? 'critical' : state === 'Complete' ? 'success' : 'accent',
+    }),
+    '--urgency',
+    state === 'Failed' ? 'critical' : 'normal',
+    '--timeout',
+    'until-dismissed',
+    '--actions',
+    JSON.stringify(actions),
+  ]
+}
+
+async function sendNotification(
+  job: ScheduledJob,
+  state: string,
+  body: string,
+  duration: string,
+  results: ScheduledResultRow[] = [],
 ) {
   const runtimeDirectory =
     process.env.XDG_RUNTIME_DIR ??
     `/run/user/${typeof process.getuid === 'function' ? process.getuid() : 0}`
-  const notification = Bun.spawn(
-    ['notify-send', '--app-name=SaanSeoi', `--urgency=${urgency}`, title, body],
-    {
-      env: {
-        ...process.env,
-        DBUS_SESSION_BUS_ADDRESS:
-          process.env.DBUS_SESSION_BUS_ADDRESS ?? `unix:path=${runtimeDirectory}/bus`,
+  try {
+    const notification = Bun.spawn(
+      [
+        Bun.which('notjikctl') ?? join(homedir(), '.local/bin/notjikctl'),
+        ...scheduledNotificationArguments(
+          job,
+          state,
+          body,
+          duration,
+          process.env.SAANSEOI_LOG_PATH,
+          results,
+        ),
+      ],
+      {
+        env: {
+          ...process.env,
+          DBUS_SESSION_BUS_ADDRESS:
+            process.env.DBUS_SESSION_BUS_ADDRESS ?? `unix:path=${runtimeDirectory}/bus`,
+        },
+        stderr: 'inherit',
+        stdout: 'ignore',
       },
-      stderr: 'ignore',
-      stdout: 'ignore',
-    },
-  )
-  await notification.exited
+    )
+    if ((await notification.exited) !== 0)
+      throw new Error('notjikctl returned a non-zero exit code')
+  } catch (error) {
+    console.error(
+      `Could not report SaanSeoi ${job} status through notjik: ${error instanceof Error ? error.message : String(error)}`,
+    )
+  }
 }
 
 function formatDuration(milliseconds: number) {
