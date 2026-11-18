@@ -394,10 +394,13 @@ export async function buildPlaceSql(
   }
 }
 
-function missingPlaceMembershipPredicates(ids: string[]) {
-  const sorted = [...new Set(ids)].sort((a, b) =>
-    Buffer.compare(Buffer.from(a), Buffer.from(b)),
-  )
+export function missingPlaceMembershipPredicates(ids: string[]) {
+  // SQLite BINARY order is UTF-8 byte order. Encode once per identity rather
+  // than allocating two buffers for every comparison in the full-release sort.
+  const encoded = [...new Set(ids)].map(id => ({ id, bytes: Buffer.from(id) }))
+  const sorted = encoded
+    .sort((a, b) => Buffer.compare(a.bytes, b.bytes))
+    .map(row => row.id)
   if (!sorted.length) return ['1 = 1']
   const predicates: string[] = []
   for (let offset = 0; offset < sorted.length; offset += 96) {

@@ -980,3 +980,6 @@ arrays, sparse entries and custom JSON representations retain their cache identi
 Identity ledgers stream sorted records and their SHA-256 digest to an exclusive
 temporary file before immutable publication. Existing ledgers are verified by streaming
 their digest, preserving the ledger byte format without buffering the entire document.
+
+Place membership finalisation encodes each identity once for SQLite UTF-8 ordering.
+Bounded deletion predicates preserve retained identities across partition boundaries.
