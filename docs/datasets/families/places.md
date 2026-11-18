@@ -1014,3 +1014,6 @@ Regenerable normalised caches use a thirty-day age limit and a 10 GiB size budge
 a one-day grace period and sibling `.keep` pins. Writes and pruning share an advisory
 lock. See the local artefact retention policy for maintenance commands and verified
 migration-backup retention.
+
+The local CLI provenance store reclaims temporary encodings between bounded object reads
+and writes. Object hashes and transfer receipts remain unchanged.
