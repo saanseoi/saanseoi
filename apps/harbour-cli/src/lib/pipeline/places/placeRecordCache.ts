@@ -77,12 +77,15 @@ export class PlaceRecordCache {
 }
 
 /** Include implementation and rule changes, including uncommitted local edits. */
-export function placeComputationContract() {
-  const root = resolve(import.meta.dir, '../../../../../..')
-  const files = [
-    ...readdirSync(import.meta.dir)
+export function placeComputationSources(root: string) {
+  const directory = resolve(root, 'apps/harbour-cli/src/lib/pipeline/places')
+  return [
+    ...readdirSync(directory)
       .filter(name => name.endsWith('.ts') && !name.endsWith('.test.ts'))
-      .map(name => resolve(import.meta.dir, name)),
+      .map(name => resolve(directory, name)),
+    ...readdirSync(resolve(root, 'libs/address/src'))
+      .filter(name => name.endsWith('.ts') && !name.endsWith('.test.ts'))
+      .map(name => resolve(root, 'libs/address/src', name)),
     ...[
       'libs/core/src/pipeline/services/places/place.ts',
       'libs/core/src/pipeline/services/places/placeIdentity.ts',
@@ -105,7 +108,13 @@ export function placeComputationContract() {
       resolve(root, `fixtures/meta/processing-rules/assembly/${name}.json`),
     ),
   ]
+}
+
+export function placeComputationContract(
+  root = resolve(import.meta.dir, '../../../../../..'),
+) {
   const hash = createHash('sha256')
-  for (const file of files.sort()) hash.update(file).update(readFileSync(file))
+  for (const file of placeComputationSources(root).sort())
+    hash.update(file).update(readFileSync(file))
   return hash.digest('hex')
 }

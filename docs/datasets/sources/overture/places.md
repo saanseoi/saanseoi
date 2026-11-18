@@ -990,3 +990,9 @@ Supplementary Address retries recover deletion identities from the exact snapsho
 immutable history even while its metadata remains draft. Delivery can complete before
 provenance retention and publication; retaining those deletions reproduces the sealed
 SQL plan’s materialisation hash after the deleted rows leave CURRENT.
+
+Place computation fingerprints include the shared `libs/address/src` parser and content
+implementation. Parser edits invalidate retained normalisation, matching and enrichment
+computations even when the package version is unchanged. Production cache reuse must
+also pass the existing source, curation, geometry and Address dependency checks; copied
+SQL delivery plans are not interchangeable between targets.
