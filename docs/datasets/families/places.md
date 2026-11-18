@@ -973,3 +973,6 @@ implementation. Parser edits invalidate retained normalisation, matching and enr
 computations even when the package version is unchanged. Production cache reuse must
 also pass the existing source, curation, geometry and Address dependency checks; copied
 SQL delivery plans are not interchangeable between targets.
+
+Large array cache keys are hashed incrementally using the same JSON bytes. Nested
+arrays, sparse entries and custom JSON representations retain their cache identity.

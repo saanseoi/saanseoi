@@ -3,8 +3,39 @@ import { createHash } from 'node:crypto'
 import { mkdirSync, readFileSync, readdirSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 
-export const recordCacheKey = (value: unknown) =>
-  createHash('sha256').update(JSON.stringify(value)).digest('hex')
+/** Hash JSON arrays without assembling a release-sized serialised string. */
+export function recordCacheKey(value: unknown) {
+  const hash = createHash('sha256')
+  const active = new Set<unknown[]>()
+  const append = (item: unknown, key?: string) => {
+    if (
+      Array.isArray(item) &&
+      typeof (item as unknown as { toJSON?: unknown }).toJSON !== 'function'
+    ) {
+      if (active.has(item)) throw new TypeError('Circular cache key')
+      active.add(item)
+      hash.update('[')
+      for (let index = 0; index < item.length; index++) {
+        if (index) hash.update(',')
+        append(item[index], String(index))
+      }
+      hash.update(']')
+      active.delete(item)
+      return
+    }
+    if (key === undefined) {
+      hash.update(JSON.stringify(item))
+      return
+    }
+    // Preserve the array index passed to custom toJSON methods.
+    const wrapped = JSON.stringify({ [key]: item })
+    hash.update(
+      wrapped === '{}' ? 'null' : wrapped.slice(JSON.stringify(key).length + 2, -1),
+    )
+  }
+  append(value)
+  return hash.digest('hex')
+}
 
 /** Disposable, target-scoped local computations; never authoritative source data. */
 export class PlaceRecordCache {
