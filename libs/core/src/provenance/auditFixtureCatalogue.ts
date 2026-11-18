@@ -3,7 +3,12 @@ import { alsAuditDecisions, type AlsDecisionKind } from './auditAlsDecisions'
 import { auditFixtureRows, fixtureRowSearchText, rowKeys } from './auditFixtureRows'
 import { auditSearchText, matchesAuditText } from './auditSearch'
 
-export type FixtureSearchGroup = { rows: string[]; text: string | null }
+export type FixtureSearchGroup = {
+  rows: string[]
+  text: string | null
+  totalRows?: number
+  matchingRows?: number
+}
 export type AlsSearchRow = {
   id: string
   kind: AlsDecisionKind
@@ -55,9 +60,11 @@ export function auditFixtureCatalogue(
 }
 
 export const catalogueGroupMatches = (group: FixtureSearchGroup, query: string) =>
-  group.text === null
-    ? group.rows.some(text => matchesAuditText(query, text))
-    : matchesAuditText(query, group.text)
+  group.totalRows !== undefined && group.text === null
+    ? (group.matchingRows ?? 0) > 0
+    : group.text === null
+      ? group.rows.some(text => matchesAuditText(query, text))
+      : matchesAuditText(query, group.text)
 
 /** Row order matches the precomputed catalogue, including deduplicated aliases. */
 export function filterIndexedFixture(

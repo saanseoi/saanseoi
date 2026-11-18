@@ -1,3 +1,7 @@
+import {
+  largeAuditFixture,
+  readPartitionedFixture,
+} from '@repo/core/provenance/auditPartitionReader'
 import { env } from 'cloudflare:workers'
 import { query } from '$app/server'
 import { z } from 'zod'
@@ -239,12 +243,12 @@ export const getRetainedBulkFixture = query(
 const auditScope = z.object({ resourceReleaseId: z.string(), hash: z.string() })
 
 export const getAuditFixtureCatalogue = query(
-  auditScope.extend({ releaseCode: z.string() }),
+  auditScope.extend({ releaseCode: z.string(), q: z.string().max(300).default('') }),
   async input => {
     const { manifest } = await manifestFor(input.resourceReleaseId, input.hash)
     return cachedAuditData(
-      `fixtures-preprocessing-v5/${input.hash}/${encodeURIComponent(input.releaseCode)}`,
-      () => readAuditFixtureCatalogue(store(), manifest, input.releaseCode),
+      `fixtures-preprocessing-v6/${input.hash}/${encodeURIComponent(input.releaseCode)}/${encodeURIComponent(input.q)}`,
+      () => readAuditFixtureCatalogue(store(), manifest, input.releaseCode, input.q),
     )
   },
 )
@@ -253,6 +257,7 @@ export const getAuditFixtureGroup = query(
   auditScope.extend({
     bulkId: z.string(),
     type: z.string(),
+    offset: z.number().int().min(0).default(0),
     releaseCode: z.string().optional(),
     q: z.string().max(300).default(''),
   }),
@@ -265,6 +270,18 @@ export const getAuditFixtureGroup = query(
         ? bulk.fixtures
         : bulk.fixtures.filter(f => f.type === input.type)
     if (!fixtures.length) throw new Error('Fixture is not declared by this release.')
+    const refs = fixtures.map(f => f.object)
+    if (largeAuditFixture(refs)) {
+      const first = await readObject(store(), refs[0]!)
+      if (
+        first &&
+        typeof first === 'object' &&
+        !Array.isArray(first) &&
+        first.auditPartition
+      )
+        return (await readPartitionedFixture(store(), refs, input.q, input.offset))
+          .value
+    }
     const groups = await loadAuditFixtures(
       [{ id: bulk.id, fixtures }],
       (_id, index) => {
@@ -292,8 +309,8 @@ export const getAuditAlsDecisions = query(
   async input => {
     const { manifest } = await manifestFor(input.resourceReleaseId, input.hash)
     const catalogue = await cachedAuditData(
-      `fixtures-preprocessing-v5/${input.hash}/${encodeURIComponent(input.releaseCode)}`,
-      () => readAuditFixtureCatalogue(store(), manifest, input.releaseCode),
+      `fixtures-preprocessing-v6/${input.hash}/${encodeURIComponent(input.releaseCode)}/${encodeURIComponent(input.q)}`,
+      () => readAuditFixtureCatalogue(store(), manifest, input.releaseCode, input.q),
     )
     const rows = catalogue.als.filter(
       d => d.kind === input.kind && matchesAuditText(input.q, d.text),

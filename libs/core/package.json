@@ -19,6 +19,8 @@
     "./jsonKeys": "./src/jsonKeys.ts",
     "./displayName": "./src/displayName.ts",
     "./jsonFieldDiff": "./src/jsonFieldDiff.ts",
+    "./provenance/auditFixturePagination": "./src/provenance/auditFixturePagination.ts",
+    "./provenance/auditPartitionReader": "./src/provenance/auditPartitionReader.ts",
     "./provenance/auditPageIndex": "./src/provenance/auditPageIndex.ts",
     "./provenance/auditAlsDecisions": "./src/provenance/auditAlsDecisions.ts",
     "./provenance/auditSearch": "./src/provenance/auditSearch.ts",

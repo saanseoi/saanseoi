@@ -146,7 +146,12 @@ $effect(() => {
   fixtureCountsLoading = true
   fixtureCountsFailed = false
   catalogue = { groups: {}, als: [] }
-  getAuditFixtureCatalogue({ resourceReleaseId, hash: currentHash, releaseCode })
+  getAuditFixtureCatalogue({
+    resourceReleaseId,
+    hash: currentHash,
+    releaseCode,
+    q: effectiveQuery,
+  })
     .then(result => {
       if (current) catalogue = result
     })
@@ -160,8 +165,17 @@ $effect(() => {
     current = false
   }
 })
+let partitionGroups = $derived(
+  Object.values(catalogue.groups)
+    .flatMap(groups => Object.values(groups))
+    .filter(group => group.totalRows !== undefined),
+)
+let partitionTotal = $derived(
+  partitionGroups.reduce((sum, group) => sum + (group.totalRows ?? 0), 0),
+)
 let matchingFixtureCount = $derived(
-  fixtureRows.filter(text => matchesAuditText(effectiveQuery, text)).length,
+  fixtureRows.filter(text => matchesAuditText(effectiveQuery, text)).length +
+    partitionGroups.reduce((sum, group) => sum + (group.matchingRows ?? 0), 0),
 )
 $effect(() => {
   const value = query.trim().slice(0, 300)
@@ -351,6 +365,7 @@ let totalCount = $derived(
     : manifest.applicationCount +
         countableBulk.length +
         fixtureRows.length +
+        partitionTotal +
         visibleGuards.length,
 )
 let searchLoadingState = $derived(
@@ -413,7 +428,7 @@ $effect(() => {
     <p role="alert" class="text-sm">{searchFailure}</p>
   {/if}
   <section
-    class="hidden space-y-3 has-[article]:block has-[[role=alert]]:block has-[[role=status]]:block"
+    class="hidden space-y-3 has-[[role=alert]]:block has-[[role=status]]:block has-[article]:block"
     aria-label={m.source_audit_patches()}
   >
     <SectionHeading
@@ -446,11 +461,11 @@ $effect(() => {
     />
   </section>
   <section
-    class="hidden space-y-4 has-[article]:block has-[[role=alert]]:block has-[[role=status]]:block"
+    class="hidden space-y-4 has-[[role=alert]]:block has-[[role=status]]:block has-[article]:block"
     aria-label={m.source_audit_curations()}
   >
     <h3
-      class="text-xs font-medium uppercase tracking-widest text-foreground-alt"
+      class="text-foreground-alt text-xs font-medium tracking-widest uppercase"
       data-audit-toc-title={m.source_audit_curations()}
     >
       {m.source_audit_curations()}
@@ -500,7 +515,7 @@ $effect(() => {
     {/each}
   </section>
   <section
-    class="hidden space-y-3 has-[article]:block has-[[role=alert]]:block has-[[role=status]]:block"
+    class="hidden space-y-3 has-[[role=alert]]:block has-[[role=status]]:block has-[article]:block"
     aria-label={m.source_audit_rules()}
   >
     <SectionHeading

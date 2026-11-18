@@ -112,3 +112,73 @@ test('large non-tabular evidence builds bounded search without merging its paylo
   expect(catalogue.groups.prepare?.actions?.text?.length).toBeLessThan(1_048_576)
   expect(objects.get(objectKey(fixture.hash))).toBeDefined()
 })
+
+test('large partitioned catalogues return counts and search beyond the first partition', async () => {
+  const objects = new Map<string, ArrayBuffer>()
+  const store: ProvenanceStore = {
+    async get(key) {
+      const bytes = objects.get(key)
+      return bytes ? { arrayBuffer: async () => bytes } : null
+    },
+    async put(key, bytes) {
+      objects.set(key, bytes)
+    },
+  }
+  const definition = await retainObject(store, {
+    kind: 'processing-rule',
+    schemaVersion: 1,
+    id: 'partitioned',
+    scope: 'bulk',
+    basis: 'fixture',
+  })
+  const fixtures = []
+  for (let index = 0; index < 7; index++) {
+    fixtures.push({
+      type: 'evidence',
+      object: await retainObject(store, {
+        auditPartition: { firstOrdinal: index },
+        entries: [
+          {
+            id: index,
+            evidence: 'evidence '.repeat(80000),
+            label: index === 6 ? 'last needle' : 'other',
+          },
+        ],
+      }),
+    })
+  }
+  const audit = await retainAuditResult(store, {
+    scope: { stage: 'assembly', ownerId: 'snapshot' },
+    resourceReleaseId: 'release',
+    datasetCode: 'places',
+    attempt: { id: 'attempt', status: 'completed' },
+    guards: [],
+    individuals: [],
+    bulk: [
+      {
+        id: 'partitioned',
+        basis: 'fixture',
+        summary: 'Evidence',
+        outcome: 'applied',
+        definition,
+        counts: { inputs: {}, outputs: {}, recordsAffected: 7, decisions: {} },
+        fixtures,
+      },
+    ],
+  })
+  const before = objects.size
+  const catalogue = await readAuditFixtureCatalogue(
+    store,
+    audit.manifest,
+    'release',
+    'last needle',
+  )
+  expect(catalogue.groups.partitioned?.evidence).toEqual({
+    rows: [],
+    text: null,
+    totalRows: 7,
+    matchingRows: 1,
+  })
+  expect(JSON.stringify(catalogue).length).toBeLessThan(200)
+  expect(objects.size).toBe(before)
+})
