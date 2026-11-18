@@ -1,3 +1,4 @@
+import { identityEvidenceInterner } from './placeIdentityHistory'
 import { createHash } from 'node:crypto'
 import { placeAddressReviewReference } from './placeAddressReviewReferences.ts'
 import { readFile } from 'node:fs/promises'
@@ -187,12 +188,16 @@ export async function retainPlaceProvenance(
     const counts: Record<string, number> = {}
     let total = 0
     const entries = []
+    const intern = identityEvidenceInterner()
     for await (const place of readStagedJsonLines<NormalisedPlace>(
       input.identityPath,
     )) {
       const identity = place.sources.placeIdentity
       if (!identity || identity.id !== place.id || identity.sourceId !== place.raw.id)
         throw new Error(`Missing Place identity evidence ${place.id}.`)
+      identity.evidence = intern(identity.evidence)
+      for (const candidate of identity.candidates)
+        candidate.evidence = intern(candidate.evidence)
       entries.push(identity)
       counts[identity.reason] = (counts[identity.reason] ?? 0) + 1
       total++

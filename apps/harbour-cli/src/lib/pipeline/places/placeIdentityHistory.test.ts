@@ -11,7 +11,10 @@ import {
   placeIdentityEvidence,
 } from '@repo/core/pipeline/services/places/placeIdentity'
 import { retainProducerAudit } from '../../api/producerAudit'
-import { hydratePlaceIdentityHistory } from './placeIdentityHistory'
+import {
+  hydratePlaceIdentityHistory,
+  identityEvidenceInterner,
+} from './placeIdentityHistory'
 import { previousPlaceIdentity } from './placeIdentityPreparation'
 import type { PlaceHistoryState } from './processLocalPlaceSqlUploadTypes'
 
@@ -113,4 +116,19 @@ test('missing exact owner audits and incomplete identity evidence block predeces
   } finally {
     f.sqlite.close()
   }
+})
+
+test('retained identity evidence shares identical values without merging changed observations', () => {
+  const intern = identityEvidenceInterner()
+  const value = placeIdentityEvidence(
+    { id: 'publisher', names: { primary: 'Cafe' }, phones: ['23456789'] },
+    114.1,
+    22.3,
+  )
+  const first = intern(structuredClone(value))
+  expect(intern(structuredClone(value))).toBe(first)
+  const changed = { ...structuredClone(value), lng: 114.2 }
+  expect(intern(changed)).not.toBe(first)
+  expect(first).toEqual(value)
+  expect(intern(changed)).toEqual(changed)
 })

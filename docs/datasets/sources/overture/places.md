@@ -1012,3 +1012,7 @@ explanations and two leading eligible candidates per observation. Every qualifyi
 contributes to the six leading claimants per predecessor identity, preserving the five
 rivals after excluding the observation itself. These bounds preserve the matching
 threshold, ambiguity margins and deterministic explanation ordering.
+
+Retained audit explanations share byte-identical predecessor evidence in memory; changed
+observations remain distinct. This avoids storing repeated candidate payloads for each
+historical decision while preserving every retained explanation.
