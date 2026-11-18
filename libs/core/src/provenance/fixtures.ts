@@ -10,7 +10,17 @@ export async function retainFixturePartitions(
   const document = value as Record<string, unknown>
   const entries = document?.[arrayKey]
   const size = (v: unknown) => new TextEncoder().encode(serialise(v)).length
-  if (!Array.isArray(entries) || size(document) <= MAX_OBJECT_BYTES)
+  // Measure array entries separately: serialising the complete fixture first
+  // defeats partitioning when its unbounded source occupies hundreds of MB.
+  const { [arrayKey]: _, ...root } = document ?? {}
+  let documentBytes = Array.isArray(entries) ? size({ ...root, [arrayKey]: [] }) : 0
+  if (Array.isArray(entries)) {
+    for (let index = 0; index < entries.length; index++) {
+      documentBytes += size(entries[index]) + (index ? 1 : 0)
+      if (documentBytes > MAX_OBJECT_BYTES) break
+    }
+  }
+  if (!Array.isArray(entries) || documentBytes <= MAX_OBJECT_BYTES)
     return [
       {
         object: await retainObject(store, document),
@@ -18,7 +28,6 @@ export async function retainFixturePartitions(
         count: Array.isArray(entries) ? entries.length : 0,
       },
     ]
-  const { [arrayKey]: _, ...root } = document
   const totalEntries = entries.length
   const parts: Array<{ object: ObjectRef; firstOrdinal: number; count: number }> = []
   let firstOrdinal = 0

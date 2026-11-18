@@ -958,3 +958,7 @@ October 2026 Hong Kong attribution includes Uberall (412 entries) and OpenTravel
 entries). Their explicit upstream mappings and publisher fixtures follow the
 [Overture attribution page](https://docs.overturemaps.org/attribution/); native record
 IDs, licences, update times and property pointers remain retained.
+
+Retained audit fixtures measure array entries individually before partitioning. The size
+check does not serialise the complete unbounded fixture; retained objects keep the same
+canonical bytes, size limit, root metadata and partition ordinals.
