@@ -999,3 +999,7 @@ SQL delivery plans are not interchangeable between targets.
 
 Large array cache keys are hashed incrementally using the same JSON bytes. Nested
 arrays, sparse entries and custom JSON representations retain their cache identity.
+
+Identity ledgers stream sorted records and their SHA-256 digest to an exclusive
+temporary file before immutable publication. Existing ledgers are verified by streaming
+their digest, preserving the ledger byte format without buffering the entire document.
