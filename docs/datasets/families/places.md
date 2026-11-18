@@ -1024,3 +1024,13 @@ history lookups before SQL planning and provenance verification.
 
 Place batch decoding, removed-record preparation, candidate validation and provenance
 retention reclaim temporary allocations in bounded groups.
+
+### Exact source-release selection
+
+Use
+`saanseoi update --dataset CODE --source-version 2026-10-21.0 --target local --check-now --download --yes`
+to select the October publisher release explicitly. The same version selection applies
+to production preparation. The updater fails if the requested version is absent from
+discovery and excludes other release versions. Retained native local SQL plans remain
+target-specific; reuse resolved preparation only after validating the destination
+dependencies and generate delivery against its baseline.

@@ -2364,3 +2364,13 @@ Geometry metadata delivery includes each recipe's content-addressed processing p
 before the recipe reference. Preparation verifies the retained definition against its
 hash and rejects missing or invalid evidence. Replays preserve existing immutable policy
 records.
+
+### Exact source-release selection
+
+Use
+`saanseoi update --dataset CODE --source-version 2026-10-21.0 --target local --check-now --download --yes`
+to select the October publisher release explicitly. The same version selection applies
+to production preparation. The updater fails if the requested version is absent from
+discovery and excludes other release versions. Retained native local SQL plans remain
+target-specific; reuse resolved preparation only after validating the destination
+dependencies and generate delivery against its baseline.
