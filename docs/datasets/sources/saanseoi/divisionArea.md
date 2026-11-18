@@ -61,6 +61,13 @@ reference the retained SaanSeoi area record. Selection, matching, construction a
 curation details are excluded from record-level source references. Geometry attribution
 is not inferred by searching for identical polygons.
 
+Authored polygon corrections apply to every retained edition that uses the drawing. Each
+edition resolves its hierarchy against its own complete geometry inventory and annotates
+whole-polygon containment. Repairs update retained source payloads, canonical history
+and serving scopes, recompute their content hashes, and refresh affected publication
+tokens. Unrelated hierarchy differences are excluded by comparing spatial resolution
+with and without the corrected drawings.
+
 ## Curation ownership
 
 Every file in `fixtures/meta/curations/saanseoi-division/` has a root `purpose`.

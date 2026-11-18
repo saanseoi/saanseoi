@@ -316,6 +316,11 @@ completeness and matching publisher codes before hashing canonical content. Reta
 local repairs must validate pinned source assertions, update content hashes and snapshot
 replay references together, and retain rollback evidence.
 
+Reviewed polygon corrections require edition-specific hierarchy resolution and
+containment checks for affected children as well as the edited divisions. The retained
+source and canonical history hashes must match the corrected content, and serving
+publication tokens must identify the corrected state.
+
 Spatial hierarchy branches retain the positive-area remainder outside all matching
 parents at each tier. That remainder continues through narrower tiers with its existing
 ancestry, so a division partly inside a macrohood also retains a path for the portion
