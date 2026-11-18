@@ -39,15 +39,18 @@ describe('sourceSchemas', () => {
     ).resolves.toBe('1.18.0')
   })
 
-  test('accepts the 2026-09-23 Overture release with schema 2.0.0', async () => {
-    const release = { source: 'overture', sourceVersion: '2026-09-23.0' }
-    await expect(resolveSourceSchemaVersion(release)).resolves.toBe('2.0.0')
-    await expect(assertKnownSafeSourceRelease(release)).resolves.toBeUndefined()
-    expect(getLatestKnownSafeOvertureRelease()).toEqual({
-      schema: '2.0.0',
-      version: '2026-09-23.0',
-    })
-  })
+  test.each(['2026-09-23.0', '2026-10-21.0'])(
+    'accepts Overture %s with schema 2.0.0',
+    async sourceVersion => {
+      const release = { source: 'overture', sourceVersion }
+      await expect(resolveSourceSchemaVersion(release)).resolves.toBe('2.0.0')
+      await expect(assertKnownSafeSourceRelease(release)).resolves.toBeUndefined()
+      expect(getLatestKnownSafeOvertureRelease()).toEqual({
+        schema: '2.0.0',
+        version: '2026-10-21.0',
+      })
+    },
+  )
 
   test('resolves the mapped HAD source schema version by source release', async () => {
     await expect(
@@ -136,11 +139,11 @@ describe('sourceSchemas', () => {
     await expect(
       assertKnownSafeSourceRelease({
         source: 'overture',
-        sourceVersion: '2026-09-23.0',
+        sourceVersion: '2026-10-21.0',
       }),
     ).resolves.toBeUndefined()
 
-    expect(latestKnownSafe?.version).toBe('2026-09-23.0')
+    expect(latestKnownSafe?.version).toBe('2026-10-21.0')
   })
 
   test('rejects unmapped older Overture releases as not known safe', async () => {
