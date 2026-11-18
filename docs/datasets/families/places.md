@@ -1034,3 +1034,8 @@ to production preparation. The updater fails if the requested version is absent 
 discovery and excludes other release versions. Retained native local SQL plans remain
 target-specific; reuse resolved preparation only after validating the destination
 dependencies and generate delivery against its baseline.
+
+Local identity preparation reclaims temporary parsed data between audit and publisher
+record batches while retaining the exact predecessor evidence required for matching. An
+interrupted attempt must be recorded as failed through Harbour's processing lifecycle
+after its worker has stopped before continuation can proceed.

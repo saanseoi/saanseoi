@@ -1057,3 +1057,8 @@ to production preparation. The updater fails if the requested version is absent 
 discovery and excludes other release versions. Retained native local SQL plans remain
 target-specific; reuse resolved preparation only after validating the destination
 dependencies and generate delivery against its baseline.
+
+Identity preparation explicitly reclaims temporary parsed audit partitions and full
+publisher records between batches. Retained identity evidence and matching decisions
+remain available throughout preparation; the checkpoints reduce temporary heap use under
+the managed local memory limit without changing identity policy.
