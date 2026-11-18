@@ -24,6 +24,7 @@ export async function validateResolvedPlaces(
     const division = db.query('INSERT INTO expectedPlaceDivisions VALUES (?,?,?)')
     let count = 0
     for await (const row of readStagedJsonLines<EnrichedPlace>(path)) {
+      if (count % 256 === 0) Bun.gc(true)
       if (!row.place.id.trim()) throw new Error('Places require non-empty identities.')
       if (row.address2dId && (!row.addressDependencyHash || !row.addressSnapshotId))
         throw new Error(
@@ -84,7 +85,9 @@ export async function validateResolvedPlaces(
     if (count !== totalRows)
       throw new Error('Places staged membership differs from its declared row count.')
     const actualDivisions = `SELECT p.scopeId,p.id AS placeId,entry.key AS divisionId, json_object('level',json_extract(entry.value,'$.level'),'locales',json_extract(entry.value,'$.locales')) AS definition FROM places p, json_each(${placeDivisionDisplaySql('p')}) entry`
+    let checked = 0
     for await (const row of readStagedJsonLines<EnrichedPlace>(path)) {
+      if (checked++ % 256 === 0) Bun.gc(true)
       const actual = db
         .query<Record<string, string | null>, [string, string]>(
           'SELECT * FROM places WHERE scopeId=? AND id=?',

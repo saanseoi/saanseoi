@@ -344,8 +344,11 @@ export async function buildPlaceSql(
   }
 
   if (includeRemovedPlaces) {
+    Bun.gc(true)
     const seen = new Set(input.places.map(row => row.place.id))
+    let retired = 0
     for (const previous of previousById.values()) {
+      if (retired++ % 256 === 0) Bun.gc(true)
       const previousId =
         typeof previous.row.id === 'string' ? previous.row.id : String(previous.row.id)
       if (seen.has(previousId)) continue
@@ -460,6 +463,12 @@ export async function* buildPlaceSqlBatches(
   const removedHistoryRows = input.historyRows.filter(
     state => !seen.has(String(state.row.id)),
   )
+  onProgress?.({
+    current: processedRows,
+    phase: 'generate',
+    detail: 'finalise removed Place membership',
+  })
+  Bun.gc(true)
   yield await buildPlaceSql(
     { ...input, historyRows: removedHistoryRows, places: [] },
     {

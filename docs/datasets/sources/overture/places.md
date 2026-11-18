@@ -1044,3 +1044,6 @@ and writes. Object hashes and transfer receipts remain unchanged.
 Place Address matching reclaims temporary allocations during matcher preparation and
 analysis. Once matching completes, it releases prepared definitions, geometry and
 history lookups before SQL planning and provenance verification.
+
+Place batch decoding, removed-record preparation, candidate validation and provenance
+retention reclaim temporary allocations in bounded groups.

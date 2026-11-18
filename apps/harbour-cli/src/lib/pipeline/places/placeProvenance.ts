@@ -63,6 +63,7 @@ export async function retainPlaceProvenance(
   for await (const resolution of readStagedJsonLines<StagedAddressResolution>(
     input.addresses.resolutionPath,
   )) {
+    if (observedPlaces.size % 500 === 0) Bun.gc(true)
     if (observedPlaces.has(resolution.placeId)) duplicatePlaces++
     observedPlaces.add(resolution.placeId)
     counts[resolution.tier] = (counts[resolution.tier] ?? 0) + 1
