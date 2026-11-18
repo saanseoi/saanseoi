@@ -557,9 +557,11 @@ archives and omitted from public source samples and API responses.
 
 The archive writer projects keys before calculating the archive hash. SOURCE retention
 applies the same projection before content hashing. DivisionArea source properties
-follow the same rule. Existing immutable releases are not edited in place; corrected
-archive content requires a new reviewed publication. Public SaanSeoi source JSON and
-NDJSON use the naming contract when projecting retained records.
+follow the same rule. Pre-release corrections can republish an existing edition without
+changing its release codes. Replacement archives and manifests receive new
+content-addressed object keys and download asset IDs; the registered downloads must
+match the corrected retained records. Public SaanSeoi source JSON and NDJSON use the
+naming contract when projecting retained records.
 
 Publisher codes, locale keys, identifier values and source-path values retain their
 spelling. Identifier type keys use camelCase. Structural name collisions fail
