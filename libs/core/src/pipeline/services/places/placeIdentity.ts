@@ -264,6 +264,7 @@ export function matchPlaceIdentities(
   previous: PlaceIdentityCandidate[],
   scope: string,
   sourceVersion: string,
+  onProgress?: (processed: number) => void,
 ) {
   const index = new Map<string, Set<number>>()
   const keys = (p: PlaceIdentityEvidence) => [
@@ -284,26 +285,43 @@ export function matchPlaceIdentities(
     }
   })
   const seen = new Set<string>()
-  const scored = incoming.map(p => {
+  const claims = new Map<string, { index: number; score: number }[]>()
+  const rank = (a: PlaceIdentityScore, b: PlaceIdentityScore) =>
+    b.score - a.score || a.id.localeCompare(b.id)
+  const scored = incoming.map((p, incomingIndex) => {
+    onProgress?.(incomingIndex)
     if (seen.has(p.sourceId))
       throw new Error(`Duplicate publisher Place identity ${p.sourceId}.`)
     seen.add(p.sourceId)
     const candidates = new Set<number>()
     for (const key of keys(p)) for (const i of index.get(key) ?? []) candidates.add(i)
-    return [...candidates]
-      .map(i => scorePlaceIdentity(p, previous[i]!))
-      .sort((a, b) => b.score - a.score || a.id.localeCompare(b.id))
-  })
-  const claims = new Map<string, { index: number; score: number }[]>()
-  scored.forEach((rows, index) => {
-    // All plausible claimants count, including a runner-up for another record.
-    for (const row of rows.filter(
-      x => x.eligible && x.score >= PLACE_IDENTITY_THRESHOLD,
-    )) {
+    const explanation: PlaceIdentityScore[] = []
+    const eligible: PlaceIdentityScore[] = []
+    for (const candidateIndex of candidates) {
+      const row = scorePlaceIdentity(p, previous[candidateIndex]!)
+      explanation.push(row)
+      explanation.sort(rank)
+      if (explanation.length > 5) explanation.pop()
+      if (!row.eligible) continue
+      eligible.push(row)
+      eligible.sort(rank)
+      if (eligible.length > 2) eligible.pop()
+      if (row.score < PLACE_IDENTITY_THRESHOLD) continue
+      // Count every plausible claim, even candidates outside the retained
+      // explanation. Six leaders preserve five rivals after excluding oneself.
       const values = claims.get(row.id) ?? []
-      values.push({ index, score: row.score })
+      values.push({ index: incomingIndex, score: row.score })
+      values.sort(
+        (a, b) =>
+          b.score - a.score ||
+          incoming[a.index]!.sourceId.localeCompare(incoming[b.index]!.sourceId),
+      )
+      if (values.length > 6) values.pop()
       claims.set(row.id, values)
     }
+    // The decision needs the best two eligible candidates; its public audit
+    // needs five overall candidates, including an accepted lower-ranked one.
+    return [...new Set([...explanation, ...eligible])].sort(rank)
   })
   const allocated = new Set<string>()
   return incoming.map((evidence, i): PlaceIdentityDecision => {

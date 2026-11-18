@@ -1006,3 +1006,9 @@ their digest, preserving the ledger byte format without buffering the entire doc
 
 Place membership finalisation encodes each identity once for SQLite UTF-8 ordering.
 Bounded deletion predicates preserve retained identities across partition boundaries.
+
+Identity matching evaluates every candidate but retains only the five leading
+explanations and two leading eligible candidates per observation. Every qualifying claim
+contributes to the six leading claimants per predecessor identity, preserving the five
+rivals after excluding the observation itself. These bounds preserve the matching
+threshold, ambiguity margins and deterministic explanation ordering.

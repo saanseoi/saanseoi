@@ -198,3 +198,50 @@ test('audit freezes previous values, releases and both ambiguity margins', () =>
   expect(ambiguous.rivalMargin).toBe(0)
   expect(ambiguous.rivals[0]?.sourceId).toBe('rival')
 })
+
+test('a claim outside another observations five explanations still blocks identity reuse', () => {
+  const previous = [
+    ...Array.from({ length: 8 }, (_, i) => ({
+      id: `a-${i}`,
+      evidence: evidence(`prior-${i}`, {
+        addresses: [{ freeform: 'Shop 2, Building' }],
+      }),
+    })),
+    {
+      id: 'z-target',
+      evidence: evidence('target', { addresses: [{ freeform: 'Shop 1, Building' }] }),
+    },
+  ]
+  const result = matchPlaceIdentities(
+    [
+      evidence('primary', { addresses: [{ freeform: 'Shop 1, Building' }] }),
+      evidence('rival'),
+    ],
+    previous,
+    'hk',
+    '2026-10',
+  )
+  expect(result[1]?.candidates.some(row => row.id === 'z-target')).toBe(false)
+  expect(result[0]?.reason).toBe('ambiguous')
+  expect(result[0]?.rivalMargin).toBe(10)
+  expect(result[0]?.rivals).toEqual([{ sourceId: 'rival', score: 170 }])
+})
+
+test('many tied claimants preserve the exact five rivals and margins in either input order', () => {
+  const incoming = Array.from({ length: 20 }, (_, i) =>
+    evidence(`claim-${String(i).padStart(2, '0')}`),
+  )
+  for (const rows of [incoming, incoming.toReversed()]) {
+    const result = matchPlaceIdentities(rows, [old], 'hk', '2026-10')
+    for (const decision of result) {
+      expect(decision.reason).toBe('ambiguous')
+      expect(decision.rivalMargin).toBe(0)
+      expect(decision.rivals.map(row => row.sourceId)).toEqual(
+        incoming
+          .map(row => row.sourceId)
+          .filter(id => id !== decision.sourceId)
+          .slice(0, 5),
+      )
+    }
+  }
+})
