@@ -997,3 +997,15 @@ historical decision while preserving every retained explanation.
 Place identity audit verification streams the retained ledger hash and checks each
 record against the sorted decisions. Missing, extra or changed records block retention,
 including a mismatch between empty evidence and a populated ledger.
+
+Once identity evidence is retained, Address preparation keeps only the publisher-to-
+canonical assignment map. Exact predecessor membership supplies prior Address links; the
+all-year fallback history scan is not loaded for that path.
+
+Identity preparation can be reused only for the same normalised-source checksum, scope,
+publisher version, exact predecessor snapshot and computation contract. Both the staged
+records and immutable ledger must pass checksum validation before loading the compact
+assignment map. This cache contains no delivery receipts or publication state.
+
+Identity preparation holds a local advisory lock through cache verification and
+generation. Concurrent attempts fail before replacing shared preparation files.

@@ -105,7 +105,7 @@ type PrepareSupplementaryAddressesInput = {
     divisionAreaSnapshotId?: string
   }
   places: Iterable<NormalisedPlace> | AsyncIterable<NormalisedPlace>
-  placeIdentities?: ReadonlyMap<string, PlaceIdentityDecision>
+  placeIdentities?: ReadonlyMap<string, Pick<PlaceIdentityDecision, 'id'>>
   historyRows: PlaceHistoryState[]
   releaseRoot: string
   plan: PlaceUploadPlan
@@ -373,7 +373,8 @@ async function prepareSupplementaryAddressesLocked(
   )
   input.onStage?.('Place Address history')
   const previousById = new Map<string, PlaceHistoryRow>()
-  for (const target of input.context.historyTargets) {
+  // Exact identity predecessors supply the prior Address links.
+  for (const target of input.placeIdentities ? [] : input.context.historyTargets) {
     const rows = (await (target.db as HarbourReadableDb)
       .select({
         address2dId: historySchema.places.address2dId,

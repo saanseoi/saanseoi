@@ -10,7 +10,7 @@ import { addressFingerprint } from './supplementaryPlaceAddress'
 export function reconcilePlaceAddressIdentityContinuity(input: {
   fixture: SupplementaryCuration
   defaults: SupplementaryDecision[]
-  identities: ReadonlyMap<string, PlaceIdentityDecision>
+  identities: ReadonlyMap<string, Pick<PlaceIdentityDecision, 'id'>>
   historyRows: PlaceHistoryState[]
   sourceRelease: string
   officialIds: ReadonlySet<string>

@@ -5,6 +5,7 @@ import {
   readRetainedProvenanceObject,
 } from '../../api/provenance'
 import { hydratePlaceIdentityHistory } from './placeIdentityHistory'
+import { reusePlaceIdentityPreparation } from './placeIdentityCache'
 import {
   stagePlaceIdentities,
   canonicalAddressResolutions,
@@ -133,6 +134,7 @@ export async function processLocalPlaceSqlUpload(
         `${datasetCode}.sqlite`,
       ),
     )
+    const computationContract = recordCache.contract
     await runPlaceProgressPhase(progress, 'Prepare', 'workspace', () =>
       bucket.seedRawObject(rawObjectKey, preparedUpload.filePath),
     )
@@ -273,18 +275,37 @@ export async function processLocalPlaceSqlUpload(
       progress,
       'Match',
       'Place identities',
-      async () => {
-        await hydratePlaceIdentityHistory(metaDb, historyRows, ref =>
-          readRetainedProvenanceObject(target, ref),
-        )
-        return stagePlaceIdentities({
+      async reportProgress => {
+        const prepared = await reusePlaceIdentityPreparation({
           sourcePath: stagedPlaces.path,
-          historyRows,
           scope: snapshots.snapshotLineageId,
           predecessorSnapshotId: publicationPrevious?.snapshotId ?? null,
           sourceVersion: previewPlan.sourceVersion,
+          computationContract,
           releaseRoot,
+          generate: async () => {
+            console.log('Place identity: loading retained predecessor evidence.')
+            reportProgress(0, 'load retained identity evidence')
+            await hydratePlaceIdentityHistory(metaDb, historyRows, ref =>
+              readRetainedProvenanceObject(target, ref),
+            )
+            Bun.gc(true)
+            console.log(
+              'Place identity: predecessor evidence loaded; preparing identity decisions.',
+            )
+            return stagePlaceIdentities({
+              sourcePath: stagedPlaces.path,
+              historyRows,
+              scope: snapshots.snapshotLineageId,
+              predecessorSnapshotId: publicationPrevious?.snapshotId ?? null,
+              sourceVersion: previewPlan.sourceVersion,
+              releaseRoot,
+              onProgress: reportProgress,
+            })
+          },
         })
+        for (const state of historyRows) delete state.identity
+        return prepared
       },
     )
     const supplementary = await runPlaceProgressPhase(
