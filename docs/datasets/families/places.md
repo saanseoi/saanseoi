@@ -1017,3 +1017,7 @@ migration-backup retention.
 
 The local CLI provenance store reclaims temporary encodings between bounded object reads
 and writes. Object hashes and transfer receipts remain unchanged.
+
+Place Address matching reclaims temporary allocations during matcher preparation and
+analysis. Once matching completes, it releases prepared definitions, geometry and
+history lookups before SQL planning and provenance verification.

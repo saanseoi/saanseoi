@@ -128,6 +128,7 @@ const ENGLISH_ADDRESS_ABBREVIATIONS = new Map([
 export function createPlaceAddressMatcher(
   definitions: PlaceAddressDefinition[],
   streetDefinitions: PlaceStreetDefinition[] = [],
+  onPrepared?: (count: number) => void,
 ): PlaceAddressMatcher {
   const byBuildingNumberAndStreet = new Map<string, PreparedAddressDefinition[]>()
   const byCanonicalComponent = new Map<string, PreparedAddressDefinition[]>()
@@ -136,7 +137,9 @@ export function createPlaceAddressMatcher(
   const componentsByKey = new Map<string, PreparedAddressComponent>()
   const streetsByKey = new Map<string, PreparedStreetDefinition>()
 
+  let preparedCount = 0
   for (const definition of definitions) {
+    onPrepared?.(preparedCount++)
     const locale = normaliseDefinitionLocale(definition.locale)
     const streetName = text(definition.streetName)
     if (!locale) continue

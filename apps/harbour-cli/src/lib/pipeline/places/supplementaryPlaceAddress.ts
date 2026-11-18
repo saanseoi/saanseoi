@@ -400,8 +400,19 @@ export function createSupplementaryAddressAnalyserInternal(
   fixture: SupplementaryCuration,
   recordCache?: PlaceRecordCache,
 ) {
-  const matcher = createPlaceAddressMatcher(definitions)
+  Bun.gc(true)
+  console.log(
+    `Place Addresses: building matcher (${Math.round(process.memoryUsage().rss / 1048576)} MiB resident).`,
+  )
+  const matcher = createPlaceAddressMatcher(definitions, [], count => {
+    if (count % 2_000 === 0) Bun.gc(true)
+  })
+  Bun.gc(true)
+  console.log(
+    `Place Addresses: matcher ready (${Math.round(process.memoryUsage().rss / 1048576)} MiB resident).`,
+  )
   const parserContext = recordCache ? recordCacheKey(definitions) : ''
+  Bun.gc(true)
   const parse = (text: string) => {
     const key = recordCache ? recordCacheKey([parserContext, text]) : ''
     const cached = recordCache?.get<ParsedPlaceAddress>('address parsing', key)

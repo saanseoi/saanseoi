@@ -167,7 +167,9 @@ export async function assertSupplementaryAddressRows(
   const byLocale = new Map(
     localisations.map(row => [`${row.addressId}:${row.locale}`, row]),
   )
+  let verified = 0
   for (const row of expected) {
+    if (verified++ % 100 === 0) Bun.gc(true)
     for (const [actual, wanted] of [
       [byId.get(row.current.id), row.current],
       ...row.i18n.map(

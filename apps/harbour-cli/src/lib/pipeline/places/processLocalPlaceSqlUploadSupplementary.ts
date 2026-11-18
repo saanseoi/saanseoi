@@ -352,6 +352,10 @@ async function prepareSupplementaryAddressesLocked(
     }
   }
   const officialById = new Map(official.map(row => [row.id, row]))
+  console.log(
+    `Place Addresses: loaded ${official.length} official rows and ${definitions.length} definitions.`,
+  )
+  Bun.gc(true)
   if (input.placeIdentities) {
     const defaults = reconcilePlaceAddressIdentityContinuity({
       fixture,
@@ -363,17 +367,19 @@ async function prepareSupplementaryAddressesLocked(
     })
     fixture.decisions = mergeSupplementaryDecisions(defaults, curatedDecisions)
   }
-  const analyse = createSupplementaryAddressAnalyser(
-    definitions,
-    new Set(officialById.keys()),
-    geometry,
-    fixture,
-    input.recordCache,
-    true,
-  )
+  let analyse: ReturnType<typeof createSupplementaryAddressAnalyser> | undefined =
+    createSupplementaryAddressAnalyser(
+      definitions,
+      new Set(officialById.keys()),
+      geometry,
+      fixture,
+      input.recordCache,
+      true,
+    )
   input.onStage?.('Place Address history')
   const previousById = new Map<string, PlaceHistoryRow>()
-  // Exact identity predecessors supply the prior Address links.
+  // Exact identity predecessors supersede this fallback history lookup. Do not
+  // allocate every historical revision when none of those rows will be used.
   for (const target of input.placeIdentities ? [] : input.context.historyTargets) {
     const rows = (await (target.db as HarbourReadableDb)
       .select({
@@ -419,6 +425,7 @@ async function prepareSupplementaryAddressesLocked(
   try {
     try {
       for await (const place of input.places) {
+        if (analysedRows % 500 === 0) Bun.gc(true)
         observedPlaceIds.add(place.id)
         const identity = input.placeIdentities?.get(place.id)
         if (input.placeIdentities && !identity)
@@ -475,6 +482,15 @@ async function prepareSupplementaryAddressesLocked(
     })
     throw error
   }
+  // Matching is complete. Do not retain its prepared official definitions while
+  // SQL planning and provenance verification allocate their own working state.
+  analyse = undefined
+  definitions.length = 0
+  geometry.clear()
+  previousById.clear()
+  identityPredecessors.clear()
+  official.length = 0
+  Bun.gc(true)
   const reviewCount = resolutionCounts.get('review') ?? 0
   input.onStage?.('record Address decisions')
   // Always replace the release-owned review artefact, including on a successful retry.
@@ -847,7 +863,10 @@ async function prepareSupplementaryAddressesLocked(
       },
     )
     input.onStage?.('verify supplementary Address rows')
+    Bun.gc(true)
     await assertSupplementaryAddressRows(currentDb, currentScopeId, addresses)
+    input.onStage?.('retain supplementary Address provenance')
+    Bun.gc(true)
     await input.retainAudit(resourceReleaseId, datasetCode, {
       snapshotId: snapshot.id,
       materialisationHash,
