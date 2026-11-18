@@ -1,5 +1,6 @@
 import { isCancel, log, outro, select } from '@clack/prompts'
 import { writeFile } from 'node:fs/promises'
+import { selectUpdateSourceVersion } from './updateSourceVersion'
 import {
   isMinimalInitialisation,
   selectInitialisationVersions,
@@ -192,13 +193,18 @@ export async function runUpdateCommand(
       continue
     }
 
-    const discoveredUpdates = await lookupDatasetUpdates(
-      dataset,
-      state[dataset.code],
-      targetVersions,
-      // Phase scheduling has already decided that this source is due. The
-      // previous single-cadence throttle must not suppress that decision.
-      true,
+    const discoveredUpdates = selectUpdateSourceVersion(
+      await lookupDatasetUpdates(
+        dataset,
+        state[dataset.code],
+        targetVersions,
+        // Phase scheduling has already decided that this source is due. The
+        // previous single-cadence throttle must not suppress that decision.
+        true,
+      ),
+      typeof args.options['source-version'] === 'string'
+        ? args.options['source-version']
+        : undefined,
     )
     const selectedVersions = new Set(
       selectInitialisationVersions(
@@ -351,6 +357,7 @@ export function validateUpdateArguments(args: ParsedArgs, printUsage: () => void
     'no-upload',
     'release-notes-url',
     'scope',
+    'source-version',
     'target',
     'with-dependencies',
     'yes',
@@ -374,6 +381,12 @@ export function validateUpdateArguments(args: ParsedArgs, printUsage: () => void
     option => args.options[option] !== undefined && args.options[option] !== true,
   )
   const releaseNotesUrlMissingValue = args.options['release-notes-url'] === true
+  if (
+    args.options['source-version'] !== undefined &&
+    (typeof args.options['source-version'] !== 'string' ||
+      !args.options['source-version'].trim())
+  )
+    throw new Error('--source-version requires an exact publisher release version.')
 
   if (
     args.positionals.length === 0 &&
