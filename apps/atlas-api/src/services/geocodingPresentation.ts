@@ -224,7 +224,7 @@ export function presentGeocoding(
     direction: body.meta.direction,
     release: full ? body.meta.release : { apiReleaseSet: release.apiReleaseSet },
   }
-  for (const key of ['resolution', 'total', 'truncated'])
+  for (const key of ['resolution', 'total', 'truncated', 'nextCursor', 'offset'])
     if (body.meta[key] !== undefined) meta[key] = body.meta[key]
   // Only retain a separate identity for an actually different companion release.
   for (const key of ['addressRelease', 'divisionRelease']) {

@@ -1,3 +1,9 @@
+import { loadGeocodingAddressPage } from './geocodingAddressPage'
+import {
+  AddressSearchExpiredError,
+  AddressSearchTooBroadError,
+  type AddressSearchStore,
+} from './geocodingSearchCache'
 import {
   matchesGeographicMembership,
   matchesAddressGeographicMembership,
@@ -27,6 +33,7 @@ import {
 } from './accessAnalytics'
 
 const dependencies = {
+  loadGeocodingAddressPage,
   loadGeocodingAddresses,
   loadGeocodingDivisions,
   resolveGeocodingRelease,
@@ -54,6 +61,7 @@ export async function resolveGeocode(
     apiVersion?: string
     family: 'address' | 'division'
     query: GeocodingQuery
+    searchStore?: AddressSearchStore
     onResolved?: (attribution: AccessAttribution) => void
     dependencies?: Partial<GeocodingDependencies>
   },
@@ -223,7 +231,25 @@ export async function resolveGeocode(
         },
       }
     }
-    const addresses = await deps.loadGeocodingAddresses(args, addressRelease!, query)
+    if ((query.paginate || query.cursor) && args.family !== 'address')
+      throw new AddressSearchTooBroadError(
+        'Pagination is available only for forward Address queries.',
+      )
+    const addresses = query.paginate
+      ? await deps.loadGeocodingAddressPage(
+          args,
+          addressRelease!,
+          query,
+          args.searchStore ??
+            (() => {
+              throw new AddressSearchExpiredError('Address search cache unavailable.')
+            })(),
+        )
+      : {
+          ...(await deps.loadGeocodingAddresses(args, addressRelease!, query)),
+          offset: 0,
+          nextCursor: null as string | null,
+        }
     const candidates = addresses.records
       .filter(record =>
         matchesAddressGeographicMembership(record.address.divisionRelationships),
@@ -257,16 +283,21 @@ export async function resolveGeocode(
                 addressId: record.address.id,
                 divisions,
               }
+            const addressAttributes = record.address
             return {
               type: 'addresses',
               id: record.address.id,
-              rank: index + 1,
+              rank: addresses.offset + index + 1,
               coordinates,
               coordinateRole: 'address',
               attributes: {
-                ...record.address,
+                ...addressAttributes,
                 geometry: coordinates ? { type: 'Point', coordinates } : null,
-                i18n: requestedNames(record.i18n, query.locales),
+                i18n: Object.fromEntries(
+                  Object.entries(requestedNames(record.i18n, query.locales)).map(
+                    ([locale, value]) => [locale, { ...value }],
+                  ),
+                ),
               },
               match: point
                 ? {
@@ -287,7 +318,7 @@ export async function resolveGeocode(
         meta: {
           ...meta,
           resolution:
-            candidates.length > 1 &&
+            (query.paginate ? addresses.total > 1 : candidates.length > 1) &&
             (query.footprint ||
               !point ||
               candidates[1]!.distance! - candidates[0]!.distance! <= 15)
@@ -296,11 +327,26 @@ export async function resolveGeocode(
                 ? 'resolved'
                 : 'not_found',
           total: addresses.total,
-          truncated: addresses.total > query.limit,
+          ...(query.paginate
+            ? { nextCursor: addresses.nextCursor, offset: addresses.offset }
+            : {}),
+          truncated: query.paginate
+            ? addresses.nextCursor !== null
+            : addresses.total > query.limit,
         },
       },
     }
   } catch (error) {
+    if (error instanceof AddressSearchExpiredError)
+      return {
+        status: 410 as const,
+        body: { error: 'search_expired', message: error.message },
+      }
+    if (error instanceof AddressSearchTooBroadError)
+      return {
+        status: 422 as const,
+        body: { error: 'search_too_broad', message: error.message },
+      }
     if (!(error instanceof PublicationReadUnavailableError)) throw error
     return {
       status: 503 as const,
@@ -311,20 +357,21 @@ export async function resolveGeocode(
 
 export async function geocode(args: Parameters<typeof resolveGeocode>[0]) {
   const result = await resolveGeocode(args)
-  if (result.status !== 200)
-    return {
-      status: result.status,
-      body: {
-        jsonapi: { version: '1.1' as const },
-        errors: [
-          {
-            status: String(result.status),
-            code: result.body.error,
-            title: result.body.message,
-          },
-        ],
-      },
+  if (result.status !== 200) {
+    const body = {
+      jsonapi: { version: '1.1' as const },
+      errors: [
+        {
+          status: String(result.status),
+          code: result.body.error,
+          title: result.body.message,
+        },
+      ],
     }
+    if (result.status === 410) return { status: 410 as const, body }
+    if (result.status === 422) return { status: 422 as const, body }
+    return { status: 503 as const, body }
+  }
   return {
     status: 200 as const,
     body: GeocodingResponseSchema.parse(presentGeocoding(result.body, args.query)),

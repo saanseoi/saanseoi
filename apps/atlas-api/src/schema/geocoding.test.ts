@@ -39,3 +39,21 @@ test('locales reuse the canonical API locale grammar', () => {
     GeocodingQuerySchema.safeParse({ address: 'a', locales: '*,en' }).success,
   ).toBe(false)
 })
+
+test('lazy cursors require a forward address search and a valid opaque token', () => {
+  for (const input of [
+    { address: 'wood', cursor: 'a'.repeat(32) + '.20' },
+    { placename: 'wood', paginate: 'true' },
+    { lat: '22', lng: '114', paginate: 'true' },
+    { address: 'wood', paginate: 'true', cursor: '20' },
+  ])
+    expect(GeocodingQuerySchema.safeParse(input).success).toBe(false)
+  expect(
+    GeocodingQuerySchema.safeParse({
+      address: 'wood',
+      paginate: 'true',
+      locatedOnly: 'true',
+      cursor: 'a'.repeat(32) + '.20',
+    }).success,
+  ).toBe(true)
+})

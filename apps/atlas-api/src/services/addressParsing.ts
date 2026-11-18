@@ -1,35 +1,5 @@
-/** Query-only normalisation: canonical names and publisher evidence stay untouched. */
-export function normaliseAddressText(value: string) {
-  return value
-    .normalize('NFKC')
-    .toLowerCase()
-    .replace(/[一二三四五六七八九](?=期)/g, digit =>
-      String('一二三四五六七八九'.indexOf(digit) + 1),
-    )
-    .replace(/[’'`]/g, '')
-    .replace(
-      /\b(rd|st|ave|ln|sq|hwy|bldg|hse)\.?\b/g,
-      word =>
-        ({
-          rd: 'road',
-          st: 'street',
-          ave: 'avenue',
-          ln: 'lane',
-          sq: 'square',
-          hwy: 'highway',
-          bldg: 'building',
-          hse: 'house',
-        })[word.replace('.', '')]!,
-    )
-    .replace(
-      /\b(road|street)\s+([ewns])\b/g,
-      (_, road, direction) =>
-        `${road} ${{ e: 'east', w: 'west', n: 'north', s: 'south' }[direction as string]}`,
-    )
-    .replace(/[^\p{L}\p{N}]+/gu, ' ')
-    .trim()
-    .replace(/\s+/g, ' ')
-}
+import { normaliseAddressText } from '@repo/core/pipeline/services/addresses/searchText'
+export { normaliseAddressText } from '@repo/core/pipeline/services/addresses/searchText'
 
 export type ParsedAddress = {
   text: string

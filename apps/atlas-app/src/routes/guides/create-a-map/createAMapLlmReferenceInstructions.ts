@@ -678,6 +678,12 @@ facts. The response retains collection metadata and echoes meta.filters.id; an a
 ID returns an empty data array. Other filters still combine with AND. This filter
 accepts the opaque canonical ID returned by search, not a publisher or GERS identifier.
 
+## Nearby address discovery
+
+Forward Address geocoding accepts nearLat and nearLng with address and maxDistance,
+including paginated queries. It applies the circle before ranking, totals and
+pagination. Keep the same circle and query when following meta.nextCursor.
+
 ## Places discovery
 
 Places text search uses the latest published regional release. Search results include

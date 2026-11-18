@@ -112,12 +112,39 @@ prefix/road-section matches are weaker interpretations, not verified street alia
 Name normalisation handles punctuation and common building abbreviations; a leading
 building word plus an acronym can match its expanded name, such as One IFC.
 
-Unparsed queries try formatted and named components, then a broader normalised scan only
-if the first pass finds no match. This fallback and retained-history replay can require
-substantial reads. Missing or contradictory numbers never become numeric substring
-matches. Multiple candidates remain ambiguous even when a limit hides an alternative;
-`meta.total` and `meta.truncated` make this visible. Address-text division queries
-retain separate address-location candidates.
+Unnumbered forward queries use a publication-bound Unicode gram index over normalised
+formatted addresses, building/premises names and street names. Partial names such as
+`holly`, `wood` and `荷李` retrieve Address identities; no Street resource is required.
+The exact component scorer verifies index candidates. Numeric-stem retrieval retains
+street/number semantics. Canonical names and publisher strings are unchanged. Unprepared
+non-paginated searches and retained-history replay can require substantial reads.
+Missing or contradictory numbers never become numeric substring matches. Multiple
+candidates remain ambiguous even when a limit hides an alternative; `meta.total` and
+`meta.truncated` make this visible. Address-text division queries retain separate
+address-location candidates.
+
+### Lazy Address results
+
+Supply `address=hollywood&paginate=true&limit=20` for forward Address discovery.
+`locatedOnly=true` limits Address candidates and the exact total to usable points for
+map selection; omitting it retains unlocated matches. Ranking includes all matching
+identities in the selected publication and geographic filters. This mode requires a
+prepared current publication and its substring index; unavailable preparation or
+retained historical publications return `503`.
+
+The first response retains sorted IDs and scores in the edge Cache API for five minutes.
+`meta.total` is the exact filtered count, `meta.offset` is zero-based, `meta.nextCursor`
+is an opaque continuation or `null`, and ranks remain global. `meta.truncated` means
+another page exists. Subsequent requests send that cursor, the same search/filter
+parameters and `releaseSet=meta.release.apiReleaseSet`. They hydrate only the requested
+IDs without repeating text retrieval or ranking. Page size, locales and presentation
+profile may change without changing the ranking. An empty result has total zero and no
+cursor.
+
+Cache expiry, eviction, a different edge cache, changed query or changed publication
+invalidates a cursor with `410 search_expired`; clients must explicitly restart from the
+first page. A continuation never silently reruns a broad search. Queries exceeding
+50,000 ranked identities return `422 search_too_broad` and require refinement.
 
 Reverse addresses are canonical points within `maxDistance`, ordered by great-circle
 distance after a latitude/longitude prefilter. `attributes.coordinates` locates the

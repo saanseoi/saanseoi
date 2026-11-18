@@ -1,9 +1,13 @@
-import { and, asc, currentSchema, sql, type CurrentDatabase } from '@repo/db'
+import { and, asc, currentSchema, sql, type CurrentDatabase, type SQL } from '@repo/db'
 import type { GeocodingQuery } from '../schema/geocoding'
-import { publicationScopeCondition } from './publicationState'
+import {
+  publicationScopeCondition,
+  PublicationReadUnavailableError,
+} from './publicationState'
 import { numberStems, parseAddress } from '../services/addressParsing'
 import { listAddressRecordsCurrentByIds, type AddressRecord } from './addresses'
 import { scoreAddress } from '../services/addressGeocoding'
+import { geocodingTextSelection, type GeocodingTextSelection } from './geocodingText'
 
 /** Candidate prefilter only: distances and ranking are evaluated after hydration. */
 export async function* addressGeocodingCandidates(
@@ -12,9 +16,21 @@ export async function* addressGeocodingCandidates(
   query: GeocodingQuery,
   fallback = false,
 ) {
-  // Normalised fallback must scan names, but must not hydrate every non-matching address.
-  if (fallback) {
-    yield* fallbackAddressCandidates(db, snapshotIds, query)
+  // Text candidates combine indexed tokens and literal substrings before exact scoring.
+  // Keep the exhaustive path for unprepared indexes and recall regression comparisons.
+  const parsedText = query.address === undefined ? null : parseAddress(query.address)
+  if (
+    fallback ||
+    (!query.footprint &&
+      query.lat === undefined &&
+      (!parsedText?.numbers || !numberStems(parsedText).length))
+  ) {
+    const selection = fallback
+      ? undefined
+      : await geocodingTextSelection(db, snapshotIds, query)
+    yield* fallbackAddressCandidates(db, snapshotIds, query, selection)
+    if (selection && !(await geocodingTextSelection(db, snapshotIds, query)))
+      throw new PublicationReadUnavailableError('Address search index changed.')
     return
   }
   const { address2d: address, address2dI18n: names } = currentSchema
@@ -85,6 +101,7 @@ export async function* addressGeocodingCandidates(
  * @param db Current publication database.
  * @param snapshotIds Publication-pinned address snapshots.
  * @param query Forward lookup and ranking options.
+ * @param selection Optional conservative text candidate filter.
  * @returns Matching records only; each identity is hydrated once across all locales.
  * @remarks The caller retains publication guards and final ranking. No match is truncated.
  */
@@ -92,6 +109,7 @@ async function* fallbackAddressCandidates(
   db: CurrentDatabase,
   snapshotIds: string[],
   query: GeocodingQuery,
+  selection?: GeocodingTextSelection,
 ): AsyncGenerator<AddressRecord[]> {
   const names = currentSchema.address2dI18n
   let cursor: { scopeId: string; addressId: string; locale: string } | undefined
@@ -100,22 +118,29 @@ async function* fallbackAddressCandidates(
     // Keyset pagination follows the locale table's composite primary key.
     const rows = await db
       .select({
-        scopeId: names.scopeId,
-        addressId: names.addressId,
-        locale: names.locale,
-        meta: names.meta,
-        formattedAddress: names.formattedAddress,
-        buildingName: names.buildingName,
-        premisesName: names.premisesName,
-        streetName: names.streetName,
-        buildingNumberFrom: names.buildingNumberFrom,
-        buildingNumberTo: names.buildingNumberTo,
-        buildingNumberConnector: names.buildingNumberConnector,
+        scopeId: sql<string>`${names.scopeId}`.as('scopeId'),
+        addressId: sql<string>`${names.addressId}`.as('addressId'),
+        locale: sql<string>`${names.locale}`.as('locale'),
+        meta: sql<null>`NULL`.as('meta'),
+        formattedAddress: sql<string>`${names.formattedAddress}`.as('formattedAddress'),
+        buildingName: sql<string | null>`${names.buildingName}`.as('buildingName'),
+        premisesName: sql<string | null>`${names.premisesName}`.as('premisesName'),
+        streetName: sql<string | null>`${names.streetName}`.as('streetName'),
+        buildingNumberFrom: sql<string | null>`${names.buildingNumberFrom}`.as(
+          'buildingNumberFrom',
+        ),
+        buildingNumberTo: sql<string | null>`${names.buildingNumberTo}`.as(
+          'buildingNumberTo',
+        ),
+        buildingNumberConnector: sql<
+          string | null
+        >`${names.buildingNumberConnector}`.as('buildingNumberConnector'),
       })
-      .from(names)
+      .from(selection?.byRowId ? sql`${names} NOT INDEXED` : names)
       .where(
         and(
           publicationScopeCondition('address', names.scopeId, snapshotIds),
+          selection?.condition,
           cursor
             ? sql`(${names.scopeId}, ${names.addressId}, ${names.locale}) > (${cursor.scopeId}, ${cursor.addressId}, ${cursor.locale})`
             : undefined,

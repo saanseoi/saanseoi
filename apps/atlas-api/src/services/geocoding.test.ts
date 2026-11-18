@@ -61,6 +61,12 @@ const address = (
 function fixture(overrides: Partial<GeocodingDependencies> = {}) {
   const calls: unknown[][] = []
   const dependencies: GeocodingDependencies = {
+    loadGeocodingAddressPage: async () => ({
+      records: [address('last', 'Harbour', [1, 1])],
+      total: 3,
+      offset: 2,
+      nextCursor: null,
+    }),
     resolveGeocodingRelease: async (_, family, code, ids) => {
       calls.push([family, code, ids])
       return release(code ?? 'latest')
@@ -81,6 +87,7 @@ function fixture(overrides: Partial<GeocodingDependencies> = {}) {
       family,
       query: GeocodingQuerySchema.parse(input),
       dependencies,
+      searchStore: { read: async () => null, write: async () => {} },
     })
   return { run, calls }
 }
@@ -341,4 +348,23 @@ test('malformed or degenerate footprint rings return validation errors without t
       }).success,
     ).toBe(false)
   }
+})
+
+test('the final lazy page preserves global rank, total and ambiguity', async () => {
+  const result = await fixture().run('address', {
+    address: 'Harbour',
+    paginate: 'true',
+    limit: '2',
+  })
+  expect(result.status).toBe(200)
+  expect(result.body).toMatchObject({
+    meta: {
+      total: 3,
+      offset: 2,
+      nextCursor: null,
+      truncated: false,
+      resolution: 'ambiguous',
+    },
+    data: [{ id: 'last', rank: 3 }],
+  })
 })

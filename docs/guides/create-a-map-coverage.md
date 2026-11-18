@@ -188,3 +188,8 @@ source-polygon queries for outline styles, complete-address precedence, footprin
 constrained ALS fallback and explicit ambiguity/approximation. Schema `protomaps-v4.1`
 archives are required for polygon address tags; publishing these archives is a separate
 release operation.
+
+Nearby forward Address geocoding accepts `nearLat`, `nearLng` and `maxDistance` with
+`address`. Circle constraints apply before ranking, totals and page limits, and bind
+continuation identity. The hand-over reference documents this contract;
+`geocodingAddressPage.test.ts` covers filtering and cursor isolation.
