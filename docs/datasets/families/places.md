@@ -953,3 +953,8 @@ publisher ID changes. Address dependencies, translation and curation can also ch
 canonical content independently. Mirror consumers should refresh linked canonical IDs
 against a pinned API publication even when no source change is reported. Never treat
 search or H3 latest-publication paging as an immutable export.
+
+October 2026 Hong Kong attribution includes Uberall (412 entries) and OpenTravel (5
+entries). Their explicit upstream mappings and publisher fixtures follow the
+[Overture attribution page](https://docs.overturemaps.org/attribution/); native record
+IDs, licences, update times and property pointers remain retained.

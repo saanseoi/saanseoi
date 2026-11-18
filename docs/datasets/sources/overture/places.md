@@ -976,3 +976,8 @@ Supplementary Address change counts are saved on each Address API release set un
 preceding Address API publication's matching variant, including zero churn when both
 publications retain the same supplementary snapshot. Source-release Place churn is
 independent of these Address variant statistics.
+
+October 2026 Hong Kong attribution includes Uberall (412 entries) and OpenTravel (5
+entries). Their explicit upstream mappings and publisher fixtures follow the
+[Overture attribution page](https://docs.overturemaps.org/attribution/); native record
+IDs, licences, update times and property pointers remain retained.

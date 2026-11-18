@@ -1,0 +1,22 @@
+{
+  "code": "opentravel",
+  "url": "https://opentravel.org/",
+  "i18n": {
+    "en": {
+      "name": "OpenTravel Alliance",
+      "nameShort": "OpenTravel Alliance",
+      "description": "Upstream Places data contributor identified in Overture Maps attribution."
+    },
+    "zh-hant": {
+      "name": "OpenTravel Alliance",
+      "nameShort": "OpenTravel Alliance",
+      "description": "Overture Maps 來源標示所列的上游地點資料提供者。"
+    },
+    "zh-hans": {
+      "name": "OpenTravel Alliance",
+      "nameShort": "OpenTravel Alliance",
+      "description": "Overture Maps 来源标注所列的上游地点数据提供者。"
+    }
+  },
+  "versionHash": "sha256:62923f176d1929c9375ac3af6e2880e05aa81fe52c01903b9146112689c90c78"
+}

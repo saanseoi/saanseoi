@@ -1,0 +1,22 @@
+{
+  "code": "uberall",
+  "url": "https://uberall.com/",
+  "i18n": {
+    "en": {
+      "name": "Uberall",
+      "nameShort": "Uberall",
+      "description": "Upstream Places data contributor identified in Overture Maps attribution."
+    },
+    "zh-hant": {
+      "name": "Uberall",
+      "nameShort": "Uberall",
+      "description": "Overture Maps 來源標示所列的上游地點資料提供者。"
+    },
+    "zh-hans": {
+      "name": "Uberall",
+      "nameShort": "Uberall",
+      "description": "Overture Maps 来源标注所列的上游地点数据提供者。"
+    }
+  },
+  "versionHash": "sha256:8fbbbcb7b48eff1a8a4514c839c7afcafe4552504b1f6b48f0c3305abc2ee253"
+}
