@@ -44,6 +44,8 @@
     "./pipeline/*": "./src/pipeline/*",
     "./pipeline/services": "./src/pipeline/services/index.ts",
     "./pipeline/services/addresses": "./src/pipeline/services/addresses/index.ts",
+    "./pipeline/services/addresses/searchText": "./src/pipeline/services/addresses/searchText.ts",
+    "./pipeline/services/addresses/substringIndex": "./src/pipeline/services/addresses/substringIndex.ts",
     "./pipeline/services/addresses/searchIndex": "./src/pipeline/services/addresses/searchIndex.ts",
     "./pipeline/services/places/publicationDependencies": "./src/pipeline/services/places/publicationDependencies.ts",
     "./pipeline/services/places/dependencyReplay": "./src/pipeline/services/places/dependencyReplay.ts",

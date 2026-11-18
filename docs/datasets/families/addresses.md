@@ -2001,3 +2001,21 @@ source evidence. Correcting the canonical reference recomputes collection conten
 historical version hashes in place, without changing unit IDs, snapshot IDs or dataset
 revisions. The shared free-text parser applies the same separation between named floor
 types and their references.
+
+## Derived partial-name search
+
+Published-search finalisation builds `addressGeocodingFts`, a contentless FTS5 index of
+unique normalised Unicode one-, two- and three-character grams per Address2D locale row.
+Formatted addresses, street names and building/premises names support literal
+partial-name retrieval. A separate building column preserves embedded complete-building
+recall. Exact scoring verifies candidates; these postings are not canonical names,
+aliases or source evidence.
+
+The builder reads published scope rows in bounded rowid pages and writes JSON-bound
+batches. It checks FTS integrity and atomically promotes a staging table only while the
+selected publication tokens remain unchanged. Readiness hashes bind the format, physical
+scope, snapshot and publication token. Missing readiness fails lazy search closed.
+Normal publication finalisation and explicit address-search synchronisation both prepare
+the index. Local reset scripts drop it with the other derived indexes. See
+[geocoding](../../geocoding.md#lazy-address-results) for cursor lifetime, exact filtered
+counts and continuation behaviour.

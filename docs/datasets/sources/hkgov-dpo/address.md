@@ -1992,3 +1992,13 @@ canonical Address columns, public JSON or address content hashes. Explicit colle
 asserting physical parentage or established membership for a particular section.
 
 Building/place containment and address coverage belong to their future associations.
+
+### Published partial-name lookup
+
+ALS Address2D localisations feed the shared publication-finalisation substring index
+described in the
+[Address family contract](../../families/addresses.md#derived-partial-name-search).
+Normalisation and Unicode grams are derived lookup evidence only. Publisher spelling,
+canonical components and retained ALS assertions remain intact. Records without a usable
+point remain discoverable unless a map client requests `locatedOnly=true`; no
+coordinates are inferred from a street or building name.

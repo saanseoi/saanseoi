@@ -1,3 +1,4 @@
+import { synchroniseAddressSubstringSearch } from './substringIndex'
 import type { HarbourReadableDb } from '../../../lib/db/types'
 import {
   buildSearchContentSql,
@@ -52,7 +53,10 @@ export const buildAddressSearchSyncSql = (scopes: readonly SearchScope[]) => [
 ]
 export const buildAddressSearchContentSql = (selection?: string) =>
   buildSearchContentSql(addressSearchIndex, selection)
-export const synchroniseAddressSearch = (
+export const synchroniseAddressSearch = async (
   db: HarbourReadableDb,
   current: SearchD1Database,
-) => synchroniseSearchIndexes(db, current, [addressSearchIndex])
+) => {
+  await synchroniseSearchIndexes(db, current, [addressSearchIndex])
+  await synchroniseAddressSubstringSearch(current)
+}
