@@ -1,7 +1,6 @@
-import { identityEvidenceInterner } from './placeIdentityHistory'
-import { createHash } from 'node:crypto'
 import { placeAddressReviewReference } from './placeAddressReviewReferences.ts'
-import { readFile } from 'node:fs/promises'
+import { deliveryFileSha256 } from '../local/sqlDeliveryFiles'
+import { identityEvidenceInterner } from './placeIdentityHistory'
 import type { writePlaceIdentityLedger } from './placeIdentityLedger'
 import { placeIdentityDeclaration } from '@repo/core/pipeline/services/places/placeIdentity'
 import type { NormalisedPlace } from '@repo/core/pipeline/services/places/place'
@@ -201,24 +200,28 @@ export async function retainPlaceProvenance(
       entries.push(identity)
       counts[identity.reason] = (counts[identity.reason] ?? 0) + 1
       total++
+      if (total % 1_000 === 0) Bun.gc(true)
     }
     if (!input.identityLedger)
       throw new Error('Place identity audit requires staged identity evidence.')
-    const ledgerText = await readFile(input.identityLedger.path, 'utf8')
     if (
-      createHash('sha256').update(ledgerText).digest('hex') !==
+      (await deliveryFileSha256(input.identityLedger.path)) !==
       input.identityLedger.hash
     )
       throw new Error('Place identity ledger hash mismatch.')
-    const ledgerRows = ledgerText
-      .trim()
-      .split('\n')
-      .slice(1)
-      .map(line => JSON.parse(line))
-    if (
-      JSON.stringify(ledgerRows) !==
-      JSON.stringify([...entries].sort((a, b) => a.sourceId.localeCompare(b.sourceId)))
-    )
+    const ordered = [...entries].sort((a, b) => a.sourceId.localeCompare(b.sourceId))
+    let ledgerIndex = -1
+    for await (const row of readStagedJsonLines(input.identityLedger.path)) {
+      if (ledgerIndex === -1) {
+        ledgerIndex = 0
+        continue
+      }
+      if (JSON.stringify(row) !== JSON.stringify(ordered[ledgerIndex]))
+        throw new Error('Place identity audit differs from staged identity evidence.')
+      ledgerIndex++
+      if (ledgerIndex % 1_000 === 0) Bun.gc(true)
+    }
+    if (ledgerIndex !== ordered.length)
       throw new Error('Place identity audit differs from staged identity evidence.')
     const { path: _path, ...ledgerReference } = input.identityLedger
     rules.push({

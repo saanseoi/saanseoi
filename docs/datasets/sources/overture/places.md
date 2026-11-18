@@ -1016,3 +1016,7 @@ threshold, ambiguity margins and deterministic explanation ordering.
 Retained audit explanations share byte-identical predecessor evidence in memory; changed
 observations remain distinct. This avoids storing repeated candidate payloads for each
 historical decision while preserving every retained explanation.
+
+Place identity audit verification streams the retained ledger hash and checks each
+record against the sorted decisions. Missing, extra or changed records block retention,
+including a mismatch between empty evidence and a populated ledger.
