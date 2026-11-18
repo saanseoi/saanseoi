@@ -1032,3 +1032,8 @@ assignment map. This cache contains no delivery receipts or publication state.
 
 Identity preparation holds a local advisory lock through cache verification and
 generation. Concurrent attempts fail before replacing shared preparation files.
+
+Regenerable normalised caches use a thirty-day age limit and a 10 GiB size budget, with
+a one-day grace period and sibling `.keep` pins. Writes and pruning share an advisory
+lock. See the local artefact retention policy for maintenance commands and verified
+migration-backup retention.

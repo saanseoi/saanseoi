@@ -3,6 +3,8 @@ import { createReadStream } from 'node:fs'
 import { mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import { deserialize, serialize } from 'node:v8'
+import { withDeliveryLock } from './sqlDeliveryFiles'
+import { pruneNormalisedArtefactCache } from './normalisedArtefactCacheRetention'
 
 const REPO_ROOT = resolve(import.meta.dir, '../../../../../..')
 const CACHE_ROOT = resolve(REPO_ROOT, '.local/harbour-sql/normalised-cache')
@@ -28,13 +30,18 @@ export async function openNormalisedArtefactCache(input: {
     },
     async write<T>(value: T) {
       await mkdir(CACHE_ROOT, { recursive: true })
-      const temporaryPath = `${cachePath}.${process.pid}.tmp`
-      try {
-        await writeFile(temporaryPath, serialize(value))
-        await rename(temporaryPath, cachePath)
-      } finally {
-        await rm(temporaryPath, { force: true }).catch(() => undefined)
-      }
+      await withDeliveryLock(CACHE_ROOT, async () => {
+        const temporaryPath = `${cachePath}.${crypto.randomUUID()}.tmp`
+        try {
+          await writeFile(temporaryPath, serialize(value))
+          await rename(temporaryPath, cachePath)
+        } finally {
+          await rm(temporaryPath, { force: true }).catch(() => undefined)
+        }
+      })
+      await pruneNormalisedArtefactCache(CACHE_ROOT).catch(error => {
+        console.warn('Normalised cache retention deferred:', error)
+      })
     },
     sourceSha256,
   }

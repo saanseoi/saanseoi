@@ -24,6 +24,16 @@ lock_file="$(dirname "$persist_dir")/migrations.lock"
 exec 9>"$lock_file"
 flock 9
 
+finish_retention() {
+  # Release the migration lock before the retention command takes it itself.
+  # Cleanup failure must not misreport successfully committed migrations.
+  flock -u 9
+  if ! python3 "$script_dir/../../../scripts/local-artefact-retention.py" \
+    --scope migrations --apply --quiet; then
+    printf 'Migrations succeeded; backup retention deferred. Run bun run local:retention to inspect.\n' >&2
+  fi
+}
+
 IFS=',' read -r -a binding_names <<< "$bindings_csv"
 IFS=',' read -r -a database_names <<< "$database_names_csv"
 
@@ -57,6 +67,9 @@ if [[ "${#database_names[@]}" -eq 1 ]]; then
     printf 'Local migrations failed for %s (%s)\n' "${binding_names[0]}" "${database_names[0]}" >&2
     status=1
   fi
+  if [[ "$status" -eq 0 ]]; then
+    finish_retention
+  fi
   exit "$status"
 fi
 
@@ -86,4 +99,5 @@ while [[ "$next_index" -lt "${#database_names[@]}" ]]; do
   fi
 done
 
+finish_retention
 exit "$status"

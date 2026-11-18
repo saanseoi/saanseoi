@@ -7,6 +7,13 @@ database's pending migrations in one transaction. Foreign-key validation must pa
 before the migration receipts and data commit together. Backups are retained under
 `.local/d1/migration-backups/`.
 
+Successful runs apply the
+[local artefact retention policy](../../../docs/operations/local-artefact-retention.md):
+keep the newest two backups per database and a seven-day grace period, verify retained
+backups before pruning, and protect backups with a sibling `.keep` file. Failed
+migrations retain their backups without pruning. Inspect candidates with
+`bun run local:retention --scope migrations`.
+
 Generated SQL initialises the destination schema. Use the
 [local reset and rebuild workflow](../../../docs/datasets/pipeline.md#local-pipeline-initialisation)
 to initialise populated local databases from the baselines.
