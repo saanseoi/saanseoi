@@ -1,3 +1,5 @@
+import type { z } from 'zod'
+import { PlaceSearchExpiredError } from '../../../db/placeSearchCursor'
 import { parseI18nMeta } from '@repo/db'
 import { withPlacePublication } from '../../../services/places'
 import {
@@ -21,7 +23,7 @@ import {
   listPlaceDivisions,
   listPlaceI18n,
   listPlacesByH3Cell,
-  searchPlacesFts,
+  searchPlacesFtsPage,
 } from '../../../db/places'
 import { sanitiseResponseUrl } from '../../../lib/api'
 import { runWithD1ReadRetry } from '../../../lib/d1'
@@ -277,6 +279,10 @@ const searchRouteConfigs = ROUTE_VARIANTS.map(routeVariant =>
       query: SearchQuerySchema,
     },
     responses: {
+      410: {
+        content: { 'application/json': { schema: ErrorResponseSchema } },
+        description: 'Search query or publication changed; restart without the cursor.',
+      },
       200: {
         content: { 'application/json': { schema: SearchResponseSchema } },
         description: openApiText('openapi_places_search_response_description'),
@@ -430,6 +436,9 @@ async function handlePlacesByCell(
     region: 'hk' | 'mo'
     h3Level: string
     h3Cell: string
+    'filter[basicCategory]'?: string
+    'filter[taxonomyPrimary]'?: string
+    'filter[operatingStatus]'?: string
     limit?: number
     offset?: number
   },
@@ -505,6 +514,9 @@ async function handlePlacesByCell(
             snapshotId: activeSnapshot.snapshotId,
             h3Level,
             h3Cell: args.h3Cell,
+            basicCategory: args['filter[basicCategory]'],
+            taxonomyPrimary: args['filter[taxonomyPrimary]'],
+            operatingStatus: args['filter[operatingStatus]'],
             limit,
             offset,
           }),
@@ -517,10 +529,17 @@ async function handlePlacesByCell(
 
 async function handlePlaceSearch(
   c: Context<AppEnv>,
-  args: { region: 'hk' | 'mo'; q: string; locale?: string; limit?: number },
+  args: z.infer<typeof SearchQuerySchema> & { region: 'hk' | 'mo' },
 ) {
   const activeSnapshot = await activePlaceSnapshot(c, args.region)
-  if (!activeSnapshot && args.region === 'mo') return c.json({ results: [] }, 200)
+  if (!activeSnapshot && args.region === 'mo')
+    return c.json(
+      {
+        results: [],
+        ...(args.paginate === 'true' ? { meta: { nextCursor: null } } : {}),
+      },
+      200,
+    )
   if (!activeSnapshot) {
     return c.json(
       {
@@ -555,15 +574,37 @@ async function handlePlaceSearch(
 
         try {
           const results = await runWithD1ReadRetry(() =>
-            searchPlacesFts(c.var.currentDb, {
+            searchPlacesFtsPage(c.var.currentDb, {
+              cursor: args.cursor,
               snapshotId: activeSnapshot.snapshotId,
               locale: args.locale,
               query: args.q,
+              nearLat: args.nearLat,
+              nearLng: args.nearLng,
+              maxDistance: args.maxDistance,
+              basicCategory: args['filter[basicCategory]'],
+              taxonomyPrimary: args['filter[taxonomyPrimary]'],
+              taxonomyCategory: args['filter[taxonomyCategory]'],
+              includePreview: args.include === 'preview',
+              operatingStatus: args['filter[operatingStatus]'],
               limit: args.limit,
             }),
           )
-          return c.json({ results }, 200)
+          return c.json(
+            {
+              results: results.results,
+              ...(args.paginate === 'true'
+                ? { meta: { nextCursor: results.nextCursor } }
+                : {}),
+            },
+            200,
+          )
         } catch (error) {
+          if (error instanceof PlaceSearchExpiredError)
+            return c.json(
+              { httpStatus: 410, error: 'search_expired', message: error.message },
+              410,
+            )
           if (
             error instanceof Error &&
             error.message.includes('Place search is not ready')
@@ -617,6 +658,7 @@ export const placeRoutes = [
         const params = c.req.valid('param')
         const query = c.req.valid('query')
         return handlePlacesByCell(c, {
+          ...query,
           ...params,
           region: resolveDataRegion(query.region),
           limit: query.limit,

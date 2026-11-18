@@ -448,6 +448,22 @@ export const PlacesByCellParamsSchema = z
 export const PlacesByCellQuerySchema = z
   .object({
     ...geographicCodeQueryShape,
+    'filter[basicCategory]': z
+      .string()
+      .min(1)
+      .max(200)
+      .optional()
+      .openapi({ description: placeBasicCategoryFilterDescription }),
+    'filter[taxonomyPrimary]': z
+      .string()
+      .min(1)
+      .max(200)
+      .optional()
+      .openapi({ description: placeTaxonomyFilterDescription }),
+    'filter[operatingStatus]': z
+      .enum(['open', 'temporarily_closed', 'permanently_closed'])
+      .optional()
+      .openapi({ description: placeOperatingStatusFilterDescription }),
     region: RegionFilterSchema,
     limit: z.coerce.number().int().min(1).max(MAX_PLACE_RESULTS).optional(),
     offset: z.coerce
@@ -513,19 +529,104 @@ export const PlacesByCellResponseSchema = z
 
 export const SearchQuerySchema = z
   .object({
+    nearLat: z.coerce.number().finite().min(-90).max(90).optional(),
+    nearLng: z.coerce.number().finite().min(-180).max(180).optional(),
+    maxDistance: z.coerce.number().finite().min(0).max(50000).optional(),
+
     ...geographicCodeQueryShape,
     region: RegionFilterSchema,
     q: z.string().min(1).max(MAX_PLACE_SEARCH_LENGTH),
     locale: z.string().optional(),
     limit: z.coerce.number().int().min(1).max(MAX_PLACE_RESULTS).optional(),
+    paginate: z.enum(['true', 'false']).optional(),
+    cursor: z.string().min(1).max(8192).optional(),
+    include: z.literal('preview').optional(),
+    'filter[basicCategory]': z
+      .string()
+      .regex(/^[a-z0-9_]+$/)
+      .max(200)
+      .optional()
+      .openapi({ description: placeBasicCategoryFilterDescription }),
+    'filter[taxonomyPrimary]': z
+      .string()
+      .regex(/^[a-z0-9_]+$/)
+      .max(200)
+      .optional()
+      .openapi({ description: placeTaxonomyFilterDescription }),
+    'filter[taxonomyCategory]': z
+      .string()
+      .regex(/^[a-z0-9_]+$/)
+      .max(200)
+      .optional()
+      .openapi({
+        description:
+          'Match the primary category or an ancestor in its taxonomy hierarchy before pagination.',
+      }),
+    'filter[operatingStatus]': z
+      .enum([
+        'open',
+        'open_or_unknown',
+        'temporarily_closed',
+        'permanently_closed',
+        'unknown',
+        'any',
+      ])
+      .optional()
+      .openapi({
+        description:
+          'Exact status, any status, or open_or_unknown to include open and unclassified establishments.',
+      }),
   })
+  .refine(query => !query.cursor || query.paginate === 'true', {
+    message: 'Cursor requires paginate=true',
+    path: ['cursor'],
+  })
+  .refine(
+    query =>
+      [query.nearLat, query.nearLng, query.maxDistance].every(
+        value => value === undefined,
+      ) ||
+      [query.nearLat, query.nearLng, query.maxDistance].every(
+        value => value !== undefined,
+      ),
+    {
+      message: 'Nearby search requires nearLat, nearLng and maxDistance.',
+      path: ['nearLat'],
+    },
+  )
   .openapi('SearchQuery')
 
 export const SearchResponseSchema = z
   .object({
+    meta: z.object({ nextCursor: z.string().nullable() }).optional(),
     results: z.array(
       z
         .object({
+          preview: z
+            .object({
+              place: z.object({
+                id: IdSchema,
+                resourceReleaseId: z.string(),
+                geometry: PlaceGeometrySchema,
+                phones: z.array(z.string()).nullable(),
+                basicCategory: z.string().nullable(),
+                operatingStatus: z.string().nullable(),
+                taxonomy: PlaceTaxonomySchema,
+              }),
+              i18n: z.record(
+                z.string(),
+                z.object({
+                  name: z.string().nullable(),
+                  brandName: z.string().nullable(),
+                  freeformAddress: z.string().nullable(),
+                }),
+              ),
+            })
+            .optional()
+            .openapi({
+              description:
+                'Display facts included by include=preview; no per-result detail request is needed.',
+            }),
           placeId: IdSchema,
           resourceReleaseId: z.string(),
           locale: z.string(),

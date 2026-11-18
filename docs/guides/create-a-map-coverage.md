@@ -189,6 +189,34 @@ constrained ALS fallback and explicit ambiguity/approximation. Schema `protomaps
 archives are required for polygon address tags; publishing these archives is a separate
 release operation.
 
+Places text-search and by-cell discovery support the same exact `filter[basicCategory]`,
+`filter[taxonomyPrimary]`, and `filter[operatingStatus]` identifiers as the collection.
+The filters combine with AND before limits and pagination. Operating status describes
+business continuity, not current opening hours. The hand-over reference documents these
+controls; the sushi map example remains planned.
+
+Places discovery in the hand-over reference also specifies literal substring matching,
+AND between fragments, name/brand priority, and bounded short-query results. The map
+example still uses paginated collection queries for complete category coverage.
+
+Places text discovery supports `paginate=true` with `meta.nextCursor`, bound to the
+query, filters and publication generation. Names and brands precede contextual matches
+across pages. HTTP 410 requires an explicit restart; page size is not an exact total.
+The hand-over reference includes this continuation contract.
+
+Nearby text discovery: Places search accepts `nearLat`, `nearLng` and `maxDistance`
+together. Circle constraints apply before page limits and bind continuation identity.
+Covered by `placesSearch.test.ts`.
+
+## Filtered Places discovery
+
+The hand-over reference covers text search with classification filters applied before
+the result limit, ancestor taxonomy matching, exact and open-or-unknown status choices,
+publication-bound cursor pagination and optional display previews. Search previews
+include geometry and localised names and addresses without per-result detail requests.
+Collection pagination and pinned canonical lookup remain separate contracts. Copy review
+is still needed.
+
 Nearby forward Address geocoding accepts `nearLat`, `nearLng` and `maxDistance` with
 `address`. Circle constraints apply before ranking, totals and page limits, and bind
 continuation identity. The hand-over reference documents this contract;

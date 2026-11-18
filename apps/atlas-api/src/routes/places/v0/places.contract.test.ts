@@ -7,7 +7,9 @@ import { resolve } from 'node:path'
 import { loadMigrationSql } from '../../../../../../libs/core/src/testing/metaFixtures'
 import type { AppBindings } from '../../../types'
 import app from '../../../index'
-import { PlaceIdentifiersSchema } from '../../../schema/places'
+import { PlaceIdentifiersSchema, SearchResponseSchema } from '../../../schema/places'
+import { createSearchFtsSql } from '@repo/core/pipeline/services/search/incrementalIndex'
+import { placeSearchIndex } from '@repo/core/pipeline/services/places/searchIndex'
 
 const REPO_ROOT = resolve(import.meta.dir, '../../../../../../')
 const MIGRATIONS_DIR = resolve(REPO_ROOT, 'libs/db/migrations')
@@ -47,9 +49,8 @@ function createMockD1(
           return (statement.get(...values) as T | null) ?? null
         },
         async raw<T>() {
-          return (statement.all(...values) as Array<Record<string, unknown>>).map(row =>
-            Object.values(row),
-          ) as T[][]
+          // Preserve duplicate column names from joins, as D1 raw results do.
+          return statement.values(...values) as T[][]
         },
         async run() {
           const result = statement.run(...values)
@@ -695,6 +696,10 @@ describe('Places collection through the Worker route', () => {
       for (const [path, expected] of [
         ['/places/v0.1/search?q=sushi', { results: [] }],
         [
+          '/places/v0.1/search?q=sushi&paginate=true',
+          { results: [], meta: { nextCursor: null } },
+        ],
+        [
           '/places/v0.1/by-cell/9/89283470cdbffff?',
           {
             places: [],
@@ -1014,6 +1019,147 @@ test('Place API returns a scalar Wikidata brand identifier', async () => {
     expect(PlaceIdentifiersSchema.parse(identifiers)).toEqual({
       wikidata: { brandId: 'Q123' },
     })
+  } finally {
+    fixture.close()
+  }
+})
+
+test('Place search routes continue distinct pages and return 410 for changed cursors', async () => {
+  const fixture = createFixtureEnvironment({ rejectHistory: true })
+  try {
+    fixture.currentSqlite.exec('DROP TABLE IF EXISTS placeSearchFts')
+    fixture.currentSqlite.exec(createSearchFtsSql(placeSearchIndex))
+    run(
+      fixture.currentSqlite,
+      'INSERT INTO placeSearchScopes(scopeId,snapshotId) VALUES (?,?)',
+      ['search', PLACE_SNAPSHOT],
+    )
+    fixture.currentSqlite.exec(`INSERT INTO placeSearchFts(scopeId,placeId,locale,nameText)
+      SELECT 'search',placeId,locale,name FROM placesI18n ORDER BY placeId`)
+    const request = (suffix = '') =>
+      app.fetch(
+        new Request(
+          `http://localhost/places/v0.1/search?q=house&locale=en&limit=1&paginate=true${suffix}`,
+        ),
+        fixture.env,
+      )
+    const firstResponse = await request()
+    expect(firstResponse.status).toBe(200)
+    const first = (await firstResponse.json()) as {
+      results: { placeId: string }[]
+      meta: { nextCursor: string }
+    }
+    expect(first.results.map(row => row.placeId)).toEqual(['place-cafe'])
+    expect(first.meta.nextCursor).toBeTruthy()
+    const unpaged = await app.fetch(
+      new Request(
+        'http://localhost/places/v0.1/search?q=house&locale=en&limit=1&paginate=false',
+      ),
+      fixture.env,
+    )
+    expect(unpaged.status).toBe(200)
+    expect(await unpaged.json()).not.toHaveProperty('meta')
+    const falseCursor = await app.fetch(
+      new Request(
+        `http://localhost/places/v0.1/search?q=house&paginate=false&cursor=${encodeURIComponent(first.meta.nextCursor)}`,
+      ),
+      fixture.env,
+    )
+    expect(falseCursor.status).toBe(422)
+    const suffix = `&cursor=${encodeURIComponent(first.meta.nextCursor)}`
+    const nextResponse = await request(suffix)
+    expect(nextResponse.status).toBe(200)
+    const next = (await nextResponse.json()) as {
+      results: { placeId: string }[]
+      meta: { nextCursor: string | null }
+    }
+    expect(next.results.map(row => row.placeId)).toEqual(['place-ramen'])
+    expect(next.meta.nextCursor).toBeNull()
+    const nearbyResponse = await request(
+      '&nearLat=22.285&nearLng=114.155&maxDistance=50',
+    )
+    expect(nearbyResponse.status).toBe(200)
+    expect(await nearbyResponse.json()).toMatchObject({
+      results: [{ placeId: 'place-ramen' }],
+      meta: { nextCursor: null },
+    })
+    expect((await request('&nearLat=22.285')).status).toBe(422)
+    expect(
+      (await request(`${suffix}&nearLat=22.285&nearLng=114.155&maxDistance=50`)).status,
+    ).toBe(410)
+    const changedFilter = await request(`${suffix}&filter[basicCategory]=cafe`)
+    expect(changedFilter.status).toBe(410)
+    expect(await changedFilter.json()).toMatchObject({ error: 'search_expired' })
+    const unpagedCursor = await app.fetch(
+      new Request(`http://localhost/places/v0.1/search?q=house${suffix}`),
+      fixture.env,
+    )
+    expect(unpagedCursor.status).toBe(422)
+    fixture.currentSqlite.exec(
+      "UPDATE placePublicationState SET publicationToken='replacement'",
+    )
+    expect((await request(suffix)).status).toBe(410)
+  } finally {
+    fixture.close()
+  }
+})
+
+test('Places search exposes filtered preview pages and rejects changed continuations', async () => {
+  const fixture = createFixtureEnvironment({ rejectHistory: true })
+  try {
+    fixture.currentSqlite.exec('DROP TABLE IF EXISTS placeSearchFts')
+    fixture.currentSqlite.exec(createSearchFtsSql(placeSearchIndex))
+    run(
+      fixture.currentSqlite,
+      'INSERT INTO placeSearchScopes(scopeId,snapshotId) VALUES (?,?)',
+      ['search', PLACE_SNAPSHOT],
+    )
+    fixture.currentSqlite.exec(
+      "INSERT INTO placeSearchFts(scopeId,placeId,locale,nameText,addressText) SELECT 'search',placeId,locale,name,'Sheung Wan' FROM placesI18n",
+    )
+    const query = new URLSearchParams({
+      q: 'sheung wan',
+      locale: 'en',
+      limit: '1',
+      paginate: 'true',
+      include: 'preview',
+      'filter[taxonomyCategory]': 'food_and_drink',
+      'filter[operatingStatus]': 'open_or_unknown',
+    })
+    for (const version of ['v0', 'v0.1']) {
+      const request = () =>
+        app.fetch(
+          new Request(`http://localhost/places/${version}/search?${query}`),
+          fixture.env,
+        )
+      const response = await request()
+      expect(response.status).toBe(200)
+      const first = SearchResponseSchema.parse(await response.json())
+      expect(first.results).toHaveLength(1)
+      expect(first.results[0]?.preview?.place.geometry.type).toBe('Point')
+      expect(first.results[0]?.preview?.i18n.en?.name).toBeTruthy()
+      expect(first.meta?.nextCursor).toBeTruthy()
+      query.set('cursor', first.meta!.nextCursor!)
+      const secondResponse = await request()
+      expect(secondResponse.status).toBe(200)
+      const second = SearchResponseSchema.parse(await secondResponse.json())
+      expect(second.results).toHaveLength(1)
+      expect(second.results[0]?.placeId).not.toBe(first.results[0]?.placeId)
+      expect(second.meta?.nextCursor).toBeNull()
+      query.set('filter[taxonomyCategory]', 'shopping')
+      const expired = await request()
+      expect(expired.status).toBe(410)
+      expect(await expired.json()).toMatchObject({ error: 'search_expired' })
+      query.delete('cursor')
+      query.set('filter[taxonomyCategory]', 'food_and_drink')
+    }
+    const invalid = await app.fetch(
+      new Request(
+        'http://localhost/places/v0.1/search?q=shop&filter[operatingStatus]=invalid',
+      ),
+      fixture.env,
+    )
+    expect(invalid.status).toBe(422)
   } finally {
     fixture.close()
   }

@@ -226,6 +226,18 @@ text projection, including linked addresses, the selected Address3D unit, street
 division names. Only removed or changed documents are deleted, and only new or changed
 documents are inserted. Identical snapshot promotion updates the scope mapping alone.
 
+Text discovery matches literal fragments, including inside names (for example `axim` in
+`Maxim's Cakes`), with AND between query terms. Name and brand matches precede
+address/category matches. Trigram FTS anchors terms of at least three Unicode
+characters; shorter terms use a limited scan of the selected index. Broad queries return
+a bounded sample, not all matches. Source labels retain their punctuation.
+
+The index must use the trigram tokenizer before serving substring queries; otherwise
+search reports `fts_not_ready`. For a retained word-token index, execute
+`libs/db/scripts/sql/upgrade-places-search-trigrams.sql` in one current-database
+transaction or D1 batch. It preserves row IDs, dependency text, scope mappings and
+published records. Fresh publication and repair SQL use the same trigram definition.
+
 Publication finalises Place and supplementary Address search together in one atomic
 current-database batch. Deferred uploads finalise once through release-set
 reconciliation after the sequence completes; pending release sets prevent finalisation.

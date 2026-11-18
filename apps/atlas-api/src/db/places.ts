@@ -1,3 +1,11 @@
+import type { z } from 'zod'
+import type { SearchResponseSchema } from '../schema/places'
+import { distanceMetres } from '../services/divisionGeocoding'
+import {
+  placeSearchKey,
+  readPlaceSearchCursor,
+  writePlaceSearchCursor,
+} from './placeSearchCursor'
 import { chunkArray } from '@repo/core/pipeline/utils.ts'
 import { placeDivisionFieldNames } from '@repo/db'
 import {
@@ -6,7 +14,10 @@ import {
 } from '@repo/core/pipeline/services/places/publicationDependencies'
 import { normalisePlaceBbox } from '@repo/core/pipeline/services/places/placeGeometry'
 import { parseI18nMeta } from '@repo/db'
-import { geographicMembershipSql } from '../lib/geographicFilterContext'
+import {
+  geographicMembershipSql,
+  geographicFilterContext,
+} from '../lib/geographicFilterContext'
 import {
   getPublicationReadiness,
   publicationScopeCondition,
@@ -20,14 +31,7 @@ import { currentSchema } from '@repo/db'
 import type { RequestedApiLocaleSelection } from '@repo/core/apiLocales'
 import { MAX_PLACE_RESULTS } from '../lib/api-limits'
 
-const {
-  places,
-  placesCells,
-  placesFts,
-  placeSearchScopes,
-  placesFtsMatch,
-  placesI18n,
-} = currentSchema
+const { places, placesCells, placesFts, placeSearchScopes, placesI18n } = currentSchema
 
 type PlaceLookup = {
   placeId: string
@@ -41,6 +45,9 @@ type I18nLookup = {
 }
 
 type H3Lookup = {
+  basicCategory?: string
+  taxonomyPrimary?: string
+  operatingStatus?: string
   snapshotId: string
   h3Level: number
   h3Cell: string
@@ -49,10 +56,19 @@ type H3Lookup = {
 }
 
 type FtsLookup = {
+  nearLat?: number
+  nearLng?: number
+  maxDistance?: number
+  cursor?: string
+  basicCategory?: string
+  taxonomyPrimary?: string
+  operatingStatus?: string
   snapshotId: string
   locale?: string
   query: string
   limit?: number
+  taxonomyCategory?: string
+  includePreview?: boolean
 }
 
 export type PlaceLocaleValue = {
@@ -248,6 +264,15 @@ export async function listPlacesByH3Cell(db: CurrentDatabase, lookup: H3Lookup) 
         publicationScopeCondition('place', placesCells.scopeId, [lookup.snapshotId]),
         eq(placesCells.h3Level, lookup.h3Level),
         eq(placesCells.h3Cell, lookup.h3Cell),
+        lookup.basicCategory
+          ? eq(places.basicCategory, lookup.basicCategory)
+          : undefined,
+        lookup.taxonomyPrimary
+          ? eq(places.taxonomyPrimary, lookup.taxonomyPrimary)
+          : undefined,
+        lookup.operatingStatus
+          ? eq(places.operatingStatus, lookup.operatingStatus)
+          : undefined,
         placeGeographicCondition(),
       ),
     )
@@ -268,57 +293,315 @@ function normalizePlaceSearchQuery(query: string): string {
     .trim()
 }
 
-export async function searchPlacesFts(db: CurrentDatabase, lookup: FtsLookup) {
+type PlaceSearchResult = {
+  preview?: z.infer<typeof SearchResponseSchema>['results'][number]['preview']
+  placeId: string
+  resourceReleaseId: string
+  locale: string
+  nameText: string | null
+  brandText: string | null
+}
+
+/** Match all literal fragments with one bound parameter regardless of term count.
+ * @param terms Normalised fragments, with SQL wildcard punctuation removed.
+ * @param namesOnly Restrict the checked fields to names and brands.
+ * @returns A residual predicate, used only after an indexed anchor when available.
+ */
+function placeLiteralMatch(
+  terms: string[],
+  namesOnly: boolean,
+): ReturnType<typeof sql> {
+  const fields = namesOnly
+    ? [placesFts.nameText, placesFts.brandText]
+    : [
+        placesFts.nameText,
+        placesFts.brandText,
+        placesFts.taxonomyText,
+        placesFts.addressText,
+        placesFts.divisionText,
+        placesFts.streetText,
+      ]
+  return sql`NOT EXISTS (
+    SELECT 1 FROM json_each(${JSON.stringify(terms)}) term WHERE NOT (${sql.join(
+      fields.map(field => sql`coalesce(${field}, '') LIKE '%' || term.value || '%'`),
+      sql` OR `,
+    )})
+  )`
+}
+
+/** Build literal substring predicates with an indexed anchor whenever possible.
+ * @param terms Normalised query fragments, combined with AND.
+ * @param namesOnly Restrict matching to names and brands.
+ * @returns A bound FTS expression plus residual checks for one/two-character terms.
+ * @remarks Short fragments cannot use trigrams. Longer fragments in the same query
+ * still narrow the scan; no user text is interpreted as FTS syntax or SQL wildcards.
+ */
+function placeSubstringMatch(
+  terms: string[],
+  namesOnly: boolean,
+): ReturnType<typeof sql> {
+  const indexed = terms.filter(term => [...term].length >= 3)
+  const short = terms.filter(term => [...term].length < 3)
+  const conditions = short.length ? [placeLiteralMatch(short, namesOnly)] : []
+  if (indexed.length) {
+    const phrase = indexed.map(term => `"${term.replaceAll('"', '""')}"`).join(' AND ')
+    conditions.unshift(
+      sql`${placesFts} MATCH ${namesOnly ? `{nameText brandText} : (${phrase})` : phrase}`,
+    )
+  }
+  return sql.join(conditions, sql` AND `)
+}
+
+/** Find literal fragments in the latest published Places index.
+ * @param db Current publication database.
+ * @param lookup Snapshot, query, optional locale and exact classification filters.
+ * @returns A bounded page with name/brand hits first and an explicit continuation.
+ * @remarks Short broad searches stop at the result limit without a catalogue-wide
+ * sort/count. Stable FTS row order breaks ties; a broad query is not exhaustive.
+ */
+export async function searchPlacesFtsPage(
+  db: CurrentDatabase,
+  lookup: FtsLookup,
+): Promise<{ results: PlaceSearchResult[]; nextCursor: string | null }> {
+  const terms = [
+    ...new Set(normalizePlaceSearchQuery(lookup.query).split(' ').filter(Boolean)),
+  ]
+  if (!terms.length) return { results: [], nextCursor: null }
   try {
     if (!(await hasCurrentPlaceSnapshot(db, lookup.snapshotId)))
       throw new Error('Place search is not ready for the latest published release.')
     const readSearchScope = () =>
       db
-        .select({ scopeId: placeSearchScopes.scopeId })
+        .select({
+          scopeId: placeSearchScopes.scopeId,
+          physicalScopeId: currentSchema.placePublicationState.scopeId,
+          publicationToken: currentSchema.placePublicationState.publicationToken,
+        })
         .from(placeSearchScopes)
-        .where(eq(placeSearchScopes.snapshotId, lookup.snapshotId))
+        .innerJoin(
+          currentSchema.placePublicationState,
+          and(
+            eq(
+              currentSchema.placePublicationState.snapshotId,
+              placeSearchScopes.snapshotId,
+            ),
+            eq(currentSchema.placePublicationState.status, 'current'),
+            sql`${currentSchema.placePublicationState.preparedAt} IS NOT NULL`,
+            sql`${currentSchema.placePublicationState.publicationToken} <> ''`,
+          ),
+        )
+        .where(
+          and(
+            eq(placeSearchScopes.snapshotId, lookup.snapshotId),
+            // A word-token index cannot satisfy the substring query contract.
+            sql`exists (select 1 from sqlite_master where name = 'placeSearchFts' and sql like '%trigram%')`,
+          ),
+        )
         .get()
     const ready = await readSearchScope()
     if (!ready)
       throw new Error('Place search is not ready for the latest published release.')
-    const rows = await db
-      .select({
-        placeId: places.id,
-        resourceReleaseId: places.resourceReleaseId,
-        locale: placesFts.locale,
-        nameText: sql<
-          string | null
-        >`CASE WHEN instr(${placesFts.nameText}, char(31)) > 0 THEN substr(${placesFts.nameText}, 1, instr(${placesFts.nameText}, char(31)) - 1) ELSE ${placesFts.nameText} END`,
-        brandText: sql<
-          string | null
-        >`CASE WHEN instr(${placesFts.brandText}, char(31)) > 0 THEN substr(${placesFts.brandText}, 1, instr(${placesFts.brandText}, char(31)) - 1) ELSE ${placesFts.brandText} END`,
-      })
-      .from(placesFts)
-      .innerJoin(placeSearchScopes, eq(placesFts.scopeId, placeSearchScopes.scopeId))
-      .innerJoin(
-        places,
-        and(
-          eq(
-            publicationLogicalSnapshot('place', places.scopeId),
-            placeSearchScopes.snapshotId,
+    const geography = geographicFilterContext()
+    const key = await placeSearchKey({
+      geography: geography
+        ? {
+            ...geography,
+            groups: geography.groups.map(group => [...group].sort()),
+            divisionClasses: geography.divisionClasses
+              ? [...geography.divisionClasses].sort(([a], [b]) => a.localeCompare(b))
+              : undefined,
+          }
+        : null,
+      nearLat: lookup.nearLat ?? null,
+      nearLng: lookup.nearLng ?? null,
+      maxDistance: lookup.maxDistance ?? null,
+      terms,
+      taxonomyCategory: lookup.taxonomyCategory ?? null,
+      snapshotId: lookup.snapshotId,
+      locale: lookup.locale ?? null,
+      basicCategory: lookup.basicCategory ?? null,
+      taxonomyPrimary: lookup.taxonomyPrimary ?? null,
+      operatingStatus: lookup.operatingStatus ?? null,
+      publication: ready,
+    })
+    const cursor = readPlaceSearchCursor(lookup.cursor, key)
+    const ownMatch = placeLiteralMatch(terms, true)
+    const limit = Math.min(lookup.limit ?? 20, MAX_PLACE_RESULTS)
+    // Two bounded passes prioritise names without sorting every match to a letter.
+    const readBatch = (
+      namesOnly: boolean,
+      remaining: number,
+      afterRow: number,
+    ): Promise<
+      (PlaceSearchResult & {
+        rowid: number
+        phase: 'names' | 'context'
+        previewJson: string | null
+        lng: number | null
+        lat: number | null
+      })[]
+    > =>
+      db
+        .select({
+          previewJson: lookup.includePreview
+            ? sql<string>`json_object(
+            'place', json_object('id', ${places.id}, 'resourceReleaseId', ${places.resourceReleaseId},
+              'geometry', json(${places.geometry}), 'phones', json(${places.phones}),
+              'basicCategory', ${places.basicCategory}, 'operatingStatus', ${places.operatingStatus},
+              'taxonomy', json_object('primary', ${places.taxonomyPrimary},
+                'hierarchy', json(${places.taxonomyHierarchy}), 'alternates', json(${places.taxonomyAlternates}))),
+            'i18n', json(coalesce((select json_group_object(${placesI18n.locale}, json_object(
+              'name', ${placesI18n.name}, 'brandName', ${placesI18n.brandName},
+              'freeformAddress', ${placesI18n.freeformAddress})) from ${placesI18n}
+              where ${placesI18n.scopeId} = ${places.scopeId} and ${placesI18n.placeId} = ${places.id}), '{}'))
+          )`
+            : sql<null>`NULL`,
+          lng:
+            lookup.nearLat === undefined
+              ? sql<null>`NULL`
+              : sql<number>`json_extract(${places.geometry}, '$.coordinates[0]')`,
+          lat:
+            lookup.nearLat === undefined
+              ? sql<null>`NULL`
+              : sql<number>`json_extract(${places.geometry}, '$.coordinates[1]')`,
+          rowid: sql<number>`${placesFts}.rowid`,
+          phase: sql<'names' | 'context'>`${namesOnly ? 'names' : 'context'}`,
+          placeId: places.id,
+          resourceReleaseId: places.resourceReleaseId,
+          locale: placesFts.locale,
+          nameText: sql<
+            string | null
+          >`CASE WHEN instr(${placesFts.nameText}, char(31)) > 0 THEN substr(${placesFts.nameText}, 1, instr(${placesFts.nameText}, char(31)) - 1) ELSE ${placesFts.nameText} END`,
+          brandText: sql<
+            string | null
+          >`CASE WHEN instr(${placesFts.brandText}, char(31)) > 0 THEN substr(${placesFts.brandText}, 1, instr(${placesFts.brandText}, char(31)) - 1) ELSE ${placesFts.brandText} END`,
+        })
+        .from(placesFts)
+        .innerJoin(placeSearchScopes, eq(placesFts.scopeId, placeSearchScopes.scopeId))
+        .innerJoin(
+          places,
+          and(
+            // Resolve the physical scope once so the (scopeId, id) primary key is usable.
+            eq(places.scopeId, ready.physicalScopeId),
+            eq(places.id, placesFts.placeId),
           ),
-          eq(places.id, placesFts.placeId),
-        ),
-      )
-      .where(
-        and(
-          eq(placeSearchScopes.snapshotId, lookup.snapshotId),
-          lookup.locale ? eq(placesFts.locale, lookup.locale) : undefined,
-          placesFtsMatch(normalizePlaceSearchQuery(lookup.query)),
-          placeGeographicCondition(),
-        ),
-      )
-      .limit(Math.min(lookup.limit ?? 20, MAX_PLACE_RESULTS))
-      .all()
+        )
+        .where(
+          and(
+            eq(placeSearchScopes.snapshotId, lookup.snapshotId),
+            lookup.locale ? eq(placesFts.locale, lookup.locale) : undefined,
+            placeSubstringMatch(terms, namesOnly),
+            // Choose a matching localisation once per Place, preserving name-first ranking.
+            lookup.locale
+              ? undefined
+              : sql`NOT EXISTS (
+              SELECT 1 FROM placeSearchFts alternate
+              WHERE alternate.scopeId = ${placesFts.scopeId}
+                AND alternate.placeId = ${placesFts.placeId}
+                AND NOT EXISTS (SELECT 1 FROM json_each(${JSON.stringify(terms)}) term
+                  WHERE NOT (coalesce(alternate.nameText, '') LIKE '%' || term.value || '%'
+                    OR coalesce(alternate.brandText, '') LIKE '%' || term.value || '%'
+                    OR coalesce(alternate.taxonomyText, '') LIKE '%' || term.value || '%'
+                    OR coalesce(alternate.addressText, '') LIKE '%' || term.value || '%'
+                    OR coalesce(alternate.divisionText, '') LIKE '%' || term.value || '%'
+                    OR coalesce(alternate.streetText, '') LIKE '%' || term.value || '%'))
+                AND (CASE WHEN NOT EXISTS (SELECT 1 FROM json_each(${JSON.stringify(terms)}) term
+                    WHERE NOT (coalesce(alternate.nameText, '') LIKE '%' || term.value || '%'
+                      OR coalesce(alternate.brandText, '') LIKE '%' || term.value || '%'))
+                  THEN 0 ELSE 1 END) <= ${namesOnly ? 0 : 1}
+                AND (alternate.rowid < ${placesFts}.rowid OR (${namesOnly ? 0 : 1} = 1
+                  AND NOT EXISTS (SELECT 1 FROM json_each(${JSON.stringify(terms)}) term
+                    WHERE NOT (coalesce(alternate.nameText, '') LIKE '%' || term.value || '%'
+                      OR coalesce(alternate.brandText, '') LIKE '%' || term.value || '%'))))
+            )`,
+            // Seek after the previous row within its ranking phase; never rescan prior pages.
+            sql`${placesFts}.rowid > ${afterRow}`,
+            namesOnly ? undefined : sql`NOT ${ownMatch}`,
+            // A conservative latitude band reduces hydration; exact circle checks precede pagination.
+            lookup.nearLat === undefined
+              ? undefined
+              : sql`json_extract(${places.geometry}, '$.coordinates[1]') BETWEEN ${lookup.nearLat - ((lookup.maxDistance! / 6371008.8) * 180) / Math.PI} AND ${lookup.nearLat + ((lookup.maxDistance! / 6371008.8) * 180) / Math.PI}`,
+            // Filter the full match set before limiting so selected categories retain recall.
+            lookup.basicCategory
+              ? eq(places.basicCategory, lookup.basicCategory)
+              : undefined,
+            lookup.taxonomyPrimary
+              ? eq(places.taxonomyPrimary, lookup.taxonomyPrimary)
+              : undefined,
+            lookup.taxonomyCategory
+              ? sql`(${places.taxonomyPrimary} = ${lookup.taxonomyCategory}
+                OR EXISTS (SELECT 1 FROM json_each(${places.taxonomyHierarchy}) category
+                  WHERE category.value = ${lookup.taxonomyCategory}))`
+              : undefined,
+            lookup.operatingStatus === 'open_or_unknown'
+              ? sql`(${places.operatingStatus} IS NULL OR ${places.operatingStatus} IN ('open', 'unknown', ''))`
+              : lookup.operatingStatus && lookup.operatingStatus !== 'any'
+                ? eq(places.operatingStatus, lookup.operatingStatus)
+                : undefined,
+            placeGeographicCondition(),
+          ),
+        )
+        .orderBy(sql`${placesFts}.rowid`)
+        .limit(remaining)
+        .all()
+    /** Scan text matches until a radius-filtered page is full or the phase is exhausted.
+     * @param namesOnly Name/brand ranking phase.
+     * @param remaining Page capacity including the continuation witness.
+     * @returns Matches inside the circle before the public page limit is applied.
+     */
+    const readMatches = async (namesOnly: boolean, remaining: number) => {
+      const matches: (PlaceSearchResult & {
+        rowid: number
+        phase: 'names' | 'context'
+      })[] = []
+      let afterRow =
+        cursor.phase === (namesOnly ? 'names' : 'context') ? cursor.rowid : 0
+      const batchSize =
+        lookup.nearLat === undefined ? remaining : Math.max(100, remaining)
+      while (matches.length < remaining) {
+        const batch = await readBatch(namesOnly, batchSize, afterRow)
+        for (const { lng, lat, previewJson, ...row } of batch) {
+          if (
+            lookup.nearLat !== undefined &&
+            (lng === null ||
+              lat === null ||
+              distanceMetres([lookup.nearLng!, lookup.nearLat], [lng, lat]) >
+                lookup.maxDistance!)
+          )
+            continue
+          matches.push({
+            ...row,
+            ...(previewJson
+              ? { preview: JSON.parse(previewJson) as PlaceSearchResult['preview'] }
+              : {}),
+          })
+          if (matches.length === remaining) break
+        }
+        if (batch.length < batchSize) break
+        afterRow = batch.at(-1)!.rowid
+      }
+      return matches
+    }
+    // One look-ahead row establishes continuation without an exhaustive count query.
+    const rows = cursor.phase === 'names' ? await readMatches(true, limit + 1) : []
+    if (rows.length <= limit)
+      rows.push(...(await readMatches(false, limit + 1 - rows.length)))
     const after = await readSearchScope()
-    if (after?.scopeId !== ready.scopeId)
+    if (
+      after?.scopeId !== ready.scopeId ||
+      after.physicalScopeId !== ready.physicalScopeId ||
+      after.publicationToken !== ready.publicationToken
+    )
       throw new Error('Place search is not ready for the latest published release.')
-    return rows
+    const page = rows.slice(0, limit)
+    const last = page.at(-1)
+    return {
+      results: page.map(({ rowid, phase, ...row }) => row),
+      nextCursor:
+        rows.length > limit && last
+          ? writePlaceSearchCursor({ key, phase: last.phase, rowid: last.rowid })
+          : null,
+    }
   } catch (error) {
     if (
       error instanceof Error &&
@@ -330,9 +613,20 @@ export async function searchPlacesFts(db: CurrentDatabase, lookup: FtsLookup) {
         cause: error,
       })
     }
-
     throw error
   }
+}
+
+/** Read one bounded discovery page for callers that do not request continuation.
+ * @param db Current publication database.
+ * @param lookup Query and classification filters.
+ * @returns Name/brand matches followed by contextual matches.
+ */
+export async function searchPlacesFts(
+  db: CurrentDatabase,
+  lookup: FtsLookup,
+): Promise<PlaceSearchResult[]> {
+  return (await searchPlacesFtsPage(db, lookup)).results
 }
 
 function buildPlaceI18nCondition(localeSelection: RequestedApiLocaleSelection) {

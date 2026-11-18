@@ -1,6 +1,7 @@
 import {
   buildSearchContentSql,
   buildSearchSyncSql,
+  createSearchFtsSql,
   type SearchIndexDefinition,
   type SearchScope,
 } from '../search/incrementalIndex'
@@ -22,6 +23,7 @@ export const placeSearchIndex: SearchIndexDefinition = {
   resourceType: 'place',
   domainCode: 'overture',
   table: 'placeSearchFts',
+  tokenizer: 'trigram',
   scopesTable: 'placeSearchScopes',
   retiredTable: 'placesFts',
   fields: [
@@ -63,3 +65,26 @@ export const buildPlaceSearchSyncSql = (scopes: readonly SearchScope[]) =>
   buildSearchSyncSql(placeSearchIndex, scopes)
 export const buildPlaceSearchContentSql = (selection?: string) =>
   buildSearchContentSql(placeSearchIndex, selection)
+
+/** Upgrade a retained word-token index without changing its publication selection.
+ * @returns Statements to execute together in one transaction or D1 batch.
+ * @remarks This is derived-index maintenance, independent of schema migrations.
+ * Keep row IDs and all dependency text; append missing punctuation keys for names.
+ */
+export function buildPlaceSearchTrigramUpgradeSql(): string[] {
+  const columns = placeSearchIndex.fields.join(', ')
+  const temporary = 'placeSearchTrigramUpgrade'
+  const fields = placeSearchIndex.fields
+    .map(field =>
+      field === 'nameText' || field === 'brandText'
+        ? `CASE WHEN instr(${field}, char(31)) > 0 THEN ${field} ELSE ${punctuationSearchSql(field)} END`
+        : field,
+    )
+    .join(', ')
+  return [
+    createSearchFtsSql({ ...placeSearchIndex, table: temporary }),
+    `INSERT INTO ${temporary} (rowid, ${columns}) SELECT rowid, ${fields} FROM placeSearchFts`,
+    'DROP TABLE placeSearchFts',
+    `ALTER TABLE ${temporary} RENAME TO placeSearchFts`,
+  ]
+}
