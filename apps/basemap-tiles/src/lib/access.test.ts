@@ -23,6 +23,7 @@ const config: OriginAccessConfig = {
 
 for (const origin of [
   'http://hype.localhost',
+  'https://fi.tailb49776.ts.net:10000',
   'http://review.localhost',
   'http://review.localhost:5185',
 ]) {
@@ -42,6 +43,8 @@ for (const origin of [
       { unmetered: true },
     )
     assert.equal(isUnmeteredOrigin('http://hype.localhost.example.com', vars), false)
+    assert.equal(isUnmeteredOrigin('https://fi.tailb49776.ts.net.example', vars), false)
+    assert.equal(isUnmeteredOrigin('https://fi.another-tailnet.ts.net', vars), false)
     assert.equal(isUnmeteredOrigin('http://other.localhost', vars), false)
     assert.equal(isUnmeteredOrigin('http://review.localhost.example.com', vars), false)
     assert.equal(isUnmeteredOrigin('http://review.localhost:9999', vars), false)
