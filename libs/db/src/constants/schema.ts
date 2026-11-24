@@ -35,7 +35,7 @@ export const resolverCodes = [
   'derive_statistics_record_id',
   'normalise_statistics',
   'compose_source_feature_ref',
-  'derive_address_granularity',
+  'derive_address_scope',
   'prefer_hkgov_then_overture',
   'prefer_overture_then_hkgov',
   'merge_first_non_empty',

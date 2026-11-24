@@ -120,8 +120,7 @@ type AddressHashInput = Omit<
 
 type CurrentAddressVersionLookupRow = Pick<
   CurrentAddressVersionRow,
-  | 'parentAddressId'
-  | 'granularity'
+  | 'scope'
   | 'islandId'
   | 'areaId'
   | 'countryId'
@@ -197,8 +196,7 @@ WHERE scopeId = ${sqlLiteral(snapshotId)}
 function selectCurrentAddressVersionFields() {
   return {
     id: historySchema.address2d.id,
-    parentAddressId: historySchema.address2d.parentAddressId,
-    granularity: historySchema.address2d.granularity,
+    scope: historySchema.address2d.scope,
     streetId: historySchema.address2d.streetId,
     hamletId: historySchema.address2d.hamletId,
     microhoodId: historySchema.address2d.microhoodId,
@@ -601,8 +599,7 @@ export async function cloneAddressCurrentSnapshot(
             countryId: currentSchema.address2d.countryId,
             identifiers: currentSchema.address2d.identifiers,
             sources: currentSchema.address2d.sources,
-            parentAddressId: currentSchema.address2d.parentAddressId,
-            granularity: currentSchema.address2d.granularity,
+            scope: currentSchema.address2d.scope,
             geometry: currentSchema.address2d.geometry,
             createdAt: sql<string>`${clonedAt}`,
           })
@@ -736,8 +733,7 @@ export async function upsertAddressCurrentStates(
             geometry: excluded('geometry'),
             identifiers: excluded('identifiers'),
             sources: excluded('sources'),
-            parentAddressId: excluded('parentAddressId'),
-            granularity: excluded('granularity'),
+            scope: excluded('scope'),
           },
         })
         .run(),
@@ -981,8 +977,7 @@ export async function insertAddressVersionRows(
             geometry: row.geometry,
             identifiers: row.identifiers,
             sources: row.sources,
-            parentAddressId: row.parentAddressId,
-            granularity: row.granularity,
+            scope: row.scope,
             createdAt: row.createdAt,
           })),
         )

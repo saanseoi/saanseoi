@@ -1,12 +1,12 @@
 ---
-createdAt: "2026-08-20T00:00:00.000Z"
-updatedAt: "2026-08-25T00:00:00.000Z"
-apiFamily: "divisions"
-apiVersion: "api-divisions-v0.1"
-apiReleaseSet: "data-hk-divisions-2011--hkgov-pland-pu"
-regionCode: "hk"
-cohortKey: "2011"
-domainCode: "hkgov-pland-pu"
+createdAt: '2026-08-20T00:00:00.000Z'
+updatedAt: '2026-08-25T00:00:00.000Z'
+apiFamily: 'divisions'
+apiVersion: 'api-divisions-v0.1'
+apiReleaseSet: 'data-hk-divisions-2011--hkgov-pland-pu'
+regionCode: 'hk'
+cohortKey: '2011'
+domainCode: 'hkgov-pland-pu'
 ---
 
 # EN
@@ -38,16 +38,16 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
   across cohorts, while each cohort records its own hierarchy and geometry.
 - Some general Divisions fields are blank (<black>null</black>) because the source does
   not provide them. This is expected.
-- Consult the [source-release notes]({{ primarySourceReleaseUrl }}) for
-  <black>{{ primarySourceRelease }}</black> for publisher-specific compatibility and
-  quality decisions.
+- Consult the [source-release notes]({{ primarySourceReleaseUrl }}) for <black>{{
+  primarySourceRelease }}</black> for publisher-specific compatibility and quality
+  decisions.
 
 # ZH-HANT
 
 ## 更新紀錄
 
-- <orange>上游</orange> 發布 <black>{{ cohortKey }}</black>
-  <i>規劃署</i>規劃單位及分區 cohort。
+- <orange>上游</orange> 發布 <black>{{ cohortKey }}</black> <i>規劃署</i>規劃單位及分區
+  cohort。
 
 ## 修訂紀錄
 
@@ -59,25 +59,26 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 此不可變的 [發布集](saanseoi:zh-hant:definition/release-set/v1) 發布
 {{regionName:zh-Hant}} 的 <black>{{ domainCode }}</black>
 [domain](saanseoi:zh-hant:definition/domain/v1)
-[cohort](saanseoi:zh-hant:definition/cohort/v1)
-<black>{{ cohortKey }}</black>。以下來源發布組成此發布集。
+[cohort](saanseoi:zh-hant:definition/cohort/v1) <black>{{ cohortKey
+}}</black>。以下來源發布組成此發布集。
 
 {{apiReleaseSetSources:zh-Hant}}
 
 ## 備註與限制
 
 - <black>規劃單位</black>及<black>分區</black>屬規劃地理單元，而非
-  <black>區議會分區</black>。其識別碼屬於<black>規劃署</black>；相同發布者代碼可跨 cohort 保持身分，而各 cohort 仍記錄自己的層級及幾何。
+  <black>區議會分區</black>。其識別碼屬於<black>規劃署</black>；相同發布者代碼可跨
+  cohort 保持身分，而各 cohort 仍記錄自己的層級及幾何。
 - 部分一般 Divisions 欄位因來源未提供而為空值 (<black>null</black>)。這是預期行為。
-- 請參閱 <black>{{ primarySourceRelease }}</black>
-  的 [來源發布說明]({{ primarySourceReleaseUrl }})，以了解發布者特有的相容性及品質決定。
+- 請參閱 <black>{{ primarySourceRelease }}</black> 的 [來源發布說明]({{
+  primarySourceReleaseUrl }})，以了解發布者特有的相容性及品質決定。
 
 # ZH-HANS
 
 ## 更新记录
 
-- <orange>上游</orange> 发布 <black>{{ cohortKey }}</black>
-  <i>规划署</i>规划单位及分区 cohort。
+- <orange>上游</orange> 发布 <black>{{ cohortKey }}</black> <i>规划署</i>规划单位及分区
+  cohort。
 
 ## 修订记录
 
@@ -89,15 +90,16 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 此不可变的 [发布集](saanseoi:zh-hans:definition/release-set/v1) 发布
 {{regionName:zh-Hans}} 的 <black>{{ domainCode }}</black>
 [domain](saanseoi:zh-hans:definition/domain/v1)
-[cohort](saanseoi:zh-hans:definition/cohort/v1)
-<black>{{ cohortKey }}</black>。以下源发布构成此发布集。
+[cohort](saanseoi:zh-hans:definition/cohort/v1) <black>{{ cohortKey
+}}</black>。以下源发布构成此发布集。
 
 {{apiReleaseSetSources:zh-Hans}}
 
 ## 备注与限制
 
 - <black>规划单位</black>及<black>分区</black>属规划地理单元，而非
-  <black>区议会分区</black>。其标识符属于<black>规划署</black>；相同发布者代码可跨 cohort 保持身份，而各 cohort 仍记录自己的层级及几何。
+  <black>区议会分区</black>。其标识符属于<black>规划署</black>；相同发布者代码可跨
+  cohort 保持身份，而各 cohort 仍记录自己的层级及几何。
 - 部分一般 Divisions 字段因源未提供而为空值 (<black>null</black>)。这是预期行为。
-- 请参阅 <black>{{ primarySourceRelease }}</black>
-  的 [源发布说明]({{ primarySourceReleaseUrl }})，以了解发布者特有的兼容性及质量决定。
+- 请参阅 <black>{{ primarySourceRelease }}</black> 的 [源发布说明]({{
+  primarySourceReleaseUrl }})，以了解发布者特有的兼容性及质量决定。

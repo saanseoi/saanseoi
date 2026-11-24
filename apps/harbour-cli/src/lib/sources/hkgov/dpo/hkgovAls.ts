@@ -487,8 +487,8 @@ async function prepareHkgovAlsAddressParquetInternal(
           rows.map(row => row.parentAddressId ?? null),
         ),
         stringColumn(
-          'curatedGranularity',
-          rows.map(row => row.curatedGranularity ?? null),
+          'curatedScope',
+          rows.map(row => row.curatedScope ?? null),
         ),
         stringColumn(
           'hierarchyCuration',

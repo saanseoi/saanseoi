@@ -47,7 +47,7 @@ test('enrichment reuse preserves Map statistics and invalidates same-snapshot un
         generations++
         const match = await createPlaceAddress3dMatcher(db, observe)(
           'snapshot',
-          { id: 'building', parentAddressId: null },
+          { id: 'building' },
           ['Flat A, 1/F, Example Building'],
         )
         if (mutateDuringPreparation) unitId = 'concurrent-edit'

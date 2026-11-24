@@ -1,18 +1,18 @@
 ---
-createdAt: "2026-07-21T00:00:00.000Z"
-updatedAt: "2026-07-21T00:00:00.000Z"
-dataset: "ds-hk-hkgov-pland-division-pu"
-release: "dr-hk-hkgov-pland-division-pu-2021"
-regionCode: "hk"
-source: "hkgov-pland-pu"
-publicationDate: "2022-06-24"
-publicationDateSource: "https://portal.csdi.gov.hk/geoportal/rest/metadata/item/pland_rcd_1634022783366_65050/xml"
-sourceVersion: "2021"
-releaseVersion: "2021.0"
-sourceSchemaVersion: "2.0"
-type: "division"
-cohortKey: "2021"
-releaseNotesUrl: "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=pland_rcd_1634022783366_65050"
+createdAt: '2026-07-21T00:00:00.000Z'
+updatedAt: '2026-07-21T00:00:00.000Z'
+dataset: 'ds-hk-hkgov-pland-division-pu'
+release: 'dr-hk-hkgov-pland-division-pu-2021'
+regionCode: 'hk'
+source: 'hkgov-pland-pu'
+publicationDate: '2022-06-24'
+publicationDateSource: 'https://portal.csdi.gov.hk/geoportal/rest/metadata/item/pland_rcd_1634022783366_65050/xml'
+sourceVersion: '2021'
+releaseVersion: '2021.0'
+sourceSchemaVersion: '2.0'
+type: 'division'
+cohortKey: '2021'
+releaseNotesUrl: 'https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=pland_rcd_1634022783366_65050'
 ---
 
 # EN
@@ -75,8 +75,8 @@ identifiers and hierarchy edges.
 
 ## 兼容性
 
-此版本是規劃署規劃領域的主張，獨立於 Overture 行政區劃。發布者代碼形成持久的規劃署識別碼及 hierarchy
-edges。
+此版本是規劃署規劃領域的主張，獨立於 Overture
+行政區劃。發布者代碼形成持久的規劃署識別碼及 hierarchy edges。
 
 ### 直接保留欄位
 
@@ -115,8 +115,8 @@ edges。
 
 ## 兼容性
 
-此版本是规划署规划领域的主张，独立于 Overture 行政区划。发布者代码形成持久的规划署标识符及 hierarchy
-edges。
+此版本是规划署规划领域的主张，独立于 Overture
+行政区划。发布者代码形成持久的规划署标识符及 hierarchy edges。
 
 ### 直接保留字段
 

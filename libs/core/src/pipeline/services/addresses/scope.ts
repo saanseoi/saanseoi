@@ -1,14 +1,17 @@
 import { requireDefined } from '../../../requireDefined'
 import {
-  addressGranularities,
+  addressScopes,
+  addressPremisesKinds,
+  type AddressPremisesKind,
   buildDeterministicUuidV5,
-  type AddressGranularity,
+  type AddressScope,
+  type AddressPremisesType,
 } from '@repo/db'
-import fixture from '../../../../../../fixtures/meta/curations/address-granularity.json'
+import fixture from '../../../../../../fixtures/meta/curations/address-scope.json'
 
-const POLICY_VERSION = 1
+const POLICY_VERSION = 2
 /** Transient review output. Persist reviewed decisions in the curation fixture only. */
-export type AddressGranularityReview = {
+export type AddressScopeReview = {
   method: 'heuristic' | 'curated' | 'unknown'
   policyVersion: number
   inputFingerprint: string
@@ -34,18 +37,20 @@ const componentFields = [
   'streetName',
 ] as const
 
-export type GranularityComponents = { locale: string } & Partial<
+export type ScopeComponents = { locale: string } & Partial<
   Record<(typeof componentFields)[number], string | null>
 >
 
-export type AddressGranularityCuration = {
+export type AddressScopeCuration = {
   version: 1
   overrides: Array<{
     id: string
     revision: number
     addressId: string
     inputFingerprint: string
-    granularity: AddressGranularity
+    scope: AddressScope
+    premisesType?: AddressPremisesType | null
+    premisesKind?: AddressPremisesKind | null
     reason: string
     evidence: string[]
     sourceVersionFrom?: string
@@ -56,7 +61,7 @@ export type AddressGranularityCuration = {
 const text = (value: string | null | undefined) => value?.trim() || null
 
 /** Fingerprint the complete supplied address, excluding release bookkeeping. */
-export function addressGranularityFingerprint(values: GranularityComponents[]) {
+export function addressScopeFingerprint(values: ScopeComponents[]) {
   const components = values.map(value => ({
     locale: value.locale.toLowerCase(),
     ...Object.fromEntries(componentFields.map(field => [field, text(value[field])])),
@@ -65,12 +70,14 @@ export function addressGranularityFingerprint(values: GranularityComponents[]) {
   return buildDeterministicUuidV5(FINGERPRINT_NAMESPACE, JSON.stringify(serialised))
 }
 
-function classifyLocale(value: GranularityComponents): {
-  granularity: AddressGranularity
+function classifyLocale(value: ScopeComponents): {
+  scope: AddressScope
+  premisesType?: AddressPremisesType | null
+  premisesKind?: AddressPremisesKind | null
   rule: string
   evidence: string[]
 } {
-  const evidence = (...fields: Array<keyof GranularityComponents>) =>
+  const evidence = (...fields: Array<keyof ScopeComponents>) =>
     fields
       .filter(field => text(value[field]))
       .map(field => `${value.locale}.${field}: ${value[field]}`)
@@ -93,13 +100,13 @@ function classifyLocale(value: GranularityComponents): {
       )
     if ((type && buildingTypes.includes(type)) || (!type && recognisedExpression)) {
       return {
-        granularity: 'building',
+        scope: 'building',
         rule: 'building_block',
         evidence: evidence('blockType', 'blockRef', 'blockExpression'),
       }
     }
     return {
-      granularity: 'unknown',
+      scope: 'unknown',
       rule: 'ambiguous_block',
       evidence: evidence('blockType', 'blockRef', 'blockExpression'),
     }
@@ -111,55 +118,55 @@ function classifyLocale(value: GranularityComponents): {
         requireDefined(value.buildingName),
       )
     return {
-      granularity: ambiguousFacility ? 'unknown' : 'building',
+      scope: ambiguousFacility ? 'unknown' : 'building',
       rule: ambiguousFacility ? 'ambiguous_facility_name' : 'building_name',
       evidence: evidence('buildingName'),
     }
   }
   if (text(value.phaseRef) || text(value.phaseName) || text(value.phaseExpression))
     return {
-      granularity: 'phase',
+      scope: 'phase',
       rule: 'phase_component',
       evidence: evidence('phaseName', 'phaseRef', 'phaseExpression'),
     }
   if (text(value.premisesName))
     return {
-      granularity: 'complex',
+      scope: 'premises',
       rule: 'estate_component',
       evidence: evidence('premisesName'),
     }
-  return { granularity: 'unknown', rule: 'insufficient_components', evidence: [] }
+  return { scope: 'unknown', rule: 'insufficient_components', evidence: [] }
 }
 
 /** Classify corrected canonical components; never infer units or parents from numbers. */
-export function establishAddressGranularity(
+export function establishAddressScope(
   input: {
     addressId: string
-    values: GranularityComponents[]
+    values: ScopeComponents[]
     sourceVersion?: string
     componentCorrections?: Array<{ id: string; revision: number }>
   },
-  curation: AddressGranularityCuration = fixture as AddressGranularityCuration,
+  curation: AddressScopeCuration = fixture as AddressScopeCuration,
 ): {
-  granularity: AddressGranularity
-  review: AddressGranularityReview
+  scope: AddressScope
+  premisesType: AddressPremisesType | null
+  premisesKind: AddressPremisesKind | null
+  review: AddressScopeReview
 } {
   if (curation.version !== 1 || !Array.isArray(curation.overrides))
-    throw new Error('Unsupported Address granularity curation fixture.')
-  const inputFingerprint = addressGranularityFingerprint(input.values)
+    throw new Error('Unsupported Address scope curation fixture.')
+  const inputFingerprint = addressScopeFingerprint(input.values)
   const overrides = curation.overrides.filter(
     value => value.addressId === input.addressId,
   )
   if (overrides.length > 1)
     throw new Error(
-      `Address granularity ${input.addressId} requires review: duplicate overrides.`,
+      `Address scope ${input.addressId} requires review: duplicate overrides.`,
     )
   const override = overrides[0]
   if (override) {
     const fail = (reason: string): never => {
-      throw new Error(
-        `Address granularity ${input.addressId} requires review: ${reason}`,
-      )
+      throw new Error(`Address scope ${input.addressId} requires review: ${reason}`)
     }
     if (
       curation.overrides.some(value => value !== override && value.id === override.id)
@@ -190,8 +197,17 @@ export function establishAddressGranularity(
       (!override.sourceVersionTo ||
         compare(requireDefined(input.sourceVersion), override.sourceVersionTo) <= 0)
     if (applies) {
-      if (!addressGranularities.includes(override.granularity))
-        fail('invalid granularity')
+      if (
+        override.premisesKind != null &&
+        !addressPremisesKinds.includes(override.premisesKind)
+      )
+        fail('invalid premises kind')
+      if (!addressScopes.includes(override.scope)) fail('invalid scope')
+      if (
+        override.premisesType != null &&
+        !['site', 'complex'].includes(override.premisesType)
+      )
+        fail('invalid premises type')
       if (
         !override.id?.trim() ||
         !Number.isInteger(override.revision) ||
@@ -205,7 +221,9 @@ export function establishAddressGranularity(
       if (override.inputFingerprint !== inputFingerprint)
         fail('address components changed')
       return {
-        granularity: override.granularity,
+        scope: override.scope,
+        premisesType: override.premisesType ?? null,
+        premisesKind: override.premisesKind ?? null,
         review: {
           method: 'curated',
           policyVersion: POLICY_VERSION,
@@ -225,12 +243,12 @@ export function establishAddressGranularity(
   const assertions = input.values
     .map(classifyLocale)
     .sort((a, b) => a.rule.localeCompare(b.rule))
-  const known = assertions.filter(value => value.granularity !== 'unknown')
+  const known = assertions.filter(value => value.scope !== 'unknown')
   const ambiguous = assertions.find(
     value =>
       value.rule === 'ambiguous_block' || value.rule === 'ambiguous_facility_name',
   )
-  const conflicting = new Set(known.map(value => value.granularity)).size > 1
+  const conflicting = new Set(known.map(value => value.scope)).size > 1
   const chosen = !ambiguous && !conflicting ? known[0] : undefined
   const rule = ambiguous
     ? ambiguous.rule
@@ -238,7 +256,9 @@ export function establishAddressGranularity(
       ? 'conflicting_locales'
       : (chosen?.rule ?? 'insufficient_components')
   return {
-    granularity: chosen?.granularity ?? 'unknown',
+    scope: chosen?.scope ?? 'unknown',
+    premisesType: chosen?.premisesType ?? null,
+    premisesKind: null,
     review: {
       method: chosen ? 'heuristic' : 'unknown',
       policyVersion: POLICY_VERSION,

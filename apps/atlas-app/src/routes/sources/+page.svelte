@@ -400,12 +400,10 @@ const sourceFlowLanes = $derived.by<SourceFlowLane[]>(() =>
         <PageDescription class="max-w-none">
           <Popover.Root>
             <Popover.Trigger openOnHover openDelay={200}>
-              {#snippet child({
-                props,
-              })}
+              {#snippet child({ props })}
                 <button
                   {...props}
-                  class="font-inherit font-semibold text-secondary underline decoration-dotted underline-offset-4 hover:text-primary"
+                  class="font-inherit text-secondary hover:text-primary font-semibold underline decoration-dotted underline-offset-4"
                   type="button"
                   aria-label={getMarkdownTransclusionDisplayTitle(
                     apiFamilyDefinition,
@@ -418,7 +416,7 @@ const sourceFlowLanes = $derived.by<SourceFlowLane[]>(() =>
             </Popover.Trigger>
             <Popover.Portal>
               <Popover.Content
-                class="z-70 max-w-80 rounded-default border border-border-card/60 bg-background-alt px-3 py-2 font-body text-label-sm text-foreground shadow-popover"
+                class="rounded-default border-border-card/60 bg-background-alt font-body text-label-sm text-foreground shadow-popover z-70 max-w-80 border px-3 py-2"
                 side="bottom"
                 sideOffset={8}
                 collisionPadding={{ right: 16 }}
@@ -429,12 +427,10 @@ const sourceFlowLanes = $derived.by<SourceFlowLane[]>(() =>
           {m.sources_api_families_description()}
           <Popover.Root>
             <Popover.Trigger openOnHover openDelay={200}>
-              {#snippet child({
-                props,
-              })}
+              {#snippet child({ props })}
                 <button
                   {...props}
-                  class="font-inherit font-semibold text-secondary underline decoration-dotted underline-offset-4 hover:text-primary"
+                  class="font-inherit text-secondary hover:text-primary font-semibold underline decoration-dotted underline-offset-4"
                   type="button"
                   aria-label={getMarkdownTransclusionDisplayTitle(
                     domainDefinition,
@@ -447,7 +443,7 @@ const sourceFlowLanes = $derived.by<SourceFlowLane[]>(() =>
             </Popover.Trigger>
             <Popover.Portal>
               <Popover.Content
-                class="z-70 max-w-80 rounded-default border border-border-card/60 bg-background-alt px-3 py-2 font-body text-label-sm text-foreground shadow-popover"
+                class="rounded-default border-border-card/60 bg-background-alt font-body text-label-sm text-foreground shadow-popover z-70 max-w-80 border px-3 py-2"
                 side="bottom"
                 sideOffset={8}
                 collisionPadding={{ right: 16 }}
@@ -472,7 +468,7 @@ const sourceFlowLanes = $derived.by<SourceFlowLane[]>(() =>
           sourceFilterActive={isSourceSearchActive}
         />
       {:else}
-        <p class="py-12 text-center font-body text-body-lg text-foreground-alt">
+        <p class="font-body text-body-lg text-foreground-alt py-12 text-center">
           {m.sources_search_empty()}
         </p>
       {/if}

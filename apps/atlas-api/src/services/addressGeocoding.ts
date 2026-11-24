@@ -6,6 +6,14 @@ import { distanceMetres, nameScore, pointGeometry } from './divisionGeocoding'
 
 export function rankAddress(record: AddressRecord, query: GeocodingQuery) {
   const coordinates = pointGeometry(record.address.geometry)
+  if (query.locatedOnly && !coordinates) return null
+  // Apply the circle before ranking, counting or retaining a page of text matches.
+  if (
+    query.nearLat !== undefined &&
+    (!coordinates ||
+      distanceMetres([query.nearLng!, query.nearLat], coordinates) > query.maxDistance)
+  )
+    return null
   const reverse = query.lat !== undefined
   const distance =
     reverse && coordinates
@@ -115,7 +123,12 @@ export function scoreAddress(
       continue
     }
     const names = addressQuery
-      ? [value.formattedAddress, value.buildingName, value.premisesName]
+      ? [
+          value.formattedAddress,
+          value.buildingName,
+          value.premisesName,
+          value.streetName,
+        ]
       : [value.buildingName, value.premisesName, value.streetName]
     best = Math.max(
       best,

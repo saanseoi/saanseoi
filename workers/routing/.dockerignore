@@ -3,4 +3,5 @@
 !image-data/
 !image-data/**
 !valhalla-elevator.patch
+!valhalla-lift-wait.patch
 !graph-release.json

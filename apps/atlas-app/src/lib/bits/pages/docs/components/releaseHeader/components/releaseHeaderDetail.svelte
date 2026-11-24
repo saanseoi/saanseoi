@@ -39,21 +39,19 @@ let {
 {#if popover}
   <Popover.Root>
     <Popover.Trigger openOnHover openDelay={180}>
-      {#snippet child({
-        props,
-      })}
+      {#snippet child({ props })}
         <div class="flex min-w-0 items-start gap-2">
           <button
             {...props}
-            class={`group block min-w-0 flex-1 cursor-help ${align === 'end' ? 'text-right' : 'text-left'} focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-secondary`}
+            class={`group block min-w-0 flex-1 cursor-help ${align === 'end' ? 'text-right' : 'text-left'} focus-visible:outline-secondary focus-visible:outline-2 focus-visible:outline-offset-4`}
             type="button"
           >
             <span
-              class="block text-caption font-semibold uppercase tracking-[0.12em] text-foreground-alt/70"
+              class="text-caption text-foreground-alt/70 block font-semibold tracking-[0.12em] uppercase"
               >{detail.label}</span
             >
             <span
-              class={`mt-2 block min-w-0 font-mono text-sm font-semibold text-primary ${noWrap ? 'whitespace-nowrap' : 'wrap-break-word'}`}
+              class={`text-primary mt-2 block min-w-0 font-mono text-sm font-semibold ${noWrap ? 'whitespace-nowrap' : 'wrap-break-word'}`}
               >{detail.value}</span
             >
           </button>
@@ -62,7 +60,7 @@ let {
     </Popover.Trigger>
     <Popover.Portal>
       <Popover.Content
-        class="z-70 w-max max-w-[min(32rem,calc(100vw-2rem))] rounded-default border border-border-card/60 bg-background-alt px-4 py-3 font-body text-label-sm text-foreground shadow-popover"
+        class="rounded-default border-border-card/60 bg-background-alt font-body text-label-sm text-foreground shadow-popover z-70 w-max max-w-[min(32rem,calc(100vw-2rem))] border px-4 py-3"
         side="top"
         {align}
         sideOffset={8}
@@ -72,12 +70,12 @@ let {
           {#each detail.disclosure ?? [] as item}
             <div>
               <dt
-                class="text-caption font-semibold uppercase tracking-widest text-foreground-alt/70"
+                class="text-caption text-foreground-alt/70 font-semibold tracking-widest uppercase"
               >
                 {item.label}
               </dt>
               <dd
-                class="mt-1.5 min-w-0 font-mono text-sm font-semibold leading-5 text-primary"
+                class="text-primary mt-1.5 min-w-0 font-mono text-sm leading-5 font-semibold"
               >
                 {#if item.codeValues?.length}
                   <span class="whitespace-nowrap">
@@ -86,14 +84,14 @@ let {
                         <span>, </span>
                       {/if}
                       <code
-                        class="rounded-sm bg-surface-container-high px-1 py-0.5 text-secondary"
+                        class="bg-surface-container-high text-secondary rounded-sm px-1 py-0.5"
                         >{value}</code
                       >
                     {/each}
                   </span>
                 {:else if item.href}
                   <a
-                    class="inline-flex items-center gap-1 text-secondary underline decoration-secondary/40 underline-offset-4 hover:text-primary"
+                    class="text-secondary decoration-secondary/40 hover:text-primary inline-flex items-center gap-1 underline underline-offset-4"
                     href={item.href}
                     target={item.isExternal ? '_blank' : undefined}
                     rel={item.isExternal ? 'noopener noreferrer' : undefined}
@@ -120,13 +118,13 @@ let {
 {:else}
   <div class="min-w-0">
     <button
-      class={`group block w-full min-w-0 cursor-pointer ${align === 'end' ? 'text-right' : 'text-left'} focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-secondary`}
+      class={`group block w-full min-w-0 cursor-pointer ${align === 'end' ? 'text-right' : 'text-left'} focus-visible:outline-secondary focus-visible:outline-2 focus-visible:outline-offset-4`}
       type="button"
       aria-expanded={isOpen}
       onclick={onToggle}
     >
       <span
-        class="flex items-center gap-1 text-caption font-semibold uppercase tracking-[0.12em] text-foreground-alt/70"
+        class="text-caption text-foreground-alt/70 flex items-center gap-1 font-semibold tracking-[0.12em] uppercase"
       >
         {detail.label}
         <Icon
@@ -136,7 +134,7 @@ let {
         />
       </span>
       <span
-        class="mt-2 block min-w-0 wrap-break-word font-mono text-sm font-semibold text-primary"
+        class="text-primary mt-2 block min-w-0 font-mono text-sm font-semibold wrap-break-word"
       >
         {detail.value}
       </span>
@@ -144,22 +142,22 @@ let {
 
     {#if isOpen}
       <dl
-        class="mt-4 grid gap-3 border-l-2 border-outline-variant pl-4 text-left"
+        class="border-outline-variant mt-4 grid gap-3 border-l-2 pl-4 text-left"
         transition:slide={{ duration: 180, axis: 'y' }}
       >
         {#each detail.disclosure ?? [] as item}
           <div>
             <dt
-              class="text-caption font-semibold uppercase tracking-widest text-foreground-alt/70"
+              class="text-caption text-foreground-alt/70 font-semibold tracking-widest uppercase"
             >
               {item.label}
             </dt>
             <dd
-              class="mt-1.5 min-w-0 wrap-break-word font-mono text-sm font-semibold leading-5 text-primary"
+              class="text-primary mt-1.5 min-w-0 font-mono text-sm leading-5 font-semibold wrap-break-word"
             >
               {#if item.href}
                 <a
-                  class="inline-flex items-center gap-1 text-secondary underline decoration-secondary/40 underline-offset-4 hover:text-primary"
+                  class="text-secondary decoration-secondary/40 hover:text-primary inline-flex items-center gap-1 underline underline-offset-4"
                   href={item.href}
                   target={item.isExternal ? '_blank' : undefined}
                   rel={item.isExternal ? 'noopener noreferrer' : undefined}

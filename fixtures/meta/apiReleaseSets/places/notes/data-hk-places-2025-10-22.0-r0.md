@@ -1,13 +1,13 @@
 ---
-createdAt: "2026-09-09T00:00:00.000Z"
-updatedAt: "2026-09-09T00:00:00.000Z"
-apiFamily: "places"
-apiVersion: "api-places-v0.1"
-apiReleaseSet: "data-hk-places-2025-10-22.0"
-revision: "0"
-regionCode: "hk"
-cohortKey: "2025-10-22.0"
-domainCode: "overture"
+createdAt: '2026-09-09T00:00:00.000Z'
+updatedAt: '2026-09-09T00:00:00.000Z'
+apiFamily: 'places'
+apiVersion: 'api-places-v0.1'
+apiReleaseSet: 'data-hk-places-2025-10-22.0'
+revision: '0'
+regionCode: 'hk'
+cohortKey: '2025-10-22.0'
+domainCode: 'overture'
 ---
 
 # EN
@@ -61,21 +61,20 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 ## 更新紀錄
 
 - 發布 <black>{{ cohortKey }}</black> 的 Overture Places snapshot。
-- <orange>Upstream</orange> 新增並填入 <black>basic_category</black>
-  屬性。它供應標準 Place 回應中的
-  <black>attributes.basicCategory</black>；由於此 cohort 的 Overture 尚未新增
-  <black>taxonomy</black>，<black>taxonomy.primary</black> 仍使用發布者類別。
+- <orange>Upstream</orange> 新增並填入 <black>basic_category</black> 屬性。它供應標準
+  Place 回應中的 <black>attributes.basicCategory</black>；由於此 cohort 的 Overture
+  尚未新增 <black>taxonomy</black>，<black>taxonomy.primary</black> 仍使用發布者類別。
 
 ## 修訂紀錄
 
-- `r{{ revision }}` 包含 Place 來源發布，以及由 Places API
-  composition 選取的所需 Address 及 Division 支援來源發布。
+- `r{{ revision }}` 包含 Place 來源發布，以及由 Places API composition 選取的所需
+  Address 及 Division 支援來源發布。
 
 ## 發布範圍
 
 此不可變的 [release set](saanseoi:zh-hant:definition/release-set/v1) 在
-{{regionName:zh-Hant}}發布 [cohort](saanseoi:zh-hant:definition/cohort/v1)
-<black>{{ cohortKey }}</black> 的 <black>{{ domainCode }}</black>
+{{regionName:zh-Hant}}發布 [cohort](saanseoi:zh-hant:definition/cohort/v1) <black>{{
+cohortKey }}</black> 的 <black>{{ domainCode }}</black>
 [domain](saanseoi:zh-hant:definition/domain/v1)。以下來源發布組成此 release set。
 
 {{apiReleaseSetSources:zh-Hant}}
@@ -84,8 +83,8 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 
 - Operating status 是發布者資料，並非山水對 Place 開放狀態的獨立核實。
 
-- 此項變更反映 Overture schema 新增欄位，並非 Places
-  API 合約變更。比較不同 cohort 的類別值前，請閱讀連結的來源發布附註。
+- 此項變更反映 Overture schema 新增欄位，並非 Places API 合約變更。比較不同 cohort
+  的類別值前，請閱讀連結的來源發布附註。
 - H3 及全文索引是所選 Place snapshot 的衍生 projection。
 
 # ZH-HANS
@@ -93,21 +92,20 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 ## 更新记录
 
 - 发布 <black>{{ cohortKey }}</black> 的 Overture Places snapshot。
-- <orange>Upstream</orange> 新增并填入 <black>basic_category</black>
-  属性。它供给标准 Place 响应中的
-  <black>attributes.basicCategory</black>；由于此 cohort 的 Overture 尚未新增
-  <black>taxonomy</black>，<black>taxonomy.primary</black> 仍使用发布者类别。
+- <orange>Upstream</orange> 新增并填入 <black>basic_category</black> 属性。它供给标准
+  Place 响应中的 <black>attributes.basicCategory</black>；由于此 cohort 的 Overture
+  尚未新增 <black>taxonomy</black>，<black>taxonomy.primary</black> 仍使用发布者类别。
 
 ## 修订记录
 
-- `r{{ revision }}` 包含 Place 源发布，以及由 Places API
-  composition 选择的所需 Address 及 Division 支持源发布。
+- `r{{ revision }}` 包含 Place 源发布，以及由 Places API composition 选择的所需 Address
+  及 Division 支持源发布。
 
 ## 发布范围
 
 此不可变的 [release set](saanseoi:zh-hans:definition/release-set/v1) 在
-{{regionName:zh-Hans}}发布 [cohort](saanseoi:zh-hans:definition/cohort/v1)
-<black>{{ cohortKey }}</black> 的 <black>{{ domainCode }}</black>
+{{regionName:zh-Hans}}发布 [cohort](saanseoi:zh-hans:definition/cohort/v1) <black>{{
+cohortKey }}</black> 的 <black>{{ domainCode }}</black>
 [domain](saanseoi:zh-hans:definition/domain/v1)。以下源发布组成此 release set。
 
 {{apiReleaseSetSources:zh-Hans}}
@@ -116,6 +114,6 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 
 - Operating status 是发布者数据，并非山水对 Place 开放状态的独立核实。
 
-- 此项变更反映 Overture schema 新增字段，并非 Places
-  API 合约变更。比较不同 cohort 的类别值前，请阅读链接的源发布说明。
+- 此项变更反映 Overture schema 新增字段，并非 Places API 合约变更。比较不同 cohort
+  的类别值前，请阅读链接的源发布说明。
 - H3 及全文索引是所选 Place snapshot 的派生 projection。

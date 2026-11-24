@@ -1,16 +1,16 @@
 ---
-createdAt: "2026-09-09T00:26:38.567Z"
-updatedAt: "2026-09-09T00:26:38.567Z"
-apiFamily: "addresses"
-apiVersion: "api-addresses-v0.1"
-apiReleaseSet: "data-hk-addresses-2025-08-28.0"
-revision: "0"
-regionCode: "hk"
-cohortKey: "2025-08-28.0"
-domainCode: "saanseoi"
-timeTravelEffectiveAt: "2025-08-28T00:00:00.000Z"
-timeTravelKnownAt: "2026-09-09T00:26:41.451Z"
-timeTravelCatalogRevision: "catalog-hk-addresses-v0.1-2026-09-09.18"
+createdAt: '2026-09-09T00:26:38.567Z'
+updatedAt: '2026-09-09T00:26:38.567Z'
+apiFamily: 'addresses'
+apiVersion: 'api-addresses-v0.1'
+apiReleaseSet: 'data-hk-addresses-2025-08-28.0'
+revision: '0'
+regionCode: 'hk'
+cohortKey: '2025-08-28.0'
+domainCode: 'saanseoi'
+timeTravelEffectiveAt: '2025-08-28T00:00:00.000Z'
+timeTravelKnownAt: '2026-09-09T00:26:41.451Z'
+timeTravelCatalogRevision: 'catalog-hk-addresses-v0.1-2026-09-09.18'
 ---
 
 # EN
@@ -42,8 +42,8 @@ Use <black>GET /{{apiFamily}}/{{ apiVersionPath }}</black> to get a list of addr
 /{{apiFamily}}/{{ apiVersionPath }}
 ```
 
-Every address has an <black>id</black>. Use it with <black>GET
-/{{apiFamily}}/{{ apiVersionPath }}/{id}</black> to get one address:
+Every address has an <black>id</black>. Use it with <black>GET /{{apiFamily}}/{{
+apiVersionPath }}/{id}</black> to get one address:
 
 ```url
 /{{apiFamily}}/{{ apiVersionPath }}/{id}?
@@ -256,8 +256,8 @@ The API returns a number of error codes. Here is how to recover from each one:
 /{{apiFamily}}/{{ apiVersionPath }}
 ```
 
-每個地址均有 <black>id</black>。以 <black>GET
-/{{apiFamily}}/{{ apiVersionPath }}/{id}</black> 取得單一地址：
+每個地址均有 <black>id</black>。以 <black>GET /{{apiFamily}}/{{ apiVersionPath
+}}/{id}</black> 取得單一地址：
 
 ```url
 /{{apiFamily}}/{{ apiVersionPath }}/{id}?
@@ -292,7 +292,8 @@ The API returns a number of error codes. Here is how to recover from each one:
 
 ## 搜尋地址
 
-搜尋端點必須提供查詢及配對模式。搜尋接受與集合相同的發布、網域、批次、時間回溯、設定檔、語言、階層及 Division 篩選條件，因此可重現已封存的發布視圖。
+搜尋端點必須提供查詢及配對模式。搜尋接受與集合相同的發布、網域、批次、時間回溯、設定檔、語言、階層及
+Division 篩選條件，因此可重現已封存的發布視圖。
 
 ```url
 /{{apiFamily}}/{{ apiVersionPath }}/search?
@@ -311,8 +312,8 @@ The API returns a number of error codes. Here is how to recover from each one:
   <black>component=formatted|building|number|block|phase|estate|street</black>。
 - <black>exact</black> 接受一個樓宇號碼詞元，例如 <black>427</black> 或
   <black>6A</black>，並配對來源號碼斷言。
-- <black>range</black>
-  亦會配對已發布號碼範圍包含該 token 的地址，但不表示該查詢號碼獨立存在。
+- <black>range</black> 亦會配對已發布號碼範圍包含該 token
+  的地址，但不表示該查詢號碼獨立存在。
 
 例如只搜尋屋苑名稱：
 
@@ -335,17 +336,18 @@ The API returns a number of error codes. Here is how to recover from each one:
 <black>attributes.geometry</black> 是 GeoJSON 地址位置，使用 <black>profile=map</black>
 或 <black>profile=full</black> 時提供。如需不可變的snapshot
 ID、發布者識別碼及來源證據，請使用 <black>profile=full</black>。
-<black>attributes.granularity</black> 說明記錄識別的範圍，並非品質評分。
+<black>attributes.scope</black> 說明記錄識別的範圍，並非品質評分。
 
 ## 島嶼關係
 
 <black>relationships.landform.data</black> 以 <black>{ type: "divisions", id: "…"
 }</black> 表示地址所關聯的實體地形；未記錄關聯時為
-<black>null</black>。實際上，此關係用於識別地址位於哪個島嶼。Null 表示未知或未指定，並不自動表示位於大陸。此直接關係獨立於地址的行政及聚落關係。城鎮（例如<i>愉景灣</i>）與所在島嶼（<i>大嶼山</i>）使用不同的 Division
-ID。
+<black>null</black>。實際上，此關係用於識別地址位於哪個島嶼。Null
+表示未知或未指定，並不自動表示位於大陸。此直接關係獨立於地址的行政及聚落關係。城鎮（例如<i>愉景灣</i>）與所在島嶼（<i>大嶼山</i>）使用不同的
+Division ID。
 
-使用 <black>filter[division]</black>，以地形的規範 Division
-ID 篩選清單或搜尋結果。此篩選只比對已記錄的地址關聯，不會推斷點是否位於多邊形內，亦不保證島上每個地址均已連結。
+使用 <black>filter[division]</black>，以地形的規範 Division ID
+篩選清單或搜尋結果。此篩選只比對已記錄的地址關聯，不會推斷點是否位於多邊形內，亦不保證島上每個地址均已連結。
 
 ```url
 /{{apiFamily}}/{{ apiVersionPath }}?
@@ -364,7 +366,8 @@ ID 篩選清單或搜尋結果。此篩選只比對已記錄的地址關聯，�
 {{localeSelectionSection:zh-Hant}}
 
 本地化地址資料包括完整的
-<black>formattedAddress</black>，以及來源有提供的樓宇、號碼、座、期、屋苑及街道組成部分。缺失的組成部分會是 null 或省略；請勿從另一種語言重建。
+<black>formattedAddress</black>，以及來源有提供的樓宇、號碼、座、期、屋苑及街道組成部分。缺失的組成部分會是
+null 或省略；請勿從另一種語言重建。
 
 ## 篩選及分頁
 
@@ -388,17 +391,17 @@ ID 篩選清單或搜尋結果。此篩選只比對已記錄的地址關聯，�
 
 ## 取得單位
 
-地址資源的 <black>attributes.address3dCoverage</black>
-說明 Address3D 單位集合是直接可用，還是透過已確立或未解析的祖先可用。使用以下請求取得：
+地址資源的 <black>attributes.address3dCoverage</black> 說明 Address3D
+單位集合是直接可用，還是透過已確立或未解析的祖先可用。使用以下請求取得：
 
 ```url
 /{{apiFamily}}/{{ apiVersionPath }}/{id}/units?
                  releaseSet={{ apiReleaseSet }}
 ```
 
-如有集合，回應會包含樓層及單位參照和本地化格式化部分。<black>data</black>
-為 null 表示所選發布沒有適用 collection。請勿從標示為 <black>unresolved</black>
-的祖先 coverage 推斷單位成員關係。
+如有集合，回應會包含樓層及單位參照和本地化格式化部分。<black>data</black> 為 null
+表示所選發布沒有適用 collection。請勿從標示為 <black>unresolved</black> 的祖先 coverage
+推斷單位成員關係。
 
 你亦可在一個 Address 詳情回應中包含同一 collection：
 
@@ -409,8 +412,8 @@ ID 篩選清單或搜尋結果。此篩選只比對已記錄的地址關聯，�
 ```
 
 collection 會作為 <black>address3d</black> 資源出現在頂層 <black>included</black>
-陣列。如同時需要 Division hierarchy，請使用
-<black>include=units,hierarchy</black>。單位 inclusion 僅適用於單一 Address 詳情請求；清單及搜尋請求只接受
+陣列。如同時需要 Division hierarchy，請使用 <black>include=units,hierarchy</black>。單位
+inclusion 僅適用於單一 Address 詳情請求；清單及搜尋請求只接受
 <black>include=hierarchy</black>，避免一頁展開多幢樓宇的全部單位。
 
 ## 時間回溯
@@ -420,19 +423,19 @@ collection 會作為 <black>address3d</black> 資源出現在頂層 <black>inclu
 ## 溯源
 
 使用 <black>profile=full</black> 取得地址快照 ID、政府識別碼及
-<black>attributes.sources</black> 中的發布者資料。支援的 Division
-snapshot 提供標準地理關係，不會覆寫 ALS 地址文字或座標。
+<black>attributes.sources</black> 中的發布者資料。支援的 Division snapshot
+提供標準地理關係，不會覆寫 ALS 地址文字或座標。
 
 ## 從錯誤中復原
 
 API 會傳回多種錯誤代碼。可按以下方法處理：
 
-- detail 或 units 請求傳回
-  `404`，表示所選發布沒有該 ID。請重新檢查 ID 及其發布、網域、批次和時間回溯選擇器。
+- detail 或 units 請求傳回 `404`，表示所選發布沒有該 ID。請重新檢查 ID
+  及其發布、網域、批次和時間回溯選擇器。
 - `422`
   表示請求無效。請閱讀驗證詳情，再更正選擇器、篩選條件、語言、配對模式、組成部分、搜尋或分頁值。
-- `503` 及 <black>snapshot_not_ready</black>
-  表示沒有符合選擇的 Address 快照。請在發布後重試或選擇已發布的發布集；不要視作空白結果。
+- `503` 及 <black>snapshot_not_ready</black> 表示沒有符合選擇的 Address
+  快照。請在發布後重試或選擇已發布的發布集；不要視作空白結果。
 - `503` 及 <black>fts_not_ready</black>
   只適用於索引搜尋，表示搜尋索引未準備好，而非沒有結果。
 
@@ -457,8 +460,8 @@ API 會傳回多種錯誤代碼。可按以下方法處理：
 /{{apiFamily}}/{{ apiVersionPath }}
 ```
 
-每个地址均有 <black>id</black>。以 <black>GET
-/{{apiFamily}}/{{ apiVersionPath }}/{id}</black> 获取单一地址：
+每个地址均有 <black>id</black>。以 <black>GET /{{apiFamily}}/{{ apiVersionPath
+}}/{id}</black> 获取单一地址：
 
 ```url
 /{{apiFamily}}/{{ apiVersionPath }}/{id}?
@@ -493,7 +496,8 @@ API 會傳回多種錯誤代碼。可按以下方法處理：
 
 ## 搜索地址
 
-搜索端点必须提供查询及匹配模式。搜索接受与集合相同的发布、域、批次、时间回溯、配置文件、语言、层级及 Division 筛选条件，因此可重现已归档的发布视图。
+搜索端点必须提供查询及匹配模式。搜索接受与集合相同的发布、域、批次、时间回溯、配置文件、语言、层级及
+Division 筛选条件，因此可重现已归档的发布视图。
 
 ```url
 /{{apiFamily}}/{{ apiVersionPath }}/search?
@@ -512,8 +516,8 @@ API 會傳回多種錯誤代碼。可按以下方法處理：
   <black>component=formatted|building|number|block|phase|estate|street</black>。
 - <black>exact</black> 接受一个楼宇号码词元，例如 <black>427</black> 或
   <black>6A</black>，并匹配源号码断言。
-- <black>range</black>
-  也会匹配已发布号码范围包含该 token 的地址，但不表示该查询号码独立存在。
+- <black>range</black> 也会匹配已发布号码范围包含该 token
+  的地址，但不表示该查询号码独立存在。
 
 例如只搜索屋苑名称：
 
@@ -536,17 +540,18 @@ API 會傳回多種錯誤代碼。可按以下方法處理：
 <black>attributes.geometry</black> 是 GeoJSON 地址位置，使用 <black>profile=map</black>
 或 <black>profile=full</black> 时提供。如需不可变的snapshot
 ID、发布者标识符及源证据，请使用 <black>profile=full</black>。
-<black>attributes.granularity</black> 说明记录识别的范围，并非质量评分。
+<black>attributes.scope</black> 说明记录识别的范围，并非质量评分。
 
 ## 岛屿关系
 
 <black>relationships.landform.data</black> 以 <black>{ type: "divisions", id: "…"
 }</black> 表示地址所关联的实体地形；未记录关联时为
-<black>null</black>。实际上，此关系用于识别地址位于哪个岛屿。Null 表示未知或未指定，并不自动表示位于大陆。此直接关系独立于地址的行政及聚落关系。城镇（例如<i>愉景湾</i>）与所在岛屿（<i>大屿山</i>）使用不同的 Division
-ID。
+<black>null</black>。实际上，此关系用于识别地址位于哪个岛屿。Null
+表示未知或未指定，并不自动表示位于大陆。此直接关系独立于地址的行政及聚落关系。城镇（例如<i>愉景湾</i>）与所在岛屿（<i>大屿山</i>）使用不同的
+Division ID。
 
-使用 <black>filter[division]</black>，以地形的规范 Division
-ID 筛选清单或搜索结果。此筛选只比对已记录的地址关联，不会推断点是否位于多边形内，亦不保证岛上每个地址均已链接。
+使用 <black>filter[division]</black>，以地形的规范 Division ID
+筛选清单或搜索结果。此筛选只比对已记录的地址关联，不会推断点是否位于多边形内，亦不保证岛上每个地址均已链接。
 
 ```url
 /{{apiFamily}}/{{ apiVersionPath }}?
@@ -565,7 +570,8 @@ ID 筛选清单或搜索结果。此筛选只比对已记录的地址关联，�
 {{localeSelectionSection:zh-Hans}}
 
 本地化地址数据包括完整的
-<black>formattedAddress</black>，以及源有提供的楼宇、号码、座、期、屋苑及街道组成部分。缺失的组成部分会是 null 或省略；请勿从另一种语言重建。
+<black>formattedAddress</black>，以及源有提供的楼宇、号码、座、期、屋苑及街道组成部分。缺失的组成部分会是
+null 或省略；请勿从另一种语言重建。
 
 ## 筛选及分页
 
@@ -589,17 +595,17 @@ ID 筛选清单或搜索结果。此筛选只比对已记录的地址关联，�
 
 ## 获取单位
 
-地址资源的 <black>attributes.address3dCoverage</black>
-说明 Address3D 单位集合是直接可用，还是通过已确立或未解析的祖先可用。使用以下请求获取：
+地址资源的 <black>attributes.address3dCoverage</black> 说明 Address3D
+单位集合是直接可用，还是通过已确立或未解析的祖先可用。使用以下请求获取：
 
 ```url
 /{{apiFamily}}/{{ apiVersionPath }}/{id}/units?
                  releaseSet={{ apiReleaseSet }}
 ```
 
-如有集合，响应会包含楼层及单位引用和本地化格式化部分。<black>data</black>
-为 null 表示所选发布没有适用 collection。请勿从标示为 <black>unresolved</black>
-的祖先 coverage 推断单位成员关系。
+如有集合，响应会包含楼层及单位引用和本地化格式化部分。<black>data</black> 为 null
+表示所选发布没有适用 collection。请勿从标示为 <black>unresolved</black> 的祖先 coverage
+推断单位成员关系。
 
 你也可在一个 Address 详情响应中包含同一 collection：
 
@@ -610,8 +616,8 @@ ID 筛选清单或搜索结果。此筛选只比对已记录的地址关联，�
 ```
 
 collection 会作为 <black>address3d</black> 资源出现在顶层 <black>included</black>
-数组。如同时需要 Division hierarchy，请使用
-<black>include=units,hierarchy</black>。单位 inclusion 仅适用于单一 Address 详情请求；列表及搜索请求只接受
+数组。如同时需要 Division hierarchy，请使用 <black>include=units,hierarchy</black>。单位
+inclusion 仅适用于单一 Address 详情请求；列表及搜索请求只接受
 <black>include=hierarchy</black>，避免一页展开多幢楼宇的全部单位。
 
 ## 时间回溯
@@ -621,18 +627,18 @@ collection 会作为 <black>address3d</black> 资源出现在顶层 <black>inclu
 ## 溯源
 
 使用 <black>profile=full</black> 获取地址快照 ID、政府标识符及
-<black>attributes.sources</black> 中的发布者数据。支持的 Division
-snapshot 提供标准地理关系，不会覆盖 ALS 地址文本或坐标。
+<black>attributes.sources</black> 中的发布者数据。支持的 Division snapshot
+提供标准地理关系，不会覆盖 ALS 地址文本或坐标。
 
 ## 从错误中恢复
 
 API 会返回多种错误代码。可按以下方法处理：
 
-- detail 或 units 请求返回
-  `404`，表示所选发布没有该 ID。请重新检查 ID 及其发布、域、批次和时间回溯选择器。
+- detail 或 units 请求返回 `404`，表示所选发布没有该 ID。请重新检查 ID
+  及其发布、域、批次和时间回溯选择器。
 - `422`
   表示请求无效。请阅读验证详情，再更正选择器、筛选条件、语言、匹配模式、组成部分、搜索或分页值。
-- `503` 及 <black>snapshot_not_ready</black>
-  表示没有符合选择的 Address 快照。请在发布后重试或选择已发布的发布集；不要视作空白结果。
+- `503` 及 <black>snapshot_not_ready</black> 表示没有符合选择的 Address
+  快照。请在发布后重试或选择已发布的发布集；不要视作空白结果。
 - `503` 及 <black>fts_not_ready</black>
   只适用于索引搜索，表示搜索索引未准备好，而非没有结果。

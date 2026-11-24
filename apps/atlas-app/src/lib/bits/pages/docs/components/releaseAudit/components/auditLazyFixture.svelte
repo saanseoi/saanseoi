@@ -10,6 +10,7 @@ import Curations from './auditCurations.svelte'
 import DivisionRecords from './auditDivisionRecords.svelte'
 import { divisionFixtureDescriptions } from './auditDivisionPresentation'
 import Skeleton from './auditApplicationSkeleton.svelte'
+import Pagination from './auditFixturePagination.svelte'
 import { loadedFixtures } from './auditLoadedFixtures'
 const retained = loadedFixtures()
 
@@ -35,18 +36,33 @@ let open = $state(false)
 $effect(() => {
   open = Boolean(query.trim()) && count > 0
 })
-let value = $state<Json>()
+let offset = $state(0)
+$effect(() => {
+  query
+  offset = 0
+})
+let paged = $derived(group.totalRows !== undefined)
+let total = $derived(group.totalRows ?? group.rows.length)
+let value = $state.raw<Json>()
 let failure = $state(false)
 let retry = $state(0)
-let count = $derived(group.rows.filter(text => matchesAuditText(query, text)).length)
+let count = $derived(
+  group.matchingRows ?? group.rows.filter(text => matchesAuditText(query, text)).length,
+)
 let filtered = $derived(
-  value === undefined ? undefined : filterIndexedFixture(value, group, query),
+  value === undefined
+    ? undefined
+    : paged
+      ? value
+      : filterIndexedFixture(value, group, query),
 )
 $effect(() => {
   if (!open) return
   retry
+  const q = paged ? query : ''
+  const pageOffset = paged ? offset : undefined
   const key = JSON.stringify([resourceReleaseId, hash, bulkId, type])
-  const cached = retained.get(key)
+  const cached = paged ? undefined : retained.get(key)
   if (cached !== undefined) {
     value = cached
     failure = false
@@ -55,9 +71,16 @@ $effect(() => {
   let current = true
   value = undefined
   failure = false
-  getAuditFixtureGroup({ resourceReleaseId, hash, bulkId, type, q: '' })
+  getAuditFixtureGroup({
+    resourceReleaseId,
+    hash,
+    bulkId,
+    type,
+    q,
+    ...(paged ? { offset: pageOffset } : {}),
+  })
     .then(result => {
-      retained.set(key, result)
+      if (!paged) retained.set(key, result)
       if (current) value = result
     })
     .catch(() => {
@@ -74,7 +97,7 @@ $effect(() => {
     {type === 'prepared-division-changes' ? 'Results' : label}
     <span class="ml-2 text-xs font-normal tabular-nums opacity-50"
       >{count.toLocaleString()}
-      / {group.rows.length.toLocaleString()}</span
+      / {total.toLocaleString()}</span
     >
   {/snippet}
   {#if filtered !== undefined}
@@ -90,6 +113,9 @@ $effect(() => {
       <DivisionRecords value={filtered} {type} />
     {:else}
       <AuditFixture value={filtered} />
+    {/if}
+    {#if paged}
+      <Pagination bind:offset {count} />
     {/if}
   {:else if failure}
     <p role="alert">{m.source_audit_load_actions_error()}</p>

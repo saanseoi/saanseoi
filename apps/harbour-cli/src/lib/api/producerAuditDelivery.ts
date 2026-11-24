@@ -15,6 +15,25 @@ import {
 import { deliverProcessingResult } from './provenance'
 import type { UploadTarget } from '../cli/options'
 
+/** Retained objects are bounded; reclaim their temporary encodings between I/O. */
+class AuditPipelineBucket extends LocalPipelineBucket {
+  private operations = 0
+
+  private reclaim() {
+    if (this.operations++ % 8 === 0) Bun.gc(true)
+  }
+
+  override async get(...args: Parameters<LocalPipelineBucket['get']>) {
+    this.reclaim()
+    return super.get(...args)
+  }
+
+  override async put(...args: Parameters<LocalPipelineBucket['put']>) {
+    this.reclaim()
+    return super.put(...args)
+  }
+}
+
 /** Once completed, delivery retries transfer the exact retained graph. */
 export async function deliverProducerAudit(input: {
   target: UploadTarget
@@ -36,7 +55,8 @@ export async function deliverProducerAudit(input: {
 async function deliverProducerAuditLocked(
   input: Parameters<typeof deliverProducerAudit>[0],
 ) {
-  const store = new LocalPipelineBucket(input.directory)
+  Bun.gc(true)
+  const store = new AuditPipelineBucket(input.directory)
   let retained: { identity: string; refs: ObjectRef[] } | undefined
   try {
     retained = JSON.parse(

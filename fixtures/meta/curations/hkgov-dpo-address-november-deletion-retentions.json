@@ -785,7 +785,7 @@
         "authority": "User decisions, 2026-10-04"
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "coordinates": [
           114.18844,
           22.31398
@@ -1065,7 +1065,7 @@
         "authority": "User decisions, 2026-10-04"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -1342,7 +1342,7 @@
         "authority": "User decisions, 2026-10-04"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -1634,7 +1634,7 @@
         "authority": "User decisions, 2026-10-04"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -1910,7 +1910,7 @@
         "authority": "User decisions, 2026-10-04"
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "enName": "S22",
         "zhName": null
       }
@@ -2181,7 +2181,7 @@
         "authority": "User decisions, 2026-10-04"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -2416,7 +2416,7 @@
         "authority": "User decisions, 2026-10-04"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -2689,7 +2689,7 @@
         "authority": "User decisions, 2026-10-04"
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "enName": "CAMERON MANSIONS",
         "zhName": "CAMERON MANSIONS"
       }
@@ -2917,7 +2917,7 @@
         "authority": "User decisions, 2026-10-04"
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "coordinates": [
           114.18844,
           22.31398
@@ -3205,7 +3205,7 @@
         "authority": "User decisions, 2026-10-04"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -3481,7 +3481,7 @@
         "authority": "User decisions, 2026-10-04"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -3716,7 +3716,7 @@
         "authority": "User decisions, 2026-10-04"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -3942,7 +3942,7 @@
         "authority": "User decisions, 2026-10-04"
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "coordinates": [
           114.18844,
           22.31398
@@ -4172,7 +4172,7 @@
         "authority": "User decisions, 2026-10-04"
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "coordinates": [
           114.18844,
           22.31398
@@ -4408,7 +4408,7 @@
         "authority": "User decisions, 2026-10-04"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -4634,7 +4634,7 @@
         "authority": "User decisions, 2026-10-04"
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "coordinates": [
           114.18074,
           22.27962
@@ -4864,7 +4864,7 @@
         "authority": "User decisions, 2026-10-04"
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "coordinates": [
           114.18844,
           22.31398
@@ -5111,7 +5111,7 @@
         "authority": "User decisions, 2026-10-04"
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "enName": "FAILO",
         "zhName": "FAILO"
       }
@@ -5409,7 +5409,7 @@
         "authority": "User decisions, 2026-10-04"
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "enEstate": "PALM SPRINGS",
         "zhEstate": "加州花園",
         "blockNumber": "20",
@@ -5713,7 +5713,7 @@
         "authority": "User decisions, 2026-10-04"
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "enEstate": "PALM SPRINGS",
         "zhEstate": "加州花園",
         "blockNumber": "45",
@@ -6000,7 +6000,7 @@
         "authority": "User decisions, 2026-10-04"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -6268,7 +6268,7 @@
         "authority": "User decisions, 2026-10-04"
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "coordinates": [
           114.2697,
           22.33031
@@ -6499,7 +6499,7 @@
         "authority": "User decisions, 2026-10-04"
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "coordinates": [
           114.18844,
           22.31398
@@ -6786,7 +6786,7 @@
         "authority": "User decisions, 2026-10-04"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -7037,7 +7037,7 @@
         "authority": "User decisions, 2026-10-04"
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "enName": "CAMERON MANSIONS",
         "zhName": "CAMERON MANSIONS"
       }
@@ -7318,7 +7318,7 @@
         "authority": "User decisions, 2026-10-04"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -7614,7 +7614,7 @@
         "authority": "User decisions, 2026-10-04"
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "enEstate": "PALM SPRINGS",
         "zhEstate": "加州花園",
         "blockNumber": "15",
@@ -7900,7 +7900,7 @@
         "authority": "User decisions, 2026-10-04"
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "enName": "WING LEE WAI BUILDING",
         "zhName": "永利威大廈"
       }
@@ -8175,7 +8175,7 @@
         "authority": "User decisions, 2026-10-04"
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "enName": "CAMERON MANSIONS",
         "zhName": "CAMERON MANSIONS"
       }
@@ -8473,7 +8473,7 @@
         "authority": "User decisions, 2026-10-04"
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "enEstate": "PALM SPRINGS",
         "zhEstate": "加州花園",
         "blockNumber": "16",
@@ -8707,7 +8707,7 @@
         "authority": "User decisions, 2026-10-04"
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "coordinates": [
           114.18844,
           22.31398
@@ -8978,7 +8978,7 @@
         "authority": "User decisions, 2026-10-04"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -9247,7 +9247,7 @@
         "authority": "User decisions, 2026-10-04"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -9524,7 +9524,7 @@
         "authority": "User decisions, 2026-10-04"
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "enName": "FIRST GROUP CENTRE",
         "zhName": "第一集團中心"
       }
@@ -9822,7 +9822,7 @@
         "authority": "User decisions, 2026-10-04"
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "enEstate": "PALM SPRINGS",
         "zhEstate": "加州花園",
         "blockNumber": "29",
@@ -10056,7 +10056,7 @@
         "authority": "User decisions, 2026-10-04"
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "coordinates": [
           114.18844,
           22.31398
@@ -10286,7 +10286,7 @@
         "authority": "User decisions, 2026-10-04"
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "enName": "CAMERON MANSIONS",
         "zhName": "CAMERON MANSIONS",
         "coordinates": [
@@ -10559,7 +10559,7 @@
         "authority": "User decisions, 2026-10-04"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -10828,7 +10828,7 @@
         "authority": "User decisions, 2026-10-04"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -11111,7 +11111,7 @@
         "authority": "User decisions, 2026-10-04"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -11337,7 +11337,7 @@
         "authority": "User decisions, 2026-10-04"
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "coordinates": [
           114.18844,
           22.31398
@@ -11618,7 +11618,7 @@
         "authority": "User decisions, 2026-10-04"
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "enName": "RYKADAN ONE",
         "zhName": "宏基匯"
       }
@@ -11846,7 +11846,7 @@
         "authority": "User decisions, 2026-10-04"
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "coordinates": [
           114.18844,
           22.31398
@@ -12146,7 +12146,7 @@
         "authority": "User decisions, 2026-10-04"
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "enEstate": "PALM SPRINGS",
         "zhEstate": "加州花園",
         "blockNumber": "33",
@@ -12389,7 +12389,7 @@
         "authority": "User decisions, 2026-10-04"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -12672,7 +12672,7 @@
         "authority": "User decisions, 2026-10-04"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -12948,7 +12948,7 @@
         "authority": "User decisions, 2026-10-04"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -13215,7 +13215,7 @@
         "authority": "User decisions, 2026-10-04"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -13441,7 +13441,7 @@
         "authority": "User decisions, 2026-10-04"
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "coordinates": [
           114.18844,
           22.31398
@@ -13695,7 +13695,7 @@
         "authority": "User decisions, 2026-10-04"
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "blockNumber": "B",
         "blockDescriptor": "BLK",
         "zhBlockDescriptor": "座"
@@ -13969,7 +13969,7 @@
         "authority": "User decisions, 2026-10-04"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -14265,7 +14265,7 @@
         "authority": "User decisions, 2026-10-04"
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "enEstate": "PALM SPRINGS",
         "zhEstate": "加州花園",
         "blockNumber": "26",
@@ -14560,7 +14560,7 @@
         "authority": "User decisions, 2026-10-04"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -14827,7 +14827,7 @@
         "authority": "User decisions, 2026-10-04"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -15053,7 +15053,7 @@
         "authority": "User decisions, 2026-10-04"
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "coordinates": [
           114.18844,
           22.31398
@@ -15316,7 +15316,7 @@
         "authority": "User decisions, 2026-10-04"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -15548,7 +15548,8 @@
         "authority": "User decisions, 2026-10-04"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -15815,7 +15816,8 @@
         "authority": "User decisions, 2026-10-04"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -16097,7 +16099,8 @@
         "authority": "User decisions, 2026-10-04"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -16358,7 +16361,8 @@
         "reason": "Preserve the already existing complex independently of its retained building."
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     }
   ],

@@ -72,7 +72,13 @@ export function applyReviewedIdentityComponentBackfills(
     row.zhHantBuildingName = rule.zhName ?? null
     row.enFormattedAddress = formatEnPremisesAddress(canonicalEn)
     row.zhHantFormattedAddress = formatZhPremisesAddress(canonicalZh)
-    row.curatedGranularity = rule.granularity as 'complex' | 'building' | 'section'
+    if (
+      rule.premisesType !== undefined &&
+      !['site', 'complex'].includes(rule.premisesType)
+    )
+      throw new Error('Invalid reviewed premises type')
+    row.curatedPremisesType = rule.premisesType as 'site' | 'complex' | undefined
+    row.curatedScope = rule.scope as 'premises' | 'building' | 'section'
     row.identityAlias = row.id
     row.id =
       row.canonicalId =

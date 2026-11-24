@@ -21,7 +21,7 @@
     "hkgov-dpo-address-approved-issue-batch"
   ],
   "hkgovAlsAuditFixtures": [
-    "address-granularity",
+    "address-scope",
     "hkgov-dpo-address-2026-reviewed-continuity",
     "hkgov-dpo-address-2d-backfills",
     "hkgov-dpo-address-3d-backfills",

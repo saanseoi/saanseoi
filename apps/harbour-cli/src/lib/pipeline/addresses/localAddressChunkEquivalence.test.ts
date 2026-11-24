@@ -89,7 +89,7 @@ test('chunk memory and retained JSON produce identical history and current SQL f
       },
     } as AddressPipelineMessage
     const artefact = {
-      kind: 'address.normalised.v1',
+      kind: 'address.normalised.v2',
       resourceReleaseId: release.resourceReleaseId,
       processingRunStartedAt: timestamp,
       rowStart: 0,

@@ -1,16 +1,16 @@
 ---
-createdAt: "2026-10-11T04:00:00.000Z"
-updatedAt: "2026-10-11T04:00:00.000Z"
-apiFamily: "divisions"
-apiVersion: "api-divisions-v0.2"
-apiReleaseSet: "data-hk-divisions-2026-10-01.0"
-revision: "0"
-regionCode: "hk"
-cohortKey: "2026-10-01.0"
-domainCode: "geographic"
-timeTravelEffectiveAt: "2026-10-01T00:00:00.000Z"
-timeTravelKnownAt: "2026-10-07T17:53:01.000Z"
-timeTravelCatalogRevision: "catalog-hk-divisions-v0.2-2026-10-07.1"
+createdAt: '2026-10-11T04:00:00.000Z'
+updatedAt: '2026-10-11T04:00:00.000Z'
+apiFamily: 'divisions'
+apiVersion: 'api-divisions-v0.2'
+apiReleaseSet: 'data-hk-divisions-2026-10-01.0'
+revision: '0'
+regionCode: 'hk'
+cohortKey: '2026-10-01.0'
+domainCode: 'geographic'
+timeTravelEffectiveAt: '2026-10-01T00:00:00.000Z'
+timeTravelKnownAt: '2026-10-07T17:53:01.000Z'
+timeTravelCatalogRevision: 'catalog-hk-divisions-v0.2-2026-10-07.1'
 ---
 
 # EN
@@ -377,9 +377,9 @@ and fields come from different sources.
 The API returns a number of error codes. Here is how to recover from each one:
 
 - `409` with <black>inventory_unavailable</black> means the selected release does not
-  expose the requested inventory. Check
-  <black>/{{apiFamily}}/{{ apiVersionPath }}/inventories</black> with the same release
-  selector; do not silently switch inventories.
+  expose the requested inventory. Check <black>/{{apiFamily}}/{{ apiVersionPath
+  }}/inventories</black> with the same release selector; do not silently switch
+  inventories.
 - `404` from a detail request means that the ID is not in the selected release. Recheck
   the ID and its domain, cohort, and time-travel selectors.
 - `409` with <black>variant_unavailable</black> means the requested area or boundary
@@ -457,15 +457,14 @@ unavailable publication or retained history returns <black>503</black>.
 ## Retrieving an Exact Change Definition
 
 Each non-null <black>before</black> or <black>after</black> reference supplies a
-<black>record</black> URL for <black>GET
-/{{apiFamily}}/{{ apiVersionPath }}/changes/definitions/{id}</black>. Follow that URL:
-it carries the <black>releaseSet</black>, <black>definitionHash</black> and inventory
-needed to retrieve that exact definition. The response includes attributes and
-authoritative membership polygons, where available. A deletion has no
-<black>after</black> definition; an addition has no <black>before</black> definition.
-Save these links for reproducible comparisons. If the exact retained definition is
-unavailable, the endpoint returns an explicit error rather than substituting the current
-definition.
+<black>record</black> URL for <black>GET /{{apiFamily}}/{{ apiVersionPath
+}}/changes/definitions/{id}</black>. Follow that URL: it carries the
+<black>releaseSet</black>, <black>definitionHash</black> and inventory needed to
+retrieve that exact definition. The response includes attributes and authoritative
+membership polygons, where available. A deletion has no <black>after</black> definition;
+an addition has no <black>before</black> definition. Save these links for reproducible
+comparisons. If the exact retained definition is unavailable, the endpoint returns an
+explicit error rather than substituting the current definition.
 
 # ZH-HANT
 
@@ -479,9 +478,9 @@ definition.
 
 {{apiKeyNote:zh-Hant}}
 
-<black>geographic</black> 的預設 inventory 是
-<black>saanseoi</black>。山水提供經整理的 Division 識別碼、名稱、分類及層級；此發布亦保留獨立的 Overture
-inventory 及相容幾何配套。
+<black>geographic</black> 的預設 inventory 是 <black>saanseoi</black>。山水提供經整理的
+Division 識別碼、名稱、分類及層級；此發布亦保留獨立的 Overture inventory
+及相容幾何配套。
 
 本版準備及覆蓋詳情，請參閱 [山水來源附註]({{primarySourceReleaseUrl}})。使用
 <black>profile=full</black> 時，<black>sources</black> 指向保留的來源記錄。請使用
@@ -499,9 +498,9 @@ inventory 及相容幾何配套。
 /{{apiFamily}}/{{ apiVersionPath }}
 ```
 
-清單中的每個區劃均有 <black>id</black>。以 <black>GET
-/{{apiFamily}}/{{ apiVersionPath }}/{id}</black>
-取得單一區劃。如需相同視圖，請使用相同的發布、回應形狀、語言及幾何資料 selector（詳見下文）：
+清單中的每個區劃均有 <black>id</black>。以 <black>GET /{{apiFamily}}/{{ apiVersionPath
+}}/{id}</black> 取得單一區劃。如需相同視圖，請使用相同的發布、回應形狀、語言及幾何資料
+selector（詳見下文）：
 
 ```url
 /{{apiFamily}}/{{ apiVersionPath }}/e70ad27b-857b-45f9-b94f-2168550591da?
@@ -556,15 +555,16 @@ inventory 及相容幾何配套。
                  releaseSet={{ apiReleaseSet }}
 ```
 
-沿區劃 ID 讀取、搜尋、地理編碼或比較變動時，請使用相同的 inventory。兩個 inventory 中名稱相同，不保證識別對象或層級相同。已確認配對保留 Overture
-GERS 識別碼；山水新增記錄使用 <black>ss-</black> 識別碼。請保存回應的
+沿區劃 ID 讀取、搜尋、地理編碼或比較變動時，請使用相同的 inventory。兩個 inventory
+中名稱相同，不保證識別對象或層級相同。已確認配對保留 Overture GERS
+識別碼；山水新增記錄使用 <black>ss-</black> 識別碼。請保存回應的
 <black>links.permalink</black>，以保留已解析的發布、目錄及 inventory。
 
 ## 搜尋區劃
 
-使用 <black>GET
-/{{apiFamily}}/{{ apiVersionPath }}/search</black>，按名稱、別名或代碼尋找區劃。必填的
-<black>q</black> 參數接受部分英文文字及中文子字串，適合在使用者輸入時提供建議：
+使用 <black>GET /{{apiFamily}}/{{ apiVersionPath
+}}/search</black>，按名稱、別名或代碼尋找區劃。必填的 <black>q</black>
+參數接受部分英文文字及中文子字串，適合在使用者輸入時提供建議：
 
 ```url
 /{{apiFamily}}/{{ apiVersionPath }}/search?
@@ -572,9 +572,10 @@ GERS 識別碼；山水新增記錄使用 <black>ss-</black> 識別碼。請保�
                  limit=20
 ```
 
-搜尋使用各 domain 的<black>最新已發布</black>版本，除非指定其中一個 domain，否則會搜尋<black>所有 domain</black>。它不會選取本指南的
-<black>{{ cohortKey }}</black> cohort。如只想搜尋本指南所示的 domain，請加入
-<black>domain={{ domainCode }}</black>。
+搜尋使用各 domain 的<black>最新已發布</black>版本，除非指定其中一個
+domain，否則會搜尋<black>所有 domain</black>。它不會選取本指南的 <black>{{ cohortKey
+}}</black> cohort。如只想搜尋本指南所示的 domain，請加入 <black>domain={{ domainCode
+}}</black>。
 
 例如，以 <black>水埗</black> 搜尋 <black>深水埗</black> 等名稱中的部分文字：
 
@@ -598,7 +599,8 @@ GERS 識別碼；山水新增記錄使用 <black>ss-</black> 識別碼。請保�
 值一律納入搜尋。英文配對不區分大小寫。中文查詢可包含一個或多個字元。查詢中的每個詞或中文子字串都必須相符；標點符號會分隔搜尋詞。不支援萬用字元及全文查詢運算子。
 
 預設不搜尋上層區劃的名稱。加入
-<black>ancestors=true</black>，亦可透過已儲存層級中的名稱尋找區劃。例如，搜尋此 domain 中最細的鄰里類型——微型鄰里（<black>microhood</black>），將已儲存的上層名稱包含
+<black>ancestors=true</black>，亦可透過已儲存層級中的名稱尋找區劃。例如，搜尋此 domain
+中最細的鄰里類型——微型鄰里（<black>microhood</black>），將已儲存的上層名稱包含
 <black>Kowloon</black> 的區劃納入結果：
 
 ```url
@@ -610,15 +612,17 @@ GERS 識別碼；山水新增記錄使用 <black>ss-</black> 識別碼。請保�
 ```
 
 直接的名稱、別名及代碼相符結果會排在上層名稱相符結果之前，並優先顯示名稱或代碼完全相符及名稱前綴相符的結果。每個
-<black>results</black>
-項目會標示區劃、所屬 domain 及配對到的語言。<black>match=self</black>
+<black>results</black> 項目會標示區劃、所屬 domain
+及配對到的語言。<black>match=self</black>
 表示其本身的名稱、別名或代碼相符；<black>match=ancestor</black>
-表示配對亦使用了上層名稱。每個區劃在每個 domain 最多有一個結果，因此同一區劃可出現在多個 domain。使用其
-<black>divisionId</black> 及 <black>domain</black> 呼叫詳情端點，即可取得完整記錄。
+表示配對亦使用了上層名稱。每個區劃在每個 domain 最多有一個結果，因此同一區劃可出現在多個
+domain。使用其 <black>divisionId</black> 及 <black>domain</black>
+呼叫詳情端點，即可取得完整記錄。
 
 查詢最多可包含 120 個字元及八個搜尋詞。搜尋預設傳回 20 個結果，最多 100 個；使用
 <black>limit</black> 調整數量。搜尋不使用集合端點的分頁、<black>profile</black> 或
-<black>include</black>，亦不支援版本及時間旅行 selector；如要選取歷史版本，請使用集合及詳情端點。
+<black>include</black>，亦不支援版本及時間旅行
+selector；如要選取歷史版本，請使用集合及詳情端點。
 
 ## 設定回應形狀
 
@@ -659,9 +663,8 @@ GERS 識別碼；山水新增記錄使用 <black>ss-</black> 識別碼。請保�
 
 1. 限定 selector 優先：<black>include=areas:saanseoi</black> 或
    <black>include=boundaries:overture</black>。
-2. 未限定的 <black>include=areas</black>
-   使用所選 inventory 的預設：經整理的 inventory 為 <black>saanseoi</black>，Overture
-   inventory 為 <black>overture</black>。
+2. 未限定的 <black>include=areas</black> 使用所選 inventory 的預設：經整理的 inventory
+   為 <black>saanseoi</black>，Overture inventory 為 <black>overture</black>。
 3. 未限定的 <black>include=boundaries</black> 使用
    <black>overture</black>。這些邊界線涵蓋地區級區劃，不是每個經整理鄰里或島嶼的輪廓。
 
@@ -783,8 +786,9 @@ ID，即使兩者同名，例如<i>青衣</i>。
 
 ## 切換 domain
 
-[domain](saanseoi:zh-hant:definition/domain/v1) 是 Divisions
-API 中獨立的集合。比較結果時，應將不同 domain 分開處理：它們的識別、幾何資料和欄位來自不同來源。
+[domain](saanseoi:zh-hant:definition/domain/v1) 是 Divisions API
+中獨立的集合。比較結果時，應將不同 domain
+分開處理：它們的識別、幾何資料和欄位來自不同來源。
 
 {{domains:zh-Hant}}
 
@@ -792,25 +796,26 @@ API 中獨立的集合。比較結果時，應將不同 domain 分開處理：�
 
 API 會傳回多種錯誤碼。以下說明各種情況的復原方法：
 
-- `409` 及 <black>inventory_unavailable</black>
-  表示所選發布不提供要求的 inventory。請以相同發布 selector 查閱
-  <black>/{{apiFamily}}/{{ apiVersionPath }}/inventories</black>；請勿靜默切換 inventory。
-- 詳情要求的 `404`
-  表示該 ID 不在所選發布中。請重新檢查 ID，以及其 domain、cohort 和時間旅行 selector。
-- 帶有 <black>variant_unavailable</black> 的 `409`
-  表示所要求的面或邊界 variant 不在該發布中。請從上表選取可用的限定配套資源，或改用包含所需 variant 的發布；API 不會改用其他發布者。
-- `422`
-  表示要求無效。請閱讀驗證詳情，然後修正 selector、篩選條件、locale、搜尋或分頁值，再次嘗試。
-- 帶有 <black>snapshot_not_ready</black> 的 `503`
-  表示沒有已發布的有效區劃 snapshot 符合選擇條件。請在發布後重試，或選取已發布的 release；請勿將此回應視為空結果。
+- `409` 及 <black>inventory_unavailable</black> 表示所選發布不提供要求的
+  inventory。請以相同發布 selector 查閱 <black>/{{apiFamily}}/{{ apiVersionPath
+  }}/inventories</black>；請勿靜默切換 inventory。
+- 詳情要求的 `404` 表示該 ID 不在所選發布中。請重新檢查 ID，以及其 domain、cohort
+  和時間旅行 selector。
+- 帶有 <black>variant_unavailable</black> 的 `409` 表示所要求的面或邊界 variant
+  不在該發布中。請從上表選取可用的限定配套資源，或改用包含所需 variant 的發布；API
+  不會改用其他發布者。
+- `422` 表示要求無效。請閱讀驗證詳情，然後修正
+  selector、篩選條件、locale、搜尋或分頁值，再次嘗試。
+- 帶有 <black>snapshot_not_ready</black> 的 `503` 表示沒有已發布的有效區劃 snapshot
+  符合選擇條件。請在發布後重試，或選取已發布的 release；請勿將此回應視為空結果。
 - 帶有 <black>fts_not_ready</black> 的 `503`
   僅適用於搜尋：最新已發布版本的搜尋尚未就緒。請在搜尋準備完成後重試。空的
   <black>results</black> 陣列表示所選的已發布 domain 中沒有相符結果。
 
 ## 解析區劃歸屬
 
-使用 <black>GET /{{apiFamily}}/{{ apiVersionPath }}/geocode</black>
-查找包含 WGS84 座標的區劃，或解析地名及地址。只可提供一組輸入： <black>lat</black> 與
+使用 <black>GET /{{apiFamily}}/{{ apiVersionPath }}/geocode</black> 查找包含 WGS84
+座標的區劃，或解析地名及地址。只可提供一組輸入： <black>lat</black> 與
 <black>lng</black>、<black>placename</black>，或 <black>address</black>。
 
 ```url
@@ -823,8 +828,8 @@ API 會傳回多種錯誤碼。以下說明各種情況的復原方法：
 查詢地名時，以 <black>placename=Mong%20Kok</black> 取代座標。此端點使用
 <black>releaseSet</black>
 固定發布；省略時選取最新的相容已發布版本。<black>locales=en,zh-hant</black>
-選取回應語言。地名及地址查詢接受
-<black>limit</black>（預設 10，上限 50）。地址查詢亦需要相容的已發布地址版本。
+選取回應語言。地名及地址查詢接受 <black>limit</black>（預設 10，上限
+50）。地址查詢亦需要相容的已發布地址版本。
 
 JSON:API 回應的 <black>data</black> 包含 <black>geocoding-results</black>，
 <black>included</black> 包含區劃資源；關係描述行政、聚落、鄰里及地貌分支。請檢查各結果的
@@ -854,19 +859,18 @@ JSON:API 回應的 <black>data</black> 包含 <black>geocoding-results</black>�
 <black>canAffectGeocodingMembership</black> 及 <black>affectedDescendantIds</black>
 判斷重算範圍：祖先變更可影響兩個版本中的後代。只有發布或儲存時間改變不算修訂。
 
-原樣跟隨
-<black>links.next</black>，以保持兩個版本固定。每頁預設 25 筆，<black>page[limit]</black>
-接受 1–100。省略 <black>include=geometry</black> 可縮小回應。不相容版本回傳
-<black>409</black>；無效查詢或游標回傳 <black>422</black>；發布或保留歷史不可用時回傳
-<black>503</black>。
+原樣跟隨 <black>links.next</black>，以保持兩個版本固定。每頁預設 25
+筆，<black>page[limit]</black> 接受 1–100。省略 <black>include=geometry</black>
+可縮小回應。不相容版本回傳 <black>409</black>；無效查詢或游標回傳
+<black>422</black>；發布或保留歷史不可用時回傳 <black>503</black>。
 
 ## 取得確切的變更定義
 
 非空的 <black>before</black> 或 <black>after</black> 參照提供 <black>record</black>
-URL，指向 <black>GET
-/{{apiFamily}}/{{ apiVersionPath }}/changes/definitions/{id}</black>。請跟隨該 URL：它包含取得確切定義所需的
-<black>releaseSet</black>、 <black>definitionHash</black>
-及 inventory。回應包含屬性，以及可用的權威歸屬多邊形。刪除沒有 <black>after</black>
+URL，指向 <black>GET /{{apiFamily}}/{{ apiVersionPath
+}}/changes/definitions/{id}</black>。請跟隨該 URL：它包含取得確切定義所需的
+<black>releaseSet</black>、 <black>definitionHash</black> 及
+inventory。回應包含屬性，以及可用的權威歸屬多邊形。刪除沒有 <black>after</black>
 定義；新增沒有 <black>before</black>
 定義。保存連結可重現比較。若確切的保留定義不可用，端點會明確回傳錯誤，不會代入目前定義。
 
@@ -876,14 +880,15 @@ URL，指向 <black>GET
 查閱本山水地理版本與已發布的規劃單位（TPU）、房屋市場區或新市鎮版本之間的多邊形重疊。必須同時提供
 `sourceReleaseSet` 及 `geographicReleaseSet={{ apiReleaseSet }}`。
 
-`divisionId` 篩選來源區劃；`geographicDivisionId` 篩選山水區劃。`page[limit]`
-為 1–1000，預設 100；`page[offset]`
-指定偏移量。結果按來源 ID 及地理 ID 排序，`links.next` 提供下一頁，`meta.total`
-提供篩選後的總數。
+`divisionId` 篩選來源區劃；`geographicDivisionId` 篩選山水區劃。`page[limit]` 為
+1–1000，預設 100；`page[offset]` 指定偏移量。結果按來源 ID 及地理 ID 排序，`links.next`
+提供下一頁，`meta.total` 提供篩選後的總數。
 
 每項關係提供 `overlapSquareMetres`、`sourceFraction`、`fullyContained`
 及雙方幾何雜湊。`meta.crosswalk` 固定雙方發布集、Division 及 DivisionArea snapshot
-ID、規則及內容雜湊。比例以完整來源多邊形面積為分母，並非人口權重。只接觸邊界或不超過 1 平方米或來源面積 1e-8 的微小重疊不計入。推算行政階層所用的已覆蓋面積百分之五門檻不限制對照表關係。沒有多邊形的地理區劃沒有空間對應關係。
+ID、規則及內容雜湊。比例以完整來源多邊形面積為分母，並非人口權重。只接觸邊界或不超過 1
+平方米或來源面積 1e-8
+的微小重疊不計入。推算行政階層所用的已覆蓋面積百分之五門檻不限制對照表關係。沒有多邊形的地理區劃沒有空間對應關係。
 
 原生 domain 的集合請求亦可使用地理代碼篩選，並以
 `geographicReleaseSet={{ apiReleaseSet }}` 固定解讀版本。對照表尚未準備好時回傳
@@ -902,9 +907,9 @@ ID、規則及內容雜湊。比例以完整來源多邊形面積為分母，並
 
 {{apiKeyNote:zh-Hans}}
 
-<black>geographic</black> 的默认 inventory 是
-<black>saanseoi</black>。山水提供经整理的 Division 标识符、名称、分类及层级；此发布亦保留独立的 Overture
-inventory 及兼容几何配套。
+<black>geographic</black> 的默认 inventory 是 <black>saanseoi</black>。山水提供经整理的
+Division 标识符、名称、分类及层级；此发布亦保留独立的 Overture inventory
+及兼容几何配套。
 
 本版准备及覆盖详情，请参阅 [山水源说明]({{primarySourceReleaseUrl}})。使用
 <black>profile=full</black> 时，<black>sources</black> 指向保留的源记录。请使用
@@ -922,9 +927,9 @@ inventory 及兼容几何配套。
 /{{apiFamily}}/{{ apiVersionPath }}
 ```
 
-列表中的每个区划均有 <black>id</black>。以 <black>GET
-/{{apiFamily}}/{{ apiVersionPath }}/{id}</black>
-获取单一区划。如需相同视图，请使用相同的发布、响应形状、语言及几何数据 selector（详见下文）：
+列表中的每个区划均有 <black>id</black>。以 <black>GET /{{apiFamily}}/{{ apiVersionPath
+}}/{id}</black> 获取单一区划。如需相同视图，请使用相同的发布、响应形状、语言及几何数据
+selector（详见下文）：
 
 ```url
 /{{apiFamily}}/{{ apiVersionPath }}/e70ad27b-857b-45f9-b94f-2168550591da?
@@ -979,15 +984,16 @@ inventory 及兼容几何配套。
                  releaseSet={{ apiReleaseSet }}
 ```
 
-沿区划 ID 读取、搜索、地理编码或比较变动时，请使用相同的 inventory。两个 inventory 中名称相同，不保证标识对象或层级相同。已确认匹配保留 Overture
-GERS 标识符；山水新增记录使用 <black>ss-</black> 标识符。请保存响应的
+沿区划 ID 读取、搜索、地理编码或比较变动时，请使用相同的 inventory。两个 inventory
+中名称相同，不保证标识对象或层级相同。已确认匹配保留 Overture GERS
+标识符；山水新增记录使用 <black>ss-</black> 标识符。请保存响应的
 <black>links.permalink</black>，以保留已解析的发布、目录及 inventory。
 
 ## 搜索区划
 
-使用 <black>GET
-/{{apiFamily}}/{{ apiVersionPath }}/search</black>，按名称、别名或代码查找区划。必填的
-<black>q</black> 参数接受部分英文文本及中文子字符串，适合在用户输入时提供建议：
+使用 <black>GET /{{apiFamily}}/{{ apiVersionPath
+}}/search</black>，按名称、别名或代码查找区划。必填的 <black>q</black>
+参数接受部分英文文本及中文子字符串，适合在用户输入时提供建议：
 
 ```url
 /{{apiFamily}}/{{ apiVersionPath }}/search?
@@ -995,9 +1001,10 @@ GERS 标识符；山水新增记录使用 <black>ss-</black> 标识符。请保�
                  limit=20
 ```
 
-搜索使用各 domain 的<black>最新已发布</black>版本，除非指定其中一个 domain，否则会搜索<black>所有 domain</black>。它不会选取本指南的
-<black>{{ cohortKey }}</black> cohort。如只想搜索本指南所示的 domain，请添加
-<black>domain={{ domainCode }}</black>。
+搜索使用各 domain 的<black>最新已发布</black>版本，除非指定其中一个
+domain，否则会搜索<black>所有 domain</black>。它不会选取本指南的 <black>{{ cohortKey
+}}</black> cohort。如只想搜索本指南所示的 domain，请添加 <black>domain={{ domainCode
+}}</black>。
 
 例如，以 <black>水埗</black> 搜索 <black>深水埗</black> 等名称中的部分文字：
 
@@ -1021,7 +1028,8 @@ GERS 标识符；山水新增记录使用 <black>ss-</black> 标识符。请保�
 值一律纳入搜索。英文匹配不区分大小写。中文查询可包含一个或多个字符。查询中的每个词或中文子字符串都必须匹配；标点符号会分隔搜索词。不支持通配符及全文查询运算符。
 
 默认不搜索上层区划的名称。添加
-<black>ancestors=true</black>，也可通过已存储层级中的名称查找区划。例如，搜索此 domain 中最细的邻里类型——微型邻里（<black>microhood</black>），将已存储的上层名称包含
+<black>ancestors=true</black>，也可通过已存储层级中的名称查找区划。例如，搜索此 domain
+中最细的邻里类型——微型邻里（<black>microhood</black>），将已存储的上层名称包含
 <black>Kowloon</black> 的区划纳入结果：
 
 ```url
@@ -1033,15 +1041,17 @@ GERS 标识符；山水新增记录使用 <black>ss-</black> 标识符。请保�
 ```
 
 直接的名称、别名及代码匹配结果会排在上层名称匹配结果之前，并优先显示名称或代码完全匹配及名称前缀匹配的结果。每个
-<black>results</black>
-条目会标示区划、所属 domain 及匹配到的语言。<black>match=self</black>
+<black>results</black> 条目会标示区划、所属 domain
+及匹配到的语言。<black>match=self</black>
 表示其本身的名称、别名或代码匹配；<black>match=ancestor</black>
-表示匹配也使用了上层名称。每个区划在每个 domain 最多有一个结果，因此同一区划可出现在多个 domain。使用其
-<black>divisionId</black> 及 <black>domain</black> 调用详情端点，即可获取完整记录。
+表示匹配也使用了上层名称。每个区划在每个 domain 最多有一个结果，因此同一区划可出现在多个
+domain。使用其 <black>divisionId</black> 及 <black>domain</black>
+调用详情端点，即可获取完整记录。
 
 查询最多可包含 120 个字符及八个搜索词。搜索默认返回 20 个结果，最多 100 个；使用
 <black>limit</black> 调整数量。搜索不使用集合端点的分页、<black>profile</black> 或
-<black>include</black>，也不支持版本及时间旅行 selector；如要选取历史版本，请使用集合及详情端点。
+<black>include</black>，也不支持版本及时间旅行
+selector；如要选取历史版本，请使用集合及详情端点。
 
 ## 设置响应形状
 
@@ -1082,9 +1092,8 @@ GERS 标识符；山水新增记录使用 <black>ss-</black> 标识符。请保�
 
 1. 限定 selector 优先：<black>include=areas:saanseoi</black> 或
    <black>include=boundaries:overture</black>。
-2. 未限定的 <black>include=areas</black>
-   使用所选 inventory 的默认值：经整理的 inventory 为 <black>saanseoi</black>，Overture
-   inventory 为 <black>overture</black>。
+2. 未限定的 <black>include=areas</black> 使用所选 inventory 的默认值：经整理的 inventory
+   为 <black>saanseoi</black>，Overture inventory 为 <black>overture</black>。
 3. 未限定的 <black>include=boundaries</black> 使用
    <black>overture</black>。这些边界线涵盖地区级区划，不是每个经整理邻里或岛屿的轮廓。
 
@@ -1099,11 +1108,10 @@ GERS 标识符；山水新增记录使用 <black>ss-</black> 标识符。请保�
 <black>transform=simplified</black>。
 
 包含政府几何数据时，您可能也希望使用<i>特定</i>参考年份，例如配合该年份的统计数据。请使用
-<black>@{year}</black> 后缀，包含 C&SD 已发布的 <black>{year}</black>
-cohort 中的几何数据。请求中的 <black>domain</black> 和 <black>cohort</black>
-仍会选择提供规范区划标识和层级的 <black>release set</black>。因此，下例会取得
-<black>{{ cohortKey }}</black> 的区划定义，但使用 <black>2021</black>
-参考年份的几何数据。
+<black>@{year}</black> 后缀，包含 C&SD 已发布的 <black>{year}</black> cohort
+中的几何数据。请求中的 <black>domain</black> 和 <black>cohort</black>
+仍会选择提供规范区划标识和层级的 <black>release set</black>。因此，下例会取得 <black>{{
+cohortKey }}</black> 的区划定义，但使用 <black>2021</black> 参考年份的几何数据。
 
 ```url
 /{{apiFamily}}/{{ apiVersionPath }}?
@@ -1206,8 +1214,9 @@ ID，即使两者同名，例如<i>青衣</i>。
 
 ## 切换 domain
 
-[domain](saanseoi:zh-hans:definition/domain/v1) 是 Divisions
-API 中独立的集合。比较结果时，应将不同 domain 分开处理：它们的标识、几何数据和字段来自不同来源。
+[domain](saanseoi:zh-hans:definition/domain/v1) 是 Divisions API
+中独立的集合。比较结果时，应将不同 domain
+分开处理：它们的标识、几何数据和字段来自不同来源。
 
 {{domains:zh-Hans}}
 
@@ -1215,25 +1224,26 @@ API 中独立的集合。比较结果时，应将不同 domain 分开处理：�
 
 API 会返回多种错误码。以下说明各种情况的恢复方法：
 
-- `409` 及 <black>inventory_unavailable</black>
-  表示所选发布不提供请求的 inventory。请以相同发布 selector 查阅
-  <black>/{{apiFamily}}/{{ apiVersionPath }}/inventories</black>；请勿静默切换 inventory。
-- 详情请求的 `404`
-  表示该 ID 不在所选发布中。请重新检查 ID，以及其 domain、cohort 和时间旅行 selector。
-- 带有 <black>variant_unavailable</black> 的 `409`
-  表示所请求的面或边界 variant 不在该发布中。请从上表选择可用的限定配套资源，或改用包含所需 variant 的发布；API 不会改用其他发布者。
-- `422`
-  表示请求无效。请阅读验证详情，然后修正 selector、筛选条件、locale、搜索或分页值，再次尝试。
-- 带有 <black>snapshot_not_ready</black> 的 `503`
-  表示没有已发布的有效区划 snapshot 符合选择条件。请在发布后重试，或选择已发布的 release；请勿将此响应视为空结果。
+- `409` 及 <black>inventory_unavailable</black> 表示所选发布不提供请求的
+  inventory。请以相同发布 selector 查阅 <black>/{{apiFamily}}/{{ apiVersionPath
+  }}/inventories</black>；请勿静默切换 inventory。
+- 详情请求的 `404` 表示该 ID 不在所选发布中。请重新检查 ID，以及其 domain、cohort
+  和时间旅行 selector。
+- 带有 <black>variant_unavailable</black> 的 `409` 表示所请求的面或边界 variant
+  不在该发布中。请从上表选择可用的限定配套资源，或改用包含所需 variant 的发布；API
+  不会改用其他发布者。
+- `422` 表示请求无效。请阅读验证详情，然后修正
+  selector、筛选条件、locale、搜索或分页值，再次尝试。
+- 带有 <black>snapshot_not_ready</black> 的 `503` 表示没有已发布的有效区划 snapshot
+  符合选择条件。请在发布后重试，或选择已发布的 release；请勿将此响应视为空结果。
 - 带有 <black>fts_not_ready</black> 的 `503`
   仅适用于搜索：最新已发布版本的搜索尚未就绪。请在搜索准备完成后重试。空的
   <black>results</black> 数组表示所选的已发布 domain 中没有匹配结果。
 
 ## 解析区划归属
 
-使用 <black>GET /{{apiFamily}}/{{ apiVersionPath }}/geocode</black>
-查找包含 WGS84 坐标的区划，或解析地名及地址。只可提供一组输入： <black>lat</black> 与
+使用 <black>GET /{{apiFamily}}/{{ apiVersionPath }}/geocode</black> 查找包含 WGS84
+坐标的区划，或解析地名及地址。只可提供一组输入： <black>lat</black> 与
 <black>lng</black>、<black>placename</black>，或 <black>address</black>。
 
 ```url
@@ -1246,8 +1256,8 @@ API 会返回多种错误码。以下说明各种情况的恢复方法：
 查询地名时，以 <black>placename=Mong%20Kok</black> 替代坐标。此端点使用
 <black>releaseSet</black>
 固定发布；省略时选择最新的兼容已发布版本。<black>locales=en,zh-hant</black>
-选择响应语言。地名及地址查询接受
-<black>limit</black>（默认 10，上限 50）。地址查询亦需要兼容的已发布地址版本。
+选择响应语言。地名及地址查询接受 <black>limit</black>（默认 10，上限
+50）。地址查询亦需要兼容的已发布地址版本。
 
 JSON:API 响应的 <black>data</black> 包含 <black>geocoding-results</black>，
 <black>included</black> 包含区划资源；关系描述行政、聚落、邻里及地貌分支。请检查各结果的
@@ -1277,19 +1287,18 @@ JSON:API 响应的 <black>data</black> 包含 <black>geocoding-results</black>�
 <black>canAffectGeocodingMembership</black> 及 <black>affectedDescendantIds</black>
 判断重算范围：祖先变更可影响两个版本中的后代。只有发布或存储时间改变不算修订。
 
-原样跟随
-<black>links.next</black>，以保持两个版本固定。每页默认 25 条，<black>page[limit]</black>
-接受 1–100。省略 <black>include=geometry</black> 可缩小响应。不兼容版本返回
-<black>409</black>；无效查询或游标返回 <black>422</black>；发布或保留历史不可用时返回
-<black>503</black>。
+原样跟随 <black>links.next</black>，以保持两个版本固定。每页默认 25
+条，<black>page[limit]</black> 接受 1–100。省略 <black>include=geometry</black>
+可缩小响应。不兼容版本返回 <black>409</black>；无效查询或游标返回
+<black>422</black>；发布或保留历史不可用时返回 <black>503</black>。
 
 ## 获取确切的变更定义
 
 非空的 <black>before</black> 或 <black>after</black> 引用提供 <black>record</black>
-URL，指向 <black>GET
-/{{apiFamily}}/{{ apiVersionPath }}/changes/definitions/{id}</black>。请跟随该 URL：它包含获取确切定义所需的
-<black>releaseSet</black>、 <black>definitionHash</black>
-及 inventory。响应包含属性，以及可用的权威归属多边形。删除没有 <black>after</black>
+URL，指向 <black>GET /{{apiFamily}}/{{ apiVersionPath
+}}/changes/definitions/{id}</black>。请跟随该 URL：它包含获取确切定义所需的
+<black>releaseSet</black>、 <black>definitionHash</black> 及
+inventory。响应包含属性，以及可用的权威归属多边形。删除没有 <black>after</black>
 定义；新增没有 <black>before</black>
 定义。保存链接可重现比较。若确切的保留定义不可用，端点会明确返回错误，不会代入当前定义。
 
@@ -1299,14 +1308,15 @@ URL，指向 <black>GET
 查阅本山水地理版本与已发布的规划单位（TPU）、房屋市场区或新市镇版本之间的多边形重叠。必须同时提供
 `sourceReleaseSet` 及 `geographicReleaseSet={{ apiReleaseSet }}`。
 
-`divisionId` 筛选来源区划；`geographicDivisionId` 筛选山水区划。`page[limit]`
-为 1–1000，默认 100；`page[offset]`
-指定偏移量。结果按来源 ID 及地理 ID 排序，`links.next` 提供下一页，`meta.total`
-提供筛选后的总数。
+`divisionId` 筛选来源区划；`geographicDivisionId` 筛选山水区划。`page[limit]` 为
+1–1000，默认 100；`page[offset]` 指定偏移量。结果按来源 ID 及地理 ID 排序，`links.next`
+提供下一页，`meta.total` 提供筛选后的总数。
 
 每项关系提供 `overlapSquareMetres`、`sourceFraction`、`fullyContained`
 及双方几何哈希。`meta.crosswalk` 固定双方发布集、Division 及 DivisionArea snapshot
-ID、规则及内容哈希。比例以完整来源多边形面积为分母，并非人口权重。只接触边界或不超过 1 平方米或来源面积 1e-8 的微小重叠不计入。推算行政层级所用的已覆盖面积百分之五门槛不限制对照表关系。没有多边形的地理区划没有空间对应关系。
+ID、规则及内容哈希。比例以完整来源多边形面积为分母，并非人口权重。只接触边界或不超过 1
+平方米或来源面积 1e-8
+的微小重叠不计入。推算行政层级所用的已覆盖面积百分之五门槛不限制对照表关系。没有多边形的地理区划没有空间对应关系。
 
 原生 domain 的集合请求亦可使用地理代码筛选，并以
 `geographicReleaseSet={{ apiReleaseSet }}` 固定解读版本。对照表尚未准备好时返回

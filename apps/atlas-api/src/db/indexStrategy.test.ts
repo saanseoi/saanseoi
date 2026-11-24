@@ -48,7 +48,7 @@ test('Address division UNION preserves scoped identity, filters and global pagin
       INSERT INTO addressPublicationState(scopeId,snapshotId,status,publicationToken,preparedAt)
       VALUES ('s1','p1','current','t1','ready'),('s2','p2','current','t2','ready'),
              ('outside','p3','current','t3','ready'),('pending','p4','publishing','t4','ready');
-      INSERT INTO address2d(scopeId,divisionSnapshotId,id,granularity,countryId,districtId,townId)
+      INSERT INTO address2d(scopeId,divisionSnapshotId,id,scope,countryId,districtId,townId)
       VALUES ('s1','divisions','same','building','hk','target','target'),
              ('s2','divisions','same','building','hk','target',NULL),
              ('s1','divisions','unmatched','building','hk',NULL,NULL),
@@ -58,7 +58,7 @@ test('Address division UNION preserves scoped identity, filters and global pagin
     `)
     for (const [i, role] of roles.entries()) {
       sqlite
-        .query(`INSERT INTO address2d(scopeId,divisionSnapshotId,id,granularity,${role})
+        .query(`INSERT INTO address2d(scopeId,divisionSnapshotId,id,scope,${role})
         VALUES ('s1','divisions',?,'building','target')`)
         .run(`r${i}`)
     }
@@ -402,7 +402,6 @@ test('nullable Address references and Division codes use partial lookup indexes'
   try {
     for (const [table, column, index, scoped] of [
       ['address2d', 'streetId', 'address2d_streetId_nonnull_idx', false],
-      ['address2d', 'parentAddressId', 'address2d_parentAddressId_nonnull_idx', true],
       ['divisions', 'divisionCode', 'divisions_divisionCode_nonnull_idx', true],
     ] as const) {
       const indexes = sqlite.query(`PRAGMA index_list(${table})`).all() as Array<{

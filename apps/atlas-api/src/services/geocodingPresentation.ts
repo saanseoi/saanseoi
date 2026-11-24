@@ -125,8 +125,7 @@ export function presentGeocoding(
         Object.entries(source).filter(
           ([key, value]) =>
             value != null &&
-            (full ||
-              ['i18n', 'granularity', ...(map ? ['geometry'] : [])].includes(key)),
+            (full || ['i18n', 'scope', ...(map ? ['geometry'] : [])].includes(key)),
         ),
       )
       if (!full && attributes.i18n)
@@ -225,7 +224,7 @@ export function presentGeocoding(
     direction: body.meta.direction,
     release: full ? body.meta.release : { apiReleaseSet: release.apiReleaseSet },
   }
-  for (const key of ['resolution', 'total', 'truncated'])
+  for (const key of ['resolution', 'total', 'truncated', 'nextCursor', 'offset'])
     if (body.meta[key] !== undefined) meta[key] = body.meta[key]
   // Only retain a separate identity for an actually different companion release.
   for (const key of ['addressRelease', 'divisionRelease']) {

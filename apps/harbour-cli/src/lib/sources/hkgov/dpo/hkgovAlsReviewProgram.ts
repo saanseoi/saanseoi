@@ -48,7 +48,7 @@ type ParentDecision = {
   parentId: string
   childIds: string[]
   qualifiedEstate?: string
-  childGranularity?: 'building' | 'section' | 'unit'
+  childScope?: 'building' | 'section' | 'unit'
 }
 export type AlsReviewOperation =
   | AdditionalReviewOperation
@@ -156,10 +156,10 @@ export function parseAlsReviewProgram(
           'Parent cannot be its own child',
         )
         if (decision.qualifiedEstate !== undefined) string(decision.qualifiedEstate)
-        if (decision.childGranularity !== undefined)
+        if (decision.childScope !== undefined)
           assert(
-            ['building', 'section', 'unit'].includes(String(decision.childGranularity)),
-            'Invalid child granularity',
+            ['building', 'section', 'unit'].includes(String(decision.childScope)),
+            'Invalid child scope',
           )
       }
       return {
@@ -270,7 +270,7 @@ export function applyReviewedAlsParents(
           (decision.qualifiedEstate &&
             row.enEstateName === decision.qualifiedEstate &&
             row.enBlockNumber &&
-            row.curatedGranularity !== 'complex'),
+            row.curatedScope !== 'premises'),
       )
       // Several publisher assertions can share this identity before consolidation.
       // The relationship targets the canonical ID, not a particular assertion.
@@ -283,7 +283,7 @@ export function applyReviewedAlsParents(
           `${decision.id}: distinct building required`,
         )
         child.parentAddressId = parent!.id
-        child.curatedGranularity = decision.childGranularity ?? 'building'
+        child.curatedScope = decision.childScope ?? 'building'
         child.hierarchyCuration = JSON.stringify({
           id: decision.id,
           curationFile: `${operation.fixture}.json`,

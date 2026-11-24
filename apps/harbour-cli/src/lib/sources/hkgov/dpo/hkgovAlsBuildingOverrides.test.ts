@@ -51,7 +51,7 @@ test('Kawada II all30: preserve building identity and raw complex assertions', a
     expect(row.enBuildingName).toBe('KAWADA PLAZA II')
     expect(row.zhHantBuildingName).toBe('川田工貿廣場2期')
     expect(row.enEstateName).toBeNull()
-    expect(row.curatedGranularity).toBe('building')
+    expect(row.curatedScope).toBe('building')
     expect(row.enFormattedAddress).not.toContain('ON LOK TSUEN')
     expect([
       row.engPremisesAddressJson,

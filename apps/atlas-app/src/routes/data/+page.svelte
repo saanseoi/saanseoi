@@ -624,12 +624,10 @@ const basemapCardClass = (code: (typeof basemapDirectory)[number]['code']) => {
         {m.data_description_before_apis()}
         <Popover.Root>
           <Popover.Trigger openOnHover openDelay={200}>
-            {#snippet child({
-              props,
-            })}
+            {#snippet child({ props })}
               <button
                 {...props}
-                class="font-inherit font-semibold text-secondary underline decoration-dotted underline-offset-4 hover:text-primary"
+                class="font-inherit text-secondary hover:text-primary font-semibold underline decoration-dotted underline-offset-4"
                 type="button"
                 aria-label={getMarkdownTransclusionDisplayTitle(apiDefinition, locale)}
               >
@@ -639,7 +637,7 @@ const basemapCardClass = (code: (typeof basemapDirectory)[number]['code']) => {
           </Popover.Trigger>
           <Popover.Portal>
             <Popover.Content
-              class="z-70 max-w-80 rounded-default border border-border-card/60 bg-background-alt px-3 py-2 font-body text-label-sm text-foreground shadow-popover"
+              class="rounded-default border-border-card/60 bg-background-alt font-body text-label-sm text-foreground shadow-popover z-70 max-w-80 border px-3 py-2"
               side="bottom"
               sideOffset={8}
               collisionPadding={{ right: 16 }}
@@ -650,12 +648,10 @@ const basemapCardClass = (code: (typeof basemapDirectory)[number]['code']) => {
         {m.data_description_after_apis()}
         <Popover.Root>
           <Popover.Trigger openOnHover openDelay={200}>
-            {#snippet child({
-              props,
-            })}
+            {#snippet child({ props })}
               <button
                 {...props}
-                class="font-inherit font-semibold text-secondary underline decoration-dotted underline-offset-4 hover:text-primary"
+                class="font-inherit text-secondary hover:text-primary font-semibold underline decoration-dotted underline-offset-4"
                 type="button"
                 aria-label={getMarkdownTransclusionDisplayTitle(
                   basemapDefinition,
@@ -668,7 +664,7 @@ const basemapCardClass = (code: (typeof basemapDirectory)[number]['code']) => {
           </Popover.Trigger>
           <Popover.Portal>
             <Popover.Content
-              class="z-70 max-w-80 rounded-default border border-border-card/60 bg-background-alt px-3 py-2 font-body text-label-sm text-foreground shadow-popover"
+              class="rounded-default border-border-card/60 bg-background-alt font-body text-label-sm text-foreground shadow-popover z-70 max-w-80 border px-3 py-2"
               side="bottom"
               sideOffset={8}
               collisionPadding={{ right: 16 }}
@@ -678,7 +674,7 @@ const basemapCardClass = (code: (typeof basemapDirectory)[number]['code']) => {
         </Popover.Root>
         {m.data_description_after_basemaps()}
         <a
-          class="font-semibold text-secondary underline decoration-secondary/45 underline-offset-4 hover:text-primary hover:decoration-primary"
+          class="text-secondary decoration-secondary/45 hover:text-primary hover:decoration-primary font-semibold underline underline-offset-4"
           href="/guides/create-a-map"
           >{m.data_create_map()}</a
         >
@@ -692,7 +688,7 @@ const basemapCardClass = (code: (typeof basemapDirectory)[number]['code']) => {
       <PageSectionTitle>{m.data_apis()}</PageSectionTitle>
       <PageSectionActions>
         <a
-          class="font-body text-label-md font-semibold text-secondary"
+          class="font-body text-label-md text-secondary font-semibold"
           href={atlasDocsUrl}
           >{m.data_api_docs()}</a
         >
@@ -700,7 +696,7 @@ const basemapCardClass = (code: (typeof basemapDirectory)[number]['code']) => {
     </PageSectionHeader>
 
     <CardDeck.Root
-      class={`relative mt-6 h-143 isolate overflow-visible py-3 transition-[height] duration-500 before:absolute before:inset-0 before:-z-1 before:bg-[radial-gradient(var(--secondary)_1px,transparent_1px)] before:bg-size-[1.2rem_1.2rem] before:opacity-0 dark:before:opacity-[0.05] ${activeApiIndex !== null ? 'min-[901px]:h-220' : ''} max-[900px]:block max-[900px]:h-140 max-[900px]:pt-5 max-[900px]:pb-8`}
+      class={`relative isolate mt-6 h-143 overflow-visible py-3 transition-[height] duration-500 before:absolute before:inset-0 before:-z-1 before:bg-[radial-gradient(var(--secondary)_1px,transparent_1px)] before:bg-size-[1.2rem_1.2rem] before:opacity-0 dark:before:opacity-[0.05] ${activeApiIndex !== null ? 'min-[901px]:h-220' : ''} max-[900px]:block max-[900px]:h-140 max-[900px]:pt-5 max-[900px]:pb-8`}
     >
       {#each apiDeckOrder as apiIndex, orderIndex (apiIndex)}
         {@const api = apiDirectoryItem(apiIndex)}
@@ -757,19 +753,19 @@ const basemapCardClass = (code: (typeof basemapDirectory)[number]['code']) => {
     <PageSectionHeader>
       <PageSectionTitle>{m.data_basemaps()}</PageSectionTitle>
       <PageSectionActions>
-        <a class="font-body text-label-md font-semibold text-secondary" href="/themes"
+        <a class="font-body text-label-md text-secondary font-semibold" href="/themes"
           >{m.data_map_styles()}</a
         >
         <span aria-hidden="true" class="text-foreground-alt">·</span>
         <a
-          class="font-body text-label-md font-semibold text-secondary"
+          class="font-body text-label-md text-secondary font-semibold"
           href="/guides/create-a-map"
           >{m.data_get_started()}</a
         >
       </PageSectionActions>
     </PageSectionHeader>
     <CardDeck.Root
-      class={`relative mt-6 h-224 isolate overflow-visible transition-[height,padding] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none max-[900px]:mb-12 max-[900px]:@container ${activeBasemapCode === null ? 'pt-16 max-[900px]:h-[calc(182vw-5.46rem)] min-[901px]:h-112' : 'pt-12 max-[900px]:h-auto min-[901px]:h-184'}`}
+      class={`relative isolate mt-6 h-224 overflow-visible transition-[height,padding] duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none max-[900px]:@container max-[900px]:mb-12 ${activeBasemapCode === null ? 'pt-16 max-[900px]:h-[calc(182vw-5.46rem)] min-[901px]:h-112' : 'pt-12 max-[900px]:h-auto min-[901px]:h-184'}`}
     >
       {#if isBasemapDeckVisible}
         {#each basemapDirectory as region, index (region.code)}
@@ -817,7 +813,7 @@ const basemapCardClass = (code: (typeof basemapDirectory)[number]['code']) => {
       <PageSectionTitle>{m.data_releases()}</PageSectionTitle>
       <PageSectionActions>
         <button
-          class="grid size-9 place-items-center rounded border border-outline-variant text-secondary transition-colors hover:bg-surface-container focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary disabled:pointer-events-none disabled:opacity-40"
+          class="border-outline-variant text-secondary hover:bg-surface-container focus-visible:outline-secondary grid size-9 place-items-center rounded border transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 disabled:pointer-events-none disabled:opacity-40"
           type="button"
           aria-label="Previous releases"
           disabled={!releaseCarouselNavigation.canMoveBackward}
@@ -826,7 +822,7 @@ const basemapCardClass = (code: (typeof basemapDirectory)[number]['code']) => {
           <Icon icon="proicons:chevron-left" class="size-4" />
         </button>
         <button
-          class="grid size-9 place-items-center rounded border border-outline-variant text-secondary transition-colors hover:bg-surface-container focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary disabled:pointer-events-none disabled:opacity-40"
+          class="border-outline-variant text-secondary hover:bg-surface-container focus-visible:outline-secondary grid size-9 place-items-center rounded border transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 disabled:pointer-events-none disabled:opacity-40"
           type="button"
           aria-label="Next releases"
           disabled={!releaseCarouselNavigation.canMoveForward}
@@ -848,7 +844,7 @@ const basemapCardClass = (code: (typeof basemapDirectory)[number]['code']) => {
           />
         </div>
       {:else}
-        <p class="mt-6 text-sm text-secondary">{m.data_no_releases_yet()}</p>
+        <p class="text-secondary mt-6 text-sm">{m.data_no_releases_yet()}</p>
       {/if}
     {/if}
   </PageSection>

@@ -1,0 +1,7 @@
+{
+  "migrationBackupsPerDatabase": 2,
+  "migrationBackupGraceDays": 7,
+  "normalisedCacheMaxDays": 30,
+  "normalisedCacheMaxBytes": 10737418240,
+  "normalisedCacheGraceDays": 1
+}

@@ -90,7 +90,7 @@ test('replays Place text and spatial divisions from the selected version without
 
     run(
       history,
-      `INSERT INTO address2d (id,granularity,countryId,districtId,geometry,identifiers,sources,versionHash,snapshotId,isCurrent,createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO address2d (id,scope,countryId,districtId,geometry,identifiers,sources,versionHash,snapshotId,isCurrent,createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         'address-old',
         'building',

@@ -100,6 +100,10 @@ export async function buildResolvedAddressChunkArtefact(
     bucket,
     pipelineMessage.artefactKey,
   )
+  if (artefact.kind !== 'address.normalised.v2')
+    throw new Error(
+      'Stale Address artefact: regenerate under the current content contract',
+    )
   const metaRepoDb = metaDb as unknown as HarbourReadableDb & HarbourWritableDb
   const historyRepoDb = historyDb as unknown as HarbourReadableDb & HarbourWritableDb
   const versionInsertContext = await prepareAddressVersionInsertContext(
@@ -288,7 +292,7 @@ export async function buildResolvedAddressChunkArtefact(
     artefact: {
       addedRows,
       changedRows,
-      kind: 'address.resolved.v1',
+      kind: 'address.resolved.v2',
       insertedVersions,
       localisedRows,
       processingRunStartedAt: artefact.processingRunStartedAt,

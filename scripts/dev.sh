@@ -8,10 +8,10 @@ script_dir="$(cd "$(dirname "$0")" && pwd)"
 
 case "$mode" in
   all)
-    filters=(harbour-api harbour-app atlas-api atlas-app basemap-viewer)
+    filters=(harbour-api harbour-app atlas-api atlas-app basemap-viewer release-exports)
     ;;
   atlas)
-    filters=(atlas-api atlas-app)
+    filters=(atlas-api atlas-app release-exports)
     ;;
   harbour)
     exec bash "$script_dir/dev-local-stack.sh"

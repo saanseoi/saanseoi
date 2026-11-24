@@ -133,7 +133,8 @@ export function applyKoYeeEstateOwnership(
     assert.equal(row.enBlockNumber, null)
     assert.equal(row.zhHantBlockNumber, null)
   }
-  estate.curatedGranularity = 'complex'
+  estate.curatedScope = 'premises'
+  estate.curatedPremisesType = 'complex'
   estate.hierarchyCuration = rule.id
   estate.sources = JSON.stringify({
     ...JSON.parse(estate.sources),
@@ -141,7 +142,7 @@ export function applyKoYeeEstateOwnership(
   })
   for (const child of children) {
     child.parentAddressId = estate.id
-    child.curatedGranularity = 'building'
+    child.curatedScope = 'building'
     child.hierarchyCuration = rule.id
     ownership.set(child.id, {
       ownerId: child.id,

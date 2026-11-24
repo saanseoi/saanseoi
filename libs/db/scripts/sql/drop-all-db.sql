@@ -7,6 +7,7 @@ PRAGMA defer_foreign_keys = true;
 
 DROP TABLE IF EXISTS `harbourSqlDeliveryReceipts`;
 DROP TABLE IF EXISTS `releaseSetLifecycleJournal`;
+DROP TABLE IF EXISTS `addressGeocodingFts`;
 DROP TABLE IF EXISTS `addressSearchFts`;
 DROP TABLE IF EXISTS `divisionSearchFts`;
 DROP TABLE IF EXISTS `divisionSearchScopes`;
@@ -133,6 +134,7 @@ DROP TABLE IF EXISTS `streetNameChangeStreets`;
 DROP TABLE IF EXISTS `streetNameChanges`;
 DROP TABLE IF EXISTS `placesFts`;
 DROP TABLE IF EXISTS `placeSearchFts`;
+DROP TABLE IF EXISTS `placeSearchIdentities`;
 DROP TABLE IF EXISTS `placeSearchScopes`;
 DROP TABLE IF EXISTS `placesFts_data`;
 DROP TABLE IF EXISTS `placesFts_idx`;

@@ -1,12 +1,12 @@
 ---
-createdAt: "2026-08-26T15:01:18.036Z"
-updatedAt: "2026-08-26T15:01:18.036Z"
-apiFamily: "stats"
-apiVersion: "api-stats-v0.1"
-apiReleaseSet: "data-hk-stats-2020"
-revision: "0"
-regionCode: "hk"
-cohortKey: "2020"
+createdAt: '2026-08-26T15:01:18.036Z'
+updatedAt: '2026-08-26T15:01:18.036Z'
+apiFamily: 'stats'
+apiVersion: 'api-stats-v0.1'
+apiReleaseSet: 'data-hk-stats-2020'
+revision: '0'
+regionCode: 'hk'
+cohortKey: '2020'
 ---
 
 # EN
@@ -18,9 +18,9 @@ cohortKey: "2020"
 
 ## Revision Log
 
-- `r{{ revision }}` adds the initial statistics datasets for the
-  <black>{{ cohortKey }}</black> reference period. The added datasets and their source
-  releases are listed below.
+- `r{{ revision }}` adds the initial statistics datasets for the <black>{{ cohortKey
+  }}</black> reference period. The added datasets and their source releases are listed
+  below.
 
 ## Release Scope
 
@@ -50,16 +50,16 @@ The following source releases contributed to this release set.
 
 ## Notes and limitations
 
-- This revision includes only figures whose exact reference period is
-  <black>{{ cohortKey }}</black>. It does not include every figure published during that
-  calendar year.
+- This revision includes only figures whose exact reference period is <black>{{
+  cohortKey }}</black>. It does not include every figure published during that calendar
+  year.
 - Values are retained exactly, including precise decimal values and publisher codes. The
   <black>full</black> response profile also includes the original value supplied by the
   publisher.
 - Different sources may use their own definitions, units, coverage, and quality checks.
-  Read the [source-release notes]({{ primarySourceReleaseUrl }}) for
-  <black>{{ primarySourceRelease }}</black>, as well as the notes for the other listed
-  source releases, before comparing or interpreting their figures.
+  Read the [source-release notes]({{ primarySourceReleaseUrl }}) for <black>{{
+  primarySourceRelease }}</black>, as well as the notes for the other listed source
+  releases, before comparing or interpreting their figures.
 
 # ZH-HANT
 
@@ -76,8 +76,8 @@ The following source releases contributed to this release set.
 ## 發布範圍
 
 此 [release](saanseoi:zh-hant:definition/release/v1) 透過山水 Statistics API 提供
-{{regionName:zh-Hant}} 的選定 <black>{{ domainCode }}</black> 統計資料。它涵蓋
-<black>{{ cohortKey }}</black> 參考期：即數值所描述的時間，而不一定是來源發布的日期。
+{{regionName:zh-Hant}} 的選定 <black>{{ domainCode }}</black> 統計資料。它涵蓋 <black>{{
+cohortKey }}</black> 參考期：即數值所描述的時間，而不一定是來源發布的日期。
 
 <black>{{ domainCode }}</black> [domain](saanseoi:zh-hant:definition/domain/v1)
 匯集香港特別行政區政府各部門發布的這些統計資料。山水不會原封不動地複製整個來源資料集，而是選取描述這個參考期的數值，並作為一個集合提供。每個數值均保留與其所屬來源發布的連結。
@@ -95,11 +95,13 @@ The following source releases contributed to this release set.
 
 - 此修訂版只包括參考期完全為 <black>{{ cohortKey }}</black>
   的數值，並不包括在該曆年發布的所有數值。
-- 數值會按原樣保留，包括精確的小數數值和發布者代碼。<black>full</black>
-  回應 profile 亦包括發布者提供的原始數值。
+- 數值會按原樣保留，包括精確的小數數值和發布者代碼。<black>full</black> 回應 profile
+  亦包括發布者提供的原始數值。
 - 不同來源可能採用各自的定義、單位、涵蓋範圍及品質檢查。比較或詮釋數值前，請閱讀
-  <black>{{ primarySourceRelease }}</black> 的 [source-release
-  notes]({{ primarySourceReleaseUrl }})，以及其他列出來源發布的附註。
+  <black>{{ primarySourceRelease }}</black> 的
+  [source-release
+notes]({{
+  primarySourceReleaseUrl }})，以及其他列出來源發布的附註。
 
 # ZH-HANS
 
@@ -116,8 +118,8 @@ The following source releases contributed to this release set.
 ## 发布范围
 
 此 [release](saanseoi:zh-hans:definition/release/v1) 通过山水 Statistics API 提供
-{{regionName:zh-Hans}} 的选定 <black>{{ domainCode }}</black> 统计数据。它涵盖
-<black>{{ cohortKey }}</black> 参考期：即数值所描述的时间，而不一定是来源发布的日期。
+{{regionName:zh-Hans}} 的选定 <black>{{ domainCode }}</black> 统计数据。它涵盖 <black>{{
+cohortKey }}</black> 参考期：即数值所描述的时间，而不一定是来源发布的日期。
 
 <black>{{ domainCode }}</black> [domain](saanseoi:zh-hans:definition/domain/v1)
 汇集香港特别行政区政府各部门发布的这些统计数据。山水不会原封不动地复制整个来源数据集，而是选取描述这个参考期的数值，并作为一个集合提供。每个数值均保留与其所属来源发布的链接。
@@ -135,8 +137,10 @@ The following source releases contributed to this release set.
 
 - 此修订版只包括参考期完全为 <black>{{ cohortKey }}</black>
   的数值，并不包括在该历年发布的所有数值。
-- 数值会按原样保留，包括精确的小数数值和发布者代码。<black>full</black>
-  响应 profile 也包括发布者提供的原始数值。
+- 数值会按原样保留，包括精确的小数数值和发布者代码。<black>full</black> 响应 profile
+  也包括发布者提供的原始数值。
 - 不同来源可能采用各自的定义、单位、涵盖范围及质量检查。比较或诠释数值前，请阅读
-  <black>{{ primarySourceRelease }}</black> 的 [source-release
-  notes]({{ primarySourceReleaseUrl }})，以及其他列出来源发布的说明。
+  <black>{{ primarySourceRelease }}</black> 的
+  [source-release
+notes]({{
+  primarySourceReleaseUrl }})，以及其他列出来源发布的说明。

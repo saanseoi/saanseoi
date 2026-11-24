@@ -137,11 +137,11 @@ projection. Positive overlaps must exceed one square metre and a source fraction
 and both Division and DivisionArea snapshot IDs. Codes remain independent of the
 relationship keys.
 
-TPU, HMA and New Town requests without the selected source/geographic crosswalk
-return 503. Statistics use their explicit planning area-companion domain and cohort;
-missing or ambiguous crosswalk selections return 503. These overlaps do not allocate
-population. `geographicReleaseSet` pins code resolution; response links retain it and
-the code filters, and `X-Geographic-Release-Set` identifies the selection.
+TPU, HMA and New Town requests without the selected source/geographic crosswalk return 503.
+Statistics use their explicit planning area-companion domain and cohort; missing or
+ambiguous crosswalk selections return 503. These overlaps do not allocate population.
+`geographicReleaseSet` pins code resolution; response links retain it and the code
+filters, and `X-Geographic-Release-Set` identifies the selection.
 
 For a local target, apply the reviewed artefact after the CURRENT migration:
 

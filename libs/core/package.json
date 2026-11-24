@@ -19,6 +19,8 @@
     "./jsonKeys": "./src/jsonKeys.ts",
     "./displayName": "./src/displayName.ts",
     "./jsonFieldDiff": "./src/jsonFieldDiff.ts",
+    "./provenance/auditFixturePagination": "./src/provenance/auditFixturePagination.ts",
+    "./provenance/auditPartitionReader": "./src/provenance/auditPartitionReader.ts",
     "./provenance/auditPageIndex": "./src/provenance/auditPageIndex.ts",
     "./provenance/auditAlsDecisions": "./src/provenance/auditAlsDecisions.ts",
     "./provenance/auditSearch": "./src/provenance/auditSearch.ts",
@@ -44,6 +46,8 @@
     "./pipeline/*": "./src/pipeline/*",
     "./pipeline/services": "./src/pipeline/services/index.ts",
     "./pipeline/services/addresses": "./src/pipeline/services/addresses/index.ts",
+    "./pipeline/services/addresses/searchText": "./src/pipeline/services/addresses/searchText.ts",
+    "./pipeline/services/addresses/substringIndex": "./src/pipeline/services/addresses/substringIndex.ts",
     "./pipeline/services/addresses/searchIndex": "./src/pipeline/services/addresses/searchIndex.ts",
     "./pipeline/services/places/publicationDependencies": "./src/pipeline/services/places/publicationDependencies.ts",
     "./pipeline/services/places/dependencyReplay": "./src/pipeline/services/places/dependencyReplay.ts",
@@ -69,20 +73,21 @@
     "./db/metaRegistry": "./src/lib/db/metaRegistry.ts",
     "./sourceAssets": "./src/lib/services/sourceAssets.ts",
     "./sourceAssetTransfer": "./src/lib/services/sourceAssetTransfer.ts",
-    "./db/apiInventory": "./src/lib/db/apiInventory.ts"
+    "./db/apiInventory": "./src/lib/db/apiInventory.ts",
+    "./exports/*": "./src/exports/*.ts"
   },
   "dependencies": {
     "@noble/hashes": "2.4.0",
     "@repo/db": "workspace:*",
     "drizzle-orm": "1.0.0-rc.5-5935859",
-    "hyparquet": "^1.31.4",
-    "hyparquet-compressors": "^1.1.2",
+    "hyparquet": "^1.33.1",
+    "hyparquet-compressors": "^1.1.3",
     "jsts": "2.12.1"
   },
   "devDependencies": {
-    "@types/bun": "1.4.3",
-    "bun-types": "^1.4.3",
+    "@types/bun": "1.4.5",
+    "bun-types": "^1.4.5",
     "typescript": "^6.0.3",
-    "vitest": "^5.0.5"
+    "vitest": "^5.1.1"
   }
 }

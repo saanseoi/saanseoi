@@ -158,8 +158,8 @@ test('February retains exact successors, independent parents and recorded fronta
         if (!c) continue
         expect(c.id).not.toBe(group.parentId)
         expect(c.parentAddressId).toBe(group.parentId)
-        expect(c.curatedGranularity).toBe(
-          'childGranularity' in group && group.childGranularity === 'section'
+        expect(c.curatedScope).toBe(
+          'childScope' in group && group.childScope === 'section'
             ? 'section'
             : 'building',
         )
@@ -308,7 +308,7 @@ test('March preserves human decisions and original automatic confidence', () => 
     expect(march.rules.some(rule => rule.canonicalId === triage.previousId)).toBe(true)
   }
   const rename = march.rules.find(rule => rule.id === 'march-2025-reviewed-15')!
-  expect(rename.patch).toMatchObject({ enName: 'EPOCH HOTEL', granularity: 'building' })
+  expect(rename.patch).toMatchObject({ enName: 'EPOCH HOTEL', scope: 'building' })
 })
 
 test('April records reviewed reconciliations and protects automatic confidence and Fai Ming IDs', () => {

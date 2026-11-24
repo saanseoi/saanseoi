@@ -1,5 +1,16 @@
 # Divisions dataset family
 
+Overture cohort `2026-10-21.0` is accepted with source schema `2.0.0` for Division,
+Division Area and Division Boundary. Release acceptance is explicit; an unlisted
+publisher release requires schema review before ingestion. See the
+[October release review](../sources/overture/release-review-2026-10-21.md) for input
+verification and the local rehearsal requirements.
+
+The October physical Parquet profiles declare the observed required fields explicitly.
+Division preparation retains its reviewed country-reference row, so geometry, parent and
+publisher version remain nullable in that prepared profile. Upload validation checks the
+exact field set, types and nullability for each cohort.
+
 The Overture dataset fixture excludes publisher patch `2026-09-23.1` from
 `saanseoi update`: it does not affect the data ingested by SaanSeoi. The command reports
 the version and reason and keeps eligible releases available for ingestion. See
@@ -315,6 +326,11 @@ subunit, PPU → SPU for a TPU, and PPU for an SPU. Preparation validates path
 completeness and matching publisher codes before hashing canonical content. Retained
 local repairs must validate pinned source assertions, update content hashes and snapshot
 replay references together, and retain rollback evidence.
+
+Reviewed polygon corrections require edition-specific hierarchy resolution and
+containment checks for affected children as well as the edited divisions. The retained
+source and canonical history hashes must match the corrected content, and serving
+publication tokens must identify the corrected state.
 
 Spatial hierarchy branches retain the positive-area remainder outside all matching
 parents at each tier. That remainder continues through narrower tiers with its existing
@@ -1795,8 +1811,8 @@ inputs derive 22 Ninepin and 14 Soko member records; these are identity counts, 
 independent physical-island counts.
 
 Ung Kong retains Basalt Island, Bluff Island and Wang Chau as its seed envelope.
-Explicit members Kong Tau Pai
-(`LANDSD:PLACE_NAME:732`), 四排尾 (`BASEMAP:ISLAND:20237d751b5fe16d`) and Kam Chung Ngam
+Explicit members Kong Tau Pai (`LANDSD:PLACE_NAME:732`), 四排尾
+(`BASEMAP:ISLAND:20237d751b5fe16d`) and Kam Chung Ngam
 (`BASEMAP:ISLAND:ad777e9a7bc9fd4c`) are supported by the retained Protomaps
 `OSM:a31915135` archipelago MultiPolygon from `2026-09-01.1`. Their selected polygons
 have more than 80% area overlap with that source geometry. Explicit membership keeps
@@ -2337,3 +2353,45 @@ allows numerical boundary differences within `1e-9` degrees without changing geo
 Preparation retains each suppression and numerical containment acceptance in the
 `hierarchy-spatial-decisions` audit. See the
 [spatial hierarchy tolerances](../sources/saanseoi/divisionArea.md#spatial-hierarchy-tolerances).
+
+Division assembly audits are retained during SQL preparation and registered only after
+their draft snapshot and source membership have reached the delivery target. The sealed
+Division plan retains the audit object reference alongside completion counts, so
+recovery registers the original evidence without regenerating it from a partially
+delivered state. Geometry assembly follows the same registration order; publication
+still requires the validated audit.
+
+Remote geometry preparation refreshes the acknowledged metadata mirror after source
+registration and before opening its disposable preparation copy. Delivery checkpoints
+therefore reference a registered release in both the preparation and shared mirrors.
+
+Full and native-source remote mirrors retain Protomaps island features and RVD areas
+alongside canonical Division inputs, including historical and annual source shards.
+
+Harbour publishes Protomaps island and RVD area intakes as source-only releases after
+verified ingestion. These inputs have no canonical snapshots or independent API
+composition membership. Enrichment membership in a curated snapshot does not make them a
+primary snapshot owner; failed audits continue to block publication.
+
+Native-source replay resolves the configured shard binding from the publisher year.
+Pre-annual inputs such as the 2015 RVD release use the historical `BEFORE` shard.
+
+Geometry metadata delivery includes each recipe's content-addressed processing policy
+before the recipe reference. Preparation verifies the retained definition against its
+hash and rejects missing or invalid evidence. Replays preserve existing immutable policy
+records.
+
+### Exact source-release selection
+
+Use
+`saanseoi update --dataset CODE --source-version 2026-10-21.0 --target local --check-now --download --yes`
+to select the October publisher release explicitly. The same version selection applies
+to production preparation. The updater fails if the requested version is absent from
+discovery and excludes other release versions. Retained native local SQL plans remain
+target-specific; reuse resolved preparation only after validating the destination
+dependencies and generate delivery against its baseline.
+
+Net planning verifies unowned contentless FTS5 indexes through their shadow storage
+tables because their root tables cannot be scanned. The root schema must remain
+identical and the required shadow tables must exist; any shadow row change still blocks
+delivery.

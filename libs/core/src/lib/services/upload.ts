@@ -10,6 +10,7 @@ import type { HarbourReadableDb, HarbourWritableDb } from '../db/types'
 import type { ReleaseStatus } from '@repo/db'
 import { assertKnownSafeSourceRelease } from '../../sourceSchemas'
 import { resolveSourceRecordSchema } from '../../sourceRecordSchemas'
+import { matchesOctoberOvertureSchemaTransition } from './overtureUploadSchemaTransition'
 import {
   buildDatasetCode,
   buildDatasetReleaseCode,
@@ -593,6 +594,17 @@ async function ensureSchemaCompatible(
   }
 
   const previousSchema = parseSchemaFingerprint(previousFingerprint)
+
+  if (
+    matchesOctoberOvertureSchemaTransition(
+      latestDataset,
+      nextPlan,
+      previousSchema,
+      nextInspection.schema,
+    )
+  ) {
+    return true
+  }
   const previousComparableFingerprint = previousSchema
     ? createSchemaFingerprintFromSchema(previousSchema)
     : previousFingerprint

@@ -1,12 +1,12 @@
 ---
-createdAt: "2026-09-25T05:47:23.826Z"
-updatedAt: "2026-09-25T05:47:23.826Z"
-apiFamily: "places"
-apiVersion: "api-places-v0.1"
-apiReleaseSet: "data-hk-places-2026-09-23.0"
-revision: "0"
-regionCode: "hk"
-cohortKey: "2026-09-23.0"
+createdAt: '2026-09-25T05:47:23.826Z'
+updatedAt: '2026-09-25T05:47:23.826Z'
+apiFamily: 'places'
+apiVersion: 'api-places-v0.1'
+apiReleaseSet: 'data-hk-places-2026-09-23.0'
+revision: '0'
+regionCode: 'hk'
+cohortKey: '2026-09-23.0'
 ---
 
 # EN
@@ -61,25 +61,26 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 - <orange>Upstream</orange> 移除已棄用的 <black>categories</black> 欄位，包括
   <black>categories.primary</black> 及 <black>categories.alternate</black>。請改用
   <black>taxonomy</black> 或 <black>basic_category</black>。
-- <orange>Upstream</orange>
-  全球 Place 數量由 73,631,092 增至 81,455,425（+10.63%）。BrightQuery 的覆蓋範圍由美國擴展至德國、意大利及丹麥，並在美國加入更多
+- <orange>Upstream</orange> 全球 Place 數量由 73,631,092 增至
+  81,455,425（+10.63%）。BrightQuery
+  的覆蓋範圍由美國擴展至德國、意大利及丹麥，並在美國加入更多
   <black>services_and_business</black> 類別地點。
-- <orange>Upstream</orange> 全球標示為 <black>open</black>
-  的 Place 由 11,047,288 增至 18,361,914（+66.2%），改善營業狀態的資料覆蓋。
+- <orange>Upstream</orange> 全球標示為 <black>open</black> 的 Place 由 11,047,288 增至
+  18,361,914（+66.2%），改善營業狀態的資料覆蓋。
 
 以上數字描述全球上游資料集，並非香港子集。請參閱
 [Overture 九月發布附註](https://docs.overturemaps.org/blog/2026/09/23/release-notes/#places)。
 
 ## 修訂紀錄
 
-- `r{{ revision }}` 包含 Place 來源發布，以及由 Places API
-  composition 選取的 Address 及 Division 支援發布。
+- `r{{ revision }}` 包含 Place 來源發布，以及由 Places API composition 選取的 Address 及
+  Division 支援發布。
 
 ## 發布範圍
 
 此不可變的 [release set](saanseoi:zh-hant:definition/release-set/v1) 在
-{{regionName:zh-Hant}}發布 [cohort](saanseoi:zh-hant:definition/cohort/v1)
-<black>{{ cohortKey }}</black> 的 <black>{{ domainCode }}</black>
+{{regionName:zh-Hant}}發布 [cohort](saanseoi:zh-hant:definition/cohort/v1) <black>{{
+cohortKey }}</black> 的 <black>{{ domainCode }}</black>
 [domain](saanseoi:zh-hant:definition/domain/v1)。以下來源發布組成此 release set。
 
 {{apiReleaseSetSources:zh-Hant}}
@@ -98,25 +99,26 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 - <orange>Upstream</orange> 移除已弃用的 <black>categories</black> 字段，包括
   <black>categories.primary</black> 及 <black>categories.alternate</black>。请改用
   <black>taxonomy</black> 或 <black>basic_category</black>。
-- <orange>Upstream</orange>
-  全球 Place 数量由 73,631,092 增至 81,455,425（+10.63%）。BrightQuery 的覆盖范围由美国扩展至德国、意大利及丹麦，并在美国加入更多
+- <orange>Upstream</orange> 全球 Place 数量由 73,631,092 增至
+  81,455,425（+10.63%）。BrightQuery
+  的覆盖范围由美国扩展至德国、意大利及丹麦，并在美国加入更多
   <black>services_and_business</black> 类别地点。
-- <orange>Upstream</orange> 全球标示为 <black>open</black>
-  的 Place 由 11,047,288 增至 18,361,914（+66.2%），改善营业状态的数据覆盖。
+- <orange>Upstream</orange> 全球标示为 <black>open</black> 的 Place 由 11,047,288 增至
+  18,361,914（+66.2%），改善营业状态的数据覆盖。
 
 以上数字描述全球上游数据集，并非香港子集。请参阅
 [Overture 九月发布说明](https://docs.overturemaps.org/blog/2026/09/23/release-notes/#places)。
 
 ## 修订记录
 
-- `r{{ revision }}` 包含 Place 源发布，以及由 Places API
-  composition 选择的 Address 及 Division 支持发布。
+- `r{{ revision }}` 包含 Place 源发布，以及由 Places API composition 选择的 Address 及
+  Division 支持发布。
 
 ## 发布范围
 
 此不可变的 [release set](saanseoi:zh-hans:definition/release-set/v1) 在
-{{regionName:zh-Hans}}发布 [cohort](saanseoi:zh-hans:definition/cohort/v1)
-<black>{{ cohortKey }}</black> 的 <black>{{ domainCode }}</black>
+{{regionName:zh-Hans}}发布 [cohort](saanseoi:zh-hans:definition/cohort/v1) <black>{{
+cohortKey }}</black> 的 <black>{{ domainCode }}</black>
 [domain](saanseoi:zh-hans:definition/domain/v1)。以下源发布组成此 release set。
 
 {{apiReleaseSetSources:zh-Hans}}

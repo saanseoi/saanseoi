@@ -1,7 +1,7 @@
 {
-  "release": "gba-2026-10-01-valhalla-6291",
-  "graphSha256": "f775900729629bc448586a06a8dfc7b5a73b6d94bcd63ecc2e585b382a35e2b6",
-  "sourceBundleSha256": "0c5448b714caed50ca8a6ae8f854139de5817fd7f3adfd4693e9e766fb2fd677",
+  "release": "gba-2026-11-01",
+  "graphSha256": "38f91cff3c06f3afbed8b6a1ea4111ef8c0c65d2098a3f52f0846f3e52901b1c",
+  "sourceBundleSha256": "bc49176f35ad3ccf2edad4aa2dfc5a20cd9466f1529d279e97c222ee3cdc2b3d",
   "limitations": [
     "No elevation, traffic, admin/timezone databases or transit feeds imported."
   ],

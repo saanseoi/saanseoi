@@ -30,7 +30,7 @@ export function classifyReviewedAlsPremises(
           expected,
           `${d.id}: child evidence changed (${key})`,
         )
-      if (d.granularity) row.curatedGranularity = d.granularity
+      if (d.scope) row.curatedScope = d.scope
       row.parentAddressId = d.parentId
       row.hierarchyCuration = JSON.stringify(d.provenance)
     }
@@ -139,7 +139,7 @@ export function deriveReviewedAlsParents(rows: PreparedHkgovAlsRow[], version: s
           enFormattedAddress: template.enBuildingName,
           zhHantFormattedAddress: template.zhHantBuildingName,
           parentAddressId: undefined,
-          curatedGranularity: 'building',
+          curatedScope: 'building',
           hierarchyCuration: group.id,
         }
         rows.push(parent)
@@ -151,7 +151,7 @@ export function deriveReviewedAlsParents(rows: PreparedHkgovAlsRow[], version: s
       }
       for (const child of children) {
         child.parentAddressId = parent.id
-        child.curatedGranularity = group.childGranularity
+        child.curatedScope = group.childScope
         child.hierarchyCuration = JSON.stringify({
           id: group.id,
           curationFile,
@@ -212,7 +212,7 @@ export function reviewedAlsSectionOwnership(
     )
       continue
     for (const group of operation.decisions) {
-      if (group.childGranularity !== 'section') continue
+      if (group.childScope !== 'section') continue
       for (const id of group.childIds) {
         const row = rows.find(r => r.id === id)
         if (!row) continue
@@ -221,11 +221,7 @@ export function reviewedAlsSectionOwnership(
           group.parentId,
           `${group.id}: section parent changed`,
         )
-        assert.equal(
-          row.curatedGranularity,
-          'section',
-          `${group.id}: section granularity changed`,
-        )
+        assert.equal(row.curatedScope, 'section', `${group.id}: section scope changed`)
         ownership.set(id, {
           ownerId: id,
           physicalBuildingId: id,

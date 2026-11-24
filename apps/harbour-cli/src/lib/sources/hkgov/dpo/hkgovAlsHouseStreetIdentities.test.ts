@@ -60,14 +60,14 @@ test('all30 approved houses retain distinct house, road and parent address field
     applyReviewedHouseStreetIdentities(rows, version)
     applyReviewedStreetEstateComplexes(rows, version)
     linkReviewedHouseStreetParents(rows, version)
-    const parent = rows.find(r => r.curatedGranularity === 'complex')!
+    const parent = rows.find(r => r.curatedScope === 'premises')!
     expect(parent.enStreetName).toBe('PAK PAT SHAN ROAD')
     expect(parent.enStreetNumberFrom).toBe('18')
     expect(parent.enBlockNumber).toBeNull()
     expect(parent.hkgovCsuId).toBeNull()
     for (const rule of fixture.rules) {
       const row = rows.find(r => r.hkgovCsuId === rule.csu)!
-      expect(row.curatedGranularity).toBe('building')
+      expect(row.curatedScope).toBe('building')
       expect(row.enBlockNumber).toBe(rule.houseNumber)
       expect(row.enStreetNumberFrom).toBe(rule.streetNumber)
       expect(row.enStreetName).toBe(rule.enStreet)

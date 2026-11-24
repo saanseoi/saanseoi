@@ -9,11 +9,17 @@ export function withHumanFieldEffects(
   const inputs = specification.inputs as string[] | undefined
   const first = inputs?.[0]
   if (!symbol || !first) return human
-  const names = ['i18n.*', 'granularity', 'sources', 'relationships.divisions']
+  const names = [
+    'i18n.*',
+    'scope',
+    'premisesType',
+    'sources',
+    'relationships.divisions',
+  ]
   const effects: Record<string, string[]> = {
     suppressReviewedYueWanPremise: ['sources'],
     suppressAlsUnnamedPremises: ['sources'],
-    applyAlsNestedPremises: ['parentAddressId', 'granularity', 'sources'],
+    applyAlsNestedPremises: ['parentAddressId', 'scope', 'premisesType', 'sources'],
     linkReviewedHouseStreetParents: ['parentAddressId'],
     restoreAlsEstateGaps: [...names, 'id'],
     applyAlsEstateNames: names,

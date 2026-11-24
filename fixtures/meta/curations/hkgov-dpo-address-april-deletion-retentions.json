@@ -545,7 +545,7 @@
         "reason": "Same bilingual building and publisher CSU; the source adds the explicit Block 2 qualifier. Retain its ID and all 133 unit IDs."
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "blockNumber": "2",
         "blockDescriptor": "BLK",
         "zhBlockDescriptor": "座"
@@ -750,7 +750,7 @@
         "reason": "Same publisher CSU, street number and coordinates; TAMSON PLAZA is renamed THE 80|20. Preserve its canonical building identity."
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "enName": "THE 80|20",
         "zhName": null
       }
@@ -960,7 +960,7 @@
         "reason": "Same bilingual building and publisher CSU; the source adds the explicit Block 1 qualifier. Retain its ID and all 819 unit IDs."
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "blockNumber": "1",
         "blockDescriptor": "BLK",
         "zhBlockDescriptor": "座"
@@ -1201,7 +1201,7 @@
         "additionalInstruction": "Retain the building separately beneath the complex."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       },
       "parentRule": "april-2025-reviewed-05-parent"
     },
@@ -1434,7 +1434,8 @@
         "additionalInstruction": "Retain the building separately beneath the complex."
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -1660,7 +1661,7 @@
         "additionalInstruction": "Retain the named hall."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -1941,7 +1942,7 @@
         "additionalInstruction": "Retain identity through rename to FPS Storage Facility."
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "enName": "FPS STORAGE FACILITY",
         "zhName": "法醫服務貯存設施（富山）"
       }
@@ -2208,7 +2209,7 @@
         "additionalInstruction": "Retain the existing name."
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "enName": "AMBER PLACE",
         "zhName": "恒珀"
       }
@@ -2452,7 +2453,8 @@
         "additionalInstruction": "Retain the complex and its child building."
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -2741,7 +2743,8 @@
         "additionalInstruction": "Retain building identity through function loss."
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     }
   ],

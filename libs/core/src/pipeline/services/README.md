@@ -7,8 +7,8 @@ Each directory has a public entry point, so package consumers can depend on a do
 without knowing its internal file layout. For example:
 
 ```ts
-import { normaliseOverturePlace } from "@repo/core/pipeline/services/places";
-import { parseWkbGeometry } from "@repo/core/pipeline/services/divisions";
+import { normaliseOverturePlace } from '@repo/core/pipeline/services/places'
+import { parseWkbGeometry } from '@repo/core/pipeline/services/divisions'
 ```
 
 | Path          | Responsibility                                                                                                 |

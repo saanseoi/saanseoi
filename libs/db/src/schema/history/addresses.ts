@@ -16,11 +16,10 @@ export const address2d = sqliteTable(
     ...historyVersioning,
   },
   table => [
-    ...historyEventConstraints(table, ['granularity']),
+    ...historyEventConstraints(table, ['scope']),
     primaryKey({
       columns: [table.id, table.snapshotId],
     }),
-    index('address2d_parentAddressId_idx').on(table.parentAddressId),
   ],
 )
 

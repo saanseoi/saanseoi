@@ -147,7 +147,7 @@ test('combined Address planning seals only final changes and rejects incomplete 
       addressSqlArtefactKeys: [],
     } as unknown as AddressPipelineMessage
     const artefact = {
-      kind: 'address.resolved.v1',
+      kind: 'address.resolved.v2',
       addedRows: 1,
       changedRows: 0,
       insertedVersions: 1,
@@ -170,7 +170,7 @@ test('combined Address planning seals only final changes and rejects incomplete 
             id: 'a',
             snapshotId: 'snapshot',
             divisionSnapshotId: 'division',
-            granularity: 'building',
+            scope: 'building',
             sources: [
               {
                 dataset: 'hkgov-dpo-als-2d',

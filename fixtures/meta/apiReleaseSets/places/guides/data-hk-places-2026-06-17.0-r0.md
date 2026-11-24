@@ -1,13 +1,13 @@
 ---
-createdAt: "2026-09-09T00:00:00.000Z"
-updatedAt: "2026-10-15T00:00:00.000Z"
-apiFamily: "places"
-apiVersion: "api-places-v0.1"
-apiReleaseSet: "data-hk-places-2026-06-17.0"
-revision: "0"
-regionCode: "hk"
-cohortKey: "2026-06-17.0"
-domainCode: "overture"
+createdAt: '2026-09-09T00:00:00.000Z'
+updatedAt: '2026-10-15T00:00:00.000Z'
+apiFamily: 'places'
+apiVersion: 'api-places-v0.1'
+apiReleaseSet: 'data-hk-places-2026-06-17.0'
+revision: '0'
+regionCode: 'hk'
+cohortKey: '2026-06-17.0'
+domainCode: 'overture'
 ---
 
 # EN
@@ -261,9 +261,9 @@ cell at one of those resolutions, then request:
 ```
 
 The compact <black>places</black> array contains IDs, category, taxonomy, operating
-status, Point geometry and the matched cell. The default limit is 50 and the maximum
-is 100. Results are ordered by Place ID. Follow <black>links.next</black> until it is
-absent to retrieve every page in the cell. <black>meta.page</black> reports the
+status, Point geometry and the matched cell. The default limit is 50 and the maximum is 100.
+Results are ordered by Place ID. Follow <black>links.next</black> until it is absent to
+retrieve every page in the cell. <black>meta.page</black> reports the
 <black>limit</black>, <black>offset</black> and <black>hasMore</black> flag; no total
 count is returned. To start at a specific position, supply <black>offset</black>
 (default 0). Geographic code filters are retained in continuation links. H3 membership
@@ -334,7 +334,8 @@ matches.
 
 {{apiKeyNote:zh-Hant}}
 
-Places 描述場所及興趣點，並在有資料時提供名稱、類別、聯絡方式及地理關係。請參閱此版本的來源說明，了解資料覆蓋範圍；缺少某個值並不代表場所沒有名稱、地址或網站。
+Places
+描述場所及興趣點，並在有資料時提供名稱、類別、聯絡方式及地理關係。請參閱此版本的來源說明，了解資料覆蓋範圍；缺少某個值並不代表場所沒有名稱、地址或網站。
 
 ## 要求資料
 
@@ -410,9 +411,8 @@ Places 描述場所及興趣點，並在有資料時提供名稱、類別、聯�
                  q=Sha%20Tin
 ```
 
-選擇所需結果，複製其
-<black>divisionId</black>。同一名稱可能對應不同類型的地方，使用 ID 前請檢查區劃的分類。將 ID 傳入
-<black>filter[division]</black>：
+選擇所需結果，複製其 <black>divisionId</black>。同一名稱可能對應不同類型的地方，使用 ID
+前請檢查區劃的分類。將 ID 傳入 <black>filter[division]</black>：
 
 ```url
 /{{apiFamily}}/{{ apiVersionPath }}?
@@ -423,7 +423,8 @@ Places 描述場所及興趣點，並在有資料時提供名稱、類別、聯�
                  profile=map
 ```
 
-使用分區、市鎮、鄰里或島嶼的 ID，尋找與該地區相關的地點。同一地點可在多個地理層級匹配：例如，某鄰里的餐廳亦可匹配其所屬市鎮及分區。結果取決於每個地點可用的地理資料，因此可能遺漏部分場所。
+使用分區、市鎮、鄰里或島嶼的
+ID，尋找與該地區相關的地點。同一地點可在多個地理層級匹配：例如，某鄰里的餐廳亦可匹配其所屬市鎮及分區。結果取決於每個地點可用的地理資料，因此可能遺漏部分場所。
 
 **使用地理代碼**
 
@@ -554,9 +555,8 @@ Places 描述場所及興趣點，並在有資料時提供名稱、類別、聯�
                  limit=50
 ```
 
-精簡的 <black>places</black>
-陣列包含 ID、類別、分類、營運狀態、Point 幾何及匹配網格。預設上限為 50，最多 100。結果按 Place
-ID 排序。持續跟隨
+精簡的 <black>places</black> 陣列包含 ID、類別、分類、營運狀態、Point
+幾何及匹配網格。預設上限為 50，最多 100。結果按 Place ID 排序。持續跟隨
 <black>links.next</black>，直到連結不再出現，即可取得網格內的所有分頁。
 <black>meta.page</black> 提供 <black>limit</black>、<black>offset</black> 及
 <black>hasMore</black>，不提供總筆數。若要從指定位置開始，請提供
@@ -565,14 +565,15 @@ ID 排序。持續跟隨
 每頁均使用最新的 active
 snapshot。若分頁期間發布新版本，結果可能改變；如需可重現的匯出，請使用清單並固定版本。
 
-搜尋只適用於最新發布的版本，無法搜尋歷史版本。單一地點及 H3 網格端點亦只傳回目前資料。如要讀取歷史版本，請使用清單端點，並提供
+搜尋只適用於最新發布的版本，無法搜尋歷史版本。單一地點及 H3
+網格端點亦只傳回目前資料。如要讀取歷史版本，請使用清單端點，並提供
 <black>releaseSet</black> 或下文說明的時間旅行參數。
 
 您可以在搜尋或 H3 網格請求中加入地理代碼篩選，限制結果的地理範圍，例如使用
-<black>filter[hoodCode]=SYP</black>
-選取西營盤。如要按區劃 ID（<black>filter[division]</black>）、基本類別、主要分類或營運狀態篩選，請使用清單端點
-<black>GET
-/{{apiFamily}}/{{ apiVersionPath }}</black>，並加入上文所示的篩選參數。例如，要列出某分區內營業中的餐廳，請使用清單；要按文字尋找地點，請使用搜尋。
+<black>filter[hoodCode]=SYP</black> 選取西營盤。如要按區劃
+ID（<black>filter[division]</black>）、基本類別、主要分類或營運狀態篩選，請使用清單端點
+<black>GET /{{apiFamily}}/{{ apiVersionPath
+}}</black>，並加入上文所示的篩選參數。例如，要列出某分區內營業中的餐廳，請使用清單；要按文字尋找地點，請使用搜尋。
 
 清單亦支援 <black>profile</black> 選擇回應欄位，以及 <black>include=divisions</black>
 取得相關區劃資源。搜尋、單一地點及 H3 網格回應各有固定格式。
@@ -595,14 +596,14 @@ snapshot。若分頁期間發布新版本，結果可能改變；如需可重現
 
 ## 從失敗中復原
 
-- 詳細資料請求的 `404` 表示 ID 不在 active
-  snapshot。請核對 ID；查詢已發布的歷史版本時，請使用清單。
+- 詳細資料請求的 `404` 表示 ID 不在 active snapshot。請核對
+  ID；查詢已發布的歷史版本時，請使用清單。
 - `422`
   表示請求無效。請閱讀驗證詳情，修正選擇器、篩選、語言、搜尋或分頁值。地理代碼必須能在所選地理版本中明確解析。
 - 帶 <black>invalid_h3_level</black> 的 `400`
   表示網格路徑的層級不是整數。請使用已建立索引的解析度及該解析度的網格。
-- 帶 <black>snapshot_not_ready</black> 的 `503`
-  表示所選 snapshot 無法使用。請於發布後重試，或選取已發布的清單版本。
+- 帶 <black>snapshot_not_ready</black> 的 `503` 表示所選 snapshot
+  無法使用。請於發布後重試，或選取已發布的清單版本。
 - 帶 <black>fts_not_ready</black> 的 `503` 表示搜尋索引無法使用。
 - 帶 <black>geographic_filter_not_ready</black> 的 `503`
   表示代碼篩選所需的地理版本無法使用。請檢查 <black>geographicReleaseSet</black>。
@@ -620,7 +621,8 @@ Snapshot 或索引無法使用，有別於成功回應但沒有匹配結果。
 
 {{apiKeyNote:zh-Hans}}
 
-Places 描述场所及兴趣点，并在有资料时提供名称、类别、联系方式及地理关系。请参阅此版本的来源说明，了解资料覆盖范围；缺少某个值并不代表场所没有名称、地址或网站。
+Places
+描述场所及兴趣点，并在有资料时提供名称、类别、联系方式及地理关系。请参阅此版本的来源说明，了解资料覆盖范围；缺少某个值并不代表场所没有名称、地址或网站。
 
 ## 要求资料
 
@@ -696,9 +698,8 @@ Places 描述场所及兴趣点，并在有资料时提供名称、类别、联�
                  q=Sha%20Tin
 ```
 
-选择所需结果，复制其
-<black>divisionId</black>。同一名称可能对应不同类型的地方，使用 ID 前请检查区划的分类。将 ID 传入
-<black>filter[division]</black>：
+选择所需结果，复制其 <black>divisionId</black>。同一名称可能对应不同类型的地方，使用 ID
+前请检查区划的分类。将 ID 传入 <black>filter[division]</black>：
 
 ```url
 /{{apiFamily}}/{{ apiVersionPath }}?
@@ -709,7 +710,8 @@ Places 描述场所及兴趣点，并在有资料时提供名称、类别、联�
                  profile=map
 ```
 
-使用分区、市镇、邻里或岛屿的 ID，查找与该地区相关的地点。同一地点可在多个地理层级匹配：例如，某邻里的餐厅也可匹配其所属市镇及分区。结果取决于每个地点可用的地理数据，因此可能遗漏部分场所。
+使用分区、市镇、邻里或岛屿的
+ID，查找与该地区相关的地点。同一地点可在多个地理层级匹配：例如，某邻里的餐厅也可匹配其所属市镇及分区。结果取决于每个地点可用的地理数据，因此可能遗漏部分场所。
 
 **使用地理代码**
 
@@ -840,9 +842,8 @@ Places 描述场所及兴趣点，并在有资料时提供名称、类别、联�
                  limit=50
 ```
 
-精简的 <black>places</black>
-数组包含 ID、类别、分类、营运状态、Point 几何及匹配网格。预设上限为 50，最多 100。结果按 Place
-ID 排序。持续跟随
+精简的 <black>places</black> 数组包含 ID、类别、分类、营运状态、Point
+几何及匹配网格。预设上限为 50，最多 100。结果按 Place ID 排序。持续跟随
 <black>links.next</black>，直到链接不再出现，即可取得网格内的所有分页。
 <black>meta.page</black> 提供 <black>limit</black>、<black>offset</black> 及
 <black>hasMore</black>，不提供总笔数。若要从指定位置开始，请提供
@@ -851,14 +852,15 @@ ID 排序。持续跟随
 每页均使用最新的 active
 snapshot。若分页期间发布新版本，结果可能改变；如需可重现的导出，请使用清单并固定版本。
 
-搜索只适用于最新发布的版本，无法搜索历史版本。单一地点及 H3 网格端点也只返回当前数据。如要读取历史版本，请使用清单端点，并提供
+搜索只适用于最新发布的版本，无法搜索历史版本。单一地点及 H3
+网格端点也只返回当前数据。如要读取历史版本，请使用清单端点，并提供
 <black>releaseSet</black> 或下文说明的时间旅行参数。
 
 您可以在搜索或 H3 网格请求中加入地理代码筛选，限制结果的地理范围，例如使用
-<black>filter[hoodCode]=SYP</black>
-选取西营盘。如要按区划 ID（<black>filter[division]</black>）、基本类别、主要分类或营运状态筛选，请使用清单端点
-<black>GET
-/{{apiFamily}}/{{ apiVersionPath }}</black>，并加入上文所示的筛选参数。例如，要列出某分区内营业中的餐厅，请使用清单；要按文字查找地点，请使用搜索。
+<black>filter[hoodCode]=SYP</black> 选取西营盘。如要按区划
+ID（<black>filter[division]</black>）、基本类别、主要分类或营运状态筛选，请使用清单端点
+<black>GET /{{apiFamily}}/{{ apiVersionPath
+}}</black>，并加入上文所示的筛选参数。例如，要列出某分区内营业中的餐厅，请使用清单；要按文字查找地点，请使用搜索。
 
 清单也支持 <black>profile</black> 选择响应字段，以及 <black>include=divisions</black>
 获取相关区划资源。搜索、单一地点及 H3 网格响应各有固定格式。
@@ -881,14 +883,14 @@ snapshot。若分页期间发布新版本，结果可能改变；如需可重现
 
 ## 从失败中复原
 
-- 详细资料请求的 `404` 表示 ID 不在 active
-  snapshot。请核对 ID；查询已发布的历史版本时，请使用清单。
+- 详细资料请求的 `404` 表示 ID 不在 active snapshot。请核对
+  ID；查询已发布的历史版本时，请使用清单。
 - `422`
   表示请求无效。请阅读验证详情，修正选择器、筛选、语言、搜寻或分页值。地理代码必须能在所选地理版本中明确解析。
 - 带 <black>invalid_h3_level</black> 的 `400`
   表示网格路径的层级不是整数。请使用已建立索引的解析度及该解析度的网格。
-- 带 <black>snapshot_not_ready</black> 的 `503`
-  表示所选 snapshot 无法使用。请于发布后重试，或选取已发布的清单版本。
+- 带 <black>snapshot_not_ready</black> 的 `503` 表示所选 snapshot
+  无法使用。请于发布后重试，或选取已发布的清单版本。
 - 带 <black>fts_not_ready</black> 的 `503` 表示搜寻索引无法使用。
 - 带 <black>geographic_filter_not_ready</black> 的 `503`
   表示代码筛选所需的地理版本无法使用。请检查 <black>geographicReleaseSet</black>。

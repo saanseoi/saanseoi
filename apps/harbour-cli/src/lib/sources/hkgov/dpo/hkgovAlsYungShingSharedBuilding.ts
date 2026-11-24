@@ -50,7 +50,7 @@ export function applyYungShingSharedBuilding(
     zh: row.zhHantFormattedAddress,
   }))
   for (const row of candidates) {
-    row.curatedGranularity = 'building'
+    row.curatedScope = 'building'
     row.hierarchyCuration = fixture.id
     row.identityBuildingId = physicalBuildingId
     row.sources = JSON.stringify({

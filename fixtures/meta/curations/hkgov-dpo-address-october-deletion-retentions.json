@@ -720,7 +720,7 @@
         "reason": "Same tower and source point; street address moved to village fields."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -975,7 +975,7 @@
         "reason": "Named and unnamed publisher duplicates at the same address; retain the named building identity."
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "enName": "8 JORDAN ROAD",
         "zhName": "8 JORDAN ROAD"
       }
@@ -1219,7 +1219,7 @@
         "reason": "Name omitted at the same publisher point; preserve the building name."
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "enName": "CHEUNG`S GARDEN",
         "zhName": "張園"
       }
@@ -1450,7 +1450,7 @@
         "reason": "Building assertion broadened to a phase. Restore Block 9 separately beneath the phase."
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "coordinates": [
           114.02253,
           22.29494
@@ -1687,7 +1687,7 @@
         "reason": "Still there"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -1910,7 +1910,7 @@
         "reason": "Church still there"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -2210,7 +2210,7 @@
         "reason": "Same tower label and point with replacement source ID."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -2442,7 +2442,7 @@
         "reason": "Still there"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -2721,7 +2721,7 @@
         "reason": "Same tower and source point; street address moved to village fields."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -2992,7 +2992,7 @@
         "reason": "Block 1 assertion broadened to complex. Restore Block 1 separately beneath Bella Vista."
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "coordinates": [
           114.27078,
           22.32966
@@ -3297,7 +3297,7 @@
         "reason": "User selected Retain / reconcile."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -3565,7 +3565,7 @@
         "reason": "Building label moved to Tower 2B fields; correct LA MARINE estate spelling to LA MARINA."
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "enEstate": "LA MARINA"
       }
     },
@@ -3845,7 +3845,7 @@
         "reason": "Same tower and source point; street address moved to village fields."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -4077,7 +4077,7 @@
         "reason": "Still there"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -4349,7 +4349,7 @@
         "reason": "User selected Retain / reconcile."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -4617,7 +4617,7 @@
         "reason": "Building label moved to Tower 1A fields; correct LA MARINE estate spelling to LA MARINA."
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "enEstate": "LA MARINA"
       }
     },
@@ -4894,7 +4894,7 @@
         "reason": "Building name omitted at the same publisher point; preserve the name."
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "enName": "INTERNATIONAL ENTERPRISE CENTRE 1",
         "zhName": "國際企業中心一期"
       }
@@ -5172,7 +5172,7 @@
         "reason": "Exact quarters building match; campus complex remains distinct."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -5439,7 +5439,7 @@
         "reason": "Exact Tam Towers match; Tam Villas complex remains distinct."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -5739,7 +5739,7 @@
         "reason": "User selected Retain / reconcile."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -6039,7 +6039,7 @@
         "reason": "User selected Retain / reconcile."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -6314,7 +6314,7 @@
         "reason": "English building name omitted at the same publisher point; preserve the name."
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "enName": "HKIA TOWER TWO",
         "zhName": null
       }
@@ -6616,7 +6616,7 @@
         "reason": "User selected Retain / reconcile."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -6916,7 +6916,7 @@
         "reason": "User selected Retain / reconcile."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -7215,7 +7215,7 @@
         "reason": "Named and unnamed assertions at the same point/address; preserve Allegro identity."
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "enName": "ALLEGRO",
         "zhName": "瓏碧"
       }
@@ -7487,7 +7487,7 @@
         "reason": "User selected Retain / reconcile."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -7757,7 +7757,7 @@
         "reason": "Select the exact number-8 replacement; number 2 and number 6 remain distinct."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -8006,7 +8006,7 @@
         "reason": "House A qualifier omitted at the same publisher point; preserve House A specificity."
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "blockNumber": "A",
         "blockDescriptor": "HSE",
         "zhBlockDescriptor": "屋"
@@ -8240,7 +8240,7 @@
         "reason": "South Wing different from North Wing. Do not merge the wings."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       },
       "parentRule": "october-2024-inference-52"
     },
@@ -8532,7 +8532,7 @@
         "reason": "H9 changed to 9 at the same source point; same house."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -8800,7 +8800,7 @@
         "reason": "Building label moved to Tower 2A fields; correct LA MARINE estate spelling to LA MARINA."
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "enEstate": "LA MARINA"
       }
     },
@@ -9069,7 +9069,7 @@
         "reason": "Building label moved to Tower 1B fields; correct LA MARINE estate spelling to LA MARINA."
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "enEstate": "LA MARINA"
       }
     },
@@ -9370,7 +9370,7 @@
         "reason": "User selected Retain / reconcile."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -9645,7 +9645,7 @@
         "reason": "English building name omitted at the same source point; preserve 119 Jervois."
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "enName": "119 JERVOIS",
         "zhName": null
       }
@@ -9947,7 +9947,7 @@
         "reason": "User selected Retain / reconcile."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -10224,7 +10224,7 @@
         "reason": "FTLIFE Tower renamed CTF LIFE Tower at the same address and point."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -10456,7 +10456,7 @@
         "reason": "Still there"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -10732,7 +10732,7 @@
         "reason": "SML Tower renamed Upper Living at the same publisher point."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -11008,7 +11008,7 @@
         "reason": "User selected Retain / reconcile."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -11299,7 +11299,7 @@
         "reason": "H76 changed to 76 at the same source point; same house."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -11567,7 +11567,7 @@
         "reason": "Select exact number-6 replacement; number 4 remains distinct."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -11796,7 +11796,7 @@
         "reason": "Substation assertion broadened to complex. Restore substation independently beneath Wellness Lodge."
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "coordinates": [
           114.03945,
           22.35863
@@ -12101,7 +12101,7 @@
         "reason": "User selected Retain / reconcile."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -12330,7 +12330,8 @@
         "reason": "Exact complex label and point; replace publisher ID without merging its buildings."
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -12606,7 +12607,8 @@
         "reason": "Select exact Nam Yuen complex; its A/B buildings remain distinct."
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -12838,7 +12840,8 @@
         "reason": "New Block A is more specific. Restore the complex parent and keep Block A identity distinct."
       },
       "patch": {
-        "granularity": "complex",
+        "scope": "premises",
+        "premisesType": "complex",
         "coordinates": [
           114.24169,
           22.3339
@@ -13116,7 +13119,8 @@
         "reason": "Select exact Ho Shun Tai complex; Block B remains distinct."
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -13345,7 +13349,8 @@
         "reason": "User selected Retain / reconcile."
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -13587,7 +13592,8 @@
         "reason": "Retain complex identity using current complex assertion; Blocks 1 and 33 remain distinct."
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -13856,7 +13862,8 @@
         "reason": "Retain complex identity using current complex assertion; substation remains distinct."
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -14121,7 +14128,8 @@
         "reason": "Sub-premises must be split from the complex."
       },
       "patch": {
-        "granularity": "complex",
+        "scope": "premises",
+        "premisesType": "complex",
         "coordinates": [
           113.96759,
           22.37601
@@ -14369,7 +14377,8 @@
         "reason": "Goldin complex renamed The Bay Hub; separately asserted building remains distinct."
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -14598,7 +14607,8 @@
         "reason": "Restore The Reach complex parent: 14 surviving bilingual tower assertions identify the same estate at 11 Shap Pat Heung Road. Keep each tower identity distinct."
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -14878,7 +14888,7 @@
         "reason": "Exact phase/address replacement; retain phase identity independently of Crestmont Block 9."
       },
       "patch": {
-        "granularity": "phase"
+        "scope": "phase"
       }
     }
   ],

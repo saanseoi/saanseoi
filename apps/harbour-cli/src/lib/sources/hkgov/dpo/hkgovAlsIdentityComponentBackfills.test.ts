@@ -87,7 +87,7 @@ test('curated identity components remain stable across retained releases', async
     if (union) {
       expect(union.enEstateName).toBe('UNION SQUARE')
       expect(union.zhHantEstateName).toBe('UNION SQUARE')
-      expect(union.curatedGranularity).toBe('complex')
+      expect(union.curatedScope).toBe('premises')
       expect(union.enBuildingName).toBeNull()
       expect(union.enPhaseName).toBeNull()
     }

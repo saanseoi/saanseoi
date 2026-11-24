@@ -209,7 +209,7 @@
         "reason": "Retain and reconcile as approved in the August review."
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "enName": "LEE WANG BUILDING",
         "zhName": "利宏大樓"
       }
@@ -442,7 +442,7 @@
         "reason": "\"THE UNIT SOHO\" is still there"
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "enName": "THE UNIT SOHO",
         "zhName": null
       }
@@ -675,7 +675,7 @@
         "reason": "Aruna is the NEW building name, so it should persist"
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "enName": "ARUNA",
         "zhName": "弦岸"
       }
@@ -921,7 +921,7 @@
         "reason": "Retain the name too"
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "enName": "THE STELLAR",
         "zhName": null
       },
@@ -1371,7 +1371,7 @@
         "reason": "Retain and reconcile as approved in the August review."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -1621,7 +1621,8 @@
         "reason": "Retain and reconcile as approved in the August review."
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       },
       "subsequentReviews": [
         {
@@ -2050,7 +2051,7 @@
         "reason": "Keep both the building and the complex"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       },
       "parentRule": "august-2025-reviewed-110"
     },
@@ -2288,7 +2289,8 @@
         "reason": "Keep both the building and the complex"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       },
       "role": "complex"
     },
@@ -2526,7 +2528,7 @@
         "reason": "just lose the HSE prefix, and keep the PALM SPRINGS is the project name"
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "enEstate": "PALM SPRINGS",
         "zhEstate": "加州花園"
       }
@@ -2739,7 +2741,7 @@
         "reason": "still exists"
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "enName": "SOLO WORKSHOPS",
         "zhName": "迷你工作坊"
       }
@@ -2966,7 +2968,7 @@
         "reason": "Keep both building and complex"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       },
       "parentRule": "august-2025-reviewed-150"
     },
@@ -3194,7 +3196,8 @@
         "reason": "Keep both building and complex"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       },
       "role": "complex"
     },
@@ -3449,7 +3452,8 @@
         "reason": "keep both complex and buildings"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       },
       "role": "complex"
     },
@@ -3685,7 +3689,7 @@
         "reason": "keep both complex and buildings"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       },
       "parentRule": "august-2025-reviewed-20"
     },
@@ -3953,7 +3957,8 @@
         "reason": "Retain and reconcile as approved in the August review."
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     }
   ],

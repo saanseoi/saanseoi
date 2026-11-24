@@ -33,6 +33,46 @@ const policies: NetTablePolicy[] = [
   { name: 'locale' },
 ]
 
+test('unowned contentless FTS5 permits unrelated changes but rejects index or schema changes before delivery', async () => {
+  for (const mutation of ['none', 'index', 'schema']) {
+    await fixture(async ({ db, path }) => {
+      db.exec(standardSchema)
+      db.exec(
+        "CREATE VIRTUAL TABLE search USING fts5(text,content='',detail=column,columnsize=0); INSERT INTO search(rowid,text) VALUES(1,'old')",
+      )
+      let appended = false
+      const plan = captureNetSqlitePlan({
+        targets: { CURRENT: { path, tables: policies } },
+        append: async () => {
+          appended = true
+        },
+        generate: async candidates => {
+          const copy = candidates.CURRENT!.db
+          copy.exec("UPDATE address SET name='edited' WHERE id='a'")
+          if (mutation === 'index')
+            copy.exec("INSERT INTO search(rowid,text) VALUES(2,'new')")
+          if (mutation === 'schema')
+            copy.exec(
+              "DROP TABLE search; CREATE VIRTUAL TABLE search USING fts5(text,content='',detail=none,columnsize=0)",
+            )
+        },
+      })
+      if (mutation === 'none') {
+        await plan
+        expect(appended).toBe(true)
+      } else {
+        await expect(plan).rejects.toThrow(
+          mutation === 'index' ? 'unowned table' : 'Schema changed',
+        )
+        expect(appended).toBe(false)
+      }
+      expect(db.query("SELECT name FROM address WHERE id='a'").get()).toEqual({
+        name: 'first',
+      })
+    })
+  }
+})
+
 test('candidate generation cannot leave an open transaction or emit partial work', async () => {
   await fixture(async ({ db, path }) => {
     db.exec(standardSchema)

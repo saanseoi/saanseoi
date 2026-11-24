@@ -609,7 +609,7 @@ test('HISTORY reviews address granularities together', () => {
   const review = fixture([
     {
       binding: 'DB_HISTORY_HK_2026',
-      sql: `CREATE TABLE address2d(id TEXT, snapshotId TEXT, granularity TEXT);
+      sql: `CREATE TABLE address2d(id TEXT, snapshotId TEXT, scope TEXT);
       INSERT INTO address2d VALUES ('a','snap','building'),('b','snap','complex'),('c','snap','unknown');`,
     },
   ])
@@ -618,7 +618,7 @@ test('HISTORY reviews address granularities together', () => {
     expect(
       review
         .inspect('HISTORY', 'lineage', 'address2d', false, 8)
-        .samples.map(s => s.record.granularity)
+        .samples.map(s => s.record.scope)
         .sort(),
     ).toEqual(['building', 'complex', 'unknown'])
     expect(() =>
@@ -628,7 +628,7 @@ test('HISTORY reviews address granularities together', () => {
         'address2d',
         false,
         8,
-        JSON.stringify(['granularity', 'building']),
+        JSON.stringify(['scope', 'building']),
       ),
     ).toThrow('Unsupported subset')
   } finally {

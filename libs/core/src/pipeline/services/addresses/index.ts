@@ -1,6 +1,6 @@
 /** Address pipeline services. */
 export * from './componentCorrections'
-export * from './granularity'
+export * from './scope'
 export * from './historyStage'
 export * from './normalisation'
 export * from './normaliseStage'

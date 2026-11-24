@@ -44,7 +44,7 @@ test('published supplementary retry recovers revocations from immutable history'
       )
     first.exec(`INSERT INTO address2d(snapshotId,id,operation) VALUES
       ('published-snapshot','ss-opa-stale-a','delete'),('other-snapshot','ss-opa-other','delete');
-      INSERT INTO address2d(snapshotId,id,operation,versionHash,granularity) VALUES('published-snapshot','ss-opa-current','upsert','hash','building');`)
+      INSERT INTO address2d(snapshotId,id,operation,versionHash,scope) VALUES('published-snapshot','ss-opa-current','upsert','hash','building');`)
     second.exec(`INSERT INTO address2d(snapshotId,id,operation) VALUES('published-snapshot','ss-opa-stale-b','delete');
       INSERT INTO address2dI18n(snapshotId,addressId,locale,operation) VALUES('published-snapshot','ss-opa-locale','en','delete');`)
     expect(
@@ -439,8 +439,8 @@ INSERT INTO snapshots(id, code, cohortKey, status, snapshotLineageId) VALUES
         recordId: 'citygate-place',
       },
     ])
-    expect(first.addresses[0]?.canonical.granularity).toBe('unknown')
-    expect(first.addresses[0]?.canonical).not.toHaveProperty('granularityProvenance')
+    expect(first.addresses[0]?.canonical.scope).toBe('unknown')
+    expect(first.addresses[0]?.canonical).not.toHaveProperty('scopeProvenance')
     expect(JSON.parse(await readFile(curationPath, 'utf8'))).not.toHaveProperty(
       'entries',
     )
@@ -737,7 +737,7 @@ INSERT INTO snapshots(id, code, cohortKey, status, snapshotLineageId) VALUES
     // Another lineage owns these active components. Withdrawing this scope must
     // leave their current flags and immutable payloads intact.
     historyNext.exec(`
-      INSERT INTO address2d(id,versionHash,snapshotId,isCurrent,granularity)
+      INSERT INTO address2d(id,versionHash,snapshotId,isCurrent,scope)
         VALUES('ss-opa-other-lineage','other-base','other-snapshot',1,'building');
       INSERT INTO address2dI18n(addressId,versionHash,locale,formattedAddress,snapshotId,isCurrent)
         VALUES('ss-opa-other-lineage','other-locale','en','Another address','other-snapshot',1);
@@ -775,7 +775,7 @@ INSERT INTO snapshots(id, code, cohortKey, status, snapshotLineageId) VALUES
       regionCode: 'hk',
       sourceReleaseId: withdrawnPlaceReleaseId,
     })
-    const withdrawn = await prepareSupplementaryAddresses({
+    const withdrawalInput = {
       ...input,
       places: [],
       resourceReleaseId: withdrawnPlaceReleaseId,
@@ -791,7 +791,28 @@ INSERT INTO snapshots(id, code, cohortKey, status, snapshotLineageId) VALUES
         ...input.targets,
         history: nextHistoryTarget,
       },
-    })
+    }
+    let interruptedHash: string | undefined
+    await expect(
+      prepareSupplementaryAddresses({
+        ...withdrawalInput,
+        retainAudit: async (_releaseId, _datasetCode, audit) => {
+          interruptedHash = audit.materialisationHash
+          throw new Error('Interrupted after Address delivery')
+        },
+      }),
+    ).rejects.toThrow('Interrupted after Address delivery')
+    // Deletions need not remain represented in today's entry ledger. The sealed
+    // delivery's history is authoritative even before the snapshot is published.
+    const withdrawnLedgerText = await readFile(entryLedgerPath, 'utf8')
+    const withdrawnLedger = JSON.parse(withdrawnLedgerText)
+    await writeFile(
+      entryLedgerPath,
+      JSON.stringify({ ...withdrawnLedger, entries: [] }),
+    )
+    const withdrawn = await prepareSupplementaryAddresses(withdrawalInput)
+    expect(auditHashes.at(-1)).toBe(interruptedHash)
+    await writeFile(entryLedgerPath, withdrawnLedgerText)
     expect(withdrawn.addresses).toEqual([])
     expect(JSON.parse(await readFile(entryLedgerPath, 'utf8')).entries).toEqual(
       expect.arrayContaining([

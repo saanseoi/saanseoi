@@ -245,7 +245,7 @@
         "reason": "merge-identities"
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "enName": "ORIA",
         "zhName": "傲華"
       },
@@ -662,7 +662,7 @@
         "reason": "Consolidate Stanley Street duplicates as 14–16 Stanley Street; preserve 23 Wellington Street separately."
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "streetNumberFrom": "14",
         "streetNumberTo": "16"
       }
@@ -934,7 +934,7 @@
         "reason": "correct-structure"
       },
       "patch": {
-        "granularity": "unknown",
+        "scope": "unknown",
         "enName": null,
         "zhName": null,
         "enEstate": "ROYAL PALMS",
@@ -1179,7 +1179,7 @@
         "reason": "rename"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -1449,7 +1449,7 @@
         "reason": "correct-structure"
       },
       "patch": {
-        "granularity": "unknown",
+        "scope": "unknown",
         "enName": null,
         "zhName": null,
         "enEstate": "THE GREEN",
@@ -1728,7 +1728,7 @@
         "reason": "correct-structure"
       },
       "patch": {
-        "granularity": "unknown",
+        "scope": "unknown",
         "enName": null,
         "zhName": null,
         "enEstate": "THE GREEN",
@@ -2014,7 +2014,7 @@
         "reason": "correct-structure"
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "enName": "STONE RISE",
         "zhName": "二百昊",
         "enEstate": null,
@@ -2473,7 +2473,7 @@
         "reason": "correct-structure"
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "enName": "TSING YI TOWN CLINIC",
         "zhName": "青衣市區診所",
         "enEstate": null,
@@ -2712,7 +2712,7 @@
         "reason": "merge-identities"
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "enName": "CENTRE FOR FOOD SAFETY",
         "zhName": "食物安全中心"
       }

@@ -1,27 +1,9 @@
-/** Compact storage codes. Unit and floor codes have independent vocabularies. */
-export const address3dUnitTypes = [
-  'F', // Flat or apartment.
-  'R', // Room.
-  'S', // Shop.
-  'SU', // Suite.
-  'U', // Unit.
-  'ST', // Stall.
-  'K', // Kiosk.
-  'O', // Office.
-  'X', // Other or unclassified unit type.
-] as const
-export const address3dFloorTypes = [
-  'F', // Floor.
-  'G', // Ground floor.
-  'UG', // Upper ground floor.
-  'LG', // Lower ground floor.
-  'B', // Basement.
-  'M', // Mezzanine.
-  'C', // Concourse.
-  'P', // Podium.
-  'R', // Roof.
-  'X', // Other or unclassified floor type.
-] as const
+/** Compact unit and floor codes share the published address content contract. */
+import {
+  ADDRESS_UNIT_TYPES as address3dUnitTypes,
+  ADDRESS_FLOOR_TYPES as address3dFloorTypes,
+} from '@saanseoi/address/content'
+export { address3dUnitTypes, address3dFloorTypes }
 
 export type Address3dUnit = {
   id: string
@@ -42,7 +24,7 @@ export type Address3dUnitI18n = {
 export type Address3dCoverage =
   | { kind: 'none' }
   | {
-      kind: 'direct' | 'ancestor'
+      kind: 'direct' | 'shared'
       ownerAddress2dId: string
       address3dId: string
       membership: 'established' | 'unresolved'
@@ -65,7 +47,7 @@ export type Address3dCollectionMetadata = {
 
 /** The caller supplies metadata from the same selected snapshot. */
 export function resolveAddress3dCoverage(
-  address: { id: string; parentAddressId: string | null },
+  address: { id: string },
   collections: Address3dCollectionMetadata[],
 ): Address3dCoverage {
   const direct = collections.find(collection => collection.address2dId === address.id)
@@ -76,14 +58,13 @@ export function resolveAddress3dCoverage(
       address3dId: direct.id,
       membership: 'established',
     }
-  const ancestor = collections.find(
-    collection =>
-      collection.address2dId === address.parentAddressId &&
-      collection.unresolvedSectionIds.includes(address.id),
+  const shared = collections.filter(collection =>
+    collection.unresolvedSectionIds.includes(address.id),
   )
+  const ancestor = shared.length === 1 ? shared[0] : undefined
   return ancestor
     ? {
-        kind: 'ancestor',
+        kind: 'shared',
         ownerAddress2dId: ancestor.address2dId,
         address3dId: ancestor.id,
         membership: 'unresolved',
@@ -92,7 +73,7 @@ export function resolveAddress3dCoverage(
 }
 
 export function validatePlaceAddress3dReference(args: {
-  address: { id: string; parentAddressId: string | null }
+  address: { id: string }
   collection: Address3dCollectionMetadata & { units: Address3dUnit[] }
   unitId: string
   membership: 'established' | 'unresolved'

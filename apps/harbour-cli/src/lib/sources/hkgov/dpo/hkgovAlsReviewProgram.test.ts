@@ -96,7 +96,7 @@ test('parent assignment respects activation, aliases, district scope and distinc
   expect(child.parentAddressId).toBeUndefined()
   applyReviewedAlsParents(rows, '2024-10-18.0', 'hierarchy', fixture)
   expect(child.parentAddressId).toBe(parent.id)
-  expect(child.curatedGranularity).toBe('building')
+  expect(child.curatedScope).toBe('building')
   expect(JSON.parse(child.hierarchyCuration!)).toEqual({
     id: group.id,
     curationFile: `${fixture}.json`,
@@ -145,7 +145,7 @@ test('new operation contracts reject invalid parents, reconstruction and invento
     [
       'derive-parent',
       (d: any) => {
-        d.childGranularity = 'invented'
+        d.childScope = 'invented'
       },
     ],
     [

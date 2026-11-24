@@ -1,18 +1,18 @@
 ---
-createdAt: "2026-07-21T00:00:00.000Z"
-updatedAt: "2026-07-21T00:00:00.000Z"
-dataset: "ds-hk-hkgov-pland-division-area-new-town"
-release: "dr-hk-hkgov-pland-division-area-new-town-2016"
-regionCode: "hk"
-source: "hkgov-pland-new-town"
-publicationDate: "2022-03-11"
-publicationDateSource: "https://portal.csdi.gov.hk/geoportal/rest/metadata/item/pland_rcd_1634281414408_50485/xml"
-sourceVersion: "2016"
-releaseVersion: "2016.0"
-sourceSchemaVersion: "1.0"
-type: "divisionArea"
-cohortKey: "2016"
-releaseNotesUrl: "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=pland_rcd_1634281414408_50485"
+createdAt: '2026-07-21T00:00:00.000Z'
+updatedAt: '2026-07-21T00:00:00.000Z'
+dataset: 'ds-hk-hkgov-pland-division-area-new-town'
+release: 'dr-hk-hkgov-pland-division-area-new-town-2016'
+regionCode: 'hk'
+source: 'hkgov-pland-new-town'
+publicationDate: '2022-03-11'
+publicationDateSource: 'https://portal.csdi.gov.hk/geoportal/rest/metadata/item/pland_rcd_1634281414408_50485/xml'
+sourceVersion: '2016'
+releaseVersion: '2016.0'
+sourceSchemaVersion: '1.0'
+type: 'divisionArea'
+cohortKey: '2016'
+releaseNotesUrl: 'https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=pland_rcd_1634281414408_50485'
 ---
 
 # EN
@@ -78,7 +78,9 @@ inferred.
 
 ## 兼容性
 
-此版本是規劃署規劃領域的主張，獨立於 Overture 行政區劃。此分期內的正規化英文名稱形成按分期的規劃署識別碼；不會推斷跨分期或 Overture 身份。
+此版本是規劃署規劃領域的主張，獨立於 Overture
+行政區劃。此分期內的正規化英文名稱形成按分期的規劃署識別碼；不會推斷跨分期或 Overture
+身份。
 
 ### 直接保留欄位
 
@@ -98,8 +100,8 @@ inferred.
 
 ### 兼容欄位
 
-- `NewTown_en`、`NewTown_Tc` 和 `NewTown_Sc` 可透過 <black>hkgovPland</black>
-  來源 profile 取得
+- `NewTown_en`、`NewTown_Tc` 和 `NewTown_Sc` 可透過 <black>hkgovPland</black> 來源
+  profile 取得
 - 修復狀態及來源格網證據隨來源主張保留
 
 ### 不公開欄位
@@ -119,7 +121,9 @@ inferred.
 
 ## 兼容性
 
-此版本是规划署规划领域的主张，独立于 Overture 行政区划。此分期内的规范化英文名称形成按分期的规划署标识符；不会推断跨分期或 Overture 身份。
+此版本是规划署规划领域的主张，独立于 Overture
+行政区划。此分期内的规范化英文名称形成按分期的规划署标识符；不会推断跨分期或 Overture
+身份。
 
 ### 直接保留字段
 
@@ -139,8 +143,8 @@ inferred.
 
 ### 兼容字段
 
-- `NewTown_en`、`NewTown_Tc` 和 `NewTown_Sc` 可通过 <black>hkgovPland</black>
-  源 profile 取得
+- `NewTown_en`、`NewTown_Tc` 和 `NewTown_Sc` 可通过 <black>hkgovPland</black> 源 profile
+  取得
 - 修复状态及源格网证据随源主张保留
 
 ### 不公开字段

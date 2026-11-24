@@ -66,15 +66,31 @@ export async function stagePlaceIdentities(input: {
   releaseRoot: string
   stagingRoot?: string
   predecessorSnapshotId?: string | null
+  onProgress?: (processed: number, subject?: string) => void
 }) {
+  input.onProgress?.(0, 'read incoming identity evidence')
   const evidence = []
-  for await (const place of readStagedJsonLines<NormalisedPlace>(input.sourcePath))
+  for await (const place of readStagedJsonLines<NormalisedPlace>(input.sourcePath)) {
     evidence.push(placeIdentityEvidence(place.raw, place.lng, place.lat))
+    // Keep the compact identity evidence, not garbage from full source records.
+    if (evidence.length % 5_000 === 0) Bun.gc(true)
+  }
+  Bun.gc(true)
+  console.log(`Place identity: scoring ${evidence.length} incoming observations.`)
+  input.onProgress?.(0, 'score identity candidates')
   const decisions = matchPlaceIdentities(
     evidence,
     input.historyRows.map(previousPlaceIdentity),
     input.scope,
     input.sourceVersion,
+    processed => {
+      if (processed % 1_000 === 0) {
+        Bun.gc(true)
+        input.onProgress?.(processed, 'score identity candidates')
+      }
+      if (processed % 10_000 === 0)
+        console.log(`Place identity: scored ${processed}/${evidence.length}.`)
+    },
   )
   const retainedById = new Map(
     input.historyRows.map(state => [
@@ -97,6 +113,9 @@ export async function stagePlaceIdentities(input: {
       ]
     }),
   )
+  input.onProgress?.(bySourceId.size, 'retain identity ledger')
+  console.log(`Place identity: retaining ${bySourceId.size} decisions.`)
+  Bun.gc(true)
   const ledger = await writePlaceIdentityLedger({
     ...input,
     stagingRoot: input.stagingRoot ?? resolve(input.releaseRoot, 'identity-ledgers'),
@@ -122,7 +141,7 @@ export async function stagePlaceIdentities(input: {
 
 export async function* canonicalAddressResolutions(
   path: string,
-  decisions: Map<string, PlaceIdentityDecision>,
+  decisions: ReadonlyMap<string, Pick<PlaceIdentityDecision, 'id'>>,
 ) {
   for await (const row of readStagedJsonLines<StagedAddressResolution>(path)) {
     const decision = decisions.get(row.placeId)

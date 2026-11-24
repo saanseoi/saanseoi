@@ -59,30 +59,32 @@ export function sortProvenanceRows(
 
 export function initDb(dbPath: string) {
   const db = new Database(dbPath)
-  db.exec(migrationSql.replaceAll('--> statement-breakpoint', ''))
-  seedFixtureCatalog(db)
-  // Match insertDataset: each test release captures its policy at creation.
-  db.exec(
-    'CREATE TABLE fixturePolicies (datasetCode TEXT PRIMARY KEY, processingRules TEXT)',
-  )
-  for (const dataset of initialDatasets) {
-    const definitionId = dataset.processingRules
-      ? computeVersionHash(dataset.processingRules)
-      : null
-    if (definitionId)
-      db.query('INSERT OR IGNORE INTO processingRuleDefinitions VALUES (?,?)').run(
-        definitionId,
-        JSON.stringify(dataset.processingRules),
-      )
-    db.query('INSERT INTO fixturePolicies VALUES (?, ?)').run(
-      dataset.code,
-      definitionId ?? null,
+  db.transaction(() => {
+    db.exec(migrationSql.replaceAll('--> statement-breakpoint', ''))
+    seedFixtureCatalog(db)
+    // Match insertDataset: each test release captures its policy at creation.
+    db.exec(
+      'CREATE TABLE fixturePolicies (datasetCode TEXT PRIMARY KEY, processingRules TEXT)',
     )
-  }
-  db.exec(`CREATE TRIGGER fixture_capture_release_rules AFTER INSERT ON resourceReleases
+    for (const dataset of initialDatasets) {
+      const definitionId = dataset.processingRules
+        ? computeVersionHash(dataset.processingRules)
+        : null
+      if (definitionId)
+        db.query('INSERT OR IGNORE INTO processingRuleDefinitions VALUES (?,?)').run(
+          definitionId,
+          JSON.stringify(dataset.processingRules),
+        )
+      db.query('INSERT INTO fixturePolicies VALUES (?, ?)').run(
+        dataset.code,
+        definitionId ?? null,
+      )
+    }
+    db.exec(`CREATE TRIGGER fixture_capture_release_rules AFTER INSERT ON resourceReleases
     WHEN NEW.processingRules IS NULL
     BEGIN UPDATE resourceReleases SET processingRules = (SELECT p.processingRules FROM fixturePolicies p JOIN datasets d ON d.code = p.datasetCode WHERE d.id = (SELECT datasetId FROM sourceReleases WHERE id = NEW.sourceReleaseId)) WHERE id = NEW.id; END;`)
-  seedCompletedAudits(db)
+    seedCompletedAudits(db)
+  })()
   return db
 }
 

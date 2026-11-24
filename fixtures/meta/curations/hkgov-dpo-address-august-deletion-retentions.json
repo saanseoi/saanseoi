@@ -261,7 +261,7 @@
         "zhName": "社會服務大樓",
         "enEstate": "FU TIP ESTATE",
         "zhEstate": "富蝶邨",
-        "granularity": "building"
+        "scope": "building"
       },
       "role": "house",
       "parentRule": "august-2024-fu-tip-estate-complex",
@@ -510,7 +510,7 @@
         "zhName": null,
         "enEstate": null,
         "zhEstate": null,
-        "granularity": "building"
+        "scope": "building"
       },
       "curationFile": "hkgov-dpo-address-august-deletion-retentions.json"
     },
@@ -722,7 +722,7 @@
         "zhName": "雅園",
         "enEstate": null,
         "zhEstate": null,
-        "granularity": "building"
+        "scope": "building"
       },
       "curationFile": "hkgov-dpo-address-august-deletion-retentions.json"
     },
@@ -976,7 +976,7 @@
         "zhName": "第二座",
         "enEstate": "THE NASCENT",
         "zhEstate": "恒莆新苑",
-        "granularity": "building"
+        "scope": "building"
       },
       "curationFile": "hkgov-dpo-address-august-deletion-retentions.json"
     },
@@ -1226,7 +1226,7 @@
         "zhName": null,
         "enEstate": "PORTAS",
         "zhEstate": null,
-        "granularity": "building"
+        "scope": "building"
       },
       "curationFile": "hkgov-dpo-address-august-deletion-retentions.json"
     },
@@ -1482,7 +1482,7 @@
         "zhName": "88WL",
         "enEstate": null,
         "zhEstate": null,
-        "granularity": "building"
+        "scope": "building"
       },
       "curationFile": "hkgov-dpo-address-august-deletion-retentions.json"
     },
@@ -1738,7 +1738,7 @@
         "zhName": "劉李婉嫻康樂樓",
         "enEstate": null,
         "zhEstate": null,
-        "granularity": "building"
+        "scope": "building"
       },
       "parentRule": "august-2024-lingnan-campus-complex",
       "curationFile": "hkgov-dpo-address-august-deletion-retentions.json"
@@ -1971,7 +1971,7 @@
         "zhName": "長江集團中心二期",
         "enEstate": null,
         "zhEstate": null,
-        "granularity": "building"
+        "scope": "building"
       },
       "curationFile": "hkgov-dpo-address-august-deletion-retentions.json"
     },
@@ -2225,7 +2225,7 @@
         "zhName": "第一座",
         "enEstate": "THE NASCENT",
         "zhEstate": "恒莆新苑",
-        "granularity": "building"
+        "scope": "building"
       },
       "curationFile": "hkgov-dpo-address-august-deletion-retentions.json"
     },
@@ -2473,7 +2473,7 @@
         "zhName": "偉華匯",
         "enEstate": null,
         "zhEstate": null,
-        "granularity": "building"
+        "scope": "building"
       },
       "curationFile": "hkgov-dpo-address-august-deletion-retentions.json"
     },
@@ -2721,7 +2721,7 @@
         "zhName": "太古坊二座",
         "enEstate": null,
         "zhEstate": null,
-        "granularity": "building"
+        "scope": "building"
       },
       "curationFile": "hkgov-dpo-address-august-deletion-retentions.json"
     },
@@ -2975,7 +2975,7 @@
         "zhName": "污水處理中心",
         "enEstate": "THE NASCENT",
         "zhEstate": "恒莆新苑",
-        "granularity": "building"
+        "scope": "building"
       },
       "curationFile": "hkgov-dpo-address-august-deletion-retentions.json"
     },
@@ -3225,7 +3225,7 @@
         "zhName": null,
         "enEstate": "PORTAS",
         "zhEstate": null,
-        "granularity": "building"
+        "scope": "building"
       },
       "curationFile": "hkgov-dpo-address-august-deletion-retentions.json"
     },
@@ -3481,7 +3481,7 @@
         "zhName": "隆敍",
         "enEstate": null,
         "zhEstate": null,
-        "granularity": "building"
+        "scope": "building"
       },
       "curationFile": "hkgov-dpo-address-august-deletion-retentions.json"
     },
@@ -3693,7 +3693,7 @@
         "zhName": "樹林銀座",
         "enEstate": null,
         "zhEstate": null,
-        "granularity": "building"
+        "scope": "building"
       },
       "curationFile": "hkgov-dpo-address-august-deletion-retentions.json"
     },
@@ -3911,7 +3911,8 @@
         "zhName": null,
         "enEstate": "CHING TIN ESTATE",
         "zhEstate": "菁田邨",
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       },
       "role": "complex",
       "curationFile": "hkgov-dpo-address-august-deletion-retentions.json"
@@ -4166,7 +4167,8 @@
         "zhName": null,
         "enEstate": "FU TIP ESTATE",
         "zhEstate": "富蝶邨",
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       },
       "role": "complex",
       "curationFile": "hkgov-dpo-address-august-deletion-retentions.json"
@@ -4427,7 +4429,8 @@
         "zhName": null,
         "enEstate": "LINGNAN UNIVERSITY",
         "zhEstate": "嶺南大學",
-        "granularity": "complex",
+        "scope": "premises",
+        "premisesType": "complex",
         "blockNumber": null
       },
       "role": "complex",
@@ -4683,7 +4686,8 @@
         "zhName": null,
         "enEstate": "YAP TING TERRACED HOME",
         "zhEstate": "邑庭居",
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       },
       "curationFile": "hkgov-dpo-address-august-deletion-retentions.json"
     },
@@ -4931,7 +4935,8 @@
         "zhName": null,
         "enEstate": "LINGNAN UNIVERSITY",
         "zhEstate": "嶺南大學",
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       },
       "role": "complex",
       "curationFile": "hkgov-dpo-address-august-deletion-retentions.json"

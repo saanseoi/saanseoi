@@ -9,11 +9,13 @@ sending an API key with the request.
 
 ### ZH-HANT
 
-身分驗證用來確認<i>誰</i>正在發出請求。在這裡，應用程式會隨請求傳送 API 金鑰，以證明其身分。
+身分驗證用來確認<i>誰</i>正在發出請求。在這裡，應用程式會隨請求傳送 API
+金鑰，以證明其身分。
 
 ### ZH-HANS
 
-身份验证用于确认<i>谁</i>正在发出请求。在这里，应用程序会随请求发送 API 密钥，以证明其身份。
+身份验证用于确认<i>谁</i>正在发出请求。在这里，应用程序会随请求发送 API
+密钥，以证明其身份。
 
 # API
 
@@ -28,13 +30,15 @@ map, app, or analysis to our APIs and the data is just a request away.
 
 ### ZH-HANT
 
-API 是讓<i>軟件</i>彼此溝通的方式。你可使用程式碼或 LLM 向 SaanSeoi
-API 發出請求，它會回傳資料。這表示你無須自行下載或託管資料；只需把地圖、應用程式或分析工具連接至我們的 API，便不用擔心資料庫或保持資料更新。
+API 是讓<i>軟件</i>彼此溝通的方式。你可使用程式碼或 LLM 向 SaanSeoi API
+發出請求，它會回傳資料。這表示你無須自行下載或託管資料；只需把地圖、應用程式或分析工具連接至我們的
+API，便不用擔心資料庫或保持資料更新。
 
 ### ZH-HANS
 
-API 是让<i>软件</i>彼此通信的方式。你可以使用代码或 LLM 向 SaanSeoi
-API 发出请求，它会返回数据。这意味着无需自行下载或托管数据；只需将地图、应用程序或分析工具连接到我们的 API，就不必担心数据库或保持数据更新。
+API 是让<i>软件</i>彼此通信的方式。你可以使用代码或 LLM 向 SaanSeoi API
+发出请求，它会返回数据。这意味着无需自行下载或托管数据；只需将地图、应用程序或分析工具连接到我们的
+API，就不必担心数据库或保持数据更新。
 
 # API family
 
@@ -136,11 +140,13 @@ time.
 
 ### ZH-HANT
 
-目錄是把 API 請求解析為確切發布集的已發布索引。它記錄在某個知識時間點可用及被選取的發布。
+目錄是把 API
+請求解析為確切發布集的已發布索引。它記錄在某個知識時間點可用及被選取的發布。
 
 ### ZH-HANS
 
-目录是把 API 请求解析为确切发布集的已发布索引。它记录在某个知识时间点可用及被选取的发布。
+目录是把 API
+请求解析为确切发布集的已发布索引。它记录在某个知识时间点可用及被选取的发布。
 
 # Catalogue revision
 
@@ -154,13 +160,15 @@ it would have worked then.
 
 ### ZH-HANT
 
-目錄修訂是紀錄 API 在某個時間點知道哪些資料發布的已保存記錄。當你需要按照當時的結果再次發出完全相同的請求時，可與 release
-set 一起使用。
+目錄修訂是紀錄 API
+在某個時間點知道哪些資料發布的已保存記錄。當你需要按照當時的結果再次發出完全相同的請求時，可與
+release set 一起使用。
 
 ### ZH-HANS
 
-目录修订是记录 API 在某个时间点知道哪些数据发布的已保存记录。当你需要按照当时的结果再次发出完全相同的请求时，可与 release
-set 一起使用。
+目录修订是记录 API
+在某个时间点知道哪些数据发布的已保存记录。当你需要按照当时的结果再次发出完全相同的请求时，可与
+release set 一起使用。
 
 # Cohort
 
@@ -173,11 +181,13 @@ data's real-world timing, not when SaanSeoi learned about or published it.
 
 ### ZH-HANT
 
-cohort 是 release 所描述的生效日期或期間，表示資料在現實世界中的時間，而非 SaanSeoi 得悉或發布資料的時間。
+cohort 是 release 所描述的生效日期或期間，表示資料在現實世界中的時間，而非 SaanSeoi
+得悉或發布資料的時間。
 
 ### ZH-HANS
 
-cohort 是 release 所描述的生效日期或期間，表示資料在現實世界中的時間，而非 SaanSeoi 得悉或發布資料的時間。
+cohort 是 release 所描述的生效日期或期間，表示資料在現實世界中的時間，而非 SaanSeoi
+得悉或發布資料的時間。
 
 # Collection
 
@@ -191,13 +201,13 @@ related resources.
 
 ### ZH-HANT
 
-collection 是同一 domain 與 cohort 內一組連貫且具名稱的記錄。它不是 release
-set；一個 release set 可發布主要 collection 及其相關資源。
+collection 是同一 domain 與 cohort 內一組連貫且具名稱的記錄。它不是 release set；一個
+release set 可發布主要 collection 及其相關資源。
 
 ### ZH-HANS
 
-collection 是同一 domain 与 cohort 内一组连贯且具名称的记录。它不是 release
-set；一个 release set 可发布主要 collection 及其相关资源。
+collection 是同一 domain 与 cohort 内一组连贯且具名称的记录。它不是 release set；一个
+release set 可发布主要 collection 及其相关资源。
 
 # Companion resource
 
@@ -211,13 +221,15 @@ variant rather than being merged into the primary collection.
 
 ### ZH-HANT
 
-companion
-resource 是與主要記錄相關、但獨立建模的資源，例如區劃面或邊界。它保留自己的來源與變體身分，而不會併入主要 collection。
+companion resource
+是與主要記錄相關、但獨立建模的資源，例如區劃面或邊界。它保留自己的來源與變體身分，而不會併入主要
+collection。
 
 ### ZH-HANS
 
-companion
-resource 是与主要记录相关、但独立建模的资源，例如区划面或边界。它保留自己的来源与变体身份，而不会并入主要 collection。
+companion resource
+是与主要记录相关、但独立建模的资源，例如区划面或边界。它保留自己的来源与变体身份，而不会并入主要
+collection。
 
 # Composition policy
 
@@ -231,13 +243,13 @@ auditable.
 
 ### ZH-HANT
 
-composition policy 是選取可構成 release
-set 的發布與變體的已發布規則。它使必要輸入、時間規則及允許的後備選項可供審核。
+composition policy 是選取可構成 release set
+的發布與變體的已發布規則。它使必要輸入、時間規則及允許的後備選項可供審核。
 
 ### ZH-HANS
 
-composition policy 是选取可构成 release
-set 的发布与变体的已发布规则。它使必要输入、时间规则及允许的后备选项可供审核。
+composition policy 是选取可构成 release set
+的发布与变体的已发布规则。它使必要输入、时间规则及允许的后备选项可供审核。
 
 # Domain
 
@@ -256,15 +268,15 @@ specify domains explicitly if you want anything other than the default.
 
 ### ZH-HANT
 
-當來源資料並不完全相容（例如對「區劃」有不同的界定方式）時，它們會作為同一 API
-family 內的 domain 提供。Divisions
-API 的規劃單元 domain 使用的邊界與人口普查不同，因此各自是不同的 domain。不同 domain 的記錄絕不會被靜默合併。
+當來源資料並不完全相容（例如對「區劃」有不同的界定方式）時，它們會作為同一 API family
+內的 domain 提供。Divisions API 的規劃單元 domain
+使用的邊界與人口普查不同，因此各自是不同的 domain。不同 domain 的記錄絕不會被靜默合併。
 
 ### ZH-HANS
 
-当来源数据并不完全兼容（例如对“区划”有不同的界定方式）时，它们会作为同一 API
-family 内的 domain 提供。Divisions
-API 的规划单元 domain 使用的边界与人口普查不同，因此各自是不同的 domain。不同 domain 的记录绝不会被静默合并。
+当来源数据并不完全兼容（例如对“区划”有不同的界定方式）时，它们会作为同一 API family 内的
+domain 提供。Divisions API 的规划单元 domain 使用的边界与人口普查不同，因此各自是不同的
+domain。不同 domain 的记录绝不会被静默合并。
 
 # Hong Kong extract
 
@@ -284,19 +296,25 @@ and identity but no country geometry, and does not add a PRC coverage claim.
 
 ### ZH-HANT
 
-就本詞彙表而言，「Hong Kong」的範圍會裁切至香港 Overture
-division 識別碼的邊界，並不表示此 release 覆蓋與香港特區相關的所有地理範圍。
+就本詞彙表而言，「Hong Kong」的範圍會裁切至香港 Overture division
+識別碼的邊界，並不表示此 release 覆蓋與香港特區相關的所有地理範圍。
 
 SaanSeoi 以該 division 識別碼、所選 Overture release 及 `divisions` theme 使用
-`overturist`。SaanSeoi 會保留所得的摘錄 release 作為來源輸入。此範圍摘錄不包含 Overture 的中國國家記錄，因此 SaanSeoi 會加入經審核、僅作參照的國家 anchor，以解析層級及邊界參照。該 anchor 有名稱與身分但沒有國家幾何，並不構成中國覆蓋範圍的聲稱。
+`overturist`。SaanSeoi 會保留所得的摘錄 release 作為來源輸入。此範圍摘錄不包含 Overture
+的中國國家記錄，因此 SaanSeoi 會加入經審核、僅作參照的國家
+anchor，以解析層級及邊界參照。該 anchor
+有名稱與身分但沒有國家幾何，並不構成中國覆蓋範圍的聲稱。
 
 ### ZH-HANS
 
-就本词汇表而言，“Hong Kong”的范围会裁切至香港 Overture
-division 标识符的边界，并不表示此 release 覆盖与香港特区相关的所有地理范围。
+就本词汇表而言，“Hong Kong”的范围会裁切至香港 Overture division 标识符的边界，并不表示此
+release 覆盖与香港特区相关的所有地理范围。
 
 SaanSeoi 以该 division 标识符、所选 Overture release 及 `divisions` theme 使用
-`overturist`。SaanSeoi 会保留所得的摘录 release 作为来源输入。此范围摘录不包含 Overture 的中国国家记录，因此 SaanSeoi 会加入经审核、仅作参照的国家 anchor，以解析层级及边界参照。该 anchor 有名称与身份但没有国家几何，并不构成中国覆盖范围的声称。
+`overturist`。SaanSeoi 会保留所得的摘录 release 作为来源输入。此范围摘录不包含 Overture
+的中国国家记录，因此 SaanSeoi 会加入经审核、仅作参照的国家
+anchor，以解析层级及边界参照。该 anchor
+有名称与身份但没有国家几何，并不构成中国覆盖范围的声称。
 
 # Lineage
 
@@ -310,13 +328,13 @@ a record or result.
 
 ### ZH-HANT
 
-lineage 是從 source
-release，經過 snapshot、處理規則和 release，直至 API 回應的可追溯鏈。它說明哪些輸入和決定產生一筆記錄或結果。
+lineage 是從 source release，經過 snapshot、處理規則和 release，直至 API
+回應的可追溯鏈。它說明哪些輸入和決定產生一筆記錄或結果。
 
 ### ZH-HANS
 
-lineage 是从 source
-release，经过 snapshot、处理规则和 release，直至 API 响应的可追溯链。它说明哪些输入和决定产生一条记录或结果。
+lineage 是从 source release，经过 snapshot、处理规则和 release，直至 API
+响应的可追溯链。它说明哪些输入和决定产生一条记录或结果。
 
 # Profile
 
@@ -366,11 +384,13 @@ published as a new release; the original remains available for audit and replay.
 
 ### ZH-HANT
 
-release 是資料及其 metadata 的不可變已發布版本。更正會作為新的 release 發布；原版本仍會保留，以供審核及重播。
+release 是資料及其 metadata 的不可變已發布版本。更正會作為新的 release
+發布；原版本仍會保留，以供審核及重播。
 
 ### ZH-HANS
 
-release 是数据及其 metadata 的不可变已发布版本。更正会作为新的 release 发布；原版本仍会保留，以供审核及重播。
+release 是数据及其 metadata 的不可变已发布版本。更正会作为新的 release
+发布；原版本仍会保留，以供审核及重播。
 
 # Release set
 
@@ -388,15 +408,15 @@ same data again later, rather than newer data.
 
 ### ZH-HANT
 
-release
-set 是已保存的一組資料。大多時候，你不需要選擇它：API 會自動使用可用的最新資料。只有在日後需要再次取得相同資料、而非較新資料時，才選擇特定的 release
-set。
+release set 是已保存的一組資料。大多時候，你不需要選擇它：API
+會自動使用可用的最新資料。只有在日後需要再次取得相同資料、而非較新資料時，才選擇特定的
+release set。
 
 ### ZH-HANS
 
-release
-set 是已保存的一组数据。大多数时候，你不需要选择它：API 会自动使用可用的最新数据。只有在日后需要再次取得相同数据、而非较新数据时，才选择特定的 release
-set。
+release set 是已保存的一组数据。大多数时候，你不需要选择它：API
+会自动使用可用的最新数据。只有在日后需要再次取得相同数据、而非较新数据时，才选择特定的
+release set。
 
 # Revision
 
@@ -412,11 +432,15 @@ available. Revisions have a <black>-r{n}</black> suffix, e.g. <black>
 
 ### ZH-HANT
 
-version 描述不同時間點的資料，例如較後的一個月份。revision 則是修正或改善同一時間點的既有 release。它會取得新的 revision 編號，而較早的 release 仍然可用。
+version 描述不同時間點的資料，例如較後的一個月份。revision
+則是修正或改善同一時間點的既有 release。它會取得新的 revision 編號，而較早的 release
+仍然可用。
 
 ### ZH-HANS
 
-version 描述不同时间点的数据，例如较后的一个月份。revision 则是修正或改善同一时间点的既有 release。它会取得新的 revision 编号，而较早的 release 仍然可用。
+version 描述不同时间点的数据，例如较后的一个月份。revision
+则是修正或改善同一时间点的既有 release。它会取得新的 revision 编号，而较早的 release
+仍然可用。
 
 # Snapshot
 
@@ -429,13 +453,13 @@ releases for a cohort. It preserves the input lineage used to build a release.
 
 ### ZH-HANT
 
-snapshot 是為一個 cohort 從一個或多個 source
-release 選取並實體化的不可變記錄集合。它保留用以建立 release 的輸入譜系。
+snapshot 是為一個 cohort 從一個或多個 source release
+選取並實體化的不可變記錄集合。它保留用以建立 release 的輸入譜系。
 
 ### ZH-HANS
 
-snapshot 是为一个 cohort 从一个或多个 source
-release 选取并实体化的不可变记录集合。它保留用以建立 release 的输入谱系。
+snapshot 是为一个 cohort 从一个或多个 source release
+选取并实体化的不可变记录集合。它保留用以建立 release 的输入谱系。
 
 # Source release
 
@@ -449,15 +473,13 @@ independently of API publication.
 
 ### ZH-HANT
 
-source
-release 是 SaanSeoi 用以處理資料的、已記錄發布者交付物之不可變版本。它獨立於 API 發布，保留來源 artefact、校驗和、來源資訊及 release
-notes。
+source release 是 SaanSeoi 用以處理資料的、已記錄發布者交付物之不可變版本。它獨立於 API
+發布，保留來源 artefact、校驗和、來源資訊及 release notes。
 
 ### ZH-HANS
 
-source
-release 是 SaanSeoi 用以处理数据的、已记录发布者交付物之不可变版本。它独立于 API 发布，保留来源 artefact、校验和、来源信息及 release
-notes。
+source release 是 SaanSeoi 用以处理数据的、已记录发布者交付物之不可变版本。它独立于 API
+发布，保留来源 artefact、校验和、来源信息及 release notes。
 
 # Variant
 
@@ -473,13 +495,15 @@ another source.
 
 ### ZH-HANT
 
-variant 用以區分同一資源類型的替代發布者、轉換或表示方式。例如，區劃面可由 Overture、民政事務總署或政府統計處提供；政府統計處的區劃面亦可有
-`simplified` 變體。變體必須明確選取；不可用的選項不會被另一來源靜默取代。
+variant 用以區分同一資源類型的替代發布者、轉換或表示方式。例如，區劃面可由
+Overture、民政事務總署或政府統計處提供；政府統計處的區劃面亦可有 `simplified`
+變體。變體必須明確選取；不可用的選項不會被另一來源靜默取代。
 
 ### ZH-HANS
 
-variant 用以区分同一资源类型的替代发布者、转换或表示方式。例如，区划面可由 Overture、民政事务总署或政府统计处提供；政府统计处的区划面亦可有
-`simplified` 变体。变体必须明确选取；不可用的选项不会被另一来源静默取代。
+variant 用以区分同一资源类型的替代发布者、转换或表示方式。例如，区划面可由
+Overture、民政事务总署或政府统计处提供；政府统计处的区划面亦可有 `simplified`
+变体。变体必须明确选取；不可用的选项不会被另一来源静默取代。
 
 # Bun
 
@@ -495,11 +519,16 @@ work in much the same way.
 
 ### ZH-HANT
 
-Bun 是 JavaScript 和 TypeScript 執行環境、套件管理器及命令列工具。本指南以它為方便的預設選項；Node.js 配合 npm、pnpm 或 Yarn，以及 Deno，在這裡都可發揮相近作用。若你已有慣用工具，可直接使用並相應調整指令。
+Bun 是 JavaScript 和 TypeScript
+執行環境、套件管理器及命令列工具。本指南以它為方便的預設選項；Node.js 配合 npm、pnpm 或
+Yarn，以及 Deno，在這裡都可發揮相近作用。若你已有慣用工具，可直接使用並相應調整指令。
 
 ### ZH-HANS
 
-Bun 是 JavaScript 和 TypeScript 运行环境、包管理器及命令行工具。本指南以它为方便的默认选项；Node.js 配合 npm、pnpm 或 Yarn，以及 Deno，在这里都可发挥相近作用。如果你已有习惯的工具，可以直接使用并相应调整命令。
+Bun 是 JavaScript 和 TypeScript
+运行环境、包管理器及命令行工具。本指南以它为方便的默认选项；Node.js 配合 npm、pnpm 或
+Yarn，以及
+Deno，在这里都可发挥相近作用。如果你已有习惯的工具，可以直接使用并相应调整命令。
 
 # Vite
 
@@ -534,11 +563,13 @@ JavaScript.
 
 ### ZH-HANT
 
-TypeScript 是加入可選型別檢查的 JavaScript。它可在編寫程式時找出不匹配之處，之後會轉換成瀏覽器可執行的普通 JavaScript。
+TypeScript 是加入可選型別檢查的
+JavaScript。它可在編寫程式時找出不匹配之處，之後會轉換成瀏覽器可執行的普通 JavaScript。
 
 ### ZH-HANS
 
-TypeScript 是加入可选类型检查的 JavaScript。它可在编写代码时找出不匹配之处，之后会转换成浏览器可执行的普通 JavaScript。
+TypeScript 是加入可选类型检查的
+JavaScript。它可在编写代码时找出不匹配之处，之后会转换成浏览器可执行的普通 JavaScript。
 
 # Packages
 

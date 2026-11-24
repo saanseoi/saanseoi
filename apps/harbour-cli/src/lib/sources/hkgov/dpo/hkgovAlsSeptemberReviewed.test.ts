@@ -103,13 +103,13 @@ test('September decisions preserve names, selected identities and distinct build
   expect(get(4).enStreetNumberTo).toBe('12')
   expect(get(6).enBuildingName).toBe('TOWNPLACE WEST KOWLOON')
   expect(get(9).enBuildingName).toBe('DE HUA TOWER')
-  expect(get(10).curatedGranularity).toBe('complex')
+  expect(get(10).curatedScope).toBe('premises')
   expect(get(12).enBuildingName).toBe('MEGA GATEWAY')
   expect(get(16).enBuildingName).toBe('MU88')
   expect(get(17).enBuildingName).toBe('SOHO WEST')
   expect(get(18).enBuildingName).toBe('THE CLOUD')
   expect(get(24).enBuildingName).toBe('SIX PACIFIC PLACE')
-  expect(get(25).curatedGranularity).toBe('building')
+  expect(get(25).curatedScope).toBe('building')
   expect(get(28).enBuildingName).toBe('KEW GREEN HOTEL MONGKOK')
   expect(get(28).zhHantBuildingName).toBe('旺角睿景酒店')
   for (const d of fixture.identityReconciliations)
@@ -168,7 +168,7 @@ test('Tsing Fung shop frontages remain distinct units beneath the combined build
   ] as Parameters<typeof applySeptember2025ReviewedShops>[0]
   applySeptember2025ReviewedShops(rows, '2025-09-03.0')
   for (const r of rows.slice(1)) {
-    expect(r.curatedGranularity).toBe('unit')
+    expect(r.curatedScope).toBe('unit')
     expect(r.parentAddressId).toBe(parentId)
   }
   rows[1]!.enStreetName = 'OTHER STREET'

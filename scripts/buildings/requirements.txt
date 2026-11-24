@@ -1,0 +1,5 @@
+geopandas==1.1.4
+shapely==2.1.2
+pyarrow==25.0.1
+numpy==2.3.5
+pyogrio==0.13.0

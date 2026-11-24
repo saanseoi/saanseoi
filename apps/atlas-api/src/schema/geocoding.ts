@@ -27,6 +27,8 @@ export const GeocodingQuerySchema = z
     profile: z.enum(['compact', 'default', 'map', 'full']).default('default'),
     lat: coordinate(-90, 90).optional(),
     lng: coordinate(-180, 180).optional(),
+    nearLat: coordinate(-90, 90).optional(),
+    nearLng: coordinate(-180, 180).optional(),
     address: z.string().trim().min(1).max(500).optional(),
     placename: z.string().trim().min(1).max(500).optional(),
     releaseSet: z.string().trim().min(1).optional(),
@@ -46,11 +48,45 @@ export const GeocodingQuerySchema = z
       .default('en,zh-hant'),
     include: z.enum(['divisions']).optional(),
     geometry: z.enum(['area', 'saanseoi']).optional(),
+    locatedOnly: z
+      .enum(['true'])
+      .optional()
+      .describe(
+        'Only Address candidates with a usable point; included in ranking and total.',
+      ),
+    paginate: z
+      .enum(['true'])
+      .optional()
+      .describe('Retain ranked forward Address results for lazy loading.'),
+    cursor: z
+      .string()
+      .regex(/^[a-f0-9]{32}\.\d{1,6}$/)
+      .max(40)
+      .optional()
+      .describe('Opaque continuation from the same query and publication.'),
     limit: z.coerce.number().int().min(1).max(50).default(10),
     maxDistance: z.coerce.number().finite().min(0).max(50000).default(1000),
   })
   .strict()
   .superRefine((query, ctx) => {
+    if (
+      (query.nearLat !== undefined || query.nearLng !== undefined) &&
+      (query.nearLat === undefined || query.nearLng === undefined || !query.address)
+    )
+      ctx.addIssue({
+        code: 'custom',
+        message: 'Nearby text search requires address, nearLat and nearLng.',
+        path: ['nearLat'],
+      })
+    if (
+      (query.paginate || query.cursor) &&
+      (query.lat !== undefined || !query.address || !query.paginate)
+    )
+      ctx.addIssue({
+        code: 'custom',
+        message: 'Pagination requires a forward address query with paginate=true.',
+        path: ['cursor'],
+      })
     if (
       query.footprint &&
       (query.lat === undefined ||

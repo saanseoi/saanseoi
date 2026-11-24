@@ -250,8 +250,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
                 }
               : null,
           districtId: id === 'b' ? 'division-district' : null,
-          parentAddressId: id === 'b' ? 'a' : null,
-          granularity: id === 'a' ? 'complex' : id === 'b' ? 'unit' : 'unknown',
+          scope: id === 'a' ? 'premises' : id === 'b' ? 'unit' : 'unknown',
           sources:
             id === 'b'
               ? [
@@ -359,11 +358,10 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
     expect(all.body.meta.domain).toBe('saanseoi')
     expect(all.body.meta.page?.total).toBe(4)
     expect(all.body.data[1]?.attributes.datasetCode).toBe('ds-hk-overture-place')
-    expect(all.body.data[0]?.attributes.parentAddressId).toBeNull()
-    expect(all.body.data[1]?.attributes.parentAddressId).toBe('a')
-    expect(all.body.data[0]?.attributes.granularity).toBe('complex')
-    expect(all.body.data[1]?.attributes.granularity).toBe('unit')
-    expect(all.body.data[2]?.attributes.granularity).toBe('unknown')
+    expect(all.body.data[0]?.attributes.scope).toBe('premises')
+    expect(all.body.data[0]?.attributes).not.toHaveProperty('granularity')
+    expect(all.body.data[1]?.attributes.scope).toBe('unit')
+    expect(all.body.data[2]?.attributes.scope).toBe('unknown')
     expect(all.body.data[0]?.attributes.i18n).toEqual({
       en: {
         meta: null,
@@ -408,7 +406,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
       query: { profile: 'full' },
     })
     expect(full.status === 200 && full.body.data.attributes).not.toHaveProperty('bbox')
-    expect(full.status === 200 && full.body.data.attributes.granularity).toBe('unit')
+    expect(full.status === 200 && full.body.data.attributes.scope).toBe('unit')
     expect(full.status === 200 && full.body.data.attributes.identifiers).toEqual({
       'hkgov-dpo': { csuId: '000123' },
       saanseoi: { curationId: 'estate-01' },
@@ -422,18 +420,16 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
       ),
     ).not.toContain('supplementaryIdentityKey')
     expect(full.status === 200 && full.body.data.attributes).not.toHaveProperty(
-      'granularityProvenance',
+      'scopeProvenance',
     )
     const compact = await getAddressDetail({
       ...args,
       id: 'b',
       query: { profile: 'compact' },
     })
-    expect(compact.status === 200 && compact.body.data.attributes.granularity).toBe(
-      'unit',
-    )
+    expect(compact.status === 200 && compact.body.data.attributes.scope).toBe('unit')
     expect(compact.status === 200 && compact.body.data.attributes).not.toHaveProperty(
-      'granularityProvenance',
+      'scopeProvenance',
     )
     expect(compact.status === 200 && compact.body.data.attributes.i18n).toEqual({
       en: {

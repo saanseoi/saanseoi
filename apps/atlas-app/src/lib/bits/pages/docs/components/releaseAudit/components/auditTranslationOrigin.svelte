@@ -16,9 +16,7 @@ let explanation = $derived(
 <Tooltip.Provider delayDuration={150}>
   <Tooltip.Root>
     <Tooltip.Trigger>
-      {#snippet child({
-        props,
-      })}
+      {#snippet child({ props })}
         <button
           {...props}
           type="button"
@@ -45,7 +43,7 @@ let explanation = $derived(
         role="tooltip"
         side="top"
         sideOffset={8}
-        class="z-70 max-w-64 rounded-default border border-border-card/60 bg-background-alt px-3 py-2 text-xs text-foreground shadow-popover"
+        class="rounded-default border-border-card/60 bg-background-alt text-foreground shadow-popover z-70 max-w-64 border px-3 py-2 text-xs"
         >{explanation}</Tooltip.Content
       ></Tooltip.Portal
     >

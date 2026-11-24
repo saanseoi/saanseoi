@@ -1,5 +1,5 @@
 import { createHash } from '@repo/core/pipeline/utils'
-import { establishAddressGranularity } from '@repo/core/pipeline/services/addresses/granularity'
+import { establishAddressScope } from '@repo/core/pipeline/services/addresses/scope'
 import { buildAddressBuildingNumberLookupRows } from '@repo/core/pipeline/services/addresses/normalisation'
 import { currentSchema, type SourceAttribution } from '@repo/db'
 import { eq } from 'drizzle-orm'
@@ -91,14 +91,14 @@ export async function buildSupplementaryAddressRows(input: {
       dataset: input.datasetCode,
       recordId: accepted.placeId,
     }))
+    const classification = establishAddressScope({
+      addressId: id,
+      values: entry.values,
+      sourceVersion: input.sourceVersion,
+    })
     const canonical = {
       id,
-      parentAddressId: null,
-      granularity: establishAddressGranularity({
-        addressId: id,
-        values: entry.values,
-        sourceVersion: input.sourceVersion,
-      }).granularity,
+      scope: classification.scope,
       ...divisions,
       streetId: null,
       geometry: null,
@@ -167,7 +167,9 @@ export async function assertSupplementaryAddressRows(
   const byLocale = new Map(
     localisations.map(row => [`${row.addressId}:${row.locale}`, row]),
   )
+  let verified = 0
   for (const row of expected) {
+    if (verified++ % 100 === 0) Bun.gc(true)
     for (const [actual, wanted] of [
       [byId.get(row.current.id), row.current],
       ...row.i18n.map(

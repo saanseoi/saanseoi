@@ -160,7 +160,7 @@ INSERT INTO snapshots(id, snapshotLineageId, code, cohortKey, status, parentSnap
         if (operation === 'upsert') {
           if (type === 'address3dI18n') row.units = '[]'
           else if (localized) row.formattedAddress = 'Fixture'
-          else if (type === 'address2d') row.granularity = 'building'
+          else if (type === 'address2d') row.scope = 'building'
           else
             Object.assign(row, {
               address2dId: id,

@@ -678,12 +678,33 @@ facts. The response retains collection metadata and echoes meta.filters.id; an a
 ID returns an empty data array. Other filters still combine with AND. This filter
 accepts the opaque canonical ID returned by search, not a publisher or GERS identifier.
 
+## Nearby address discovery
+
+Forward Address geocoding accepts nearLat and nearLng with address and maxDistance,
+including paginated queries. It applies the circle before ranking, totals and
+pagination. Keep the same circle and query when following meta.nextCursor.
+
 ## Places discovery
 
+Places text search accepts nearLat, nearLng and maxDistance (metres) together to
+constrain text matches to a circle before page limits. Preserve these parameters
+on every cursor request; changing the circle invalidates the cursor.
 Places text search uses the latest published regional release. Search results include
-names and linked address, street and division text. If search returns HTTP 503 with
+names and linked address, street and division text. Query terms match literal
+fragments within words and combine with AND; names and brands rank ahead of contextual
+matches. Short queries are supported, but a limited response is not exhaustive. Narrow
+by name fragments or exact category filters when looking for a particular business.
+Request paginate=true to receive meta.nextCursor. Continue with the same query,
+locale and filters plus cursor until nextCursor is null. Page size does not imply a
+total. A changed publication or query returns HTTP 410; restart without the cursor.
+If search returns HTTP 503 with
 \`fts_not_ready\`, retry after publication finalisation completes. Historical release
 selection belongs to the collection API.
+
+Text search and by-cell discovery accept filter[basicCategory], filter[taxonomyPrimary]
+and filter[operatingStatus], using the collection's exact category identifiers. Filters
+combine with AND and apply before limits and pagination. Operating status is business
+continuity (open, temporarily_closed, permanently_closed), not current opening hours.
 
 For a search result list, request /places/v0.1/search?q=sheung%20wan&locale=en&limit=20&paginate=true&include=preview.
 Use filter[taxonomyCategory] for a primary category and its descendants, or

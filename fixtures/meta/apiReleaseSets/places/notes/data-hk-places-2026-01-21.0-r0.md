@@ -1,13 +1,13 @@
 ---
-createdAt: "2026-09-09T00:00:00.000Z"
-updatedAt: "2026-09-09T00:00:00.000Z"
-apiFamily: "places"
-apiVersion: "api-places-v0.1"
-apiReleaseSet: "data-hk-places-2026-01-21.0"
-revision: "0"
-regionCode: "hk"
-cohortKey: "2026-01-21.0"
-domainCode: "overture"
+createdAt: '2026-09-09T00:00:00.000Z'
+updatedAt: '2026-09-09T00:00:00.000Z'
+apiFamily: 'places'
+apiVersion: 'api-places-v0.1'
+apiReleaseSet: 'data-hk-places-2026-01-21.0'
+revision: '0'
+regionCode: 'hk'
+cohortKey: '2026-01-21.0'
+domainCode: 'overture'
 ---
 
 # EN
@@ -59,18 +59,19 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 ## 更新紀錄
 
 - 發布 <black>{{ cohortKey }}</black> 的 Overture Places snapshot。
-- Overture 沒有為此 cohort 提供 Place 特定的變更附註。它仍是不同的不可變來源 snapshot；請勿推斷其值與前一 cohort 相同。
+- Overture 沒有為此 cohort 提供 Place 特定的變更附註。它仍是不同的不可變來源
+  snapshot；請勿推斷其值與前一 cohort 相同。
 
 ## 修訂紀錄
 
-- `r{{ revision }}` 包含 Place 來源發布，以及由 Places API
-  composition 選取的所需 Address 及 Division 支援來源發布。
+- `r{{ revision }}` 包含 Place 來源發布，以及由 Places API composition 選取的所需
+  Address 及 Division 支援來源發布。
 
 ## 發布範圍
 
 此不可變的 [release set](saanseoi:zh-hant:definition/release-set/v1) 在
-{{regionName:zh-Hant}}發布 [cohort](saanseoi:zh-hant:definition/cohort/v1)
-<black>{{ cohortKey }}</black> 的 <black>{{ domainCode }}</black>
+{{regionName:zh-Hant}}發布 [cohort](saanseoi:zh-hant:definition/cohort/v1) <black>{{
+cohortKey }}</black> 的 <black>{{ domainCode }}</black>
 [domain](saanseoi:zh-hant:definition/domain/v1)。以下來源發布組成此 release set。
 
 {{apiReleaseSetSources:zh-Hant}}
@@ -87,18 +88,19 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 ## 更新记录
 
 - 发布 <black>{{ cohortKey }}</black> 的 Overture Places snapshot。
-- Overture 没有为此 cohort 提供 Place 特定的变更说明。它仍是不同的不可变源 snapshot；请勿推断其值与前一 cohort 相同。
+- Overture 没有为此 cohort 提供 Place 特定的变更说明。它仍是不同的不可变源
+  snapshot；请勿推断其值与前一 cohort 相同。
 
 ## 修订记录
 
-- `r{{ revision }}` 包含 Place 源发布，以及由 Places API
-  composition 选择的所需 Address 及 Division 支持源发布。
+- `r{{ revision }}` 包含 Place 源发布，以及由 Places API composition 选择的所需 Address
+  及 Division 支持源发布。
 
 ## 发布范围
 
 此不可变的 [release set](saanseoi:zh-hans:definition/release-set/v1) 在
-{{regionName:zh-Hans}}发布 [cohort](saanseoi:zh-hans:definition/cohort/v1)
-<black>{{ cohortKey }}</black> 的 <black>{{ domainCode }}</black>
+{{regionName:zh-Hans}}发布 [cohort](saanseoi:zh-hans:definition/cohort/v1) <black>{{
+cohortKey }}</black> 的 <black>{{ domainCode }}</black>
 [domain](saanseoi:zh-hans:definition/domain/v1)。以下源发布组成此 release set。
 
 {{apiReleaseSetSources:zh-Hans}}

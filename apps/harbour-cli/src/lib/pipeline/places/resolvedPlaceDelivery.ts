@@ -178,6 +178,12 @@ export async function captureResolvedPlaceDelivery(input: {
         },
         input.onProgress,
       )
+      input.onProgress?.({
+        current: input.totalRows,
+        phase: 'generate',
+        detail: 'validate complete Place candidate',
+      })
+      Bun.gc(true)
       await validateResolvedPlaces(
         current.db,
         input.path,

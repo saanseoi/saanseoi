@@ -53,8 +53,7 @@ const RESOLVED_BUILDING_LOOKUPS_TABLE = 'zzAddressImportResolvedBuildingNumberLo
 const ADDRESS_ALIAS_ID_NAMESPACE = 'dd44d1a8-4b17-58a1-b1db-8dc8a40f180a'
 
 const NORMALIZED_ROW_COLUMNS = [
-  'granularity',
-  'parentAddressId',
+  'scope',
   'runId',
   'rowNumber',
   'source',
@@ -107,8 +106,7 @@ const NORMALIZED_I18N_COLUMNS = [
 ] as const
 
 const RESOLVED_ROW_COLUMNS = [
-  'granularity',
-  'parentAddressId',
+  'scope',
   'runId',
   'rowNumber',
   'sourceRecordId',
@@ -198,6 +196,10 @@ export function buildAddressSourceSqlImportFiles(
   artefact: NormalisedAddressChunkArtefact,
   options: AddressSqlImportBuildOptions = {},
 ): AddressSqlImportFile[] {
+  if (artefact.kind !== 'address.normalised.v2')
+    throw new Error(
+      'Stale Address artefact: regenerate under the current content contract',
+    )
   const runId = options.runId ?? buildAddressSqlImportRunId(message)
   const sourceRows = (
     options.changedSourceRecordIds
@@ -236,8 +238,7 @@ export function buildAddressSourceSqlImportFiles(
         geometry: jsonText(row.base.geometry),
         identifiers: jsonText(row.base.identifiers),
         sources: jsonText(row.base.sources),
-        parentAddressId: row.base.parentAddressId,
-        granularity: row.base.granularity,
+        scope: row.base.scope,
         properties: jsonText(readAlsPublisherSource(row.raw)!.properties),
         sourceGeometry: jsonText(readAlsPublisherSource(row.raw)!.sourceGeometry),
         sourceLocator: jsonText(
@@ -371,6 +372,10 @@ export function buildAddressHistorySqlImportFile(
   artefact: ResolvedAddressChunkArtefact,
   options: AddressSqlImportBuildOptions = {},
 ): AddressSqlImportFile {
+  if (artefact.kind !== 'address.resolved.v2')
+    throw new Error(
+      'Stale Address artefact: regenerate under the current content contract',
+    )
   const runId = options.runId ?? buildAddressSqlImportRunId(message)
   const historyStatements = [
     buildAddressResolvedStagingSchemaSql(),
@@ -410,8 +415,7 @@ export function buildAddressHistorySqlImportFile(
         geometry: jsonText(row.base.geometry),
         identifiers: jsonText(row.base.identifiers),
         sources: jsonText(row.base.sources),
-        parentAddressId: row.base.parentAddressId,
-        granularity: row.base.granularity,
+        scope: row.base.scope,
         createdAt: row.base.createdAt,
         updatedAt: row.base.createdAt,
       })),
@@ -468,6 +472,10 @@ export function buildAddressCurrentSqlImportFile(
   artefact: ResolvedAddressChunkArtefact,
   options: AddressSqlImportBuildOptions = {},
 ): AddressSqlImportFile {
+  if (artefact.kind !== 'address.resolved.v2')
+    throw new Error(
+      'Stale Address artefact: regenerate under the current content contract',
+    )
   const runId = options.runId ?? buildAddressSqlImportRunId(message)
   const currentStatements = [
     buildAddressResolvedStagingSchemaSql(),
@@ -504,8 +512,7 @@ export function buildAddressCurrentSqlImportFile(
         geometry: jsonText(row.base.geometry),
         identifiers: jsonText(row.base.identifiers),
         sources: jsonText(row.base.sources),
-        parentAddressId: row.base.parentAddressId,
-        granularity: row.base.granularity,
+        scope: row.base.scope,
         createdAt: row.base.createdAt,
         updatedAt: row.base.createdAt,
       })),
@@ -678,8 +685,7 @@ CREATE TABLE IF NOT EXISTS ${NORMALIZED_ROWS_TABLE} (
   geometry TEXT,
   identifiers TEXT,
   sources TEXT,
-  parentAddressId TEXT,
-  granularity TEXT NOT NULL,
+  scope TEXT NOT NULL,
   properties TEXT,
   sourceGeometry TEXT,
   sourceLocator TEXT,
@@ -744,8 +750,7 @@ CREATE TABLE IF NOT EXISTS ${RESOLVED_ROWS_TABLE} (
   geometry TEXT,
   identifiers TEXT,
   sources TEXT,
-  parentAddressId TEXT,
-  granularity TEXT NOT NULL,
+  scope TEXT NOT NULL,
   createdAt TEXT NOT NULL,
   updatedAt TEXT NOT NULL,
   PRIMARY KEY (runId, addressId)
@@ -883,13 +888,13 @@ function buildAddressHistoryApplySql(
 INSERT INTO address2d (
   id, versionHash, snapshotId, isCurrent, streetId,
   hamletId, microhoodId, villageId, neighbourhoodId, ruralAreaId, macrohoodId, townId,
-  districtId, islandId, areaId, countryId, geometry, identifiers, sources, parentAddressId, granularity, createdAt
+  districtId, islandId, areaId, countryId, geometry, identifiers, sources, scope, createdAt
 )
 SELECT
   r.addressId, r.versionHash, r.snapshotId,
   1, r.streetId, r.hamletId, r.microhoodId, r.villageId,
   r.neighbourhoodId, r.ruralAreaId, r.macrohoodId, r.townId, r.districtId, r.islandId, r.areaId, r.countryId,
-  r.geometry, r.identifiers, r.sources, r.parentAddressId, r.granularity, r.updatedAt
+  r.geometry, r.identifiers, r.sources, r.scope, r.updatedAt
 FROM ${RESOLVED_ROWS_TABLE} r
 WHERE r.runId = ${run}
   AND r.changed = 1
@@ -948,13 +953,13 @@ function buildAddressCurrentApplySql(runId: string) {
 INSERT INTO address2d (
   scopeId, id, geometry, divisionSnapshotId, countryId, islandId, areaId,
   districtId, townId, ruralAreaId, macrohoodId, villageId, neighbourhoodId, hamletId,
-  microhoodId, streetSnapshotId, streetId, identifiers, sources, parentAddressId, granularity, createdAt
+  microhoodId, streetSnapshotId, streetId, identifiers, sources, scope, createdAt
 )
 SELECT
   r.snapshotId, r.addressId, r.geometry, r.divisionSnapshotId, r.countryId,
   r.islandId, r.areaId, r.districtId, r.townId, r.ruralAreaId, r.macrohoodId, r.villageId, r.neighbourhoodId,
   r.hamletId, r.microhoodId, r.streetSnapshotId, r.streetId, r.identifiers,
-  r.sources, r.parentAddressId, r.granularity, r.createdAt
+  r.sources, r.scope, r.createdAt
 FROM ${RESOLVED_ROWS_TABLE} r
 WHERE r.runId = ${run}
   AND r.changed = 1
@@ -976,8 +981,7 @@ ON CONFLICT(scopeId, id) DO UPDATE SET
   geometry = excluded.geometry,
   identifiers = excluded.identifiers,
   sources = excluded.sources,
-  parentAddressId = excluded.parentAddressId,
-  granularity = excluded.granularity
+  scope = excluded.scope
 WHERE address2d.divisionSnapshotId IS NOT excluded.divisionSnapshotId
   OR address2d.streetSnapshotId IS NOT excluded.streetSnapshotId
   OR address2d.streetId IS NOT excluded.streetId
@@ -995,8 +999,7 @@ WHERE address2d.divisionSnapshotId IS NOT excluded.divisionSnapshotId
   OR address2d.geometry IS NOT excluded.geometry
   OR address2d.identifiers IS NOT excluded.identifiers
   OR address2d.sources IS NOT excluded.sources
-  OR address2d.parentAddressId IS NOT excluded.parentAddressId
-  OR address2d.granularity IS NOT excluded.granularity;
+  OR address2d.scope IS NOT excluded.scope;
 DELETE FROM address2dI18n
 WHERE EXISTS (
   SELECT 1 FROM ${RESOLVED_ROWS_TABLE} r

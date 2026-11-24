@@ -37,3 +37,24 @@ test('deferred publication and unrelated families perform no index work', async 
     ).resolves.toBeUndefined()
   }
 })
+
+test('Address and Places finalisation prepare substring postings after the shared indexes', async () => {
+  for (const family of ['addresses', 'places']) {
+    const events: string[] = []
+    await finalisePublishedSearch(
+      {} as never,
+      {} as never,
+      { publishedFamilies: [family] },
+      {
+        synchroniseSearchIndexes: async () => {
+          events.push('shared')
+        },
+        synchroniseAddressSubstringSearch: async () => {
+          events.push('substring')
+          return 0
+        },
+      },
+    )
+    expect(events).toEqual(['shared', 'substring'])
+  }
+})

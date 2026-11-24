@@ -54,7 +54,7 @@ test('upper estate addresses persist across all releases without consuming house
       expect(applyReviewedStreetEstateComplexes(rows, version).complexCount).toBe(1)
       const estate = requireDefined(rows.find(r => r.hierarchyCuration === rule.id))
       expect(rows.filter(r => r !== estate)).toEqual(untouched)
-      expect(estate.curatedGranularity).toBe('complex')
+      expect(estate.curatedScope).toBe('premises')
       expect(estate.geoAddress).toBeNull()
       expect(estate.hkgovCsuId).toBeNull()
       expect(estate.enStreetNumberFrom).toBe(rule.streetOverride?.number ?? '15')

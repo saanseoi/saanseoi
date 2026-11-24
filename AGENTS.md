@@ -73,7 +73,12 @@
 
 - Package manager/runtime: `bun` (`packageManager: bun@1.4.2`)
 - Task runner: `turbo`
-- Formatter/linter: `biome`
+- Formatter/linter: `biome` (pinned to 2.6.5), including Markdown and `llms.txt`.
+- Pre-commit validates the staged snapshot without rewriting files. Formatter policy
+  changes also check every tracked Markdown document.
+- Release Markdown under `fixtures/meta/` contains custom components and template
+  expressions. Preserve embedded block contents with
+  `markdown.formatter.formatEmbeds: false`.
 - Type checking: `tsc --noEmit` in package scripts
 - Worker build/deploy tooling: `wrangler`
 - Prefer `rg`/`rg --files` for search

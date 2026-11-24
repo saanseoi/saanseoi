@@ -44,7 +44,7 @@ test('final Tseung Kwan O geometry removes retained Kowloon ancestry', () => {
   expect(divisions[1]!.hierarchies).toMatchObject({ locality: [], full: [] })
 })
 
-test('Lei Yue Mun retains Kowloon ancestry without acquiring TKO through their shared boundary', () => {
+test('Lei Yue Mun has neither Kowloon city nor Tseung Kwan O locality ancestry', () => {
   const divisions = [
     { id: kowloon, class: 'city', category: 'locality', level: 1, hierarchies: {} },
     { id: tko, class: 'town', category: 'locality', level: 3, hierarchies: {} },
@@ -62,7 +62,9 @@ test('Lei Yue Mun retains Kowloon ancestry without acquiring TKO through their s
     [],
   )
   expect(divisions[2]!.hierarchies).toMatchObject({
-    locality: [[{ id: kowloon }]],
+    // Kowloon city is a locality; Kowloon Area belongs to administrative ancestry
+    // and is not one of the polygons supplied to this locality-only test.
+    locality: [],
     full: [],
   })
 })

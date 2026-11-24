@@ -17,10 +17,10 @@ test('Address replay uses the chosen ancestor even when a later shard contains a
         ]),
       )
     clients[0]!.exec(
-      "INSERT INTO address2d(id,snapshotId,versionHash,granularity) VALUES ('a','root','h1','building')",
+      "INSERT INTO address2d(id,snapshotId,versionHash,scope) VALUES ('a','root','h1','building')",
     )
     clients[1]!.exec(
-      "INSERT INTO address2d(id,snapshotId,versionHash,granularity) VALUES ('a','other-branch','h2','building')",
+      "INSERT INTO address2d(id,snapshotId,versionHash,scope) VALUES ('a','other-branch','h2','building')",
     )
     const shards = new Map(
       clients.map((client, index) => [

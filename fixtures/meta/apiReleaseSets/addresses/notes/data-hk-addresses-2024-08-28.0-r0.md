@@ -1,14 +1,14 @@
 ---
-createdAt: "2026-09-09T00:26:38.567Z"
-updatedAt: "2026-09-09T00:26:38.567Z"
-apiFamily: "addresses"
-apiVersion: "api-addresses-v0.1"
-apiReleaseSet: "data-hk-addresses-2024-08-28.0"
-revision: "0"
-regionCode: "hk"
-cohortKey: "2024-08-28.0"
-publisherReleaseDate: "2024-08-28"
-domainCode: "saanseoi"
+createdAt: '2026-09-09T00:26:38.567Z'
+updatedAt: '2026-09-09T00:26:38.567Z'
+apiFamily: 'addresses'
+apiVersion: 'api-addresses-v0.1'
+apiReleaseSet: 'data-hk-addresses-2024-08-28.0'
+revision: '0'
+regionCode: 'hk'
+cohortKey: '2024-08-28.0'
+publisherReleaseDate: '2024-08-28'
+domainCode: 'saanseoi'
 ---
 
 # EN
@@ -59,8 +59,8 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 ## 發布範圍
 
 此不可變的 [release set](saanseoi:zh-hant:definition/release-set/v1) 在
-{{regionName:zh-Hant}}發布 [cohort](saanseoi:zh-hant:definition/cohort/v1)
-<black>{{ cohortKey }}</black> 的 <black>{{ domainCode }}</black>
+{{regionName:zh-Hant}}發布 [cohort](saanseoi:zh-hant:definition/cohort/v1) <black>{{
+cohortKey }}</black> 的 <black>{{ domainCode }}</black>
 [domain](saanseoi:zh-hant:definition/domain/v1)。以下來源發布組成此 release set。
 
 {{apiReleaseSetSources:zh-Hant}}
@@ -91,8 +91,8 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 ## 发布范围
 
 此不可变的 [release set](saanseoi:zh-hans:definition/release-set/v1) 在
-{{regionName:zh-Hans}}发布 [cohort](saanseoi:zh-hans:definition/cohort/v1)
-<black>{{ cohortKey }}</black> 的 <black>{{ domainCode }}</black>
+{{regionName:zh-Hans}}发布 [cohort](saanseoi:zh-hans:definition/cohort/v1) <black>{{
+cohortKey }}</black> 的 <black>{{ domainCode }}</black>
 [domain](saanseoi:zh-hans:definition/domain/v1)。以下源发布组成此 release set。
 
 {{apiReleaseSetSources:zh-Hans}}

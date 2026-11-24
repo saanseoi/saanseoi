@@ -9,6 +9,7 @@ import {
   buildPublicationRowCountSql,
   type PublicationPreparation,
 } from '@repo/core/pipeline/services/publication/sql.ts'
+import { computeVersionHash } from '@repo/db/versioning'
 import { orderGeoJsonText, stringifyGeoJson } from '@repo/db/geoJsonSerialisation'
 import type { UploadTarget } from '../../cli/options.ts'
 import {
@@ -302,12 +303,21 @@ export async function replayGeometryIntoRemote(
   }
 }
 
-function readGeometryReplayMetadata(
+/**
+ * Read snapshot metadata with the immutable policies required by its recipes.
+ * @param cacheDir Retained preparation database directory.
+ * @param bindingName Metadata database binding.
+ * @param resourceReleaseId Release whose delivery metadata is included.
+ * @param snapshotId Snapshot whose recipe and policy evidence must be replayed.
+ * @returns SQL ordered with immutable policies before recipe references.
+ * @remarks Missing or hash-mismatched policy evidence blocks delivery.
+ */
+export function readGeometryReplayMetadata(
   cacheDir: string,
   bindingName: string,
   resourceReleaseId: string,
   snapshotId: string,
-) {
+): string {
   const snapshot = readGeometryCacheRows(
     cacheDir,
     bindingName,
@@ -326,6 +336,32 @@ function readGeometryReplayMetadata(
     .map(row => row.snapshotRecipeId)
     .filter((value): value is string => typeof value === 'string')
   const idList = assemblyIds.map(geometrySqlLiteral).join(', ')
+  // Replay retained policy bodies before recipe references; never fabricate missing evidence.
+  const recipes = readGeometryCacheRows(
+    cacheDir,
+    bindingName,
+    `SELECT * FROM "snapshotRecipes" WHERE ${idList ? `"id" IN (${idList})` : '0'}`,
+  )
+  const definitions = [
+    ...new Set(recipes.map(row => row.processingRules).filter(Boolean)),
+  ].flatMap(id => {
+    const rows = readGeometryCacheRows(
+      cacheDir,
+      bindingName,
+      `SELECT * FROM "processingRuleDefinitions" WHERE "id" = ${geometrySqlLiteral(id)}`,
+    )
+    if (
+      rows.length !== 1 ||
+      computeVersionHash(JSON.parse(String(rows[0]?.definition))) !== id
+    )
+      throw new Error(
+        `Geometry assembly processing policy is missing or invalid: ${id}.`,
+      )
+    return rows
+  })
+  const policySql = geometryBuildUpsertSql('processingRuleDefinitions', definitions, {
+    immutable: true,
+  })
   const tables = [
     ['snapshotLineages', lineageId ? `"id" = ${geometrySqlLiteral(lineageId)}` : '0'],
     ['snapshots', `"id" = ${geometrySqlLiteral(snapshotId)}`],
@@ -342,8 +378,9 @@ function readGeometryReplayMetadata(
     ['stats', `"resourceReleaseId" = ${geometrySqlLiteral(resourceReleaseId)}`],
   ] as const
 
-  return tables
-    .flatMap(([tableName, where]) => {
+  return [
+    policySql,
+    ...tables.flatMap(([tableName, where]) => {
       const rows = readGeometryCacheRows(
         cacheDir,
         bindingName,
@@ -352,8 +389,8 @@ function readGeometryReplayMetadata(
       // Each geometry variant carries the release metadata needed for recovery.
       // Preserve those rows while avoiding writes when the target already matches.
       return geometryBuildUpsertSql(tableName, rows, { skipUnchanged: true })
-    })
-    .join('\n')
+    }),
+  ].join('\n')
 }
 
 function readGeometryCacheRows(cacheDir: string, bindingName: string, query: string) {

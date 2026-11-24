@@ -5,12 +5,10 @@ let { label, description }: { label: string; description: string } = $props()
 </script>
 <Tooltip.Root>
   <Tooltip.Trigger>
-    {#snippet child({
-      props,
-    })}
+    {#snippet child({ props })}
       <button
         {...props}
-        class="inline-flex size-5 shrink-0 items-center justify-center rounded-full text-foreground-alt transition hover:bg-data-surface-container-high hover:text-data-primary"
+        class="text-foreground-alt hover:bg-data-surface-container-high hover:text-data-primary inline-flex size-5 shrink-0 items-center justify-center rounded-full transition"
         type="button"
         aria-label={label}
       >
@@ -20,7 +18,7 @@ let { label, description }: { label: string; description: string } = $props()
   </Tooltip.Trigger>
   <Tooltip.Portal>
     <Tooltip.Content
-      class="z-70 max-w-64 rounded-default border border-border-card/60 bg-background-alt px-3 py-2 font-body text-label-sm text-foreground shadow-popover"
+      class="rounded-default border-border-card/60 bg-background-alt font-body text-label-sm text-foreground shadow-popover z-70 max-w-64 border px-3 py-2"
       side="top"
       sideOffset={8}
     >

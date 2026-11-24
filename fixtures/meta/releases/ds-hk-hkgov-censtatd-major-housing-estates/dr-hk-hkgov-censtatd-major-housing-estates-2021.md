@@ -1,19 +1,19 @@
 ---
-createdAt: "2026-08-19T00:00:00.000Z"
-updatedAt: "2026-08-19T00:00:00.000Z"
-dataset: "ds-hk-hkgov-censtatd-major-housing-estates"
-release: "dr-hk-hkgov-censtatd-major-housing-estates-2021"
-regionCode: "hk"
-source: "hkgov-censtatd"
-publicationDate: "2024-12-23"
-publicationDateSource: "https://portal.csdi.gov.hk/geoportal/rest/metadata/item/censtatd_rcd_1695182015782_79001/xml"
-sourceVersion: "2021"
-releaseNotesUrl: "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1695182015782_79001"
-releaseVersion: "2021.0"
-type: "divisionStatistic"
-cohortKey: "2021"
-hkgovCenstatdCuration: "fixtures/meta/curations/hkgov-censtatd-statistics/major-housing-estates-2021.json"
-measureCuration: "fixtures/meta/curations/hkgov-censtatd-statistics-measures/major-housing-estates.json"
+createdAt: '2026-08-19T00:00:00.000Z'
+updatedAt: '2026-08-19T00:00:00.000Z'
+dataset: 'ds-hk-hkgov-censtatd-major-housing-estates'
+release: 'dr-hk-hkgov-censtatd-major-housing-estates-2021'
+regionCode: 'hk'
+source: 'hkgov-censtatd'
+publicationDate: '2024-12-23'
+publicationDateSource: 'https://portal.csdi.gov.hk/geoportal/rest/metadata/item/censtatd_rcd_1695182015782_79001/xml'
+sourceVersion: '2021'
+releaseNotesUrl: 'https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1695182015782_79001'
+releaseVersion: '2021.0'
+type: 'divisionStatistic'
+cohortKey: '2021'
+hkgovCenstatdCuration: 'fixtures/meta/curations/hkgov-censtatd-statistics/major-housing-estates-2021.json'
+measureCuration: 'fixtures/meta/curations/hkgov-censtatd-statistics-measures/major-housing-estates.json'
 ---
 
 # EN
@@ -21,8 +21,8 @@ measureCuration: "fixtures/meta/curations/hkgov-censtatd-statistics-measures/maj
 ## Changelog
 
 - Initial 山水 | SaanSeoi release.
-- <orange>Upstream</orange> Add [C&SD](saanseoi:en:definition/hkgov-censtatd/v1)'s
-  {{ sourceVersion }} Census statistics for Major Housing Estates.
+- <orange>Upstream</orange> Add [C&SD](saanseoi:en:definition/hkgov-censtatd/v1)'s {{
+  sourceVersion }} Census statistics for Major Housing Estates.
 
 ## Versioning
 
@@ -64,13 +64,15 @@ The reviewed mapping below is generated from this release's C&SD
 ## 變更記錄
 
 - 山水初始版本。
-- <orange>上游</orange> 新增 [C&SD](saanseoi:zh-hant:definition/hkgov-censtatd/v1) 的
-  {{ sourceVersion }} 年人口普查主要屋苑統計資料。
+- <orange>上游</orange> 新增 [C&SD](saanseoi:zh-hant:definition/hkgov-censtatd/v1) 的 {{
+  sourceVersion }} 年人口普查主要屋苑統計資料。
 
 ## 版本控制
 
-此來源發布使用發布者 <black>{{ sourceVersion }}</black> 年人口普查批次，版本為
-<black>{{ releaseVersion }}</black>。來源發布保留該統計地理範圍及經審核的指標；其發布者套件如無變更，日後的 CSDI 歸檔時段不會建立新版本。
+此來源發布使用發布者 <black>{{ sourceVersion }}</black> 年人口普查批次，版本為 <black>{{
+releaseVersion
+}}</black>。來源發布保留該統計地理範圍及經審核的指標；其發布者套件如無變更，日後的 CSDI
+歸檔時段不會建立新版本。
 
 ## 相容性
 
@@ -82,7 +84,8 @@ The reviewed mapping below is generated from this release's C&SD
 ### 正規化欄位
 
 每個經審核的來源欄位均會成為標準統計觀測，並附有穩定的
-<black>measureCode</black>、統計種類、匯總方式、單位、狀態、參考時段及在地化指標 offering。來源幾何及要素識別碼會保留在該發布專屬的統計 series 上。
+<black>measureCode</black>、統計種類、匯總方式、單位、狀態、參考時段及在地化指標
+offering。來源幾何及要素識別碼會保留在該發布專屬的統計 series 上。
 
 ### 指標 offering
 
@@ -103,13 +106,15 @@ The reviewed mapping below is generated from this release's C&SD
 ## 变更记录
 
 - 山水初始版本。
-- <orange>上游</orange> 新增 [C&SD](saanseoi:zh-hans:definition/hkgov-censtatd/v1) 的
-  {{ sourceVersion }} 年人口普查主要屋苑统计数据。
+- <orange>上游</orange> 新增 [C&SD](saanseoi:zh-hans:definition/hkgov-censtatd/v1) 的 {{
+  sourceVersion }} 年人口普查主要屋苑统计数据。
 
 ## 版本控制
 
-此来源发布使用发布者 <black>{{ sourceVersion }}</black> 年人口普查批次，版本为
-<black>{{ releaseVersion }}</black>。来源发布保留该统计地理范围及经审核的指标；其发布者套件如无变更，日后的 CSDI 归档时段不会建立新版本。
+此来源发布使用发布者 <black>{{ sourceVersion }}</black> 年人口普查批次，版本为 <black>{{
+releaseVersion
+}}</black>。来源发布保留该统计地理范围及经审核的指标；其发布者套件如无变更，日后的 CSDI
+归档时段不会建立新版本。
 
 ## 兼容性
 
@@ -121,7 +126,8 @@ The reviewed mapping below is generated from this release's C&SD
 ### 规范化字段
 
 每个经审核的来源字段均会成为标准统计观测，并附有稳定的
-<black>measureCode</black>、统计种类、汇总方式、单位、状态、参考时段及本地化指标 offering。来源几何及要素标识符会保留在该发布专属的统计 series 上。
+<black>measureCode</black>、统计种类、汇总方式、单位、状态、参考时段及本地化指标
+offering。来源几何及要素标识符会保留在该发布专属的统计 series 上。
 
 ### 指标 offering
 

@@ -390,7 +390,8 @@ export function compileResponseField(args: {
         'id',
         'datasetCode',
         'parentAddressId',
-        'granularity',
+        'scope',
+        'premisesType',
         'address3dCoverage',
         'createdAt',
 

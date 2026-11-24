@@ -5,6 +5,7 @@ import { constants } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { journalNetTable } from './netSqlitePlanDiff.ts'
+import { compareContentlessFtsThroughShadows } from './netSqlitePlanVirtual.ts'
 import { postponeNetParentDeletions } from './netSqlitePlanDependencies.ts'
 import {
   assertNetForeignKeys,
@@ -167,6 +168,7 @@ export async function captureNetSqlitePlan<T>(input: NetSqlitePlanInput<T>) {
       }
       for (const { name } of persistent) {
         if (selected.has(name) || excluded.has(name)) continue
+        if (compareContentlessFtsThroughShadows(db, name)) continue
         // An explicit policy is required even when an unrelated table's writes
         // would otherwise be silently omitted from the delivered final state.
         const columns = db

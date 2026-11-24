@@ -44,7 +44,7 @@ export const apiProfileDocumentationByFamily = {
       en: {
         useCase: 'building a small address list or picker',
         coverage:
-          'identifier, dataset, granularity, Address3D coverage, requested formatted addresses and Division relationships',
+          'identifier, dataset, scope, Address3D coverage, requested formatted addresses and Division relationships',
       },
       'zh-Hant': {
         useCase: '建立小型地址清單或選擇器',

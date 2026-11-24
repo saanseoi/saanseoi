@@ -1,3 +1,5 @@
+import type { ObjectRef } from '@repo/core/provenance'
+
 const countKeys = [
   'sqlArtefactCount',
   'deletedRows',
@@ -16,5 +18,16 @@ export function readDivisionDeliveryOutputs(
     if (!Number.isSafeInteger(value) || (value as number) < 0)
       throw new Error(`Retained Division SQL ${key} is missing or invalid.`)
   }
-  return outputs as Record<(typeof countKeys)[number], number>
+  const ref = outputs?.assemblyAuditRef as Partial<ObjectRef> | undefined
+  if (
+    !ref ||
+    typeof ref.hash !== 'string' ||
+    !/^sha256:[a-f0-9]{64}$/.test(ref.hash) ||
+    !Number.isSafeInteger(ref.byteLength) ||
+    (ref.byteLength as number) <= 0
+  )
+    throw new Error('Retained Division assembly audit reference is missing or invalid.')
+  return outputs as Record<(typeof countKeys)[number], number> & {
+    assemblyAuditRef: ObjectRef
+  }
 }

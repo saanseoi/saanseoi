@@ -284,7 +284,7 @@
         "reason": "Fixed name"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -572,7 +572,7 @@
         "reason": "User selected Retain / reconcile."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -845,7 +845,7 @@
         "reason": "Renamed to GET NICE CENTRE; CHINACHEM HUNG HOM CENTRE was demolished"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -1094,7 +1094,7 @@
         "reason": "User selected Retain / reconcile."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -1343,7 +1343,7 @@
         "reason": "User selected Retain / reconcile."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -1616,7 +1616,7 @@
         "reason": "User selected Retain / reconcile."
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "enName": "GLOBAL PLAZA",
         "zhName": "環貿廣場"
       }
@@ -1904,7 +1904,7 @@
         "reason": "Fixed name"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -2179,7 +2179,7 @@
         "reason": "User selected Retain / reconcile."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -2467,7 +2467,7 @@
         "reason": "Renamed"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -2749,7 +2749,7 @@
         "reason": "Renamed"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -3037,7 +3037,7 @@
         "reason": "Renamed"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -3325,7 +3325,7 @@
         "reason": "Renamed"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -3604,7 +3604,7 @@
         "reason": "Specificity"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -3892,7 +3892,7 @@
         "reason": "Renamed"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -4141,7 +4141,7 @@
         "reason": "User selected Retain / reconcile."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -4374,7 +4374,7 @@
         "reason": "User selected Retain / reconcile."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -4594,7 +4594,7 @@
         "reason": "User marked entry Undecided and requested lookup of the established Model Estate multiple-entrance handling. Preserve the building range with distinct source-backed street-number sections; do not infer unit inventories."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -4882,7 +4882,7 @@
         "reason": "User selected Retain / reconcile."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -5155,7 +5155,7 @@
         "reason": "User selected Retain / reconcile."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -5404,7 +5404,7 @@
         "reason": "User selected Retain / reconcile."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -5692,7 +5692,7 @@
         "reason": "User selected Retain / reconcile."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -5965,7 +5965,7 @@
         "reason": "Refurbished"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -6214,7 +6214,7 @@
         "reason": "User selected Retain / reconcile."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -6490,7 +6490,7 @@
         "reason": "Corrected order"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -6768,7 +6768,7 @@
         "reason": "User selected Retain / reconcile."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -7044,7 +7044,7 @@
         "reason": "Corrected order"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -7330,7 +7330,7 @@
         "reason": "User selected Retain / reconcile."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -7603,7 +7603,7 @@
         "reason": "User selected Retain / reconcile."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -7877,7 +7877,7 @@
         "reason": "User selected Retain / reconcile."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -8101,7 +8101,7 @@
         "reason": "Complex versus building; keep the building too"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       },
       "parentRule": "september-2024-fire-station-complex"
     },
@@ -8322,7 +8322,7 @@
         "reason": "Shop addresses; Wong’s building spans the full number range"
       },
       "patch": {
-        "granularity": "building",
+        "scope": "building",
         "streetNumberFrom": "84",
         "streetNumberTo": "90"
       }
@@ -8603,7 +8603,7 @@
         "reason": "Specificity"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -8852,7 +8852,7 @@
         "reason": "CHING HAY HOUSE is unrelated"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -9131,7 +9131,7 @@
         "reason": "Deduplicated"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -9407,7 +9407,7 @@
         "reason": "User selected Retain / reconcile."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -9686,7 +9686,7 @@
         "reason": "Deduplicated"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -9935,7 +9935,7 @@
         "reason": "User selected Retain / reconcile."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -10184,7 +10184,7 @@
         "reason": "CHING SHUN HOUSE is unrelated"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -10433,7 +10433,7 @@
         "reason": "User selected Retain / reconcile."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -10651,7 +10651,7 @@
         "reason": "Shop addresses"
       },
       "patch": {
-        "granularity": "unit"
+        "scope": "unit"
       }
     },
     {
@@ -10939,7 +10939,7 @@
         "reason": "User selected Retain / reconcile."
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -11188,7 +11188,7 @@
         "reason": "CHING SIN HOUSE is unrelated"
       },
       "patch": {
-        "granularity": "building"
+        "scope": "building"
       }
     },
     {
@@ -11410,7 +11410,8 @@
         "reason": "User selected Retain / reconcile."
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     },
     {
@@ -11650,7 +11651,8 @@
         "reason": "Complex versus building; keep the building too"
       },
       "patch": {
-        "granularity": "complex"
+        "scope": "premises",
+        "premisesType": "complex"
       }
     }
   ],
@@ -11660,7 +11662,7 @@
       "parentRule": "september-2024-review-17",
       "csu": "3661315621T20050430",
       "sourceFile": "als_addresses_(wan_chai_district).geojson",
-      "childGranularity": "section",
+      "childScope": "section",
       "parentId": "ss-585e7893-2e57-5e9b-936c-37a435003d05",
       "assertions": [
         {
@@ -11917,7 +11919,7 @@
       "parentRule": "september-2024-review-31",
       "csu": "3748820413T20050430",
       "sourceFile": "als_addresses_(kowloon_city_district).geojson",
-      "childGranularity": "unit",
+      "childScope": "unit",
       "parentId": "ss-a5e6672b-a31a-5c8b-92dc-078a62470b03",
       "assertions": [
         {
@@ -12234,7 +12236,7 @@
       "parentRule": "september-2024-review-42",
       "csu": "3574918529T20050430",
       "sourceFile": "als_addresses_(yau_tsim_mong_district).geojson",
-      "childGranularity": "unit",
+      "childScope": "unit",
       "parentId": "ss-92e0770d-5b6a-58f0-804d-4e39aca23c66",
       "assertions": [
         {
@@ -12672,7 +12674,7 @@
       "parentRule": "september-2024-review-45",
       "csu": "3795520299T20050430",
       "sourceFile": "als_addresses_(kowloon_city_district).geojson",
-      "childGranularity": "building",
+      "childScope": "building",
       "parentId": "ss-77317e8b-25a9-5458-978e-b0ae82654a99",
       "assertions": [
         {

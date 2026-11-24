@@ -32,9 +32,18 @@ export type PublishedSourceRelease = {
   version: string
 }
 
+export type ScheduledResultRow = {
+  label: string
+  value: string
+  tone?: string
+  ingredients: Array<{ label: string; value: string }>
+}
+
 export type ScheduledUpdateSummary = {
+  results?: ScheduledResultRow[]
   added: Array<{
     datasetCode: string
+    datasetName?: string
     version?: string
   }>
   errors: string[]

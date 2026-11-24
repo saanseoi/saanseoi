@@ -1,13 +1,13 @@
 ---
-createdAt: "2026-09-09T00:00:00.000Z"
-updatedAt: "2026-09-09T00:00:00.000Z"
-apiFamily: "places"
-apiVersion: "api-places-v0.1"
-apiReleaseSet: "data-hk-places-2026-03-18.0"
-revision: "0"
-regionCode: "hk"
-cohortKey: "2026-03-18.0"
-domainCode: "overture"
+createdAt: '2026-09-09T00:00:00.000Z'
+updatedAt: '2026-09-09T00:00:00.000Z'
+apiFamily: 'places'
+apiVersion: 'api-places-v0.1'
+apiReleaseSet: 'data-hk-places-2026-03-18.0'
+revision: '0'
+regionCode: 'hk'
+cohortKey: '2026-03-18.0'
+domainCode: 'overture'
 ---
 
 # EN
@@ -64,14 +64,14 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 
 ## 修訂紀錄
 
-- `r{{ revision }}` 包含 Place 來源發布，以及由 Places API
-  composition 選取的 Address 及 Division 支援發布。
+- `r{{ revision }}` 包含 Place 來源發布，以及由 Places API composition 選取的 Address 及
+  Division 支援發布。
 
 ## 發布範圍
 
 此不可變的 [release set](saanseoi:zh-hant:definition/release-set/v1) 在
-{{regionName:zh-Hant}}發布 [cohort](saanseoi:zh-hant:definition/cohort/v1)
-<black>{{ cohortKey }}</black> 的 <black>{{ domainCode }}</black>
+{{regionName:zh-Hant}}發布 [cohort](saanseoi:zh-hant:definition/cohort/v1) <black>{{
+cohortKey }}</black> 的 <black>{{ domainCode }}</black>
 [domain](saanseoi:zh-hant:definition/domain/v1)。以下來源發布組成此 release set。
 
 {{apiReleaseSetSources:zh-Hant}}
@@ -80,8 +80,8 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 
 - Operating status 是發布者資料，並非山水對 Place 開放狀態的獨立核實。
 
-- 類別及 confidence 差異是上游來源變更，不是 Places
-  API 合約變更，亦非對 Place 的獨立核實。
+- 類別及 confidence 差異是上游來源變更，不是 Places API 合約變更，亦非對 Place
+  的獨立核實。
 
 # ZH-HANS
 
@@ -94,14 +94,14 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 
 ## 修订记录
 
-- `r{{ revision }}` 包含 Place 源发布，以及由 Places API
-  composition 选择的 Address 及 Division 支持发布。
+- `r{{ revision }}` 包含 Place 源发布，以及由 Places API composition 选择的 Address 及
+  Division 支持发布。
 
 ## 发布范围
 
 此不可变的 [release set](saanseoi:zh-hans:definition/release-set/v1) 在
-{{regionName:zh-Hans}}发布 [cohort](saanseoi:zh-hans:definition/cohort/v1)
-<black>{{ cohortKey }}</black> 的 <black>{{ domainCode }}</black>
+{{regionName:zh-Hans}}发布 [cohort](saanseoi:zh-hans:definition/cohort/v1) <black>{{
+cohortKey }}</black> 的 <black>{{ domainCode }}</black>
 [domain](saanseoi:zh-hans:definition/domain/v1)。以下源发布组成此 release set。
 
 {{apiReleaseSetSources:zh-Hans}}
@@ -110,5 +110,5 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 
 - Operating status 是发布者数据，并非山水对 Place 开放状态的独立核实。
 
-- 类别及 confidence 差异是上游源变更，不是 Places
-  API 合约变更，也非对 Place 的独立核实。
+- 类别及 confidence 差异是上游源变更，不是 Places API 合约变更，也非对 Place
+  的独立核实。

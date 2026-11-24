@@ -1,0 +1,61 @@
+{
+  "name": "@saanseoi/hkgcode",
+  "version": "0.1.0",
+  "description": "Offline Hong Kong GeoCode encoding and decoding for HK1980 and WGS84 coordinates",
+  "type": "module",
+  "license": "GPL-3.0-or-later",
+  "sideEffects": false,
+  "files": [
+    "dist",
+    "src",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE",
+    "LICENSES",
+    "NOTICE"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "bun": "./src/index.ts",
+      "default": "./dist/index.js"
+    },
+    "./wgs84": {
+      "types": "./dist/wgs84.d.ts",
+      "bun": "./src/wgs84.ts",
+      "default": "./dist/wgs84.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "bun test tests",
+    "prepack": "bun run build",
+    "lint": "biome check src scripts tests/hkgcode.test.ts package.json tsconfig.json README.md CHANGELOG.md",
+    "check": "tsc --noEmit -p tsconfig.json",
+    "format": "biome format --write src scripts tests/hkgcode.test.ts package.json tsconfig.json README.md CHANGELOG.md"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "peerDependencies": {
+    "proj4": "^2.23.0"
+  },
+  "peerDependenciesMeta": {
+    "proj4": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "typescript": "^6.0.3",
+    "proj4": "^2.23.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/saanseoi/saanseoi.git",
+    "directory": "libs/hkgcode"
+  },
+  "homepage": "https://github.com/saanseoi/saanseoi/tree/preview/libs/hkgcode#readme",
+  "bugs": {
+    "url": "https://github.com/saanseoi/saanseoi/issues"
+  }
+}

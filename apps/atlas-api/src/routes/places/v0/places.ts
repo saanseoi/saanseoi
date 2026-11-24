@@ -1,5 +1,5 @@
+import type { z } from 'zod'
 import { PlaceSearchExpiredError } from '../../../db/placeSearchCursor'
-import type { z } from '@hono/zod-openapi'
 import { parseI18nMeta } from '@repo/db'
 import { withPlacePublication } from '../../../services/places'
 import {
@@ -279,6 +279,10 @@ const searchRouteConfigs = ROUTE_VARIANTS.map(routeVariant =>
       query: SearchQuerySchema,
     },
     responses: {
+      410: {
+        content: { 'application/json': { schema: ErrorResponseSchema } },
+        description: 'Search query or publication changed; restart without the cursor.',
+      },
       200: {
         content: { 'application/json': { schema: SearchResponseSchema } },
         description: openApiText('openapi_places_search_response_description'),
@@ -307,11 +311,6 @@ const searchRouteConfigs = ROUTE_VARIANTS.map(routeVariant =>
           },
         },
         description: openApiText('openapi_places_search_unavailable_description'),
-      },
-      410: {
-        content: { 'application/json': { schema: ErrorResponseSchema } },
-        description:
-          'The search query or publication changed; restart without the cursor.',
       },
       422: ValidationErrorOpenAPIResponse,
     },
@@ -437,6 +436,9 @@ async function handlePlacesByCell(
     region: 'hk' | 'mo'
     h3Level: string
     h3Cell: string
+    'filter[basicCategory]'?: string
+    'filter[taxonomyPrimary]'?: string
+    'filter[operatingStatus]'?: string
     limit?: number
     offset?: number
   },
@@ -512,6 +514,9 @@ async function handlePlacesByCell(
             snapshotId: activeSnapshot.snapshotId,
             h3Level,
             h3Cell: args.h3Cell,
+            basicCategory: args['filter[basicCategory]'],
+            taxonomyPrimary: args['filter[taxonomyPrimary]'],
+            operatingStatus: args['filter[operatingStatus]'],
             limit,
             offset,
           }),
@@ -531,9 +536,7 @@ async function handlePlaceSearch(
     return c.json(
       {
         results: [],
-        ...(args.paginate === 'true' || args.cursor
-          ? { meta: { nextCursor: null } }
-          : {}),
+        ...(args.paginate === 'true' ? { meta: { nextCursor: null } } : {}),
       },
       200,
     )
@@ -570,25 +573,28 @@ async function handlePlaceSearch(
         await setActiveSnapshotAttribution(c, activeSnapshot.snapshotId)
 
         try {
-          const page = await runWithD1ReadRetry(() =>
+          const results = await runWithD1ReadRetry(() =>
             searchPlacesFtsPage(c.var.currentDb, {
+              cursor: args.cursor,
               snapshotId: activeSnapshot.snapshotId,
               locale: args.locale,
               query: args.q,
-              limit: args.limit,
-              cursor: args.cursor,
+              nearLat: args.nearLat,
+              nearLng: args.nearLng,
+              maxDistance: args.maxDistance,
               basicCategory: args['filter[basicCategory]'],
               taxonomyPrimary: args['filter[taxonomyPrimary]'],
               taxonomyCategory: args['filter[taxonomyCategory]'],
-              operatingStatus: args['filter[operatingStatus]'],
               includePreview: args.include === 'preview',
+              operatingStatus: args['filter[operatingStatus]'],
+              limit: args.limit,
             }),
           )
           return c.json(
             {
-              results: page.results,
-              ...(args.paginate === 'true' || args.cursor
-                ? { meta: { nextCursor: page.nextCursor } }
+              results: results.results,
+              ...(args.paginate === 'true'
+                ? { meta: { nextCursor: results.nextCursor } }
                 : {}),
             },
             200,
@@ -652,6 +658,7 @@ export const placeRoutes = [
         const params = c.req.valid('param')
         const query = c.req.valid('query')
         return handlePlacesByCell(c, {
+          ...query,
           ...params,
           region: resolveDataRegion(query.region),
           limit: query.limit,

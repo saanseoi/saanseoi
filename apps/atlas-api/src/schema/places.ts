@@ -448,6 +448,22 @@ export const PlacesByCellParamsSchema = z
 export const PlacesByCellQuerySchema = z
   .object({
     ...geographicCodeQueryShape,
+    'filter[basicCategory]': z
+      .string()
+      .min(1)
+      .max(200)
+      .optional()
+      .openapi({ description: placeBasicCategoryFilterDescription }),
+    'filter[taxonomyPrimary]': z
+      .string()
+      .min(1)
+      .max(200)
+      .optional()
+      .openapi({ description: placeTaxonomyFilterDescription }),
+    'filter[operatingStatus]': z
+      .enum(['open', 'temporarily_closed', 'permanently_closed'])
+      .optional()
+      .openapi({ description: placeOperatingStatusFilterDescription }),
     region: RegionFilterSchema,
     limit: z.coerce.number().int().min(1).max(MAX_PLACE_RESULTS).optional(),
     offset: z.coerce
@@ -513,6 +529,10 @@ export const PlacesByCellResponseSchema = z
 
 export const SearchQuerySchema = z
   .object({
+    nearLat: z.coerce.number().finite().min(-90).max(90).optional(),
+    nearLng: z.coerce.number().finite().min(-180).max(180).optional(),
+    maxDistance: z.coerce.number().finite().min(0).max(50000).optional(),
+
     ...geographicCodeQueryShape,
     region: RegionFilterSchema,
     q: z.string().min(1).max(MAX_PLACE_SEARCH_LENGTH),
@@ -525,12 +545,14 @@ export const SearchQuerySchema = z
       .string()
       .regex(/^[a-z0-9_]+$/)
       .max(200)
-      .optional(),
+      .optional()
+      .openapi({ description: placeBasicCategoryFilterDescription }),
     'filter[taxonomyPrimary]': z
       .string()
       .regex(/^[a-z0-9_]+$/)
       .max(200)
-      .optional(),
+      .optional()
+      .openapi({ description: placeTaxonomyFilterDescription }),
     'filter[taxonomyCategory]': z
       .string()
       .regex(/^[a-z0-9_]+$/)
@@ -555,10 +577,28 @@ export const SearchQuerySchema = z
           'Exact status, any status, or open_or_unknown to include open and unclassified establishments.',
       }),
   })
+  .refine(query => !query.cursor || query.paginate === 'true', {
+    message: 'Cursor requires paginate=true',
+    path: ['cursor'],
+  })
+  .refine(
+    query =>
+      [query.nearLat, query.nearLng, query.maxDistance].every(
+        value => value === undefined,
+      ) ||
+      [query.nearLat, query.nearLng, query.maxDistance].every(
+        value => value !== undefined,
+      ),
+    {
+      message: 'Nearby search requires nearLat, nearLng and maxDistance.',
+      path: ['nearLat'],
+    },
+  )
   .openapi('SearchQuery')
 
 export const SearchResponseSchema = z
   .object({
+    meta: z.object({ nextCursor: z.string().nullable() }).optional(),
     results: z.array(
       z
         .object({
@@ -605,7 +645,6 @@ export const SearchResponseSchema = z
         })
         .openapi('PlaceSearchResult'),
     ),
-    meta: z.object({ nextCursor: z.string().nullable() }).optional(),
   })
   .openapi('SearchResponse')
 

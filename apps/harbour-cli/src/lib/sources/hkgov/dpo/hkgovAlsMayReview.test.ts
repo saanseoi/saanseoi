@@ -91,9 +91,7 @@ test('May decisions preserve all 18 identities, building levels and distinct gen
     for (const rule of rules) {
       const matches = rows.filter(r => r.id === rule.canonicalId)
       expect(matches, `${version}: ${rule.id}`).toHaveLength(1)
-      expect(String(matches[0]!.curatedGranularity)).toBe(
-        String(rule.patch.granularity),
-      )
+      expect(String(matches[0]!.curatedScope)).toBe(String(rule.patch.scope))
       expect(matches[0]!.identityAlias).not.toBe(matches[0]!.id)
     }
     const byCase = (n: number) =>

@@ -1,46 +1,46 @@
 ---
-dataset: "ds-hk-saanseoi-division"
-release: "dr-hk-saanseoi-division-2026-10-01.0"
-regionCode: "hk"
-source: "saanseoi"
-sourceVersion: "2026-10-01.0"
-releaseVersion: "2026-10-01.0"
-sourceSchemaVersion: "1.0"
-type: "division"
-cohortKey: "2026-10-01.0"
-countsRelease: "dr-hk-saanseoi-division-2026-10-01.0"
-divisionArchiveSha256: "58ba35738c96d6dad339a70edf68d763c02c04645152011e6a7bf823e4a1a484"
-areaArchiveSha256: "3ced11d17b5d438940639ec2cfedf30865eaaec545b01453267cc14dd4eacdbb"
-divisionCount: "2,003"
-areaCount: "591"
-coveredDivisionCount: "563"
-uncoveredDivisionCount: "1,440"
-classCount_area: "3"
-classCount_city: "2"
-classCount_country: "1"
-classCount_district: "18"
-classCount_hamlet: "952"
-classCount_island_group: "5"
-classCount_islet: "146"
-classCount_macrohood: "176"
-classCount_major_island: "5"
-classCount_microhood: "183"
-classCount_minor_island: "106"
-classCount_neighbourhood: "193"
-classCount_sar: "1"
-classCount_town: "19"
-classCount_village: "193"
-categoryCount_administrative: "23"
-categoryCount_hood: "552"
-categoryCount_landform: "262"
-categoryCount_locality: "1,166"
-overtureVersion: "2026-09-23.0"
-overtureAreaVersion: "2026-09-23.0"
-protomapsVersion: "2026-10-01.0"
-landsdVersion: "2026-06-10.0"
-rvdVersion: "2015-04-30.0"
-basemapRelease: "2026-10-01"
-classCount_rural_area: "0"
+dataset: 'ds-hk-saanseoi-division'
+release: 'dr-hk-saanseoi-division-2026-10-01.0'
+regionCode: 'hk'
+source: 'saanseoi'
+sourceVersion: '2026-10-01.0'
+releaseVersion: '2026-10-01.0'
+sourceSchemaVersion: '1.0'
+type: 'division'
+cohortKey: '2026-10-01.0'
+countsRelease: 'dr-hk-saanseoi-division-2026-10-01.0'
+divisionArchiveSha256: '58ba35738c96d6dad339a70edf68d763c02c04645152011e6a7bf823e4a1a484'
+areaArchiveSha256: '3ced11d17b5d438940639ec2cfedf30865eaaec545b01453267cc14dd4eacdbb'
+divisionCount: '2,003'
+areaCount: '591'
+coveredDivisionCount: '563'
+uncoveredDivisionCount: '1,440'
+classCount_area: '3'
+classCount_city: '2'
+classCount_country: '1'
+classCount_district: '18'
+classCount_hamlet: '952'
+classCount_island_group: '5'
+classCount_islet: '146'
+classCount_macrohood: '176'
+classCount_major_island: '5'
+classCount_microhood: '183'
+classCount_minor_island: '106'
+classCount_neighbourhood: '193'
+classCount_sar: '1'
+classCount_town: '19'
+classCount_village: '193'
+categoryCount_administrative: '23'
+categoryCount_hood: '552'
+categoryCount_landform: '262'
+categoryCount_locality: '1,166'
+overtureVersion: '2026-09-23.0'
+overtureAreaVersion: '2026-09-23.0'
+protomapsVersion: '2026-10-01.0'
+landsdVersion: '2026-06-10.0'
+rvdVersion: '2015-04-30.0'
+basemapRelease: '2026-10-01'
+classCount_rural_area: '0'
 ---
 
 # EN
@@ -262,8 +262,10 @@ polygons, preserving sea gaps; member islands also retain their individual polyg
 
 ### Overture 來源更新
 
-十月版本採用 Overture `{{overtureVersion}}`，取代
-`2026-08-19.0`。保留的香港 Division 輸入中，**199 筆現有記錄新增 Wikidata 識別碼**，**八筆記錄的位置點幾何有所調整**。上游新增五個實體並移除四個。大部分位置點只作小幅調整；離島區的代表點移動約 1.1 公里。山水按以下實體審核決定處理。
+十月版本採用 Overture `{{overtureVersion}}`，取代 `2026-08-19.0`。保留的香港 Division
+輸入中，**199 筆現有記錄新增 Wikidata
+識別碼**，**八筆記錄的位置點幾何有所調整**。上游新增五個實體並移除四個。大部分位置點只作小幅調整；離島區的代表點移動約
+1.1 公里。山水按以下實體審核決定處理。
 
 | 上游移除的地方               | 山水的處理                                                                    |
 | ---------------------------- | ----------------------------------------------------------------------------- |
@@ -272,7 +274,8 @@ polygons, preserving sea gaps; member islands also retain their individual polyg
 | 灣仔（Wan Tsai）             | 確認為範圍明確的半島，保留原有識別碼、已確認名稱及參照幾何。                  |
 | 流浮山墟                     | 確認十月清單仍保留獨立的流浮山實體後，移除此記錄。                            |
 
-保留的實體繼續引用提供該記錄的已確認 Overture 版本；上游移除記錄並不會自動移除經審核的地方。
+保留的實體繼續引用提供該記錄的已確認 Overture
+版本；上游移除記錄並不會自動移除經審核的地方。
 
 | 上游新增的地方            | 山水的處理           |
 | ------------------------- | -------------------- |
@@ -302,7 +305,8 @@ polygons, preserving sea gaps; member islands also retain their individual polyg
 
 ## 簡介
 
-現有資料集未能完整呈現香港人在日常生活中認識的地方。Overture 採用包括 OpenStreetMap 在內的來源，但仍有遺漏，部分分類亦未能反映本地用法。政府地名記錄提供官方名稱證據，卻未能涵蓋居民使用的所有非正式地名。山水整合這些來源，審核名稱、分類及界線，並在有證據支持通行用法時加入地方。
+現有資料集未能完整呈現香港人在日常生活中認識的地方。Overture 採用包括 OpenStreetMap
+在內的來源，但仍有遺漏，部分分類亦未能反映本地用法。政府地名記錄提供官方名稱證據，卻未能涵蓋居民使用的所有非正式地名。山水整合這些來源，審核名稱、分類及界線，並在有證據支持通行用法時加入地方。
 
 本資料集在同一版本內包含兩種資源：**Division（地理分區）**記錄描述地方、名稱及上層關係；**DivisionArea（分區面域）**記錄提供可用的多邊形幾何。面域記錄透過標準識別碼參照對應的地理分區。
 
@@ -345,12 +349,15 @@ polygons, preserving sea gaps; member islands also retain their individual polyg
   投影提供基礎識別碼、本地化名稱、來源分類、上層關係及可用面域。這些是經山水正規化的資料，包含設有檢查條件的香港專用修正。詳見[匯入說明](/sources/ds-hk-overture-division/)。
 - <orange>地政總署</orange>地名資料提供官方名稱及位置證據。位置點只用於識別具名地物；排除的項目會記錄於審核資料。
 - <orange>Protomaps</orange>
-  提供海岸線及島嶼地物。只有對應具名島嶼或大陸陸地的海岸線組成部分才會獲採用。產生的島嶼及陸地裁切多邊形已包含於本版本的 DivisionArea 記錄。海岸線輸入亦用於
+  提供海岸線及島嶼地物。只有對應具名島嶼或大陸陸地的海岸線組成部分才會獲採用。產生的島嶼及陸地裁切多邊形已包含於本版本的
+  DivisionArea 記錄。海岸線輸入亦用於
   [山水底圖](/basemaps/releases/{{regionCode}}/{{basemapRelease}})。
 - <orange>山水</orange>
-  提供補充實體、雙語名稱及別名、分類、上層路徑、排除項目，以及為缺少 Overture 幾何的地理分區手工繪製的面域。
+  提供補充實體、雙語名稱及別名、分類、上層路徑、排除項目，以及為缺少 Overture
+  幾何的地理分區手工繪製的面域。
 
-我們按英文及繁體中文名稱或別名，將位置點相距 5,000 米內的地政總署記錄與 Overture 地理分區配對。香港島及九龍的配對已全部處理；新界仍有不明確或未配對的記錄。
+我們按英文及繁體中文名稱或別名，將位置點相距 5,000 米內的地政總署記錄與 Overture
+地理分區配對。香港島及九龍的配對已全部處理；新界仍有不明確或未配對的記錄。
 
 兩種資源均按 ODbL 發布，署名為山水、© OpenStreetMap contributors 及 Overture Maps
 Foundation。保留的來源證據記錄貢獻者及來源版本，包括地政總署的名稱證據。
@@ -360,13 +367,13 @@ Foundation。保留的來源證據記錄貢獻者及來源版本，包括地政�
 ### 兼容性
 
 [Division](/docs#models/Division) 描述地理實體、名稱及上層關係。本版本採用山水schema
-`{{sourceSchemaVersion}}`。點幾何標示地方的位置；本版本的 DivisionArea 記錄則描述其多邊形涵蓋範圍。
+`{{sourceSchemaVersion}}`。點幾何標示地方的位置；本版本的 DivisionArea
+記錄則描述其多邊形涵蓋範圍。
 
 #### 保留欄位
 
-- `id` 為已確認配對的實體保留 Overture GERS
-  UUID。山水新增及未配對的島嶼實體，以穩定的 fixture 鍵產生確定性的 `ss-`
-  UUID。地理分區、面域及層級參照使用相同的標準識別碼。
+- `id` 為已確認配對的實體保留 Overture GERS UUID。山水新增及未配對的島嶼實體，以穩定的
+  fixture 鍵產生確定性的 `ss-` UUID。地理分區、面域及層級參照使用相同的標準識別碼。
 - 可用的點 `geometry`、`cartography`、`identifiers` 及 `sources` 按審核選擇保留。
 
 #### 審核及增補欄位
@@ -378,7 +385,8 @@ Foundation。保留的來源證據記錄貢獻者及來源版本，包括地政�
 - `hierarchies` 包含經審核的 `administrative`、`locality`、`landform` 及 `full`
   上層路徑。若地理分區有多個上層，各條路徑會分別保留。層級關係以多邊形相交判定，因此在新界所有地理分區均有多邊形之前，其上層路徑仍可能缺少最細緻的鄰里層級。
 
-島嶼身分不明確、缺少上層記錄、分類衝突及多邊形環格式不正確均會阻止組合。分類或同名本身不能確立包含關係。原始 Overture 欄位遵循來源版本的正規化及保留規則。
+島嶼身分不明確、缺少上層記錄、分類衝突及多邊形環格式不正確均會阻止組合。分類或同名本身不能確立包含關係。原始
+Overture 欄位遵循來源版本的正規化及保留規則。
 
 ### 涵蓋限制
 
@@ -394,9 +402,12 @@ Foundation。保留的來源證據記錄貢獻者及來源版本，包括地政�
 本版本共有 **{{areaCount}} 筆 DivisionArea 記錄，涵蓋 {{coveredDivisionCount}}
 個不同的地理分區**。每筆面域均屬於本資料集的一個地理分區。一個地理分區可有多筆面域記錄，因此面域記錄數目並不等於有多邊形的地理分區數目。
 
-- **行政領土範圍：**香港特別行政區及各區的多邊形採用 Overture。三大地域的領土範圍由所屬區的範圍合併，作為行政範圍的參照。
-- **陸地裁切面域：**另以行政領土範圍與固定版本的 Protomaps 海岸線遮罩相交，產生支援陸地覆蓋計算的多邊形。領土及陸地裁切兩種表示均保留來源記錄。
-- **聚落及鄰里：**經審核的圖形為缺少 Overture 幾何的地方提供界線，包括衙前圍及九龍南山尾。繪製範圍涵蓋香港島及九龍；新界的涵蓋範圍仍未完整。
+- **行政領土範圍：**香港特別行政區及各區的多邊形採用
+  Overture。三大地域的領土範圍由所屬區的範圍合併，作為行政範圍的參照。
+- **陸地裁切面域：**另以行政領土範圍與固定版本的 Protomaps
+  海岸線遮罩相交，產生支援陸地覆蓋計算的多邊形。領土及陸地裁切兩種表示均保留來源記錄。
+- **聚落及鄰里：**經審核的圖形為缺少 Overture
+  幾何的地方提供界線，包括衙前圍及九龍南山尾。繪製範圍涵蓋香港島及九龍；新界的涵蓋範圍仍未完整。
 - **島嶼：**選定的島嶼輪廓採用經審核的海岸線及島嶼幾何，保留一般島嶼及不相連的領土部分。
 
 大型行政幾何可沿現有多邊形組成部分分成多筆面域記錄，保留座標及不相連的部分。
@@ -413,8 +424,10 @@ Foundation。保留的來源證據記錄貢獻者及來源版本，包括地政�
 
 ### Overture 来源更新
 
-十月版本采用 Overture `{{overtureVersion}}`，取代
-`2026-08-19.0`。保留的香港 Division 输入中，**199 笔现有记录新增 Wikidata 标识码**，**八笔记录的位置点几何有所调整**。上游新增五个实体并移除四个。大部分位置点只作小幅调整；离岛区的代表点移动约 1.1 公里。山水按以下实体审核决定处理。
+十月版本采用 Overture `{{overtureVersion}}`，取代 `2026-08-19.0`。保留的香港 Division
+输入中，**199 笔现有记录新增 Wikidata
+标识码**，**八笔记录的位置点几何有所调整**。上游新增五个实体并移除四个。大部分位置点只作小幅调整；离岛区的代表点移动约
+1.1 公里。山水按以下实体审核决定处理。
 
 | 上游移除的地方               | 山水的处理                                                                    |
 | ---------------------------- | ----------------------------------------------------------------------------- |
@@ -423,7 +436,8 @@ Foundation。保留的來源證據記錄貢獻者及來源版本，包括地政�
 | 湾仔（Wan Tsai）             | 确认为范围明确的半岛，保留原有标识码、已确认名称及参照几何。                  |
 | 流浮山墟                     | 确认十月清单仍保留独立的流浮山实体后，移除此记录。                            |
 
-保留的实体继续引用提供该记录的已确认 Overture 版本；上游移除记录并不会自动移除经审核的地方。
+保留的实体继续引用提供该记录的已确认 Overture
+版本；上游移除记录并不会自动移除经审核的地方。
 
 | 上游新增的地方            | 山水的处理           |
 | ------------------------- | -------------------- |
@@ -453,7 +467,8 @@ Foundation。保留的來源證據記錄貢獻者及來源版本，包括地政�
 
 ## 简介
 
-现有数据集未能完整呈现香港人在日常生活中认识的地方。Overture 采用包括 OpenStreetMap 在内的来源，但仍有遗漏，部分分类亦未能反映本地用法。政府地名记录提供官方名称证据，却未能覆盖居民使用的所有非正式地名。山水整合这些来源，审核名称、分类及界线，并在有证据支持通行用法时加入地方。
+现有数据集未能完整呈现香港人在日常生活中认识的地方。Overture 采用包括 OpenStreetMap
+在内的来源，但仍有遗漏，部分分类亦未能反映本地用法。政府地名记录提供官方名称证据，却未能覆盖居民使用的所有非正式地名。山水整合这些来源，审核名称、分类及界线，并在有证据支持通行用法时加入地方。
 
 本数据集在同一版本内包含两种资源：**Division（地理分区）**记录描述地方、名称及上层关系；**DivisionArea（分区面域）**记录提供可用的多边形几何。面域记录通过标准标识码参照对应的地理分区。
 
@@ -496,12 +511,15 @@ Foundation。保留的來源證據記錄貢獻者及來源版本，包括地政�
   投影提供基础标识码、本地化名称、来源分类、上层关系及可用面域。这些是经山水规范化的数据，包含设有检查条件的香港专用修正。详见[导入说明](/sources/ds-hk-overture-division/)。
 - <orange>地政总署</orange>地名数据提供官方名称及位置证据。位置点只用于识别具名地物；排除的项目会记录于审核数据。
 - <orange>Protomaps</orange>
-  提供海岸线及岛屿地物。只有对应具名岛屿或大陆陆地的海岸线组成部分才会获采用。产生的岛屿及陆地裁切多边形已包含于本版本的 DivisionArea 记录。海岸线输入亦用于
+  提供海岸线及岛屿地物。只有对应具名岛屿或大陆陆地的海岸线组成部分才会获采用。产生的岛屿及陆地裁切多边形已包含于本版本的
+  DivisionArea 记录。海岸线输入亦用于
   [山水底图](/basemaps/releases/{{regionCode}}/{{basemapRelease}})。
 - <orange>山水</orange>
-  提供补充实体、双语名称及别名、分类、上层路径、排除项目，以及为缺少 Overture 几何的地理分区手工绘制的面域。
+  提供补充实体、双语名称及别名、分类、上层路径、排除项目，以及为缺少 Overture
+  几何的地理分区手工绘制的面域。
 
-我们按英文及繁体中文名称或别名，将位置点相距 5,000 米内的地政总署记录与 Overture 地理分区匹配。香港岛及九龙的匹配已全部处理；新界仍有不明确或未匹配的记录。
+我们按英文及繁体中文名称或别名，将位置点相距 5,000 米内的地政总署记录与 Overture
+地理分区匹配。香港岛及九龙的匹配已全部处理；新界仍有不明确或未匹配的记录。
 
 两种资源均按 ODbL 发布，署名为山水、© OpenStreetMap contributors 及 Overture Maps
 Foundation。保留的来源证据记录贡献者及来源版本，包括地政总署的名称证据。
@@ -511,13 +529,13 @@ Foundation。保留的来源证据记录贡献者及来源版本，包括地政�
 ### 兼容性
 
 [Division](/docs#models/Division) 描述地理实体、名称及上层关系。本版本采用山水schema
-`{{sourceSchemaVersion}}`。点几何标示地方的位置；本版本的 DivisionArea 记录则描述其多边形覆盖范围。
+`{{sourceSchemaVersion}}`。点几何标示地方的位置；本版本的 DivisionArea
+记录则描述其多边形覆盖范围。
 
 #### 保留字段
 
-- `id` 为已确认匹配的实体保留 Overture GERS
-  UUID。山水新增及未匹配的岛屿实体，以稳定的 fixture 键生成确定性的 `ss-`
-  UUID。地理分区、面域及层级参照使用相同的标准标识码。
+- `id` 为已确认匹配的实体保留 Overture GERS UUID。山水新增及未匹配的岛屿实体，以稳定的
+  fixture 键生成确定性的 `ss-` UUID。地理分区、面域及层级参照使用相同的标准标识码。
 - 可用的点 `geometry`、`cartography`、`identifiers` 及 `sources` 按审核选择保留。
 
 #### 审核及增补字段
@@ -529,7 +547,8 @@ Foundation。保留的来源证据记录贡献者及来源版本，包括地政�
 - `hierarchies` 包含经审核的 `administrative`、`locality`、`landform` 及 `full`
   上层路径。若地理分区有多个上层，各条路径会分别保留。层级关系以多边形相交判定，因此在新界所有地理分区均有多边形之前，其上层路径仍可能缺少最细致的邻里层级。
 
-岛屿身份不明确、缺少上层记录、分类冲突及多边形环格式不正确均会阻止组合。分类或同名本身不能确立包含关系。原始 Overture 字段遵循来源版本的规范化及保留规则。
+岛屿身份不明确、缺少上层记录、分类冲突及多边形环格式不正确均会阻止组合。分类或同名本身不能确立包含关系。原始
+Overture 字段遵循来源版本的规范化及保留规则。
 
 ### 覆盖限制
 
@@ -545,9 +564,12 @@ Foundation。保留的来源证据记录贡献者及来源版本，包括地政�
 本版本共有 **{{areaCount}} 笔 DivisionArea 记录，覆盖 {{coveredDivisionCount}}
 个不同的地理分区**。每笔面域均属于本数据集的一个地理分区。一个地理分区可有多笔面域记录，因此面域记录数目并不等于有多边形的地理分区数目。
 
-- **行政领土范围：**香港特别行政区及各区的多边形采用 Overture。三大地域的领土范围由所属区的范围合并，作为行政范围的参照。
-- **陆地裁切面域：**另以行政领土范围与固定版本的 Protomaps 海岸线遮罩相交，产生支持陆地覆盖计算的多边形。领土及陆地裁切两种表示均保留来源记录。
-- **聚落及邻里：**经审核的图形为缺少 Overture 几何的地方提供界线，包括衙前围及九龙南山尾。绘制范围覆盖香港岛及九龙；新界的覆盖范围仍未完整。
+- **行政领土范围：**香港特别行政区及各区的多边形采用
+  Overture。三大地域的领土范围由所属区的范围合并，作为行政范围的参照。
+- **陆地裁切面域：**另以行政领土范围与固定版本的 Protomaps
+  海岸线遮罩相交，产生支持陆地覆盖计算的多边形。领土及陆地裁切两种表示均保留来源记录。
+- **聚落及邻里：**经审核的图形为缺少 Overture
+  几何的地方提供界线，包括衙前围及九龙南山尾。绘制范围覆盖香港岛及九龙；新界的覆盖范围仍未完整。
 - **岛屿：**选定的岛屿轮廓采用经审核的海岸线及岛屿几何，保留一般岛屿及不相连的领土部分。
 
 大型行政几何可沿现有多边形组成部分分成多笔面域记录，保留坐标及不相连的部分。

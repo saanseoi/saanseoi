@@ -1,9 +1,9 @@
 # Hong Kong Government Reports Online street-name candidates
 
 HKU Libraries' [Hong Kong Government Reports Online](https://sunzi.lib.hku.hk/hkgro/)
-(HKGRO) supplies digitised scans of the Hong Kong Government Gazette from 1842
-through 1941. The collection has no published annual table of contents for 1849–1852. It
-fills part of the historical gap before the official
+(HKGRO) supplies digitised scans of the Hong Kong Government Gazette from 1842 through 1941.
+The collection has no published annual table of contents for 1849–1852. It fills part of
+the historical gap before the official
 [Hong Kong e-Gazette](../hkgov-gld/egazetteStreetName.md), which starts in 2000; it does
 not cover 1942–1999.
 

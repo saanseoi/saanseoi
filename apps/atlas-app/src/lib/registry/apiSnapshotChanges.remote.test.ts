@@ -60,9 +60,7 @@ beforeEach(() => {
 const { getApiSnapshotChanges } = await import('./apiSnapshotChanges.remote')
 function address(id: string, snapshot: string, hash = snapshot, formatted = snapshot) {
   sqlite
-    .query(
-      'insert into address2d(id,snapshotId,versionHash,granularity) values (?,?,?,?)',
-    )
+    .query('insert into address2d(id,snapshotId,versionHash,scope) values (?,?,?,?)')
     .run(id, snapshot, hash, 'building')
   sqlite
     .query(

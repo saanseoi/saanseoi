@@ -144,3 +144,33 @@ test.each(florists.places.filter(place => /^\d/.test(place.addressCore)))(
     expect(parseAddress(place.googleAddress).numbers).toEqual(numbers)
   },
 )
+
+// Bare street queries use the structured component, even when the full label omits it.
+test('partial street names rank addresses equally with partial building names', () => {
+  const street = {
+    i18n: {
+      en: {
+        meta: null,
+        formattedAddress: 'Wisdom Centre',
+        buildingName: 'Wisdom Centre',
+        streetName: 'Hollywood Road',
+      },
+    },
+  } as Pick<AddressRecord, 'i18n'>
+  const building = record('77', "Queen's Road West", 'Hollywood Centre')
+  expect(scoreAddress(street, 'holly')).toBe(0.8)
+  expect(scoreAddress(street, 'wood')).toBe(0.6)
+  expect(scoreAddress(street, 'Hollywood Road')).toBe(1)
+  expect(scoreAddress(street, 'hollywood')).toBe(scoreAddress(building, 'hollywood'))
+  expect(scoreAddress(street, '35 Hollywood Road')).toBe(0)
+})
+
+test('partial Chinese street names match structured addresses', () => {
+  const address = {
+    i18n: {
+      'zh-hant': { meta: null, formattedAddress: '文武廟', streetName: '荷李活道' },
+    },
+  } as Pick<AddressRecord, 'i18n'>
+  expect(scoreAddress(address, '荷李活')).toBe(0.8)
+  expect(scoreAddress(address, '李活')).toBe(0.6)
+})

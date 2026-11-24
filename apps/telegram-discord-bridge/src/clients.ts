@@ -23,7 +23,8 @@ export class TelegramClient {
     dependencies: ClientDependencies = {},
   ) {
     this.delay = dependencies.delay ?? delay
-    this.fetch = dependencies.fetch ?? fetch
+    // Workers fetch requires the global receiver when stored on a client instance.
+    this.fetch = dependencies.fetch ?? fetch.bind(globalThis)
   }
 
   async request<T>(method: string, body: Record<string, unknown>): Promise<T> {
@@ -63,7 +64,8 @@ export class DiscordClient {
     dependencies: ClientDependencies = {},
   ) {
     this.delay = dependencies.delay ?? delay
-    this.fetch = dependencies.fetch ?? fetch
+    // Workers fetch requires the global receiver when stored on a client instance.
+    this.fetch = dependencies.fetch ?? fetch.bind(globalThis)
   }
 
   async request<T>(path: string): Promise<T> {

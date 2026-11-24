@@ -262,7 +262,7 @@ backfilled throughout retained history, preserving publisher evidence.
 
 Tung Tau (II) Estate Refuse Collection Point is retained at 183 Tung Tau Tsuen Road
 throughout retained releases until revoked. Its facility label does not promote it to
-estate granularity, and publisher assertions remain provenance.
+estate scope, and publisher assertions remain provenance.
 
 Shek Kip Mei Phase 2 retains separate 779-unit inventories for Mei Leong and Mei Wui.
 Its reviewed unnamed 780-unit assertion is suppressed from collections, not deleted from
@@ -408,18 +408,10 @@ finaliser. Canonical content resolves through `addressPublicationState`, and the
 selection retains logical snapshot IDs. Identical finalisations write no search
 documents. Both canonical and search storage reuse unchanged rows across releases.
 
-`attributes.parentAddressId` is the nullable canonical ID of a containing Address,
-available in every API profile. It records explicit containment and is versioned with
-the address. A parent can belong to another selected Address dataset; resolve it within
-the same API release set. A dataset filter can omit the parent from a list response.
-Null means no parent has been established, not that the address has no possible parent.
-
-Uncurated ALS and supplementary materialisation initialise this field to null. An ALS
-derivation base, shared estate name, coordinate or building-number range does not
-establish a parent. Guarded estate curation can establish complex/building/section
-relationships and create explicitly reviewed building parents, without generating
-missing numbered addresses. See the
-[ALS hierarchy review](../sources/hkgov-dpo/address3d-review.md).
+Addresses do not carry physical parentage or premises classifications. Source curation
+retains reviewed parent IDs, bounds, reasons and evidence for the future building/place
+model. The public and canonical Address contracts omit `parentAddressId`, `premisesType`
+and `premisesKind`. See the [content migration](../address-content-migration.md).
 
 ## Grouped unit inventories
 
@@ -464,7 +456,7 @@ the JSON:API `included` array. It can be combined with `include=divisions`; unit
 inclusion is deliberately detail-only, so list and search requests cannot expand one
 page into every unit of many buildings. `GET /addresses/v0.1/{id}/units` remains the
 direct collection endpoint. Direct coverage has established owner membership. An
-explicitly listed section can expose ancestor coverage with unresolved membership: the
+explicitly listed section can expose shared coverage with unresolved membership: the
 units belong to the parent building, not necessarily that section. Containment alone
 never supplies residential coverage.
 
@@ -473,7 +465,10 @@ unit reference includes `address3dId`, `address3dUnitId`, and `address3dMembersh
 Resolve all references within that snapshot. Never display unresolved section membership
 as a verified entrance or partition of the parent's units.
 
-## Granularity
+## Scope
+
+See [the guarded schema and data migration](../address-scope-migration.md) for local
+rehearsal, exact-ID plans and rollout requirements.
 
 A user-confirmed erroneous removal can be restored as a dated premise reconstruction.
 Chun Shek Estate's car park retains its separate identity through seven source
@@ -628,35 +623,34 @@ its building label. Preserve the source identity and point, record identificatio
 evidence, and avoid creating a duplicate derived section. Section identification alone
 does not establish membership of individual units in a combined building inventory.
 
-`attributes.granularity` describes address scope in every API profile, independently of
+`attributes.scope` describes address scope in every API profile, independently of
 validity, verification and Place category. It has no score or universal ordering.
 
-| Value       | Scope                                                                                                                               |
-| ----------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| `unknown`   | The scope is not established.                                                                                                       |
-| `site`      | Whole premises or grounds without an established internal complex structure, such as a standalone yard, work site or sports ground. |
-| `complex`   | An organised development or facility containing constituent premises: an estate, shopping complex, airport or station campus.       |
-| `phase`     | A named development phase.                                                                                                          |
-| `building`  | An individual building or block.                                                                                                    |
-| `section`   | A wing, zone or other named subdivision whose level depends on context.                                                             |
-| `floor`     | A floor or level.                                                                                                                   |
-| `unit`      | A shop, flat, suite, office, stall or other separately identified unit.                                                             |
-| `room`      | An individual room.                                                                                                                 |
-| `room_part` | An identified part of a room.                                                                                                       |
+| Value          | Scope                                                                   |
+| -------------- | ----------------------------------------------------------------------- |
+| `unknown`      | The scope is not established.                                           |
+| `premises`     | Whole grounds or an independently identified development or facility.   |
+| `phase`        | A named development phase.                                              |
+| `building`     | An individual building or block.                                        |
+| `section`      | A wing, zone or other named subdivision whose level depends on context. |
+| `floor`        | A floor or level.                                                       |
+| `unit`         | A shop, flat, suite, office, stall or other separately identified unit. |
+| `unit_portion` | An identified portion of a unit (including a room).                     |
 
-`site` requires positive evidence that the address identifies the whole premises; it is
-not a fallback for an unexplained number. A school with two established constituent
-buildings can be a `complex`, with `building` addresses underneath it. A school name can
-also identify just one building. Countries and districts belong to Division context.
+`scope` describes the specificity of the address designation. It does not establish
+physical containment or coverage of a building. Premises organisation and purpose are
+retained only in curation evidence pending a building/place model. A frontage is a
+physical characteristic, not an inferred address role.
 
 Ingestion classifies corrected components. Recognised building/block descriptors and
-unambiguous building labels suggest `building`; phase components suggest `phase`; an
-estate component without a more specific component suggests `complex`. These are
+unambiguous building labels suggest `building`; phase components suggest `phase`; a
+premises component without a more specific component suggests `premises`, with unknown
+subtype unless a reviewed decision establishes site or complex organisation. These are
 heuristics, even when their input components have been reviewed. Facility names such as
 schools or airports in `buildingName`, ambiguous block descriptors and conflicting
 locale classifications produce `unknown` with a reason for review.
 
-Neither a number nor its inclusion in another address's range establishes granularity or
+Neither a number nor its inclusion in another address's range establishes scope or
 containment. Addresses 134, 136 and 138 may be shops within a building addressed
 134–138; addresses 60 and 62 may be separate school buildings within a campus addressed
 60–62. Review the actual premises before classifying or linking these records.
@@ -732,8 +726,8 @@ Withdrawn building qualifiers, names and frontages remain separate from broadene
 complex or phase assertions; qualified successors remain separate from retained parents.
 Village numbers and phase assertions participate in premise selection, so a shared
 publisher group cannot collapse independently recorded addresses. Complete
-publisher-group hashes bound every inference to the inspected deliveries through
-August 2026. Unsupported withdrawals remain behind the deletion-review gate.
+publisher-group hashes bound every inference to the inspected deliveries through August 2026.
+Unsupported withdrawals remain behind the deletion-review gate.
 
 Beaulieu Peninsula retains its broad parent above 40 separately identified houses, and
 Celestial Heights retains its parent above 34 constituent buildings. Cho Yiu Centre
@@ -816,7 +810,7 @@ building address spans the reviewed 84–90 Tam Kung Road range. These relations
 explicit curation decisions; numeric overlap alone does not establish containment, and
 the source street numbers do not imply a shop-number or floor inventory.
 
-Only the resulting `granularity` is stored, versioned and served by the Address API.
+Only the resulting `scope` is stored, versioned and served by the Address API.
 Operational review metadata belongs in codebase curations. The classifier can produce
 transient review details (method, policy version, fingerprint, rule, evidence and review
 reason) for a reviewer; these are not included in database rows, canonical hashes or API
@@ -863,10 +857,9 @@ user-reviewed 101 Sau Mau Ping Road address and the publisher address as evidenc
 
 Yung Shing retains two valid building-level street addresses with a shared physical
 identity and one 138-unit inventory; alternate addresses do not imply subordinate
-sections. Hin Fat's full 872-unit inventory covers the reviewed releases from
-January 2025. Yip Wong's four houses retain their separate 3,288-unit total from the
-dataset baseline until revoked, with original assertions and actual evidence dates
-preserved.
+sections. Hin Fat's full 872-unit inventory covers the reviewed releases from January 2025.
+Yip Wong's four houses retain their separate 3,288-unit total from the dataset baseline
+until revoked, with original assertions and actual evidence dates preserved.
 
 Yau Lai, Yau Oi and Yue Wan retain their reviewed street-bearing estate complexes. Yau
 Lai's estate membership supplies parent links without resolving or merging Fung Lai and
@@ -875,20 +868,22 @@ exact source guards and retained provenance. Yiu Cheong's three approved flat-me
 families are backfilled throughout retained history; such explicit approvals do not
 broaden the general dated-merger policy.
 
-Reviewed street-bearing estate identities use `complex` granularity independently of
-house inventories. Upper Ngau Tau Kok's 15 On Tak Road complex remains distinct from the
-publisher car-park premise; Upper Wong Tai Sin's approved 8 Wong Tai Sin Road complex
-retains the source's 9 Wong Tai Sin Road assertion as provenance. Both persist until
-revoked. Tsui Heng's explicitly approved incomplete-suffix mergers are backfilled; Youth
-College's campus-label change remains dated to 19 August 2026, without backfill.
+Reviewed street-bearing estate identities use `scope=premises` with
+`premisesType=complex` independently of house inventories. Upper Ngau Tau Kok's 15 On
+Tak Road complex remains distinct from the publisher car-park premise; Upper Wong Tai
+Sin's approved 8 Wong Tai Sin Road complex retains the source's 9 Wong Tai Sin Road
+assertion as provenance. Both persist until revoked. Tsui Heng's explicitly approved
+incomplete-suffix mergers are backfilled; Youth College's campus-label change remains
+dated to 19 August 2026, without backfill.
 
-Reviewed street-bearing estate identities use `complex` granularity independently of
-house identities and inventories. Tai Yuen Estate uses 10 Ting Kok Road and its
-user-reviewed marker; Tin Wan Estate uses 26 Tin Wan Street across retained gaps and
-until revoked. Derived SaanSeoi identities leave publisher GeoAddress and CSU null,
-retaining exact source assertions as provenance. Tsz Fai House's `418` merger and new
-flat `419` begin on 13 August 2025, without historical backfill of `419`. Sun Yee House
-uses its reviewed earlier point throughout retained history.
+Reviewed street-bearing estate identities use `scope=premises` with
+`premisesType=complex` independently of house identities and inventories. Tai Yuen
+Estate uses 10 Ting Kok Road and its user-reviewed marker; Tin Wan Estate uses 26 Tin
+Wan Street across retained gaps and until revoked. Derived SaanSeoi identities leave
+publisher GeoAddress and CSU null, retaining exact source assertions as provenance. Tsz
+Fai House's `418` merger and new flat `419` begin on 13 August 2025, without historical
+backfill of `419`. Sun Yee House uses its reviewed earlier point throughout retained
+history.
 
 The same guarded estate-level promotion applies to Tsui Lam's blockless Pik Lam House
 assertion: it is a complex at 11 Tsui Lam Road using the latest reviewed point across
@@ -901,19 +896,20 @@ Wan Primary School assertions at 3 Tsing Luk Street are instead reconciled as on
 bilingual school identity; the estate-only source assertion remains provenance and is
 not interpreted as a closure.
 
-Reviewed estate corrections preserve address granularity and building ownership. Long
-Shin's `11–12 Yau Shin Street` address belongs to the estate, while each named house
-retains its specific street number and inventory; Shin Leung's missing 313-flat
-inventory is restored for the three affected deliveries. Lin Tsui uses one reviewed
-inventory-bearing identity and named address across historical identifier variants. Lai
-Kok's three affected houses retain separate pre-collapse points until revoked. Discarded
-coordinate and identity assertions remain source provenance.
+Reviewed estate corrections preserve address scope and building ownership. Long Shin's
+`11–12 Yau Shin Street` address belongs to the estate, while each named house retains
+its specific street number and inventory; Shin Leung's missing 313-flat inventory is
+restored for the three affected deliveries. Lin Tsui uses one reviewed inventory-bearing
+identity and named address across historical identifier variants. Lai Kok's three
+affected houses retain separate pre-collapse points until revoked. Discarded coordinate
+and identity assertions remain source provenance.
 
 Shun Lee's estate complex uses 15 Lee On Road and contains the separately located Shun
 Lee Commercial Centre (Phase II) at 6 Shun King Street. Both source points remain
 distinct. Sun Tin Wai's reviewed estate record is reconstructed across retained
-omissions only when no other estate identity exists; its granularity is `complex` and
-the shopping centre remains separate. Raw names and street assertions remain evidence.
+omissions only when no other estate identity exists; its scope is `premises` with
+`premisesType=complex` and the shopping centre remains separate. Raw names and street
+assertions remain evidence.
 
 So Uk's Camellia House uses one curated identity and retains its 374-flat inventory
 until revoked. Sun Fong House uses its approved current point throughout retained
@@ -934,7 +930,7 @@ empty aliases cannot acquire units silently. Model Housing inventories belong to
 house parents across all retained releases, not separately to each street-number
 section.
 
-## Granularity curation
+## Scope curation
 
 ALS pure bilingual flat additions are backfilled under the reviewed omission policy,
 with exact before/after inventory hashes and retained source evidence. Numbered blocks
@@ -943,13 +939,12 @@ dated. Specific flat-label and CSU corrections likewise preserve publisher asser
 Duplicate source records can share one physical inventory without increasing the
 distinct unit count; ambiguous address ownership remains a separate review.
 
-[`address-granularity.json`](../../../fixtures/meta/curations/address-granularity.json)
-provides explicit overrides for ALS and supplementary Addresses. Use the canonical
-Address ID and run `establishAddressGranularity` from
-`libs/core/src/pipeline/services/addresses/granularity.ts` against the corrected
-localised components. Its transient `review.inputFingerprint` identifies that input;
-`addressGranularityFingerprint` computes the same fingerprint directly. Retain the
-reviewed decision, reason and evidence in the fixture's `overrides` array:
+[`address-scope.json`](../../../fixtures/meta/curations/address-scope.json) provides
+explicit overrides for ALS and supplementary Addresses. Use the canonical Address ID and
+run `establishAddressScope` from `libs/core/src/pipeline/services/addresses/scope.ts`
+against the corrected localised components. Its transient `review.inputFingerprint`
+identifies that input; `addressScopeFingerprint` computes the same fingerprint directly.
+Retain the reviewed decision, reason and evidence in the fixture's `overrides` array:
 
 ```json
 {
@@ -957,7 +952,8 @@ reviewed decision, reason and evidence in the fixture's `overrides` array:
   "revision": 1,
   "addressId": "<canonical Address ID>",
   "inputFingerprint": "<fingerprint from the classification>",
-  "granularity": "site",
+  "scope": "premises",
+  "premisesType": "site",
   "reason": "The address identifies the whole yard.",
   "evidence": ["Reviewed site plan and its source reference."],
   "sourceVersionFrom": "2026-09-06.0",
@@ -965,14 +961,14 @@ reviewed decision, reason and evidence in the fixture's `overrides` array:
 }
 ```
 
-An override requires a unique decision ID, positive revision, granularity, reason and
-nonempty evidence. Optional source-version bounds are inclusive; omit them for all
-source versions with that input. Only one override is allowed per Address ID. Every enum
-value, including `unknown`, can be selected explicitly. A changed fingerprint, invalid
-decision or duplicate override stops affected ingestion with `requires review`,
-including unattended runs. Review the evidence before updating its fingerprint and
-revision. Ingestion reports per-chunk classification counts under `addressGranularity`.
-Overrides classify addresses; they do not assign parent links or modify components.
+An override requires a unique decision ID, positive revision, scope, reason and nonempty
+evidence. Optional source-version bounds are inclusive; omit them for all source
+versions with that input. Only one override is allowed per Address ID. Every enum value,
+including `unknown`, can be selected explicitly. A changed fingerprint, invalid decision
+or duplicate override stops affected ingestion with `requires review`, including
+unattended runs. Review the evidence before updating its fingerprint and revision.
+Ingestion reports per-chunk classification counts under `addressScope`. Overrides
+classify addresses; they do not assign parent links or modify components.
 
 See the [Address resource contract](../resourceType/address.md),
 [ALS processing](../internal/hkgov/address.md) and
@@ -1046,8 +1042,8 @@ Division relationships. Publication selects only fields contributed by sources i
 chosen signature and checks their bounded publisher schema ranges.
 
 ALS publisher leaf paths are paired with retained camelCase keys. Address identity,
-geometry, components, granularity and parent relationships include preparation and
-reviewed curation inputs. Supplementary Place addresses reference the captured
+geometry, components, scope and parent relationships include preparation and reviewed
+curation inputs. Supplementary Place addresses reference the captured
 `resolve-place-addresses` rule and the retained address decisions. The supplementary
 snapshot's exact Place release anchor participates in field-rule pinning alongside the
 derived Address release, so the immutable normalisation and resolution definitions that
@@ -1821,8 +1817,8 @@ September 2026 against the bilingual source components, coordinates and complete
 288-unit inventory hash.
 
 Shek Pik Sha Tsui Staff Mess retains its reviewed canonical identity in September 2026:
-its complete publisher record matches August, including the location guarded from
-April 2026. The September guard is explicit.
+its complete publisher record matches August, including the location guarded from April 2026.
+The September guard is explicit.
 
 East Terrace’s reviewed streetless-assertion coalescence covers September 2026. Both 2D
 assertions and both complete 3D source records match August, preserving the named owner
@@ -1954,3 +1950,72 @@ tombstone preservation, stale-page rejection, injected rollback failures, duplic
 rows, searchability and idempotent retries. A remote probe verifies D1 atomic rollback,
 trigger restoration, JSON-bound updates and the FTS swap using isolated preview tables
 that are removed after the probe.
+
+All block descriptors in the contract occur in the current source data. These are
+source-component classifications, not guarantees of building-level scope: `flat`, `unit`
+and `apartment` can appear in the block component. Preserve their expressions and review
+scope independently rather than discarding the values.
+
+### Shared address content and parsing
+
+`@saanseoi/address` (`libs/address`) owns the content contract, scope, unit and floor
+vocabularies, parser and unit formatting shared with HYPE. Harbour's Place matcher
+re-exports the shared implementation. Canonical database IDs, publication envelopes and
+API access remain outside the library. HYPE can retain local authored content while
+matching the canonical Place ID; upstream submission and reconciliation are separate
+future work. Address-scope contract conversion uses the guarded migration runner; it
+does not repair or infer individual address classifications.
+
+## Address subject and physical coverage
+
+A number range and its individual numbers preserve separate designations when the source
+identifies them separately. For an illustrative **12–18 Garden Street**, the range could
+identify one building, several buildings, or a site. Numbers **12**, **14**, **16** and
+**18** could identify shops, building entrances, entire buildings or other premises. The
+numbers alone establish none of those interpretations.
+
+Current scope classification leaves number-only designations unknown. Building names and
+recognised block components can yield a heuristic `scope=building`; that is not verified
+evidence of whole-building coverage. Guarded curation can establish a shop's
+`scope=unit`. Reviewed parent designations remain source curation evidence; they do not
+establish a public address hierarchy, tenancy or physical coverage.
+
+Address usage belongs to an evidenced relationship between a building/place and an
+address. Coverage (`whole`/`part`) and designation role (such as `frontage`) describe
+that relationship, not the intrinsic address. The address content has no `targets`
+array. A future relationship contract must retain both endpoint identities and its
+source/curation evidence. Frontage does not imply partial coverage. This relationship
+contract is not implemented by the premises-purpose vocabulary.
+
+### Premises purpose vocabulary
+
+The purpose vocabulary is retained in `libs/db/src/premises.ts` for source curation and
+the future building/place model. It is not an Address field. Curations and their
+original classifications remain available; no classification is inferred from names.
+
+## Ground-floor canonical references
+
+Canonical ground-floor units use `floorType: G` and an empty `floorRef`. Publisher floor
+tokens remain inputs to stable unit identity, and bilingual floor expressions remain
+source evidence. Correcting the canonical reference recomputes collection content and
+historical version hashes in place, without changing unit IDs, snapshot IDs or dataset
+revisions. The shared free-text parser applies the same separation between named floor
+types and their references.
+
+## Derived partial-name search
+
+Published-search finalisation builds `addressGeocodingFts`, a contentless FTS5 index of
+unique normalised Unicode one-, two- and three-character grams per Address2D locale row.
+Formatted addresses, street names and building/premises names support literal
+partial-name retrieval. A separate building column preserves embedded complete-building
+recall. Exact scoring verifies candidates; these postings are not canonical names,
+aliases or source evidence.
+
+The builder reads published scope rows in bounded rowid pages and writes JSON-bound
+batches. It checks FTS integrity and atomically promotes a staging table only while the
+selected publication tokens remain unchanged. Readiness hashes bind the format, physical
+scope, snapshot and publication token. Missing readiness fails lazy search closed.
+Normal publication finalisation and explicit address-search synchronisation both prepare
+the index. Local reset scripts drop it with the other derived indexes. See
+[geocoding](../../geocoding.md#lazy-address-results) for cursor lifetime, exact filtered
+counts and continuation behaviour.

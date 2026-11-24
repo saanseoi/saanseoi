@@ -394,7 +394,8 @@ INSERT INTO resourceReleases (id, sourceReleaseId, code, resourceType, status, r
 
 async function initSqlite(dbPath: string, migrationsDir: string) {
   const sqlite = new SQLiteDatabase(dbPath)
-  sqlite.exec('PRAGMA foreign_keys = ON;')
+  // These disposable databases do not need durable commits during fixture setup.
+  sqlite.exec('PRAGMA synchronous = OFF; PRAGMA foreign_keys = ON;')
   sqlite.exec(loadMigrationSql(migrationsDir))
   return sqlite
 }

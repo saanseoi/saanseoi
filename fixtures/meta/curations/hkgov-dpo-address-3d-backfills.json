@@ -12,7 +12,7 @@
       "expectedInventoryHash": "dd7c8306d9d183e383cec71780d1ede48979d212fae75be10672118a0df529b9",
       "expectedUnitCount": 313,
       "allowReviewedEmptyPremise": false,
-      "authority": "User decision, 2026-09-07: restore Shin Leung inventory; retain estate street range at estate granularity.",
+      "authority": "User decision, 2026-09-07: restore Shin Leung inventory; retain estate street range at estate scope.",
       "decision": "Restore only the three April publisher inventory omissions at the current named building point; retain raw source evidence.",
       "feature": {
         "type": "Feature",

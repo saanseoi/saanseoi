@@ -1,13 +1,13 @@
 ---
-createdAt: "2026-09-09T00:00:00.000Z"
-updatedAt: "2026-09-09T00:00:00.000Z"
-apiFamily: "places"
-apiVersion: "api-places-v0.1"
-apiReleaseSet: "data-hk-places-2026-04-15.0"
-revision: "0"
-regionCode: "hk"
-cohortKey: "2026-04-15.0"
-domainCode: "overture"
+createdAt: '2026-09-09T00:00:00.000Z'
+updatedAt: '2026-09-09T00:00:00.000Z'
+apiFamily: 'places'
+apiVersion: 'api-places-v0.1'
+apiReleaseSet: 'data-hk-places-2026-04-15.0'
+revision: '0'
+regionCode: 'hk'
+cohortKey: '2026-04-15.0'
+domainCode: 'overture'
 ---
 
 # EN
@@ -56,20 +56,20 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 ## 更新紀錄
 
 - 發布 <black>{{ cohortKey }}</black> 的 Overture Places snapshot。
-- <orange>Upstream</orange>
-  回復 Meta 來源 Place 資料中 3 月意外的 confidence-normalisation 變更。
+- <orange>Upstream</orange> 回復 Meta 來源 Place 資料中 3 月意外的
+  confidence-normalisation 變更。
 - <orange>Upstream</orange> 套用第三方 signal，更新約一千萬個 Place 的 confidence 評分。
 
 ## 修訂紀錄
 
-- `r{{ revision }}` 包含 Place 來源發布，以及由 Places API
-  composition 選取的 Address 及 Division 支援發布。
+- `r{{ revision }}` 包含 Place 來源發布，以及由 Places API composition 選取的 Address 及
+  Division 支援發布。
 
 ## 發布範圍
 
 此不可變的 [release set](saanseoi:zh-hant:definition/release-set/v1) 在
-{{regionName:zh-Hant}}發布 [cohort](saanseoi:zh-hant:definition/cohort/v1)
-<black>{{ cohortKey }}</black> 的 <black>{{ domainCode }}</black>
+{{regionName:zh-Hant}}發布 [cohort](saanseoi:zh-hant:definition/cohort/v1) <black>{{
+cohortKey }}</black> 的 <black>{{ domainCode }}</black>
 [domain](saanseoi:zh-hant:definition/domain/v1)。以下來源發布組成此 release set。
 
 {{apiReleaseSetSources:zh-Hant}}
@@ -85,20 +85,20 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 ## 更新记录
 
 - 发布 <black>{{ cohortKey }}</black> 的 Overture Places snapshot。
-- <orange>Upstream</orange>
-  回退 Meta 来源 Place 数据中 3 月意外的 confidence-normalisation 变更。
+- <orange>Upstream</orange> 回退 Meta 来源 Place 数据中 3 月意外的
+  confidence-normalisation 变更。
 - <orange>Upstream</orange> 应用第三方 signal，更新约一千万个 Place 的 confidence 评分。
 
 ## 修订记录
 
-- `r{{ revision }}` 包含 Place 源发布，以及由 Places API
-  composition 选择的 Address 及 Division 支持发布。
+- `r{{ revision }}` 包含 Place 源发布，以及由 Places API composition 选择的 Address 及
+  Division 支持发布。
 
 ## 发布范围
 
 此不可变的 [release set](saanseoi:zh-hans:definition/release-set/v1) 在
-{{regionName:zh-Hans}}发布 [cohort](saanseoi:zh-hans:definition/cohort/v1)
-<black>{{ cohortKey }}</black> 的 <black>{{ domainCode }}</black>
+{{regionName:zh-Hans}}发布 [cohort](saanseoi:zh-hans:definition/cohort/v1) <black>{{
+cohortKey }}</black> 的 <black>{{ domainCode }}</black>
 [domain](saanseoi:zh-hans:definition/domain/v1)。以下源发布组成此 release set。
 
 {{apiReleaseSetSources:zh-Hans}}

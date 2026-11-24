@@ -159,7 +159,8 @@ export type PreparedHkgovAlsRow = {
   publisherSource?: string | null
   als3dParentBlockEnrichment?: HkgovAls3dParentBlockEnrichment
   parentAddressId?: string
-  curatedGranularity?: 'complex' | 'phase' | 'building' | 'section' | 'unit' | 'unknown'
+  curatedScope?: 'premises' | 'phase' | 'building' | 'section' | 'unit' | 'unknown'
+  curatedPremisesType?: 'site' | 'complex'
   hierarchyCuration?: string
   id: string
   canonicalId: string

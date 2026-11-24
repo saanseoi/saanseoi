@@ -7,6 +7,20 @@ import {
 } from '@repo/core/provenance'
 import type { PlaceIdentityDecision } from '@repo/core/pipeline/services/places/placeIdentity'
 import type { PlaceHistoryState } from './processLocalPlaceSqlUploadTypes'
+import { createHash } from 'node:crypto'
+import type { PlaceIdentityEvidence } from '@repo/core/pipeline/services/places/placeIdentity'
+
+/** Audit partitions repeat candidate evidence; share byte-identical immutable values. */
+export function identityEvidenceInterner() {
+  const values = new Map<string, PlaceIdentityEvidence>()
+  return (value: PlaceIdentityEvidence) => {
+    const key = createHash('sha256').update(JSON.stringify(value)).digest('hex')
+    const existing = values.get(key)
+    if (existing) return existing
+    values.set(key, value)
+    return value
+  }
+}
 
 /** Restore private identity decisions from the exact component owner's retained audit. */
 export async function hydratePlaceIdentityHistory(
@@ -14,6 +28,7 @@ export async function hydratePlaceIdentityHistory(
   states: PlaceHistoryState[],
   read: (ref: ObjectRef) => Promise<unknown>,
 ) {
+  const intern = identityEvidenceInterner()
   const groups = Map.groupBy(states, state =>
     JSON.stringify([state.row.resourceReleaseId, state.row.snapshotId]),
   )
@@ -55,6 +70,9 @@ export async function hydratePlaceIdentityHistory(
     const wanted = new Map(group.map(state => [state.row.id, state]))
     const found = new Set<string>()
     for (let offset = 0; offset < refs.length; offset += 4) {
+      // Parsed audit partitions contain decisions outside this component. Reclaim
+      // those temporary objects before another batch under the managed heap limit.
+      if (offset % 32 === 0) Bun.gc(true)
       const parts = await Promise.all(refs.slice(offset, offset + 4).map(read))
       for (const part of parts) {
         const entries = (part as { entries?: PlaceIdentityDecision[] }).entries
@@ -70,6 +88,9 @@ export async function hydratePlaceIdentityHistory(
           )
             throw new Error(`Invalid retained Place identity ${identity.id}.`)
           state.identity = identity
+          identity.evidence = intern(identity.evidence)
+          for (const candidate of identity.candidates)
+            candidate.evidence = intern(candidate.evidence)
           found.add(identity.id)
         }
       }

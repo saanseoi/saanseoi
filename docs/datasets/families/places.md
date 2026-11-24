@@ -1,5 +1,15 @@
 # Places dataset family
 
+Overture cohort `2026-10-21.0` is accepted with source schema `2.0.0`. Places requires
+the exact Division cohort and produces its supplementary Address output from the same
+Place input. See the
+[October release review](../sources/overture/release-review-2026-10-21.md) for input
+verification and the local rehearsal requirements.
+
+October's physical Place profile requires `id`, `geometry`, `confidence`, `version`,
+`theme` and `type`. The chronological schema transition accepts only the exact reviewed
+profiles; unexpected fields, altered types or incompatible nullability remain errors.
+
 The Overture dataset fixture excludes publisher patch `2026-09-23.1` from
 `saanseoi update`: it does not affect the data ingested by SaanSeoi. The command reports
 the version and reason and keeps eligible releases available for ingestion. See
@@ -225,6 +235,21 @@ maps that scope to its published snapshot. Finalisation compares the complete lo
 text projection, including linked addresses, the selected Address3D unit, streets and
 division names. Only removed or changed documents are deleted, and only new or changed
 documents are inserted. Identical snapshot promotion updates the scope mapping alone.
+
+Text discovery matches literal fragments, including inside names (for example `axim` in
+`Maxim's Cakes`), with AND between query terms. Name and brand matches precede
+address/category matches. Trigram FTS anchors terms of at least three Unicode
+characters; shorter terms use a limited scan of the selected index. Broad queries return
+a bounded sample, not all matches. Source labels retain their punctuation. Name and
+brand search keys fold fullwidth Latin letters and digits to ASCII, so queries can use
+either width. Other Unicode compatibility characters are not folded in indexed text.
+Rebuild the retained index after updating the search-key definition.
+
+The index must use the trigram tokenizer before serving substring queries; otherwise
+search reports `fts_not_ready`. For a retained word-token index, execute
+`libs/db/scripts/sql/upgrade-places-search-trigrams.sql` in one current-database
+transaction or D1 batch. It preserves row IDs, dependency text, scope mappings and
+published records. Fresh publication and repair SQL use the same trigram definition.
 
 Publication finalises Place and supplementary Address search together in one atomic
 current-database batch. Deferred uploads finalise once through release-set
@@ -468,31 +493,31 @@ content while recording the new accepted snapshot's actual change.
 
 ## ZH-HANT
 
-Places 的本地化會獨立處理名稱、品牌名稱及自由格式地址，並保留來源值及腳本衝突證據。公開 Place 使用 PlaceI18n 的
-`freeformAddress`，不提供
+Places 的本地化會獨立處理名稱、品牌名稱及自由格式地址，並保留來源值及腳本衝突證據。公開
+Place 使用 PlaceI18n 的 `freeformAddress`，不提供
 `addresses`。地點名稱、品牌及自由格式地址均不使用機器翻譯；`referenceName`
 是不計入語言覆蓋率的衍生投影。
 
-Places collection endpoint 為
-`GET /places/v0.1`，使用共用 JSON:API 清單格式、release-set 選擇、`page[limit]`、`page[offset]`、permalink，以及
-`basicCategory`、 `taxonomyPrimary`、`operatingStatus`
-和 Division 篩選。`compact`、`default`、`map` 和 `full`
-profile 依序加入一般地點資料、點幾何和審核／來源欄位。H3 儲存格成員仍是 current 索引投影，不是 canonical
-Place 屬性；地圖查詢請使用 `by-cell`。
+Places collection endpoint 為 `GET /places/v0.1`，使用共用 JSON:API
+清單格式、release-set 選擇、`page[limit]`、`page[offset]`、permalink，以及
+`basicCategory`、 `taxonomyPrimary`、`operatingStatus` 和 Division
+篩選。`compact`、`default`、`map` 和 `full` profile
+依序加入一般地點資料、點幾何和審核／來源欄位。H3 儲存格成員仍是 current 索引投影，不是
+canonical Place 屬性；地圖查詢請使用 `by-cell`。
 
 ## ZH-HANS
 
-Places 的本地化会独立处理名称、品牌名称及自由格式地址，并保留源值及脚本冲突证据。公开 Place 使用 PlaceI18n 的
-`freeformAddress`，不提供
+Places 的本地化会独立处理名称、品牌名称及自由格式地址，并保留源值及脚本冲突证据。公开
+Place 使用 PlaceI18n 的 `freeformAddress`，不提供
 `addresses`。地点名称、品牌及自由格式地址均不使用机器翻译；`referenceName`
 是不计入语言覆盖率的派生投影。
 
-Places collection endpoint 为
-`GET /places/v0.1`，使用共用 JSON:API 列表格式、release-set 选择、`page[limit]`、`page[offset]`、permalink，以及
-`basicCategory`、 `taxonomyPrimary`、`operatingStatus`
-和 Division 筛选。`compact`、`default`、`map` 和 `full`
-profile 依次加入一般地点资料、点几何和审核／来源字段。H3 单元格成员仍是 current 索引投影，不是 canonical
-Place 属性；地图查询请使用 `by-cell`。
+Places collection endpoint 为 `GET /places/v0.1`，使用共用 JSON:API
+列表格式、release-set 选择、`page[limit]`、`page[offset]`、permalink，以及
+`basicCategory`、 `taxonomyPrimary`、`operatingStatus` 和 Division
+筛选。`compact`、`default`、`map` 和 `full` profile
+依次加入一般地点资料、点几何和审核／来源字段。H3 单元格成员仍是 current 索引投影，不是
+canonical Place 属性；地图查询请使用 `by-cell`。
 
 ## Publisher source boundary
 
@@ -941,3 +966,89 @@ publisher ID changes. Address dependencies, translation and curation can also ch
 canonical content independently. Mirror consumers should refresh linked canonical IDs
 against a pinned API publication even when no source change is reported. Never treat
 search or H3 latest-publication paging as an immutable export.
+
+October 2026 Hong Kong attribution includes Uberall (412 entries) and OpenTravel (5
+entries). Their explicit upstream mappings and publisher fixtures follow the
+[Overture attribution page](https://docs.overturemaps.org/attribution/); native record
+IDs, licences, update times and property pointers remain retained.
+
+Retained audit fixtures measure array entries individually before partitioning. The size
+check does not serialise the complete unbounded fixture; retained objects keep the same
+canonical bytes, size limit, root metadata and partition ordinals.
+
+Supplementary Address retries recover deletion identities from the exact snapshot’s
+immutable history even while its metadata remains draft. Delivery can complete before
+provenance retention and publication; retaining those deletions reproduces the sealed
+SQL plan’s materialisation hash after the deleted rows leave CURRENT.
+
+Place computation fingerprints include the shared `libs/address/src` parser and content
+implementation. Parser edits invalidate retained normalisation, matching and enrichment
+computations even when the package version is unchanged. Production cache reuse must
+also pass the existing source, curation, geometry and Address dependency checks; copied
+SQL delivery plans are not interchangeable between targets.
+
+Large array cache keys are hashed incrementally using the same JSON bytes. Nested
+arrays, sparse entries and custom JSON representations retain their cache identity.
+
+Identity ledgers stream sorted records and their SHA-256 digest to an exclusive
+temporary file before immutable publication. Existing ledgers are verified by streaming
+their digest, preserving the ledger byte format without buffering the entire document.
+
+Place membership finalisation encodes each identity once for SQLite UTF-8 ordering.
+Bounded deletion predicates preserve retained identities across partition boundaries.
+
+Identity matching evaluates every candidate but retains only the five leading
+explanations and two leading eligible candidates per observation. Every qualifying claim
+contributes to the six leading claimants per predecessor identity, preserving the five
+rivals after excluding the observation itself. These bounds preserve the matching
+threshold, ambiguity margins and deterministic explanation ordering.
+
+Retained audit explanations share byte-identical predecessor evidence in memory; changed
+observations remain distinct. This avoids storing repeated candidate payloads for each
+historical decision while preserving every retained explanation.
+
+Place identity audit verification streams the retained ledger hash and checks each
+record against the sorted decisions. Missing, extra or changed records block retention,
+including a mismatch between empty evidence and a populated ledger.
+
+Once identity evidence is retained, Address preparation keeps only the publisher-to-
+canonical assignment map. Exact predecessor membership supplies prior Address links; the
+all-year fallback history scan is not loaded for that path.
+
+Identity preparation can be reused only for the same normalised-source checksum, scope,
+publisher version, exact predecessor snapshot and computation contract. Both the staged
+records and immutable ledger must pass checksum validation before loading the compact
+assignment map. This cache contains no delivery receipts or publication state.
+
+Identity preparation holds a local advisory lock through cache verification and
+generation. Concurrent attempts fail before replacing shared preparation files.
+
+Regenerable normalised caches use a thirty-day age limit and a 10 GiB size budget, with
+a one-day grace period and sibling `.keep` pins. Writes and pruning share an advisory
+lock. See the local artefact retention policy for maintenance commands and verified
+migration-backup retention.
+
+The local CLI provenance store reclaims temporary encodings between bounded object reads
+and writes. Object hashes and transfer receipts remain unchanged.
+
+Place Address matching reclaims temporary allocations during matcher preparation and
+analysis. Once matching completes, it releases prepared definitions, geometry and
+history lookups before SQL planning and provenance verification.
+
+Place batch decoding, removed-record preparation, candidate validation and provenance
+retention reclaim temporary allocations in bounded groups.
+
+### Exact source-release selection
+
+Use
+`saanseoi update --dataset CODE --source-version 2026-10-21.0 --target local --check-now --download --yes`
+to select the October publisher release explicitly. The same version selection applies
+to production preparation. The updater fails if the requested version is absent from
+discovery and excludes other release versions. Retained native local SQL plans remain
+target-specific; reuse resolved preparation only after validating the destination
+dependencies and generate delivery against its baseline.
+
+Local identity preparation reclaims temporary parsed data between audit and publisher
+record batches while retaining the exact predecessor evidence required for matching. An
+interrupted attempt must be recorded as failed through Harbour's processing lifecycle
+after its worker has stopped before continuation can proceed.

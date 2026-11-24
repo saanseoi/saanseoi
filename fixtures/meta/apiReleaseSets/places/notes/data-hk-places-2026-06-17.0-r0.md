@@ -1,13 +1,13 @@
 ---
-createdAt: "2026-09-09T00:00:00.000Z"
-updatedAt: "2026-09-09T00:00:00.000Z"
-apiFamily: "places"
-apiVersion: "api-places-v0.1"
-apiReleaseSet: "data-hk-places-2026-06-17.0"
-revision: "0"
-regionCode: "hk"
-cohortKey: "2026-06-17.0"
-domainCode: "overture"
+createdAt: '2026-09-09T00:00:00.000Z'
+updatedAt: '2026-09-09T00:00:00.000Z'
+apiFamily: 'places'
+apiVersion: 'api-places-v0.1'
+apiReleaseSet: 'data-hk-places-2026-06-17.0'
+revision: '0'
+regionCode: 'hk'
+cohortKey: '2026-06-17.0'
+domainCode: 'overture'
 ---
 
 # EN
@@ -59,19 +59,19 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 ## 更新紀錄
 
 - 發布 <black>{{ cohortKey }}</black> 的 Overture Places snapshot。
-- <orange>Upstream</orange>
-  移除 feature 國家代碼落在該國邊界外的 Place，最明顯地減少海洋中的 feature。
+- <orange>Upstream</orange> 移除 feature 國家代碼落在該國邊界外的
+  Place，最明顯地減少海洋中的 feature。
 
 ## 修訂紀錄
 
-- `r{{ revision }}` 包含 Place 來源發布，以及由 Places API
-  composition 選取的 Address 及 Division 支援發布。
+- `r{{ revision }}` 包含 Place 來源發布，以及由 Places API composition 選取的 Address 及
+  Division 支援發布。
 
 ## 發布範圍
 
 此不可變的 [release set](saanseoi:zh-hant:definition/release-set/v1) 在
-{{regionName:zh-Hant}}發布 [cohort](saanseoi:zh-hant:definition/cohort/v1)
-<black>{{ cohortKey }}</black> 的 <black>{{ domainCode }}</black>
+{{regionName:zh-Hant}}發布 [cohort](saanseoi:zh-hant:definition/cohort/v1) <black>{{
+cohortKey }}</black> 的 <black>{{ domainCode }}</black>
 [domain](saanseoi:zh-hant:definition/domain/v1)。以下來源發布組成此 release set。
 
 {{apiReleaseSetSources:zh-Hant}}
@@ -80,7 +80,8 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 
 - Operating status 是發布者資料，並非山水對 Place 開放狀態的獨立核實。
 
-- 此上游地理 filter 可在 cohort 之間移除 Place 記錄，卻不會確立 Division 歸屬：山水 Division 關係仍只由已審核的 ALS 連結衍生，絕不由點幾何推斷。
+- 此上游地理 filter 可在 cohort 之間移除 Place 記錄，卻不會確立 Division 歸屬：山水
+  Division 關係仍只由已審核的 ALS 連結衍生，絕不由點幾何推斷。
 - H3 及全文索引是所選 Place snapshot 的衍生 projection。
 
 # ZH-HANS
@@ -88,19 +89,19 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 ## 更新记录
 
 - 发布 <black>{{ cohortKey }}</black> 的 Overture Places snapshot。
-- <orange>Upstream</orange>
-  移除 feature 国家代码落在该国边界外的 Place，最明显地减少海洋中的 feature。
+- <orange>Upstream</orange> 移除 feature 国家代码落在该国边界外的
+  Place，最明显地减少海洋中的 feature。
 
 ## 修订记录
 
-- `r{{ revision }}` 包含 Place 源发布，以及由 Places API
-  composition 选择的 Address 及 Division 支持发布。
+- `r{{ revision }}` 包含 Place 源发布，以及由 Places API composition 选择的 Address 及
+  Division 支持发布。
 
 ## 发布范围
 
 此不可变的 [release set](saanseoi:zh-hans:definition/release-set/v1) 在
-{{regionName:zh-Hans}}发布 [cohort](saanseoi:zh-hans:definition/cohort/v1)
-<black>{{ cohortKey }}</black> 的 <black>{{ domainCode }}</black>
+{{regionName:zh-Hans}}发布 [cohort](saanseoi:zh-hans:definition/cohort/v1) <black>{{
+cohortKey }}</black> 的 <black>{{ domainCode }}</black>
 [domain](saanseoi:zh-hans:definition/domain/v1)。以下源发布组成此 release set。
 
 {{apiReleaseSetSources:zh-Hans}}
@@ -109,5 +110,6 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 
 - Operating status 是发布者数据，并非山水对 Place 开放状态的独立核实。
 
-- 此上游地理 filter 可在 cohort 之间移除 Place 记录，却不确立 Division 归属：山水 Division 关系仍只由已审核的 ALS 链接派生，绝不由点几何推断。
+- 此上游地理 filter 可在 cohort 之间移除 Place 记录，却不确立 Division 归属：山水
+  Division 关系仍只由已审核的 ALS 链接派生，绝不由点几何推断。
 - H3 及全文索引是所选 Place snapshot 的派生 projection。

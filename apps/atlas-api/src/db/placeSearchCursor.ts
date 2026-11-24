@@ -2,6 +2,7 @@ import { z } from 'zod'
 
 const cursorSchema = z.strictObject({
   key: z.string(),
+  phase: z.enum(['names', 'context']),
   rowid: z.number().int().nonnegative(),
 })
 export type PlaceSearchCursor = z.infer<typeof cursorSchema>
@@ -23,14 +24,14 @@ export async function placeSearchKey(value: unknown): Promise<string> {
 /** Validate an opaque continuation before using its bound row identifier.
  * @param value Cursor returned with the preceding page.
  * @param key Current query and publication identity.
- * @returns The next stable scan position.
+ * @returns The next stable name/context scan position.
  * @remarks A changed query or publication requires an explicit fresh search.
  */
 export function readPlaceSearchCursor(
   value: string | undefined,
   key: string,
 ): PlaceSearchCursor {
-  if (!value) return { key, rowid: 0 }
+  if (!value) return { key, phase: 'names', rowid: 0 }
   try {
     const cursor = cursorSchema.parse(JSON.parse(decodeURIComponent(value)))
     if (cursor.key === key) return cursor

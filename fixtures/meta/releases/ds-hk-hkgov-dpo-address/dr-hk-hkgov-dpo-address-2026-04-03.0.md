@@ -1,17 +1,17 @@
 ---
-createdAt: "2026-07-21T00:00:00.000Z"
-updatedAt: "2026-10-18T05:19:12.219Z"
-dataset: "ds-hk-hkgov-dpo-address"
-release: "dr-hk-hkgov-dpo-address-2026-04-03.0"
-regionCode: "hk"
-source: "hkgov-dpo"
-sourceVersion: "2026-04-03.0"
-publisherReleaseDate: "2026-04-03"
-releaseVersion: "2026-04-03.0"
-sourceSchemaVersion: "3.2"
-type: "address"
-cohortKey: "2026-04-03.0"
-releaseNotesUrl: "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=dpo_rcd_1629267205232_33603"
+createdAt: '2026-07-21T00:00:00.000Z'
+updatedAt: '2026-10-18T05:19:12.219Z'
+dataset: 'ds-hk-hkgov-dpo-address'
+release: 'dr-hk-hkgov-dpo-address-2026-04-03.0'
+regionCode: 'hk'
+source: 'hkgov-dpo'
+sourceVersion: '2026-04-03.0'
+publisherReleaseDate: '2026-04-03'
+releaseVersion: '2026-04-03.0'
+sourceSchemaVersion: '3.2'
+type: 'address'
+cohortKey: '2026-04-03.0'
+releaseNotesUrl: 'https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=dpo_rcd_1629267205232_33603'
 ---
 
 # EN
@@ -122,15 +122,20 @@ Fields reorganised for storage, lookup, or API response shaping:
 - <orange>上游</orange> 數字政策辦公室地址查詢服務（ALS）於
   <black>{{publisherReleaseDate}}</black> 交付的二維地區 GeoJSON 資料
 - <orange>上游</orange> 發布者原始 GeoJSON 的大規模座標修訂，解釋了大量地址變更。與
-  `2026-02-04.0`
-  比較，在非座標屬性完全相同且可唯一配對的 177,985 個地址點中，148,990 個（83.7%）的座標不同。所有配對點的網格位移中位數為 1.4 米，95.3% 的位移不超過 10 米。經緯度及發布者的東向／北向座標均已在 SaanSeoi 處理前於上游變更。
-- 其中 141,175 個移動點的新網格位置，與 CSU 識別碼所編碼的位置完全一致。這顯示可能是批量將座標與 CSU 關聯位置對齊，而非統一的地理偏移；尚未確立發布者作此修訂的原因。
-  `2026-04-22.0`
-  交付保留了這批位置：在其餘屬性相同且可唯一配對的 181,951 個點中，只有一個點的座標變更。
+  `2026-02-04.0` 比較，在非座標屬性完全相同且可唯一配對的 177,985 個地址點中，148,990
+  個（83.7%）的座標不同。所有配對點的網格位移中位數為 1.4 米，95.3% 的位移不超過 10
+  米。經緯度及發布者的東向／北向座標均已在 SaanSeoi 處理前於上游變更。
+- 其中 141,175 個移動點的新網格位置，與 CSU
+  識別碼所編碼的位置完全一致。這顯示可能是批量將座標與 CSU
+  關聯位置對齊，而非統一的地理偏移；尚未確立發布者作此修訂的原因。
+  `2026-04-22.0` 交付保留了這批位置：在其餘屬性相同且可唯一配對的 181,951
+  個點中，只有一個點的座標變更。
 
 ## 兼容性
 
-此版本匯入 ALS 的二維地區 GeoJSON 資料。獨立的公共租住房屋三維檔案不屬於此地址資源。每個保留的樓宇地址均表示為點，並關聯至所選取的同年 Overture 區劃 snapshot。
+此版本匯入 ALS 的二維地區 GeoJSON
+資料。獨立的公共租住房屋三維檔案不屬於此地址資源。每個保留的樓宇地址均表示為點，並關聯至所選取的同年
+Overture 區劃 snapshot。
 
 ### 直接保留欄位
 
@@ -153,11 +158,10 @@ Fields reorganised for storage, lookup, or API response shaping:
   <black>buildingName</black>、<black>premisesName</black> 及 <black>streetName</black>
 - 有街道時，`EngStreet`/`ChiStreet` 的 `BuildingNoFrom`/`BuildingNoTo` 會作為
   <black>buildingNumberFrom</black> 及 <black>buildingNumberTo</black>
-- 沒有街道時，`EngVillage`/`ChiVillage` 的 `BuildingNoFrom`/`BuildingNoTo`
-  使用相同的 canonical 欄位；不會建立合成的 <black>streetNumber</black>。
-- 單一門牌號碼亦會作為
-  <black>buildingNumberExpression</black>。ALS 不提供不同 From/To 值之間的標點，因此本版本的
-  <black>buildingNumberConnector</black> 為 null。
+- 沒有街道時，`EngVillage`/`ChiVillage` 的 `BuildingNoFrom`/`BuildingNoTo` 使用相同的
+  canonical 欄位；不會建立合成的 <black>streetNumber</black>。
+- 單一門牌號碼亦會作為 <black>buildingNumberExpression</black>。ALS 不提供不同 From/To
+  值之間的標點，因此本版本的 <black>buildingNumberConnector</black> 為 null。
 - `EngBlock`/`ChiBlock` - 正規化為 <black>blockExpression</black>、canonical
   <black>blockType</black>、<black>blockRef</black> 及
   <black>blockTypeBeforeNumber</black>。已識別的英文類型變體使用
@@ -168,12 +172,12 @@ Fields reorganised for storage, lookup, or API response shaping:
 - `EngPhase`/`ChiPhase` - 正規化為 <black>phaseExpression</black>、
   <black>phaseName</black> 及 <black>phaseRef</black>；期名稱及期數參考保持區分。
 - canonical 門牌 lookup row 不按 locale 區分。來源端點使用
-  <black>source_endpoint</black> 證據，並保留獨立的 <black>numericStem</black>
-  供明確的 partial matching 使用。裸 stem 不是 exact alias：<black>5</black> 不會 exact
-  match <black>5A-5C</black>。
-- 此來源交付沒有二維 connector，因此只產生端點 lookup。共用模型只會在未來來源提供明確 connector 時衍生中間成員；例如
-  <black>5C-5E</black> 可衍生 <black>5D</black>，而 <black>56-60</black>
-  在端點同一奇偶時會衍生交替成員。
+  <black>source_endpoint</black> 證據，並保留獨立的 <black>numericStem</black> 供明確的
+  partial matching 使用。裸 stem 不是 exact alias：<black>5</black> 不會 exact match
+  <black>5A-5C</black>。
+- 此來源交付沒有二維 connector，因此只產生端點 lookup。共用模型只會在未來來源提供明確
+  connector 時衍生中間成員；例如 <black>5C-5E</black> 可衍生 <black>5D</black>，而
+  <black>56-60</black> 在端點同一奇偶時會衍生交替成員。
 
 ### 兼容欄位
 
@@ -202,15 +206,20 @@ Fields reorganised for storage, lookup, or API response shaping:
 - <orange>上游</orange> 数字政策办公室地址查询服务（ALS）于
   <black>{{publisherReleaseDate}}</black> 交付的二维地区 GeoJSON 数据
 - <orange>上游</orange> 发布者原始 GeoJSON 的大规模坐标修订，解释了大量地址变更。与
-  `2026-02-04.0`
-  比较，在非坐标属性完全相同且可唯一配对的 177,985 个地址点中，148,990 个（83.7%）的坐标不同。所有配对点的网格位移中位数为 1.4 米，95.3% 的位移不超过 10 米。经纬度及发布者的东向／北向坐标均已在 SaanSeoi 处理前于上游变更。
-- 其中 141,175 个移动点的新网格位置，与 CSU 标识码所编码的位置完全一致。这显示可能是批量将坐标与 CSU 关联位置对齐，而非统一的地理偏移；尚未确立发布者作此修订的原因。
-  `2026-04-22.0`
-  交付保留了这批位置：在其余属性相同且可唯一配对的 181,951 个点中，只有一个点的坐标变更。
+  `2026-02-04.0` 比较，在非坐标属性完全相同且可唯一配对的 177,985 个地址点中，148,990
+  个（83.7%）的坐标不同。所有配对点的网格位移中位数为 1.4 米，95.3% 的位移不超过 10
+  米。经纬度及发布者的东向／北向坐标均已在 SaanSeoi 处理前于上游变更。
+- 其中 141,175 个移动点的新网格位置，与 CSU
+  标识码所编码的位置完全一致。这显示可能是批量将坐标与 CSU
+  关联位置对齐，而非统一的地理偏移；尚未确立发布者作此修订的原因。
+  `2026-04-22.0` 交付保留了这批位置：在其余属性相同且可唯一配对的 181,951
+  个点中，只有一个点的坐标变更。
 
 ## 兼容性
 
-此版本导入 ALS 的二维地区 GeoJSON 数据。独立的公共租赁房屋三维文件不属于此地址资源。每个保留的楼宇地址均表示为点，并关联至所选取的同年 Overture 区划 snapshot。
+此版本导入 ALS 的二维地区 GeoJSON
+数据。独立的公共租赁房屋三维文件不属于此地址资源。每个保留的楼宇地址均表示为点，并关联至所选取的同年
+Overture 区划 snapshot。
 
 ### 直接保留字段
 
@@ -233,11 +242,10 @@ Fields reorganised for storage, lookup, or API response shaping:
   <black>buildingName</black>、<black>premisesName</black> 及 <black>streetName</black>
 - 有街道时，`EngStreet`/`ChiStreet` 的 `BuildingNoFrom`/`BuildingNoTo` 会作为
   <black>buildingNumberFrom</black> 及 <black>buildingNumberTo</black>
-- 没有街道时，`EngVillage`/`ChiVillage` 的 `BuildingNoFrom`/`BuildingNoTo`
-  使用相同的 canonical 字段；不会建立合成的 <black>streetNumber</black>。
-- 单一门牌号码亦会作为
-  <black>buildingNumberExpression</black>。ALS 不提供不同 From/To 值之间的标点，因此本版本的
-  <black>buildingNumberConnector</black> 为 null。
+- 没有街道时，`EngVillage`/`ChiVillage` 的 `BuildingNoFrom`/`BuildingNoTo` 使用相同的
+  canonical 字段；不会建立合成的 <black>streetNumber</black>。
+- 单一门牌号码亦会作为 <black>buildingNumberExpression</black>。ALS 不提供不同 From/To
+  值之间的标点，因此本版本的 <black>buildingNumberConnector</black> 为 null。
 - `EngBlock`/`ChiBlock` - 规范化为 <black>blockExpression</black>、canonical
   <black>blockType</black>、<black>blockRef</black> 及
   <black>blockTypeBeforeNumber</black>。已识别的英文类型变体使用
@@ -248,12 +256,12 @@ Fields reorganised for storage, lookup, or API response shaping:
 - `EngPhase`/`ChiPhase` - 规范化为 <black>phaseExpression</black>、
   <black>phaseName</black> 及 <black>phaseRef</black>；期名称及期数参考保持区分。
 - canonical 门牌 lookup row 不按 locale 区分。来源端点使用
-  <black>source_endpoint</black> 证据，并保留独立的 <black>numericStem</black>
-  供明确的 partial matching 使用。裸 stem 不是 exact alias：<black>5</black> 不会 exact
-  match <black>5A-5C</black>。
-- 此源交付没有二维 connector，因此只产生端点 lookup。共用模型只会在未来来源提供明确 connector 时衍生中间成员；例如
-  <black>5C-5E</black> 可衍生 <black>5D</black>，而 <black>56-60</black>
-  在端点同一奇偶时会衍生交替成员。
+  <black>source_endpoint</black> 证据，并保留独立的 <black>numericStem</black> 供明确的
+  partial matching 使用。裸 stem 不是 exact alias：<black>5</black> 不会 exact match
+  <black>5A-5C</black>。
+- 此源交付没有二维 connector，因此只产生端点 lookup。共用模型只会在未来来源提供明确
+  connector 时衍生中间成员；例如 <black>5C-5E</black> 可衍生 <black>5D</black>，而
+  <black>56-60</black> 在端点同一奇偶时会衍生交替成员。
 
 ### 兼容字段
 

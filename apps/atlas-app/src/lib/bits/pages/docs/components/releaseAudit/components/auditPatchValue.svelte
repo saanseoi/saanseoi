@@ -20,9 +20,7 @@ async function copy(id: string) {
 }
 </script>
 
-{#snippet render(
-  item: Json,
-)}
+{#snippet render(item: Json)}
   {#if Array.isArray(item)}
     <div class="space-y-1">
       {#each item as child, index}
@@ -45,7 +43,7 @@ async function copy(id: string) {
           <Tooltip.Content
             side="top"
             sideOffset={6}
-            class="z-70 rounded-default border border-border-card/60 bg-background-alt px-3 py-2 text-xs text-foreground shadow-popover"
+            class="rounded-default border-border-card/60 bg-background-alt text-foreground shadow-popover z-70 border px-3 py-2 text-xs"
           >
             {item.division_id}
           </Tooltip.Content>

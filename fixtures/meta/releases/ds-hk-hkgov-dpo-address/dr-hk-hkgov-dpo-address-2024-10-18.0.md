@@ -1,17 +1,17 @@
 ---
-createdAt: "2026-09-09T09:49:55.000Z"
-updatedAt: "2026-09-09T09:49:55.000Z"
-dataset: "ds-hk-hkgov-dpo-address"
-release: "dr-hk-hkgov-dpo-address-2024-10-18.0"
-regionCode: "hk"
-source: "hkgov-dpo"
-sourceVersion: "2024-10-18.0"
-publisherReleaseDate: "2024-10-18"
-releaseVersion: "2024-10-18.0"
-sourceSchemaVersion: "3.2"
-type: "address"
-cohortKey: "2024-10-18.0"
-releaseNotesUrl: "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=dpo_rcd_1629267205232_33603"
+createdAt: '2026-09-09T09:49:55.000Z'
+updatedAt: '2026-09-09T09:49:55.000Z'
+dataset: 'ds-hk-hkgov-dpo-address'
+release: 'dr-hk-hkgov-dpo-address-2024-10-18.0'
+regionCode: 'hk'
+source: 'hkgov-dpo'
+sourceVersion: '2024-10-18.0'
+publisherReleaseDate: '2024-10-18'
+releaseVersion: '2024-10-18.0'
+sourceSchemaVersion: '3.2'
+type: 'address'
+cohortKey: '2024-10-18.0'
+releaseNotesUrl: 'https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=dpo_rcd_1629267205232_33603'
 ---
 
 # EN
@@ -160,16 +160,14 @@ schema（`{{sourceSchemaVersion}}`），我們在以下方面有所偏離。獨�
 
 保留來源資料完整範圍並加以補充的欄位：
 
-- `sources` -
-  [Sources](/docs#models/Sources) - 來源鏈、輸入檔案 metadata 及樓宇地址正規化證據包裹於
-  <black>hkgovAls</black> key 之下
+- `sources` - [Sources](/docs#models/Sources) - 來源鏈、輸入檔案 metadata
+  及樓宇地址正規化證據包裹於 <black>hkgovAls</black> key 之下
 - `bbox` - [BBox](/docs#models/BBox) - 由保留的點幾何衍生
 - `id` - [Id](/docs#models/Id) - 由完整樓宇地址表示衍生的穩定 <black>ss-</black>
   UUIDv5；經審核的身份漂移決定可保留較早身份
-- division 關係 - `country`、`area` 及 `district` 會按所選 Overture division
-  snapshot 解析。模型及 API 已有
-  `town`、`macrohood`、`neighbourhood`、`microhood`、`village` 及 `hamlet`
-  關係，但在可靠的邊界匹配可用前均為 null。
+- division 關係 - `country`、`area` 及 `district` 會按所選 Overture division snapshot
+  解析。模型及 API 已有 `town`、`macrohood`、`neighbourhood`、`microhood`、`village` 及
+  `hamlet` 關係，但在可靠的邊界匹配可用前均為 null。
 
 ### 正規化欄位
 
@@ -180,11 +178,10 @@ schema（`{{sourceSchemaVersion}}`），我們在以下方面有所偏離。獨�
   <black>buildingName</black>、<black>premisesName</black> 及 <black>streetName</black>
 - 有街道時，`EngStreet`/`ChiStreet` 的 `BuildingNoFrom`/`BuildingNoTo` 會作為
   <black>buildingNumberFrom</black> 及 <black>buildingNumberTo</black>
-- 沒有街道時，`EngVillage`/`ChiVillage` 的 `BuildingNoFrom`/`BuildingNoTo`
-  使用相同的 canonical 欄位；不會建立合成的 <black>streetNumber</black>。
-- 單一門牌號碼亦會作為
-  <black>buildingNumberExpression</black>。ALS 不提供不同 From/To 值之間的標點，因此本版本的
-  <black>buildingNumberConnector</black> 為 null。
+- 沒有街道時，`EngVillage`/`ChiVillage` 的 `BuildingNoFrom`/`BuildingNoTo` 使用相同的
+  canonical 欄位；不會建立合成的 <black>streetNumber</black>。
+- 單一門牌號碼亦會作為 <black>buildingNumberExpression</black>。ALS 不提供不同 From/To
+  值之間的標點，因此本版本的 <black>buildingNumberConnector</black> 為 null。
 - `EngBlock`/`ChiBlock` - 正規化為 <black>blockExpression</black>、canonical
   <black>blockType</black>、<black>blockRef</black> 及
   <black>blockTypeBeforeNumber</black>。已識別的英文類型變體使用
@@ -195,19 +192,20 @@ schema（`{{sourceSchemaVersion}}`），我們在以下方面有所偏離。獨�
 - `EngPhase`/`ChiPhase` - 正規化為 <black>phaseExpression</black>、
   <black>phaseName</black> 及 <black>phaseRef</black>；期名稱及期數參考保持區分。
 - canonical 門牌 lookup row 不按 locale 區分。來源端點使用
-  <black>source_endpoint</black> 證據，並保留獨立的 <black>numericStem</black>
-  供明確的 partial matching 使用。裸 stem 不是 exact alias：<black>5</black> 不會 exact
-  match <black>5A-5C</black>。
-- 此來源交付沒有二維 connector，因此只產生端點 lookup。共用模型只會在未來來源提供明確 connector 時衍生中間成員；例如
-  <black>5C-5E</black> 可衍生 <black>5D</black>，而 <black>56-60</black>
-  在端點同一奇偶時會衍生交替成員。
+  <black>source_endpoint</black> 證據，並保留獨立的 <black>numericStem</black> 供明確的
+  partial matching 使用。裸 stem 不是 exact alias：<black>5</black> 不會 exact match
+  <black>5A-5C</black>。
+- 此來源交付沒有二維 connector，因此只產生端點 lookup。共用模型只會在未來來源提供明確
+  connector 時衍生中間成員；例如 <black>5C-5E</black> 可衍生 <black>5D</black>，而
+  <black>56-60</black> 在端點同一奇偶時會衍生交替成員。
 
 ### 兼容欄位
 
 在來源兼容儲存及處理證據中保留的欄位：
 
 - 完整的中英文 <black>PremisesAddress</black> 物件，包括
-  `Region`、district、street、village、estate、phase、block、building 及 location 組成部分
+  `Region`、district、street、village、estate、phase、block、building 及 location
+  組成部分
 - `LocationName` 及 `VillageName` - 保留為來源組成部分，不會複製至 canonical address
   i18n。未來可靠的 village division matching 將提供其 canonical 關係及本地化名稱。
 - 發布者座標、來源檔案、feature index、原始 premise properties、`CsuId` 及 `GeoAddress`
@@ -219,9 +217,8 @@ schema（`{{sourceSchemaVersion}}`），我們在以下方面有所偏離。獨�
 - `Eng3dAddress` 及 `Chi3dAddress` - ALS 僅在啟用 <black>3d</black>
   選項時，為適用的公共租住房屋結果提供樓層及單位資料。它們需要
   [Address3d](/docs#models/Address3d) ingestion，並仍然 <orange>即將推出</orange>。
-- lookup request 及 ranking wrapper，包括 request text、score、validation
-  information 及 suggested-address result container - 它們描述 lookup
-  response，而非交付的 premise
+- lookup request 及 ranking wrapper，包括 request text、score、validation information 及
+  suggested-address result container - 它們描述 lookup response，而非交付的 premise
 - 完全重複的 GeoJSON feature 及經審核的等價 premise representation - 在 release
   preparation 期間合併，來源證據及決定則保留於 processing record
 
@@ -262,16 +259,14 @@ schema（`{{sourceSchemaVersion}}`），我们在以下方面有所偏离。独�
 
 保留源数据完整范围并加以补充的字段：
 
-- `sources` -
-  [Sources](/docs#models/Sources) - 源链、输入文件 metadata 及楼宇地址规范化证据包裹在
-  <black>hkgovAls</black> key 下
+- `sources` - [Sources](/docs#models/Sources) - 源链、输入文件 metadata
+  及楼宇地址规范化证据包裹在 <black>hkgovAls</black> key 下
 - `bbox` - [BBox](/docs#models/BBox) - 由保留的点几何衍生
 - `id` - [Id](/docs#models/Id) - 由完整楼宇地址表示衍生的稳定 <black>ss-</black>
   UUIDv5；经审核的身份漂移决定可保留较早身份
-- division 关系 - `country`、`area` 及 `district` 会按所选 Overture division
-  snapshot 解析。模型及 API 已有
-  `town`、`macrohood`、`neighbourhood`、`microhood`、`village` 及 `hamlet`
-  关系，但在可靠的边界匹配可用前均为 null。
+- division 关系 - `country`、`area` 及 `district` 会按所选 Overture division snapshot
+  解析。模型及 API 已有 `town`、`macrohood`、`neighbourhood`、`microhood`、`village` 及
+  `hamlet` 关系，但在可靠的边界匹配可用前均为 null。
 
 ### 规范化字段
 
@@ -282,11 +277,10 @@ schema（`{{sourceSchemaVersion}}`），我们在以下方面有所偏离。独�
   <black>buildingName</black>、<black>premisesName</black> 及 <black>streetName</black>
 - 有街道时，`EngStreet`/`ChiStreet` 的 `BuildingNoFrom`/`BuildingNoTo` 会作为
   <black>buildingNumberFrom</black> 及 <black>buildingNumberTo</black>
-- 没有街道时，`EngVillage`/`ChiVillage` 的 `BuildingNoFrom`/`BuildingNoTo`
-  使用相同的 canonical 字段；不会建立合成的 <black>streetNumber</black>。
-- 单一门牌号码亦会作为
-  <black>buildingNumberExpression</black>。ALS 不提供不同 From/To 值之间的标点，因此本版本的
-  <black>buildingNumberConnector</black> 为 null。
+- 没有街道时，`EngVillage`/`ChiVillage` 的 `BuildingNoFrom`/`BuildingNoTo` 使用相同的
+  canonical 字段；不会建立合成的 <black>streetNumber</black>。
+- 单一门牌号码亦会作为 <black>buildingNumberExpression</black>。ALS 不提供不同 From/To
+  值之间的标点，因此本版本的 <black>buildingNumberConnector</black> 为 null。
 - `EngBlock`/`ChiBlock` - 规范化为 <black>blockExpression</black>、canonical
   <black>blockType</black>、<black>blockRef</black> 及
   <black>blockTypeBeforeNumber</black>。已识别的英文类型变体使用
@@ -297,19 +291,20 @@ schema（`{{sourceSchemaVersion}}`），我们在以下方面有所偏离。独�
 - `EngPhase`/`ChiPhase` - 规范化为 <black>phaseExpression</black>、
   <black>phaseName</black> 及 <black>phaseRef</black>；期名称及期数参考保持区分。
 - canonical 门牌 lookup row 不按 locale 区分。来源端点使用
-  <black>source_endpoint</black> 证据，并保留独立的 <black>numericStem</black>
-  供明确的 partial matching 使用。裸 stem 不是 exact alias：<black>5</black> 不会 exact
-  match <black>5A-5C</black>。
-- 此源交付没有二维 connector，因此只产生端点 lookup。共用模型只会在未来来源提供明确 connector 时衍生中间成员；例如
-  <black>5C-5E</black> 可衍生 <black>5D</black>，而 <black>56-60</black>
-  在端点同一奇偶时会衍生交替成员。
+  <black>source_endpoint</black> 证据，并保留独立的 <black>numericStem</black> 供明确的
+  partial matching 使用。裸 stem 不是 exact alias：<black>5</black> 不会 exact match
+  <black>5A-5C</black>。
+- 此源交付没有二维 connector，因此只产生端点 lookup。共用模型只会在未来来源提供明确
+  connector 时衍生中间成员；例如 <black>5C-5E</black> 可衍生 <black>5D</black>，而
+  <black>56-60</black> 在端点同一奇偶时会衍生交替成员。
 
 ### 兼容字段
 
 在源兼容存储及处理证据中保留的字段：
 
 - 完整的中英文 <black>PremisesAddress</black> 对象，包括
-  `Region`、district、street、village、estate、phase、block、building 及 location 组成部分
+  `Region`、district、street、village、estate、phase、block、building 及 location
+  组成部分
 - `LocationName` 及 `VillageName` - 保留为源组成部分，不会复制至 canonical address
   i18n。未来可靠的 village division matching 将提供其 canonical 关系及本地化名称。
 - 发布者坐标、源文件、feature index、原始 premise properties、`CsuId` 及 `GeoAddress`
@@ -321,9 +316,8 @@ schema（`{{sourceSchemaVersion}}`），我们在以下方面有所偏离。独�
 - `Eng3dAddress` 及 `Chi3dAddress` - ALS 仅在启用 <black>3d</black>
   选项时，为适用的公共租赁房屋结果提供楼层及单元数据。它们需要
   [Address3d](/docs#models/Address3d) ingestion，并仍然 <orange>即将推出</orange>。
-- lookup request 及 ranking wrapper，包括 request text、score、validation
-  information 及 suggested-address result container - 它们描述 lookup
-  response，而非交付的 premise
+- lookup request 及 ranking wrapper，包括 request text、score、validation information 及
+  suggested-address result container - 它们描述 lookup response，而非交付的 premise
 - 完全重复的 GeoJSON feature 及经审核的等价 premise representation - 在 release
   preparation 期间合并，源证据及决定则保留于 processing record
 

@@ -1,16 +1,16 @@
 ---
-createdAt: "2026-07-06T20:03:10.577Z"
-updatedAt: "2026-07-22T00:00:00.000Z"
-dataset: "ds-hk-overture-place"
-release: "dr-hk-overture-place-2025-10-22.0"
-regionCode: "hk"
-source: "overture"
-sourceVersion: "2025-10-22.0"
-releaseVersion: "2025-10-22.0"
-sourceSchemaVersion: "1.13.0"
-type: "place"
-cohortKey: "2025-10-22.0"
-releaseNotesUrl: "https://docs.overturemaps.org/blog/2025/10/22/release-notes/#places"
+createdAt: '2026-07-06T20:03:10.577Z'
+updatedAt: '2026-07-22T00:00:00.000Z'
+dataset: 'ds-hk-overture-place'
+release: 'dr-hk-overture-place-2025-10-22.0'
+regionCode: 'hk'
+source: 'overture'
+sourceVersion: '2025-10-22.0'
+releaseVersion: '2025-10-22.0'
+sourceSchemaVersion: '1.13.0'
+type: 'place'
+cohortKey: '2025-10-22.0'
+releaseNotesUrl: 'https://docs.overturemaps.org/blog/2025/10/22/release-notes/#places'
 ---
 
 # EN
@@ -117,11 +117,12 @@ under `properties`, where the source record remains available.
 ## 兼容性
 
 山水的 [Place](/docs#models/Place) 在可行範圍內保持與 Overture 的
-[place](https://docs.overturemaps.org/schema/reference/places/place/)
-類型兼容。Place 以具備本地化名稱、發布者分類、聯絡資料，以及可選香港政府地址查詢服務（ALS）背景資料的興趣點表示。當標準模型對香港更有意義時，我們會偏離 Overture
-schema（`{{sourceSchemaVersion}}`）。
+[place](https://docs.overturemaps.org/schema/reference/places/place/) 類型兼容。Place
+以具備本地化名稱、發布者分類、聯絡資料，以及可選香港政府地址查詢服務（ALS）背景資料的興趣點表示。當標準模型對香港更有意義時，我們會偏離
+Overture schema（`{{sourceSchemaVersion}}`）。
 
-完整的發布者斷言會保留在 Overture 來源記錄中，包括已正規化或不會由標準 Place 模型公開的欄位。
+完整的發布者斷言會保留在 Overture 來源記錄中，包括已正規化或不會由標準 Place
+模型公開的欄位。
 
 ### 直接保留欄位
 
@@ -132,8 +133,8 @@ schema（`{{sourceSchemaVersion}}`）。
 - `bbox` - [包圍盒](/docs#models/BBox)
 - `geometry` - [Geometry](/docs#models/Geometry)
 - `operating_status` -
-  [OperationStatus](https://docs.overturemaps.org/schema/reference/places/types/operating_status/) - 在 API 回應中公開為
-  <black>operatingStatus</black>
+  [OperationStatus](https://docs.overturemaps.org/schema/reference/places/types/operating_status/) -
+  在 API 回應中公開為 <black>operatingStatus</black>
 - `confidence` - [ConfidenceScore](/docs#models/ConfidenceScore) - 發布者的信心值
 - `websites` - [Array<HttpUrl>](/docs#models/HttpUrl) - 發布者網站值
 - `socials` - [Array<HttpUrl>](/docs#models/HttpUrl) - 發布者社交平台資料值
@@ -145,7 +146,8 @@ schema（`{{sourceSchemaVersion}}`）。
 包含原始資料完整範圍並加以補充的欄位：
 
 - `sources` - [Sources](/docs#models/Sources)
-  完整的發布者來源歸屬陣列，包括每個來源記錄的 property、dataset、授權、記錄識別碼及其他可用溯源欄位。它會包裹於
+  完整的發布者來源歸屬陣列，包括每個來源記錄的
+  property、dataset、授權、記錄識別碼及其他可用溯源欄位。它會包裹於
   <black>overture</black> key 下，以便與其他資料集融合，同時保留來源歸屬鏈。
 
 ### 正規化欄位
@@ -167,14 +169,15 @@ schema（`{{sourceSchemaVersion}}`）。
   公開。只有在值能與所選 ALS snapshot 配對時才會填入
   <black>address2dId</black>；此版本不會解析
   <black>address3dId</black>。地址下的其他鍵因品質問題而省略。
-- `names` - 按 locale 正規化為
-  [PlaceI18n](/docs#models/PlaceI18n)。每個 locale 的第一個值為標準名稱，其後的值保留為替代名稱及變體；沒有 locale 的值會標記為推斷所得。
+- `names` - 按 locale 正規化為 [PlaceI18n](/docs#models/PlaceI18n)。每個 locale
+  的第一個值為標準名稱，其後的值保留為替代名稱及變體；沒有 locale 的值會標記為推斷所得。
 
 ### 衍生索引及 projection
 
 - 每個 Place 會在 H3 resolution <black>5</black>、<black>7</black> 及 <black>9</black>
   建立索引，供 Places <black>by-cell</black> API 使用
-- 目前 snapshot 會重建全文索引，內容來自本地化名稱、品牌名稱、taxonomy、地址、division 及 street 文字
+- 目前 snapshot 會重建全文索引，內容來自本地化名稱、品牌名稱、taxonomy、地址、division
+  及 street 文字
 
 ### 不公開欄位
 
@@ -202,11 +205,12 @@ schema（`{{sourceSchemaVersion}}`）。
 ## 兼容性
 
 山水的 [Place](/docs#models/Place) 在可行范围内保持与 Overture 的
-[place](https://docs.overturemaps.org/schema/reference/places/place/)
-类型兼容。Place 以具备本地化名称、发布者分类、联系资料，以及可选香港政府地址查询服务（ALS）背景资料的兴趣点表示。当标准模型对香港更有意义时，我们会偏离 Overture
-schema（`{{sourceSchemaVersion}}`）。
+[place](https://docs.overturemaps.org/schema/reference/places/place/) 类型兼容。Place
+以具备本地化名称、发布者分类、联系资料，以及可选香港政府地址查询服务（ALS）背景资料的兴趣点表示。当标准模型对香港更有意义时，我们会偏离
+Overture schema（`{{sourceSchemaVersion}}`）。
 
-完整的发布者断言会保留在 Overture 源记录中，包括已规范化或不会由标准 Place 模型公开的字段。
+完整的发布者断言会保留在 Overture 源记录中，包括已规范化或不会由标准 Place
+模型公开的字段。
 
 ### 直接保留字段
 
@@ -217,8 +221,8 @@ schema（`{{sourceSchemaVersion}}`）。
 - `bbox` - [包围盒](/docs#models/BBox)
 - `geometry` - [Geometry](/docs#models/Geometry)
 - `operating_status` -
-  [OperationStatus](https://docs.overturemaps.org/schema/reference/places/types/operating_status/) - 在 API 响应中公开为
-  <black>operatingStatus</black>
+  [OperationStatus](https://docs.overturemaps.org/schema/reference/places/types/operating_status/) -
+  在 API 响应中公开为 <black>operatingStatus</black>
 - `confidence` - [ConfidenceScore](/docs#models/ConfidenceScore) - 发布者的置信值
 - `websites` - [Array<HttpUrl>](/docs#models/HttpUrl) - 发布者网站值
 - `socials` - [Array<HttpUrl>](/docs#models/HttpUrl) - 发布者社交平台资料值
@@ -229,8 +233,8 @@ schema（`{{sourceSchemaVersion}}`）。
 
 包含原始数据完整范围并加以补充的字段：
 
-- `sources` - [Sources](/docs#models/Sources)
-  完整的发布者来源归属数组，包括每个源记录的 property、dataset、许可、记录标识码及其他可用溯源字段。它会包裹于
+- `sources` - [Sources](/docs#models/Sources) 完整的发布者来源归属数组，包括每个源记录的
+  property、dataset、许可、记录标识码及其他可用溯源字段。它会包裹于
   <black>overture</black> key 下，以便与其他数据集融合，同时保留来源归属链。
 
 ### 规范化字段
@@ -252,14 +256,15 @@ schema（`{{sourceSchemaVersion}}`）。
   公开。只有在值能与所选 ALS snapshot 匹配时才会填入
   <black>address2dId</black>；此版本不会解析
   <black>address3dId</black>。地址下的其他键因质量问题而省略。
-- `names` - 按 locale 规范化为
-  [PlaceI18n](/docs#models/PlaceI18n)。每个 locale 的第一个值为标准名称，其后的值保留为替代名称及变体；没有 locale 的值会标记为推断所得。
+- `names` - 按 locale 规范化为 [PlaceI18n](/docs#models/PlaceI18n)。每个 locale
+  的第一个值为标准名称，其后的值保留为替代名称及变体；没有 locale 的值会标记为推断所得。
 
 ### 衍生索引及 projection
 
 - 每个 Place 会在 H3 resolution <black>5</black>、<black>7</black> 及 <black>9</black>
   建立索引，供 Places <black>by-cell</black> API 使用
-- 当前 snapshot 会重建全文索引，内容来自本地化名称、品牌名称、taxonomy、地址、division 及 street 文本
+- 当前 snapshot 会重建全文索引，内容来自本地化名称、品牌名称、taxonomy、地址、division
+  及 street 文本
 
 ### 不公开字段
 

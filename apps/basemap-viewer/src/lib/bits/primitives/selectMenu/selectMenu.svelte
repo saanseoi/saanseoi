@@ -75,9 +75,7 @@ const badgeTriggerClass =
   {#if icon && tooltip && !buttonLabel}
     <Tooltip.Root>
       <Tooltip.Trigger>
-        {#snippet child({
-          props,
-        })}
+        {#snippet child({ props })}
           <Select.Trigger
             {...props}
             aria-label={ariaLabel}
@@ -104,7 +102,7 @@ const badgeTriggerClass =
       <Icon class={`${iconClass} shrink-0`} name={icon} />
       {#if buttonLabel}
         <span
-          class="font-mono text-[10px] font-semibold uppercase leading-none tracking-[0.02em]"
+          class="font-mono text-[10px] leading-none font-semibold tracking-[0.02em] uppercase"
         >
           {buttonLabel}
         </span>
@@ -159,9 +157,7 @@ const badgeTriggerClass =
             label={item.label}
             value={item.value}
           >
-            {#snippet children({
-              selected,
-            })}
+            {#snippet children({ selected })}
               <span>{item.label}</span>
               {#if selected}
                 <Icon class="size-[15px] text-(--bar-accent)" name="checkmark" />

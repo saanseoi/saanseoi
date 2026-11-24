@@ -1,0 +1,21 @@
+{
+  "name": "building-benchmark",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "bun test src",
+    "check": "tsc --noEmit",
+    "types": "wrangler types",
+    "deploy": "wrangler deploy --cwd ../.. --config apps/building-benchmark/wrangler.jsonc",
+    "build": "bun build.ts"
+  },
+  "dependencies": {
+    "flatgeobuf": "^4.6.1"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "5.20261124.1",
+    "typescript": "^6.0.3",
+    "wrangler": "^4.168.0",
+    "@types/geojson": "^7946.0.16"
+  }
+}

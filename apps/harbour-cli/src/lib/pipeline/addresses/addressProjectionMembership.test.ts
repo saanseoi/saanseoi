@@ -3,7 +3,7 @@ import { expect, test } from 'bun:test'
 import type { AlsMembership } from '../../sources/hkgov/dpo/hkgovAlsMembership.ts'
 import { assertAddressProjectionMembership } from './addressProjectionMembership.ts'
 
-test('the final canonical inventory must match curated identities, parents, owners and units', () => {
+test('the final canonical inventory must match curated identities, collection owners and units', () => {
   const db = new Database(':memory:')
   const address = (id: string, parentId: string | null = null) => ({
     id,
@@ -32,7 +32,7 @@ test('the final canonical inventory must match curated identities, parents, owne
     ],
   }
   try {
-    db.exec(`CREATE TABLE address2d(scopeId TEXT,id TEXT,parentAddressId TEXT,granularity TEXT);
+    db.exec(`CREATE TABLE address2d(scopeId TEXT,id TEXT,parentAddressId TEXT,scope TEXT);
       CREATE TABLE address3d(scopeId TEXT,id TEXT,address2dId TEXT,units TEXT,unresolvedSectionIds TEXT);
       INSERT INTO address2d VALUES('scope','a',NULL,'building'),('scope','b',NULL,'building'),('scope','section','a','building'),('other','unrelated',NULL,'building');
       INSERT INTO address3d VALUES('scope','inventory','a','[{"id":"unit"}]','["section"]');`)
@@ -41,8 +41,7 @@ test('the final canonical inventory must match curated identities, parents, owne
     ).not.toThrow()
     for (const sql of [
       "UPDATE address2d SET id='unexpected' WHERE id='b'",
-      "UPDATE address2d SET parentAddressId='b' WHERE id='section'",
-      "UPDATE address2d SET granularity='site' WHERE id='a'",
+      "UPDATE address2d SET scope='premises' WHERE id='a'",
       "UPDATE address3d SET address2dId='b'",
       `UPDATE address3d SET units='[{"id":"replacement"}]'`,
       `UPDATE address3d SET units='[{"id":"unit"},{"id":"unit"}]'`,

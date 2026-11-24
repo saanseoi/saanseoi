@@ -1,21 +1,21 @@
 ---
-createdAt: "2026-08-19T00:00:00.000Z"
-updatedAt: "2026-10-18T00:00:00.000Z"
-dataset: "ds-hk-hkgov-censtatd-population-households-district"
-release: "dr-hk-hkgov-censtatd-population-households-district-2026-Q2"
-regionCode: "hk"
-source: "hkgov-censtatd"
-sourceVersion: "2026-Q2"
-publicationDate: "2026-03-26"
-publicationDateSource: "https://portal.csdi.gov.hk/geoportal/rest/metadata/item/censtatd_rcd_1635934545173_69201/xml"
+createdAt: '2026-08-19T00:00:00.000Z'
+updatedAt: '2026-10-18T00:00:00.000Z'
+dataset: 'ds-hk-hkgov-censtatd-population-households-district'
+release: 'dr-hk-hkgov-censtatd-population-households-district-2026-Q2'
+regionCode: 'hk'
+source: 'hkgov-censtatd'
+sourceVersion: '2026-Q2'
+publicationDate: '2026-03-26'
+publicationDateSource: 'https://portal.csdi.gov.hk/geoportal/rest/metadata/item/censtatd_rcd_1635934545173_69201/xml'
 publicationDateEstimated: true
-publicationDatePrecision: "day"
-releaseNotesUrl: "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635934545173_69201"
-releaseVersion: "2021.0"
-type: "divisionStatistic"
-cohortKey: "2026-Q2"
-hkgovCenstatdCuration: "fixtures/meta/curations/hkgov-censtatd-statistics/population-households-district.json"
-measureCuration: "fixtures/meta/curations/hkgov-censtatd-statistics-measures/population-households-district.json"
+publicationDatePrecision: 'day'
+releaseNotesUrl: 'https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635934545173_69201'
+releaseVersion: '2021.0'
+type: 'divisionStatistic'
+cohortKey: '2026-Q2'
+hkgovCenstatdCuration: 'fixtures/meta/curations/hkgov-censtatd-statistics/population-households-district.json'
+measureCuration: 'fixtures/meta/curations/hkgov-censtatd-statistics-measures/population-households-district.json'
 ---
 
 # EN
@@ -35,8 +35,8 @@ date of 27 December 2023 belongs to the original offering.
 ## Changelog
 
 - Initial 山水 | SaanSeoi release.
-- <orange>Upstream</orange> Add [C&SD](saanseoi:en:definition/hkgov-censtatd/v1)'s
-  {{ sourceVersion }} Population and Household Statistics by District Council District.
+- <orange>Upstream</orange> Add [C&SD](saanseoi:en:definition/hkgov-censtatd/v1)'s {{
+  sourceVersion }} Population and Household Statistics by District Council District.
 
 ## Versioning
 
@@ -75,19 +75,22 @@ The reviewed mapping below is generated from this release's C&SD
 
 ## 發布日期
 
-此彙編的估計發布日期為
-**2026 年 3 月 26 日**。[官方 CSDI 中繼資料](https://portal.csdi.gov.hk/geoportal/rest/metadata/item/censtatd_rcd_1635934545173_69201/xml)的建立／修訂日與[2025 年統計報告的官方發布日](https://www.info.gov.hk/gia/general/202603/26/P2026032600228.htm)一致。原生套件包含截至 2025 年的年度觀測。2026 年 4 月 22 日的檔案時間、5 月 12 日的中繼資料更新及 2026-Q2 存檔時段均未確認首次發布日。目錄中的 2023 年 12 月 27 日屬於原始資料產品。
+此彙編的估計發布日期為 **2026 年 3 月 26
+日**。[官方 CSDI 中繼資料](https://portal.csdi.gov.hk/geoportal/rest/metadata/item/censtatd_rcd_1635934545173_69201/xml)的建立／修訂日與[2025 年統計報告的官方發布日](https://www.info.gov.hk/gia/general/202603/26/P2026032600228.htm)一致。原生套件包含截至
+2025 年的年度觀測。2026 年 4 月 22 日的檔案時間、5 月 12 日的中繼資料更新及 2026-Q2
+存檔時段均未確認首次發布日。目錄中的 2023 年 12 月 27 日屬於原始資料產品。
 
 ## 變更記錄
 
 - 山水初始版本。
-- <orange>上游</orange> 新增 [C&SD](saanseoi:zh-hant:definition/hkgov-censtatd/v1) 的
-  {{ sourceVersion }}按區議會分區劃分的人口及住戶統計資料。
+- <orange>上游</orange> 新增 [C&SD](saanseoi:zh-hant:definition/hkgov-censtatd/v1) 的 {{
+  sourceVersion }}按區議會分區劃分的人口及住戶統計資料。
 
 ## 版本控制
 
-此發布使用發布者 <black>{{ sourceVersion }}</black>來源彙編，版本為
-<black>{{ releaseVersion }}</black>。觀測保留其標示的參考時段；彙編版本不會把年度 series 合併為單一期間。
+此發布使用發布者 <black>{{ sourceVersion }}</black>來源彙編，版本為 <black>{{
+releaseVersion }}</black>。觀測保留其標示的參考時段；彙編版本不會把年度 series
+合併為單一期間。
 
 ## 相容性
 
@@ -99,7 +102,8 @@ The reviewed mapping below is generated from this release's C&SD
 ### 正規化欄位
 
 每個經審核的來源欄位均成為標準統計觀測，並附有穩定的
-<black>measureCode</black>、統計種類、匯總方式、單位、狀態、參考時段及在地化指標 offering。經審核的區議會分區橋接會附於發布專屬的 series；原始 C&SD 代碼仍是來源證據。
+<black>measureCode</black>、統計種類、匯總方式、單位、狀態、參考時段及在地化指標
+offering。經審核的區議會分區橋接會附於發布專屬的 series；原始 C&SD 代碼仍是來源證據。
 
 ### 指標 offering
 
@@ -119,19 +123,22 @@ The reviewed mapping below is generated from this release's C&SD
 
 ## 发布日期
 
-此汇编的估计发布日期为
-**2026 年 3 月 26 日**。[官方 CSDI 元数据](https://portal.csdi.gov.hk/geoportal/rest/metadata/item/censtatd_rcd_1635934545173_69201/xml)的创建／修订日与[2025 年统计报告的官方发布日期](https://www.info.gov.hk/gia/general/202603/26/P2026032600228.htm)一致。原生套件包含截至 2025 年的年度观测。2026 年 4 月 22 日的文件时间、5 月 12 日的元数据更新及 2026-Q2 存档时段均未确认首次发布日期。目录中的 2023 年 12 月 27 日属于原始数据产品。
+此汇编的估计发布日期为 **2026 年 3 月 26
+日**。[官方 CSDI 元数据](https://portal.csdi.gov.hk/geoportal/rest/metadata/item/censtatd_rcd_1635934545173_69201/xml)的创建／修订日与[2025 年统计报告的官方发布日期](https://www.info.gov.hk/gia/general/202603/26/P2026032600228.htm)一致。原生套件包含截至
+2025 年的年度观测。2026 年 4 月 22 日的文件时间、5 月 12 日的元数据更新及 2026-Q2
+存档时段均未确认首次发布日期。目录中的 2023 年 12 月 27 日属于原始数据产品。
 
 ## 变更记录
 
 - 山水初始版本。
-- <orange>上游</orange> 新增 [C&SD](saanseoi:zh-hans:definition/hkgov-censtatd/v1) 的
-  {{ sourceVersion }}按区议会分区划分的人口及住户统计数据。
+- <orange>上游</orange> 新增 [C&SD](saanseoi:zh-hans:definition/hkgov-censtatd/v1) 的 {{
+  sourceVersion }}按区议会分区划分的人口及住户统计数据。
 
 ## 版本控制
 
-此发布使用发布者 <black>{{ sourceVersion }}</black>来源汇编，版本为
-<black>{{ releaseVersion }}</black>。观测保留其标示的参考时段；汇编版本不会把年度 series 合并为单一期间。
+此发布使用发布者 <black>{{ sourceVersion }}</black>来源汇编，版本为 <black>{{
+releaseVersion }}</black>。观测保留其标示的参考时段；汇编版本不会把年度 series
+合并为单一期间。
 
 ## 兼容性
 
@@ -143,7 +150,8 @@ The reviewed mapping below is generated from this release's C&SD
 ### 规范化字段
 
 每个经审核的来源字段均成为标准统计观测，并附有稳定的
-<black>measureCode</black>、统计种类、汇总方式、单位、状态、参考时段及本地化指标 offering。经审核的区议会分区桥接会附于发布专属的 series；原始 C&SD 代码仍是来源证据。
+<black>measureCode</black>、统计种类、汇总方式、单位、状态、参考时段及本地化指标
+offering。经审核的区议会分区桥接会附于发布专属的 series；原始 C&SD 代码仍是来源证据。
 
 ### 指标 offering
 

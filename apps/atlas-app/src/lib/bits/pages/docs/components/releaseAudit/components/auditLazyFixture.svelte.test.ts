@@ -43,3 +43,50 @@ test('closed fixture groups use search metadata without requesting evidence', as
   await expect.element(screen.getByText('Lazy evidence', { exact: true })).toBeVisible()
   expect(getAuditFixtureGroup).toHaveBeenCalledTimes(1)
 })
+
+test('large fixtures fetch bounded pages and reset pagination for a search', async () => {
+  const load = vi.mocked(getAuditFixtureGroup)
+  load.mockClear()
+  load.mockResolvedValue({ entries: [{ name: 'Paged evidence' }] })
+  const screen = await render(LazyFixture, {
+    resourceReleaseId: 'release',
+    hash: 'hash',
+    bulkId: 'bulk',
+    type: 'entries',
+    query: '',
+    label: 'Partitioned evidence',
+    group: { rows: [], text: null, totalRows: 120, matchingRows: 120 },
+  })
+  expect(load).not.toHaveBeenCalled()
+  await screen.getByText('Partitioned evidence', { exact: false }).click()
+  await expect
+    .element(screen.getByRole('button', { name: 'Next', exact: true }))
+    .toBeVisible()
+  expect(load).toHaveBeenLastCalledWith({
+    resourceReleaseId: 'release',
+    hash: 'hash',
+    bulkId: 'bulk',
+    type: 'entries',
+    q: '',
+    offset: 0,
+  })
+  await screen.getByRole('button', { name: 'Next', exact: true }).click()
+  await expect.poll(() => load.mock.calls.at(-1)?.[0].offset).toBe(50)
+  await screen.rerender({
+    query: 'needle',
+    group: { rows: [], text: null, totalRows: 120, matchingRows: 1 },
+  })
+  await expect
+    .poll(() => load.mock.calls.at(-1)?.[0])
+    .toEqual({
+      resourceReleaseId: 'release',
+      hash: 'hash',
+      bulkId: 'bulk',
+      type: 'entries',
+      q: 'needle',
+      offset: 0,
+    })
+  await expect
+    .element(screen.getByRole('button', { name: 'Next', exact: true }))
+    .toBeDisabled()
+})

@@ -142,7 +142,8 @@ export function normaliseAls3dInventory(
         id,
         unitRef,
         unitType: 'F',
-        floorRef,
+        // Keep publisher tokens in the deterministic identity, separate from display semantics.
+        floorRef: floorType === 'G' ? '' : floorRef,
         floorType,
         unitPortion: null,
       })

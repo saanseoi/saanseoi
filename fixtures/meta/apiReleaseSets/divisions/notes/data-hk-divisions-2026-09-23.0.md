@@ -1,13 +1,13 @@
 ---
-createdAt: "2026-10-11T04:00:00.000Z"
-updatedAt: "2026-10-11T04:00:00.000Z"
-apiFamily: "divisions"
-apiVersion: "api-divisions-v0.1"
-apiReleaseSet: "data-hk-divisions-2026-09-23.0"
-revision: "0"
-regionCode: "hk"
-cohortKey: "2026-09-23.0"
-domainCode: "geographic"
+createdAt: '2026-10-11T04:00:00.000Z'
+updatedAt: '2026-10-11T04:00:00.000Z'
+apiFamily: 'divisions'
+apiVersion: 'api-divisions-v0.1'
+apiReleaseSet: 'data-hk-divisions-2026-09-23.0'
+revision: '0'
+regionCode: 'hk'
+cohortKey: '2026-09-23.0'
+domainCode: 'geographic'
 ---
 
 # EN
@@ -62,8 +62,8 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 
 ## 更新紀錄
 
-- <orange>上游</orange> 使用 Overture
-  `2026-09-23.0`，主要為輕微、漸進式更新；OSM 截止日期為 <black>2026-09-16</black>。
+- <orange>上游</orange> 使用 Overture `2026-09-23.0`，主要為輕微、漸進式更新；OSM
+  截止日期為 <black>2026-09-16</black>。
 - <orange>上游</orange> Overture 公布的全球 GERS 變動率為 Division Area
   **1.29%**、Division Boundary **0.38%**。這些是全球數字，並非香港變動率。
 - <orange>來源</orange> schema
@@ -76,8 +76,8 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 ## 發布範圍
 
 此不可變的 [release set](saanseoi:zh-hant:definition/release-set/v1) 在
-{{regionName:zh-Hant}}發布 [cohort](saanseoi:zh-hant:definition/cohort/v1)
-<black>{{ cohortKey }}</black> 的 <black>{{ domainCode }}</black>
+{{regionName:zh-Hant}}發布 [cohort](saanseoi:zh-hant:definition/cohort/v1) <black>{{
+cohortKey }}</black> 的 <black>{{ domainCode }}</black>
 [domain](saanseoi:zh-hant:definition/domain/v1)。以下來源發布組成此 release set。
 
 {{apiReleaseSetSources:zh-Hant}}
@@ -86,7 +86,8 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 
 - 請參閱[發布範圍表](#source-heading-release-scope)連結的來源發布附註，以了解各發布者特有的資料品質及相容性決定。
 - 不同發布者的面及邊界是分開的選項。它們存在於此發布中，不代表可互換，亦不會合併其幾何。
-- 政府統計處面配套描述 2021 年人口普查地理範圍。請用於該人口普查 cohort，而非視作持續有效的行政邊界。
+- 政府統計處面配套描述 2021 年人口普查地理範圍。請用於該人口普查
+  cohort，而非視作持續有效的行政邊界。
 - Overture <black>boundary</black> 配套只適用於地區級區劃。
 - 不提供稀疏或不適用於香港的 Overture 屬性，包括 `population`、`local_type`
   及地區首府欄位。
@@ -99,8 +100,8 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 
 ## 更新记录
 
-- <orange>上游</orange> 使用 Overture
-  `2026-09-23.0`，主要为轻微、渐进式更新；OSM 截止日期为 <black>2026-09-16</black>。
+- <orange>上游</orange> 使用 Overture `2026-09-23.0`，主要为轻微、渐进式更新；OSM
+  截止日期为 <black>2026-09-16</black>。
 - <orange>上游</orange> Overture 公布的全球 GERS 变动率为 Division Area
   **1.29%**、Division Boundary **0.38%**。这些是全球数字，并非香港变动率。
 - <orange>来源</orange> schema
@@ -113,8 +114,8 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 ## 发布范围
 
 此不可变的 [release set](saanseoi:zh-hans:definition/release-set/v1) 在
-{{regionName:zh-Hans}}发布 [cohort](saanseoi:zh-hans:definition/cohort/v1)
-<black>{{ cohortKey }}</black> 的 <black>{{ domainCode }}</black>
+{{regionName:zh-Hans}}发布 [cohort](saanseoi:zh-hans:definition/cohort/v1) <black>{{
+cohortKey }}</black> 的 <black>{{ domainCode }}</black>
 [domain](saanseoi:zh-hans:definition/domain/v1)。以下来源发布组成此 release set。
 
 {{apiReleaseSetSources:zh-Hans}}
@@ -123,7 +124,8 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 
 - 请参阅[发布范围表](#source-heading-release-scope)链接的来源发布说明，以了解各发布者特有的数据质量及兼容性决定。
 - 不同发布者的面及边界是分开的选项。它们存在于此发布中，不代表可互换，也不会合并其几何。
-- 政府统计处面配套描述 2021 年人口普查地理范围。请用于该人口普查 cohort，而非视作持续有效的行政边界。
+- 政府统计处面配套描述 2021 年人口普查地理范围。请用于该人口普查
+  cohort，而非视作持续有效的行政边界。
 - Overture <black>boundary</black> 配套只适用于地区级区划。
 - 不提供稀疏或不适用于香港的 Overture 属性，包括 `population`、`local_type`
   及地区首府字段。

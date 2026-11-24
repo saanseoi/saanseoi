@@ -1,5 +1,17 @@
 # Overture Places
 
+The explicit source-release mapping accepts `2026-10-21.0` with schema `2.0.0`. The Hong
+Kong Parquet schema has been checked against the accepted field contract; future
+unlisted releases remain blocked pending review. October's publisher assigns operating
+status by majority vote across contributing sources and records provenance under
+`/properties/operating_status`. Global publisher growth and churn do not represent Hong
+Kong's canonical changes; those require the local ingestion comparison.
+
+The physical upload profile `overture-place-v2026-10-21.0` records required `id`,
+`geometry`, `confidence`, `version`, `theme` and `type` fields. Publisher schema `2.0.0`
+and physical Parquet nullability are checked separately. A matching schema version alone
+does not authorise a different physical field contract.
+
 The Overture dataset fixture excludes publisher patch `2026-09-23.1` from
 `saanseoi update`: it does not affect the data ingested by SaanSeoi. The command reports
 the version and reason and keeps eligible releases available for ingestion. See
@@ -189,7 +201,8 @@ brands, taxonomy and retained dependency text resolved during Place preparation.
 Address, unit, Street and Division text therefore follows the exact selected revision in
 both incremental finalisation and a fresh FTS rebuild. Unchanged documents cause no FTS
 writes, including across snapshot promotion. Division names are ordered
-deterministically before aggregation.
+deterministically before aggregation. Name and brand search keys fold fullwidth Latin
+letters and digits to ASCII while retaining the publisher's original labels.
 
 Selected historical Address and Division definitions are replayed in a disposable
 dependency view, including independently owned locale versions. The Address assembly
@@ -630,27 +643,29 @@ logical snapshot mapping.
 
 補充地址使用獨立的 `address/overture-places`
 快照，並在地點資料實體化之前完成。相同的正規化二維地址共用 Address
-ID，但每個地點保留獨立的策展決定。自動接受門檻為 85 分，審核門檻為 30 分，候選領先差距為 20 分；不明確的配對及身分變更必須審核，`--yes`
-不會略過。分區只可來自記錄中的 ALS 基礎地址，沒有基礎地址的補充地址不會連結分區。單位及樓層片段保留為來源證據。
+ID，但每個地點保留獨立的策展決定。自動接受門檻為 85 分，審核門檻為 30 分，候選領先差距為
+20 分；不明確的配對及身分變更必須審核，`--yes` 不會略過。分區只可來自記錄中的 ALS
+基礎地址，沒有基礎地址的補充地址不會連結分區。單位及樓層片段保留為來源證據。
 
 Overture Places 的 `names`、`brand.names` 及地址 `freeform`
 會按腳本獨立解析並保留來源值。未標記漢字在香港資料中通常推斷為
-`zh-hant`；這代表繁體中文腳本，不代表粵語。衝突的語言標籤及來源值會記錄在發布審核動作中，混合腳本不會自行拆分。公開 Place 不再提供
-`addresses`，自由格式地址會放在 PlaceI18n 的
-`freeformAddress`；選定的 ALS 關係仍然獨立且具權威性。地點名稱、品牌及自由格式地址均不使用機器翻譯。
+`zh-hant`；這代表繁體中文腳本，不代表粵語。衝突的語言標籤及來源值會記錄在發布審核動作中，混合腳本不會自行拆分。公開
+Place 不再提供 `addresses`，自由格式地址會放在 PlaceI18n 的 `freeformAddress`；選定的
+ALS 關係仍然獨立且具權威性。地點名稱、品牌及自由格式地址均不使用機器翻譯。
 
 ## ZH-HANS
 
 补充地址使用独立的 `address/overture-places`
 快照，并在地点数据实体化之前完成。相同的规范化二维地址共用 Address
-ID，但每个地点保留独立的策展决定。自动接受门槛为 85 分，审核门槛为 30 分，候选领先差距为 20 分；不明确的匹配及身份变更必须审核，`--yes`
-不会跳过。分区只可来自记录中的 ALS 基础地址，没有基础地址的补充地址不会链接分区。单位及楼层片段保留为来源证据。
+ID，但每个地点保留独立的策展决定。自动接受门槛为 85 分，审核门槛为 30 分，候选领先差距为
+20 分；不明确的匹配及身份变更必须审核，`--yes` 不会跳过。分区只可来自记录中的 ALS
+基础地址，没有基础地址的补充地址不会链接分区。单位及楼层片段保留为来源证据。
 
 Overture Places 的 `names`、`brand.names` 及地址 `freeform`
 会按脚本独立解析并保留源值。未标记汉字在香港资料中通常推断为
-`zh-hant`；这代表繁体中文脚本，不代表粤语。冲突的语言标签及源值会记录在发布审核动作中，混合脚本不会自行拆分。公开 Place 不再提供
-`addresses`，自由格式地址会放在 PlaceI18n 的
-`freeformAddress`；选定的 ALS 关系仍然独立且具权威性。地点名称、品牌及自由格式地址均不使用机器翻译。
+`zh-hant`；这代表繁体中文脚本，不代表粤语。冲突的语言标签及源值会记录在发布审核动作中，混合脚本不会自行拆分。公开
+Place 不再提供 `addresses`，自由格式地址会放在 PlaceI18n 的 `freeformAddress`；选定的
+ALS 关系仍然独立且具权威性。地点名称、品牌及自由格式地址均不使用机器翻译。
 
 ## Publisher source boundary
 
@@ -974,3 +989,89 @@ Supplementary Address change counts are saved on each Address API release set un
 preceding Address API publication's matching variant, including zero churn when both
 publications retain the same supplementary snapshot. Source-release Place churn is
 independent of these Address variant statistics.
+
+October 2026 Hong Kong attribution includes Uberall (412 entries) and OpenTravel (5
+entries). Their explicit upstream mappings and publisher fixtures follow the
+[Overture attribution page](https://docs.overturemaps.org/attribution/); native record
+IDs, licences, update times and property pointers remain retained.
+
+Retained audit fixtures measure array entries individually before partitioning. The size
+check does not serialise the complete unbounded fixture; retained objects keep the same
+canonical bytes, size limit, root metadata and partition ordinals.
+
+Supplementary Address retries recover deletion identities from the exact snapshot’s
+immutable history even while its metadata remains draft. Delivery can complete before
+provenance retention and publication; retaining those deletions reproduces the sealed
+SQL plan’s materialisation hash after the deleted rows leave CURRENT.
+
+Place computation fingerprints include the shared `libs/address/src` parser and content
+implementation. Parser edits invalidate retained normalisation, matching and enrichment
+computations even when the package version is unchanged. Production cache reuse must
+also pass the existing source, curation, geometry and Address dependency checks; copied
+SQL delivery plans are not interchangeable between targets.
+
+Large array cache keys are hashed incrementally using the same JSON bytes. Nested
+arrays, sparse entries and custom JSON representations retain their cache identity.
+
+Identity ledgers stream sorted records and their SHA-256 digest to an exclusive
+temporary file before immutable publication. Existing ledgers are verified by streaming
+their digest, preserving the ledger byte format without buffering the entire document.
+
+Place membership finalisation encodes each identity once for SQLite UTF-8 ordering.
+Bounded deletion predicates preserve retained identities across partition boundaries.
+
+Identity matching evaluates every candidate but retains only the five leading
+explanations and two leading eligible candidates per observation. Every qualifying claim
+contributes to the six leading claimants per predecessor identity, preserving the five
+rivals after excluding the observation itself. These bounds preserve the matching
+threshold, ambiguity margins and deterministic explanation ordering.
+
+Retained audit explanations share byte-identical predecessor evidence in memory; changed
+observations remain distinct. This avoids storing repeated candidate payloads for each
+historical decision while preserving every retained explanation.
+
+Place identity audit verification streams the retained ledger hash and checks each
+record against the sorted decisions. Missing, extra or changed records block retention,
+including a mismatch between empty evidence and a populated ledger.
+
+Once identity evidence is retained, Address preparation keeps only the publisher-to-
+canonical assignment map. Exact predecessor membership supplies prior Address links; the
+all-year fallback history scan is not loaded for that path.
+
+Identity preparation can be reused only for the same normalised-source checksum, scope,
+publisher version, exact predecessor snapshot and computation contract. Both the staged
+records and immutable ledger must pass checksum validation before loading the compact
+assignment map. This cache contains no delivery receipts or publication state.
+
+Identity preparation holds a local advisory lock through cache verification and
+generation. Concurrent attempts fail before replacing shared preparation files.
+
+Regenerable normalised caches use a thirty-day age limit and a 10 GiB size budget, with
+a one-day grace period and sibling `.keep` pins. Writes and pruning share an advisory
+lock. See the local artefact retention policy for maintenance commands and verified
+migration-backup retention.
+
+The local CLI provenance store reclaims temporary encodings between bounded object reads
+and writes. Object hashes and transfer receipts remain unchanged.
+
+Place Address matching reclaims temporary allocations during matcher preparation and
+analysis. Once matching completes, it releases prepared definitions, geometry and
+history lookups before SQL planning and provenance verification.
+
+Place batch decoding, removed-record preparation, candidate validation and provenance
+retention reclaim temporary allocations in bounded groups.
+
+### Exact source-release selection
+
+Use
+`saanseoi update --dataset CODE --source-version 2026-10-21.0 --target local --check-now --download --yes`
+to select the October publisher release explicitly. The same version selection applies
+to production preparation. The updater fails if the requested version is absent from
+discovery and excludes other release versions. Retained native local SQL plans remain
+target-specific; reuse resolved preparation only after validating the destination
+dependencies and generate delivery against its baseline.
+
+Identity preparation explicitly reclaims temporary parsed audit partitions and full
+publisher records between batches. Retained identity evidence and matching decisions
+remain available throughout preparation; the checkpoints reduce temporary heap use under
+the managed local memory limit without changing identity policy.

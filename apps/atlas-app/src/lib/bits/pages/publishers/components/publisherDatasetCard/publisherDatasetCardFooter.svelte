@@ -12,13 +12,13 @@ let { attribution, actions }: Props = $props()
 
 {#if attribution || actions}
   <footer
-    class="border-t border-data-outline-variant/60 bg-white px-6 py-2.5 text-data-on-surface-variant md:px-8 dark:border-white/10 dark:bg-black dark:text-white/70"
+    class="border-data-outline-variant/60 text-data-on-surface-variant border-t bg-white px-6 py-2.5 md:px-8 dark:border-white/10 dark:bg-black dark:text-white/70"
   >
-    <div class="-mx-6 hidden items-center justify-between gap-2 px-6 max-[30rem]:flex">
+    <div class="max-xs:flex -mx-6 hidden items-center justify-between gap-2 px-6">
       {#if attribution}
         <Popover.Root>
           <Popover.Trigger
-            class="-ml-4 inline-flex size-10 shrink-0 items-center justify-center rounded-default text-data-on-surface-variant transition-colors hover:bg-data-surface-container-low hover:text-data-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-data-primary"
+            class="rounded-default text-data-on-surface-variant hover:bg-data-surface-container-low hover:text-data-primary focus-visible:outline-data-primary -ml-4 inline-flex size-10 shrink-0 items-center justify-center transition-colors focus-visible:outline-2 focus-visible:outline-offset-2"
             aria-label="Show copyright notice"
             title="Copyright"
           >
@@ -26,7 +26,7 @@ let { attribution, actions }: Props = $props()
           </Popover.Trigger>
           <Popover.Portal>
             <Popover.Content
-              class="z-70 w-[calc(100vw-3rem)] border border-data-outline-variant/70 bg-white px-6 py-2.5 font-body text-caption leading-5 text-data-on-surface shadow-popover data-[state=closed]:animate-out data-[state=closed]:fade-out data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in data-[state=open]:zoom-in-95 dark:border-white/10 dark:bg-black dark:text-white/80"
+              class="border-data-outline-variant/70 font-body text-caption text-data-on-surface shadow-popover data-[state=closed]:animate-out data-[state=closed]:fade-out data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in data-[state=open]:zoom-in-95 z-70 w-[calc(100vw-3rem)] border bg-white px-6 py-2.5 leading-5 dark:border-white/10 dark:bg-black dark:text-white/80"
               side="top"
               align="start"
               alignOffset={-9}
@@ -44,7 +44,7 @@ let { attribution, actions }: Props = $props()
       {/if}
     </div>
     {#if attribution}
-      <p class="text-center font-body text-caption leading-5 max-[30rem]:hidden">
+      <p class="font-body text-caption max-xs:hidden text-center leading-5">
         {attribution}
       </p>
     {/if}

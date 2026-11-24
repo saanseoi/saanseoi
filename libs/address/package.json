@@ -1,0 +1,45 @@
+{
+  "name": "@saanseoi/address",
+  "version": "0.2.3",
+  "description": "Shared SaanSeoi address content, conservative parsing and unit formatting",
+  "type": "module",
+  "license": "UNLICENSED",
+  "files": [
+    "dist",
+    "README.md",
+    "src"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "bun": "./src/index.ts",
+      "default": "./dist/index.js"
+    },
+    "./content": {
+      "types": "./dist/content.d.ts",
+      "bun": "./src/content.ts",
+      "default": "./dist/content.js"
+    },
+    "./matcher": {
+      "types": "./dist/matcher.d.ts",
+      "bun": "./src/matcher.ts",
+      "default": "./dist/matcher.js"
+    },
+    "./units": {
+      "types": "./dist/units.d.ts",
+      "bun": "./src/units.ts",
+      "default": "./dist/units.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "prepack": "bun run build"
+  },
+  "peerDependencies": {
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.3",
+    "zod": "^4.0.0"
+  }
+}

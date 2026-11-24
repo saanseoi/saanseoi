@@ -118,7 +118,7 @@ test('parent-ID selection includes composite components and honours parent delet
         'history',
       ]),
     )
-    sqlite.exec(`INSERT INTO address2d(id,snapshotId,versionHash,granularity) VALUES('address','root','base','building');
+    sqlite.exec(`INSERT INTO address2d(id,snapshotId,versionHash,scope) VALUES('address','root','base','building');
       INSERT INTO address2dBuildingNumberLookup(addressId,buildingNumber,snapshotId,versionHash,evidence) VALUES('address','12','root','lookup','source_endpoint');
       INSERT INTO address2d(id,snapshotId,operation) VALUES('address','deleted','delete');`)
     const db = drizzle({ client: sqlite, relations: defineRelations(historySchema) })
@@ -161,7 +161,7 @@ test('bulk parent withdrawals clear locales and composite children without reviv
       ]),
     )
     const parent = sqlite.query(
-      "INSERT INTO address2d(id,snapshotId,versionHash,granularity) VALUES(?,'root','base','building')",
+      "INSERT INTO address2d(id,snapshotId,versionHash,scope) VALUES(?,'root','base','building')",
     )
     const locale = sqlite.query(
       "INSERT INTO address2dI18n(addressId,locale,snapshotId,versionHash,formattedAddress) VALUES(?,'en','root','locale','12 Example Road')",
@@ -181,7 +181,7 @@ test('bulk parent withdrawals clear locales and composite children without reviv
         if (index < 1000) deletion.run(id)
       }
       sqlite.exec(
-        "INSERT INTO address2d(id,snapshotId,versionHash,granularity) VALUES('address-0','restored','base','building'); INSERT INTO address2dI18n(addressId,locale,snapshotId,versionHash,formattedAddress) VALUES('address-0','zh-hant','restored','fresh','新地址')",
+        "INSERT INTO address2d(id,snapshotId,versionHash,scope) VALUES('address-0','restored','base','building'); INSERT INTO address2dI18n(addressId,locale,snapshotId,versionHash,formattedAddress) VALUES('address-0','zh-hant','restored','fresh','新地址')",
       )
     })()
     const db = drizzle({ client: sqlite, relations: defineRelations(historySchema) })

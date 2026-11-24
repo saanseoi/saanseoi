@@ -1,18 +1,18 @@
 ---
-createdAt: "2026-07-15T00:00:00.000Z"
-updatedAt: "2026-07-18T00:00:00.000Z"
-dataset: "ds-hk-hkgov-had-division-area-district"
-release: "dr-hk-hkgov-had-division-area-district-2022"
-regionCode: "hk"
-source: "hkgov-had"
-publicationDate: "2022-03-14"
-publicationDateSource: "https://portal.csdi.gov.hk/geoportal/rest/metadata/item/had_rcd_1634523272907_75218/xml"
-sourceVersion: "2022"
-releaseVersion: "2022.0"
-sourceSchemaVersion: "1.2"
-type: "divisionArea"
-cohortKey: "2022"
-releaseNotesUrl: "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=had_rcd_1634523272907_75218"
+createdAt: '2026-07-15T00:00:00.000Z'
+updatedAt: '2026-07-18T00:00:00.000Z'
+dataset: 'ds-hk-hkgov-had-division-area-district'
+release: 'dr-hk-hkgov-had-division-area-district-2022'
+regionCode: 'hk'
+source: 'hkgov-had'
+publicationDate: '2022-03-14'
+publicationDateSource: 'https://portal.csdi.gov.hk/geoportal/rest/metadata/item/had_rcd_1634523272907_75218/xml'
+sourceVersion: '2022'
+releaseVersion: '2022.0'
+sourceSchemaVersion: '1.2'
+type: 'divisionArea'
+cohortKey: '2022'
+releaseNotesUrl: 'https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=had_rcd_1634523272907_75218'
 ---
 
 # EN
@@ -102,8 +102,8 @@ auditability:
 
 ## 生命週期
 
-CSDI 識別引用記錄的發佈日期為 2022 年 3 月 14 日。本發佈保留 2022 年來源 cohort；來源服務回報
-`BEGIN_LIFESPAN = 20160101`，而 `END_LIFESPAN` 為開放值。
+CSDI 識別引用記錄的發佈日期為 2022 年 3 月 14 日。本發佈保留 2022 年來源
+cohort；來源服務回報 `BEGIN_LIFESPAN = 20160101`，而 `END_LIFESPAN` 為開放值。
 
 ## 兼容性
 
@@ -166,8 +166,8 @@ CSDI 識別引用記錄的發佈日期為 2022 年 3 月 14 日。本發佈保�
 
 ## 生命周期
 
-CSDI 识别引用记录的发布日期为 2022 年 3 月 14 日。本发布保留 2022 年来源 cohort；来源服务报告
-`BEGIN_LIFESPAN = 20160101`，而 `END_LIFESPAN` 为开放值。
+CSDI 识别引用记录的发布日期为 2022 年 3 月 14 日。本发布保留 2022 年来源
+cohort；来源服务报告 `BEGIN_LIFESPAN = 20160101`，而 `END_LIFESPAN` 为开放值。
 
 ## 兼容性
 

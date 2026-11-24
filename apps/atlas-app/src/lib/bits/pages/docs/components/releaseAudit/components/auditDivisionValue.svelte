@@ -5,10 +5,7 @@ let { value }: { value: Json } = $props()
 let decoded = $derived(decodeAuditValue(value))
 </script>
 
-{#snippet render(
-  item: Json,
-  depth: number,
-)}
+{#snippet render(item: Json, depth: number)}
   {#if item === null}
     <span class="opacity-40">—</span>
   {:else if Array.isArray(item)}
@@ -37,7 +34,7 @@ let decoded = $derived(decodeAuditValue(value))
       <details>
         <summary class="cursor-pointer text-xs opacity-40">Record details</summary>
         <pre
-          class="mt-2 max-h-64 overflow-auto whitespace-pre-wrap break-all text-xs"
+          class="mt-2 max-h-64 overflow-auto text-xs break-all whitespace-pre-wrap"
         >{JSON.stringify(item, null, 2)}</pre>
       </details>
     </div>
@@ -50,7 +47,7 @@ let decoded = $derived(decodeAuditValue(value))
               {auditLabel(key)}
             </summary>
             <pre
-              class="mt-2 max-h-64 overflow-auto whitespace-pre-wrap break-all text-xs"
+              class="mt-2 max-h-64 overflow-auto text-xs break-all whitespace-pre-wrap"
             >{JSON.stringify(child, null, 2)}</pre>
           </details>
         {:else}
@@ -62,7 +59,7 @@ let decoded = $derived(decodeAuditValue(value))
       {/each}
     </div>
   {:else}
-    <span class="whitespace-pre-wrap wrap-anywhere">{String(item)}</span>
+    <span class="wrap-anywhere whitespace-pre-wrap">{String(item)}</span>
   {/if}
 {/snippet}
 {@render render(decoded, 0)}

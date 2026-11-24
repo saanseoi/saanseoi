@@ -83,6 +83,22 @@
       "publisherCode": "dac",
       "dataset": "dac",
       "publisherReference": "https://docs.overturemaps.org/attribution/"
+    },
+    {
+      "names": [
+        "Uberall"
+      ],
+      "publisherCode": "uberall",
+      "dataset": "uberall",
+      "publisherReference": "https://docs.overturemaps.org/attribution/"
+    },
+    {
+      "names": [
+        "OpenTravel"
+      ],
+      "publisherCode": "opentravel",
+      "dataset": "opentravel",
+      "publisherReference": "https://docs.overturemaps.org/attribution/"
     }
   ],
   "unresolved": []

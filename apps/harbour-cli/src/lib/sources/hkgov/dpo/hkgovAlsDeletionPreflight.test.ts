@@ -101,6 +101,17 @@ test('reparenting enduring units does not imply retirement or whole inventory lo
   expect(report.requiresReview).toBeFalse()
 })
 
+test('whole-premises retirement still requires review with either known or unknown subtype', () => {
+  for (const premisesType of ['site', 'complex', null] as const) {
+    const before = release(),
+      after = release('2024-02-01.0')
+    before.addresses.push({ ...address('grounds', 'premises'), premisesType })
+    const report = buildAlsDeletionReport(before, after)
+    expect(report.requiresReview).toBeTrue()
+    expect(report.groups.premises?.removedCount).toBe(1)
+  }
+})
+
 test('aliases and curated publisher omissions are distinct from canonical retirements', () => {
   const before = release()
   before.addresses.push(address('alias', 'building', 'estate'))
@@ -321,7 +332,7 @@ test('raw unit tokens use captured publisher payload before inventory correction
   ).toEqual(['["1","101"]'])
 })
 
-test('membership uses final canonical granularity and retains publisher-only assertions', async () => {
+test('membership uses final canonical scope and retains publisher-only assertions', async () => {
   const sourceVersion = '2020-01-01.0'
   const sourceFile = 'als_addresses_(test_district).geojson'
   const publisherSources = await captureAlsPublisherSources(
@@ -353,7 +364,8 @@ test('membership uses final canonical granularity and retains publisher-only ass
     zhHantFormattedAddress: '最終屋邨',
     enBuildingName: 'FINAL COMPLEX',
     hierarchyCuration: 'reviewed-complex',
-    curatedGranularity: 'complex',
+    curatedScope: 'premises',
+    curatedPremisesType: 'complex',
     geometry: '{"type":"Point","coordinates":[114.1,22.3]}',
     sources: '[]',
   } as unknown as PreparedHkgovAlsRow
@@ -368,7 +380,8 @@ test('membership uses final canonical granularity and retains publisher-only ass
   expect(manifest.addresses).toMatchObject([
     {
       id: 'canonical',
-      level: 'complex',
+      level: 'premises',
+      premisesType: 'complex',
       en: 'FINAL COMPLEX',
       zhHant: '最終屋邨',
       curations: ['reviewed-complex'],

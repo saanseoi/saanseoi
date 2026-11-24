@@ -146,12 +146,12 @@ test.skipIf(!existsSync(root))(
         const estate = requireDefined(
           koYee.find(r => r.geoAddress === '4290617573T20050430'),
         )
-        expect(estate.curatedGranularity).toBe('complex')
+        expect(estate.curatedScope).toBe('premises')
         expect(estate.enStreetNumberFrom).toBe('28')
         expect(collections.filter(r => r.address2dId === estate.id)).toHaveLength(0)
         for (const house of koYee.filter(r => r !== estate)) {
           expect(house.parentAddressId).toBe(estate.id)
-          expect(house.curatedGranularity).toBe('building')
+          expect(house.curatedScope).toBe('building')
         }
       }
     } finally {

@@ -112,8 +112,7 @@ export async function listReplayedAddressRecords(args: {
         geometry: version.base.geometry,
         identifiers: version.base.identifiers,
         sources: version.base.sources,
-        parentAddressId: version.base.parentAddressId,
-        granularity: version.base.granularity,
+        scope: version.base.scope,
         divisionRelationships: addressDivisionRelationshipsFromDedicatedIds(
           version.base,
         ),

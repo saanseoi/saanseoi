@@ -1,3 +1,4 @@
+import { createAddressSearchStore } from '../../services/geocodingSearchCache'
 import { createRoute, defineOpenAPIRoute, z } from '@hono/zod-openapi'
 import { GeocodingQuerySchema, GeocodingResponseSchema } from '../../schema/geocoding'
 
@@ -34,6 +35,19 @@ export const geocodingRoutes = (
           'Geocoding candidates or division membership, with explicit release identities and resolution evidence.',
         content: { 'application/vnd.api+json': { schema: GeocodingResponseSchema } },
       },
+      410: {
+        description: 'Search session expired; start a new search.',
+        content: {
+          'application/vnd.api+json': {
+            schema: z.object({
+              jsonapi: z.object({ version: z.literal('1.1') }),
+              errors: z.array(
+                z.object({ status: z.string(), code: z.string(), title: z.string() }),
+              ),
+            }),
+          },
+        },
+      },
       503: {
         description: 'A selected publication or compatible companion is unavailable.',
         content: {
@@ -58,7 +72,7 @@ export const geocodingRoutes = (
                   status: z.string(),
                   code: z.string(),
                   title: z.string(),
-                  source: z.object({ parameter: z.string() }),
+                  source: z.object({ parameter: z.string() }).optional(),
                 }),
               ),
             }),
@@ -71,6 +85,9 @@ export const geocodingRoutes = (
     route,
     handler: async c => {
       const result = await geocode({
+        searchStore: c.req.valid('query').paginate
+          ? createAddressSearchStore(caches.default)
+          : undefined,
         currentDb: c.var.currentDb,
         metaDb: c.var.metaDb,
         historyDbsByBinding: c.var.historyDbsByBinding,
@@ -79,6 +96,10 @@ export const geocodingRoutes = (
         apiVersion: version === 'v0.2' ? 'api-divisions-v0.2' : undefined,
         onResolved: attribution => c.set('accessAttribution', attribution),
       })
+      if (result.status === 410)
+        return c.json(result.body, 410, { 'Content-Type': 'application/vnd.api+json' })
+      if (result.status === 422)
+        return c.json(result.body, 422, { 'Content-Type': 'application/vnd.api+json' })
       if (result.status === 503)
         return c.json(result.body, 503, { 'Content-Type': 'application/vnd.api+json' })
       return c.json(result.body, 200, { 'Content-Type': 'application/vnd.api+json' })

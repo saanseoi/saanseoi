@@ -21,12 +21,12 @@
     "test:coverage": "bun test --coverage"
   },
   "devDependencies": {
-    "@types/bun": "1.4.3",
-    "bun-types": "^1.4.3",
+    "@types/bun": "1.4.5",
+    "bun-types": "^1.4.5",
     "drizzle-kit": "1.0.0-rc.5-5935859",
     "typescript": "^6.0.3",
-    "vitest": "^5.0.5",
-    "wrangler": "^4.151.1"
+    "vitest": "^5.1.1",
+    "wrangler": "^4.168.0"
   },
   "dependencies": {
     "@hono/zod-openapi": "^1.6.3",
@@ -34,10 +34,10 @@
     "@repo/core": "workspace:*",
     "@repo/db": "workspace:*",
     "@repo/i18n": "workspace:*",
-    "@scalar/hono-api-reference": "^0.12.13",
-    "@scalar/openapi-to-markdown": "^1.6.0",
+    "@scalar/hono-api-reference": "^0.12.24",
+    "@scalar/openapi-to-markdown": "^1.7.12",
     "drizzle-orm": "1.0.0-rc.5-5935859",
-    "hono": "^4.13.13",
+    "hono": "^4.13.21",
     "zod": "^4.6.7"
   }
 }

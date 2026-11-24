@@ -13,7 +13,7 @@ function fixture() {
       'current',
     ]),
   )
-  db.exec(`INSERT INTO address2d(scopeId,id,divisionSnapshotId,granularity) VALUES ('scope','a','division','old');
+  db.exec(`INSERT INTO address2d(scopeId,id,divisionSnapshotId,scope) VALUES ('scope','a','division','old');
     INSERT INTO addressPublicationState(scopeId,snapshotId,status,publicationToken,preparedAt,createdAt,updatedAt) VALUES ('scope','old','current','old-token','ready','old','old');`)
   const state = () =>
     db
@@ -42,7 +42,7 @@ function fixture() {
   const mutation = Buffer.from(
     JSON.stringify([
       {
-        sql: "UPDATE address2d SET granularity = 'new' WHERE scopeId='scope'",
+        sql: "UPDATE address2d SET scope = 'new' WHERE scopeId='scope'",
         params: [],
       },
     ]),
@@ -68,9 +68,7 @@ test('Address delivery gates reads before mutation and records preparation only 
       preparedAt: null,
     })
     expect(
-      f.db
-        .query("SELECT granularity AS value FROM address2d WHERE scopeId='scope'")
-        .get(),
+      f.db.query("SELECT scope AS value FROM address2d WHERE scopeId='scope'").get(),
     ).toEqual({ value: 'old' })
     f.execute(p.batches[1]!)
     expect(f.state()?.preparedAt).toBeNull()
@@ -99,9 +97,7 @@ test('concurrent and stale Address deliveries cannot mutate or complete another 
     for (const batch of b.batches)
       expect(() => f.execute(batch)).toThrow('integer overflow')
     expect(
-      f.db
-        .query("SELECT granularity AS value FROM address2d WHERE scopeId='scope'")
-        .get(),
+      f.db.query("SELECT scope AS value FROM address2d WHERE scopeId='scope'").get(),
     ).toEqual({ value: 'old' })
     f.execute(a.batches[1]!)
     f.execute(a.batches[2]!)
@@ -122,9 +118,7 @@ test('empty and unchanged Address releases touch only publication metadata', asy
     expect(next.batches).toHaveLength(2)
     for (const batch of next.batches) f.execute(batch)
     expect(
-      f.db
-        .query("SELECT granularity AS value FROM address2d WHERE scopeId='scope'")
-        .get(),
+      f.db.query("SELECT scope AS value FROM address2d WHERE scopeId='scope'").get(),
     ).toEqual({ value: 'old' })
     expect(f.state()).toMatchObject({ snapshotId: 'new', status: 'publishing' })
   } finally {

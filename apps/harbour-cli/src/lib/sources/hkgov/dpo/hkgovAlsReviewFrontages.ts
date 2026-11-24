@@ -77,7 +77,7 @@ function patchReviewedFrontage(
   row.chiPremisesAddressJson = JSON.stringify(zh)
   row.enFormattedAddress = formatEnPremisesAddress(en)
   row.zhHantFormattedAddress = formatZhPremisesAddress(zh)
-  row.curatedGranularity = 'building'
+  row.curatedScope = 'building'
   row.parentAddressId = undefined
   row.hierarchyCuration = JSON.stringify({
     id: decision.id,
@@ -220,7 +220,7 @@ function reconstructFrontages(
   shop.zhHantBuildingName = null
   shop.enFormattedAddress = formatEnPremisesAddress(shopEn)
   shop.zhHantFormattedAddress = formatZhPremisesAddress(shopZh)
-  shop.curatedGranularity = 'unit'
+  shop.curatedScope = 'unit'
   shop.parentAddressId = decision.subpremise.parentId
   shop.hierarchyCuration = JSON.stringify({
     id: decision.subpremise.decisionId,

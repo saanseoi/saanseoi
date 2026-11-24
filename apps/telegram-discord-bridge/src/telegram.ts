@@ -30,7 +30,8 @@ export class TelegramClient {
     dependencies: TelegramClientDependencies = {},
   ) {
     this.delay = dependencies.delay ?? delay
-    this.fetch = dependencies.fetch ?? fetch
+    // Workers fetch requires the global receiver when stored on a client instance.
+    this.fetch = dependencies.fetch ?? fetch.bind(globalThis)
   }
 
   async sendText(

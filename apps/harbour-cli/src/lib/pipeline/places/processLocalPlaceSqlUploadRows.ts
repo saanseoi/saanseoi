@@ -344,8 +344,11 @@ export async function buildPlaceSql(
   }
 
   if (includeRemovedPlaces) {
+    Bun.gc(true)
     const seen = new Set(input.places.map(row => row.place.id))
+    let retired = 0
     for (const previous of previousById.values()) {
+      if (retired++ % 256 === 0) Bun.gc(true)
       const previousId =
         typeof previous.row.id === 'string' ? previous.row.id : String(previous.row.id)
       if (seen.has(previousId)) continue
@@ -394,10 +397,13 @@ export async function buildPlaceSql(
   }
 }
 
-function missingPlaceMembershipPredicates(ids: string[]) {
-  const sorted = [...new Set(ids)].sort((a, b) =>
-    Buffer.compare(Buffer.from(a), Buffer.from(b)),
-  )
+export function missingPlaceMembershipPredicates(ids: string[]) {
+  // SQLite BINARY order is UTF-8 byte order. Encode once per identity rather
+  // than allocating two buffers for every comparison in the full-release sort.
+  const encoded = [...new Set(ids)].map(id => ({ id, bytes: Buffer.from(id) }))
+  const sorted = encoded
+    .sort((a, b) => Buffer.compare(a.bytes, b.bytes))
+    .map(row => row.id)
   if (!sorted.length) return ['1 = 1']
   const predicates: string[] = []
   for (let offset = 0; offset < sorted.length; offset += 96) {
@@ -457,6 +463,12 @@ export async function* buildPlaceSqlBatches(
   const removedHistoryRows = input.historyRows.filter(
     state => !seen.has(String(state.row.id)),
   )
+  onProgress?.({
+    current: processedRows,
+    phase: 'generate',
+    detail: 'finalise removed Place membership',
+  })
+  Bun.gc(true)
   yield await buildPlaceSql(
     { ...input, historyRows: removedHistoryRows, places: [] },
     {

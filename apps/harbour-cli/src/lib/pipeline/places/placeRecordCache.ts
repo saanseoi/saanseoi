@@ -3,8 +3,39 @@ import { createHash } from 'node:crypto'
 import { mkdirSync, readFileSync, readdirSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 
-export const recordCacheKey = (value: unknown) =>
-  createHash('sha256').update(JSON.stringify(value)).digest('hex')
+/** Hash JSON arrays without assembling a release-sized serialised string. */
+export function recordCacheKey(value: unknown) {
+  const hash = createHash('sha256')
+  const active = new Set<unknown[]>()
+  const append = (item: unknown, key?: string) => {
+    if (
+      Array.isArray(item) &&
+      typeof (item as unknown as { toJSON?: unknown }).toJSON !== 'function'
+    ) {
+      if (active.has(item)) throw new TypeError('Circular cache key')
+      active.add(item)
+      hash.update('[')
+      for (let index = 0; index < item.length; index++) {
+        if (index) hash.update(',')
+        append(item[index], String(index))
+      }
+      hash.update(']')
+      active.delete(item)
+      return
+    }
+    if (key === undefined) {
+      hash.update(JSON.stringify(item))
+      return
+    }
+    // Preserve the array index passed to custom toJSON methods.
+    const wrapped = JSON.stringify({ [key]: item })
+    hash.update(
+      wrapped === '{}' ? 'null' : wrapped.slice(JSON.stringify(key).length + 2, -1),
+    )
+  }
+  append(value)
+  return hash.digest('hex')
+}
 
 /** Disposable, target-scoped local computations; never authoritative source data. */
 export class PlaceRecordCache {
@@ -77,12 +108,15 @@ export class PlaceRecordCache {
 }
 
 /** Include implementation and rule changes, including uncommitted local edits. */
-export function placeComputationContract() {
-  const root = resolve(import.meta.dir, '../../../../../..')
-  const files = [
-    ...readdirSync(import.meta.dir)
+export function placeComputationSources(root: string) {
+  const directory = resolve(root, 'apps/harbour-cli/src/lib/pipeline/places')
+  return [
+    ...readdirSync(directory)
       .filter(name => name.endsWith('.ts') && !name.endsWith('.test.ts'))
-      .map(name => resolve(import.meta.dir, name)),
+      .map(name => resolve(directory, name)),
+    ...readdirSync(resolve(root, 'libs/address/src'))
+      .filter(name => name.endsWith('.ts') && !name.endsWith('.test.ts'))
+      .map(name => resolve(root, 'libs/address/src', name)),
     ...[
       'libs/core/src/pipeline/services/places/place.ts',
       'libs/core/src/pipeline/services/places/placeIdentity.ts',
@@ -105,7 +139,13 @@ export function placeComputationContract() {
       resolve(root, `fixtures/meta/processing-rules/assembly/${name}.json`),
     ),
   ]
+}
+
+export function placeComputationContract(
+  root = resolve(import.meta.dir, '../../../../../..'),
+) {
   const hash = createHash('sha256')
-  for (const file of files.sort()) hash.update(file).update(readFileSync(file))
+  for (const file of placeComputationSources(root).sort())
+    hash.update(file).update(readFileSync(file))
   return hash.digest('hex')
 }

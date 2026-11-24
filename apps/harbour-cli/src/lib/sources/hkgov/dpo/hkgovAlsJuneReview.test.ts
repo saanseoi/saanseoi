@@ -89,7 +89,7 @@ test('June reviewed retentions preserve eight identities and reuse the frontage 
   for (const rule of rules) {
     const matches = rows.filter(r => r.id === rule.canonicalId)
     expect(matches, rule.id).toHaveLength(1)
-    expect(matches[0]!.curatedGranularity).toBe(rule.patch.granularity)
+    expect(matches[0]!.curatedScope).toBe(rule.patch.scope)
   }
   expect(rows.filter(r => r.enBuildingName === 'WONG TECK BUILDING')).toHaveLength(2)
 })

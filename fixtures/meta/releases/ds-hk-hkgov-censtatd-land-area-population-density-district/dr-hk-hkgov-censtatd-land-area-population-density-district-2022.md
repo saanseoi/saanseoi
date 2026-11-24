@@ -1,19 +1,19 @@
 ---
-createdAt: "2026-07-27T00:00:00.000Z"
-updatedAt: "2026-07-27T00:00:00.000Z"
-dataset: "ds-hk-hkgov-censtatd-land-area-population-density-district"
-release: "dr-hk-hkgov-censtatd-land-area-population-density-district-2022"
-regionCode: "hk"
-source: "hkgov-censtatd"
-publicationDate: "2023-12-27"
-publicationDateSource: "https://portal.csdi.gov.hk/geoportal/rest/metadata/item/censtatd_rcd_1635934215448_25451/xml"
-sourceVersion: "2022"
-sourceSchemaVersion: "1.0"
-releaseVersion: "2022.0"
-type: "divisionStatistic"
-cohortKey: "2022"
-releaseNotesUrl: "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635934215448_25451"
-measureCuration: "fixtures/meta/curations/hkgov-censtatd-statistics-measures/land-area-population-density-district.json"
+createdAt: '2026-07-27T00:00:00.000Z'
+updatedAt: '2026-07-27T00:00:00.000Z'
+dataset: 'ds-hk-hkgov-censtatd-land-area-population-density-district'
+release: 'dr-hk-hkgov-censtatd-land-area-population-density-district-2022'
+regionCode: 'hk'
+source: 'hkgov-censtatd'
+publicationDate: '2023-12-27'
+publicationDateSource: 'https://portal.csdi.gov.hk/geoportal/rest/metadata/item/censtatd_rcd_1635934215448_25451/xml'
+sourceVersion: '2022'
+sourceSchemaVersion: '1.0'
+releaseVersion: '2022.0'
+type: 'divisionStatistic'
+cohortKey: '2022'
+releaseNotesUrl: 'https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635934215448_25451'
+measureCuration: 'fixtures/meta/curations/hkgov-censtatd-statistics-measures/land-area-population-density-district.json'
 ---
 
 # EN
@@ -21,8 +21,8 @@ measureCuration: "fixtures/meta/curations/hkgov-censtatd-statistics-measures/lan
 ## Changelog
 
 - Initial 山水 | SaanSeoi release
-- <orange>Upstream</orange> Add [C&SD](saanseoi:en:definition/hkgov-censtatd/v1)'s
-  {{ sourceVersion }} District Land Area, Population and Density statistics for all 18
+- <orange>Upstream</orange> Add [C&SD](saanseoi:en:definition/hkgov-censtatd/v1)'s {{
+  sourceVersion }} District Land Area, Population and Density statistics for all 18
   District Council districts.
 
 ## Versioning
@@ -40,8 +40,8 @@ the source's reference year.
 These source fields are renamed for API consistency only; their values and units are
 unchanged in <black>data.attributes.*</black>.
 
-- `PERIOD` - maps to <black>referenceYear</black> and equals
-  <black>{{ sourceVersion }}</black>.
+- `PERIOD` - maps to <black>referenceYear</black> and equals <black>{{ sourceVersion
+  }}</black>.
 - `LA` - maps to <black>landAreaSqKm</black> in square kilometres.
 - `POPN_D` - maps to <black>midYearPopulationDensityPerSqKm</black> in people per square
   kilometre.
@@ -79,15 +79,15 @@ release's C&SD
 ## 變更記錄
 
 - 山水初始版本
-- <orange>上游</orange> 新增 [C&SD](saanseoi:zh-hant:definition/hkgov-censtatd/v1) 的
-  {{ sourceVersion }} 年全港 18 個區議會分區的土地面積、人口及人口密度統計資料。
+- <orange>上游</orange> 新增 [C&SD](saanseoi:zh-hant:definition/hkgov-censtatd/v1) 的 {{
+  sourceVersion }} 年全港 18 個區議會分區的土地面積、人口及人口密度統計資料。
 
 ## 版本控制
 
 本發布衍生自 [CSDI](saanseoi:zh-hant:definition/hkgov-csdi/v1) 歸檔時段
 <black>2023-Q4</black> 中的原生 <black>Density_{{ sourceVersion }}.gml</black>
-圖層。歸檔時段記錄的是發布者套件的歸檔時間，而非來源的發布時間。因此，我們使用
-<black>{{ releaseVersion }}</black> 作為此來源資料集的版本；該版本以來源的參考年份為準。
+圖層。歸檔時段記錄的是發布者套件的歸檔時間，而非來源的發布時間。因此，我們使用 <black>{{
+releaseVersion }}</black> 作為此來源資料集的版本；該版本以來源的參考年份為準。
 
 ## 相容性
 
@@ -96,8 +96,8 @@ release's C&SD
 以下來源欄位僅為 API 一致性而重新命名；其值和單位在 <black>data.attributes.*</black>
 中維持不變。
 
-- `PERIOD` - 對應至 <black>referenceYear</black>，並等於
-  <black>{{ sourceVersion }}</black>。
+- `PERIOD` - 對應至 <black>referenceYear</black>，並等於 <black>{{ sourceVersion
+  }}</black>。
 - `LA` - 對應至 <black>landAreaSqKm</black>，單位為平方公里。
 - `POPN_D` - 對應至
   <black>midYearPopulationDensityPerSqKm</black>，單位為每平方公里人數。
@@ -132,15 +132,15 @@ release's C&SD
 ## 变更记录
 
 - 山水初始版本
-- <orange>上游</orange> 新增 [C&SD](saanseoi:zh-hans:definition/hkgov-censtatd/v1) 的
-  {{ sourceVersion }} 年全港 18 个区议会分区的土地面积、人口及人口密度统计资料。
+- <orange>上游</orange> 新增 [C&SD](saanseoi:zh-hans:definition/hkgov-censtatd/v1) 的 {{
+  sourceVersion }} 年全港 18 个区议会分区的土地面积、人口及人口密度统计资料。
 
 ## 版本控制
 
 本发布衍生自 [CSDI](saanseoi:zh-hans:definition/hkgov-csdi/v1) 归档时段
 <black>2023-Q4</black> 中的原生 <black>Density_{{ sourceVersion }}.gml</black>
-图层。归档时段记录的是发布者套件的归档时间，而非来源的发布时间。因此，我们使用
-<black>{{ releaseVersion }}</black> 作为此来源数据集的版本；该版本以来源的参考年份为准。
+图层。归档时段记录的是发布者套件的归档时间，而非来源的发布时间。因此，我们使用 <black>{{
+releaseVersion }}</black> 作为此来源数据集的版本；该版本以来源的参考年份为准。
 
 ## 兼容性
 
@@ -149,8 +149,8 @@ release's C&SD
 以下来源字段仅为 API 一致性而重新命名；其值和单位在 <black>data.attributes.*</black>
 中保持不变。
 
-- `PERIOD` - 对应至 <black>referenceYear</black>，并等于
-  <black>{{ sourceVersion }}</black>。
+- `PERIOD` - 对应至 <black>referenceYear</black>，并等于 <black>{{ sourceVersion
+  }}</black>。
 - `LA` - 对应至 <black>landAreaSqKm</black>，单位为平方公里。
 - `POPN_D` - 对应至
   <black>midYearPopulationDensityPerSqKm</black>，单位为每平方公里人数。

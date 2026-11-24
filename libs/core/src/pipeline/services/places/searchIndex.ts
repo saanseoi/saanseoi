@@ -1,14 +1,38 @@
 import {
   buildSearchContentSql,
   buildSearchSyncSql,
+  createSearchFtsSql,
   type SearchIndexDefinition,
   type SearchScope,
 } from '../search/incrementalIndex'
+// Keep source text for display and append a punctuation-free key for FTS matching.
+const punctuationSearchSql = (expression: string) => {
+  const punctuation =
+    `!"#$%&'()*+,-./:;<=>?@[\\]^_` +
+    '`' +
+    `{|}~·…“”‘’「」『』（）［］｛｝！？、。，：；＇＂～＿－＋＝＠＃＆％＊／＼｜`
+  // SQLite has no Unicode normalisation function. Fold fullwidth Latin letters and
+  // digits before lowercasing, using only functions also available in D1.
+  const fullwidth = [
+    ...'0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz',
+  ].reduce(
+    (value, character) =>
+      `replace(${value}, '${String.fromCodePoint(character.codePointAt(0)! + 0xfee0)}', '${character}')`,
+    expression,
+  )
+  const normalized = [...punctuation].reduce(
+    (value, character) => `replace(${value}, '${character.replaceAll("'", "''")}', '')`,
+    `lower(CASE WHEN ${expression} GLOB '*[０-９Ａ-Ｚａ-ｚ]*' THEN ${fullwidth} ELSE ${expression} END)`,
+  )
+  return `TRIM(COALESCE(${expression}, '')) || char(31) || TRIM(${normalized})`
+}
+
 export const placeSearchIndex: SearchIndexDefinition = {
   label: 'Place',
   resourceType: 'place',
   domainCode: 'overture',
   table: 'placeSearchFts',
+  tokenizer: 'trigram',
   scopesTable: 'placeSearchScopes',
   retiredTable: 'placesFts',
   fields: [
@@ -23,12 +47,26 @@ export const placeSearchIndex: SearchIndexDefinition = {
     'streetText',
   ],
   unindexed: ['scopeId', 'placeId', 'locale'],
+  afterContentSql: [
+    `CREATE TABLE IF NOT EXISTS placeSearchIdentities (
+      scopeId TEXT NOT NULL, placeId TEXT NOT NULL, ftsRowid INTEGER NOT NULL UNIQUE,
+      PRIMARY KEY (scopeId, placeId, ftsRowid)
+    )`,
+    `DELETE FROM placeSearchIdentities WHERE NOT EXISTS (
+      SELECT 1 FROM placeSearchFts f WHERE f.rowid = placeSearchIdentities.ftsRowid
+        AND f.scopeId = placeSearchIdentities.scopeId AND f.placeId = placeSearchIdentities.placeId
+    )`,
+    `INSERT INTO placeSearchIdentities (scopeId, placeId, ftsRowid)
+      SELECT scopeId, placeId, rowid FROM placeSearchFts WHERE true
+      ON CONFLICT(ftsRowid) DO UPDATE SET scopeId = excluded.scopeId, placeId = excluded.placeId
+      WHERE scopeId IS NOT excluded.scopeId OR placeId IS NOT excluded.placeId`,
+  ],
   selectSql: `SELECT
   s."scopeId" AS "scopeId",
   p."id" AS "placeId",
   pi."locale" AS "locale",
-  TRIM(COALESCE(pi."name", '') || ' ' || COALESCE(pi."nameAlts", '')) AS "nameText",
-  TRIM(COALESCE(pi."brandName", '') || ' ' || COALESCE(pi."brandNameAlts", '')) AS "brandText",
+  ${punctuationSearchSql("COALESCE(pi.\"name\", '') || ' ' || COALESCE(pi.\"nameAlts\", '')")} AS "nameText",
+  ${punctuationSearchSql("COALESCE(pi.\"brandName\", '') || ' ' || COALESCE(pi.\"brandNameAlts\", '')")} AS "brandText",
   TRIM(
     COALESCE(p."basicCategory", '') || ' ' ||
     COALESCE(p."taxonomyPrimary", '') || ' ' ||
@@ -50,3 +88,28 @@ export const buildPlaceSearchSyncSql = (scopes: readonly SearchScope[]) =>
   buildSearchSyncSql(placeSearchIndex, scopes)
 export const buildPlaceSearchContentSql = (selection?: string) =>
   buildSearchContentSql(placeSearchIndex, selection)
+
+/** Upgrade a retained word-token index without changing its publication selection.
+ * @returns Statements to execute together in one transaction or D1 batch.
+ * @remarks This is derived-index maintenance, independent of schema migrations.
+ * Keep row IDs and all dependency text; refresh name and brand search keys.
+ */
+export function buildPlaceSearchTrigramUpgradeSql(): string[] {
+  const columns = placeSearchIndex.fields.join(', ')
+  const temporary = 'placeSearchTrigramUpgrade'
+  const fields = placeSearchIndex.fields
+    .map(field =>
+      field === 'nameText' || field === 'brandText'
+        ? punctuationSearchSql(
+            `CASE WHEN instr(${field}, char(31)) > 0 THEN substr(${field}, 1, instr(${field}, char(31)) - 1) ELSE ${field} END`,
+          )
+        : field,
+    )
+    .join(', ')
+  return [
+    createSearchFtsSql({ ...placeSearchIndex, table: temporary }),
+    `INSERT INTO ${temporary} (rowid, ${columns}) SELECT rowid, ${fields} FROM placeSearchFts`,
+    'DROP TABLE placeSearchFts',
+    `ALTER TABLE ${temporary} RENAME TO placeSearchFts`,
+  ]
+}

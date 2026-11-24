@@ -9,7 +9,7 @@
         "enStreetName": "NELSON STREET",
         "enStreetNumberFrom": "2L"
       },
-      "granularity": "unit",
+      "scope": "unit",
       "provenance": {
         "id": "november-2025-reviewed-shops",
         "curationFile": "hkgov-dpo-address-november-2025-reviewed-retentions.json",
@@ -24,7 +24,7 @@
         "enStreetName": "NELSON STREET",
         "enStreetNumberFrom": "2M"
       },
-      "granularity": "unit",
+      "scope": "unit",
       "provenance": {
         "id": "november-2025-reviewed-shops",
         "curationFile": "hkgov-dpo-address-november-2025-reviewed-retentions.json",
@@ -39,7 +39,7 @@
         "enStreetName": "THISTLE STREET",
         "enStreetNumberFrom": "21"
       },
-      "granularity": "unit",
+      "scope": "unit",
       "provenance": {
         "id": "november-2025-reviewed-shops",
         "curationFile": "hkgov-dpo-address-november-2025-reviewed-retentions.json",
@@ -54,7 +54,7 @@
         "enStreetName": "THISTLE STREET",
         "enStreetNumberFrom": "23"
       },
-      "granularity": "unit",
+      "scope": "unit",
       "provenance": {
         "id": "november-2025-reviewed-shops",
         "curationFile": "hkgov-dpo-address-november-2025-reviewed-retentions.json",
@@ -69,7 +69,7 @@
         "enStreetName": "THISTLE STREET",
         "enStreetNumberFrom": "19"
       },
-      "granularity": "unit",
+      "scope": "unit",
       "provenance": {
         "id": "november-2025-reviewed-shops",
         "curationFile": "hkgov-dpo-address-november-2025-reviewed-retentions.json",
@@ -84,7 +84,7 @@
         "enStreetName": "THISTLE STREET",
         "enStreetNumberFrom": "17"
       },
-      "granularity": "unit",
+      "scope": "unit",
       "provenance": {
         "id": "november-2025-reviewed-shops",
         "curationFile": "hkgov-dpo-address-november-2025-reviewed-retentions.json",
@@ -99,7 +99,7 @@
         "enStreetName": "THISTLE STREET",
         "enStreetNumberFrom": "15"
       },
-      "granularity": "unit",
+      "scope": "unit",
       "provenance": {
         "id": "november-2025-reviewed-shops",
         "curationFile": "hkgov-dpo-address-november-2025-reviewed-retentions.json",
@@ -116,7 +116,7 @@
         "enStreetName": "TSING FUNG STREET",
         "enStreetNumberFrom": "12"
       },
-      "granularity": "unit",
+      "scope": "unit",
       "provenance": {
         "id": "september-2025-reviewed-4",
         "curationFile": "hkgov-dpo-address-september-2025-reviewed-retentions.json",
@@ -131,7 +131,7 @@
         "enStreetName": "TSING FUNG STREET",
         "enStreetNumberFrom": "10"
       },
-      "granularity": "unit",
+      "scope": "unit",
       "provenance": {
         "id": "september-2025-reviewed-4",
         "curationFile": "hkgov-dpo-address-september-2025-reviewed-retentions.json",

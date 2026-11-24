@@ -186,12 +186,12 @@ overwrites source files nor removes unnamed same-CSU records.
 
 Choi Ying Place retains one named shopping centre across all thirty releases under
 `hkgov-dpo-address-premise-consolidations.json`. Suppress the unnamed duplicate in its
-twenty-eight occurrences; retain the sole named record in December 2024 and
-January 2025. Backfill `彩盈坊` over the ten early `彩盈商場` canonical names. Both
-publisher CSUs and all suppressed raw components remain provenance, while one explicit
-curated identity spans the temporary CSU change. Exact per-release bilingual components,
-GeoAddress and geometry are guarded before identity resolution. The five residential
-buildings and their 3,995 units are untouched; no shopping-centre units are inferred.
+twenty-eight occurrences; retain the sole named record in December 2024 and January 2025.
+Backfill `彩盈坊` over the ten early `彩盈商場` canonical names. Both publisher CSUs and
+all suppressed raw components remain provenance, while one explicit curated identity
+spans the temporary CSU change. Exact per-release bilingual components, GeoAddress and
+geometry are guarded before identity resolution. The five residential buildings and
+their 3,995 units are untouched; no shopping-centre units are inferred.
 
 Choi Wan (1) Estate is corroborated against Housing Authority's Choi Wan (I) Estate: all
 sixteen building names match and all thirty retained inventories contain the same 5,927
@@ -268,8 +268,8 @@ components must still match.
 
 Fu Tip Estate treats estate-prefixed house strings as aliases, not repeated canonical
 building names: `FU TIP ESTATE BAN TIP HOUSE` resolves to `BAN TIP HOUSE`. The exact
-November 2024 `FU TIP ESTATES BLOCK 7` expression remains provenance for HIN TIP HOUSE
-/ 蜆蝶樓, whose verified BLK/座 7 is carried by the parent-block enrichment. From 8 July
+November 2024 `FU TIP ESTATES BLOCK 7` expression remains provenance for HIN TIP HOUSE /
+蜆蝶樓, whose verified BLK/座 7 is carried by the parent-block enrichment. From 8 July
 2026 ALS blanked the street components of Hei Tip, Hin Tip, Tsz Tip and Wong Tip Houses
 without changing their CSUs, points or inventories. Their derived addresses retain 11
 Choi Tip Street / 彩蝶街11號 until a non-empty conflicting source revokes the repair;
@@ -283,10 +283,10 @@ suppressed as duplicates, not exposed as a second address. The February 2025 rem
 accepted as the disappearance of that suppressed source assertion, with no backfill.
 
 Wing Ka House / 永嘉樓, Fuk Loi Estate, has its July 2026 publisher repair backfilled
-over every earlier retained inventory: 8/F flats 817 and 819 raise the count from 507
-to 509. The correction is guarded by the exact earlier and repaired bilingual
-inventories; it preserves the original 507-unit source assertion and correction
-provenance rather than rewriting ALS history.
+over every earlier retained inventory: 8/F flats 817 and 819 raise the count from 507 to 509.
+The correction is guarded by the exact earlier and repaired bilingual inventories; it
+preserves the original 507-unit source assertion and correction provenance rather than
+rewriting ALS history.
 
 Hong Shun House (Cheung Hong Estate) retains flat A1614 on 16/F in earlier inventories
 and honours its publisher-recorded removal from January 2025 (1,138 to 1,137 units). The
@@ -355,10 +355,10 @@ reviewed named address throughout retained history. The superseded named identit
 the reviewed unnamed or street-only alternatives do not create additional canonical
 addresses. Their publisher identifiers, components and inventories remain provenance.
 
-Long Shin Estate retains `11–12 Yau Shin Street` at estate granularity. Shin Leung and
-Shin Oi houses retain their individual `11 Yau Shin Street` addresses, and Shin Yung
-House retains `12 Yau Shin Street`, including the house names and their own inventories.
-The estate address does not own or duplicate those building inventories. Shin Leung's
+Long Shin Estate retains `11–12 Yau Shin Street` at estate scope. Shin Leung and Shin Oi
+houses retain their individual `11 Yau Shin Street` addresses, and Shin Yung House
+retains `12 Yau Shin Street`, including the house names and their own inventories. The
+estate address does not own or duplicate those building inventories. Shin Leung's
 unchanged 313-flat inventory is restored only for its three missing April 2026
 deliveries.
 
@@ -554,3 +554,12 @@ generated migration files; generation does not apply them. These schema artefact
 a fresh reset, not preservation of an existing per-unit dataset. Do not publish until
 remaining source ownership gates have been resolved and a full release
 preparation/import succeeds.
+
+## Ground-floor canonical references
+
+Canonical ground-floor units use `floorType: G` and an empty `floorRef`. Publisher floor
+tokens remain inputs to stable unit identity, and bilingual floor expressions remain
+source evidence. Correcting the canonical reference recomputes collection content and
+historical version hashes in place, without changing unit IDs, snapshot IDs or dataset
+revisions. The shared free-text parser applies the same separation between named floor
+types and their references.

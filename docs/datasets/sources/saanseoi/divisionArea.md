@@ -61,6 +61,13 @@ reference the retained SaanSeoi area record. Selection, matching, construction a
 curation details are excluded from record-level source references. Geometry attribution
 is not inferred by searching for identical polygons.
 
+Authored polygon corrections apply to every retained edition that uses the drawing. Each
+edition resolves its hierarchy against its own complete geometry inventory and annotates
+whole-polygon containment. Repairs update retained source payloads, canonical history
+and serving scopes, recompute their content hashes, and refresh affected publication
+tokens. Unrelated hierarchy differences are excluded by comparing spatial resolution
+with and without the corrected drawings.
+
 ## Curation ownership
 
 Every file in `fixtures/meta/curations/saanseoi-division/` has a root `purpose`.
@@ -550,9 +557,11 @@ archives and omitted from public source samples and API responses.
 
 The archive writer projects keys before calculating the archive hash. SOURCE retention
 applies the same projection before content hashing. DivisionArea source properties
-follow the same rule. Existing immutable releases are not edited in place; corrected
-archive content requires a new reviewed publication. Public SaanSeoi source JSON and
-NDJSON use the naming contract when projecting retained records.
+follow the same rule. Pre-release corrections can republish an existing edition without
+changing its release codes. Replacement archives and manifests receive new
+content-addressed object keys and download asset IDs; the registered downloads must
+match the corrected retained records. Public SaanSeoi source JSON and NDJSON use the
+naming contract when projecting retained records.
 
 Publisher codes, locale keys, identifier values and source-path values retain their
 spelling. Identifier type keys use camelCase. Structural name collisions fail
@@ -602,13 +611,13 @@ included.
 - **Hong Kong** (`7f99b544-4e68-4574-98d8-ca4de48a0607`): start from the Hong Kong
   Island administrative area's land geometry
   (`ss-25cec859-44f3-5e1d-a72b-952f804e56ab`). Subtract the union of all authored
-  `rural_area` polygons and 淺水灣 Repulse Bay, 舂坎角 Chung Hom Kok, 馬坑 Ma
-  Hang, 赤柱 Stanley, 東頭灣 Tung Tau Wan, 黃麻角 Bluff Head, 大潭頭 Tai Tam
-  Tau, 大浪灣 Tai Long Wan, 歌連臣角 Cape Collinson and 大潭峽 Tai Tam Gap. Keep the
-  single connected component containing the city's reviewed core point and the component
-  containing the retained 鴨脷洲 Ap Lei Chau island point. Remove all other islands and
-  detached remnants. The result has exactly two polygon components, with no artificial
-  bridge across the channel.
+  `rural_area` polygons and 淺水灣 Repulse Bay, 舂坎角 Chung Hom Kok, 馬坑 Ma Hang, 赤柱
+  Stanley, 東頭灣 Tung Tau Wan, 黃麻角 Bluff Head, 大潭頭 Tai Tam Tau, 大浪灣 Tai Long
+  Wan, 歌連臣角 Cape Collinson and 大潭峽 Tai Tam Gap. Keep the single connected
+  component containing the city's reviewed core point and the component containing the
+  retained 鴨脷洲 Ap Lei Chau island point. Remove all other islands and detached
+  remnants. The result has exactly two polygon components, with no artificial bridge
+  across the channel.
 
 Boolean operations use the full WGS84 geometry without simplification or buffering. The
 authored fixture retains the preceding drawings as editing evidence. Input changes
@@ -754,3 +763,7 @@ metre-scale drawing errors. The preparation audit retains `hierarchy-spatial-dec
 with division and ancestor IDs, suppressed areas and fractions, or the numerical
 containment tolerance. These entries support review for every prepared edition rather
 than claiming an issue is new without comparing previous evidence.
+
+Remote metadata delivery retains the exact assembly processing policy alongside each
+geometry recipe. The policy content must match its recorded hash before delivery;
+missing or invalid evidence blocks publication.

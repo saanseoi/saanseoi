@@ -11,9 +11,7 @@ let {
   definition?: LineageDefinition
 } = $props()
 </script>
-{#snippet show(
-  value: Condition,
-)}
+{#snippet show(value: Condition)}
   {#if value.kind === 'all' || value.kind === 'any'}
     {#each value.conditions as child, i}
       {#if i}
@@ -38,7 +36,7 @@ let {
         ? []
         : [value.value] as term}
       <span
-        class="inline-flex rounded bg-secondary-container mx-0.5 px-1.5 py-0.5 font-semibold text-on-secondary-container"
+        class="bg-secondary-container text-on-secondary-container mx-0.5 inline-flex rounded px-1.5 py-0.5 font-semibold"
         >{typeof term === 'string' ? (labels[term] ?? term) : valueLabel(term)}</span
       >
     {/each}

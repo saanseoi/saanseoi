@@ -373,15 +373,15 @@ export async function prepareAls3dCollections(options: {
       const parent = candidates[0]
       if (!parent) throw new Error('Missing ALS parent')
       options.onGuardPassed?.('inventory-parent')
-      if (parent.curatedGranularity === 'section' && !ownership.has(parent.id))
+      if (parent.curatedScope === 'section' && !ownership.has(parent.id))
         reportReview('unreviewed-section-inventory', [parent.id])
       if (
-        parent.curatedGranularity === 'section' &&
+        parent.curatedScope === 'section' &&
         !ownership.has(parent.id) &&
         !options.skipCurationChecks
       )
         throw new Error(`ALS 3D section inventory requires review: ${parent.id}`)
-      if (parent.curatedGranularity === 'section' && !options.skipCurationChecks)
+      if (parent.curatedScope === 'section' && !options.skipCurationChecks)
         options.onGuardPassed?.('section-ownership')
       const owner =
         options.aliasOwnerIds?.get(parent.id) ??

@@ -368,4 +368,22 @@ test('identity audit retains before/after evidence and verifies the versioned le
   await expect(retainPlaceProvenance(store, input)).rejects.toThrow(
     'differs from staged identity evidence',
   )
+  await writeFile(identityPath, '')
+  await expect(retainPlaceProvenance(store, input)).rejects.toThrow(
+    'differs from staged identity evidence',
+  )
+  const emptyLedger = await writePlaceIdentityLedger({
+    scope: 'hk',
+    sourceVersion: 'current',
+    decisions: [],
+    stagingRoot: directory,
+  })
+  const empty = await retainPlaceProvenance(store, {
+    ...input,
+    identityLedger: emptyLedger,
+  })
+  await verifyAuditResult(store, empty.manifest)
+  expect(
+    empty.manifest.bulk.find(rule => rule.id === 'resolve-place-identity'),
+  ).toHaveProperty('counts.recordsAffected', 0)
 })

@@ -1,16 +1,16 @@
 ---
-createdAt: "2026-08-20T00:00:00.000Z"
-updatedAt: "2026-08-25T00:00:00.000Z"
-apiFamily: "divisions"
-apiVersion: "api-divisions-v0.1"
-apiReleaseSet: "data-hk-divisions-2001--hkgov-pland-pu"
-revision: "0"
-regionCode: "hk"
-cohortKey: "2001"
-domainCode: "hkgov-pland-pu"
-timeTravelEffectiveAt: "2025-10-01T00:00:00.000Z"
-timeTravelKnownAt: "2026-08-24T04:00:46.011Z"
-timeTravelCatalogRevision: "catalog-hk-divisions-v0.1-2026-08-24.11"
+createdAt: '2026-08-20T00:00:00.000Z'
+updatedAt: '2026-08-25T00:00:00.000Z'
+apiFamily: 'divisions'
+apiVersion: 'api-divisions-v0.1'
+apiReleaseSet: 'data-hk-divisions-2001--hkgov-pland-pu'
+revision: '0'
+regionCode: 'hk'
+cohortKey: '2001'
+domainCode: 'hkgov-pland-pu'
+timeTravelEffectiveAt: '2025-10-01T00:00:00.000Z'
+timeTravelKnownAt: '2026-08-24T04:00:46.011Z'
+timeTravelCatalogRevision: 'catalog-hk-divisions-v0.1-2026-08-24.11'
 ---
 
 # EN
@@ -114,10 +114,9 @@ add <black>domain={{ domainCode }}</black>.
 
 Planning Units and subunits have no searchable names, aliases or curated
 <black>divisionCode</black> values. Their publisher identifiers are not search codes.
-The examples here therefore search across all domains; adding
-<black>domain={{ domainCode }}</black> yields no matches for these code-only records.
-For example, search for <black>水埗</black> within names such as <black>深水埗</black>
-across domains:
+The examples here therefore search across all domains; adding <black>domain={{
+domainCode }}</black> yields no matches for these code-only records. For example, search
+for <black>水埗</black> within names such as <black>深水埗</black> across domains:
 
 ```url
 /{{apiFamily}}/{{ apiVersionPath }}/search?
@@ -239,8 +238,8 @@ The API returns a number of error codes. Here is how to recover from each one:
 /{{apiFamily}}/{{ apiVersionPath }}
 ```
 
-清單中的每個區劃均有 <black>id</black>。以 <black>GET
-/{{apiFamily}}/{{ apiVersionPath }}/{id}</black> 取得單一區劃。
+清單中的每個區劃均有 <black>id</black>。以 <black>GET /{{apiFamily}}/{{ apiVersionPath
+}}/{id}</black> 取得單一區劃。
 
 如需相同版本，請在詳情請求中保留 domain 及 cohort：
 
@@ -269,19 +268,22 @@ The API returns a number of error codes. Here is how to recover from each one:
 
 ## 了解此 domain
 
-此 <black>{{ domainCode }}</black>
-domain 獨立進行版本控制，並非預設 geographic 集合的篩選結果。它包含 規劃署規劃單位及分區的區劃 snapshot，以及與其完全對應的面配套資源；集合及詳情回應不會混入其他 domain 的記錄。
+此 <black>{{ domainCode }}</black> domain 獨立進行版本控制，並非預設 geographic
+集合的篩選結果。它包含 規劃署規劃單位及分區的區劃
+snapshot，以及與其完全對應的面配套資源；集合及詳情回應不會混入其他 domain 的記錄。
 
-規劃單位及分區是規劃地理範圍，其識別碼為規劃署專用。相同的發布者代碼會在不同 cohort 保持同一身份，而每個 cohort 各自記錄其層級及幾何資料。
+規劃單位及分區是規劃地理範圍，其識別碼為規劃署專用。相同的發布者代碼會在不同 cohort
+保持同一身份，而每個 cohort 各自記錄其層級及幾何資料。
 
-來源並未提供所有常見的 Divisions 欄位。此資料集中相應的值為 null；請使用可用的識別碼、名稱、幾何及溯源資料。請勿推斷地區關係，或以空白的
+來源並未提供所有常見的 Divisions 欄位。此資料集中相應的值為
+null；請使用可用的識別碼、名稱、幾何及溯源資料。請勿推斷地區關係，或以空白的
 <black>level</black>、<black>divisionType</black> 或 <black>parent</black> 欄位篩選。
 
 ## 搜尋區劃
 
-使用 <black>GET
-/{{apiFamily}}/{{ apiVersionPath }}/search</black>，按名稱、別名或代碼尋找區劃。必填的
-<black>q</black> 參數接受部分英文文字及中文子字串，適合在使用者輸入時提供建議：
+使用 <black>GET /{{apiFamily}}/{{ apiVersionPath
+}}/search</black>，按名稱、別名或代碼尋找區劃。必填的 <black>q</black>
+參數接受部分英文文字及中文子字串，適合在使用者輸入時提供建議：
 
 ```url
 /{{apiFamily}}/{{ apiVersionPath }}/search?
@@ -289,15 +291,15 @@ domain 獨立進行版本控制，並非預設 geographic 集合的篩選結果�
                  limit=20
 ```
 
-搜尋使用各 domain 的<black>最新已發布</black>版本，除非指定其中一個 domain，否則會搜尋<black>所有 domain</black>。它不會選取本指南的
-<black>{{ cohortKey }}</black> cohort。如只想搜尋本指南所示的 domain，請加入
-<black>domain={{ domainCode }}</black>。
+搜尋使用各 domain 的<black>最新已發布</black>版本，除非指定其中一個
+domain，否則會搜尋<black>所有 domain</black>。它不會選取本指南的 <black>{{ cohortKey
+}}</black> cohort。如只想搜尋本指南所示的 domain，請加入 <black>domain={{ domainCode
+}}</black>。
 
 規劃單位及分區沒有可供搜尋的名稱、別名或經整理的 <black>divisionCode</black>
-值。其發布者識別碼並非搜尋代碼。因此，本節範例會搜尋所有 domain；加入
-<black>domain={{ domainCode }}</black>
-後，這些只有來源代碼的記錄不會有相符結果。例如，跨 domain 以 <black>水埗</black> 搜尋
-<black>深水埗</black> 等名稱中的部分文字：
+值。其發布者識別碼並非搜尋代碼。因此，本節範例會搜尋所有 domain；加入 <black>domain={{
+domainCode }}</black> 後，這些只有來源代碼的記錄不會有相符結果。例如，跨 domain 以
+<black>水埗</black> 搜尋 <black>深水埗</black> 等名稱中的部分文字：
 
 ```url
 /{{apiFamily}}/{{ apiVersionPath }}/search?
@@ -317,20 +319,23 @@ domain 獨立進行版本控制，並非預設 geographic 集合的篩選結果�
 值一律納入搜尋。英文配對不區分大小寫。中文查詢可包含一個或多個字元。查詢中的每個詞或中文子字串都必須相符；標點符號會分隔搜尋詞。不支援萬用字元及全文查詢運算子。
 
 預設不搜尋上層區劃的名稱。加入
-<black>ancestors=true</black>，亦可透過已儲存層級中的名稱尋找區劃。此 domain 最細的區劃類型是規劃分區（<black>planning-subunit</black>）。其規劃上層區劃亦沒有已儲存的名稱，因此
+<black>ancestors=true</black>，亦可透過已儲存層級中的名稱尋找區劃。此 domain
+最細的區劃類型是規劃分區（<black>planning-subunit</black>）。其規劃上層區劃亦沒有已儲存的名稱，因此
 <black>ancestors=true</black> 無法讓這些記錄變得可供搜尋。請使用集合端點並設定
 <black>domain={{ domainCode }}</black>，取得分區及其發布者識別碼。
 
 直接的名稱、別名及代碼相符結果會排在上層名稱相符結果之前，並優先顯示名稱或代碼完全相符及名稱前綴相符的結果。每個
-<black>results</black>
-項目會標示區劃、所屬 domain 及配對到的語言。<black>match=self</black>
+<black>results</black> 項目會標示區劃、所屬 domain
+及配對到的語言。<black>match=self</black>
 表示其本身的名稱、別名或代碼相符；<black>match=ancestor</black>
-表示配對亦使用了上層名稱。每個區劃在每個 domain 最多有一個結果，因此同一區劃可出現在多個 domain。使用其
-<black>divisionId</black> 及 <black>domain</black> 呼叫詳情端點，即可取得完整記錄。
+表示配對亦使用了上層名稱。每個區劃在每個 domain 最多有一個結果，因此同一區劃可出現在多個
+domain。使用其 <black>divisionId</black> 及 <black>domain</black>
+呼叫詳情端點，即可取得完整記錄。
 
 查詢最多可包含 120 個字元及八個搜尋詞。搜尋預設傳回 20 個結果，最多 100 個；使用
 <black>limit</black> 調整數量。搜尋不使用集合端點的分頁、<black>profile</black> 或
-<black>include</black>，亦不支援版本及時間旅行 selector；如要選取歷史版本，請使用集合及詳情端點。
+<black>include</black>，亦不支援版本及時間旅行
+selector；如要選取歷史版本，請使用集合及詳情端點。
 
 ## 設定回應形狀
 
@@ -338,14 +343,15 @@ domain 獨立進行版本控制，並非預設 geographic 集合的篩選結果�
 
 ## 幾何資料
 
-設定 <black>profile=map</black> 或
-<black>profile=full</black>，以包含此 cohort 的對應幾何資料。與
-<black>geographic</black>
-domain 不同，此 domain 沒有可供選取的配套幾何資料：當所選 profile 要求幾何資料時，API 會傳回對應的預設面幾何資料。
+設定 <black>profile=map</black> 或 <black>profile=full</black>，以包含此 cohort
+的對應幾何資料。與 <black>geographic</black> domain 不同，此 domain
+沒有可供選取的配套幾何資料：當所選 profile 要求幾何資料時，API
+會傳回對應的預設面幾何資料。
 
 ## 加入語言（`I18n`）
 
-原始版本提供規劃單位及分區代碼，而非名稱。因此 API 沒有英文、繁體中文或簡體中文名稱可供傳回，也不會以機器翻譯代碼。使用
+原始版本提供規劃單位及分區代碼，而非名稱。因此 API
+沒有英文、繁體中文或簡體中文名稱可供傳回，也不會以機器翻譯代碼。使用
 <black>locales=null</black>，可明確省略空白的名稱值。
 
 ## 篩選及分頁
@@ -362,8 +368,9 @@ domain 不同，此 domain 沒有可供選取的配套幾何資料：當所選 p
 
 ## 切換 domain
 
-[domain](saanseoi:zh-hant:definition/domain/v1) 是 Divisions
-API 中獨立的集合。比較結果時，應將不同 domain 分開處理：它們的識別、幾何資料和欄位來自不同來源。
+[domain](saanseoi:zh-hant:definition/domain/v1) 是 Divisions API
+中獨立的集合。比較結果時，應將不同 domain
+分開處理：它們的識別、幾何資料和欄位來自不同來源。
 
 {{domains:zh-Hant}}
 
@@ -371,12 +378,12 @@ API 中獨立的集合。比較結果時，應將不同 domain 分開處理：�
 
 API 會傳回多種錯誤碼。以下說明各種情況的復原方法：
 
-- 詳情請求的 `404`
-  表示該 ID 不在所選版本中。請重新檢查 ID 及其 domain、cohort 和時間旅行 selector。
-- `422`
-  表示請求無效。請閱讀驗證詳情，然後修正 selector、篩選條件、locale、搜尋或分頁值，再次嘗試。
-- 帶有 <black>snapshot_not_ready</black> 的 `503`
-  表示沒有符合選擇條件的 active 區劃 snapshot。請在發布後重試，或選取已發布版本；請勿將此回應視為空結果。
+- 詳情請求的 `404` 表示該 ID 不在所選版本中。請重新檢查 ID 及其 domain、cohort
+  和時間旅行 selector。
+- `422` 表示請求無效。請閱讀驗證詳情，然後修正
+  selector、篩選條件、locale、搜尋或分頁值，再次嘗試。
+- 帶有 <black>snapshot_not_ready</black> 的 `503` 表示沒有符合選擇條件的 active 區劃
+  snapshot。請在發布後重試，或選取已發布版本；請勿將此回應視為空結果。
 - 帶有 <black>fts_not_ready</black> 的 `503`
   僅適用於搜尋：最新已發布版本的搜尋尚未就緒。請在搜尋準備完成後重試。空的
   <black>results</black> 陣列表示所選的已發布 domain 中沒有相符結果。
@@ -408,8 +415,8 @@ API 會傳回多種錯誤碼。以下說明各種情況的復原方法：
 /{{apiFamily}}/{{ apiVersionPath }}
 ```
 
-列表中的每个区划均有 <black>id</black>。以 <black>GET
-/{{apiFamily}}/{{ apiVersionPath }}/{id}</black> 获取单一区划。
+列表中的每个区划均有 <black>id</black>。以 <black>GET /{{apiFamily}}/{{ apiVersionPath
+}}/{id}</black> 获取单一区划。
 
 如需相同版本，请在详情请求中保留 domain 及 cohort：
 
@@ -438,19 +445,22 @@ API 會傳回多種錯誤碼。以下說明各種情況的復原方法：
 
 ## 了解此 domain
 
-此 <black>{{ domainCode }}</black>
-domain 独立进行版本控制，并非默认 geographic 集合的筛选结果。它包含 规划署规划单位及分区的区划 snapshot，以及与其完全对应的面配套资源；集合及详情响应不会混入其他 domain 的记录。
+此 <black>{{ domainCode }}</black> domain 独立进行版本控制，并非默认 geographic
+集合的筛选结果。它包含 规划署规划单位及分区的区划
+snapshot，以及与其完全对应的面配套资源；集合及详情响应不会混入其他 domain 的记录。
 
-规划单位及分区是规划地理范围，其标识码为规划署专用。相同的发布者代码会在不同 cohort 保持同一身份，而每个 cohort 各自记录其层级及几何数据。
+规划单位及分区是规划地理范围，其标识码为规划署专用。相同的发布者代码会在不同 cohort
+保持同一身份，而每个 cohort 各自记录其层级及几何数据。
 
-来源并未提供所有常见的 Divisions 字段。此数据集中相应的值为 null；请使用可用的标识码、名称、几何及溯源数据。请勿推断地区关系，或以空白的
+来源并未提供所有常见的 Divisions 字段。此数据集中相应的值为
+null；请使用可用的标识码、名称、几何及溯源数据。请勿推断地区关系，或以空白的
 <black>level</black>、<black>divisionType</black> 或 <black>parent</black> 字段筛选。
 
 ## 搜索区划
 
-使用 <black>GET
-/{{apiFamily}}/{{ apiVersionPath }}/search</black>，按名称、别名或代码查找区划。必填的
-<black>q</black> 参数接受部分英文文本及中文子字符串，适合在用户输入时提供建议：
+使用 <black>GET /{{apiFamily}}/{{ apiVersionPath
+}}/search</black>，按名称、别名或代码查找区划。必填的 <black>q</black>
+参数接受部分英文文本及中文子字符串，适合在用户输入时提供建议：
 
 ```url
 /{{apiFamily}}/{{ apiVersionPath }}/search?
@@ -458,15 +468,15 @@ domain 独立进行版本控制，并非默认 geographic 集合的筛选结果�
                  limit=20
 ```
 
-搜索使用各 domain 的<black>最新已发布</black>版本，除非指定其中一个 domain，否则会搜索<black>所有 domain</black>。它不会选取本指南的
-<black>{{ cohortKey }}</black> cohort。如只想搜索本指南所示的 domain，请添加
-<black>domain={{ domainCode }}</black>。
+搜索使用各 domain 的<black>最新已发布</black>版本，除非指定其中一个
+domain，否则会搜索<black>所有 domain</black>。它不会选取本指南的 <black>{{ cohortKey
+}}</black> cohort。如只想搜索本指南所示的 domain，请添加 <black>domain={{ domainCode
+}}</black>。
 
 规划单位及分区没有可供搜索的名称、别名或经整理的 <black>divisionCode</black>
-值。其发布者标识码并非搜索代码。因此，本节示例会搜索所有 domain；添加
-<black>domain={{ domainCode }}</black>
-后，这些只有来源代码的记录不会有匹配结果。例如，跨 domain 以 <black>水埗</black> 搜索
-<black>深水埗</black> 等名称中的部分文字：
+值。其发布者标识码并非搜索代码。因此，本节示例会搜索所有 domain；添加 <black>domain={{
+domainCode }}</black> 后，这些只有来源代码的记录不会有匹配结果。例如，跨 domain 以
+<black>水埗</black> 搜索 <black>深水埗</black> 等名称中的部分文字：
 
 ```url
 /{{apiFamily}}/{{ apiVersionPath }}/search?
@@ -486,20 +496,23 @@ domain 独立进行版本控制，并非默认 geographic 集合的筛选结果�
 值一律纳入搜索。英文匹配不区分大小写。中文查询可包含一个或多个字符。查询中的每个词或中文子字符串都必须匹配；标点符号会分隔搜索词。不支持通配符及全文查询运算符。
 
 默认不搜索上层区划的名称。添加
-<black>ancestors=true</black>，也可通过已存储层级中的名称查找区划。此 domain 最细的区划类型是规划分区（<black>planning-subunit</black>）。其规划上层区划也没有已存储的名称，因此
+<black>ancestors=true</black>，也可通过已存储层级中的名称查找区划。此 domain
+最细的区划类型是规划分区（<black>planning-subunit</black>）。其规划上层区划也没有已存储的名称，因此
 <black>ancestors=true</black> 无法让这些记录变得可供搜索。请使用集合端点并设置
 <black>domain={{ domainCode }}</black>，获取分区及其发布者标识码。
 
 直接的名称、别名及代码匹配结果会排在上层名称匹配结果之前，并优先显示名称或代码完全匹配及名称前缀匹配的结果。每个
-<black>results</black>
-条目会标示区划、所属 domain 及匹配到的语言。<black>match=self</black>
+<black>results</black> 条目会标示区划、所属 domain
+及匹配到的语言。<black>match=self</black>
 表示其本身的名称、别名或代码匹配；<black>match=ancestor</black>
-表示匹配也使用了上层名称。每个区划在每个 domain 最多有一个结果，因此同一区划可出现在多个 domain。使用其
-<black>divisionId</black> 及 <black>domain</black> 调用详情端点，即可获取完整记录。
+表示匹配也使用了上层名称。每个区划在每个 domain 最多有一个结果，因此同一区划可出现在多个
+domain。使用其 <black>divisionId</black> 及 <black>domain</black>
+调用详情端点，即可获取完整记录。
 
 查询最多可包含 120 个字符及八个搜索词。搜索默认返回 20 个结果，最多 100 个；使用
 <black>limit</black> 调整数量。搜索不使用集合端点的分页、<black>profile</black> 或
-<black>include</black>，也不支持版本及时间旅行 selector；如要选取历史版本，请使用集合及详情端点。
+<black>include</black>，也不支持版本及时间旅行
+selector；如要选取历史版本，请使用集合及详情端点。
 
 ## 设置响应形状
 
@@ -507,14 +520,15 @@ domain 独立进行版本控制，并非默认 geographic 集合的筛选结果�
 
 ## 几何数据
 
-设置 <black>profile=map</black> 或
-<black>profile=full</black>，以包含此 cohort 的对应几何数据。与
-<black>geographic</black>
-domain 不同，此 domain 没有可供选择的配套几何数据：当所选 profile 要求几何数据时，API 会返回对应的默认面几何数据。
+设置 <black>profile=map</black> 或 <black>profile=full</black>，以包含此 cohort
+的对应几何数据。与 <black>geographic</black> domain 不同，此 domain
+没有可供选择的配套几何数据：当所选 profile 要求几何数据时，API
+会返回对应的默认面几何数据。
 
 ## 添加语言（`I18n`）
 
-原始版本提供规划单位及分区代码，而非名称。因此 API 没有英文、繁体中文或简体中文名称可供返回，也不会以机器翻译代码。使用
+原始版本提供规划单位及分区代码，而非名称。因此 API
+没有英文、繁体中文或简体中文名称可供返回，也不会以机器翻译代码。使用
 <black>locales=null</black>，可明确省略空白的名称值。
 
 ## 筛选及分页
@@ -531,8 +545,9 @@ domain 不同，此 domain 没有可供选择的配套几何数据：当所选 p
 
 ## 切换 domain
 
-[domain](saanseoi:zh-hans:definition/domain/v1) 是 Divisions
-API 中独立的集合。比较结果时，应将不同 domain 分开处理：它们的标识、几何数据和字段来自不同来源。
+[domain](saanseoi:zh-hans:definition/domain/v1) 是 Divisions API
+中独立的集合。比较结果时，应将不同 domain
+分开处理：它们的标识、几何数据和字段来自不同来源。
 
 {{domains:zh-Hans}}
 
@@ -540,12 +555,12 @@ API 中独立的集合。比较结果时，应将不同 domain 分开处理：�
 
 API 会返回多种错误码。以下说明各种情况的恢复方法：
 
-- 详情请求的 `404`
-  表示该 ID 不在所选版本中。请重新检查 ID 及其 domain、cohort 和时间旅行 selector。
-- `422`
-  表示请求无效。请阅读验证详情，然后修正 selector、筛选条件、locale、搜索或分页值，再次尝试。
-- 带有 <black>snapshot_not_ready</black> 的 `503`
-  表示没有符合选择条件的 active 区划 snapshot。请在发布后重试，或选取已发布版本；请勿将此响应视为空结果。
+- 详情请求的 `404` 表示该 ID 不在所选版本中。请重新检查 ID 及其 domain、cohort
+  和时间旅行 selector。
+- `422` 表示请求无效。请阅读验证详情，然后修正
+  selector、筛选条件、locale、搜索或分页值，再次尝试。
+- 带有 <black>snapshot_not_ready</black> 的 `503` 表示没有符合选择条件的 active 区划
+  snapshot。请在发布后重试，或选取已发布版本；请勿将此响应视为空结果。
 - 带有 <black>fts_not_ready</black> 的 `503`
   仅适用于搜索：最新已发布版本的搜索尚未就绪。请在搜索准备完成后重试。空的
   <black>results</black> 数组表示所选的已发布 domain 中没有匹配结果。

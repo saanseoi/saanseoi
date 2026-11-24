@@ -20,17 +20,31 @@ const counts = {
   processedRows: 5,
   unchangedRows: 2,
   localisedRows: 4,
+  assemblyAuditRef: { hash: `sha256:${'a'.repeat(64)}` as const, byteLength: 123 },
 }
 
 test('Division completion counts reject missing, negative and non-integral outputs', () => {
   expect(readDivisionDeliveryOutputs(counts)).toEqual(counts)
   expect(() => readDivisionDeliveryOutputs(undefined)).toThrow('missing or invalid')
-  for (const key of Object.keys(counts)) {
+  for (const key of Object.keys(counts).filter(key => key !== 'assemblyAuditRef')) {
     for (const value of [undefined, -1, 0.5, NaN, Infinity, '2']) {
       expect(() => readDivisionDeliveryOutputs({ ...counts, [key]: value })).toThrow(
         key,
       )
     }
+  }
+})
+
+test('Division continuation rejects missing or malformed retained assembly audits', () => {
+  for (const ref of [
+    undefined,
+    {},
+    { hash: 'bad', byteLength: 1 },
+    { hash: `sha256:${'a'.repeat(64)}` as const, byteLength: 0 },
+  ]) {
+    expect(() =>
+      readDivisionDeliveryOutputs({ ...counts, assemblyAuditRef: ref }),
+    ).toThrow('assembly audit reference')
   }
 })
 

@@ -92,7 +92,7 @@ const overtureDivisionBoundaryFields: SourceRecordSchemaField[] = [
  * Canonical source payload schemas. These are the same versioned field contracts
  * used to validate Overture uploads before their raw rows are persisted.
  */
-export const overtureSourceRecordSchemas: SourceRecordSchema[] = [
+const historicalOvertureSourceRecordSchemas: SourceRecordSchema[] = [
   {
     id: 'overture-place-v2025-09-24.0',
     source: 'overture',
@@ -299,6 +299,58 @@ export const overtureSourceRecordSchemas: SourceRecordSchema[] = [
     ],
   },
 ]
+
+const octoberRequiredFields: Partial<Record<ResourceType, string[]>> = {
+  // The reviewed country-reference row has no geometry, parent or publisher version.
+  division: ['id', 'country', 'subtype', 'theme', 'type'],
+  divisionArea: [
+    'id',
+    'country',
+    'subtype',
+    'class',
+    'is_land',
+    'is_territorial',
+    'division_id',
+    'version',
+    'bbox',
+    'theme',
+    'type',
+  ],
+  divisionBoundary: [
+    'id',
+    'subtype',
+    'admin_level',
+    'class',
+    'is_disputed',
+    'is_land',
+    'is_territorial',
+    'version',
+    'bbox',
+    'theme',
+    'type',
+  ],
+  place: ['id', 'geometry', 'confidence', 'version', 'theme', 'type'],
+}
+
+// October's prepared Parquet contracts retain the exact observed REQUIRED fields.
+// Keep historical physical contracts intact and validate each cohort independently.
+export const overtureSourceRecordSchemas: SourceRecordSchema[] =
+  historicalOvertureSourceRecordSchemas.flatMap(schema => {
+    const required = octoberRequiredFields[schema.resourceType]
+    if (schema.validToRelease || !required) return [schema]
+    return [
+      { ...schema, validToRelease: '2026-10-20.0' },
+      {
+        ...schema,
+        id: schema.id.replace(/-v[^/]+$/, '-v2026-10-21.0'),
+        validFromRelease: '2026-10-21.0',
+        fields: schema.fields.map(field => ({
+          ...field,
+          nullable: !required.includes(field.name),
+        })),
+      },
+    ]
+  })
 
 export function resolveSourceRecordSchema({
   resourceType,

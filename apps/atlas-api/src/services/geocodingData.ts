@@ -1,4 +1,3 @@
-import { parseAddress } from './addressParsing'
 import { selectApiInventory } from '@repo/core/db/apiInventory'
 import {
   listApiReleaseSetSnapshots,
@@ -272,20 +271,10 @@ export async function loadGeocodingAddresses(
     token,
     async () => {
       if (token !== null) {
-        const primary = await collectAddressCandidates(
-          addressGeocodingCandidates(db.currentDb, ids, query),
-          query,
-        )
-        // Only unparsed text needs a broader interpretation pass. Parsed numbers
-        // use the complete published numeric-stem index, never numeric substrings.
-        if (
-          primary.total ||
-          query.lat !== undefined ||
-          parseAddress(query.address ?? query.placename!).numbers
-        )
-          return primary
+        // Text retrieval includes normalised candidates even when literal matches exist.
+        // Parsed numbers retain the complete numeric-stem index, never numeric substrings.
         return collectAddressCandidates(
-          addressGeocodingCandidates(db.currentDb, ids, query, true),
+          addressGeocodingCandidates(db.currentDb, ids, query),
           query,
         )
       }

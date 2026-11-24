@@ -10,7 +10,7 @@ import { resolveGeometryPreparationContext } from '../../dbCache/geometryPrepara
 import { retainProcessingFailure } from '../../api/processingFailureAudit'
 import { resolveIdentityCuration } from '../../identityCurations'
 import { curationDocumentsFor } from '../../curationDocuments'
-import { hashValue } from '@repo/core/provenance'
+import { hashValue, type ObjectRef } from '@repo/core/provenance'
 import {
   ensureDraftSnapshotForRelease,
   recordSnapshotLookupDependency,
@@ -175,6 +175,15 @@ export async function processLocalDivisionGeometrySqlUpload(
   const dbCacheStartedAt = Date.now()
   let reusedDbCache = false
   try {
+    // A registered release must exist in the shared baseline before replay checkpoints.
+    if (target.remote) {
+      const environment = target.environment === 'production' ? 'production' : 'preview'
+      await refreshRemoteMetaCache(
+        environment,
+        resolveRemoteCacheDir(environment),
+        resourceReleaseId,
+      )
+    }
     dbContext = await resolveGeometryPreparationContext(
       target,
       previewPlan.regionCode,
@@ -802,6 +811,7 @@ export async function processLocalDivisionGeometrySqlUpload(
     await deliverProcessingResult(target, bucket, sourceAudit.ref)
     // Identical reuse does not assemble a new snapshot. Keep its published
     // assembly evidence immutable; the new intake owns only its source audit.
+    let assemblyAuditRef: ObjectRef | undefined
     if (!reusesExistingGeometrySnapshot) {
       const audit = await retainDivisionProvenance(bucket, {
         scope: { stage: 'assembly', ownerId: snapshot.id },
@@ -816,7 +826,7 @@ export async function processLocalDivisionGeometrySqlUpload(
         actions: [],
         outputCount: publisherRows.length,
       })
-      await deliverProcessingResult(target, bucket, audit.ref)
+      assemblyAuditRef = audit.ref
     }
     progress.complete(
       formatGeometryCompletedLabel(
@@ -855,6 +865,9 @@ export async function processLocalDivisionGeometrySqlUpload(
         deliveryContext.cleanup()
       }
     }
+    // Remote registration requires the draft snapshot and source membership from replay.
+    if (assemblyAuditRef)
+      await deliverProcessingResult(target, bucket, assemblyAuditRef)
     if (options.deferPublish) {
       return {
         snapshotId: snapshot.id,

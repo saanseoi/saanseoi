@@ -256,6 +256,8 @@ export function resolveCacheTablesForBinding(
         'hkgovCenstatdGeometryDerivatives',
         'hkgovLandsdPlaceNames',
         'hkgovLandsdRoadCentrelines',
+        'protomapsIslandFeatures',
+        'hkgovRvdAreas',
       ]
     }
 
@@ -315,6 +317,8 @@ export function resolveCacheTablesForBinding(
       'hkgovTdPedestrianStreets',
       'hkgovLandsdPlaceNames',
       'hkgovLandsdRoadCentrelines',
+      'protomapsIslandFeatures',
+      'hkgovRvdAreas',
     ]
   }
 

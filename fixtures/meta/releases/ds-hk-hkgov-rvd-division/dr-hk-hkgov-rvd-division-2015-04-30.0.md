@@ -1,13 +1,13 @@
 ---
-dataset: "ds-hk-hkgov-rvd-division"
-release: "dr-hk-hkgov-rvd-division-2015-04-30.0"
-regionCode: "hk"
-source: "hkgov-rvd"
-sourceVersion: "2015-04-30.0"
-releaseVersion: "2015-04-30.0"
-sourceSchemaVersion: "1.0"
-type: "division"
-cohortKey: "2015-04-30.0"
+dataset: 'ds-hk-hkgov-rvd-division'
+release: 'dr-hk-hkgov-rvd-division-2015-04-30.0'
+regionCode: 'hk'
+source: 'hkgov-rvd'
+sourceVersion: '2015-04-30.0'
+releaseVersion: '2015-04-30.0'
+sourceSchemaVersion: '1.0'
+type: 'division'
+cohortKey: '2015-04-30.0'
 ---
 
 # EN
@@ -42,13 +42,16 @@ statutory status nor current boundaries and does not supply geometry.
 
 - 山水初始來源版本，收錄差餉物業估價署於 2015 年 4 月 30 日出版的
   **《香港物業檢討》2015年「區域及分區」附錄**。
-- 保留 148 筆歷史名錄收錄記錄：3 個區域、18 個分區、126 個次分區，以及明確列於大嶼山之下的東涌。
-- 為[區劃、地方、社區及島嶼](/sources/ds-hk-saanseoi-division)提供名錄收錄依據；147 筆記錄對應經審核的區劃。梨木樹屬屋邨，其記錄保留於原生來源。
+- 保留 148 筆歷史名錄收錄記錄：3 個區域、18 個分區、126
+  個次分區，以及明確列於大嶼山之下的東涌。
+- 為[區劃、地方、社區及島嶼](/sources/ds-hk-saanseoi-division)提供名錄收錄依據；147
+  筆記錄對應經審核的區劃。梨木樹屬屋邨，其記錄保留於原生來源。
 
 ## 來源依據
 
-保留的歸檔包含發布者的雙語 PDF、解析記錄、校驗碼、出版日期及來源網址。記錄保留 PDF 頁碼依據、雙語名稱、列出的三級規劃小區及部分小區的
-`(p)` 標記。另列的辦公室次分區部分不在此集合範圍內。
+保留的歸檔包含發布者的雙語 PDF、解析記錄、校驗碼、出版日期及來源網址。記錄保留 PDF
+頁碼依據、雙語名稱、列出的三級規劃小區及部分小區的 `(p)`
+標記。另列的辦公室次分區部分不在此集合範圍內。
 
 ## 解讀
 
@@ -60,13 +63,16 @@ statutory status nor current boundaries and does not supply geometry.
 
 - 山水初始来源版本，收录差饷物业估价署于 2015 年 4 月 30 日出版的
   **《香港物业检讨》2015年「区域及分区」附录**。
-- 保留 148 条历史名录收录记录：3 个区域、18 个分区、126 个次分区，以及明确列于大屿山之下的东涌。
-- 为[区划、地方、社区及岛屿](/sources/ds-hk-saanseoi-division)提供名录收录依据；147 条记录对应经审核的区划。梨木树属屋邨，其记录保留于原生来源。
+- 保留 148 条历史名录收录记录：3 个区域、18 个分区、126
+  个次分区，以及明确列于大屿山之下的东涌。
+- 为[区划、地方、社区及岛屿](/sources/ds-hk-saanseoi-division)提供名录收录依据；147
+  条记录对应经审核的区划。梨木树属屋邨，其记录保留于原生来源。
 
 ## 来源依据
 
-保留的归档包含发布者的双语 PDF、解析记录、校验码、出版日期及来源网址。记录保留 PDF 页码依据、双语名称、列出的三级规划小区及部分小区的
-`(p)` 标记。另列的办公室次分区部分不在此集合范围内。
+保留的归档包含发布者的双语 PDF、解析记录、校验码、出版日期及来源网址。记录保留 PDF
+页码依据、双语名称、列出的三级规划小区及部分小区的 `(p)`
+标记。另列的办公室次分区部分不在此集合范围内。
 
 ## 解读
 

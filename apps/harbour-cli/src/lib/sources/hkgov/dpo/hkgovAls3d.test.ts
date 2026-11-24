@@ -50,7 +50,7 @@ test('pairs locales by floor/unit, preserves tokens and hashes independently of 
   expect(left).toEqual(right)
   expect(left.unitCount).toBe(4)
   expect(new Set(left.units.map(unit => unit.id)).size).toBe(4)
-  expect(left.units.find(unit => unit.floorRef === 'G')?.floorType).toBe('G')
+  expect(left.units.find(unit => unit.floorType === 'G')?.floorRef).toBe('')
   expect(left.units.find(unit => unit.floorRef === 'L1')?.floorRef).toBe('L1')
   expect(left.units.filter(unit => unit.unitRef === '01')).toHaveLength(2)
   expect(
@@ -91,22 +91,20 @@ test('only explicitly listed children inherit unresolved coverage; a post office
     unresolvedSectionIds: ['762'],
     units: inventory.units,
   }
-  expect(
-    resolveAddress3dCoverage({ id: '762', parentAddressId: 'building' }, [collection]),
-  ).toEqual({
-    kind: 'ancestor',
+  expect(resolveAddress3dCoverage({ id: '762' }, [collection])).toEqual({
+    kind: 'shared',
     address3dId: 'collection',
     ownerAddress2dId: 'building',
     membership: 'unresolved',
   })
-  expect(
-    resolveAddress3dCoverage({ id: '772', parentAddressId: 'building' }, [collection]),
-  ).toEqual({ kind: 'none' })
+  expect(resolveAddress3dCoverage({ id: '772' }, [collection])).toEqual({
+    kind: 'none',
+  })
   const unit = inventory.units[0]
   if (!unit) throw new Error('Missing fixture unit')
   expect(() =>
     validatePlaceAddress3dReference({
-      address: { id: '762', parentAddressId: 'building' },
+      address: { id: '762' },
       collection,
       unitId: unit.id,
       membership: 'established',
@@ -114,7 +112,7 @@ test('only explicitly listed children inherit unresolved coverage; a post office
   ).toThrow('inconsistent')
   expect(() =>
     validatePlaceAddress3dReference({
-      address: { id: '762', parentAddressId: 'building' },
+      address: { id: '762' },
       collection,
       unitId: unit.id,
       membership: 'unresolved',

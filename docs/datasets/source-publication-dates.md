@@ -12,10 +12,10 @@ day.
 
 ## CSDI evidence
 
-The following dates were checked against the live CSDI ISO 19139 metadata on 3
-October 2026. Each fixture links to its metadata XML. The field is the dataset's
-identification citation (`gmd:identificationInfo` → `gmd:CI_Citation` → `gmd:CI_Date`)
-whose `gmd:CI_DateTypeCode` is `publication`. Dates on cited specifications, metadata
+The following dates were checked against the live CSDI ISO 19139 metadata on 3 October 2026.
+Each fixture links to its metadata XML. The field is the dataset's identification
+citation (`gmd:identificationInfo` → `gmd:CI_Citation` → `gmd:CI_Date`) whose
+`gmd:CI_DateTypeCode` is `publication`. Dates on cited specifications, metadata
 timestamps, creation dates and revision dates are excluded.
 
 These are publication dates of the CSDI dataset offerings. They do not claim the first

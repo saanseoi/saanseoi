@@ -64,10 +64,10 @@ test('one owner with 200 sections streams across boundaries without losing relat
     expect(
       await validate([{ address2dId: 'owner', unresolvedSectionIds: sections }]),
     ).toEqual([100, 100, 4])
-    db.exec("UPDATE address2d SET parentAddressId='wrong' WHERE id='section-199'")
+    db.exec("DELETE FROM address2d WHERE id='section-199'")
     await expect(
       validate([{ address2dId: 'owner', unresolvedSectionIds: sections }]),
-    ).rejects.toThrow('section-199 has no reviewed parent relationship')
+    ).rejects.toThrow('section-199 is absent from the selected snapshot')
   }))
 
 test('missing, wrong-snapshot and duplicate owners fail closed', () =>
@@ -82,14 +82,14 @@ test('missing, wrong-snapshot and duplicate owners fail closed', () =>
     await expect(validate(rows)).rejects.toThrow('owner')
   }))
 
-test('section checks retain exact parent matching and reject cross-owner membership', () =>
+test('section checks use explicit membership and reject conflicting collection owners', () =>
   fixture(async (db, validate) => {
     db.exec(
       "INSERT INTO address2d VALUES ('selected','a',NULL),('selected','b',NULL),('other','child','a'),('selected','child','b')",
     )
-    await expect(
-      validate([{ address2dId: 'a', unresolvedSectionIds: ['child'] }]),
-    ).rejects.toThrow('section child')
+    expect(
+      await validate([{ address2dId: 'a', unresolvedSectionIds: ['child'] }]),
+    ).toEqual([3])
     expect(
       await validate([{ address2dId: 'b', unresolvedSectionIds: ['child', 'child'] }]),
     ).toEqual([3])

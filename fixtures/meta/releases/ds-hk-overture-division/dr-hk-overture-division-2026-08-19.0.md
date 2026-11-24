@@ -1,19 +1,19 @@
 ---
-createdAt: "2026-08-20T00:00:00.000Z"
-updatedAt: "2026-08-20T00:00:00.000Z"
-dataset: "ds-hk-overture-division"
-release: "dr-hk-overture-division-2026-08-19.0"
-regionCode: "hk"
-source: "overture"
-sourceVersion: "2026-08-19.0"
-releaseVersion: "2026-08-19.0"
-sourceSchemaVersion: "1.18.0"
+createdAt: '2026-08-20T00:00:00.000Z'
+updatedAt: '2026-08-20T00:00:00.000Z'
+dataset: 'ds-hk-overture-division'
+release: 'dr-hk-overture-division-2026-08-19.0'
+regionCode: 'hk'
+source: 'overture'
+sourceVersion: '2026-08-19.0'
+releaseVersion: '2026-08-19.0'
+sourceSchemaVersion: '1.18.0'
 resourceTypes:
-  - "division"
-  - "divisionArea"
-  - "divisionBoundary"
-cohortKey: "2026-08-19.0"
-releaseNotesUrl: "https://docs.overturemaps.org/blog/2026/08/19/release-notes/#divisions"
+  - 'division'
+  - 'divisionArea'
+  - 'divisionBoundary'
+cohortKey: '2026-08-19.0'
+releaseNotesUrl: 'https://docs.overturemaps.org/blog/2026/08/19/release-notes/#divisions'
 ---
 
 # EN
@@ -331,8 +331,8 @@ upload and trigger a schema review.
 
 山水的 [Division](/docs#models/Division) 在可行範圍內保持與 Overture
 [division](https://docs.overturemaps.org/schema/reference/divisions/division/)
-類型的兼容性。然而，當本地化處理對香港具有意義時，我們會與來源模型有所不同。相對於 Overture
-schema（`{{sourceSchemaVersion}}`），我們在以下方面有所偏離：
+類型的兼容性。然而，當本地化處理對香港具有意義時，我們會與來源模型有所不同。相對於
+Overture schema（`{{sourceSchemaVersion}}`），我們在以下方面有所偏離：
 
 #### 直接保留欄位
 
@@ -348,8 +348,8 @@ schema（`{{sourceSchemaVersion}}`），我們在以下方面有所偏離：
 
 保留原始資料完整範圍並加以補充的欄位：
 
-- `sources` - [Sources](/docs#models/Sources) - 包裹於 <black>overture</black>
-  key 之下，以便與其他資料集融合，同時保留來源鏈歸屬。
+- `sources` - [Sources](/docs#models/Sources) - 包裹於 <black>overture</black> key
+  之下，以便與其他資料集融合，同時保留來源鏈歸屬。
 
 上游 `sources` 物件現可選擇性地提供以下溯源欄位：
 
@@ -369,9 +369,8 @@ schema（`{{sourceSchemaVersion}}`），我們在以下方面有所偏離：
   - `names.rules` 作為 <black>i18n.{{ LOCALE }}.rules</black>
 - `hierarchies[][]` -
   [正規化為 division hierarchy](saanseoi:zh-hant:note/overture-division-hierarchy-normalization/v1)
-  為
-  [DivisionHierarchy](/docs#models/DivisionHierarchy)。原始來源 hierarchy 可在來源記錄回應的
-  <black>properties.hierarchies</black> 中取得。
+  為 [DivisionHierarchy](/docs#models/DivisionHierarchy)。原始來源 hierarchy
+  可在來源記錄回應的 <black>properties.hierarchies</black> 中取得。
   - `hierarchies[][].division_id` - 作為 <black>hierarchies[].division_id</black>
 
 - `subtype` - [OverturePlaceType](/docs#models/OverturePlaceType)
@@ -410,8 +409,8 @@ schema（`{{sourceSchemaVersion}}`），我們在以下方面有所偏離：
 
 ##### 因為品質問題
 
-- `local_type` - 看來源自 <black>place=*</black>
-  OSM 資料。由於觀察到的值不一致、不完整，且不切合本地脈絡，因此不予保留。樣本：
+- `local_type` - 看來源自 <black>place=*</black> OSM
+  資料。由於觀察到的值不一致、不完整，且不切合本地脈絡，因此不予保留。樣本：
 
 ```text
 borough          4
@@ -428,12 +427,13 @@ town            20
 village        195
 ```
 
-- `population` - 資料過於稀疏，不適合儲存或在 API 中公開：在此來源版本中，1,816 筆記錄只有 3 筆非 null；鑑於資料來源，預計未來仍會如此。
+- `population` - 資料過於稀疏，不適合儲存或在 API 中公開：在此來源版本中，1,816
+  筆記錄只有 3 筆非 null；鑑於資料來源，預計未來仍會如此。
 
 ##### 因為真確性問題
 
-- `capital_division_ids` - 雖然每個 district 都獲指定一個「capital」，但香港並沒有 district
-  capital 的概念
+- `capital_division_ids` - 雖然每個 district 都獲指定一個「capital」，但香港並沒有
+  district capital 的概念
 - `capital_of_divisions` - 見 <black>capital_division_ids</black>。
 
 ##### 因為來源擁有權
@@ -445,8 +445,8 @@ village        195
 
 ##### 因為冗餘
 
-- `hierarchies[][]` - 對香港特別行政區的每個 division 而言，最上層 country
-  ancestor 是隱含的；而 division 本身亦與該 row 所描述的對象重複。
+- `hierarchies[][]` - 對香港特別行政區的每個 division 而言，最上層 country ancestor
+  是隱含的；而 division 本身亦與該 row 所描述的對象重複。
 
 ## 區劃範圍
 
@@ -529,8 +529,9 @@ schema（`{{sourceSchemaVersion}}`）。
 山水的 [DivisionBoundary](/docs#models/DivisionBoundary) 在可行範圍內保持與 Overture 的
 [DivisionBoundary](https://docs.overturemaps.org/schema/reference/divisions/division_boundary/)
 類型兼容。此 Overture 變體旨在為山水的 [Division](/docs#models/Division)
-記錄提供預設的邊界幾何。邊界代表相同 subtype 區劃之間的界線。在香港，只有區級區劃具有邊界，因為這些是特區內唯一的正式行政級別。當標準模型更適合香港時，我們會偏離 Overture
-schema（`{{sourceSchemaVersion}}`）。
+記錄提供預設的邊界幾何。邊界代表相同 subtype
+區劃之間的界線。在香港，只有區級區劃具有邊界，因為這些是特區內唯一的正式行政級別。當標準模型更適合香港時，我們會偏離
+Overture schema（`{{sourceSchemaVersion}}`）。
 
 來源覆蓋標誌會原樣保留，包括上游[違反 schema 的組合](https://github.com/OvertureMaps/data/issues/542)，其中
 `is_land` 和 `is_territorial` 均為 true；該組合會產生我們的標準 `type = mixed`。
@@ -605,8 +606,8 @@ schema（`{{sourceSchemaVersion}}`）。
 
 山水的 [Division](/docs#models/Division) 在可行范围内保持与 Overture
 [division](https://docs.overturemaps.org/schema/reference/divisions/division/)
-类型的兼容性。然而，当本地化处理对香港具有意义时，我们会与来源模型有所不同。相对于 Overture
-schema（`{{sourceSchemaVersion}}`），我们在以下方面有所偏离：
+类型的兼容性。然而，当本地化处理对香港具有意义时，我们会与来源模型有所不同。相对于
+Overture schema（`{{sourceSchemaVersion}}`），我们在以下方面有所偏离：
 
 #### 直接保留字段
 
@@ -622,8 +623,8 @@ schema（`{{sourceSchemaVersion}}`），我们在以下方面有所偏离：
 
 保留原始数据完整范围并加以补充的字段：
 
-- `sources` - [Sources](/docs#models/Sources) - 包裹在 <black>overture</black>
-  key 下，以便与其他数据集融合，同时保留来源链归属。
+- `sources` - [Sources](/docs#models/Sources) - 包裹在 <black>overture</black> key
+  下，以便与其他数据集融合，同时保留来源链归属。
 
 上游 `sources` 对象现可选择性地提供以下溯源字段：
 
@@ -643,9 +644,8 @@ schema（`{{sourceSchemaVersion}}`），我们在以下方面有所偏离：
   - `names.rules` 作为 <black>i18n.{{ LOCALE }}.rules</black>
 - `hierarchies[][]` -
   [规范化为 division hierarchy](saanseoi:zh-hans:note/overture-division-hierarchy-normalization/v1)
-  为
-  [DivisionHierarchy](/docs#models/DivisionHierarchy)。原始来源 hierarchy 可在源记录响应的
-  <black>properties.hierarchies</black> 中获取。
+  为 [DivisionHierarchy](/docs#models/DivisionHierarchy)。原始来源 hierarchy
+  可在源记录响应的 <black>properties.hierarchies</black> 中获取。
   - `hierarchies[][].division_id` - 作为 <black>hierarchies[].division_id</black>
 
 - `subtype` - [OverturePlaceType](/docs#models/OverturePlaceType)
@@ -684,8 +684,8 @@ schema（`{{sourceSchemaVersion}}`），我们在以下方面有所偏离：
 
 ##### 因为质量问题
 
-- `local_type` - 看来源于 <black>place=*</black>
-  OSM 数据。由于观察到的值不一致、不完整，且不符合本地语境，因此不予保留。样本：
+- `local_type` - 看来源于 <black>place=*</black> OSM
+  数据。由于观察到的值不一致、不完整，且不符合本地语境，因此不予保留。样本：
 
 ```text
 borough          4
@@ -702,12 +702,13 @@ town            20
 village        195
 ```
 
-- `population` - 数据过于稀疏，不适合存储或在 API 中公开：在此源版本中，1,816 条记录只有 3 条非 null；鉴于数据来源，预计未来仍会如此。
+- `population` - 数据过于稀疏，不适合存储或在 API 中公开：在此源版本中，1,816 条记录只有
+  3 条非 null；鉴于数据来源，预计未来仍会如此。
 
 ##### 因为真实性问题
 
-- `capital_division_ids` - 虽然每个 district 都获指定一个“capital”，但香港并没有 district
-  capital 的概念
+- `capital_division_ids` - 虽然每个 district 都获指定一个“capital”，但香港并没有
+  district capital 的概念
 - `capital_of_divisions` - 见 <black>capital_division_ids</black>。
 
 ##### 因为来源拥有权
@@ -719,8 +720,8 @@ village        195
 
 ##### 因为冗余
 
-- `hierarchies[][]` - 对香港特别行政区的每个 division 而言，最上层 country
-  ancestor 是隐含的；而 division 本身也与该 row 所描述的对象重复。
+- `hierarchies[][]` - 对香港特别行政区的每个 division 而言，最上层 country ancestor
+  是隐含的；而 division 本身也与该 row 所描述的对象重复。
 
 ## 区划范围
 
@@ -803,8 +804,9 @@ schema（`{{sourceSchemaVersion}}`）。
 山水的 [DivisionBoundary](/docs#models/DivisionBoundary) 在可行范围内保持与 Overture 的
 [DivisionBoundary](https://docs.overturemaps.org/schema/reference/divisions/division_boundary/)
 类型兼容。此 Overture 变体旨在为山水的 [Division](/docs#models/Division)
-记录提供默认的边界几何。边界代表相同 subtype 区划之间的界线。在香港，只有区级区划具有边界，因为这些是特区内唯一的正式行政级别。当标准模型更适合香港时，我们会偏离 Overture
-schema（`{{sourceSchemaVersion}}`）。
+记录提供默认的边界几何。边界代表相同 subtype
+区划之间的界线。在香港，只有区级区划具有边界，因为这些是特区内唯一的正式行政级别。当标准模型更适合香港时，我们会偏离
+Overture schema（`{{sourceSchemaVersion}}`）。
 
 来源覆盖标志会原样保留，包括上游[违反 schema 的组合](https://github.com/OvertureMaps/data/issues/542)，其中
 `is_land` 和 `is_territorial` 均为 true；该组合会产生我们的标准 `type = mixed`。

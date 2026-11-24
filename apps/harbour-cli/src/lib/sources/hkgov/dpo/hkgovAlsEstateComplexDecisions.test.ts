@@ -39,7 +39,7 @@ async function load(release: string) {
   }
   return source
 }
-test('all retained releases preserve distinct estate and centre points, raw names and stable granularity', async () => {
+test('all retained releases preserve distinct estate and centre points, raw names and stable scope', async () => {
   const ids = new Map<string, string>()
   for (const release of (await readdir(root))
     .filter(r => /^\d{8}-.*ALS-GeoJSON$/.test(r))
@@ -68,7 +68,7 @@ test('all retained releases preserve distinct estate and centre points, raw name
     const [estate, centre, sun] = csus.map(csu =>
       requireDefined(rows.find(r => r.hkgovCsuId === csu)),
     )
-    expect(requireDefined(estate).curatedGranularity).toBe('complex')
+    expect(requireDefined(estate).curatedScope).toBe('premises')
     expect(requireDefined(estate).enBuildingName).toBeNull()
     expect(requireDefined(estate).enStreetNumberFrom).toBe('15')
     expect(requireDefined(centre).enBuildingName).toBe(
@@ -82,12 +82,11 @@ test('all retained releases preserve distinct estate and centre points, raw name
         s.feature.properties?.Address?.PremisesAddress?.BuildingCsuInformation
           ?.CsuId === csus[2],
     )
-    if (sunWasMissing) expect(requireDefined(sun).curatedGranularity).toBe('complex')
+    if (sunWasMissing) expect(requireDefined(sun).curatedScope).toBe('premises')
     expect(requireDefined(sun).enFormattedAddress).toContain('SUN TIN WAI ESTATE')
     expect(
       rows.filter(
-        r =>
-          r.enEstateName === 'SUN TIN WAI ESTATE' && r.curatedGranularity === 'complex',
+        r => r.enEstateName === 'SUN TIN WAI ESTATE' && r.curatedScope === 'premises',
       ),
     ).toHaveLength(sunWasMissing ? 1 : 0)
     expect(rows.some(r => r.enBuildingName === 'SUN TIN WAI SHOPPING CENTRE')).toBe(
@@ -205,7 +204,7 @@ test('Lingnan campus is a complex separate from the retained named building acro
     applyReviewedEstateComplexes(rows, version)
     const building = rows.find(r => r.enBuildingName === 'HO SIN HANG BUILDING')!
     expect(building).toBeDefined()
-    expect(building.curatedGranularity).not.toBe('complex')
+    expect(building.curatedScope).not.toBe('premises')
     const campus = rows.find(r => r.hierarchyCuration === 'lingnan-university-campus')
     if (
       source.some(
@@ -215,7 +214,7 @@ test('Lingnan campus is a complex separate from the retained named building acro
       )
     ) {
       complexes++
-      expect(campus!.curatedGranularity).toBe('complex')
+      expect(campus!.curatedScope).toBe('premises')
       expect(campus!.enEstateName).toBe('LINGNAN UNIVERSITY')
       expect(campus!.enBlockNumber).toBeNull()
       expect(campus!.enFormattedAddress).not.toContain('CAMPUS')

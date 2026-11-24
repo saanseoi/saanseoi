@@ -1,0 +1,36 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "ss-building-benchmark-preview",
+  "main": "dist/index.js",
+  "compatibility_date": "2026-10-21",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+  "observability": {
+    "enabled": true
+  },
+  "vars": {
+    "OBJECT_PREFIX": "benchmarks/buildings/2026-09",
+    "ENVIRONMENT": "preview"
+  },
+  "secrets": {
+    "required": ["BENCHMARK_TOKEN"]
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "ss-current-db-preview",
+      "database_id": "6d26bf3f-8cf6-4fa6-b80b-25322207dfde"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "GEOMETRY",
+      "bucket_name": "ss-assets-preview"
+    }
+  ],
+  "build": {
+    "command": "bun run build",
+    "cwd": "apps/building-benchmark"
+  },
+  "no_bundle": true
+}

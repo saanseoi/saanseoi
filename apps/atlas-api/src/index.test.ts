@@ -2086,19 +2086,17 @@ describe('atlas-api', () => {
     const addressAttributes = addresses.components?.schemas?.AddressAttributes as {
       properties: Record<string, { enum?: string[]; description?: string }>
     }
-    expect(addressAttributes.properties.granularity?.enum).toEqual([
+    expect(addressAttributes.properties.scope?.enum).toEqual([
       'unknown',
-      'site',
-      'complex',
+      'premises',
       'phase',
       'building',
       'section',
       'floor',
       'unit',
-      'room',
-      'room_part',
+      'unit_portion',
     ])
-    expect(addressAttributes.properties).not.toHaveProperty('granularityProvenance')
+    expect(addressAttributes.properties).not.toHaveProperty('scopeProvenance')
     expect(addresses.components?.schemas).not.toHaveProperty('Division')
     const addressI18n = addresses.components?.schemas?.AddressI18n as
       | { description?: string; 'x-recordKeyName'?: string }

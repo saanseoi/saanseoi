@@ -110,11 +110,12 @@ export function applyReviewedEstateComplexes(
         row.enBlockNumber = row.zhHantBlockNumber = null
         row.enBlockDescriptor = row.zhHantBlockDescriptor = null
       }
-      row.curatedGranularity = 'complex'
+      row.curatedScope = 'premises'
+      row.curatedPremisesType = 'complex'
     } else {
       row.enBuildingName = en.BuildingName = 'SHUN LEE COMMERCIAL CENTRE (PHASE II)'
       row.zhHantBuildingName = zh.BuildingName = '順利商場(二期)'
-      row.curatedGranularity = 'building'
+      row.curatedScope = 'building'
     }
     row.enFormattedAddress = formatEnPremisesAddress(en)
     row.zhHantFormattedAddress = formatZhPremisesAddress(zh)

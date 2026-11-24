@@ -303,7 +303,7 @@ test('exact historical Place dependencies replay independent locale shards and s
       'en',
     )
     history(before, 'address2d', 'a0', 'building', {
-      granularity: 'building',
+      scope: 'building',
       countryId: 'country',
     })
     history(
@@ -374,7 +374,7 @@ test('exact historical Place dependencies replay independent locale shards and s
       'other-branch',
       'building',
       {
-        granularity: 'building',
+        scope: 'building',
         countryId: 'country',
       },
       '',

@@ -86,3 +86,33 @@ describe('public routing artefacts', () => {
     expect(requested).toEqual([])
   })
 })
+
+test('keeps optional indoor releases separate and gates station payloads on completion', async () => {
+  const prefix = 'routing/hk/indoor/2026-11-16'
+  const { env, requested } = storage({
+    [`${prefix}/manifest.json`]: { status: 'available' },
+    [`${prefix}/stations/KOT.json`]: {},
+  })
+  const response = await routingArtifact(
+    new Request(`https://tiles.test/${prefix}/stations/KOT.json`),
+    env,
+  )
+  expect(response?.status).toBe(200)
+  expect(response?.headers.get('Access-Control-Allow-Origin')).toBe('*')
+  expect(requested).toEqual([`${prefix}/manifest.json`, `${prefix}/stations/KOT.json`])
+  expect(
+    await routingArtifact(
+      new Request(`https://tiles.test/${prefix}/stations/secrets.json`),
+      env,
+    ),
+  ).toBeNull()
+  const incomplete = storage({ [`${prefix}/stations/KOT.json`]: {} })
+  expect(
+    (
+      await routingArtifact(
+        new Request(`https://tiles.test/${prefix}/stations/KOT.json`),
+        incomplete.env,
+      )
+    )?.status,
+  ).toBe(404)
+})

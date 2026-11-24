@@ -1,3 +1,4 @@
+import { ADDRESS_BLOCK_TYPES as addressBlockTypes } from '@saanseoi/address/content'
 import type { StatisticFieldSources } from '../statisticFieldSources'
 import { compactLocaleJson, parseI18nMeta, type I18nMeta } from '../i18nMeta'
 import type { NotNull } from 'drizzle-orm'
@@ -5,7 +6,7 @@ import { sql } from 'drizzle-orm'
 import type { SQLiteColumnBuilder } from 'drizzle-orm/sqlite-core'
 import { customType, integer, real, text } from 'drizzle-orm/sqlite-core'
 import type { Address3dUnit, Address3dUnitI18n } from '../address3d'
-import { addressGranularities } from '../addressGranularity'
+import { addressScopes } from '../addressScope'
 import type { DivisionHierarchies } from '../divisionTaxonomy'
 import { stringifyGeoJson } from '../geoJsonSerialisation'
 
@@ -461,9 +462,8 @@ export function canonicalAddress2dColumns<Required extends boolean>(
 ) {
   return {
     id: text('id').notNull(),
-    parentAddressId: text('parentAddressId'),
-    granularity: requiredColumn(
-      text('granularity', { enum: addressGranularities }).default('unknown'),
+    scope: requiredColumn(
+      text('scope', { enum: addressScopes }).default('unknown'),
       required,
     ),
     streetId: text('streetId'),
@@ -487,25 +487,8 @@ export function canonicalAddress2dColumns<Required extends boolean>(
 
 export const canonicalAddress2d = canonicalAddress2dColumns(true)
 
-export const addressBlockTypes = [
-  'block',
-  'building',
-  'tower',
-  'house',
-  'villa',
-  'mansion',
-  'apartment',
-  'flat',
-  'unit',
-  'quarters',
-  'phase',
-  'stage',
-  'commercial',
-  'retail',
-  'parking',
-  'garage',
-  'other',
-] as const
+/** Source block descriptors may identify sub-building scope. */
+export { ADDRESS_BLOCK_TYPES as addressBlockTypes } from '@saanseoi/address/content'
 
 export type AddressBlockType = (typeof addressBlockTypes)[number]
 

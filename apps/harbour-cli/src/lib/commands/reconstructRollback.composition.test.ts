@@ -90,7 +90,7 @@ async function composedFixture() {
     id: 'home',
     divisionSnapshotId: 'lineage',
     districtId: 'district-new',
-    granularity: 'building',
+    scope: 'building',
   })
   insert(f.current, 'address2dI18n', {
     snapshotId: 'address-lineage',
@@ -115,7 +115,7 @@ async function composedFixture() {
     ...envelope,
     id: 'home',
     districtId: 'district',
-    granularity: 'building',
+    scope: 'building',
     versionHash: 'address-base',
   })
   insert(f.history, 'address2dI18n', {

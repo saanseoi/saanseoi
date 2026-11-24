@@ -47,35 +47,33 @@ function changeValue(label: string, value: string, other: string): string {
     : `${formatted} ${unit}`
 }
 </script>
-{#snippet comparison(
-  rows: ReturnType<typeof manifestChanges>,
-)}
+{#snippet comparison(rows: ReturnType<typeof manifestChanges>)}
   <div class="overflow-x-auto">
     <table class="w-full table-fixed text-left">
       <thead class="font-body text-caption text-foreground-alt">
-        <tr class="border-b border-data-outline-variant/40">
+        <tr class="border-data-outline-variant/40 border-b">
           <th scope="col" class="w-1/3 px-5 py-3 font-normal sm:w-1/4">Field</th>
           <th scope="col" class="px-3 py-3 font-normal">Previous</th>
           <th scope="col" class="px-3 py-3 pr-5 font-normal">Current</th>
         </tr>
       </thead>
-      <tbody class="divide-y divide-data-outline-variant/30">
+      <tbody class="divide-data-outline-variant/30 divide-y">
         {#each rows as change}
           <tr class="align-top">
             <th
               scope="row"
-              class="px-5 py-3 font-body text-label-md font-normal text-foreground-alt wrap-anywhere"
+              class="font-body text-label-md text-foreground-alt px-5 py-3 font-normal wrap-anywhere"
             >
               {change.label}
             </th>
             <td
-              class="px-3 py-3 font-mono text-caption leading-6 text-foreground-alt wrap-anywhere"
+              class="text-caption text-foreground-alt px-3 py-3 font-mono leading-6 wrap-anywhere"
               title={change.before}
             >
               {changeValue(change.label, change.before, change.after)}
             </td>
             <td
-              class="px-3 py-3 pr-5 font-mono text-caption leading-6 text-primary wrap-anywhere"
+              class="text-caption text-primary px-3 py-3 pr-5 font-mono leading-6 wrap-anywhere"
               title={change.after}
             >
               {changeValue(change.label, change.after, change.before)}
@@ -99,16 +97,16 @@ function changeValue(label: string, value: string, other: string): string {
         {#if metadataChanges.length}
           {@render comparison(metadataChanges)}
         {:else}
-          <p class="px-5 py-4 font-body text-label-md text-foreground-alt">
+          <p class="font-body text-label-md text-foreground-alt px-5 py-4">
             {checksumChanges.length
               ? 'Only checksums and source revisions changed.'
               : 'No build metadata changes.'}
           </p>
         {/if}
         {#if checksumChanges.length}
-          <details class="border-t border-data-outline-variant/40">
+          <details class="border-data-outline-variant/40 border-t">
             <summary
-              class="cursor-pointer px-5 py-4 font-body text-caption text-foreground-alt hover:text-primary focus-visible:outline-2 focus-visible:outline-data-primary"
+              class="font-body text-caption text-foreground-alt hover:text-primary focus-visible:outline-data-primary cursor-pointer px-5 py-4 focus-visible:outline-2"
             >
               Checksums &amp; revisions
               <span class="ml-1 font-mono">({checksumChanges.length})</span>
@@ -117,12 +115,12 @@ function changeValue(label: string, value: string, other: string): string {
           </details>
         {/if}
         <p
-          class="border-t border-data-outline-variant/30 px-5 py-3 font-body text-caption text-foreground-alt"
+          class="border-data-outline-variant/30 font-body text-caption text-foreground-alt border-t px-5 py-3"
         >
           Build metadata only; individual map-feature edits are not compared.
         </p>
       {:else}
-        <p class="px-5 py-5 font-body text-label-md leading-6 text-foreground-alt">
+        <p class="font-body text-label-md text-foreground-alt px-5 py-5 leading-6">
           {!catalogueAvailable
             ? 'The version catalogue is unavailable; the previous release cannot be determined.'
             : previousVersion

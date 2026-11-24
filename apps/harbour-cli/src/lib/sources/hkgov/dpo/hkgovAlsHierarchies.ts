@@ -12,7 +12,8 @@ import { applyYungShingSharedBuilding } from './hkgovAlsYungShingSharedBuilding'
 const NAMESPACE = 'b2da2675-daca-5920-a99e-c4d562a4c950'
 type HierarchyRow = PreparedHkgovAlsRow & {
   parentAddressId?: string
-  curatedGranularity?: 'complex' | 'phase' | 'building' | 'section' | 'unit' | 'unknown'
+  curatedScope?: 'premises' | 'phase' | 'building' | 'section' | 'unit' | 'unknown'
+  curatedPremisesType?: 'site' | 'complex'
   hierarchyCuration?: string
 }
 
@@ -132,7 +133,7 @@ export function applyAlsAddressHierarchies(
         !row.enBuildingName &&
         !row.enBlockNumber &&
         ((!row.enStreetNumberFrom && !row.enStreetNumberTo) ||
-          row.curatedGranularity === 'complex'),
+          row.curatedScope === 'premises'),
     )
     if (complexes.length > 1)
       throw new Error(`ALS hierarchy ${relationship.id}: multiple complex candidates`)
@@ -154,7 +155,8 @@ export function applyAlsAddressHierarchies(
         enFormattedAddress: relationship.complex.enName,
         zhHantFormattedAddress: relationship.complex.zhHantName,
       })
-    complex.curatedGranularity = 'complex'
+    complex.curatedScope = 'premises'
+    complex.curatedPremisesType = 'complex'
     complex.hierarchyCuration = relationship.id
     if (!complexes.length) rows.push(complex)
     for (const { building, candidates } of matches) {
@@ -172,7 +174,7 @@ export function applyAlsAddressHierarchies(
             zhHantFormattedAddress: `${relationship.complex.zhHantStreetName}${range.from}–${range.to}號${relationship.complex.zhHantName}${first.zhHantBuildingName}`,
           })
         : first
-      parent.curatedGranularity = 'building'
+      parent.curatedScope = 'building'
       parent.parentAddressId = complex.id
       parent.hierarchyCuration = building.id
       if (range) rows.push(parent)
@@ -210,7 +212,7 @@ export function applyAlsAddressHierarchies(
               `ALS hierarchy ${section.id}: source section changed; review required`,
             )
           source.parentAddressId = parent.id
-          source.curatedGranularity = 'section'
+          source.curatedScope = 'section'
           source.hierarchyCuration = section.id
           // Retain this publisher address identity, components and point. The fixture
           // supplies its reviewed section name; no duplicate derived child is needed.
@@ -230,7 +232,7 @@ export function applyAlsAddressHierarchies(
               section.zhHantName,
             ) ?? section.zhHantName,
           parentAddressId: parent.id,
-          curatedGranularity: 'section',
+          curatedScope: 'section',
           hierarchyCuration: building.id,
         })
         rows.push(child)
@@ -239,7 +241,7 @@ export function applyAlsAddressHierarchies(
       for (const child of candidates) {
         if (range) {
           child.parentAddressId = parent.id
-          child.curatedGranularity = 'section'
+          child.curatedScope = 'section'
           child.hierarchyCuration = building.id
         }
         ownership.set(child.id, {

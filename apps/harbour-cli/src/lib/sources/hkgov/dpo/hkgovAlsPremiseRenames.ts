@@ -58,7 +58,7 @@ export function applyReviewedPremiseRenames(
       row.identityMatchMethod = 'reviewed-premise-rename'
     }
     row.identitySummary = { ...row.identitySummary, buildingName: rule.enName }
-    row.curatedGranularity = 'building'
+    row.curatedScope = 'building'
     row.sources = JSON.stringify({
       ...JSON.parse(row.sources),
       hkgovAlsPremiseRename: {

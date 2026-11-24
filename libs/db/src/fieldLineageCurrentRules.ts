@@ -160,9 +160,8 @@ export function currentAddressFieldRule(
         ['resolutions'],
       ],
       geometry: ['null', []],
-      parentAddressId: ['null', []],
-      granularity: [
-        'establishAddressGranularity({addressId: id, values: entry.values, sourceVersion}).granularity',
+      scope: [
+        'establishAddressScope({addressId: id, values: entry.values, sourceVersion}).scope',
         ['resolutions', 'sourceVersion'],
       ],
       'identifiers.hkgov-dpo.csuId': [
@@ -297,9 +296,8 @@ export function currentAddressFieldRule(
   const expressions: Record<string, string> = {
     id: 'requireText(row.canonicalId ?? row.id)',
     geometry: 'parseOptionalJson(row.geometry)',
-    parentAddressId: 'asNonEmptyString(row.parentAddressId)',
-    granularity:
-      "row.hierarchyCuration && ['complex','phase','building','section','unit'].includes(row.curatedGranularity) ? row.curatedGranularity : establishAddressGranularity({addressId: canonicalId, values: i18n, sourceVersion, componentCorrections}).granularity",
+    scope:
+      "row.hierarchyCuration && ['premises','phase','building','section','unit','unknown'].includes(row.curatedScope) ? row.curatedScope : establishAddressScope({addressId: canonicalId, values: i18n, sourceVersion, componentCorrections}).scope",
     'identifiers.hkgov-dpo.csuId':
       "canonicalIdentifiers(row.identifiers)?.['hkgov-dpo']?.csuId",
     sources: 'addressSourceReferences(row, canonicalId)',
@@ -316,11 +314,10 @@ export function currentAddressFieldRule(
           {
             id: ['canonicalId', 'id'],
             geometry: ['geometry'],
-            parentAddressId: ['parentAddressId'],
-            granularity: [
+            scope: [
               'canonicalId',
               'hierarchyCuration',
-              'curatedGranularity',
+              'curatedScope',
               'i18n',
               'sourceVersion',
               'componentCorrections',

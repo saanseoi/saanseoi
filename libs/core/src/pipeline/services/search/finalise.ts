@@ -1,3 +1,4 @@
+import { synchroniseAddressSubstringSearch } from '../addresses/substringIndex'
 import type { HarbourReadableDb } from '../../../lib/db/types'
 import { addressSearchIndex } from '../addresses/searchIndex'
 import { placeSearchIndex } from '../places/searchIndex'
@@ -14,7 +15,10 @@ export async function finalisePublishedSearch(
     /** Omit for reconciliation, including a retry after a failed finalisation. */
     publishedFamilies?: readonly string[]
   } = {},
-  dependencies = { synchroniseSearchIndexes },
+  dependencies: {
+    synchroniseSearchIndexes: typeof synchroniseSearchIndexes
+    synchroniseAddressSubstringSearch?: typeof synchroniseAddressSubstringSearch
+  } = { synchroniseSearchIndexes, synchroniseAddressSubstringSearch },
 ) {
   // Drafts are not serving selections. An unrelated incomplete cohort must not
   // suppress indexes for published inventories; synchronisation checks every
@@ -30,4 +34,5 @@ export async function finalisePublishedSearch(
     ...(places ? [placeSearchIndex] : []),
     ...(divisions ? [divisionSearchIndex] : []),
   ])
+  if (addresses) await dependencies.synchroniseAddressSubstringSearch?.(current)
 }

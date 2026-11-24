@@ -53,7 +53,7 @@ test('estate IDs and marker are independent of publisher house identifiers', () 
     expect(row.easting).toBeNull()
     expect(row.northing).toBeNull()
     expect(row.identifiers).toBeNull()
-    expect(row.curatedGranularity).toBe('complex')
+    expect(row.curatedScope).toBe('premises')
     expect(
       JSON.parse(row.sources).hkgovAlsStreetEstateComplex.originalAliases,
     ).toHaveLength(1)
@@ -130,7 +130,7 @@ test.skipIf(!process.env.ALS_RETAINED_RELEASE_TEST)(
           before = structuredClone(named)
         expect(applyReviewedStreetEstateComplexes(rows, v).complexCount).toBe(2)
         expect(named).toEqual(before)
-        const complexes = rows.filter(r => r.curatedGranularity === 'complex')
+        const complexes = rows.filter(r => r.curatedScope === 'premises')
         expect(complexes).toHaveLength(2)
         for (const r of complexes) {
           expect(r.geoAddress).toBeNull()
@@ -166,7 +166,7 @@ test.skipIf(!process.env.ALS_RETAINED_RELEASE_TEST)(
           outputFile,
           rows,
         })
-        expect(rows.filter(r => r.curatedGranularity === 'complex')).toHaveLength(2)
+        expect(rows.filter(r => r.curatedScope === 'premises')).toHaveLength(2)
         const records = (await Bun.file(`${outputFile}.address3d.jsonl`).text())
             .trim()
             .split('\n')

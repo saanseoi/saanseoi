@@ -68,7 +68,7 @@ export function createPlaceAddress3dMatcher(
   }
   return (
     snapshotId: string,
-    address: { id: string; parentAddressId: string | null },
+    address: { id: string },
     texts: string[],
     observer?: PlaceAddress3dReadObserver,
   ) =>
@@ -83,7 +83,7 @@ export function createPlaceAddress3dMatcher(
 export async function matchPlaceAddress3d(
   db: HarbourReadableDb,
   snapshotId: string,
-  address: { id: string; parentAddressId: string | null },
+  address: { id: string },
   texts: string[],
   load: CollectionLoader = (snapshot, owner) => loadCollection(db, snapshot, owner),
 ) {
@@ -106,9 +106,7 @@ export async function matchPlaceAddress3d(
     return null
   const pair = pairs[0]
   if (!pair) return null
-  for (const ownerId of [address.id, address.parentAddressId].filter(
-    (id): id is string => Boolean(id),
-  )) {
+  for (const ownerId of [address.id]) {
     const collection = await load(snapshotId, ownerId)
     if (!collection) continue
     const coverage = resolveAddress3dCoverage(address, [collection])
@@ -154,7 +152,9 @@ export async function loadCollection(
     .where(
       and(
         sql`${currentSchema.address3d.scopeId} = (select ${currentSchema.addressPublicationState.scopeId} from ${currentSchema.addressPublicationState} where ${currentSchema.addressPublicationState.preparedAt} is not null and ${currentSchema.addressPublicationState.snapshotId} = ${snapshotId})`,
-        eq(currentSchema.address3d.address2dId, ownerId),
+        sql`(${currentSchema.address3d.address2dId} = ${ownerId} OR (EXISTS (select 1 from json_each(${currentSchema.address3d.unresolvedSectionIds}) section where section.value = ${ownerId})
+          AND NOT EXISTS (select 1 from address3d candidate where candidate.scopeId = ${currentSchema.address3d.scopeId} and candidate.id <> ${currentSchema.address3d.id}
+            and (candidate.address2dId = ${ownerId} or exists (select 1 from json_each(candidate.unresolvedSectionIds) member where member.value = ${ownerId})))))`,
       ),
     )
     .get()

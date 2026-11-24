@@ -1,4 +1,9 @@
-import { parseI18nMeta } from '@repo/db'
+import {
+  parseI18nMeta,
+  addressScopes,
+  type AddressScope,
+  type AddressPremisesType,
+} from '@repo/db'
 import type { AddressI18nPayload, AddressRow } from '@repo/db/currentSchema'
 import ruleFixture from '../../../../../../fixtures/meta/processing-rules/assembly/address-normalisation.json'
 import {
@@ -12,7 +17,7 @@ import { canonicalIdentifiers } from '../sources/canonicalIdentifiers'
 import { recordContent } from '../sources/recordContent'
 import { publisherSourceHashInput } from '../sources/sourcePayload'
 import { correctHkgovAddressComponents } from './componentCorrections'
-import { establishAddressGranularity } from './granularity'
+import { establishAddressScope } from './scope'
 import { addressSourceReferences } from './sourceReferences'
 import type { NormalisedAddressRecord } from './types'
 
@@ -190,6 +195,17 @@ function normalisePreparedHkgovAddressRow(
     coverageComponents.add('village_name')
   }
 
+  const classification =
+    row.hierarchyCuration && addressScopes.includes(row.curatedScope as AddressScope)
+      ? {
+          scope: row.curatedScope as AddressScope,
+        }
+      : establishAddressScope({
+          addressId: canonicalId,
+          values: i18n,
+          sourceVersion: typeof sourceVersion === 'string' ? sourceVersion : undefined,
+          componentCorrections,
+        })
   return {
     canonicalId,
     sourceId,
@@ -200,23 +216,7 @@ function normalisePreparedHkgovAddressRow(
       streetName: otStreet,
     }),
     base: {
-      parentAddressId: asNonEmptyString(row.parentAddressId),
-      granularity:
-        row.hierarchyCuration &&
-        (row.curatedGranularity === 'complex' ||
-          row.curatedGranularity === 'phase' ||
-          row.curatedGranularity === 'building' ||
-          row.curatedGranularity === 'section' ||
-          row.curatedGranularity === 'unit' ||
-          row.curatedGranularity === 'unknown')
-          ? row.curatedGranularity
-          : establishAddressGranularity({
-              addressId: canonicalId,
-              values: i18n,
-              sourceVersion:
-                typeof sourceVersion === 'string' ? sourceVersion : undefined,
-              componentCorrections,
-            }).granularity,
+      scope: classification.scope,
       divisionSnapshotId: requireText(
         row.divisionSnapshotId,
         'Prepared HKGov ALS row is missing `divisionSnapshotId`.',
@@ -252,8 +252,7 @@ export function buildAddressBaseHashInput(
 ) {
   return {
     id: base.id,
-    parentAddressId: base.parentAddressId,
-    granularity: base.granularity,
+    scope: base.scope,
     streetId: base.streetId,
     hamletId: base.hamletId,
     microhoodId: base.microhoodId,

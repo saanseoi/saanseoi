@@ -277,6 +277,9 @@ export async function stagePlaces(
   let processedRows = 0
   try {
     for await (const batch of readParquetObjectsInBatches(file, PLACE_BATCH_SIZE)) {
+      // Decoded Parquet windows and cached JSON from previous batches are
+      // disposable; reclaim them before they accumulate past MemoryHigh.
+      Bun.gc(true)
       for (const row of batch) {
         const key = recordCache ? recordCacheKey(row) : ''
         const cached = recordCache?.get<NormalisedPlace | null>('normalisation', key)
@@ -366,7 +369,6 @@ export async function stageEnrichedPlaces(
       islandId: currentSchema.address2d.islandId,
       hamletId: currentSchema.address2d.hamletId,
       id: currentSchema.address2d.id,
-      parentAddressId: currentSchema.address2d.parentAddressId,
       ruralAreaId: currentSchema.address2d.ruralAreaId,
       macrohoodId: currentSchema.address2d.macrohoodId,
       microhoodId: currentSchema.address2d.microhoodId,

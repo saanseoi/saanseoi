@@ -1,13 +1,13 @@
 ---
-createdAt: "2026-09-06T00:00:00.000Z"
-updatedAt: "2026-09-06T00:00:00.000Z"
-apiFamily: "places"
-apiVersion: "api-places-v0.1"
-apiReleaseSet: "data-hk-places-2025-09-24.0"
-revision: "0"
-regionCode: "hk"
-cohortKey: "2025-09-24.0"
-domainCode: "overture"
+createdAt: '2026-09-06T00:00:00.000Z'
+updatedAt: '2026-09-06T00:00:00.000Z'
+apiFamily: 'places'
+apiVersion: 'api-places-v0.1'
+apiReleaseSet: 'data-hk-places-2025-09-24.0'
+revision: '0'
+regionCode: 'hk'
+cohortKey: '2025-09-24.0'
+domainCode: 'overture'
 ---
 
 # EN
@@ -66,7 +66,8 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 - 山水 {{regionName:zh-Hant}} Places API 首個發布集。
 - 將 <black>{{ cohortKey }}</black> 的 Overture Places snapshot 作為主要 Place
   collection 發布，並按 Places API composition 選取必要的地址及 Division 背景資料。
-- 將名稱、類別、品牌、地址及發布者溯源資料正規化為標準 Place 模型，同時保留原始 Overture 記錄供查閱。
+- 將名稱、類別、品牌、地址及發布者溯源資料正規化為標準 Place 模型，同時保留原始 Overture
+  記錄供查閱。
 
 ## 修訂紀錄
 
@@ -75,8 +76,8 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 ## 發布範圍
 
 此不可變的 [release set](saanseoi:zh-hant:definition/release-set/v1) 在
-{{regionName:zh-Hant}}發布 [cohort](saanseoi:zh-hant:definition/cohort/v1)
-<black>{{ cohortKey }}</black> 的 <black>{{ domainCode }}</black>
+{{regionName:zh-Hant}}發布 [cohort](saanseoi:zh-hant:definition/cohort/v1) <black>{{
+cohortKey }}</black> 的 <black>{{ domainCode }}</black>
 [domain](saanseoi:zh-hant:definition/domain/v1)。以下來源發布組成此 release set。
 
 {{apiReleaseSetSources:zh-Hant}}
@@ -93,8 +94,8 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 - 地址背景資料屬於補充資料。只有在 Place 地址能與所選 ALS snapshot 配對時，才會填入
   `address2dId`；此版本不會解析 `address3dId`。這是日後的改善項目。
 - Division 關係由已審核的地址連結衍生。沒有 ALS 連結的 Place，其 Division 關係可以為空。
-- Place 幾何資料是用於定位及索引的點。H3 索引及全文搜尋是由 Place
-  snapshot 衍生的 projection。
+- Place 幾何資料是用於定位及索引的點。H3 索引及全文搜尋是由 Place snapshot 衍生的
+  projection。
 - Overture 2025 年 9 月來源發布將所有 `operating_status` 值設定為
   `open`；這反映來源發布，不應視作獨立的目前狀態核實。
 - 請參閱[發布範圍表](#source-heading-release-scope)連結的來源發布附註，以了解發布者特有的schema、溯源及相容性資料。
@@ -106,7 +107,8 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 - 山水 {{regionName:zh-Hans}} Places API 首个发布集。
 - 将 <black>{{ cohortKey }}</black> 的 Overture Places snapshot 作为主要 Place
   collection 发布，并按 Places API composition 选择必要的地址及 Division 背景数据。
-- 将名称、类别、品牌、地址及发布者溯源数据规范化为标准 Place 模型，同时保留原始 Overture 记录供查阅。
+- 将名称、类别、品牌、地址及发布者溯源数据规范化为标准 Place 模型，同时保留原始 Overture
+  记录供查阅。
 
 ## 修订记录
 
@@ -115,8 +117,8 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 ## 发布范围
 
 此不可变的 [release set](saanseoi:zh-hans:definition/release-set/v1) 在
-{{regionName:zh-Hans}}发布 [cohort](saanseoi:zh-hans:definition/cohort/v1)
-<black>{{ cohortKey }}</black> 的 <black>{{ domainCode }}</black>
+{{regionName:zh-Hans}}发布 [cohort](saanseoi:zh-hans:definition/cohort/v1) <black>{{
+cohortKey }}</black> 的 <black>{{ domainCode }}</black>
 [domain](saanseoi:zh-hans:definition/domain/v1)。以下源发布组成此 release set。
 
 {{apiReleaseSetSources:zh-Hans}}
@@ -133,8 +135,8 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 - 地址背景数据属于补充数据。只有在 Place 地址能与所选 ALS snapshot 匹配时，才会填入
   `address2dId`；此版本不会解析 `address3dId`。这是日后的改进项目。
 - Division 关系由已审核的地址链接衍生。没有 ALS 链接的 Place，其 Division 关系可以为空。
-- Place 几何数据是用于定位及索引的点。H3 索引及全文搜索是由 Place
-  snapshot 派生的 projection。
+- Place 几何数据是用于定位及索引的点。H3 索引及全文搜索是由 Place snapshot 派生的
+  projection。
 - Overture 2025 年 9 月源发布将所有 `operating_status` 值设为
   `open`；这反映源发布，不应视作独立的当前状态核实。
 - 请参阅[发布范围表](#source-heading-release-scope)链接的源发布说明，以了解发布者特有的schema、溯源及兼容性资料。
