@@ -62,9 +62,9 @@ export async function readAuditFixtureCatalogue(
     for (const type of largeTypes) {
       const refs = bulk.fixtures.filter(f => f.type === type).map(f => f.object)
       const { group } = await readPartitionedFixture(store, refs, query)
-      result.groups[bulk.id] ??= {}
-      const groups = result.groups[bulk.id]
+      const groups = result.groups[bulk.id] ?? {}
       groups[type] = group
+      result.groups[bulk.id] = groups
     }
   }
   return result

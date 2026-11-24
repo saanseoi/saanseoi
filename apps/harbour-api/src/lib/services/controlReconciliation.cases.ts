@@ -107,10 +107,10 @@ test('reconciles a draft division release set once its required C&SD areas are a
       1761264000001, 1761264000001
     );
 
-    INSERT INTO publishers (id, code, versionHash, createdAt, updatedAt) VALUES
+    INSERT OR IGNORE INTO publishers (id, code, versionHash, createdAt, updatedAt) VALUES
       ('publisher-hkgov-had', 'hkgov-had', 'vh-publisher-hkgov-had', 1761264000001, 1761264000001);
 
-    INSERT INTO datasets (
+    INSERT OR IGNORE INTO datasets (
       id, publisherId, code, regionCode, releaseType, releaseFrequency,
       theme, sourceUrl, versionHash, createdAt, updatedAt
     ) VALUES
@@ -264,10 +264,10 @@ INSERT INTO resourceReleases (id, sourceReleaseId, resourceType, code, status, i
     .get(hadSnapshotId) as { status: string }
 
   sqlite.exec(`
-    INSERT INTO publishers (id, code, versionHash, createdAt, updatedAt) VALUES
+    INSERT OR IGNORE INTO publishers (id, code, versionHash, createdAt, updatedAt) VALUES
       ('publisher-hkgov-censtatd', 'hkgov-censtatd', 'vh-publisher-hkgov-censtatd', 1761264000001, 1761264000001);
 
-    INSERT INTO datasets (
+    INSERT OR IGNORE INTO datasets (
       id, publisherId, code, regionCode, releaseType, releaseFrequency,
       theme, sourceUrl, versionHash, createdAt, updatedAt
     ) VALUES (
@@ -318,7 +318,7 @@ INSERT INTO resourceReleases (id, sourceReleaseId, resourceType, code, status, i
   seedCensusArea('2016')
 
   sqlite.exec(`
-    INSERT INTO sourceReleases (
+    INSERT OR IGNORE INTO sourceReleases (
       id, datasetId, code, sourceVersion, sourceSchemaVersion, cohortKey, status,
       ingestedAt, createdAt, updatedAt
     ) VALUES (
@@ -331,7 +331,7 @@ INSERT INTO resourceReleases (id, sourceReleaseId, resourceType, code, status, i
 
     INSERT OR IGNORE INTO sourceReleases (id, datasetId, code, sourceVersion, status, sourceSchemaVersion, cohortKey) VALUES ('release-dr-hk-hkgov-censtatd-division-area-district-annual-2024', 'hkgov-censtatd-hk-district-annual', 'source-' || 'dr-hk-hkgov-censtatd-division-area-district-annual-2024', '2024', 'current', '1.0', '2024');
 UPDATE sourceReleases SET datasetId = 'hkgov-censtatd-hk-district-annual', sourceVersion = '2024', sourceSchemaVersion = '1.0', cohortKey = '2024' WHERE id = 'release-dr-hk-hkgov-censtatd-division-area-district-annual-2024';
-INSERT INTO resourceReleases (id, sourceReleaseId, resourceType, code, status, ingestedAt, createdAt, updatedAt) VALUES ('release-dr-hk-hkgov-censtatd-division-area-district-annual-2024', 'release-dr-hk-hkgov-censtatd-division-area-district-annual-2024', 'divisionArea', 'dr-hk-hkgov-censtatd-division-area-district-annual-2024', 'current', '2026-06-05T00:01:00.000Z', '2026-06-05T00:01:00.000Z', '2026-06-05T00:01:00.000Z');
+INSERT OR IGNORE INTO resourceReleases (id, sourceReleaseId, resourceType, code, status, ingestedAt, createdAt, updatedAt) VALUES ('release-dr-hk-hkgov-censtatd-division-area-district-annual-2024', 'release-dr-hk-hkgov-censtatd-division-area-district-annual-2024', 'divisionArea', 'dr-hk-hkgov-censtatd-division-area-district-annual-2024', 'current', '2026-06-05T00:01:00.000Z', '2026-06-05T00:01:00.000Z', '2026-06-05T00:01:00.000Z');
     INSERT INTO snapshotLineages (
       id, code, regionCode, resourceType, variant, identityMode,
       primaryDatasetId, versionHash, createdAt, updatedAt
