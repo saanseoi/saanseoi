@@ -4191,7 +4191,7 @@ INSERT INTO snapshotResourceReleases (snapshotId, resourceReleaseId) VALUES
 
       INSERT INTO datasets (id, publisherId, code) VALUES
         ('dataset-overture-division', 'publisher-overture', 'ds-hk-overture-division'),
-        ('dataset-hkgov-censtatd-district', 'publisher-hkgov-censtatd', 'ds-hk-hkgov-censtatd-division-area-district');
+        ('dataset-hkgov-censtatd-area-district', 'publisher-hkgov-censtatd', 'ds-hk-hkgov-censtatd-division-area-district');
 
       INSERT INTO apiVersions (id, code) VALUES
         ('api-version-1', 'api-divisions-v0.1');
@@ -4234,8 +4234,8 @@ INSERT INTO resourceReleases (id, status, revokedAt, revocationReason, supersede
       UPDATE sourceReleases SET datasetId='dataset-overture-division' WHERE id=(SELECT sourceReleaseId FROM resourceReleases WHERE id='release-overture-2025');
 INSERT INTO sourceReleases(id,datasetId) SELECT 'source-' || 'release-overture-2025', 'dataset-overture-division' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-overture-2025');
 INSERT INTO resourceReleases(id,sourceReleaseId,resourceType,status) SELECT 'release-overture-2025', 'source-' || 'release-overture-2025', (SELECT l.resourceType FROM snapshots s JOIN snapshotLineages l ON l.id=s.snapshotLineageId WHERE s.id='snapshot-overture'), 'current' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-overture-2025');
-UPDATE sourceReleases SET datasetId='dataset-hkgov-censtatd-district' WHERE id=(SELECT sourceReleaseId FROM resourceReleases WHERE id='release-censtatd');
-INSERT INTO sourceReleases(id,datasetId) SELECT 'source-' || 'release-censtatd', 'dataset-hkgov-censtatd-district' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-censtatd');
+UPDATE sourceReleases SET datasetId='dataset-hkgov-censtatd-area-district' WHERE id=(SELECT sourceReleaseId FROM resourceReleases WHERE id='release-censtatd');
+INSERT INTO sourceReleases(id,datasetId) SELECT 'source-' || 'release-censtatd', 'dataset-hkgov-censtatd-area-district' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-censtatd');
 INSERT INTO resourceReleases(id,sourceReleaseId,resourceType,status) SELECT 'release-censtatd', 'source-' || 'release-censtatd', (SELECT l.resourceType FROM snapshots s JOIN snapshotLineages l ON l.id=s.snapshotLineageId WHERE s.id='snapshot-censtatd'), 'current' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-censtatd');
 UPDATE sourceReleases SET datasetId='dataset-overture-division' WHERE id=(SELECT sourceReleaseId FROM resourceReleases WHERE id='release-overture-2026');
 INSERT INTO sourceReleases(id,datasetId) SELECT 'source-' || 'release-overture-2026', 'dataset-overture-division' WHERE NOT EXISTS (SELECT 1 FROM resourceReleases WHERE id='release-overture-2026');
@@ -4268,7 +4268,7 @@ INSERT INTO snapshotResourceReleases (snapshotId, resourceReleaseId, role) VALUE
         dataset: {
           cohortKey: '2016',
           datasetCode: 'ds-hk-hkgov-censtatd-division-area-district',
-          datasetId: 'dataset-hkgov-censtatd-district',
+          datasetId: 'dataset-hkgov-censtatd-area-district',
           releaseCode: 'release-censtatd',
           resourceReleaseId: 'release-censtatd',
           source: 'hkgov-censtatd',
