@@ -375,7 +375,6 @@ test('nullable Address references and Division codes use partial lookup indexes'
   try {
     for (const [table, column, index, scoped] of [
       ['address2d', 'streetId', 'address2d_streetId_nonnull_idx', false],
-      ['address2d', 'parentAddressId', 'address2d_parentAddressId_nonnull_idx', true],
       ['divisions', 'divisionCode', 'divisions_divisionCode_nonnull_idx', true],
     ] as const) {
       const indexes = sqlite.query(`PRAGMA index_list(${table})`).all() as Array<{

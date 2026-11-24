@@ -2088,8 +2088,7 @@ describe('atlas-api', () => {
     }
     expect(addressAttributes.properties.scope?.enum).toEqual([
       'unknown',
-      'site',
-      'complex',
+      'premises',
       'phase',
       'building',
       'section',

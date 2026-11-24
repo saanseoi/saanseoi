@@ -724,7 +724,11 @@ describe('Divisions API responses through the Worker route', () => {
       f.metaSqlite.exec('UPDATE apiCatalogRevisionReleaseSets SET isDefault=1')
       const db = createLocalHarbourDb(f.metaSqlite)
       const current = {
-        prepare: (sql: string) => ({ sql }) as unknown as D1PreparedStatement,
+        prepare: (sql: string) =>
+          ({
+            sql,
+            all: <T>() => createMockD1(f.currentSqlite).prepare(sql).all<T>(),
+          }) as unknown as D1PreparedStatement,
         batch: async (statements: D1PreparedStatement[]) =>
           f.currentSqlite.transaction(() => {
             for (const statement of statements)
