@@ -54,6 +54,10 @@ test('Place search treats punctuation and FTS operators as literal user input', 
     }
     sqlite.query('UPDATE placeSearchFts SET nameText=?').run('Say "Hello"')
     expect((await search('Say "Hello"')).map(row => row.placeId)).toEqual(['shop'])
+    for (const name of ['ＡＢＣ１２３', 'École', 'ＡＢ']) {
+      sqlite.query('UPDATE placeSearchFts SET nameText=?').run(name)
+      expect((await search(name)).map(row => row.placeId)).toEqual(['shop'])
+    }
   } finally {
     sqlite.close()
   }

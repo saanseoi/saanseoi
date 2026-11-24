@@ -286,8 +286,6 @@ export async function listPlacesByH3Cell(db: CurrentDatabase, lookup: H3Lookup) 
 /** Normalize punctuation in place search terms without changing source labels. */
 function normalizePlaceSearchQuery(query: string): string {
   return query
-    .normalize('NFKC')
-    .toLocaleLowerCase('und')
     .replace(/[\p{P}\p{S}]+/gu, '')
     .replace(/\s+/gu, ' ')
     .trim()
@@ -308,7 +306,7 @@ type PlaceSearchResult = {
  * @returns A residual predicate, used only after an indexed anchor when available.
  */
 function placeLiteralMatch(
-  terms: string[],
+  terms: string[][],
   namesOnly: boolean,
 ): ReturnType<typeof sql> {
   const fields = namesOnly
@@ -322,10 +320,11 @@ function placeLiteralMatch(
         placesFts.streetText,
       ]
   return sql`NOT EXISTS (
-    SELECT 1 FROM json_each(${JSON.stringify(terms)}) term WHERE NOT (${sql.join(
-      fields.map(field => sql`coalesce(${field}, '') LIKE '%' || term.value || '%'`),
-      sql` OR `,
-    )})
+    SELECT 1 FROM json_each(${JSON.stringify(terms)}) variants WHERE NOT EXISTS (
+      SELECT 1 FROM json_each(variants.value) term WHERE ${sql.join(
+        fields.map(field => sql`coalesce(${field}, '') LIKE '%' || term.value || '%'`),
+        sql` OR `,
+      )})
   )`
 }
 
@@ -337,14 +336,21 @@ function placeLiteralMatch(
  * still narrow the scan; no user text is interpreted as FTS syntax or SQL wildcards.
  */
 function placeSubstringMatch(
-  terms: string[],
+  terms: string[][],
   namesOnly: boolean,
 ): ReturnType<typeof sql> {
-  const indexed = terms.filter(term => [...term].length >= 3)
-  const short = terms.filter(term => [...term].length < 3)
+  const indexed = terms.filter(variants =>
+    variants.every(term => [...term].length >= 3),
+  )
+  const short = terms.filter(variants => variants.some(term => [...term].length < 3))
   const conditions = short.length ? [placeLiteralMatch(short, namesOnly)] : []
   if (indexed.length) {
-    const phrase = indexed.map(term => `"${term.replaceAll('"', '""')}"`).join(' AND ')
+    const phrase = indexed
+      .map(
+        variants =>
+          `(${variants.map(term => `"${term.replaceAll('"', '""')}"`).join(' OR ')})`,
+      )
+      .join(' AND ')
     conditions.unshift(
       sql`${placesFts} MATCH ${namesOnly ? `{nameText brandText} : (${phrase})` : phrase}`,
     )
@@ -365,7 +371,7 @@ export async function searchPlacesFtsPage(
 ): Promise<{ results: PlaceSearchResult[]; nextCursor: string | null }> {
   const terms = [
     ...new Set(normalizePlaceSearchQuery(lookup.query).split(' ').filter(Boolean)),
-  ]
+  ].map(term => [...new Set([term, term.normalize('NFKC')])])
   if (!terms.length) return { results: [], nextCursor: null }
   try {
     if (!(await hasCurrentPlaceSnapshot(db, lookup.snapshotId)))
@@ -415,7 +421,7 @@ export async function searchPlacesFtsPage(
       nearLat: lookup.nearLat ?? null,
       nearLng: lookup.nearLng ?? null,
       maxDistance: lookup.maxDistance ?? null,
-      terms,
+      terms: terms.map(variants => JSON.stringify(variants)),
       taxonomyCategory: lookup.taxonomyCategory ?? null,
       snapshotId: lookup.snapshotId,
       locale: lookup.locale ?? null,
@@ -498,21 +504,21 @@ export async function searchPlacesFtsPage(
               SELECT 1 FROM placeSearchFts alternate
               WHERE alternate.scopeId = ${placesFts.scopeId}
                 AND alternate.placeId = ${placesFts.placeId}
-                AND NOT EXISTS (SELECT 1 FROM json_each(${JSON.stringify(terms)}) term
-                  WHERE NOT (coalesce(alternate.nameText, '') LIKE '%' || term.value || '%'
+                AND NOT EXISTS (SELECT 1 FROM json_each(${JSON.stringify(terms)}) variants
+                  WHERE NOT EXISTS (SELECT 1 FROM json_each(variants.value) term WHERE (coalesce(alternate.nameText, '') LIKE '%' || term.value || '%'
                     OR coalesce(alternate.brandText, '') LIKE '%' || term.value || '%'
                     OR coalesce(alternate.taxonomyText, '') LIKE '%' || term.value || '%'
                     OR coalesce(alternate.addressText, '') LIKE '%' || term.value || '%'
                     OR coalesce(alternate.divisionText, '') LIKE '%' || term.value || '%'
-                    OR coalesce(alternate.streetText, '') LIKE '%' || term.value || '%'))
-                AND (CASE WHEN NOT EXISTS (SELECT 1 FROM json_each(${JSON.stringify(terms)}) term
-                    WHERE NOT (coalesce(alternate.nameText, '') LIKE '%' || term.value || '%'
-                      OR coalesce(alternate.brandText, '') LIKE '%' || term.value || '%'))
+                    OR coalesce(alternate.streetText, '') LIKE '%' || term.value || '%')))
+                AND (CASE WHEN NOT EXISTS (SELECT 1 FROM json_each(${JSON.stringify(terms)}) variants
+                    WHERE NOT EXISTS (SELECT 1 FROM json_each(variants.value) term WHERE (coalesce(alternate.nameText, '') LIKE '%' || term.value || '%'
+                      OR coalesce(alternate.brandText, '') LIKE '%' || term.value || '%')))
                   THEN 0 ELSE 1 END) <= ${namesOnly ? 0 : 1}
                 AND (alternate.rowid < ${placesFts}.rowid OR (${namesOnly ? 0 : 1} = 1
-                  AND NOT EXISTS (SELECT 1 FROM json_each(${JSON.stringify(terms)}) term
-                    WHERE NOT (coalesce(alternate.nameText, '') LIKE '%' || term.value || '%'
-                      OR coalesce(alternate.brandText, '') LIKE '%' || term.value || '%'))))
+                  AND NOT EXISTS (SELECT 1 FROM json_each(${JSON.stringify(terms)}) variants
+                    WHERE NOT EXISTS (SELECT 1 FROM json_each(variants.value) term WHERE (coalesce(alternate.nameText, '') LIKE '%' || term.value || '%'
+                      OR coalesce(alternate.brandText, '') LIKE '%' || term.value || '%')))))
             )`,
             // Seek after the previous row within its ranking phase; never rescan prior pages.
             sql`${placesFts}.rowid > ${afterRow}`,
