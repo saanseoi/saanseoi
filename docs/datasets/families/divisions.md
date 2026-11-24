@@ -1,5 +1,16 @@
 # Divisions dataset family
 
+Overture cohort `2026-10-21.0` is accepted with source schema `2.0.0` for Division,
+Division Area and Division Boundary. Release acceptance is explicit; an unlisted
+publisher release requires schema review before ingestion. See the
+[October release review](../sources/overture/release-review-2026-10-21.md) for input
+verification and the local rehearsal requirements.
+
+The October physical Parquet profiles declare the observed required fields explicitly.
+Division preparation retains its reviewed country-reference row, so geometry, parent and
+publisher version remain nullable in that prepared profile. Upload validation checks the
+exact field set, types and nullability for each cohort.
+
 The Overture dataset fixture excludes publisher patch `2026-09-23.1` from
 `saanseoi update`: it does not affect the data ingested by SaanSeoi. The command reports
 the version and reason and keeps eligible releases available for ingestion. See

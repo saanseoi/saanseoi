@@ -1,5 +1,15 @@
 # Places dataset family
 
+Overture cohort `2026-10-21.0` is accepted with source schema `2.0.0`. Places requires
+the exact Division cohort and produces its supplementary Address output from the same
+Place input. See the
+[October release review](../sources/overture/release-review-2026-10-21.md) for input
+verification and the local rehearsal requirements.
+
+October's physical Place profile requires `id`, `geometry`, `confidence`, `version`,
+`theme` and `type`. The chronological schema transition accepts only the exact reviewed
+profiles; unexpected fields, altered types or incompatible nullability remain errors.
+
 The Overture dataset fixture excludes publisher patch `2026-09-23.1` from
 `saanseoi update`: it does not affect the data ingested by SaanSeoi. The command reports
 the version and reason and keeps eligible releases available for ingestion. See

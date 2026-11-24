@@ -1,5 +1,17 @@
 # Overture Places
 
+The explicit source-release mapping accepts `2026-10-21.0` with schema `2.0.0`. The Hong
+Kong Parquet schema has been checked against the accepted field contract; future
+unlisted releases remain blocked pending review. October's publisher assigns operating
+status by majority vote across contributing sources and records provenance under
+`/properties/operating_status`. Global publisher growth and churn do not represent Hong
+Kong's canonical changes; those require the local ingestion comparison.
+
+The physical upload profile `overture-place-v2026-10-21.0` records required `id`,
+`geometry`, `confidence`, `version`, `theme` and `type` fields. Publisher schema `2.0.0`
+and physical Parquet nullability are checked separately. A matching schema version alone
+does not authorise a different physical field contract.
+
 The Overture dataset fixture excludes publisher patch `2026-09-23.1` from
 `saanseoi update`: it does not affect the data ingested by SaanSeoi. The command reports
 the version and reason and keeps eligible releases available for ingestion. See
