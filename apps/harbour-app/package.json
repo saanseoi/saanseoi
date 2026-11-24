@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "bun --bun ../../node_modules/vite/bin/vite.js",
-    "check": "svelte-check --tsconfig ./tsconfig.json",
+    "check": "bun --bun ../../node_modules/svelte-check/bin/svelte-check --tsconfig ./tsconfig.json",
     "test": "bun test ./ingestion/server.test.ts ./ingestion/signoffs.test.ts && vitest run",
     "build": "vite build",
     "lint": "biome lint ."
