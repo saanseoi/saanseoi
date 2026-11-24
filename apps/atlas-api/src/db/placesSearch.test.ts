@@ -319,7 +319,8 @@ test('Place trigram upgrade preserves search evidence and rolls back atomically'
     sqlite.exec(createSearchFtsSql({ ...placeSearchIndex, tokenizer: undefined }))
     sqlite.exec(`INSERT INTO placeSearchFts(scopeId,placeId,locale,nameText,addressText) VALUES
       ('scope','maxim','en','Maxim''s Cakes','Flora Plaza'),
-      ('scope','punctuation','en','M.Art Cafe' || char(31) || 'mart cafe','Main Street')`)
+      ('scope','punctuation','en','M.Art Cafe' || char(31) || 'mart cafe','Main Street'),
+      ('scope','fullwidth','en','ＡＢＣ１２３' || char(31) || 'ＡＢＣ１２３','Broadway')`)
     const original = sqlite.query('select rowid,* from placeSearchFts').all()
     const upgrade = () => {
       for (const statement of buildPlaceSearchTrigramUpgradeSql())
@@ -344,10 +345,16 @@ test('Place trigram upgrade preserves search evidence and rolls back atomically'
         .all(),
     ).toEqual([{ placeId: 'maxim' }])
     expect(
+      sqlite
+        .query("select placeId from placeSearchFts where placeSearchFts match 'abc123'")
+        .all(),
+    ).toEqual([{ placeId: 'fullwidth' }])
+    expect(
       sqlite.query('select rowid,placeId,addressText from placeSearchFts').all(),
     ).toEqual([
       { rowid: 1, placeId: 'maxim', addressText: 'Flora Plaza' },
       { rowid: 2, placeId: 'punctuation', addressText: 'Main Street' },
+      { rowid: 3, placeId: 'fullwidth', addressText: 'Broadway' },
     ])
     const upgraded = sqlite.query('select rowid,* from placeSearchFts').all()
     sqlite.transaction(upgrade)()

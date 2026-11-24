@@ -240,7 +240,10 @@ Text discovery matches literal fragments, including inside names (for example `a
 `Maxim's Cakes`), with AND between query terms. Name and brand matches precede
 address/category matches. Trigram FTS anchors terms of at least three Unicode
 characters; shorter terms use a limited scan of the selected index. Broad queries return
-a bounded sample, not all matches. Source labels retain their punctuation.
+a bounded sample, not all matches. Source labels retain their punctuation. Name and
+brand search keys fold fullwidth Latin letters and digits to ASCII, so queries can use
+either width. Other Unicode compatibility characters are not folded in indexed text.
+Rebuild the retained index after updating the search-key definition.
 
 The index must use the trigram tokenizer before serving substring queries; otherwise
 search reports `fts_not_ready`. For a retained word-token index, execute

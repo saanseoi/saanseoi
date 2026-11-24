@@ -201,7 +201,8 @@ brands, taxonomy and retained dependency text resolved during Place preparation.
 Address, unit, Street and Division text therefore follows the exact selected revision in
 both incremental finalisation and a fresh FTS rebuild. Unchanged documents cause no FTS
 writes, including across snapshot promotion. Division names are ordered
-deterministically before aggregation.
+deterministically before aggregation. Name and brand search keys fold fullwidth Latin
+letters and digits to ASCII while retaining the publisher's original labels.
 
 Selected historical Address and Division definitions are replayed in a disposable
 dependency view, including independently owned locale versions. The Address assembly

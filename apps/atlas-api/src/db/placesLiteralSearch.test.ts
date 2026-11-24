@@ -2,7 +2,10 @@ import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { drizzle } from 'drizzle-orm/bun-sqlite'
 import { createSearchFtsSql } from '@repo/core/pipeline/services/search/incrementalIndex'
-import { placeSearchIndex } from '@repo/core/pipeline/services/places/searchIndex'
+import {
+  buildPlaceSearchSyncSql,
+  placeSearchIndex,
+} from '@repo/core/pipeline/services/places/searchIndex'
 import { searchPlacesFts } from './places'
 
 test('Place search treats punctuation and FTS operators as literal user input', async () => {
@@ -58,6 +61,23 @@ test('Place search treats punctuation and FTS operators as literal user input', 
       sqlite.query('UPDATE placeSearchFts SET nameText=?').run(name)
       expect((await search(name)).map(row => row.placeId)).toEqual(['shop'])
     }
+    sqlite.exec(`
+      ALTER TABLE places ADD COLUMN basicCategory TEXT;
+      ALTER TABLE places ADD COLUMN taxonomyPrimary TEXT;
+      ALTER TABLE places ADD COLUMN taxonomyHierarchy TEXT;
+      CREATE TABLE placesI18n(scopeId TEXT, placeId TEXT, locale TEXT, name TEXT,
+        nameAlts TEXT, brandName TEXT, brandNameAlts TEXT, searchDependencyText TEXT);
+      INSERT INTO placesI18n VALUES
+        ('physical-places', 'shop', 'en', 'ＡＢC１２３', '', 'ＸＹＺ', '', '{}');
+    `)
+    for (const statement of buildPlaceSearchSyncSql([
+      { scopeId: 'hk:overture:places', snapshotId: 'latest' },
+    ]))
+      sqlite.exec(statement)
+    for (const query of ['abc123', 'ＡＢC１２３', 'bc1', 'xyz', 'XY']) {
+      expect((await search(query)).map(row => row.placeId)).toEqual(['shop'])
+    }
+    expect((await search('abc123'))[0]?.nameText).toBe('ＡＢC１２３')
   } finally {
     sqlite.close()
   }

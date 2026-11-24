@@ -22,7 +22,7 @@ test('Places search uses retained exact dependency text for fresh and incrementa
       CREATE TABLE streetsI18n(scopeId, streetId, locale, name);
       CREATE TABLE divisionsI18n(scopeId, divisionId, locale, name);
       INSERT INTO places VALUES ('place-scope', 'shop', 'address-scope', 'building', 'collection', 'chosen', '', '', '');
-      INSERT INTO placesI18n VALUES ('place-scope', 'shop', 'en', 'Shop', '', '', '', '{"addressSnapshotId":"a","addressText":"Main Street Unit 12 Floor 3","divisionText":"","streetText":"Main Street"}');
+      INSERT INTO placesI18n VALUES ('place-scope', 'shop', 'en', 'ＳＨＯＰ１２', '', '', '', '{"addressSnapshotId":"a","addressText":"Main Street Unit 12 Floor 3","divisionText":"","streetText":"Main Street"}');
       INSERT INTO address2dI18n VALUES ('address-scope', 'building', 'en', 'Main Street');
     `)
     db.query('INSERT INTO address3dI18n VALUES (?, ?, ?, ?)').run(
@@ -42,6 +42,11 @@ test('Places search uses retained exact dependency text for fresh and incrementa
       'utf8',
     )
     db.exec(sql)
+    expect(
+      db
+        .query("SELECT placeId FROM placeSearchFts WHERE placeSearchFts MATCH 'shop12'")
+        .all(),
+    ).toEqual([{ placeId: 'shop' }])
     const original = db.query('SELECT rowid, * FROM placeSearchFts').all()
     expect(
       db.query('SELECT scopeId, placeId, ftsRowid FROM placeSearchIdentities').all(),

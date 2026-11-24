@@ -11,9 +11,18 @@ const punctuationSearchSql = (expression: string) => {
     `!"#$%&'()*+,-./:;<=>?@[\\]^_` +
     '`' +
     `{|}~·…“”‘’「」『』（）［］｛｝！？、。，：；＇＂～＿－＋＝＠＃＆％＊／＼｜`
+  // SQLite has no Unicode normalisation function. Fold fullwidth Latin letters and
+  // digits before lowercasing, using only functions also available in D1.
+  const fullwidth = [
+    ...'0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz',
+  ].reduce(
+    (value, character) =>
+      `replace(${value}, '${String.fromCodePoint(character.codePointAt(0)! + 0xfee0)}', '${character}')`,
+    expression,
+  )
   const normalized = [...punctuation].reduce(
     (value, character) => `replace(${value}, '${character.replaceAll("'", "''")}', '')`,
-    `lower(${expression})`,
+    `lower(CASE WHEN ${expression} GLOB '*[０-９Ａ-Ｚａ-ｚ]*' THEN ${fullwidth} ELSE ${expression} END)`,
   )
   return `TRIM(COALESCE(${expression}, '')) || char(31) || TRIM(${normalized})`
 }
@@ -83,7 +92,7 @@ export const buildPlaceSearchContentSql = (selection?: string) =>
 /** Upgrade a retained word-token index without changing its publication selection.
  * @returns Statements to execute together in one transaction or D1 batch.
  * @remarks This is derived-index maintenance, independent of schema migrations.
- * Keep row IDs and all dependency text; append missing punctuation keys for names.
+ * Keep row IDs and all dependency text; refresh name and brand search keys.
  */
 export function buildPlaceSearchTrigramUpgradeSql(): string[] {
   const columns = placeSearchIndex.fields.join(', ')
@@ -91,7 +100,9 @@ export function buildPlaceSearchTrigramUpgradeSql(): string[] {
   const fields = placeSearchIndex.fields
     .map(field =>
       field === 'nameText' || field === 'brandText'
-        ? `CASE WHEN instr(${field}, char(31)) > 0 THEN ${field} ELSE ${punctuationSearchSql(field)} END`
+        ? punctuationSearchSql(
+            `CASE WHEN instr(${field}, char(31)) > 0 THEN substr(${field}, 1, instr(${field}, char(31)) - 1) ELSE ${field} END`,
+          )
         : field,
     )
     .join(', ')
