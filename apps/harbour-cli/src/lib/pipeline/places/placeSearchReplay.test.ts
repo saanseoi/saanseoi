@@ -43,6 +43,9 @@ test('Places search uses retained exact dependency text for fresh and incrementa
     )
     db.exec(sql)
     const original = db.query('SELECT rowid, * FROM placeSearchFts').all()
+    expect(
+      db.query('SELECT scopeId, placeId, ftsRowid FROM placeSearchIdentities').all(),
+    ).toEqual([{ scopeId: 'hk:overture:places', placeId: 'shop', ftsRowid: 1 }])
     db.exec(
       "UPDATE placePublicationState SET snapshotId='next',publicationToken='next-token'",
     )
@@ -88,6 +91,13 @@ test('Places search uses retained exact dependency text for fresh and incrementa
     expect(db.query('SELECT addressText FROM placeSearchFts').get()).toEqual({
       addressText: 'Main Street',
     })
+    expect(
+      db
+        .query(`SELECT count(*) AS n FROM placeSearchIdentities identity
+      JOIN placeSearchFts f ON f.rowid = identity.ftsRowid
+      WHERE identity.scopeId = f.scopeId AND identity.placeId = f.placeId`)
+        .get(),
+    ).toEqual({ n: 1 })
     db.exec("UPDATE places SET address3dUnitId = 'chosen'")
     db.query('UPDATE address3dI18n SET units = ?').run(
       JSON.stringify({

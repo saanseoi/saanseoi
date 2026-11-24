@@ -183,6 +183,7 @@ test('Place search matches literal fragments, prioritises names and keeps filter
     insert('maxim', "Maxim's Cakes\u001fmaxims cakes", null, 'Flora Plaza')
     insert('brand', null, 'LEGO', 'Times Square', 'toy_store')
     insert('chinese', '美心西餅', null, '花都廣場', 'bakery', 'zh-hant')
+    for (const statement of placeSearchIndex.afterContentSql!) sqlite.exec(statement)
     const search = (query: string, options: Record<string, unknown> = {}) =>
       searchPlacesFts(db, {
         snapshotId: 'latest',
@@ -420,6 +421,18 @@ test('filtered search fills pages before limiting and includes previews without 
           .run('physical', id, locale, `Shop ${i}`, null, 'Sheung Wan')
       }
     }
+    for (const statement of placeSearchIndex.afterContentSql!) sqlite.exec(statement)
+    const plan = sqlite
+      .query(`EXPLAIN QUERY PLAN SELECT 1 FROM placeSearchIdentities identity
+        JOIN placeSearchFts alternate ON alternate.rowid = identity.ftsRowid
+        WHERE identity.scopeId = ? AND identity.placeId = ?`)
+      .all('search', 'place-50') as { detail: string }[]
+    expect(
+      plan.some(row => /SEARCH identity USING COVERING INDEX/.test(row.detail)),
+    ).toBe(true)
+    expect(
+      plan.some(row => /SCAN alternate VIRTUAL TABLE INDEX 0:=/.test(row.detail)),
+    ).toBe(true)
     const { searchPlacesFtsPage } = await import('./places')
     const lookup = {
       snapshotId: 'latest',
@@ -473,6 +486,20 @@ test('filtered search fills pages before limiting and includes previews without 
         [...allLocales.results, ...remainingLocales.results].map(row => row.placeId),
       ).size,
     ).toBe(35)
+    sqlite.exec(`UPDATE placeSearchFts SET nameText = 'Sheung Wan shop'
+      WHERE placeId = 'place-50' AND locale = 'zh-hant'`)
+    const ranked = await searchPlacesFtsPage(db, { ...lookup, locale: undefined })
+    expect(ranked.results[0]).toMatchObject({ placeId: 'place-50', locale: 'zh-hant' })
+    const rankedNext = await searchPlacesFtsPage(db, {
+      ...lookup,
+      locale: undefined,
+      cursor: ranked.nextCursor!,
+    })
+    expect(
+      [...ranked.results, ...rankedNext.results].filter(
+        row => row.placeId === 'place-50',
+      ),
+    ).toHaveLength(1)
     const exact = await searchPlacesFtsPage(db, { ...lookup, operatingStatus: 'open' })
     expect(
       exact.results.every(row => row.preview?.place.operatingStatus === 'open'),

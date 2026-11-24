@@ -53,3 +53,16 @@ JOIN "placesI18n" pi
   ON pi.scopeId = p.scopeId
  AND pi."placeId" = p."id") INSERT INTO placeSearchFts (scopeId, placeId, locale, nameText, brandText, taxonomyText, addressText, divisionText, streetText)
       SELECT scopeId, placeId, locale, nameText, brandText, taxonomyText, addressText, divisionText, streetText FROM desired EXCEPT SELECT scopeId, placeId, locale, nameText, brandText, taxonomyText, addressText, divisionText, streetText FROM placeSearchFts;
+
+CREATE TABLE IF NOT EXISTS placeSearchIdentities (
+  scopeId TEXT NOT NULL, placeId TEXT NOT NULL, ftsRowid INTEGER NOT NULL UNIQUE,
+  PRIMARY KEY (scopeId, placeId, ftsRowid)
+);
+DELETE FROM placeSearchIdentities WHERE NOT EXISTS (
+  SELECT 1 FROM placeSearchFts f WHERE f.rowid = placeSearchIdentities.ftsRowid
+    AND f.scopeId = placeSearchIdentities.scopeId AND f.placeId = placeSearchIdentities.placeId
+);
+INSERT INTO placeSearchIdentities (scopeId, placeId, ftsRowid)
+  SELECT scopeId, placeId, rowid FROM placeSearchFts WHERE true
+  ON CONFLICT(ftsRowid) DO UPDATE SET scopeId = excluded.scopeId, placeId = excluded.placeId
+  WHERE scopeId IS NOT excluded.scopeId OR placeId IS NOT excluded.placeId;

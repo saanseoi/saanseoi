@@ -30,6 +30,7 @@ DROP TABLE IF EXISTS `statsFields`;
 DROP TABLE IF EXISTS `statsDefinitionSets`;
 DROP TABLE IF EXISTS `placesFts`;
 DROP TABLE IF EXISTS `placeSearchFts`;
+DROP TABLE IF EXISTS `placeSearchIdentities`;
 DROP TABLE IF EXISTS `placeSearchScopes`;
 DROP TABLE IF EXISTS `placesFts_data`;
 DROP TABLE IF EXISTS `placesFts_idx`;

@@ -17,6 +17,8 @@ export type SearchIndexDefinition = {
   unindexed: readonly string[]
   /** SELECT from the `selected` CTE; return exactly the declared fields. */
   selectSql: string
+  /** Derived structures kept in sync in the same transaction as the FTS rows. */
+  afterContentSql?: readonly string[]
 }
 export type SearchD1Database = {
   prepare(sql: string): D1PreparedStatement
@@ -117,6 +119,7 @@ export function buildSearchContentSql(
     )`,
     `${desired} INSERT INTO ${table} (${columns})
       SELECT ${columns} FROM desired EXCEPT SELECT ${columns} FROM ${table}`,
+    ...(definition.afterContentSql ?? []),
   ]
 }
 

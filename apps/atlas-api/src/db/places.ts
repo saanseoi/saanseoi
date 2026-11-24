@@ -401,6 +401,9 @@ export async function searchPlacesFtsPage(
             eq(placeSearchScopes.snapshotId, lookup.snapshotId),
             // A word-token index cannot satisfy the substring query contract.
             sql`exists (select 1 from sqlite_master where name = 'placeSearchFts' and sql like '%trigram%')`,
+            lookup.locale
+              ? undefined
+              : sql`exists (select 1 from sqlite_master where name = 'placeSearchIdentities' and type = 'table')`,
           ),
         )
         .get()
@@ -501,9 +504,10 @@ export async function searchPlacesFtsPage(
             lookup.locale
               ? undefined
               : sql`NOT EXISTS (
-              SELECT 1 FROM placeSearchFts alternate
-              WHERE alternate.scopeId = ${placesFts.scopeId}
-                AND alternate.placeId = ${placesFts.placeId}
+              SELECT 1 FROM placeSearchIdentities identity
+              JOIN placeSearchFts alternate ON alternate.rowid = identity.ftsRowid
+              WHERE identity.scopeId = ${placesFts.scopeId}
+                AND identity.placeId = ${placesFts.placeId}
                 AND NOT EXISTS (SELECT 1 FROM json_each(${JSON.stringify(terms)}) variants
                   WHERE NOT EXISTS (SELECT 1 FROM json_each(variants.value) term WHERE (coalesce(alternate.nameText, '') LIKE '%' || term.value || '%'
                     OR coalesce(alternate.brandText, '') LIKE '%' || term.value || '%'
