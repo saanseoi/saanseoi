@@ -14,15 +14,11 @@ const label = (key: string) =>
   key.replaceAll(/([a-z])([A-Z])/g, '$1 $2').replaceAll(/[_-]/g, ' ')
 </script>
 
-{#snippet render(
-  item: Json,
-)}
+{#snippet render(item: Json)}
   {#if Array.isArray(item)}
     {#if item.length > 24}
       <VirtualList items={item}>
-        {#snippet children(
-          entry,
-        )}
+        {#snippet children(entry)}
           {@render render(entry)}
         {/snippet}
       </VirtualList>

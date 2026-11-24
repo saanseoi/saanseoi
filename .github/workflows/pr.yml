@@ -1,4 +1,4 @@
-name: 'PR :: Build and Test'
+name: "PR :: Build and Test"
 
 on:
   pull_request:
@@ -13,10 +13,10 @@ jobs:
   build:
     uses: ./.github/workflows/build.yml
     with:
-      environment: 'preview'
+      environment: "preview"
 
   test:
     needs: build
     uses: ./.github/workflows/test.yml
     with:
-      environment: 'preview'
+      environment: "preview"

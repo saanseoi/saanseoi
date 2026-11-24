@@ -78,9 +78,10 @@ export function parseAddressContent(
       // Matcher references retain source prefixes; canonical references exclude the floor type.
       const floorType = floor ? floorTypes[floor.floorType] : 'X'
       const rawFloorRef = floor?.floorRef ?? ''
-      const floorRef = !['F', 'X'].includes(floorType) && rawFloorRef.startsWith(floorType)
-        ? rawFloorRef.slice(floorType.length)
-        : rawFloorRef
+      const floorRef =
+        !['F', 'X'].includes(floorType) && rawFloorRef.startsWith(floorType)
+          ? rawFloorRef.slice(floorType.length)
+          : rawFloorRef
       units.push({
         locale,
         unit: {

@@ -14,9 +14,7 @@ let { metrics, class: className = '' }: Props = $props()
 <Tooltip.Provider delayDuration={200}>
   <Tooltip.Root>
     <Tooltip.Trigger>
-      {#snippet child({
-        props,
-      })}
+      {#snippet child({ props })}
         <dl
           {...props}
           class={`flex flex-wrap gap-x-5 gap-y-3 ${className}`}
@@ -25,11 +23,11 @@ let { metrics, class: className = '' }: Props = $props()
           {#each metrics as metric}
             <div class="flex items-baseline gap-2">
               <dt
-                class="shrink-0 font-body text-caption font-semibold uppercase tracking-[0.12em] text-foreground-alt/70"
+                class="font-body text-caption text-foreground-alt/70 shrink-0 font-semibold tracking-[0.12em] uppercase"
               >
                 {metric.label}
               </dt>
-              <dd class="font-mono text-label-sm font-semibold text-primary">
+              <dd class="text-label-sm text-primary font-mono font-semibold">
                 {metric.value}
               </dd>
             </div>
@@ -39,7 +37,7 @@ let { metrics, class: className = '' }: Props = $props()
     </Tooltip.Trigger>
     <Tooltip.Portal>
       <Tooltip.Content
-        class="z-70 rounded-default border border-border-card/60 bg-background-alt px-3 py-2 font-body text-label-sm text-foreground shadow-popover"
+        class="rounded-default border-border-card/60 bg-background-alt font-body text-label-sm text-foreground shadow-popover z-70 border px-3 py-2"
         side="top"
         sideOffset={8}
       >

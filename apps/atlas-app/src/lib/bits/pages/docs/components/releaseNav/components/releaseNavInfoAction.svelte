@@ -16,12 +16,10 @@ let { description, content, icon, label }: Props = $props()
 <Tooltip.Provider delayDuration={200}>
   <Tooltip.Root>
     <Tooltip.Trigger>
-      {#snippet child({
-        props,
-      })}
+      {#snippet child({ props })}
         <button
           {...props}
-          class="inline-flex size-10 cursor-pointer items-center justify-center font-body text-foreground-alt transition hover:bg-data-surface-container-high hover:text-data-primary md:size-8"
+          class="font-body text-foreground-alt hover:bg-data-surface-container-high hover:text-data-primary inline-flex size-10 cursor-pointer items-center justify-center transition md:size-8"
           type="button"
           aria-label={label}
         >
@@ -31,7 +29,7 @@ let { description, content, icon, label }: Props = $props()
     </Tooltip.Trigger>
     <Tooltip.Portal>
       <Tooltip.Content
-        class="z-70 max-w-96 rounded-default border border-border-card/60 bg-background-alt px-3 py-2 font-body text-label-sm text-foreground shadow-popover"
+        class="rounded-default border-border-card/60 bg-background-alt font-body text-label-sm text-foreground shadow-popover z-70 max-w-96 border px-3 py-2"
         side="top"
         align="end"
         sideOffset={8}

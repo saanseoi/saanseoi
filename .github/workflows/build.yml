@@ -1,4 +1,4 @@
-name: 'BUILD :: Build Application'
+name: "BUILD :: Build Application"
 
 on:
   workflow_call:
@@ -12,53 +12,53 @@ permissions:
 
 jobs:
   build:
-    name: 'BUILD :: ${{ matrix.app.name }}'
+    name: "BUILD :: ${{ matrix.app.name }}"
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         app:
-          - name: 'Atlas API'
-            path: 'apps/atlas-api'
-            cache_key: 'atlas-api'
-          - name: 'Atlas App'
-            path: 'apps/atlas-app'
-            cache_key: 'atlas-app'
-          - name: 'Basemap Tiles'
-            path: 'apps/basemap-tiles'
-            cache_key: 'basemap-tiles'
-          - name: 'Basemap Viewer'
-            path: 'apps/basemap-viewer'
-            cache_key: 'basemap-viewer'
-          - name: 'Harbour API'
-            path: 'apps/harbour-api'
-            cache_key: 'harbour-api'
-          - name: 'Harbour Workers'
-            path: 'apps/harbour-workers'
-            cache_key: 'harbour-workers'
-          - name: 'Telegram Discord Bridge'
-            path: 'apps/telegram-discord-bridge'
-            cache_key: 'telegram-discord-bridge'
+          - name: "Atlas API"
+            path: "apps/atlas-api"
+            cache_key: "atlas-api"
+          - name: "Atlas App"
+            path: "apps/atlas-app"
+            cache_key: "atlas-app"
+          - name: "Basemap Tiles"
+            path: "apps/basemap-tiles"
+            cache_key: "basemap-tiles"
+          - name: "Basemap Viewer"
+            path: "apps/basemap-viewer"
+            cache_key: "basemap-viewer"
+          - name: "Harbour API"
+            path: "apps/harbour-api"
+            cache_key: "harbour-api"
+          - name: "Harbour Workers"
+            path: "apps/harbour-workers"
+            cache_key: "harbour-workers"
+          - name: "Telegram Discord Bridge"
+            path: "apps/telegram-discord-bridge"
+            cache_key: "telegram-discord-bridge"
     steps:
-      - name: 'GIT :: Checkout'
+      - name: "GIT :: Checkout"
         uses: actions/checkout@v5
 
-      - name: 'INSTALL :: Bun'
+      - name: "INSTALL :: Bun"
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: '1.4.2'
-      - name: 'CACHE :: Restore Dependencies'
+          bun-version: "1.4.2"
+      - name: "CACHE :: Restore Dependencies"
         uses: actions/cache@v5
         id: cache-deps
         with:
           path: node_modules
           key: ${{ runner.os }}-deps-${{ hashFiles('**/bun.lock') }}
 
-      - name: 'INSTALL :: Dependencies'
+      - name: "INSTALL :: Dependencies"
         if: steps.cache-deps.outputs.cache-hit != 'true'
         run: bun install --frozen-lockfile
 
-      - name: 'CACHE :: Restore Build'
+      - name: "CACHE :: Restore Build"
         uses: actions/cache@v5
         id: cache-build
         with:
@@ -70,7 +70,7 @@ jobs:
             ${{ runner.os }}-${{ matrix.app.cache_key }}-build-${{ inputs.environment }}-
             ${{ runner.os }}-${{ matrix.app.cache_key }}-build-
 
-      - name: 'BUILD :: Worker Bundle'
+      - name: "BUILD :: Worker Bundle"
         if: steps.cache-build.outputs.cache-hit != 'true'
         run: bun run build:${{ inputs.environment }}
         working-directory: ${{ matrix.app.path }}

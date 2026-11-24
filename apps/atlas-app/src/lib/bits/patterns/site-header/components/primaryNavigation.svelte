@@ -9,12 +9,12 @@ import { navigationItems } from './navigationItems'
 
 <nav
   aria-label="Primary navigation"
-  class="hidden items-center justify-center gap-4 [@container(max-width:859px)]:gap-2 md:flex"
+  class="hidden items-center justify-center gap-4 md:flex [@container(max-width:859px)]:gap-2"
 >
   <Tooltip.Provider delayDuration={300}>
     {#each navigationItems as item}
       <Button
-        class="hidden px-2 text-[1.02rem] font-light tracking-[-0.01em] text-foreground-alt hover:text-foreground [@container(max-width:859px)]:hidden [@container(min-width:860px)]:inline-flex"
+        class="text-foreground-alt hover:text-foreground hidden px-2 text-[1.02rem] font-light tracking-[-0.01em] [@container(max-width:859px)]:hidden [@container(min-width:860px)]:inline-flex"
         href={item.href}
         size="compact"
         variant="text"
@@ -24,12 +24,10 @@ import { navigationItems } from './navigationItems'
 
       <Tooltip.Root>
         <Tooltip.Trigger>
-          {#snippet child({
-            props,
-          })}
+          {#snippet child({ props })}
             <Button
               {...props}
-              class="hidden size-12 min-h-12 px-0 text-foreground-alt hover:text-foreground [@container(max-width:859px)]:inline-flex [@container(min-width:860px)]:hidden"
+              class="text-foreground-alt hover:text-foreground hidden size-12 min-h-12 px-0 [@container(max-width:859px)]:inline-flex [@container(min-width:860px)]:hidden"
               href={item.href}
               size="compact"
               variant="text"
@@ -42,7 +40,7 @@ import { navigationItems } from './navigationItems'
 
         <Tooltip.Portal>
           <Tooltip.Content
-            class="z-70 rounded-default border border-border-card/60 bg-background-alt px-3 py-1.5 font-body text-(--text-label-sm) text-foreground shadow-popover"
+            class="rounded-default border-border-card/60 bg-background-alt font-body text-foreground shadow-popover z-70 border px-3 py-1.5 text-(--text-label-sm)"
             side="bottom"
             sideOffset={8}
           >

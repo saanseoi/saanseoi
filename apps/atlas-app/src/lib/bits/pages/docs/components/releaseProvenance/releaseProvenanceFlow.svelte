@@ -41,10 +41,7 @@ function preparationRun(item: ReverseBranch) {
   return { nodes, sources }
 }
 </script>
-{#snippet branch(
-  item: ReverseBranch,
-  inheritedSources: HumanSourceUse[] = [],
-)}
+{#snippet branch(item: ReverseBranch, inheritedSources: HumanSourceUse[] = [])}
   {@const run = preparationRun(item)}
   {#if run.nodes.length > 3}
     <Preparation>
@@ -62,7 +59,7 @@ function preparationRun(item: ReverseBranch) {
         {/if}
       {/each}
     </Preparation>
-    <div class="ml-5 h-4 border-l border-foreground/25"></div>
+    <div class="border-foreground/25 ml-5 h-4 border-l"></div>
     {#each run.sources as source}
       {@render branch(source, inheritedSources)}
     {/each}
@@ -86,7 +83,7 @@ function preparationRun(item: ReverseBranch) {
     {/if}
     {#if item.children.length}
       <div>
-        <div class="ml-5 h-4 border-l border-foreground/25"></div>
+        <div class="border-foreground/25 ml-5 h-4 border-l"></div>
         {#each item.children as child}
           {@render branch(child, uses)}
         {/each}
@@ -94,16 +91,16 @@ function preparationRun(item: ReverseBranch) {
     {/if}
   {:else if item.kind === 'choice'}
     <section aria-label="Conditional sources" class="space-y-3">
-      <div class="rounded-lg border border-primary/30 bg-primary/5 px-3 py-2">
+      <div class="border-primary/30 bg-primary/5 rounded-lg border px-3 py-2">
         <h4 class="text-sm font-semibold">Select the applicable source</h4>
-        <p class="mt-1 text-xs text-foreground/60">
+        <p class="text-foreground/60 mt-1 text-xs">
           The conditions below determine which source supplies this value.
         </p>
       </div>
-      <div class="ml-2 border-l border-primary/30 pl-3">
+      <div class="border-primary/30 ml-2 border-l pl-3">
         {#each item.children as child}
           <div class="relative pb-4 last:pb-0">
-            <span class="absolute -left-3 top-3 w-3 border-t border-primary/30"></span>
+            <span class="border-primary/30 absolute top-3 -left-3 w-3 border-t"></span>
             {#if child.kind === 'node'}
               <p class="mb-2 text-xs leading-6">
                 <Condition
@@ -123,7 +120,7 @@ function preparationRun(item: ReverseBranch) {
   {:else if item.kind === 'field'}
     <FieldDependency field={item.field} {onSelectField} />
   {:else if item.kind === 'reference'}
-    <p class="py-2 text-xs text-foreground/60">
+    <p class="text-foreground/60 py-2 text-xs">
       Also uses
       <a class="underline underline-offset-4" href={`#provenance-node-${item.id}`}
         >{definition.nodes.find(node => node.id === item.id)?.output.path ??
@@ -131,7 +128,7 @@ function preparationRun(item: ReverseBranch) {
       >
     </p>
   {:else}
-    <p class="rounded-lg border border-foreground/15 p-3 text-sm">
+    <p class="border-foreground/15 rounded-lg border p-3 text-sm">
       Upstream lineage unavailable
     </p>
   {/if}

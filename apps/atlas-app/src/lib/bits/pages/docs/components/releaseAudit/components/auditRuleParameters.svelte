@@ -6,9 +6,7 @@ let { parameters }: { parameters: Record<string, Json> } = $props()
 const label = (key: string) =>
   key.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/[_-]/g, ' ')
 </script>
-{#snippet value(
-  item: Json,
-)}
+{#snippet value(item: Json)}
   {#if Array.isArray(item)}
     <div class="space-y-1">
       {#each item as entry}
@@ -25,7 +23,7 @@ const label = (key: string) =>
       {/each}
     </dl>
   {:else}
-    <code class="break-all text-xs text-emerald-500"
+    <code class="text-xs break-all text-emerald-500"
       >{item === null ? '—' : String(item)}</code
     >
   {/if}
@@ -34,7 +32,7 @@ const label = (key: string) =>
   {#each Object.entries(parameters) as [key, item]}
     <div>
       {#if key !== 'exclusion'}
-        <dt class="mb-1 text-xs uppercase tracking-wide opacity-40">
+        <dt class="mb-1 text-xs tracking-wide uppercase opacity-40">
           {label(key)}
         </dt>
       {/if}

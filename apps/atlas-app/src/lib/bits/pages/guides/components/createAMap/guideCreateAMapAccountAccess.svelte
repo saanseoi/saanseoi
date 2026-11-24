@@ -118,9 +118,7 @@ const switchMode = (nextMode: AccountMode) => {
 }
 </script>
 
-{#snippet accessOptions(
-  accountMode: AccountMode,
-)}
+{#snippet accessOptions(accountMode: AccountMode)}
   <div class="min-w-0">
     <GuideParagraph>
       {accountMode === 'sign-up'
@@ -132,7 +130,7 @@ const switchMode = (nextMode: AccountMode) => {
         <button
           aria-label={`${accountMode === 'sign-up' ? m.auth_create_account() : m.auth_sign_in_title()} ${provider.label()}`}
           aria-busy={pendingProvider === provider.id}
-          class="flex aspect-square w-full cursor-pointer flex-col items-center justify-center gap-3 border border-border-card bg-background p-3 font-body text-body-sm font-semibold text-primary transition-colors hover:border-secondary hover:bg-secondary-container/20 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-secondary disabled:cursor-wait disabled:opacity-60"
+          class="border-border-card bg-background font-body text-body-sm text-primary hover:border-secondary hover:bg-secondary-container/20 focus-visible:outline-secondary flex aspect-square w-full cursor-pointer flex-col items-center justify-center gap-3 border p-3 font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-4 disabled:cursor-wait disabled:opacity-60"
           disabled={pendingProvider !== undefined || passkeyPending}
           onclick={() => continueWithSocial(provider.id)}
           type="button"
@@ -152,20 +150,20 @@ const switchMode = (nextMode: AccountMode) => {
       <button
         aria-expanded={emailFormMode === accountMode}
         aria-label={`${accountMode === 'sign-up' ? m.auth_create_account() : m.auth_sign_in_title()} ${m.common_email()}`}
-        class="flex aspect-square w-full cursor-pointer flex-col items-center justify-center gap-3 border border-border-card bg-background p-3 font-body text-body-sm font-semibold text-primary transition-colors hover:border-secondary hover:bg-secondary-container/20 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-secondary"
+        class="border-border-card bg-background font-body text-body-sm text-primary hover:border-secondary hover:bg-secondary-container/20 focus-visible:outline-secondary flex aspect-square w-full cursor-pointer flex-col items-center justify-center gap-3 border p-3 font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-4"
         onclick={() => openEmailForm(accountMode)}
         type="button"
       >
         <Icon
           icon="ion:mail-outline"
-          class="size-7 text-secondary"
+          class="text-secondary size-7"
           aria-hidden="true"
         />
         <span>{m.common_email()}</span>
       </button>
       <button
         aria-label={m.auth_continue_with_passkey()}
-        class="flex aspect-square w-full cursor-pointer flex-col items-center justify-center gap-3 border border-border-card bg-background p-3 font-body text-body-sm font-semibold text-primary transition-colors hover:border-secondary hover:bg-secondary-container/20 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-secondary disabled:cursor-wait disabled:opacity-60"
+        class="border-border-card bg-background font-body text-body-sm text-primary hover:border-secondary hover:bg-secondary-container/20 focus-visible:outline-secondary flex aspect-square w-full cursor-pointer flex-col items-center justify-center gap-3 border p-3 font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-4 disabled:cursor-wait disabled:opacity-60"
         aria-busy={passkeyPending}
         disabled={passkeyPending || pendingProvider !== undefined}
         onclick={continueWithPasskey}
@@ -182,14 +180,14 @@ const switchMode = (nextMode: AccountMode) => {
       </button>
       <button
         aria-label={`${m.common_wechat()} (${m.common_coming_soon()})`}
-        class="flex aspect-square w-full cursor-not-allowed flex-col items-center justify-center gap-3 border border-border-card bg-background p-3 font-body text-body-sm font-semibold text-primary opacity-55"
+        class="border-border-card bg-background font-body text-body-sm text-primary flex aspect-square w-full cursor-not-allowed flex-col items-center justify-center gap-3 border p-3 font-semibold opacity-55"
         disabled
         title={m.common_coming_soon()}
         type="button"
       >
-        <Icon icon="ion:logo-wechat" class="size-7 text-secondary" aria-hidden="true" />
+        <Icon icon="ion:logo-wechat" class="text-secondary size-7" aria-hidden="true" />
         <span>{m.common_wechat()}</span>
-        <span class="text-xs font-normal text-foreground-alt"
+        <span class="text-foreground-alt text-xs font-normal"
           >{m.common_coming_soon()}</span
         >
       </button>
@@ -204,34 +202,34 @@ const switchMode = (nextMode: AccountMode) => {
         transition:slide={{ duration: 200 }}
       >
         {#if accountMode === 'sign-up'}
-          <label class="font-body text-body-sm font-semibold text-foreground"
+          <label class="font-body text-body-sm text-foreground font-semibold"
             >{m.auth_name()}
             <input
               bind:value={name}
               autocomplete="name"
-              class="mt-2 min-h-12 w-full border border-border-input bg-background-alt px-4 font-body font-normal"
+              class="border-border-input bg-background-alt font-body mt-2 min-h-12 w-full border px-4 font-normal"
               required
             >
           </label>
         {/if}
-        <label class="font-body text-body-sm font-semibold text-foreground"
+        <label class="font-body text-body-sm text-foreground font-semibold"
           >{m.common_email()}
           <input
             bind:value={email}
             autocomplete="email"
-            class="mt-2 min-h-12 w-full border border-border-input bg-background-alt px-4 font-body font-normal"
+            class="border-border-input bg-background-alt font-body mt-2 min-h-12 w-full border px-4 font-normal"
             required
             type="email"
           >
         </label>
-        <label class="font-body text-body-sm font-semibold text-foreground"
+        <label class="font-body text-body-sm text-foreground font-semibold"
           >{m.common_password()}
           <input
             bind:value={password}
             autocomplete={accountMode === 'sign-up'
               ? 'new-password'
               : 'current-password'}
-            class="mt-2 min-h-12 w-full border border-border-input bg-background-alt px-4 font-body font-normal"
+            class="border-border-input bg-background-alt font-body mt-2 min-h-12 w-full border px-4 font-normal"
             required
             type="password"
           >
@@ -247,7 +245,7 @@ const switchMode = (nextMode: AccountMode) => {
           </p>
         {/if}
         <button
-          class="min-h-12 cursor-pointer bg-primary px-5 py-3 font-body text-label-md font-semibold text-on-primary transition-colors hover:bg-primary/90 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-secondary disabled:cursor-wait disabled:opacity-60 sm:col-span-2 sm:justify-self-start"
+          class="bg-primary font-body text-label-md text-on-primary hover:bg-primary/90 focus-visible:outline-secondary min-h-12 cursor-pointer px-5 py-3 font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-4 disabled:cursor-wait disabled:opacity-60 sm:col-span-2 sm:justify-self-start"
           disabled={emailPending}
           type="submit"
         >
@@ -276,18 +274,18 @@ const switchMode = (nextMode: AccountMode) => {
       <div class="grid gap-6 md:grid-cols-[minmax(0,1fr)_auto_8rem] md:items-center">
         {@render accessOptions('sign-up')}
         <div
-          class="flex items-center gap-3 md:self-stretch md:flex-col md:gap-0"
+          class="flex items-center gap-3 md:flex-col md:gap-0 md:self-stretch"
           aria-hidden="true"
         >
-          <span class="h-px flex-1 bg-border-card md:h-auto md:w-px"></span>
+          <span class="bg-border-card h-px flex-1 md:h-auto md:w-px"></span>
           <span
-            class="shrink-0 bg-background px-2 py-1 font-body text-label-sm font-semibold tracking-[0.14em] text-foreground-alt uppercase md:px-0 md:py-2"
+            class="bg-background font-body text-label-sm text-foreground-alt shrink-0 px-2 py-1 font-semibold tracking-[0.14em] uppercase md:px-0 md:py-2"
             >{m.common_or()}</span
           >
-          <span class="h-px flex-1 bg-border-card md:h-auto md:w-px"></span>
+          <span class="bg-border-card h-px flex-1 md:h-auto md:w-px"></span>
         </div>
         <button
-          class="min-h-12 cursor-pointer px-5 py-4 font-body text-label-md font-semibold text-foreground-alt transition-colors hover:bg-surface-container-low hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-secondary md:self-center"
+          class="font-body text-label-md text-foreground-alt hover:bg-surface-container-low hover:text-primary focus-visible:outline-secondary min-h-12 cursor-pointer px-5 py-4 font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-4 md:self-center"
           onclick={() => switchMode('sign-in')}
           type="button"
         >
@@ -303,18 +301,18 @@ const switchMode = (nextMode: AccountMode) => {
       <div class="grid gap-6 md:grid-cols-[minmax(0,1fr)_auto_8rem] md:items-center">
         {@render accessOptions('sign-in')}
         <div
-          class="flex items-center gap-3 md:self-stretch md:flex-col md:gap-0"
+          class="flex items-center gap-3 md:flex-col md:gap-0 md:self-stretch"
           aria-hidden="true"
         >
-          <span class="h-px flex-1 bg-border-card md:h-auto md:w-px"></span>
+          <span class="bg-border-card h-px flex-1 md:h-auto md:w-px"></span>
           <span
-            class="shrink-0 bg-background px-2 py-1 font-body text-label-sm font-semibold tracking-[0.14em] text-foreground-alt uppercase md:px-0 md:py-2"
+            class="bg-background font-body text-label-sm text-foreground-alt shrink-0 px-2 py-1 font-semibold tracking-[0.14em] uppercase md:px-0 md:py-2"
             >{m.common_or()}</span
           >
-          <span class="h-px flex-1 bg-border-card md:h-auto md:w-px"></span>
+          <span class="bg-border-card h-px flex-1 md:h-auto md:w-px"></span>
         </div>
         <button
-          class="min-h-12 cursor-pointer px-5 py-4 font-body text-label-md font-semibold text-foreground-alt transition-colors hover:bg-surface-container-low hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-secondary md:self-center"
+          class="font-body text-label-md text-foreground-alt hover:bg-surface-container-low hover:text-primary focus-visible:outline-secondary min-h-12 cursor-pointer px-5 py-4 font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-4 md:self-center"
           onclick={() => switchMode('sign-up')}
           type="button"
         >
@@ -324,12 +322,12 @@ const switchMode = (nextMode: AccountMode) => {
     </section>
   </div>
   {#if passkeyError}
-    <p class="mt-4 font-body text-body-sm text-destructive" role="alert">
+    <p class="font-body text-body-sm text-destructive mt-4" role="alert">
       {passkeyError}
     </p>
   {/if}
   {#if socialError}
-    <p class="mt-4 font-body text-body-sm text-destructive" role="alert">
+    <p class="font-body text-body-sm text-destructive mt-4" role="alert">
       {socialError}
     </p>
   {/if}

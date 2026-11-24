@@ -1,4 +1,4 @@
-name: 'TEST :: Run Tests'
+name: "TEST :: Run Tests"
 
 on:
   workflow_call:
@@ -12,53 +12,53 @@ permissions:
 
 jobs:
   test:
-    name: 'TEST :: ${{ matrix.app.name }}'
+    name: "TEST :: ${{ matrix.app.name }}"
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         app:
-          - name: 'Atlas API'
-            path: 'apps/atlas-api'
-            cache_key: 'atlas-api'
-          - name: 'Atlas App'
-            path: 'apps/atlas-app'
-            cache_key: 'atlas-app'
-          - name: 'Basemap Tiles'
-            path: 'apps/basemap-tiles'
-            cache_key: 'basemap-tiles'
-          - name: 'Basemap Viewer'
-            path: 'apps/basemap-viewer'
-            cache_key: 'basemap-viewer'
-          - name: 'Harbour API'
-            path: 'apps/harbour-api'
-            cache_key: 'harbour-api'
-          - name: 'Harbour Workers'
-            path: 'apps/harbour-workers'
-            cache_key: 'harbour-workers'
-          - name: 'Telegram Discord Bridge'
-            path: 'apps/telegram-discord-bridge'
-            cache_key: 'telegram-discord-bridge'
+          - name: "Atlas API"
+            path: "apps/atlas-api"
+            cache_key: "atlas-api"
+          - name: "Atlas App"
+            path: "apps/atlas-app"
+            cache_key: "atlas-app"
+          - name: "Basemap Tiles"
+            path: "apps/basemap-tiles"
+            cache_key: "basemap-tiles"
+          - name: "Basemap Viewer"
+            path: "apps/basemap-viewer"
+            cache_key: "basemap-viewer"
+          - name: "Harbour API"
+            path: "apps/harbour-api"
+            cache_key: "harbour-api"
+          - name: "Harbour Workers"
+            path: "apps/harbour-workers"
+            cache_key: "harbour-workers"
+          - name: "Telegram Discord Bridge"
+            path: "apps/telegram-discord-bridge"
+            cache_key: "telegram-discord-bridge"
     steps:
-      - name: 'GIT :: Checkout'
+      - name: "GIT :: Checkout"
         uses: actions/checkout@v5
 
-      - name: 'INSTALL :: Bun'
+      - name: "INSTALL :: Bun"
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: '1.4.2'
-      - name: 'CACHE :: Restore Dependencies'
+          bun-version: "1.4.2"
+      - name: "CACHE :: Restore Dependencies"
         uses: actions/cache@v5
         id: cache-deps
         with:
           path: node_modules
           key: ${{ runner.os }}-deps-${{ hashFiles('**/bun.lock') }}
 
-      - name: 'INSTALL :: Dependencies'
+      - name: "INSTALL :: Dependencies"
         if: steps.cache-deps.outputs.cache-hit != 'true'
         run: bun install --frozen-lockfile
 
-      - name: 'CACHE :: Restore Build'
+      - name: "CACHE :: Restore Build"
         uses: actions/cache@v5
         with:
           path: |
@@ -70,32 +70,32 @@ jobs:
             ${{ runner.os }}-${{ matrix.app.cache_key }}-build-${{ inputs.environment }}-
             ${{ runner.os }}-${{ matrix.app.cache_key }}-build-
 
-      - name: 'BUILD :: Generate i18n artefacts'
+      - name: "BUILD :: Generate i18n artefacts"
         if: matrix.app.path == 'apps/atlas-app'
         run: bun run --cwd . --filter @repo/i18n build
 
-      - name: 'CHECK :: Types'
+      - name: "CHECK :: Types"
         run: bun run check
         working-directory: ${{ matrix.app.path }}
 
-      - name: 'TEST :: Run tests'
+      - name: "TEST :: Run tests"
         if: matrix.app.path != 'apps/harbour-api'
         run: bun run test
         working-directory: ${{ matrix.app.path }}
 
-      - name: 'INSTALL :: Chromium for component tests'
+      - name: "INSTALL :: Chromium for component tests"
         if: matrix.app.path == 'apps/atlas-app'
         run: bunx playwright install --with-deps chromium
         working-directory: ${{ matrix.app.path }}
 
-      - name: 'TEST :: Run browser component tests'
+      - name: "TEST :: Run browser component tests"
         if: matrix.app.path == 'apps/atlas-app'
         run: bun run test:browser
         working-directory: ${{ matrix.app.path }}
 
       # These two files each initialise SQLite fixture databases. Keep only
       # them serial while the other Harbour API test files run normally.
-      - name: 'TEST :: Run Harbour API tests serially'
+      - name: "TEST :: Run Harbour API tests serially"
         if: matrix.app.path == 'apps/harbour-api'
         run: bun run test:ci
         working-directory: ${{ matrix.app.path }}

@@ -19,15 +19,13 @@ const legend = $derived([
   { label: labels.unchanged, tone: 'bg-data-neutral' },
 ])
 </script>
-{#snippet chart(
-  rows: typeof distribution.rows,
-)}
+{#snippet chart(rows: typeof distribution.rows)}
   <div
     class="grid grid-cols-[minmax(0,1fr)_minmax(40px,2fr)_max-content] gap-x-3 gap-y-3 px-5 py-5"
   >
     {#each rows as row}
       <div class="col-span-3 grid grid-cols-subgrid items-center">
-        <p class="font-body text-label-md font-semibold text-primary wrap-break-word">
+        <p class="font-body text-label-md text-primary font-semibold wrap-break-word">
           {row.label}
         </p>
         <DistributionBar
@@ -36,7 +34,7 @@ const legend = $derived([
           ariaLabel={`${row.label}: ${row.count} ${distribution.valueLabel}`}
         />
         <p
-          class="font-mono text-right text-label-md font-bold tabular-nums text-primary"
+          class="text-label-md text-primary text-right font-mono font-bold tabular-nums"
         >
           {row.count}
         </p>
@@ -63,9 +61,9 @@ const legend = $derived([
 
   {@render chart(distribution.rows.slice(0, 12))}
   {#if distribution.rows.length > 12}
-    <details class="border-t border-data-outline-variant/60">
+    <details class="border-data-outline-variant/60 border-t">
       <summary
-        class="cursor-pointer px-5 py-4 text-label-md font-semibold text-data-primary focus-visible:outline-2 focus-visible:outline-data-primary"
+        class="text-label-md text-data-primary focus-visible:outline-data-primary cursor-pointer px-5 py-4 font-semibold focus-visible:outline-2"
       >
         Show {distribution.rows.length - 12} more
       </summary>
