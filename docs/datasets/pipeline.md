@@ -610,20 +610,20 @@ Use this as the review checklist for a source addition:
 - [ ] Provider profile, family/resource contract and normative spec are updated.
 - [ ] Dataset/source/variant identity, cohort and bridges are explicit.
 - [ ] Publisher, licence, dataset, release and any composition/API/bridge fixtures are
-  present and rehashed.
+      present and rehashed.
 - [ ] Merge-rule definitions include stable operation codes, `bulk`/`record` kind,
-  localised descriptions, mappings or bridge references, and are selected by each
-  applicable dataset fixture.
+      localised descriptions, mappings or bridge references, and are selected by each
+      applicable dataset fixture.
 - [ ] Publisher, source-retention and canonical schemas are correct; migrations and
-  reset drops are generated/updated.
+      reset drops are generated/updated.
 - [ ] Source-schema version mapping is registered.
 - [ ] DataOps preparation/backfill is defined and registered when required.
 - [ ] `saanseoi upload` dispatches to a tested local processor.
 - [ ] `saanseoi update` is deliberately automated or documented as manual.
 - [ ] Source/history/current/meta results, snapshots, stats, rollback and API release
-  assembly are tested.
+      assembly are tested.
 - [ ] Bulk and record audit rules, matching processing-action codes and
-  published-release audit immutability are tested.
+      published-release audit immutability are tested.
 - [ ] Source, family, resource and release documentation is complete.
 
 ## Storage timestamp ownership

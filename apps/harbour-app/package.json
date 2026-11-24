@@ -10,25 +10,25 @@
     "lint": "biome lint ."
   },
   "dependencies": {
-    "@iconify/svelte": "^5.2.3",
+    "@iconify/svelte": "^5.2.4",
     "@protomaps/basemaps": "^5.7.2",
     "@repo/basemap": "workspace:*",
-    "bits-ui": "^2.20.0",
-    "maplibre-gl": "^6.15.0",
-    "svelte": "^5.57.2",
+    "bits-ui": "^2.22.0",
+    "maplibre-gl": "^6.19.0",
+    "svelte": "^5.59.1",
     "@repo/core": "workspace:*",
     "jsts": "2.12.1",
     "drizzle-orm": "1.0.0-rc.5-5935859"
   },
   "devDependencies": {
-    "@inlang/paraglide-js": "3.0.0",
-    "@sveltejs/vite-plugin-svelte": "^7.3.1",
-    "@tailwindcss/vite": "^4.3.3",
-    "@types/node": "^26.6.5",
-    "svelte-check": "^4.7.7",
+    "@inlang/paraglide-js": "3.2.2",
+    "@sveltejs/vite-plugin-svelte": "^7.3.2",
+    "@tailwindcss/vite": "^4.3.5",
+    "@types/node": "^26.6.6",
+    "svelte-check": "^4.7.8",
     "typescript": "^6.0.3",
-    "vite": "^8.3.5",
-    "vitest": "^5.0.5",
-    "@cloudflare/workers-types": "5.20261021.1"
+    "vite": "^8.3.8",
+    "vitest": "^5.1.1",
+    "@cloudflare/workers-types": "5.20261124.1"
   }
 }

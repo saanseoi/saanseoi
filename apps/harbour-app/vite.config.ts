@@ -1,5 +1,5 @@
 import { resolve } from 'node:path'
-import { defineConfig } from 'vitest/config'
+import { defineConfig } from 'vite'
 import { svelte } from '@sveltejs/vite-plugin-svelte'
 import tailwindcss from '@tailwindcss/vite'
 import { paraglideVitePlugin } from '@inlang/paraglide-js'
@@ -54,9 +54,5 @@ export default defineConfig({
         'buildings/index.html',
       ],
     },
-  },
-  test: {
-    environment: 'node',
-    include: ['tests/**/*.test.ts', 'src/**/*.test.ts'],
   },
 })

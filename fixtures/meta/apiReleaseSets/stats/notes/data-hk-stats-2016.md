@@ -101,7 +101,7 @@ cohortKey }}</black> 參考期：即數值所描述的時間，而不一定是�
 - 不同來源可能採用各自的定義、單位、涵蓋範圍及品質檢查。比較或詮釋數值前，請閱讀
   <black>{{ primarySourceRelease }}</black> 的
   [source-release
-  notes]({{
+notes]({{
   primarySourceReleaseUrl }})，以及其他列出來源發布的附註。
 
 # ZH-HANS
@@ -143,5 +143,5 @@ cohortKey }}</black> 参考期：即数值所描述的时间，而不一定是�
 - 不同来源可能采用各自的定义、单位、涵盖范围及质量检查。比较或诠释数值前，请阅读
   <black>{{ primarySourceRelease }}</black> 的
   [source-release
-  notes]({{
+notes]({{
   primarySourceReleaseUrl }})，以及其他列出来源发布的说明。

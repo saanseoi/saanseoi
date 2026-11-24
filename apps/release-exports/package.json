@@ -11,12 +11,12 @@
   },
   "dependencies": {
     "@repo/core": "workspace:*",
-    "hono": "^4.13.13",
+    "hono": "^4.13.21",
     "@repo/db": "workspace:*"
   },
   "devDependencies": {
-    "@types/bun": "1.4.3",
+    "@types/bun": "1.4.5",
     "typescript": "^6.0.3",
-    "wrangler": "^4.151.3"
+    "wrangler": "^4.168.0"
   }
 }

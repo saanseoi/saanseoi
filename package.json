@@ -152,29 +152,29 @@
     "test:markdown": "bun test scripts/checks/markdown.test.ts"
   },
   "dependencies": {
-    "@inlang/paraglide-js": "^3.0.0",
-    "bits-ui": "^2.20.0",
-    "bun-types": "^1.4.3",
+    "@inlang/paraglide-js": "^3.2.2",
+    "bits-ui": "^2.22.0",
+    "bun-types": "^1.4.5",
     "drizzle-orm": "1.0.0-rc.5-5935859",
-    "tailwindcss": "^4.3.3"
+    "tailwindcss": "^4.3.5"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.6.5",
+    "@biomejs/biome": "2.6.9",
     "@changesets/cli": "^3.0.3",
     "@commitlint/cli": "^21.2.4",
     "@commitlint/config-conventional": "^21.2.4",
-    "@iconify-json/simple-icons": "^1.2.100",
-    "@iconify/svelte": "^5.2.3",
-    "@tailwindcss/upgrade": "^4.3.3",
-    "@types/bun": "1.4.3",
+    "@iconify-json/simple-icons": "^1.2.104",
+    "@iconify/svelte": "^5.2.4",
+    "@tailwindcss/upgrade": "^4.3.5",
+    "@types/bun": "1.4.5",
     "branch-name-lint": "^3.0.1",
     "comment-json": "^5.0.0",
     "drizzle-kit": "1.0.0-rc.5-5935859",
-    "drizzle-migration-lint": "^0.4.0",
+    "drizzle-migration-lint": "^0.5.0",
     "husky": "^9.1.7",
     "tailwindcss-animate": "^1.0.7",
-    "turbo": "^2.11.10",
-    "wrangler": "^4.151.3"
+    "turbo": "^2.11.13",
+    "wrangler": "^4.168.0"
   },
   "peerDependencies": {
     "typescript": "^6.0.3"

@@ -38,7 +38,7 @@
     "access": "public"
   },
   "peerDependencies": {
-    "proj4": "^2.22.0"
+    "proj4": "^2.23.0"
   },
   "peerDependenciesMeta": {
     "proj4": {
@@ -47,7 +47,7 @@
   },
   "devDependencies": {
     "typescript": "^6.0.3",
-    "proj4": "^2.22.0"
+    "proj4": "^2.23.0"
   },
   "repository": {
     "type": "git",
