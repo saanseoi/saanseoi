@@ -32,10 +32,10 @@ let {
 
 <header class="bg-data-surface-container-lowest dark:border-data-outline-variant">
   <div
-    class="flex flex-col gap-3 px-6 py-3 xs:flex-row xs:items-center xs:justify-between xs:gap-4 md:px-8"
+    class="xs:flex-row xs:items-center xs:justify-between xs:gap-4 flex flex-col gap-3 px-6 py-3 md:px-8"
   >
     <a
-      class="group flex min-w-0 flex-1 items-center gap-4 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-data-primary"
+      class="group focus-visible:outline-data-primary flex min-w-0 flex-1 items-center gap-4 focus-visible:outline-2 focus-visible:-outline-offset-2"
       {href}
       aria-label={title}
     >
@@ -43,7 +43,7 @@ let {
         <img class="size-14 shrink-0 object-contain" src={publisherLogo} alt="">
         <div class="min-w-0">
           <p
-            class="truncate font-body text-caption font-semibold tracking-widest uppercase text-data-primary"
+            class="font-body text-caption text-data-primary truncate font-semibold tracking-widest uppercase"
           >
             {resourceType}
             {#if region}
@@ -51,7 +51,7 @@ let {
             {/if}
           </p>
           <p
-            class="mt-1 line-clamp-2 font-display text-title-md font-bold tracking-tight text-data-on-surface"
+            class="font-display text-title-md text-data-on-surface mt-1 line-clamp-2 font-bold tracking-tight"
             {title}
           >
             {title}
@@ -59,7 +59,7 @@ let {
         </div>
       </div>
     </a>
-    <div class="ml-auto max-[30rem]:hidden">
+    <div class="max-xs:hidden ml-auto">
       <Actions
         {releasesHref}
         {releasesLabel}
