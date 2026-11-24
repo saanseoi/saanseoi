@@ -631,6 +631,11 @@ export const initialApiCompositionMembers: InitialApiCompositionMemberSeed[] =
 export const apiDomainCodeRenames = [
   {
     apiVersion: 'api-addresses-v0.1',
+    from: 'physical',
+    to: 'saanseoi',
+  },
+  {
+    apiVersion: 'api-addresses-v0.1',
     from: 'default',
     to: 'saanseoi',
   },

@@ -1,6 +1,47 @@
 import { expect, test } from 'bun:test'
 import { loadAddressSample, loadReleaseSamples } from './loadReleaseSamples'
 
+test('seeks inside canonical prefixed UUIDs instead of repeating the first address', async () => {
+  const records = [
+    { id: 'ss-00000000-0000-0000-0000-000000000000' },
+    { id: 'ss-ffffffff-ffff-ffff-ffff-ffffffffffff' },
+  ]
+  const seeks: string[] = []
+  const result = await loadAddressSample(async after => {
+    seeks.push(after)
+    return records.filter(record => record.id > after).slice(0, 1)
+  })
+  expect(result).toEqual([records[1]])
+  expect(seeks).toHaveLength(2)
+  expect(seeks[1]).toMatch(
+    /^ss-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
+  )
+})
+
+test('prefixed UUID samples wrap to their namespace when the random pivot is past its end', async () => {
+  const first = { id: 'ss-00000000-0000-0000-0000-000000000000' }
+  const seeks: string[] = []
+  const result = await loadAddressSample(async after => {
+    seeks.push(after)
+    return first.id > after ? [first] : []
+  })
+  expect(result).toEqual([first])
+  expect(seeks).toHaveLength(3)
+  expect(seeks[2]).toBe('ss-')
+})
+
+test('bare UUID samples do not add an identifier namespace', async () => {
+  const record = { id: 'ffffffff-ffff-ffff-ffff-ffffffffffff' }
+  let calls = 0
+  expect(
+    await loadAddressSample(async () => {
+      calls++
+      return [record]
+    }),
+  ).toEqual([record])
+  expect(calls).toBe(1)
+})
+
 test('seeks inside a hash-prefixed namespace and wraps at its end', async () => {
   const seeks: string[] = []
   const first = { id: `opa-${'0'.repeat(64)}` }
