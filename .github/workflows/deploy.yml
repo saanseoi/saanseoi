@@ -73,12 +73,14 @@ jobs:
               - 'apps/atlas-api/**'
               - 'libs/config-typescript/**'
               - 'libs/core/**'
+              - 'libs/address/**'
               - 'libs/db/**'
             atlas-app:
               - 'bun.lock'
               - 'package.json'
               - 'apps/atlas-app/**'
               - 'libs/config-typescript/**'
+              - 'libs/address/**'
               - 'libs/db/**'
             harbour-api:
               - 'bun.lock'
@@ -86,6 +88,7 @@ jobs:
               - 'apps/harbour-api/**'
               - 'libs/config-typescript/**'
               - 'libs/core/**'
+              - 'libs/address/**'
               - 'libs/db/**'
             harbour-workers:
               - 'bun.lock'
@@ -93,6 +96,7 @@ jobs:
               - 'apps/harbour-workers/**'
               - 'libs/config-typescript/**'
               - 'libs/core/**'
+              - 'libs/address/**'
               - 'libs/db/**'
 
       - name: "INSTALL :: Bun"
@@ -109,6 +113,9 @@ jobs:
       - name: "INSTALL :: Dependencies"
         if: steps.cache-deps.outputs.cache-hit != 'true'
         run: bun install --frozen-lockfile
+
+      - name: "BUILD :: Address package"
+        run: bun run --filter @saanseoi/address build
 
       - name: "LINT :: D1 Migrations"
         run: bun run db:migration:lint
@@ -293,12 +300,14 @@ jobs:
               - 'apps/atlas-api/**'
               - 'libs/config-typescript/**'
               - 'libs/core/**'
+              - 'libs/address/**'
               - 'libs/db/**'
             atlas-app:
               - 'bun.lock'
               - 'package.json'
               - 'apps/atlas-app/**'
               - 'libs/config-typescript/**'
+              - 'libs/address/**'
               - 'libs/db/**'
             basemap-tiles:
               - 'bun.lock'
@@ -317,6 +326,7 @@ jobs:
               - 'apps/harbour-api/**'
               - 'libs/config-typescript/**'
               - 'libs/core/**'
+              - 'libs/address/**'
               - 'libs/db/**'
             harbour-workers:
               - 'bun.lock'
@@ -324,6 +334,7 @@ jobs:
               - 'apps/harbour-workers/**'
               - 'libs/config-typescript/**'
               - 'libs/core/**'
+              - 'libs/address/**'
               - 'libs/db/**'
             telegram-discord-bridge:
               - 'bun.lock'
@@ -345,6 +356,9 @@ jobs:
       - name: "INSTALL :: Dependencies"
         if: steps.cache-deps.outputs.cache-hit != 'true'
         run: bun install --frozen-lockfile
+
+      - name: "BUILD :: Address package"
+        run: bun run --filter @saanseoi/address build
 
       - name: "LINT :: D1 Migrations"
         run: bun run db:migration:lint
