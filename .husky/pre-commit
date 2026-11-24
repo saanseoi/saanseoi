@@ -1,4 +1,4 @@
 #!/usr/bin/env sh
 
-# Validate staged content without rewriting working files or the index.
+# Apply safe Biome fixes and sort Tailwind classes in the staged snapshot.
 bun run scripts/checks/staged-lint.ts

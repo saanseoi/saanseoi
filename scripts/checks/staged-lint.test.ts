@@ -54,16 +54,51 @@ afterEach(() => {
 })
 
 describe('staged lint snapshot', () => {
-  test('rejects unformatted staged JSONC even when the working copy is fixed', () => {
+  test('applies safe lint fixes and formatting to staged content', () => {
+    const root = fixture()
+    write(root, 'safe.ts', 'let value=1\nconsole.log(value)\n')
+    git(root, ['add', 'safe.ts'])
+    checkStaged(root)
+    const staged = Bun.spawnSync(['git', 'show', ':safe.ts'], { cwd: root })
+    expect(staged.stdout.toString()).toBe('const value = 1;\nconsole.log(value);\n')
+    expect(readFileSync(join(root, 'safe.ts'), 'utf8')).toBe(staged.stdout.toString())
+  })
+
+  test('sorts staged classes and updates an unchanged working file', () => {
+    const root = fixture()
+    write(root, 'view.tsx', 'export const view = <div className="p-4 flex" />;\n')
+    git(root, ['add', 'view.tsx'])
+    checkStaged(root)
+    const content = readFileSync(join(root, 'view.tsx'), 'utf8')
+    expect(content).toContain('className="flex p-4"')
+    const staged = Bun.spawnSync(['git', 'show', ':view.tsx'], { cwd: root })
+    expect(staged.stdout.toString()).toBe(content)
+  })
+
+  test('sorts the index without overwriting partially staged working changes', () => {
+    const root = fixture()
+    write(root, 'view.tsx', 'export const view = <div className="p-4 flex" />;\n')
+    git(root, ['add', 'view.tsx'])
+    const working = 'export const view = <div className="p-4 flex">Draft</div>\n'
+    write(root, 'view.tsx', working)
+    checkStaged(root)
+    expect(readFileSync(join(root, 'view.tsx'), 'utf8')).toBe(working)
+    const staged = Bun.spawnSync(['git', 'show', ':view.tsx'], { cwd: root })
+    expect(staged.stdout.toString()).toContain('className="flex p-4"')
+  })
+
+  test('formats staged JSONC while preserving a different working copy', () => {
     const root = fixture()
     write(root, 'a space/config.jsonc', '{"value":2}')
     git(root, ['add', 'a space/config.jsonc'])
-    write(root, 'a space/config.jsonc', '{ "value": 2 }\n')
-    const index = readFileSync(join(root, '.git/index'))
-    expect(() => checkStaged(root)).toThrow()
-    expect(readFileSync(join(root, '.git/index'))).toEqual(index)
+    write(root, 'a space/config.jsonc', '{ "value": 3 }\n')
+    expect(() => checkStaged(root)).not.toThrow()
+    const staged = Bun.spawnSync(['git', 'show', ':a space/config.jsonc'], {
+      cwd: root,
+    })
+    expect(staged.stdout.toString()).toBe('{ "value": 2 }\n')
     expect(readFileSync(join(root, 'a space/config.jsonc'), 'utf8')).toBe(
-      '{ "value": 2 }\n',
+      '{ "value": 3 }\n',
     )
   })
 
@@ -83,7 +118,7 @@ describe('staged lint snapshot', () => {
       'warnings.ts',
       'const value: string | null = null\nconsole.log(value!)\n',
     )
-    write(root, 'broken.json', '{"value":2}')
+    write(root, 'broken.json', '{"value":')
     git(root, ['add', 'warnings.ts', 'broken.json'])
     let diagnostic = ''
     try {
@@ -92,7 +127,6 @@ describe('staged lint snapshot', () => {
       diagnostic = String(error)
     }
     expect(diagnostic).toContain('broken.json')
-    expect(diagnostic).toContain('format')
     expect(diagnostic).not.toContain('noNonNullAssertion')
   })
 
@@ -149,15 +183,17 @@ describe('staged lint snapshot', () => {
     write(root, 'llms.txt', '#  Title\n\n- item\n')
     git(root, ['add', 'llms.txt'])
     write(root, 'llms.txt', '# Title\n\n- item\n')
-    expect(() => checkStaged(root)).toThrow('llms.txt: Markdown formatting differs')
+    expect(() => checkStaged(root)).not.toThrow()
+    const staged = Bun.spawnSync(['git', 'show', ':llms.txt'], { cwd: root })
+    expect(staged.stdout.toString()).toBe('# Title\n\n- item\n')
     expect(readFileSync(join(root, 'llms.txt'), 'utf8')).toBe('# Title\n\n- item\n')
   })
 
-  test('checks Markdown without rewriting it', () => {
+  test('formats staged Markdown', () => {
     const root = fixture()
     write(root, 'notes.md', '#  Title\n\n- item\n')
     git(root, ['add', 'notes.md'])
-    expect(() => checkStaged(root)).toThrow()
-    expect(readFileSync(join(root, 'notes.md'), 'utf8')).toBe('#  Title\n\n- item\n')
+    expect(() => checkStaged(root)).not.toThrow()
+    expect(readFileSync(join(root, 'notes.md'), 'utf8')).toBe('# Title\n\n- item\n')
   })
 })

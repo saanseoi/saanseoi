@@ -2,10 +2,12 @@
 import {
   copyFileSync,
   existsSync,
+  lstatSync,
   mkdtempSync,
   readFileSync,
   rmSync,
   symlinkSync,
+  writeFileSync,
 } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
@@ -33,7 +35,7 @@ function run(args: string[], cwd: string, env: NodeJS.ProcessEnv): string {
 }
 
 /**
- * Validate an immutable copy of the staged tree without rewriting either index or files.
+ * Apply Biome's safe fixes and Tailwind class sorting to a staged snapshot, then validate it.
  * @param cwd Directory within the repository to validate.
  * @returns Nothing when all staged content passes the configured checks.
  * @remarks Configuration, tool-version and lockfile changes check the full Markdown tree.
@@ -107,37 +109,105 @@ export function checkStaged(cwd = process.cwd()): void {
       throw new Error('The staged tree must retain its Biome configuration.')
     }
     const biome = join(toolsRoot, 'node_modules/.bin/biome')
+    const regularFiles = files.filter(file => lstatSync(join(snapshot, file)).isFile())
+    const originals = new Map(
+      regularFiles.map(file => [file, readFileSync(join(snapshot, file))]),
+    )
+    let validationError: unknown
+    for (let i = 0; i < regularFiles.length; i += 100) {
+      try {
+        run(
+          [
+            biome,
+            'lint',
+            '--write',
+            '--unsafe',
+            '--only=lint/nursery/useTailwindSortedClasses',
+            '--no-errors-on-unmatched',
+            '--files-ignore-unknown=true',
+            ...regularFiles.slice(i, i + 100).map(file => `./${file}`),
+          ],
+          snapshot,
+          toolEnv,
+        )
+      } catch (error) {
+        validationError ??= error
+      }
+    }
     const batches = Array.from({ length: Math.ceil(files.length / 100) }, (_, i) =>
       files.slice(i * 100, (i + 1) * 100).map(file => `./${file}`),
     )
     for (const paths of batches) {
-      run(
-        [
-          biome,
-          'check',
-          // Advisory warnings must not consume the diagnostic limit and hide blockers.
-          '--diagnostic-level=error',
-          '--max-diagnostics=none',
-          '--no-errors-on-unmatched',
-          '--files-ignore-unknown=true',
-          ...paths,
-        ],
-        snapshot,
-        toolEnv,
-      )
+      try {
+        run(
+          [
+            biome,
+            'check',
+            '--write',
+            // Advisory warnings must not consume the diagnostic limit and hide blockers.
+            '--diagnostic-level=error',
+            '--max-diagnostics=none',
+            '--no-errors-on-unmatched',
+            '--files-ignore-unknown=true',
+            ...paths,
+          ],
+          snapshot,
+          toolEnv,
+        )
+      } catch (error) {
+        validationError ??= error
+      }
     }
+    formatMarkdown(
+      regularFiles.filter(file => /(^|\/)llms\.txt$/.test(file)),
+      snapshot,
+      true,
+      toolEnv,
+    )
     // Recheck all Markdown after policy changes; adapt .txt using the staged configuration.
     const markdownCandidates = fullTree
       ? run(['git', 'ls-files', '-z'], repository, gitEnv).split('\0')
       : files
-    formatMarkdown(
-      markdownCandidates.filter(
-        file => (fullTree && file.endsWith('.md')) || /(^|\/)llms\.txt$/.test(file),
-      ),
-      snapshot,
-      false,
-      toolEnv,
+    try {
+      formatMarkdown(
+        markdownCandidates.filter(
+          file => (fullTree && file.endsWith('.md')) || /(^|\/)llms\.txt$/.test(file),
+        ),
+        snapshot,
+        false,
+        toolEnv,
+      )
+    } catch (error) {
+      validationError ??= error
+    }
+    const fixed = regularFiles.filter(
+      file => !originals.get(file)?.equals(readFileSync(join(snapshot, file))),
     )
+    if (fixed.length) {
+      // Apply a patch to the real index atomically; fail on conflicting staged changes.
+      const before = run(['git', 'write-tree'], repository, gitEnv).trim()
+      run(['git', `--work-tree=${snapshot}`, 'add', '--', ...fixed], repository, gitEnv)
+      const after = run(['git', 'write-tree'], repository, gitEnv).trim()
+      const patch = run(
+        ['git', 'diff', '--binary', before, after, '--'],
+        repository,
+        gitEnv,
+      )
+      const patchFile = join(temporary, 'staged-fixes.patch')
+      writeFileSync(patchFile, patch)
+      run(['git', 'apply', '--cached', '--', patchFile], repository, process.env)
+      for (const file of fixed) {
+        const path = join(repository, file)
+        if (
+          lstatSync(path, { throwIfNoEntry: false })?.isFile() &&
+          originals.get(file)?.equals(readFileSync(path))
+        ) {
+          writeFileSync(path, readFileSync(join(snapshot, file)))
+        }
+      }
+      console.log(`Applied Biome fixes to ${fixed.length} staged file(s).`)
+    }
+    if (validationError) throw validationError
   } finally {
     rmSync(temporary, { recursive: true, force: true })
   }
@@ -146,7 +216,7 @@ export function checkStaged(cwd = process.cwd()): void {
 if (import.meta.main) {
   try {
     checkStaged()
-    console.log('Staged lint checks passed; no files were rewritten.')
+    console.log('Staged lint checks passed.')
   } catch (error) {
     console.error(error instanceof Error ? error.message : error)
     console.error(
